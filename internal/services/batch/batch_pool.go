@@ -172,11 +172,11 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 			if armResourceFile.AutoStorageContainerName != nil {
 				resourceFile["auto_storage_container_name"] = *armResourceFile.AutoStorageContainerName
 			}
-			if armResourceFile.StorageContainerUrl != nil {
-				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerUrl
+			if armResourceFile.StorageContainerURL != nil {
+				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerURL
 			}
-			if armResourceFile.HTTPUrl != nil {
-				resourceFile["http_url"] = *armResourceFile.HTTPUrl
+			if armResourceFile.HTTPURL != nil {
+				resourceFile["http_url"] = *armResourceFile.HTTPURL
 			}
 			if armResourceFile.BlobPrefix != nil {
 				resourceFile["blob_prefix"] = *armResourceFile.BlobPrefix
@@ -358,7 +358,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		azureFileShareConfigList := make([]interface{}, 0)
 		azureFileShareConfig := make(map[string]interface{})
 		azureFileShareConfig["account_name"] = config.AzureFileShareConfiguration.AccountName
-		azureFileShareConfig["azure_file_url"] = config.AzureFileShareConfiguration.AzureFileUrl
+		azureFileShareConfig["azure_file_url"] = config.AzureFileShareConfiguration.AzureFileURL
 		azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", config.AzureFileShareConfiguration.AccountName, "azure_file_share", d)
 		azureFileShareConfig["relative_mount_path"] = config.AzureFileShareConfiguration.RelativeMountPath
 
@@ -659,13 +659,13 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 		if v, ok := resourceFileValue["storage_container_url"]; ok {
 			storageContainerURL := v.(string)
 			if storageContainerURL != "" {
-				resourceFile.StorageContainerUrl = &storageContainerURL
+				resourceFile.StorageContainerURL = &storageContainerURL
 			}
 		}
 		if v, ok := resourceFileValue["http_url"]; ok {
 			httpURL := v.(string)
 			if httpURL != "" {
-				resourceFile.HTTPUrl = &httpURL
+				resourceFile.HTTPURL = &httpURL
 			}
 		}
 		if v, ok := resourceFileValue["blob_prefix"]; ok {
@@ -1057,7 +1057,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*pool.Azure
 	result := pool.AzureFileShareConfiguration{
 		AccountName:       configMap["account_name"].(string),
 		AccountKey:        configMap["account_key"].(string),
-		AzureFileUrl:      configMap["azure_file_url"].(string),
+		AzureFileURL:      configMap["azure_file_url"].(string),
 		RelativeMountPath: configMap["relative_mount_path"].(string),
 	}
 

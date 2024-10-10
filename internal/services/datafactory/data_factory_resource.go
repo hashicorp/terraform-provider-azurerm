@@ -278,7 +278,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseURL: keyVaultKey.KeyVaultBaseURL,
+			VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &factories.CMKIdentityDefinition{
