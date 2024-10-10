@@ -193,6 +193,10 @@ resource "azurerm_resource_group_cost_management_view" "test" {
   dataset {
     granularity = "Daily"
     aggregation {
+      name        = "totalCost"
+      column_name = "Cost"
+    }
+    aggregation {
       name        = "totalCostUSD"
       column_name = "CostUSD"
     }
