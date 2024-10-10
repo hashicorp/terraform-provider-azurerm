@@ -44,7 +44,7 @@ func TestAccSearchService_freeSku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "free"),
+			Config: r.semanticSearchBasic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
