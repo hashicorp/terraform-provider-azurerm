@@ -140,13 +140,13 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
   customer_contacts   = ["test@test.com"]
 
   maintenance_window {
-    days_of_week                     = ["Monday"]
-    hours_of_day                     = [4]
-    months                           = ["January"]
-    weeks_of_month                   = [2]
-    lead_time_in_weeks               = 1
-    patching_mode                    = "Rolling"
-    preference                       = "NoPreference"
+    days_of_week       = ["Monday"]
+    hours_of_day       = [4]
+    months             = ["January"]
+    weeks_of_month     = [2]
+    lead_time_in_weeks = 1
+    patching_mode      = "Rolling"
+    preference         = "NoPreference"
   }
 
   tags = {
