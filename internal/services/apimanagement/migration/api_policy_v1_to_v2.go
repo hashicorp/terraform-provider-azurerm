@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apipolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apipolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
