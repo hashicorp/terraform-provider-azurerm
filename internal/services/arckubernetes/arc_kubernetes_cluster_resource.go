@@ -173,7 +173,6 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("identity", identity.FlattenSystemAssigned(&model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
 		d.Set("agent_public_key_certificate", props.AgentPublicKeyCertificate)
