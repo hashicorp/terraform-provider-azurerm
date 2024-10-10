@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App is running.
 
+* `max_inactive_revisions` - The max inactive revisions for this Container App.
+
 * `tags` - A mapping of tags to assign to the Container App.
 
 ---

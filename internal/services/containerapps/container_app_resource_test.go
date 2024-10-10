@@ -576,6 +576,44 @@ func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_maxInactiveRevisionsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.maxInactiveRevisionsValidation(data, -1),
+			ExpectError: regexp.MustCompile("max_inactive_revisions must be between 0 and 100"),
+		},
+		{
+			Config:      r.maxInactiveRevisionsValidation(data, 101),
+			ExpectError: regexp.MustCompile("max_inactive_revisions must be between 0 and 100"),
+		},
+	})
+}
+
+func TestAccContainerAppResource_maxInactiveRevisionsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.maxInactiveRevisionsChange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -1304,6 +1342,7 @@ resource "azurerm_container_app" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
+  max_inactive_revisions       = 25
 
   template {
     container {
@@ -2831,4 +2870,41 @@ traffic_weight {
   percentage = 100
 }
 `
+}
+
+func (r ContainerAppResource) maxInactiveRevisionsChange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  max_inactive_revisions       = 50
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) maxInactiveRevisionsValidation(data acceptance.TestData, maxInactiveResivions int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  max_inactive_revisions       = %d
+}
+`, r.template(data), data.RandomInteger, maxInactiveResivions)
 }
