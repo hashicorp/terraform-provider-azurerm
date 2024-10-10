@@ -56,18 +56,61 @@ func resourceDataFactoryPipeline() *pluginsdk.Resource {
 			},
 
 			"parameters": {
-				Type:     pluginsdk.TypeMap,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"default_value": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(datafactory.ParameterTypeString),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(datafactory.ParameterTypeString),
+								string(datafactory.ParameterTypeInt),
+								string(datafactory.ParameterTypeFloat),
+								string(datafactory.ParameterTypeBool),
+								string(datafactory.ParameterTypeArray),
+								string(datafactory.ParameterTypeObject),
+								string(datafactory.ParameterTypeSecureString),
+							}, false),
+						},
+					},
 				},
 			},
 
 			"variables": {
-				Type:     pluginsdk.TypeMap,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"default_value": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(datafactory.VariableTypeString),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(datafactory.VariableTypeString),
+								string(datafactory.VariableTypeArray),
+							}, false),
+						},
+					},
 				},
 			},
 
@@ -141,10 +184,11 @@ func resourceDataFactoryPipelineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	pipeline := &azuresdkhacks.Pipeline{
-		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
-		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
 		Description: utils.String(d.Get("description").(string)),
 	}
+
+	pipeline.Parameters = expandDataFactoryParameters(d.Get("parameters").(*pluginsdk.Set).List())
+	pipeline.Variables = expandDataFactoryVariables(d.Get("variables").(*pluginsdk.Set).List())
 
 	if v, ok := d.GetOk("activities_json"); ok {
 		activities, err := deserializeDataFactoryPipelineActivities(v.(string))
@@ -230,6 +274,11 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
+		variables := flattenDataFactoryVariables(props.Variables)
+		if err := d.Set("variables", variables); err != nil {
+			return fmt.Errorf("setting `variables`: %+v", err)
+		}
+
 		annotations := flattenDataFactoryAnnotations(props.Annotations)
 		if err := d.Set("annotations", annotations); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
@@ -253,11 +302,6 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 			if folder.Name != nil {
 				d.Set("folder", folder.Name)
 			}
-		}
-
-		variables := flattenDataFactoryVariables(props.Variables)
-		if err := d.Set("variables", variables); err != nil {
-			return fmt.Errorf("setting `variables`: %+v", err)
 		}
 
 		if activities := props.Activities; activities != nil {
