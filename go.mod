@@ -35,6 +35,8 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/tombuildsstuff/giovanni v0.27.0
 	github.com/tombuildsstuff/kermit v0.20240122.1123108
+	github.com/jackofallops/giovanni v0.27.0
+	github.com/jackofallops/kermit v0.20240122.1123108
 	golang.org/x/crypto v0.23.0
 	golang.org/x/tools v0.19.0
 	gopkg.in/yaml.v3 v3.0.1

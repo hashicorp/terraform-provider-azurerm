@@ -1372,7 +1372,7 @@ github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
 ## explicit; go 1.18
-github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration
+github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
