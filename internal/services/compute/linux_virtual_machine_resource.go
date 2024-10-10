@@ -244,6 +244,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"SLES_BYOS",
 					"SLES_SAP",
 					"SLES_HPC",
+					"UBUNTU_PRO",
 				}, false),
 			},
 
