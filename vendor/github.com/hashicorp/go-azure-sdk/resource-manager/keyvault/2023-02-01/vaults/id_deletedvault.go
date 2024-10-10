@@ -113,9 +113,9 @@ func (id DeletedVaultId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDeletedVaults", "deletedVaults", "deletedVaults"),
-		resourceids.UserSpecifiedSegment("deletedVaultName", "vaultName"),
+		resourceids.UserSpecifiedSegment("deletedVaultName", "deletedVaultName"),
 	}
 }
 

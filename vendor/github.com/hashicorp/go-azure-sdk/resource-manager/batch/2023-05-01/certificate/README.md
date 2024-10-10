@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "certificateName")
 
 read, err := client.CancelDeletion(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "certificateName")
 
 payload := certificate.CertificateCreateOrUpdateParameters{
 	// ...
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "certificateName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -73,7 +73,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "certificateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+id := certificate.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName")
 
 // alternatively `client.ListByBatchAccount(ctx, id, certificate.DefaultListByBatchAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByBatchAccountComplete(ctx, id, certificate.DefaultListByBatchAccountOperationOptions())
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "certificateName")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "certificateName")
 
 payload := certificate.CertificateCreateOrUpdateParameters{
 	// ...

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayName")
 
 if err := client.ResetThenPoll(ctx, id, vpngateways.DefaultResetOperationOptions()); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.ResetThenPoll(ctx, id, vpngateways.DefaultResetOperationOptions
 
 ```go
 ctx := context.TODO()
-id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayName")
 
 payload := vpngateways.VpnGatewayPacketCaptureStartParameters{
 	// ...
@@ -53,7 +53,7 @@ if err := client.StartPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayName")
 
 payload := vpngateways.VpnGatewayPacketCaptureStopParameters{
 	// ...
@@ -70,7 +70,7 @@ if err := client.StopPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := vpngateways.NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vpnGatewayName")
 
 payload := vpngateways.TagsObject{
 	// ...

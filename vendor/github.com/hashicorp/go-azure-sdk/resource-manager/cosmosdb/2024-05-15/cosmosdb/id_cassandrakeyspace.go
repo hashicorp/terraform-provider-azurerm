@@ -121,9 +121,9 @@ func (id CassandraKeyspaceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticCassandraKeyspaces", "cassandraKeyspaces", "cassandraKeyspaces"),
-		resourceids.UserSpecifiedSegment("cassandraKeyspaceName", "keyspaceName"),
+		resourceids.UserSpecifiedSegment("cassandraKeyspaceName", "cassandraKeyspaceName"),
 	}
 }
 

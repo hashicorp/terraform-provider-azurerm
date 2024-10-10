@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
+id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
 
 payload := configurations.ConfigurationListForBatchUpdate{
 	// ...
@@ -46,7 +46,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "configurationName")
 
 payload := configurations.Configuration{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
+id := configurations.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
 
 // alternatively `client.ListByServer(ctx, id, configurations.DefaultListByServerOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id, configurations.DefaultListByServerOperationOptions())
@@ -96,7 +96,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "configurationName")
 
 payload := configurations.Configuration{
 	// ...

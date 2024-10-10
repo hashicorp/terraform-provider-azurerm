@@ -22,7 +22,7 @@ type BackupItemProperties struct {
 	Scheduled            *bool                    `json:"scheduled,omitempty"`
 	SizeInBytes          *int64                   `json:"sizeInBytes,omitempty"`
 	Status               *BackupItemStatus        `json:"status,omitempty"`
-	StorageAccountUrl    *string                  `json:"storageAccountUrl,omitempty"`
+	StorageAccountURL    *string                  `json:"storageAccountUrl,omitempty"`
 	WebsiteSizeInBytes   *int64                   `json:"websiteSizeInBytes,omitempty"`
 }
 

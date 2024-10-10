@@ -178,14 +178,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `GlobalRulestackClient.ListPredefinedUrlCategories`
+### Example Usage: `GlobalRulestackClient.ListPredefinedURLCategories`
 
 ```go
 ctx := context.TODO()
 id := globalrulestack.NewGlobalRulestackID("globalRulestackName")
 
-// alternatively `client.ListPredefinedUrlCategories(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())` can be used to do batched pagination
-items, err := client.ListPredefinedUrlCategoriesComplete(ctx, id, globalrulestack.DefaultListPredefinedUrlCategoriesOperationOptions())
+// alternatively `client.ListPredefinedURLCategories(ctx, id, globalrulestack.DefaultListPredefinedURLCategoriesOperationOptions())` can be used to do batched pagination
+items, err := client.ListPredefinedURLCategoriesComplete(ctx, id, globalrulestack.DefaultListPredefinedURLCategoriesOperationOptions())
 if err != nil {
 	// handle the error
 }

@@ -5,5 +5,5 @@ package redisenterprise
 
 type ClusterPropertiesEncryptionCustomerManagedKeyEncryption struct {
 	KeyEncryptionKeyIdentity *ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity `json:"keyEncryptionKeyIdentity,omitempty"`
-	KeyEncryptionKeyUrl      *string                                                                          `json:"keyEncryptionKeyUrl,omitempty"`
+	KeyEncryptionKeyURL      *string                                                                          `json:"keyEncryptionKeyUrl,omitempty"`
 }

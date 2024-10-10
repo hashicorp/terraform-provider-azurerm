@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := diagnosticsettingscategories.NewScopedDiagnosticSettingsCategoryID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "name")
+id := diagnosticsettingscategories.NewScopedDiagnosticSettingsCategoryID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "diagnosticSettingsCategoryName")
 
 read, err := client.DiagnosticSettingsCategoryGet(ctx, id)
 if err != nil {
