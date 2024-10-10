@@ -157,7 +157,7 @@ func TestAccAppConfigurationKey_basicNoValue(t *testing.T) {
 	r := AppConfigurationKeyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicNoLabel(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
