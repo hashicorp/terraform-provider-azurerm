@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/consumption/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -153,13 +152,10 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
 					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/16240
-					// Toggling between these two values doesn't work at the moment and also doesn't throw an error
-					// but it seems unlikely that a user would switch the threshold_type of their budgets frequently
 					"threshold_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  string(budgets.ThresholdTypeActual),
-						ForceNew: true, // TODO: remove this when the above issue is fixed
 						ValidateFunc: validation.StringInSlice([]string{
 							string(budgets.ThresholdTypeActual),
 							"Forecasted",
@@ -244,82 +240,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		output["filter"].Elem.(*pluginsdk.Resource).Schema["not"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			MaxItems:     1,
-			Deprecated:   "This property has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.",
-			AtLeastOneOf: []string{"filter.0.dimension", "filter.0.tag", "filter.0.not"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"dimension": {
-						Type:         pluginsdk.TypeList,
-						MaxItems:     1,
-						Optional:     true,
-						ExactlyOneOf: []string{"filter.0.not.0.tag"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(getDimensionNames(), false),
-								},
-								"operator": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "In",
-									ValidateFunc: validation.StringInSlice([]string{
-										"In",
-									}, false),
-								},
-								"values": {
-									Type:     pluginsdk.TypeList,
-									MinItems: 1,
-									Required: true,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-					"tag": {
-						Type:         pluginsdk.TypeList,
-						MaxItems:     1,
-						Optional:     true,
-						ExactlyOneOf: []string{"filter.0.not.0.dimension"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-								},
-								"operator": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default:  "In",
-									ValidateFunc: validation.StringInSlice([]string{
-										"In",
-									}, false),
-								},
-								"values": {
-									Type:     pluginsdk.TypeList,
-									Required: true,
-									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
 	// Consumption Budgets for Management Groups have a different notification schema,
 	// here we override the notification schema in the base resource
 	for k, v := range fields {
@@ -384,7 +304,7 @@ func (br consumptionBudgetBaseResource) readFunc(scopeFieldName string) sdk.Reso
 			}
 
 			metadata.ResourceData.Set("name", id.BudgetName)
-			//lintignore:R001
+			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if model := resp.Model; model != nil {
@@ -700,22 +620,6 @@ func expandConsumptionBudgetFilter(i []interface{}) *budgets.BudgetFilter {
 
 	filter := budgets.BudgetFilter{}
 
-	if !features.FourPointOhBeta() {
-		notBlock := input["not"].([]interface{})
-		if len(notBlock) != 0 && notBlock[0] != nil {
-			not := notBlock[0].(map[string]interface{})
-
-			tags := expandConsumptionBudgetFilterTag(not["tag"].([]interface{}))
-			dimensions := expandConsumptionBudgetFilterDimensions(not["dimension"].([]interface{}))
-
-			if len(dimensions) != 0 {
-				filter.Not = &dimensions[0]
-			} else if len(tags) != 0 {
-				filter.Not = &tags[0]
-			}
-		}
-	}
-
 	tags := expandConsumptionBudgetFilterTag(input["tag"].(*pluginsdk.Set).List())
 	dimensions := expandConsumptionBudgetFilterDimensions(input["dimension"].(*pluginsdk.Set).List())
 
@@ -755,24 +659,6 @@ func flattenConsumptionBudgetFilter(input *budgets.BudgetFilter) []interface{} {
 	tags := make([]interface{}, 0)
 
 	filterBlock := make(map[string]interface{})
-
-	if !features.FourPointOhBeta() {
-		notBlock := make(map[string]interface{})
-
-		if input.Not != nil {
-			if input.Not.Dimensions != nil {
-				notBlock["dimension"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Dimensions)}
-			}
-
-			if input.Not.Tags != nil {
-				notBlock["tag"] = []interface{}{flattenConsumptionBudgetComparisonExpression(input.Not.Tags)}
-			}
-
-			if len(notBlock) != 0 {
-				filterBlock["not"] = []interface{}{notBlock}
-			}
-		}
-	}
 
 	if input.And != nil {
 		for _, v := range *input.And {
