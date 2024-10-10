@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
+* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as documented below. This feature is only valid if `sku` is set to `premium`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -121,6 +123,26 @@ A `custom_parameters` block supports the following:
 * `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. Defaults to `10.139`. Changing this forces a new resource to be created.
 
 ~> **Note:** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
+
+---
+
+An `enhanced_security_compliance` block supports the following:
+
+* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace.
+
+* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace.
+
+~> **Note:** Changing the value of `compliance_security_profile_enabled` from `true` to `false` forces a replacement of the Databricks workspace.
+
+~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
+
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+
+~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
+
+~> **Note:** Removing a standard from the `compliance_security_profile_standards` list forces a replacement of the Databricks workspace.
+
+* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace.
 
 ## Example HCL Configurations
 
