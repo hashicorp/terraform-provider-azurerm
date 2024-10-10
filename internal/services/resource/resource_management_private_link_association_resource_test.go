@@ -17,11 +17,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ResourceManagementPrivateLinkAssociationTestResource struct{}
+type ResourceManagementPrivateLinkAssociationTestResource struct {
+	uuid string
+}
 
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
+	r := ResourceManagementPrivateLinkAssociationTestResource{
+		uuid: randomUUID,
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +41,10 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 
 func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	r := ResourceManagementPrivateLinkAssociationTestResource{}
+	randomUUID, _ := uuid.GenerateUUID()
+	r := ResourceManagementPrivateLinkAssociationTestResource{
+		uuid: randomUUID,
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +87,6 @@ func (r ResourceManagementPrivateLinkAssociationTestResource) Exists(ctx context
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) basic(data acceptance.TestData) string {
-	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +100,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
   resource_management_private_link_id = azurerm_resource_management_private_link.test.id
   public_network_access_enabled       = true
 }
-`, r.template(data), randomUUID)
+`, r.template(data), r.uuid)
 }
 
 func (r ResourceManagementPrivateLinkAssociationTestResource) generateName(data acceptance.TestData) string {
