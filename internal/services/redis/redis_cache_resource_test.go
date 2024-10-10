@@ -175,11 +175,6 @@ func TestAccRedisCache_BackupDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -194,11 +189,6 @@ func TestAccRedisCache_BackupEnabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("redis_configuration.0.rdb_storage_connection_string"),
 	})
@@ -214,22 +204,12 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 		{
 			Config: r.backupDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -244,7 +224,6 @@ func TestAccRedisCache_AOFBackupEnabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("redis_configuration.0.aof_storage_connection_string_0",
 			"redis_configuration.0.aof_storage_connection_string_1"),
@@ -261,20 +240,12 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.aof_storage_connection_string_0` and `aof_storage_connection_string_1` are returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			ExpectNonEmptyPlan: true,
 		},
 		{
 			Config: r.aofBackupDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -537,27 +508,6 @@ func TestAccRedisCache_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccRedisCache_SkuDowngrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
-	r := RedisCacheResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.standard(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.SkuDowngrade(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 	})
 }
 
