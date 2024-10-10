@@ -91,6 +91,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_network_gateway":                   dataSourceVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":        dataSourceVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceVirtualNetwork(),
+		"azurerm_virtual_network_peering":                   dataSourceVirtualNetworkPeering(),
 		"azurerm_web_application_firewall_policy":           dataWebApplicationFirewallPolicy(),
 		"azurerm_virtual_wan":                               dataSourceVirtualWan(),
 		"azurerm_local_network_gateway":                     dataSourceLocalNetworkGateway(),
