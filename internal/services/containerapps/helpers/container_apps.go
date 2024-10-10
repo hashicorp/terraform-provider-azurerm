@@ -1520,8 +1520,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 }
 
 type ContainerVolumeMount struct {
-	Name string `tfschema:"name"`
-	Path string `tfschema:"path"`
+	Name    string `tfschema:"name"`
+	Path    string `tfschema:"path"`
+	SubPath string `tfschema:"sub_path"`
 }
 
 func ContainerVolumeMountSchema() *pluginsdk.Schema {
@@ -1542,6 +1543,13 @@ func ContainerVolumeMountSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The path in the container at which to mount this volume.",
+				},
+
+				"sub_path": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The sub path of the volume to be mounted in the container.",
 				},
 			},
 		},
@@ -1565,6 +1573,12 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The path in the container at which to mount this volume.",
 				},
+
+				"sub_path": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "The sub path of the volume to be mounted in the container.",
+				},
 			},
 		},
 	}
@@ -1580,6 +1594,7 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 		volumeMounts = append(volumeMounts, containerapps.VolumeMount{
 			MountPath:  pointer.To(v.Path),
 			VolumeName: pointer.To(v.Name),
+			SubPath:    pointer.To(v.SubPath),
 		})
 	}
 
@@ -1594,8 +1609,9 @@ func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []Containe
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: pointer.From(v.VolumeName),
-			Path: pointer.From(v.MountPath),
+			Name:    pointer.From(v.VolumeName),
+			Path:    pointer.From(v.MountPath),
+			SubPath: pointer.From(v.SubPath),
 		})
 	}
 

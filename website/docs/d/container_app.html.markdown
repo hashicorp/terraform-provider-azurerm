@@ -249,6 +249,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - The path in the container at which to mount this volume.
 
+* `sub_path` - The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:
