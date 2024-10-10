@@ -337,6 +337,7 @@ func TestAccSearchService_customerManagedKeyEnforcement(t *testing.T) {
 			Config: r.customerManagedKeyEnforcement(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customer_managed_key_encryption_compliance_status").HasValue("Compliant"),
 			),
 		},
 		data.ImportStep(),
