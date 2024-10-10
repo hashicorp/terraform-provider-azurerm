@@ -29,6 +29,7 @@ func TestAccBastionHostDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("file_copy_enabled").Exists(),
 				check.That(data.ResourceName).Key("ip_connect_enabled").Exists(),
 				check.That(data.ResourceName).Key("shareable_link_enabled").Exists(),
+				check.That(data.ResourceName).Key("session_recording_enabled").Exists(),
 				check.That(data.ResourceName).Key("ip_configuration.0.name").Exists(),
 				check.That(data.ResourceName).Key("ip_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
