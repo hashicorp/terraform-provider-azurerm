@@ -73,6 +73,28 @@ resource "azurerm_subscription" "example" {
 }
 ```
 
+## Example Usage - creating a new Alias and Subscription with a dedicated owner
+
+```hcl
+data "azurerm_billing_enrollment_account_scope" "example" {
+  billing_account_name    = "1234567890"
+  enrollment_account_name = "0123456"
+}
+
+data "azuread_user" "test_user" {
+  user_principal_name = "test@example.com"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_subscription" "example" {
+  subscription_name      = "My Example EA Subscription"
+  billing_scope_id       = data.azurerm_billing_enrollment_account_scope.example.id
+  subscription_owner_id  = data.azuread_user.test_user.object_id
+  subscription_tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -92,6 +114,10 @@ The following arguments are supported:
 ~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
 * `workload` - (Optional) The workload type of the Subscription. Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
+
+* `subscription_owner_id` - (Optional) Owner ID of the subscription. Changing this forces a new Subscription to be created.
+
+* `subscription_tenant_id` - (Optional) Tenant ID of the subscription. Changing this forces a new Subscription to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Subscription.
 
