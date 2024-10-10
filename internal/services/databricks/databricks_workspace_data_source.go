@@ -136,7 +136,7 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		if err := d.Set("managed_disk_identity", flattenWorkspaceManagedIdentity(model.Properties.ManagedDiskIdentity)); err != nil {
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
-		d.Set("workspace_url", model.Properties.WorkspaceUrl)
+		d.Set("workspace_url", model.Properties.WorkspaceURL)
 		d.Set("location", model.Location)
 
 		return tags.FlattenAndSet(d, model.Tags)

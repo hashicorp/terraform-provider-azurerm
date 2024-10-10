@@ -107,7 +107,7 @@ func (id FqdnListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
 		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticFqdnLists", "fqdnLists", "fqdnLists"),
-		resourceids.UserSpecifiedSegment("fqdnListName", "name"),
+		resourceids.UserSpecifiedSegment("fqdnListName", "fqdnListName"),
 	}
 }
 

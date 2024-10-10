@@ -20,13 +20,13 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `RegistriesClient.GetBuildSourceUploadUrl`
+### Example Usage: `RegistriesClient.GetBuildSourceUploadURL`
 
 ```go
 ctx := context.TODO()
 id := registries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
-read, err := client.GetBuildSourceUploadUrl(ctx, id)
+read, err := client.GetBuildSourceUploadURL(ctx, id)
 if err != nil {
 	// handle the error
 }

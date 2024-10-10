@@ -7,5 +7,5 @@ type DatadogSingleSignOnProperties struct {
 	EnterpriseAppId   *string             `json:"enterpriseAppId,omitempty"`
 	ProvisioningState *ProvisioningState  `json:"provisioningState,omitempty"`
 	SingleSignOnState *SingleSignOnStates `json:"singleSignOnState,omitempty"`
-	SingleSignOnUrl   *string             `json:"singleSignOnUrl,omitempty"`
+	SingleSignOnURL   *string             `json:"singleSignOnUrl,omitempty"`
 }

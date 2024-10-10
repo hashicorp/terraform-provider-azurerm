@@ -115,7 +115,7 @@ func (id CustomIPPrefixId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticCustomIPPrefixes", "customIPPrefixes", "customIPPrefixes"),
-		resourceids.UserSpecifiedSegment("customIPPrefixName", "customIpPrefixName"),
+		resourceids.UserSpecifiedSegment("customIPPrefixName", "customIPPrefixName"),
 	}
 }
 

@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName", "ipConfigurationName", "publicIpAddressName")
+id := commonids.NewVirtualMachineScaleSetPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineName", "networkInterfaceName", "ipConfigurationName", "publicIPAddressName")
 
 read, err := client.PublicIPAddressesGetVirtualMachineScaleSetPublicIPAddress(ctx, id, vmsspublicipaddresses.DefaultPublicIPAddressesGetVirtualMachineScaleSetPublicIPAddressOperationOptions())
 if err != nil {
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName", "ipConfigurationName")
+id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineName", "networkInterfaceName", "ipConfigurationName")
 
 // alternatively `client.PublicIPAddressesListVirtualMachineScaleSetVMPublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListVirtualMachineScaleSetVMPublicIPAddressesComplete(ctx, id)

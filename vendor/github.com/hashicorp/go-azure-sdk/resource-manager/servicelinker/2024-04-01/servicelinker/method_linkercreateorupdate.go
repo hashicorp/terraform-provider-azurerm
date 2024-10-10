@@ -22,7 +22,7 @@ type LinkerCreateOrUpdateOperationResponse struct {
 }
 
 // LinkerCreateOrUpdate ...
-func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerCreateOrUpdate(ctx context.Context, id ScopedLinkerId, input LinkerResource) (result LinkerCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c ServiceLinkerClient) LinkerCreateOrUpdate(ctx context.Context, id Scoped
 }
 
 // LinkerCreateOrUpdateThenPoll performs LinkerCreateOrUpdate then polls until it's completed
-func (c ServiceLinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
+func (c ServicelinkerClient) LinkerCreateOrUpdateThenPoll(ctx context.Context, id ScopedLinkerId, input LinkerResource) error {
 	result, err := c.LinkerCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing LinkerCreateOrUpdate: %+v", err)

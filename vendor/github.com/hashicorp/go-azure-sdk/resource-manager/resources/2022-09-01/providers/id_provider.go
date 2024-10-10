@@ -97,7 +97,7 @@ func (id ProviderId) ID() string {
 func (id ProviderId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.UserSpecifiedSegment("providerName", "resourceProviderNamespace"),
+		resourceids.UserSpecifiedSegment("providerName", "providerName"),
 	}
 }
 

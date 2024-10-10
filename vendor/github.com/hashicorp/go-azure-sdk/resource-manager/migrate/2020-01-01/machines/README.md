@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := machines.NewVMwareSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName")
+id := machines.NewVMwareSiteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteName")
 
 // alternatively `client.GetAllMachinesInSite(ctx, id, machines.DefaultGetAllMachinesInSiteOperationOptions())` can be used to do batched pagination
 items, err := client.GetAllMachinesInSiteComplete(ctx, id, machines.DefaultGetAllMachinesInSiteOperationOptions())

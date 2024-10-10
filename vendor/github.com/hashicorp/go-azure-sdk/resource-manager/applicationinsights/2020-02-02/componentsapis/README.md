@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 payload := componentsapis.ApplicationInsightsComponent{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentsDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentsGet(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "purgeId")
+id := componentsapis.NewOperationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "purgeId")
 
 read, err := client.ComponentsGetPurgeStatus(ctx, id)
 if err != nil {
@@ -128,7 +128,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 payload := componentsapis.ComponentPurgeBody{
 	// ...
@@ -149,7 +149,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentsapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 payload := componentsapis.TagsResource{
 	// ...

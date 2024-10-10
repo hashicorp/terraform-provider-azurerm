@@ -33,7 +33,7 @@ type MachineLearningDataStoreDataLakeGen2Model struct {
 	TenantID            string            `tfschema:"tenant_id"`
 	ClientID            string            `tfschema:"client_id"`
 	ClientSecret        string            `tfschema:"client_secret"`
-	AuthorityUrl        string            `tfschema:"authority_url"`
+	AuthorityURL        string            `tfschema:"authority_url"`
 	Description         string            `tfschema:"description"`
 	IsDefault           bool              `tfschema:"is_default"`
 	ServiceDataIdentity string            `tfschema:"service_data_identity"`
@@ -192,8 +192,8 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
 				}
 				creds = datastore.ServicePrincipalDatastoreCredentials{
-					AuthorityUrl: pointer.To(model.AuthorityUrl),
-					ResourceUrl:  resourceId,
+					AuthorityURL: pointer.To(model.AuthorityURL),
+					ResourceURL:  resourceId,
 					TenantId:     model.TenantID,
 					ClientId:     model.ClientID,
 					Secrets: datastore.ServicePrincipalDatastoreSecrets{
@@ -256,8 +256,8 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 					return fmt.Errorf("could not determine resource identifier for DataLake in the %q cloud environment", metadata.Client.Account.Environment.Name)
 				}
 				creds = datastore.ServicePrincipalDatastoreCredentials{
-					AuthorityUrl: pointer.To(state.AuthorityUrl),
-					ResourceUrl:  resourceId,
+					AuthorityURL: pointer.To(state.AuthorityURL),
+					ResourceURL:  resourceId,
 					TenantId:     state.TenantID,
 					ClientId:     state.ClientID,
 					Secrets: datastore.ServicePrincipalDatastoreSecrets{

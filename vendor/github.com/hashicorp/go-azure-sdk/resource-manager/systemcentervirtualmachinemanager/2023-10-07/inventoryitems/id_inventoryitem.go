@@ -123,7 +123,7 @@ func (id InventoryItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVmmServers", "vmmServers", "vmmServers"),
 		resourceids.UserSpecifiedSegment("vmmServerName", "vmmServerName"),
 		resourceids.StaticSegment("staticInventoryItems", "inventoryItems", "inventoryItems"),
-		resourceids.UserSpecifiedSegment("inventoryItemName", "inventoryItemResourceName"),
+		resourceids.UserSpecifiedSegment("inventoryItemName", "inventoryItemName"),
 	}
 }
 

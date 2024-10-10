@@ -8,10 +8,10 @@ type MachineExtensionProperties struct {
 	EnableAutomaticUpgrade  *bool                         `json:"enableAutomaticUpgrade,omitempty"`
 	ForceUpdateTag          *string                       `json:"forceUpdateTag,omitempty"`
 	InstanceView            *MachineExtensionInstanceView `json:"instanceView,omitempty"`
-	ProtectedSettings       *interface{}                  `json:"protectedSettings,omitempty"`
+	ProtectedSettings       *map[string]interface{}       `json:"protectedSettings,omitempty"`
 	ProvisioningState       *string                       `json:"provisioningState,omitempty"`
 	Publisher               *string                       `json:"publisher,omitempty"`
-	Settings                *interface{}                  `json:"settings,omitempty"`
+	Settings                *map[string]interface{}       `json:"settings,omitempty"`
 	Type                    *string                       `json:"type,omitempty"`
 	TypeHandlerVersion      *string                       `json:"typeHandlerVersion,omitempty"`
 }

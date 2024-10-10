@@ -107,7 +107,7 @@ func (id PostRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
 		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticPostRules", "postRules", "postRules"),
-		resourceids.UserSpecifiedSegment("postRuleName", "priority"),
+		resourceids.UserSpecifiedSegment("postRuleName", "postRuleName"),
 	}
 }
 

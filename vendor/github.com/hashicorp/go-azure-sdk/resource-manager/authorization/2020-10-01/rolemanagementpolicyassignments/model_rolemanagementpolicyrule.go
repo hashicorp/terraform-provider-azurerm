@@ -3,6 +3,7 @@ package rolemanagementpolicyassignments
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -52,6 +53,46 @@ func UnmarshalRoleManagementPolicyRuleImplementation(input []byte) (RoleManageme
 	var value string
 	if v, ok := temp["ruleType"]; ok {
 		value = fmt.Sprintf("%v", v)
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyApprovalRule") {
+		var out RoleManagementPolicyApprovalRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyApprovalRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyAuthenticationContextRule") {
+		var out RoleManagementPolicyAuthenticationContextRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyAuthenticationContextRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyEnablementRule") {
+		var out RoleManagementPolicyEnablementRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyEnablementRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyExpirationRule") {
+		var out RoleManagementPolicyExpirationRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyExpirationRule: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "RoleManagementPolicyNotificationRule") {
+		var out RoleManagementPolicyNotificationRule
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into RoleManagementPolicyNotificationRule: %+v", err)
+		}
+		return out, nil
 	}
 
 	var parent BaseRoleManagementPolicyRuleImpl

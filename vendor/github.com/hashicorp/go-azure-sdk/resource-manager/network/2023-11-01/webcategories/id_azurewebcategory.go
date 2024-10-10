@@ -107,7 +107,7 @@ func (id AzureWebCategoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticAzureWebCategories", "azureWebCategories", "azureWebCategories"),
-		resourceids.UserSpecifiedSegment("azureWebCategoryName", "name"),
+		resourceids.UserSpecifiedSegment("azureWebCategoryName", "azureWebCategoryName"),
 	}
 }
 

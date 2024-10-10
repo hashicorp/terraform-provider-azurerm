@@ -121,7 +121,7 @@ func (id PrivateLinkResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevices", "Microsoft.Devices", "Microsoft.Devices"),
 		resourceids.StaticSegment("staticProvisioningServices", "provisioningServices", "provisioningServices"),
-		resourceids.UserSpecifiedSegment("provisioningServiceName", "resourceName"),
+		resourceids.UserSpecifiedSegment("provisioningServiceName", "provisioningServiceName"),
 		resourceids.StaticSegment("staticPrivateLinkResources", "privateLinkResources", "privateLinkResources"),
 		resourceids.UserSpecifiedSegment("groupId", "groupId"),
 	}

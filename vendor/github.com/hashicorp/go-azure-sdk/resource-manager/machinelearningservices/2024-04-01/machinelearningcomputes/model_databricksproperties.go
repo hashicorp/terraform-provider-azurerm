@@ -5,5 +5,5 @@ package machinelearningcomputes
 
 type DatabricksProperties struct {
 	DatabricksAccessToken *string `json:"databricksAccessToken,omitempty"`
-	WorkspaceUrl          *string `json:"workspaceUrl,omitempty"`
+	WorkspaceURL          *string `json:"workspaceUrl,omitempty"`
 }

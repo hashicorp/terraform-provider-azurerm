@@ -121,7 +121,7 @@ func (id AuthorizationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCircuits", "expressRouteCircuits", "expressRouteCircuits"),
-		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "circuitName"),
+		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "expressRouteCircuitName"),
 		resourceids.StaticSegment("staticAuthorizations", "authorizations", "authorizations"),
 		resourceids.UserSpecifiedSegment("authorizationName", "authorizationName"),
 	}

@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScheduledActionID("name")
+id := scheduledactions.NewScheduledActionID("scheduledActionName")
 
 payload := scheduledactions.ScheduledAction{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "name")
+id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "scheduledActionName")
 
 payload := scheduledactions.ScheduledAction{
 	// ...
@@ -108,7 +108,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScheduledActionID("name")
+id := scheduledactions.NewScheduledActionID("scheduledActionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -124,7 +124,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "name")
+id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "scheduledActionName")
 
 read, err := client.DeleteByScope(ctx, id)
 if err != nil {
@@ -140,7 +140,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScheduledActionID("name")
+id := scheduledactions.NewScheduledActionID("scheduledActionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -156,7 +156,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "name")
+id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "scheduledActionName")
 
 read, err := client.GetByScope(ctx, id)
 if err != nil {
@@ -206,7 +206,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScheduledActionID("name")
+id := scheduledactions.NewScheduledActionID("scheduledActionName")
 
 read, err := client.Run(ctx, id)
 if err != nil {
@@ -222,7 +222,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "name")
+id := scheduledactions.NewScopedScheduledActionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "scheduledActionName")
 
 read, err := client.RunByScope(ctx, id)
 if err != nil {

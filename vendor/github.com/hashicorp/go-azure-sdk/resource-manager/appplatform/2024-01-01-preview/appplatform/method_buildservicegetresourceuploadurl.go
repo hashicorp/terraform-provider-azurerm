@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type BuildServiceGetResourceUploadUrlOperationResponse struct {
+type BuildServiceGetResourceUploadURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *ResourceUploadDefinition
 }
 
-// BuildServiceGetResourceUploadUrl ...
-func (c AppPlatformClient) BuildServiceGetResourceUploadUrl(ctx context.Context, id BuildServiceId) (result BuildServiceGetResourceUploadUrlOperationResponse, err error) {
+// BuildServiceGetResourceUploadURL ...
+func (c AppPlatformClient) BuildServiceGetResourceUploadURL(ctx context.Context, id BuildServiceId) (result BuildServiceGetResourceUploadURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

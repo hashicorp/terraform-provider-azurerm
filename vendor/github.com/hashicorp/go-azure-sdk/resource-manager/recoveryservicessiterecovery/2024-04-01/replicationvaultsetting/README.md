@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "vaultSettingName")
+id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationVaultSettingName")
 
 payload := replicationvaultsetting.VaultSettingCreationInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "vaultSettingName")
+id := replicationvaultsetting.NewReplicationVaultSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationVaultSettingName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationvaultsetting.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := replicationvaultsetting.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

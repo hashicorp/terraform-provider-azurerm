@@ -99,7 +99,7 @@ func (id DiagnosticSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAADIAM", "Microsoft.AADIAM", "Microsoft.AADIAM"),
 		resourceids.StaticSegment("staticDiagnosticSettings", "diagnosticSettings", "diagnosticSettings"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingName", "name"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingName", "diagnosticSettingName"),
 	}
 }
 

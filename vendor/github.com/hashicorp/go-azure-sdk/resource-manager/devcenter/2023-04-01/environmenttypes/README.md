@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := environmenttypes.NewAllowedEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "environmentTypeName")
+id := environmenttypes.NewAllowedEnvironmentTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "allowedEnvironmentTypeName")
 
 read, err := client.ProjectAllowedEnvironmentTypesGet(ctx, id)
 if err != nil {

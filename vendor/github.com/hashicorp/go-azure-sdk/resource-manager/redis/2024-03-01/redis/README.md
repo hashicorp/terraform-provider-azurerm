@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
+id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyAssignmentName")
 
 payload := redis.RedisCacheAccessPolicyAssignment{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, id, payload); e
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
+id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyAssignmentName")
 
 if err := client.AccessPolicyAssignmentDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.AccessPolicyAssignmentDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyAssignmentName")
+id := redis.NewAccessPolicyAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyAssignmentName")
 
 read, err := client.AccessPolicyAssignmentGet(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.AccessPolicyAssignmentList(ctx, id)` can be used to do batched pagination
 items, err := client.AccessPolicyAssignmentListComplete(ctx, id)
@@ -87,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
+id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyName")
 
 payload := redis.RedisCacheAccessPolicy{
 	// ...
@@ -104,7 +104,7 @@ if err := client.AccessPolicyCreateUpdateThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
+id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyName")
 
 if err := client.AccessPolicyDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -116,7 +116,7 @@ if err := client.AccessPolicyDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "accessPolicyName")
+id := redis.NewAccessPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "accessPolicyName")
 
 read, err := client.AccessPolicyGet(ctx, id)
 if err != nil {
@@ -132,7 +132,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.AccessPolicyList(ctx, id)` can be used to do batched pagination
 items, err := client.AccessPolicyListComplete(ctx, id)
@@ -170,7 +170,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.RedisCreateParameters{
 	// ...
@@ -187,7 +187,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -199,7 +199,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.ExportRDBParameters{
 	// ...
@@ -216,7 +216,7 @@ if err := client.ExportDataThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "ruleName")
+id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "firewallRuleName")
 
 payload := redis.RedisFirewallRule{
 	// ...
@@ -237,7 +237,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "ruleName")
+id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "firewallRuleName")
 
 read, err := client.FirewallRulesDelete(ctx, id)
 if err != nil {
@@ -253,7 +253,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "ruleName")
+id := redis.NewFirewallRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "firewallRuleName")
 
 read, err := client.FirewallRulesGet(ctx, id)
 if err != nil {
@@ -269,7 +269,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.FirewallRulesList(ctx, id)` can be used to do batched pagination
 items, err := client.FirewallRulesListComplete(ctx, id)
@@ -286,7 +286,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 if err := client.FlushCacheThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -298,7 +298,7 @@ if err := client.FlushCacheThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.RedisRebootParameters{
 	// ...
@@ -319,7 +319,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -335,7 +335,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.ImportRDBParameters{
 	// ...
@@ -352,7 +352,7 @@ if err := client.ImportDataThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedServerName")
+id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "linkedServerName")
 
 payload := redis.RedisLinkedServerCreateParameters{
 	// ...
@@ -369,7 +369,7 @@ if err := client.LinkedServerCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedServerName")
+id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "linkedServerName")
 
 if err := client.LinkedServerDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -381,7 +381,7 @@ if err := client.LinkedServerDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "linkedServerName")
+id := redis.NewLinkedServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "linkedServerName")
 
 read, err := client.LinkedServerGet(ctx, id)
 if err != nil {
@@ -397,7 +397,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.LinkedServerList(ctx, id)` can be used to do batched pagination
 items, err := client.LinkedServerListComplete(ctx, id)
@@ -448,7 +448,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -464,7 +464,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.ListUpgradeNotifications(ctx, id, redis.DefaultListUpgradeNotificationsOperationOptions())` can be used to do batched pagination
 items, err := client.ListUpgradeNotificationsComplete(ctx, id, redis.DefaultListUpgradeNotificationsOperationOptions())
@@ -481,7 +481,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.RedisPatchSchedule{
 	// ...
@@ -502,7 +502,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 read, err := client.PatchSchedulesDelete(ctx, id)
 if err != nil {
@@ -518,7 +518,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 read, err := client.PatchSchedulesGet(ctx, id)
 if err != nil {
@@ -534,7 +534,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 // alternatively `client.PatchSchedulesListByRedisResource(ctx, id)` can be used to do batched pagination
 items, err := client.PatchSchedulesListByRedisResourceComplete(ctx, id)
@@ -551,7 +551,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.RedisRegenerateKeyParameters{
 	// ...
@@ -572,7 +572,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := redis.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 payload := redis.RedisUpdateParameters{
 	// ...

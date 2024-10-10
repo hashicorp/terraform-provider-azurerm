@@ -115,7 +115,7 @@ func (id CapacityId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPowerBIDedicated", "Microsoft.PowerBIDedicated", "Microsoft.PowerBIDedicated"),
 		resourceids.StaticSegment("staticCapacities", "capacities", "capacities"),
-		resourceids.UserSpecifiedSegment("capacityName", "dedicatedCapacityName"),
+		resourceids.UserSpecifiedSegment("capacityName", "capacityName"),
 	}
 }
 

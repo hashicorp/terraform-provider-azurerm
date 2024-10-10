@@ -9,7 +9,7 @@ type ValidateProperties struct {
 	ContainerImagePlatform    *string                `json:"containerImagePlatform,omitempty"`
 	ContainerImageRepository  *string                `json:"containerImageRepository,omitempty"`
 	ContainerImageTag         *string                `json:"containerImageTag,omitempty"`
-	ContainerRegistryBaseUrl  *string                `json:"containerRegistryBaseUrl,omitempty"`
+	ContainerRegistryBaseURL  *string                `json:"containerRegistryBaseUrl,omitempty"`
 	ContainerRegistryPassword *string                `json:"containerRegistryPassword,omitempty"`
 	ContainerRegistryUsername *string                `json:"containerRegistryUsername,omitempty"`
 	HostingEnvironment        *string                `json:"hostingEnvironment,omitempty"`

@@ -58,7 +58,7 @@ type AgentConfigurationModel struct {
 	GuestConfigurationEnabled bool                          `tfschema:"guest_configuration_enabled"`
 	IncomingConnectionsPorts  []string                      `tfschema:"incoming_connections_ports"`
 	ProxyBypass               []string                      `tfschema:"proxy_bypass"`
-	ProxyUrl                  string                        `tfschema:"proxy_url"`
+	ProxyURL                  string                        `tfschema:"proxy_url"`
 }
 
 type ConfigurationExtensionModel struct {
@@ -673,8 +673,8 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]Agent
 		output.ProxyBypass = *input.ProxyBypass
 	}
 
-	if input.ProxyUrl != nil {
-		output.ProxyUrl = *input.ProxyUrl
+	if input.ProxyURL != nil {
+		output.ProxyURL = *input.ProxyURL
 	}
 
 	return append(outputList, output), nil

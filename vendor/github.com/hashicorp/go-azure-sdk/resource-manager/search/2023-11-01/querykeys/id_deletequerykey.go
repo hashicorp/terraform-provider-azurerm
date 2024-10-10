@@ -123,7 +123,7 @@ func (id DeleteQueryKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
 		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceName"),
 		resourceids.StaticSegment("staticDeleteQueryKey", "deleteQueryKey", "deleteQueryKey"),
-		resourceids.UserSpecifiedSegment("deleteQueryKeyName", "key"),
+		resourceids.UserSpecifiedSegment("deleteQueryKeyName", "deleteQueryKeyName"),
 	}
 }
 

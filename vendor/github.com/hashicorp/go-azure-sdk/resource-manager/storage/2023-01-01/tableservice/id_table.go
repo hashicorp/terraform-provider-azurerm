@@ -121,7 +121,7 @@ func (id TableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticStorageAccounts", "storageAccounts", "storageAccounts"),
-		resourceids.UserSpecifiedSegment("storageAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("storageAccountName", "storageAccountName"),
 		resourceids.StaticSegment("staticTableServices", "tableServices", "tableServices"),
 		resourceids.StaticSegment("staticDefault", "default", "default"),
 		resourceids.StaticSegment("staticTables", "tables", "tables"),

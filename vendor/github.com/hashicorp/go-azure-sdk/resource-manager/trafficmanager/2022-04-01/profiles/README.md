@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileName")
 
 payload := profiles.Profile{
 	// ...
@@ -87,7 +87,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -103,7 +103,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -151,7 +151,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "profileName")
+id := profiles.NewTrafficManagerProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "trafficManagerProfileName")
 
 payload := profiles.Profile{
 	// ...

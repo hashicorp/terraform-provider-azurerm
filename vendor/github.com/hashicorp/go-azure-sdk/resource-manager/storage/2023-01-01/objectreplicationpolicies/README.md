@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "objectReplicationPolicyId")
+id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "objectReplicationPolicyId")
 
 payload := objectreplicationpolicies.ObjectReplicationPolicy{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "objectReplicationPolicyId")
+id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "objectReplicationPolicyId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "objectReplicationPolicyId")
+id := objectreplicationpolicies.NewObjectReplicationPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "objectReplicationPolicyId")
 
 read, err := client.Get(ctx, id)
 if err != nil {

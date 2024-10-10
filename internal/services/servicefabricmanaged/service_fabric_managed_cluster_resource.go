@@ -720,7 +720,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 			for idx, cert := range sec.VaultCertificates {
 				certs[idx] = VaultCertificates{
 					Store: cert.CertificateStore,
-					Url:   cert.CertificateUrl,
+					Url:   cert.CertificateURL,
 				}
 			}
 			secs[idx] = VmSecrets{
@@ -849,7 +849,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		for cidx, cert := range secret.Certificates {
 			vcs[cidx] = nodetype.VaultCertificate{
 				CertificateStore: cert.Store,
-				CertificateUrl:   cert.Url,
+				CertificateURL:   cert.Url,
 			}
 		}
 		vmSecrets[idx] = nodetype.VaultSecretGroup{

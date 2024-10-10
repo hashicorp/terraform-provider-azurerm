@@ -14,15 +14,15 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetVpnProfilePackageUrlOperationResponse struct {
+type GetVpnProfilePackageURLOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *string
 }
 
-// GetVpnProfilePackageUrl ...
-func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageUrl(ctx context.Context, id VirtualNetworkGatewayId) (result GetVpnProfilePackageUrlOperationResponse, err error) {
+// GetVpnProfilePackageURL ...
+func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageURL(ctx context.Context, id VirtualNetworkGatewayId) (result GetVpnProfilePackageURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -56,15 +56,15 @@ func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageUrl(ctx context.Contex
 	return
 }
 
-// GetVpnProfilePackageUrlThenPoll performs GetVpnProfilePackageUrl then polls until it's completed
-func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageUrlThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
-	result, err := c.GetVpnProfilePackageUrl(ctx, id)
+// GetVpnProfilePackageURLThenPoll performs GetVpnProfilePackageURL then polls until it's completed
+func (c VirtualNetworkGatewaysClient) GetVpnProfilePackageURLThenPoll(ctx context.Context, id VirtualNetworkGatewayId) error {
+	result, err := c.GetVpnProfilePackageURL(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing GetVpnProfilePackageUrl: %+v", err)
+		return fmt.Errorf("performing GetVpnProfilePackageURL: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after GetVpnProfilePackageUrl: %+v", err)
+		return fmt.Errorf("polling after GetVpnProfilePackageURL: %+v", err)
 	}
 
 	return nil

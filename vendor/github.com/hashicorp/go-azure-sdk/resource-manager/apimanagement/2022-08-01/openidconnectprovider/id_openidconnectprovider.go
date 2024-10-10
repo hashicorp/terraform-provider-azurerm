@@ -123,7 +123,7 @@ func (id OpenidConnectProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticService", "service", "service"),
 		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticOpenidConnectProviders", "openidConnectProviders", "openidConnectProviders"),
-		resourceids.UserSpecifiedSegment("openidConnectProviderName", "opid"),
+		resourceids.UserSpecifiedSegment("openidConnectProviderName", "openidConnectProviderName"),
 	}
 }
 

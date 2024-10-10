@@ -8,7 +8,7 @@ type ResourceFile struct {
 	BlobPrefix               *string                       `json:"blobPrefix,omitempty"`
 	FileMode                 *string                       `json:"fileMode,omitempty"`
 	FilePath                 *string                       `json:"filePath,omitempty"`
-	HTTPUrl                  *string                       `json:"httpUrl,omitempty"`
+	HTTPURL                  *string                       `json:"httpUrl,omitempty"`
 	IdentityReference        *ComputeNodeIdentityReference `json:"identityReference,omitempty"`
-	StorageContainerUrl      *string                       `json:"storageContainerUrl,omitempty"`
+	StorageContainerURL      *string                       `json:"storageContainerUrl,omitempty"`
 }

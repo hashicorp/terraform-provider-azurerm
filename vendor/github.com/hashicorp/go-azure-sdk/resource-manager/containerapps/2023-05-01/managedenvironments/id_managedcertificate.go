@@ -121,7 +121,7 @@ func (id ManagedCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("managedEnvironmentName", "environmentName"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentName"),
 		resourceids.StaticSegment("staticManagedCertificates", "managedCertificates", "managedCertificates"),
 		resourceids.UserSpecifiedSegment("managedCertificateName", "managedCertificateName"),
 	}

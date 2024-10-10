@@ -121,7 +121,7 @@ func (id ProviderLocationTopicTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticTopicTypes", "topicTypes", "topicTypes"),
 		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeName"),
 	}

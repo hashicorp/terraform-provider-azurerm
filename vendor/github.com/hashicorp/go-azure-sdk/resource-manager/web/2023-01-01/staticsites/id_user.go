@@ -127,11 +127,11 @@ func (id UserId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "name"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticAuthProviders", "authProviders", "authProviders"),
-		resourceids.UserSpecifiedSegment("authProviderName", "authprovider"),
+		resourceids.UserSpecifiedSegment("authProviderName", "authProviderName"),
 		resourceids.StaticSegment("staticUsers", "users", "users"),
-		resourceids.UserSpecifiedSegment("userName", "userid"),
+		resourceids.UserSpecifiedSegment("userName", "userName"),
 	}
 }
 

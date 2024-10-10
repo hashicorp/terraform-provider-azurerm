@@ -123,7 +123,7 @@ func (id RouteFilterRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticRouteFilters", "routeFilters", "routeFilters"),
 		resourceids.UserSpecifiedSegment("routeFilterName", "routeFilterName"),
 		resourceids.StaticSegment("staticRouteFilterRules", "routeFilterRules", "routeFilterRules"),
-		resourceids.UserSpecifiedSegment("routeFilterRuleName", "ruleName"),
+		resourceids.UserSpecifiedSegment("routeFilterRuleName", "routeFilterRuleName"),
 	}
 }
 

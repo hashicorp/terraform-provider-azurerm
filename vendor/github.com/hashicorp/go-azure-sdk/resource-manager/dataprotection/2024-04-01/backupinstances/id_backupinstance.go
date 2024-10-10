@@ -121,7 +121,7 @@ func (id BackupInstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticBackupVaults", "backupVaults", "backupVaults"),
-		resourceids.UserSpecifiedSegment("backupVaultName", "vaultName"),
+		resourceids.UserSpecifiedSegment("backupVaultName", "backupVaultName"),
 		resourceids.StaticSegment("staticBackupInstances", "backupInstances", "backupInstances"),
 		resourceids.UserSpecifiedSegment("backupInstanceName", "backupInstanceName"),
 	}

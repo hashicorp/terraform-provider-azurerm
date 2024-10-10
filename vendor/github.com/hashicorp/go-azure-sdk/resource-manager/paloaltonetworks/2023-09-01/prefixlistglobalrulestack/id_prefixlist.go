@@ -107,7 +107,7 @@ func (id PrefixListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
 		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticPrefixLists", "prefixLists", "prefixLists"),
-		resourceids.UserSpecifiedSegment("prefixListName", "name"),
+		resourceids.UserSpecifiedSegment("prefixListName", "prefixListName"),
 	}
 }
 

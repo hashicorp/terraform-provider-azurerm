@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := objectdatatypes.NewModuleObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "moduleName", "typeName")
+id := objectdatatypes.NewModuleObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "moduleName", "objectDataTypeName")
 
 read, err := client.ListFieldsByModuleAndType(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := objectdatatypes.NewObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "typeName")
+id := objectdatatypes.NewObjectDataTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "objectDataTypeName")
 
 read, err := client.ListFieldsByType(ctx, id)
 if err != nil {

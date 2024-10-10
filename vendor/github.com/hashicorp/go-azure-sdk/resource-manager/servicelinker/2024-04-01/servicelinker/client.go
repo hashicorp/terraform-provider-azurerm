@@ -10,17 +10,17 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ServiceLinkerClient struct {
+type ServicelinkerClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewServiceLinkerClientWithBaseURI(sdkApi sdkEnv.Api) (*ServiceLinkerClient, error) {
+func NewServicelinkerClientWithBaseURI(sdkApi sdkEnv.Api) (*ServicelinkerClient, error) {
 	client, err := resourcemanager.NewClient(sdkApi, "servicelinker", defaultApiVersion)
 	if err != nil {
-		return nil, fmt.Errorf("instantiating ServiceLinkerClient: %+v", err)
+		return nil, fmt.Errorf("instantiating ServicelinkerClient: %+v", err)
 	}
 
-	return &ServiceLinkerClient{
+	return &ServicelinkerClient{
 		Client: client,
 	}, nil
 }

@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 payload := privatelinkscopes.HybridComputePrivateLinkScope{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "location", "privateLinkScopeId")
+id := privatelinkscopes.NewPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "locationName", "privateLinkScopeId")
 
 read, err := client.GetValidationDetails(ctx, id)
 if err != nil {
@@ -140,7 +140,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "scopeName")
+id := privatelinkscopes.NewProviderPrivateLinkScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkScopeName")
 
 payload := privatelinkscopes.TagsResource{
 	// ...

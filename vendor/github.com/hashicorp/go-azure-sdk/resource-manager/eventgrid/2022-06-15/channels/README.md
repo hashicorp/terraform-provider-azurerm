@@ -69,13 +69,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ChannelsClient.GetFullUrl`
+### Example Usage: `ChannelsClient.GetFullURL`
 
 ```go
 ctx := context.TODO()
 id := channels.NewChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerNamespaceName", "channelName")
 
-read, err := client.GetFullUrl(ctx, id)
+read, err := client.GetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }

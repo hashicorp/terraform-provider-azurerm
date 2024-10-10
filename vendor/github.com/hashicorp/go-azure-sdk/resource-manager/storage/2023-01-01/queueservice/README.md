@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "queueName")
+id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "queueName")
 
 payload := queueservice.StorageQueue{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "queueName")
+id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "queueName")
 
 read, err := client.QueueDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "queueName")
+id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "queueName")
 
 read, err := client.QueueGet(ctx, id)
 if err != nil {
@@ -95,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "queueName")
+id := queueservice.NewQueueID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "queueName")
 
 payload := queueservice.StorageQueue{
 	// ...

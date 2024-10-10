@@ -115,7 +115,7 @@ func (id AccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftGraphServices", "Microsoft.GraphServices", "Microsoft.GraphServices"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "resourceName"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 	}
 }
 

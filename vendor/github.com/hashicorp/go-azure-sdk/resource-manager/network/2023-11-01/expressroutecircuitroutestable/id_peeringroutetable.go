@@ -127,11 +127,11 @@ func (id PeeringRouteTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCircuits", "expressRouteCircuits", "expressRouteCircuits"),
-		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "circuitName"),
+		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "expressRouteCircuitName"),
 		resourceids.StaticSegment("staticPeerings", "peerings", "peerings"),
 		resourceids.UserSpecifiedSegment("peeringName", "peeringName"),
 		resourceids.StaticSegment("staticRouteTables", "routeTables", "routeTables"),
-		resourceids.UserSpecifiedSegment("routeTableName", "devicePath"),
+		resourceids.UserSpecifiedSegment("routeTableName", "routeTableName"),
 	}
 }
 

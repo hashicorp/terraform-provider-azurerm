@@ -129,7 +129,7 @@ func (id EventhubAuthorizationRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventhubName", "eventHubName"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubName"),
 		resourceids.StaticSegment("staticAuthorizationRules", "authorizationRules", "authorizationRules"),
 		resourceids.UserSpecifiedSegment("authorizationRuleName", "authorizationRuleName"),
 	}

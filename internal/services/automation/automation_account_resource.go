@@ -322,7 +322,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
-			d.Set("hybrid_service_url", props.AutomationHybridServiceUrl)
+			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 
 			identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 			if err != nil {

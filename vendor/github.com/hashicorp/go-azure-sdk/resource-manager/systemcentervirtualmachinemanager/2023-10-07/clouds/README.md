@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudResourceName")
+id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudName")
 
 payload := clouds.Cloud{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudResourceName")
+id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudName")
 
 if err := client.DeleteThenPoll(ctx, id, clouds.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, clouds.DefaultDeleteOperationOptions())
 
 ```go
 ctx := context.TODO()
-id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudResourceName")
+id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudResourceName")
+id := clouds.NewCloudID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudName")
 
 payload := clouds.CloudTagsUpdate{
 	// ...

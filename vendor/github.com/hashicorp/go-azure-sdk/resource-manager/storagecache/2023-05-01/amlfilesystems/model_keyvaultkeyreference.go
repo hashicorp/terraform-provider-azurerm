@@ -4,6 +4,6 @@ package amlfilesystems
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyVaultKeyReference struct {
-	KeyUrl      string                          `json:"keyUrl"`
+	KeyURL      string                          `json:"keyUrl"`
 	SourceVault KeyVaultKeyReferenceSourceVault `json:"sourceVault"`
 }

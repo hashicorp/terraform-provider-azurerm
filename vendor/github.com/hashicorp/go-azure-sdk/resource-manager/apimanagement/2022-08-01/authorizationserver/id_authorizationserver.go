@@ -123,7 +123,7 @@ func (id AuthorizationServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticService", "service", "service"),
 		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticAuthorizationServers", "authorizationServers", "authorizationServers"),
-		resourceids.UserSpecifiedSegment("authorizationServerName", "authsid"),
+		resourceids.UserSpecifiedSegment("authorizationServerName", "authorizationServerName"),
 	}
 }
 

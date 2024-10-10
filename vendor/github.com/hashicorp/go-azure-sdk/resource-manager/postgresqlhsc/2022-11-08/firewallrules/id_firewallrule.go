@@ -121,7 +121,7 @@ func (id FirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServerGroupsv2", "serverGroupsv2", "serverGroupsv2"),
-		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "clusterName"),
+		resourceids.UserSpecifiedSegment("serverGroupsv2Name", "serverGroupsv2Name"),
 		resourceids.StaticSegment("staticFirewallRules", "firewallRules", "firewallRules"),
 		resourceids.UserSpecifiedSegment("firewallRuleName", "firewallRuleName"),
 	}

@@ -95,7 +95,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "location", "vaultName")
+id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "locationName", "deletedVaultName")
 
 read, err := client.GetDeleted(ctx, id)
 if err != nil {
@@ -179,7 +179,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "location", "vaultName")
+id := vaults.NewDeletedVaultID("12345678-1234-9876-4563-123456789012", "locationName", "deletedVaultName")
 
 if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error

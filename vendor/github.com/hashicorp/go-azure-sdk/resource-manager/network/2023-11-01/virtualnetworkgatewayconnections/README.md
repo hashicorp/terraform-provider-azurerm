@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnection{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 if err := client.GetIkeSasThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -82,7 +82,7 @@ if err := client.GetIkeSasThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 read, err := client.GetSharedKey(ctx, id)
 if err != nil {
@@ -115,7 +115,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 if err := client.ResetConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -127,7 +127,7 @@ if err := client.ResetConnectionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.ConnectionResetSharedKey{
 	// ...
@@ -144,7 +144,7 @@ if err := client.ResetSharedKeyThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.ConnectionSharedKey{
 	// ...
@@ -161,7 +161,7 @@ if err := client.SetSharedKeyThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.VpnPacketCaptureStartParameters{
 	// ...
@@ -178,7 +178,7 @@ if err := client.StartPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.VpnPacketCaptureStopParameters{
 	// ...
@@ -195,7 +195,7 @@ if err := client.StopPacketCaptureThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgatewayconnections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgatewayconnections.TagsObject{
 	// ...

@@ -121,9 +121,9 @@ func (id PrivateLinkResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHybridCompute", "Microsoft.HybridCompute", "Microsoft.HybridCompute"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "scopeName"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeName"),
 		resourceids.StaticSegment("staticPrivateLinkResources", "privateLinkResources", "privateLinkResources"),
-		resourceids.UserSpecifiedSegment("privateLinkResourceName", "groupName"),
+		resourceids.UserSpecifiedSegment("privateLinkResourceName", "privateLinkResourceName"),
 	}
 }
 

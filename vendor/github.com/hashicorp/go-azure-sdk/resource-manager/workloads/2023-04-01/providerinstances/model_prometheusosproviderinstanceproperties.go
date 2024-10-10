@@ -11,7 +11,7 @@ import (
 var _ ProviderSpecificProperties = PrometheusOSProviderInstanceProperties{}
 
 type PrometheusOSProviderInstanceProperties struct {
-	PrometheusUrl     *string        `json:"prometheusUrl,omitempty"`
+	PrometheusURL     *string        `json:"prometheusUrl,omitempty"`
 	SapSid            *string        `json:"sapSid,omitempty"`
 	SslCertificateUri *string        `json:"sslCertificateUri,omitempty"`
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`

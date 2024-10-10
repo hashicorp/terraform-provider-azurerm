@@ -5,7 +5,7 @@ package subscriptions
 
 type SubscriptionAliasResponseProperties struct {
 	AcceptOwnershipState *AcceptOwnership   `json:"acceptOwnershipState,omitempty"`
-	AcceptOwnershipUrl   *string            `json:"acceptOwnershipUrl,omitempty"`
+	AcceptOwnershipURL   *string            `json:"acceptOwnershipUrl,omitempty"`
 	BillingScope         *string            `json:"billingScope,omitempty"`
 	CreatedTime          *string            `json:"createdTime,omitempty"`
 	DisplayName          *string            `json:"displayName,omitempty"`

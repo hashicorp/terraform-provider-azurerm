@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListCallbackUrlOperationResponse struct {
+type ListCallbackURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *CallbackUrl
+	Model        *CallbackURL
 }
 
-// ListCallbackUrl ...
-func (c IntegrationAccountsClient) ListCallbackUrl(ctx context.Context, id IntegrationAccountId, input GetCallbackUrlParameters) (result ListCallbackUrlOperationResponse, err error) {
+// ListCallbackURL ...
+func (c IntegrationAccountsClient) ListCallbackURL(ctx context.Context, id IntegrationAccountId, input GetCallbackURLParameters) (result ListCallbackURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -48,7 +48,7 @@ func (c IntegrationAccountsClient) ListCallbackUrl(ctx context.Context, id Integ
 		return
 	}
 
-	var model CallbackUrl
+	var model CallbackURL
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

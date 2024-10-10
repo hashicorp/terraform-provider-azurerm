@@ -61,6 +61,14 @@ func UnmarshalSecretBaseImplementation(input []byte) (SecretBase, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "SecureString") {
+		var out SecureString
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SecureString: %+v", err)
+		}
+		return out, nil
+	}
+
 	var parent BaseSecretBaseImpl
 	if err := json.Unmarshal(input, &parent); err != nil {
 		return nil, fmt.Errorf("unmarshaling into BaseSecretBaseImpl: %+v", err)

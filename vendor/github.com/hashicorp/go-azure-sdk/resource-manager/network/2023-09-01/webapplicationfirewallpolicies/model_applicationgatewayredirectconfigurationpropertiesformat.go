@@ -10,6 +10,6 @@ type ApplicationGatewayRedirectConfigurationPropertiesFormat struct {
 	RedirectType        *ApplicationGatewayRedirectType `json:"redirectType,omitempty"`
 	RequestRoutingRules *[]SubResource                  `json:"requestRoutingRules,omitempty"`
 	TargetListener      *SubResource                    `json:"targetListener,omitempty"`
-	TargetUrl           *string                         `json:"targetUrl,omitempty"`
+	TargetURL           *string                         `json:"targetUrl,omitempty"`
 	UrlPathMaps         *[]SubResource                  `json:"urlPathMaps,omitempty"`
 }

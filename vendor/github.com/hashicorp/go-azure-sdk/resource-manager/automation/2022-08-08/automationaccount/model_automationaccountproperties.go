@@ -10,7 +10,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AutomationAccountProperties struct {
-	AutomationHybridServiceUrl *string                      `json:"automationHybridServiceUrl,omitempty"`
+	AutomationHybridServiceURL *string                      `json:"automationHybridServiceUrl,omitempty"`
 	CreationTime               *string                      `json:"creationTime,omitempty"`
 	Description                *string                      `json:"description,omitempty"`
 	DisableLocalAuth           *bool                        `json:"disableLocalAuth,omitempty"`

@@ -115,7 +115,7 @@ func (id ConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticConnections", "connections", "connections"),
-		resourceids.UserSpecifiedSegment("connectionName", "virtualNetworkGatewayConnectionName"),
+		resourceids.UserSpecifiedSegment("connectionName", "connectionName"),
 	}
 }
 

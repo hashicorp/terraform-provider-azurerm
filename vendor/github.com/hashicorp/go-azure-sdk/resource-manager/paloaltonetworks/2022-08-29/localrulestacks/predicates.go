@@ -62,12 +62,12 @@ func (p LocalRulestackResourceOperationPredicate) Matches(input LocalRulestackRe
 	return true
 }
 
-type PredefinedUrlCategoryOperationPredicate struct {
+type PredefinedURLCategoryOperationPredicate struct {
 	Action *string
 	Name   *string
 }
 
-func (p PredefinedUrlCategoryOperationPredicate) Matches(input PredefinedUrlCategory) bool {
+func (p PredefinedURLCategoryOperationPredicate) Matches(input PredefinedURLCategory) bool {
 
 	if p.Action != nil && *p.Action != input.Action {
 		return false

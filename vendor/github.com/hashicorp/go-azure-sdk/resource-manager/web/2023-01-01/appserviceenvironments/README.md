@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "privateEndpointConnectionName")
 
 payload := appserviceenvironments.RemotePrivateEndpointConnectionARMResource{
 	// ...
@@ -98,7 +98,7 @@ if err := client.CreateOrUpdateMultiRolePoolThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 payload := appserviceenvironments.WorkerPoolResource{
 	// ...
@@ -143,7 +143,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -203,7 +203,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewHostingEnvironmentDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "diagnosticsName")
+id := appserviceenvironments.NewHostingEnvironmentDiagnosticID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "diagnosticName")
 
 read, err := client.GetDiagnosticsItem(ctx, id)
 if err != nil {
@@ -269,7 +269,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := appserviceenvironments.NewHostingEnvironmentPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id)
 if err != nil {
@@ -334,7 +334,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 read, err := client.GetWorkerPool(ctx, id)
 if err != nil {
@@ -451,7 +451,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewDefaultInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instance")
+id := appserviceenvironments.NewDefaultInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "instanceName")
 
 // alternatively `client.ListMultiRolePoolInstanceMetricDefinitions(ctx, id)` can be used to do batched pagination
 items, err := client.ListMultiRolePoolInstanceMetricDefinitionsComplete(ctx, id)
@@ -569,7 +569,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 // alternatively `client.ListWebWorkerMetricDefinitions(ctx, id)` can be used to do batched pagination
 items, err := client.ListWebWorkerMetricDefinitionsComplete(ctx, id)
@@ -586,7 +586,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 // alternatively `client.ListWebWorkerUsages(ctx, id)` can be used to do batched pagination
 items, err := client.ListWebWorkerUsagesComplete(ctx, id)
@@ -603,7 +603,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName", "instance")
+id := appserviceenvironments.NewWorkerPoolInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName", "instanceName")
 
 // alternatively `client.ListWorkerPoolInstanceMetricDefinitions(ctx, id)` can be used to do batched pagination
 items, err := client.ListWorkerPoolInstanceMetricDefinitionsComplete(ctx, id)
@@ -620,7 +620,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 // alternatively `client.ListWorkerPoolSkus(ctx, id)` can be used to do batched pagination
 items, err := client.ListWorkerPoolSkusComplete(ctx, id)
@@ -804,7 +804,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerPoolName")
+id := appserviceenvironments.NewWorkerPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostingEnvironmentName", "workerPoolName")
 
 payload := appserviceenvironments.WorkerPoolResource{
 	// ...

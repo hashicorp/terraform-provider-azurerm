@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "memberName")
 
 payload := fleetmembers.FleetMember{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOper
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "memberName")
 
 if err := client.DeleteThenPoll(ctx, id, fleetmembers.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, fleetmembers.DefaultDeleteOperationOpti
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "memberName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "fleetMemberName")
+id := fleetmembers.NewMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "memberName")
 
 payload := fleetmembers.FleetMemberUpdate{
 	// ...

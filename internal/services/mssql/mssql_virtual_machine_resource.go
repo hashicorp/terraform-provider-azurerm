@@ -847,7 +847,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.RetentionPeriod = utils.Int64(int64(v.(int)))
 		}
 		if v, ok := config["storage_blob_endpoint"]; ok {
-			ret.StorageAccountUrl = utils.String(v.(string))
+			ret.StorageAccountURL = utils.String(v.(string))
 		}
 		if v, ok := config["storage_account_access_key"]; ok {
 			ret.StorageAccessKey = utils.String(v.(string))
@@ -1168,7 +1168,7 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	return &sqlvirtualmachines.KeyVaultCredentialSettings{
 		Enable:                 utils.Bool(true),
 		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
-		AzureKeyVaultUrl:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
+		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
 		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
 		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}

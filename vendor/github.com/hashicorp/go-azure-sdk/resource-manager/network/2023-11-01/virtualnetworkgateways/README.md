@@ -153,13 +153,13 @@ if err := client.GetLearnedRoutesThenPoll(ctx, id); err != nil {
 ```
 
 
-### Example Usage: `VirtualNetworkGatewaysClient.GetVpnProfilePackageUrl`
+### Example Usage: `VirtualNetworkGatewaysClient.GetVpnProfilePackageURL`
 
 ```go
 ctx := context.TODO()
 id := virtualnetworkgateways.NewVirtualNetworkGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayName")
 
-if err := client.GetVpnProfilePackageUrlThenPoll(ctx, id); err != nil {
+if err := client.GetVpnProfilePackageURLThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
@@ -397,7 +397,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworkgateways.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkGatewayConnectionName")
+id := virtualnetworkgateways.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := virtualnetworkgateways.VpnDeviceScriptParameters{
 	// ...

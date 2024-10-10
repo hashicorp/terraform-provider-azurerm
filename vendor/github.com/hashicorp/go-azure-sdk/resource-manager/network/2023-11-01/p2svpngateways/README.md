@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 payload := p2svpngateways.P2SVpnConnectionRequest{
 	// ...
@@ -42,7 +42,7 @@ if err := client.DisconnectP2sVpnConnectionsThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 payload := p2svpngateways.P2SVpnProfileParameters{
 	// ...
@@ -59,7 +59,7 @@ if err := client.GenerateVpnProfileThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 if err := client.GetP2sVpnConnectionHealthThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -71,7 +71,7 @@ if err := client.GetP2sVpnConnectionHealthThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 payload := p2svpngateways.P2SVpnConnectionHealthRequest{
 	// ...
@@ -88,7 +88,7 @@ if err := client.GetP2sVpnConnectionHealthDetailedThenPoll(ctx, id, payload); er
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 if err := client.ResetThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -100,7 +100,7 @@ if err := client.ResetThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "gatewayName")
+id := commonids.NewVirtualWANP2SVPNGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "p2sVpnGatewayName")
 
 payload := p2svpngateways.TagsObject{
 	// ...

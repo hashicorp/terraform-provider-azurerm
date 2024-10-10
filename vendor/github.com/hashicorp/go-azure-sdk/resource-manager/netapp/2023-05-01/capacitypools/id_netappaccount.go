@@ -115,7 +115,7 @@ func (id NetAppAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("netAppAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountName"),
 	}
 }
 

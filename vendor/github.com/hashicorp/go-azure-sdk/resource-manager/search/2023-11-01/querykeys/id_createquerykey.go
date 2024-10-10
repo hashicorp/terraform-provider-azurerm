@@ -123,7 +123,7 @@ func (id CreateQueryKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSearchServices", "searchServices", "searchServices"),
 		resourceids.UserSpecifiedSegment("searchServiceName", "searchServiceName"),
 		resourceids.StaticSegment("staticCreateQueryKey", "createQueryKey", "createQueryKey"),
-		resourceids.UserSpecifiedSegment("createQueryKeyName", "name"),
+		resourceids.UserSpecifiedSegment("createQueryKeyName", "createQueryKeyName"),
 	}
 }
 

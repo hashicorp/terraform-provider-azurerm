@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookTemplateName")
 
 payload := workbooktemplatesapis.WorkbookTemplate{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookTemplateName")
 
 read, err := client.WorkbookTemplatesDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookTemplateName")
 
 read, err := client.WorkbookTemplatesGet(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooktemplatesapis.NewWorkbookTemplateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookTemplateName")
 
 payload := workbooktemplatesapis.WorkbookTemplateUpdateParameters{
 	// ...

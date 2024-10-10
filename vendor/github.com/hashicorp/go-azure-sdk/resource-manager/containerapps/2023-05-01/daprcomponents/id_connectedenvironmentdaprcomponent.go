@@ -123,7 +123,7 @@ func (id ConnectedEnvironmentDaprComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticConnectedEnvironments", "connectedEnvironments", "connectedEnvironments"),
 		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentName"),
 		resourceids.StaticSegment("staticDaprComponents", "daprComponents", "daprComponents"),
-		resourceids.UserSpecifiedSegment("daprComponentName", "componentName"),
+		resourceids.UserSpecifiedSegment("daprComponentName", "daprComponentName"),
 	}
 }
 

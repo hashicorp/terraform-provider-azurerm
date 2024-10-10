@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoRoleDefinitionId")
+id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoRoleDefinitionId")
 
 payload := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 	// ...
@@ -41,7 +41,7 @@ if err := client.MongoDBResourcesCreateUpdateMongoRoleDefinitionThenPoll(ctx, id
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoUserDefinitionId")
+id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoUserDefinitionId")
 
 payload := mongorbacs.MongoUserDefinitionCreateUpdateParameters{
 	// ...
@@ -58,7 +58,7 @@ if err := client.MongoDBResourcesCreateUpdateMongoUserDefinitionThenPoll(ctx, id
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoRoleDefinitionId")
+id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoRoleDefinitionId")
 
 if err := client.MongoDBResourcesDeleteMongoRoleDefinitionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.MongoDBResourcesDeleteMongoRoleDefinitionThenPoll(ctx, id); err
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoUserDefinitionId")
+id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoUserDefinitionId")
 
 if err := client.MongoDBResourcesDeleteMongoUserDefinitionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -82,7 +82,7 @@ if err := client.MongoDBResourcesDeleteMongoUserDefinitionThenPoll(ctx, id); err
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoRoleDefinitionId")
+id := mongorbacs.NewMongodbRoleDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoRoleDefinitionId")
 
 read, err := client.MongoDBResourcesGetMongoRoleDefinition(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "mongoUserDefinitionId")
+id := mongorbacs.NewMongodbUserDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "mongoUserDefinitionId")
 
 read, err := client.MongoDBResourcesGetMongoUserDefinition(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+id := mongorbacs.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName")
 
 read, err := client.MongoDBResourcesListMongoRoleDefinitions(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := mongorbacs.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+id := mongorbacs.NewDatabaseAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName")
 
 read, err := client.MongoDBResourcesListMongoUserDefinitions(ctx, id)
 if err != nil {

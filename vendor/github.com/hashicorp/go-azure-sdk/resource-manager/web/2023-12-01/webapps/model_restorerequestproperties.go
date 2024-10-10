@@ -14,5 +14,5 @@ type RestoreRequestProperties struct {
 	OperationType              *BackupRestoreOperationType `json:"operationType,omitempty"`
 	Overwrite                  bool                        `json:"overwrite"`
 	SiteName                   *string                     `json:"siteName,omitempty"`
-	StorageAccountUrl          string                      `json:"storageAccountUrl"`
+	StorageAccountURL          string                      `json:"storageAccountUrl"`
 }

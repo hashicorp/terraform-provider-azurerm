@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "premierAddOnName")
+id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "premierAddonName")
 
 payload := webapps.PremierAddOn{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "premierAddOnName")
+id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "premierAddonName")
 
 payload := webapps.PremierAddOn{
 	// ...
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.AnalyzeCustomHostnameSlot(ctx, id, webapps.DefaultAnalyzeCustomHostnameSlotOperationOptions())
 if err != nil {
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -141,7 +141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "privateEndpointConnectionName")
 
 payload := webapps.RemotePrivateEndpointConnectionARMResource{
 	// ...
@@ -158,7 +158,7 @@ if err := client.ApproveOrRejectPrivateEndpointConnectionThenPoll(ctx, id, paylo
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "privateEndpointConnectionName")
+id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "privateEndpointConnectionName")
 
 payload := webapps.RemotePrivateEndpointConnectionARMResource{
 	// ...
@@ -196,7 +196,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -217,7 +217,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "id")
+id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "deploymentName")
 
 payload := webapps.Deployment{
 	// ...
@@ -238,7 +238,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "id")
+id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "deploymentName")
 
 payload := webapps.Deployment{
 	// ...
@@ -259,7 +259,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName")
+id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName")
 
 payload := webapps.FunctionEnvelope{
 	// ...
@@ -276,7 +276,7 @@ if err := client.CreateFunctionThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName")
+id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName")
 
 payload := webapps.FunctionEnvelope{
 	// ...
@@ -293,7 +293,7 @@ if err := client.CreateInstanceFunctionSlotThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId")
+id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId")
 
 payload := webapps.MSDeploy{
 	// ...
@@ -310,7 +310,7 @@ if err := client.CreateInstanceMSDeployOperationThenPoll(ctx, id, payload); err 
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId")
+id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId")
 
 payload := webapps.MSDeploy{
 	// ...
@@ -344,7 +344,7 @@ if err := client.CreateMSDeployOperationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.MSDeploy{
 	// ...
@@ -415,7 +415,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteConfigResource{
 	// ...
@@ -436,7 +436,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainOwnershipIdentifierName")
+id := webapps.NewSiteDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "domainOwnershipIdentifierName")
 
 payload := webapps.Identifier{
 	// ...
@@ -457,7 +457,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "domainOwnershipIdentifierName")
+id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "domainOwnershipIdentifierName")
 
 payload := webapps.Identifier{
 	// ...
@@ -478,7 +478,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName", "keyName")
+id := webapps.NewKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName", "keyName")
 
 payload := webapps.KeyInfo{
 	// ...
@@ -499,7 +499,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName", "keyName")
+id := webapps.NewFunctionKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName", "keyName")
 
 payload := webapps.KeyInfo{
 	// ...
@@ -520,7 +520,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "hostName")
+id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hostNameBindingName")
 
 payload := webapps.HostNameBinding{
 	// ...
@@ -541,7 +541,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "hostName")
+id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hostNameBindingName")
 
 payload := webapps.HostNameBinding{
 	// ...
@@ -562,7 +562,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "keyType", "keyName")
+id := webapps.NewDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "defaultName", "keyName")
 
 payload := webapps.KeyInfo{
 	// ...
@@ -583,7 +583,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHostDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "keyType", "keyName")
+id := webapps.NewHostDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "defaultName", "keyName")
 
 payload := webapps.KeyInfo{
 	// ...
@@ -604,7 +604,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionNamespaceName", "relayName")
 
 payload := webapps.HybridConnection{
 	// ...
@@ -625,7 +625,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "namespaceName", "relayName")
+id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionNamespaceName", "relayName")
 
 payload := webapps.HybridConnection{
 	// ...
@@ -646,7 +646,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "publicCertificateName")
+id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "publicCertificateName")
 
 payload := webapps.PublicCertificate{
 	// ...
@@ -667,7 +667,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "publicCertificateName")
+id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "publicCertificateName")
 
 payload := webapps.PublicCertificate{
 	// ...
@@ -688,7 +688,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "entityName")
+id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionName")
 
 payload := webapps.RelayServiceConnectionEntity{
 	// ...
@@ -709,7 +709,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "entityName")
+id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionName")
 
 payload := webapps.RelayServiceConnectionEntity{
 	// ...
@@ -730,7 +730,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "containerName")
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "sitecontainerName")
 
 payload := webapps.SiteContainer{
 	// ...
@@ -751,7 +751,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "containerName")
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "sitecontainerName")
 
 payload := webapps.SiteContainer{
 	// ...
@@ -772,7 +772,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.Site{
 	// ...
@@ -806,7 +806,7 @@ if err := client.CreateOrUpdateSourceControlThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteSourceControl{
 	// ...
@@ -844,7 +844,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SwiftVirtualNetwork{
 	// ...
@@ -865,7 +865,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName")
 
 payload := webapps.VnetInfoResource{
 	// ...
@@ -886,7 +886,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "gatewayName")
+id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName", "gatewayName")
 
 payload := webapps.VnetGateway{
 	// ...
@@ -907,7 +907,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName", "gatewayName")
+id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName", "gatewayName")
 
 payload := webapps.VnetGateway{
 	// ...
@@ -928,7 +928,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName")
+id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName")
 
 payload := webapps.VnetInfoResource{
 	// ...
@@ -965,7 +965,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "backupId")
+id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "backupId")
 
 read, err := client.DeleteBackup(ctx, id)
 if err != nil {
@@ -997,7 +997,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.DeleteBackupConfigurationSlot(ctx, id)
 if err != nil {
@@ -1013,7 +1013,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "backupId")
+id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "backupId")
 
 read, err := client.DeleteBackupSlot(ctx, id)
 if err != nil {
@@ -1029,7 +1029,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "continuousWebJobName")
 
 read, err := client.DeleteContinuousWebJob(ctx, id)
 if err != nil {
@@ -1045,7 +1045,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "continuousWebJobName")
 
 read, err := client.DeleteContinuousWebJobSlot(ctx, id)
 if err != nil {
@@ -1061,7 +1061,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "id")
+id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "deploymentName")
 
 read, err := client.DeleteDeployment(ctx, id)
 if err != nil {
@@ -1077,7 +1077,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "id")
+id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "deploymentName")
 
 read, err := client.DeleteDeploymentSlot(ctx, id)
 if err != nil {
@@ -1093,7 +1093,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainOwnershipIdentifierName")
+id := webapps.NewSiteDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "domainOwnershipIdentifierName")
 
 read, err := client.DeleteDomainOwnershipIdentifier(ctx, id)
 if err != nil {
@@ -1109,7 +1109,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "domainOwnershipIdentifierName")
+id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "domainOwnershipIdentifierName")
 
 read, err := client.DeleteDomainOwnershipIdentifierSlot(ctx, id)
 if err != nil {
@@ -1125,7 +1125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName")
+id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName")
 
 read, err := client.DeleteFunction(ctx, id)
 if err != nil {
@@ -1141,7 +1141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName", "keyName")
+id := webapps.NewKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName", "keyName")
 
 read, err := client.DeleteFunctionSecret(ctx, id)
 if err != nil {
@@ -1157,7 +1157,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName", "keyName")
+id := webapps.NewFunctionKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName", "keyName")
 
 read, err := client.DeleteFunctionSecretSlot(ctx, id)
 if err != nil {
@@ -1173,7 +1173,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "hostName")
+id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hostNameBindingName")
 
 read, err := client.DeleteHostNameBinding(ctx, id)
 if err != nil {
@@ -1189,7 +1189,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "hostName")
+id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hostNameBindingName")
 
 read, err := client.DeleteHostNameBindingSlot(ctx, id)
 if err != nil {
@@ -1205,7 +1205,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "keyType", "keyName")
+id := webapps.NewDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "defaultName", "keyName")
 
 read, err := client.DeleteHostSecret(ctx, id)
 if err != nil {
@@ -1221,7 +1221,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHostDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "keyType", "keyName")
+id := webapps.NewHostDefaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "defaultName", "keyName")
 
 read, err := client.DeleteHostSecretSlot(ctx, id)
 if err != nil {
@@ -1237,7 +1237,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.DeleteHybridConnection(ctx, id)
 if err != nil {
@@ -1253,7 +1253,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "namespaceName", "relayName")
+id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.DeleteHybridConnectionSlot(ctx, id)
 if err != nil {
@@ -1269,7 +1269,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName")
+id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName")
 
 read, err := client.DeleteInstanceFunctionSlot(ctx, id)
 if err != nil {
@@ -1285,7 +1285,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId")
+id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId")
 
 read, err := client.DeleteInstanceProcess(ctx, id)
 if err != nil {
@@ -1301,7 +1301,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId")
+id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId")
 
 read, err := client.DeleteInstanceProcessSlot(ctx, id)
 if err != nil {
@@ -1317,7 +1317,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "premierAddOnName")
+id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "premierAddonName")
 
 read, err := client.DeletePremierAddOn(ctx, id)
 if err != nil {
@@ -1333,7 +1333,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "premierAddOnName")
+id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "premierAddonName")
 
 read, err := client.DeletePremierAddOnSlot(ctx, id)
 if err != nil {
@@ -1349,7 +1349,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1361,7 +1361,7 @@ if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "privateEndpointConnectionName")
+id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionSlotThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -1373,7 +1373,7 @@ if err := client.DeletePrivateEndpointConnectionSlotThenPoll(ctx, id); err != ni
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId")
+id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId")
 
 read, err := client.DeleteProcess(ctx, id)
 if err != nil {
@@ -1389,7 +1389,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId")
+id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId")
 
 read, err := client.DeleteProcessSlot(ctx, id)
 if err != nil {
@@ -1405,7 +1405,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "publicCertificateName")
+id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "publicCertificateName")
 
 read, err := client.DeletePublicCertificate(ctx, id)
 if err != nil {
@@ -1421,7 +1421,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "publicCertificateName")
+id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "publicCertificateName")
 
 read, err := client.DeletePublicCertificateSlot(ctx, id)
 if err != nil {
@@ -1437,7 +1437,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "entityName")
+id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionName")
 
 read, err := client.DeleteRelayServiceConnection(ctx, id)
 if err != nil {
@@ -1453,7 +1453,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "entityName")
+id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionName")
 
 read, err := client.DeleteRelayServiceConnectionSlot(ctx, id)
 if err != nil {
@@ -1469,7 +1469,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "containerName")
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "sitecontainerName")
 
 read, err := client.DeleteSiteContainer(ctx, id)
 if err != nil {
@@ -1485,7 +1485,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "containerName")
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "sitecontainerName")
 
 read, err := client.DeleteSiteContainerSlot(ctx, id)
 if err != nil {
@@ -1501,7 +1501,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "siteExtensionId")
+id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "siteExtensionId")
 
 read, err := client.DeleteSiteExtension(ctx, id)
 if err != nil {
@@ -1517,7 +1517,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "siteExtensionId")
+id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "siteExtensionId")
 
 read, err := client.DeleteSiteExtensionSlot(ctx, id)
 if err != nil {
@@ -1533,7 +1533,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.DeleteSlot(ctx, id, webapps.DefaultDeleteSlotOperationOptions())
 if err != nil {
@@ -1565,7 +1565,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.DeleteSourceControlSlot(ctx, id, webapps.DefaultDeleteSourceControlSlotOperationOptions())
 if err != nil {
@@ -1597,7 +1597,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id)
 if err != nil {
@@ -1613,7 +1613,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "triggeredWebJobName")
 
 read, err := client.DeleteTriggeredWebJob(ctx, id)
 if err != nil {
@@ -1629,7 +1629,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "triggeredWebJobName")
 
 read, err := client.DeleteTriggeredWebJobSlot(ctx, id)
 if err != nil {
@@ -1645,7 +1645,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName")
 
 read, err := client.DeleteVnetConnection(ctx, id)
 if err != nil {
@@ -1661,7 +1661,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName")
+id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName")
 
 read, err := client.DeleteVnetConnectionSlot(ctx, id)
 if err != nil {
@@ -1698,7 +1698,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.WorkflowArtifacts{
 	// ...
@@ -1740,7 +1740,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -1777,7 +1777,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GenerateNewSitePublishingPasswordSlot(ctx, id)
 if err != nil {
@@ -1809,7 +1809,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "appSettingKey")
+id := webapps.NewAppSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "appSettingKey")
 
 read, err := client.GetAppSettingKeyVaultReference(ctx, id)
 if err != nil {
@@ -1825,7 +1825,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewConfigReferenceAppSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "appSettingKey")
+id := webapps.NewConfigReferenceAppSettingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "appSettingKey")
 
 read, err := client.GetAppSettingKeyVaultReferenceSlot(ctx, id)
 if err != nil {
@@ -1858,7 +1858,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.GetAppSettingsKeyVaultReferencesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.GetAppSettingsKeyVaultReferencesSlotComplete(ctx, id)
@@ -1891,7 +1891,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetAuthSettingsSlot(ctx, id)
 if err != nil {
@@ -1923,7 +1923,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetAuthSettingsV2Slot(ctx, id)
 if err != nil {
@@ -1955,7 +1955,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetAuthSettingsV2WithoutSecretsSlot(ctx, id)
 if err != nil {
@@ -1987,7 +1987,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetBackupConfigurationSlot(ctx, id)
 if err != nil {
@@ -2003,7 +2003,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "backupId")
+id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "backupId")
 
 read, err := client.GetBackupStatus(ctx, id)
 if err != nil {
@@ -2019,7 +2019,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "backupId")
+id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "backupId")
 
 read, err := client.GetBackupStatusSlot(ctx, id)
 if err != nil {
@@ -2051,7 +2051,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetConfigurationSlot(ctx, id)
 if err != nil {
@@ -2067,7 +2067,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "snapshotId")
+id := webapps.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "snapshotId")
 
 read, err := client.GetConfigurationSnapshot(ctx, id)
 if err != nil {
@@ -2083,7 +2083,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewWebSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "snapshotId")
+id := webapps.NewWebSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "snapshotId")
 
 read, err := client.GetConfigurationSnapshotSlot(ctx, id)
 if err != nil {
@@ -2115,7 +2115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetContainerLogsZipSlot(ctx, id)
 if err != nil {
@@ -2131,7 +2131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "continuousWebJobName")
 
 read, err := client.GetContinuousWebJob(ctx, id)
 if err != nil {
@@ -2147,7 +2147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "continuousWebJobName")
 
 read, err := client.GetContinuousWebJobSlot(ctx, id)
 if err != nil {
@@ -2163,7 +2163,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "id")
+id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "deploymentName")
 
 read, err := client.GetDeployment(ctx, id)
 if err != nil {
@@ -2179,7 +2179,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "id")
+id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "deploymentName")
 
 read, err := client.GetDeploymentSlot(ctx, id)
 if err != nil {
@@ -2211,7 +2211,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id)
 if err != nil {
@@ -2227,7 +2227,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainOwnershipIdentifierName")
+id := webapps.NewSiteDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "domainOwnershipIdentifierName")
 
 read, err := client.GetDomainOwnershipIdentifier(ctx, id)
 if err != nil {
@@ -2243,7 +2243,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "domainOwnershipIdentifierName")
+id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "domainOwnershipIdentifierName")
 
 read, err := client.GetDomainOwnershipIdentifierSlot(ctx, id)
 if err != nil {
@@ -2275,7 +2275,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetFtpAllowedSlot(ctx, id)
 if err != nil {
@@ -2291,7 +2291,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName")
+id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName")
 
 read, err := client.GetFunction(ctx, id)
 if err != nil {
@@ -2323,7 +2323,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetFunctionsAdminTokenSlot(ctx, id)
 if err != nil {
@@ -2339,7 +2339,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "hostName")
+id := webapps.NewHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hostNameBindingName")
 
 read, err := client.GetHostNameBinding(ctx, id)
 if err != nil {
@@ -2355,7 +2355,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "hostName")
+id := webapps.NewSlotHostNameBindingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hostNameBindingName")
 
 read, err := client.GetHostNameBindingSlot(ctx, id)
 if err != nil {
@@ -2371,7 +2371,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.GetHybridConnection(ctx, id)
 if err != nil {
@@ -2387,7 +2387,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "namespaceName", "relayName")
+id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.GetHybridConnectionSlot(ctx, id)
 if err != nil {
@@ -2403,7 +2403,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName")
+id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName")
 
 read, err := client.GetInstanceFunctionSlot(ctx, id)
 if err != nil {
@@ -2419,7 +2419,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId")
+id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId")
 
 read, err := client.GetInstanceInfo(ctx, id)
 if err != nil {
@@ -2435,7 +2435,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId")
+id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId")
 
 read, err := client.GetInstanceInfoSlot(ctx, id)
 if err != nil {
@@ -2451,7 +2451,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId")
+id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId")
 
 read, err := client.GetInstanceMSDeployLog(ctx, id)
 if err != nil {
@@ -2467,7 +2467,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId")
+id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId")
 
 read, err := client.GetInstanceMSDeployLogSlot(ctx, id)
 if err != nil {
@@ -2483,7 +2483,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId")
+id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId")
 
 read, err := client.GetInstanceMsDeployStatus(ctx, id)
 if err != nil {
@@ -2499,7 +2499,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId")
+id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId")
 
 read, err := client.GetInstanceMsDeployStatusSlot(ctx, id)
 if err != nil {
@@ -2515,7 +2515,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId")
+id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId")
 
 read, err := client.GetInstanceProcess(ctx, id)
 if err != nil {
@@ -2531,7 +2531,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId")
+id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId")
 
 read, err := client.GetInstanceProcessDump(ctx, id)
 if err != nil {
@@ -2547,7 +2547,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId")
+id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId")
 
 read, err := client.GetInstanceProcessDumpSlot(ctx, id)
 if err != nil {
@@ -2563,7 +2563,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId", "baseAddress")
+id := webapps.NewInstanceProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId", "moduleName")
 
 read, err := client.GetInstanceProcessModule(ctx, id)
 if err != nil {
@@ -2579,7 +2579,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId", "baseAddress")
+id := webapps.NewSlotInstanceProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId", "moduleName")
 
 read, err := client.GetInstanceProcessModuleSlot(ctx, id)
 if err != nil {
@@ -2595,7 +2595,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId")
+id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId")
 
 read, err := client.GetInstanceProcessSlot(ctx, id)
 if err != nil {
@@ -2611,7 +2611,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "workflowName")
+id := webapps.NewSlotWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "workflowName")
 
 read, err := client.GetInstanceWorkflowSlot(ctx, id)
 if err != nil {
@@ -2643,7 +2643,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetMSDeployLogSlot(ctx, id)
 if err != nil {
@@ -2675,7 +2675,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetMSDeployStatusSlot(ctx, id)
 if err != nil {
@@ -2707,7 +2707,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetMigrateMySqlStatusSlot(ctx, id)
 if err != nil {
@@ -2723,7 +2723,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "operationId")
+id := webapps.NewNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "operationId")
 
 read, err := client.GetNetworkTraces(ctx, id)
 if err != nil {
@@ -2739,7 +2739,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "operationId")
+id := webapps.NewSlotNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "operationId")
 
 read, err := client.GetNetworkTracesSlot(ctx, id)
 if err != nil {
@@ -2755,7 +2755,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSiteSlotNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "operationId")
+id := webapps.NewSiteSlotNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "operationId")
 
 read, err := client.GetNetworkTracesSlotV2(ctx, id)
 if err != nil {
@@ -2771,7 +2771,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSiteNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "operationId")
+id := webapps.NewSiteNetworkTraceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "operationId")
 
 read, err := client.GetNetworkTracesV2(ctx, id)
 if err != nil {
@@ -2803,7 +2803,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "premierAddOnName")
+id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "premierAddonName")
 
 read, err := client.GetPremierAddOn(ctx, id)
 if err != nil {
@@ -2819,7 +2819,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "premierAddOnName")
+id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "premierAddonName")
 
 read, err := client.GetPremierAddOnSlot(ctx, id)
 if err != nil {
@@ -2851,7 +2851,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetPrivateAccessSlot(ctx, id)
 if err != nil {
@@ -2867,7 +2867,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "privateEndpointConnectionName")
+id := webapps.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id)
 if err != nil {
@@ -2900,7 +2900,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.GetPrivateEndpointConnectionListSlot(ctx, id)` can be used to do batched pagination
 items, err := client.GetPrivateEndpointConnectionListSlotComplete(ctx, id)
@@ -2917,7 +2917,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "privateEndpointConnectionName")
+id := webapps.NewSlotPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnectionSlot(ctx, id)
 if err != nil {
@@ -2949,7 +2949,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetPrivateLinkResourcesSlot(ctx, id)
 if err != nil {
@@ -2965,7 +2965,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId")
+id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId")
 
 read, err := client.GetProcess(ctx, id)
 if err != nil {
@@ -2981,7 +2981,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId")
+id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId")
 
 read, err := client.GetProcessDump(ctx, id)
 if err != nil {
@@ -2997,7 +2997,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId")
+id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId")
 
 read, err := client.GetProcessDumpSlot(ctx, id)
 if err != nil {
@@ -3013,7 +3013,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId", "baseAddress")
+id := webapps.NewModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId", "moduleName")
 
 read, err := client.GetProcessModule(ctx, id)
 if err != nil {
@@ -3029,7 +3029,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId", "baseAddress")
+id := webapps.NewProcessModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId", "moduleName")
 
 read, err := client.GetProcessModuleSlot(ctx, id)
 if err != nil {
@@ -3045,7 +3045,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId")
+id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId")
 
 read, err := client.GetProcessSlot(ctx, id)
 if err != nil {
@@ -3061,7 +3061,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "publicCertificateName")
+id := webapps.NewPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "publicCertificateName")
 
 read, err := client.GetPublicCertificate(ctx, id)
 if err != nil {
@@ -3077,7 +3077,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "publicCertificateName")
+id := webapps.NewSlotPublicCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "publicCertificateName")
 
 read, err := client.GetPublicCertificateSlot(ctx, id)
 if err != nil {
@@ -3093,7 +3093,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "entityName")
+id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionName")
 
 read, err := client.GetRelayServiceConnection(ctx, id)
 if err != nil {
@@ -3109,7 +3109,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "entityName")
+id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionName")
 
 read, err := client.GetRelayServiceConnectionSlot(ctx, id)
 if err != nil {
@@ -3141,7 +3141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetScmAllowedSlot(ctx, id)
 if err != nil {
@@ -3157,7 +3157,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewConnectionStringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "connectionStringKey")
+id := webapps.NewConnectionStringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "connectionStringKey")
 
 read, err := client.GetSiteConnectionStringKeyVaultReference(ctx, id)
 if err != nil {
@@ -3173,7 +3173,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewConfigReferenceConnectionStringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "connectionStringKey")
+id := webapps.NewConfigReferenceConnectionStringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "connectionStringKey")
 
 read, err := client.GetSiteConnectionStringKeyVaultReferenceSlot(ctx, id)
 if err != nil {
@@ -3206,7 +3206,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.GetSiteConnectionStringKeyVaultReferencesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.GetSiteConnectionStringKeyVaultReferencesSlotComplete(ctx, id)
@@ -3223,7 +3223,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "containerName")
+id := webapps.NewSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "sitecontainerName")
 
 read, err := client.GetSiteContainer(ctx, id)
 if err != nil {
@@ -3239,7 +3239,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "containerName")
+id := webapps.NewSlotSitecontainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "sitecontainerName")
 
 read, err := client.GetSiteContainerSlot(ctx, id)
 if err != nil {
@@ -3255,7 +3255,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "siteExtensionId")
+id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "siteExtensionId")
 
 read, err := client.GetSiteExtension(ctx, id)
 if err != nil {
@@ -3271,7 +3271,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "siteExtensionId")
+id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "siteExtensionId")
 
 read, err := client.GetSiteExtensionSlot(ctx, id)
 if err != nil {
@@ -3303,7 +3303,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetSitePhpErrorLogFlagSlot(ctx, id)
 if err != nil {
@@ -3319,7 +3319,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetSlot(ctx, id)
 if err != nil {
@@ -3351,7 +3351,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetSourceControlSlot(ctx, id)
 if err != nil {
@@ -3383,7 +3383,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id)
 if err != nil {
@@ -3399,7 +3399,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "triggeredWebJobName")
 
 read, err := client.GetTriggeredWebJob(ctx, id)
 if err != nil {
@@ -3415,7 +3415,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHistoryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName", "id")
+id := webapps.NewHistoryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "triggeredWebJobName", "historyName")
 
 read, err := client.GetTriggeredWebJobHistory(ctx, id)
 if err != nil {
@@ -3431,7 +3431,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewTriggeredWebJobHistoryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName", "id")
+id := webapps.NewTriggeredWebJobHistoryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "triggeredWebJobName", "historyName")
 
 read, err := client.GetTriggeredWebJobHistorySlot(ctx, id)
 if err != nil {
@@ -3447,7 +3447,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "triggeredWebJobName")
 
 read, err := client.GetTriggeredWebJobSlot(ctx, id)
 if err != nil {
@@ -3463,7 +3463,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName")
 
 read, err := client.GetVnetConnection(ctx, id)
 if err != nil {
@@ -3479,7 +3479,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "gatewayName")
+id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName", "gatewayName")
 
 read, err := client.GetVnetConnectionGateway(ctx, id)
 if err != nil {
@@ -3495,7 +3495,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName", "gatewayName")
+id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName", "gatewayName")
 
 read, err := client.GetVnetConnectionGatewaySlot(ctx, id)
 if err != nil {
@@ -3511,7 +3511,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName")
+id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName")
 
 read, err := client.GetVnetConnectionSlot(ctx, id)
 if err != nil {
@@ -3527,7 +3527,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "webJobName")
 
 read, err := client.GetWebJob(ctx, id)
 if err != nil {
@@ -3543,7 +3543,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "webJobName")
 
 read, err := client.GetWebJobSlot(ctx, id)
 if err != nil {
@@ -3575,7 +3575,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.GetWebSiteContainerLogsSlot(ctx, id)
 if err != nil {
@@ -3591,7 +3591,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workflowName")
+id := webapps.NewWorkflowID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "workflowName")
 
 read, err := client.GetWorkflow(ctx, id)
 if err != nil {
@@ -3607,7 +3607,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "siteExtensionId")
+id := webapps.NewSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "siteExtensionId")
 
 if err := client.InstallSiteExtensionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -3619,7 +3619,7 @@ if err := client.InstallSiteExtensionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "siteExtensionId")
+id := webapps.NewSlotSiteExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "siteExtensionId")
 
 if err := client.InstallSiteExtensionSlotThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -3647,7 +3647,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.IsCloneableSlot(ctx, id)
 if err != nil {
@@ -3696,7 +3696,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListApplicationSettingsSlot(ctx, id)
 if err != nil {
@@ -3728,7 +3728,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListAzureStorageAccountsSlot(ctx, id)
 if err != nil {
@@ -3744,7 +3744,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "backupId")
+id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "backupId")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -3765,7 +3765,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "backupId")
+id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "backupId")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -3803,7 +3803,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListBackupsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListBackupsSlotComplete(ctx, id)
@@ -3837,7 +3837,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListBasicPublishingCredentialsPoliciesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListBasicPublishingCredentialsPoliciesSlotComplete(ctx, id)
@@ -3888,7 +3888,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListConfigurationSnapshotInfoSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListConfigurationSnapshotInfoSlotComplete(ctx, id)
@@ -3922,7 +3922,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListConfigurationsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListConfigurationsSlotComplete(ctx, id)
@@ -3955,7 +3955,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListConnectionStringsSlot(ctx, id)
 if err != nil {
@@ -3988,7 +3988,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListContinuousWebJobsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListContinuousWebJobsSlotComplete(ctx, id)
@@ -4005,7 +4005,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "id")
+id := webapps.NewDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "deploymentName")
 
 read, err := client.ListDeploymentLog(ctx, id)
 if err != nil {
@@ -4021,7 +4021,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "id")
+id := webapps.NewSlotDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "deploymentName")
 
 read, err := client.ListDeploymentLogSlot(ctx, id)
 if err != nil {
@@ -4054,7 +4054,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListDeploymentsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListDeploymentsSlotComplete(ctx, id)
@@ -4088,7 +4088,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListDomainOwnershipIdentifiersSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListDomainOwnershipIdentifiersSlotComplete(ctx, id)
@@ -4105,7 +4105,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName")
+id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName")
 
 read, err := client.ListFunctionKeys(ctx, id)
 if err != nil {
@@ -4121,7 +4121,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName")
+id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName")
 
 read, err := client.ListFunctionKeysSlot(ctx, id)
 if err != nil {
@@ -4137,7 +4137,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "functionName")
+id := webapps.NewFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "functionName")
 
 read, err := client.ListFunctionSecrets(ctx, id)
 if err != nil {
@@ -4153,7 +4153,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "functionName")
+id := webapps.NewSlotFunctionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "functionName")
 
 read, err := client.ListFunctionSecretsSlot(ctx, id)
 if err != nil {
@@ -4202,7 +4202,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListHostKeysSlot(ctx, id)
 if err != nil {
@@ -4235,7 +4235,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListHostNameBindingsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListHostNameBindingsSlotComplete(ctx, id)
@@ -4268,7 +4268,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListHybridConnectionsSlot(ctx, id)
 if err != nil {
@@ -4284,7 +4284,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListInstanceFunctionsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceFunctionsSlotComplete(ctx, id)
@@ -4318,7 +4318,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListInstanceIdentifiersSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceIdentifiersSlotComplete(ctx, id)
@@ -4335,7 +4335,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId")
+id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId")
 
 // alternatively `client.ListInstanceProcessModules(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessModulesComplete(ctx, id)
@@ -4352,7 +4352,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId")
+id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId")
 
 // alternatively `client.ListInstanceProcessModulesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessModulesSlotComplete(ctx, id)
@@ -4369,7 +4369,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId", "processId")
+id := webapps.NewInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId", "processId")
 
 // alternatively `client.ListInstanceProcessThreads(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessThreadsComplete(ctx, id)
@@ -4386,7 +4386,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId", "processId")
+id := webapps.NewSlotInstanceProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId", "processId")
 
 // alternatively `client.ListInstanceProcessThreadsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessThreadsSlotComplete(ctx, id)
@@ -4403,7 +4403,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "instanceId")
+id := webapps.NewInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "instanceId")
 
 // alternatively `client.ListInstanceProcesses(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessesComplete(ctx, id)
@@ -4420,7 +4420,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "instanceId")
+id := webapps.NewSlotInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "instanceId")
 
 // alternatively `client.ListInstanceProcessesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceProcessesSlotComplete(ctx, id)
@@ -4437,7 +4437,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListInstanceWorkflowsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceWorkflowsSlotComplete(ctx, id)
@@ -4470,7 +4470,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListMetadataSlot(ctx, id)
 if err != nil {
@@ -4486,7 +4486,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewNetworkFeatureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "view")
+id := webapps.NewNetworkFeatureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "networkFeatureName")
 
 read, err := client.ListNetworkFeatures(ctx, id)
 if err != nil {
@@ -4502,7 +4502,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotNetworkFeatureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "view")
+id := webapps.NewSlotNetworkFeatureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "networkFeatureName")
 
 read, err := client.ListNetworkFeaturesSlot(ctx, id)
 if err != nil {
@@ -4535,7 +4535,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListPerfMonCountersSlot(ctx, id, webapps.DefaultListPerfMonCountersSlotOperationOptions())` can be used to do batched pagination
 items, err := client.ListPerfMonCountersSlotComplete(ctx, id, webapps.DefaultListPerfMonCountersSlotOperationOptions())
@@ -4568,7 +4568,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListPremierAddOnsSlot(ctx, id)
 if err != nil {
@@ -4584,7 +4584,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId")
+id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId")
 
 // alternatively `client.ListProcessModules(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessModulesComplete(ctx, id)
@@ -4601,7 +4601,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId")
+id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId")
 
 // alternatively `client.ListProcessModulesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessModulesSlotComplete(ctx, id)
@@ -4618,7 +4618,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "processId")
+id := webapps.NewProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "processId")
 
 // alternatively `client.ListProcessThreads(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessThreadsComplete(ctx, id)
@@ -4635,7 +4635,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "processId")
+id := webapps.NewSlotProcessID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "processId")
 
 // alternatively `client.ListProcessThreadsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessThreadsSlotComplete(ctx, id)
@@ -4669,7 +4669,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListProcessesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessesSlotComplete(ctx, id)
@@ -4720,7 +4720,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListPublicCertificatesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListPublicCertificatesSlotComplete(ctx, id)
@@ -4749,7 +4749,7 @@ if err := client.ListPublishingCredentialsThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 if err := client.ListPublishingCredentialsSlotThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -4782,7 +4782,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmPublishingProfileOptions{
 	// ...
@@ -4819,7 +4819,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListRelayServiceConnectionsSlot(ctx, id)
 if err != nil {
@@ -4852,7 +4852,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSiteBackupsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteBackupsSlotComplete(ctx, id)
@@ -4886,7 +4886,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSiteContainersSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteContainersSlotComplete(ctx, id)
@@ -4920,7 +4920,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSiteExtensionsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteExtensionsSlotComplete(ctx, id)
@@ -4953,7 +4953,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListSitePushSettingsSlot(ctx, id)
 if err != nil {
@@ -5007,7 +5007,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -5029,7 +5029,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSlotSiteDeploymentStatusesSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSlotSiteDeploymentStatusesSlotComplete(ctx, id)
@@ -5097,7 +5097,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSnapshotsFromDRSecondarySlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSnapshotsFromDRSecondarySlotComplete(ctx, id)
@@ -5114,7 +5114,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListSnapshotsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListSnapshotsSlotComplete(ctx, id)
@@ -5147,7 +5147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListSyncFunctionTriggersSlot(ctx, id)
 if err != nil {
@@ -5179,7 +5179,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListSyncStatusSlot(ctx, id)
 if err != nil {
@@ -5195,7 +5195,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "triggeredWebJobName")
 
 // alternatively `client.ListTriggeredWebJobHistory(ctx, id)` can be used to do batched pagination
 items, err := client.ListTriggeredWebJobHistoryComplete(ctx, id)
@@ -5212,7 +5212,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "triggeredWebJobName")
 
 // alternatively `client.ListTriggeredWebJobHistorySlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListTriggeredWebJobHistorySlotComplete(ctx, id)
@@ -5246,7 +5246,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListTriggeredWebJobsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListTriggeredWebJobsSlotComplete(ctx, id)
@@ -5280,7 +5280,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListUsagesSlot(ctx, id, webapps.DefaultListUsagesSlotOperationOptions())` can be used to do batched pagination
 items, err := client.ListUsagesSlotComplete(ctx, id, webapps.DefaultListUsagesSlotOperationOptions())
@@ -5313,7 +5313,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListVnetConnectionsSlot(ctx, id)
 if err != nil {
@@ -5346,7 +5346,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 // alternatively `client.ListWebJobsSlot(ctx, id)` can be used to do batched pagination
 items, err := client.ListWebJobsSlotComplete(ctx, id)
@@ -5396,7 +5396,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ListWorkflowsConnectionsSlot(ctx, id)
 if err != nil {
@@ -5467,7 +5467,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.PrivateAccess{
 	// ...
@@ -5488,7 +5488,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "snapshotId")
+id := webapps.NewSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "snapshotId")
 
 read, err := client.RecoverSiteConfigurationSnapshot(ctx, id)
 if err != nil {
@@ -5504,7 +5504,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewWebSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "snapshotId")
+id := webapps.NewWebSnapshotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "snapshotId")
 
 read, err := client.RecoverSiteConfigurationSnapshotSlot(ctx, id)
 if err != nil {
@@ -5536,7 +5536,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.ResetSlotConfigurationSlot(ctx, id)
 if err != nil {
@@ -5568,7 +5568,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.RestartSlot(ctx, id, webapps.DefaultRestartSlotOperationOptions())
 if err != nil {
@@ -5584,7 +5584,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "backupId")
+id := webapps.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "backupId")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -5618,7 +5618,7 @@ if err := client.RestoreFromBackupBlobThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -5652,7 +5652,7 @@ if err := client.RestoreFromDeletedAppThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.DeletedAppRestoreRequest{
 	// ...
@@ -5669,7 +5669,7 @@ if err := client.RestoreFromDeletedAppSlotThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "backupId")
+id := webapps.NewSlotBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "backupId")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -5703,7 +5703,7 @@ if err := client.RestoreSnapshotThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SnapshotRestoreRequest{
 	// ...
@@ -5720,7 +5720,7 @@ if err := client.RestoreSnapshotSlotThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "triggeredWebJobName")
 
 read, err := client.RunTriggeredWebJob(ctx, id)
 if err != nil {
@@ -5736,7 +5736,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotTriggeredWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "triggeredWebJobName")
 
 read, err := client.RunTriggeredWebJobSlot(ctx, id)
 if err != nil {
@@ -5768,7 +5768,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "continuousWebJobName")
 
 read, err := client.StartContinuousWebJob(ctx, id)
 if err != nil {
@@ -5784,7 +5784,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "continuousWebJobName")
 
 read, err := client.StartContinuousWebJobSlot(ctx, id)
 if err != nil {
@@ -5812,7 +5812,7 @@ if err := client.StartNetworkTraceThenPoll(ctx, id, webapps.DefaultStartNetworkT
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 if err := client.StartNetworkTraceSlotThenPoll(ctx, id, webapps.DefaultStartNetworkTraceSlotOperationOptions()); err != nil {
 	// handle the error
@@ -5824,7 +5824,7 @@ if err := client.StartNetworkTraceSlotThenPoll(ctx, id, webapps.DefaultStartNetw
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.StartSlot(ctx, id)
 if err != nil {
@@ -5868,7 +5868,7 @@ if err := client.StartWebSiteNetworkTraceOperationThenPoll(ctx, id, webapps.Defa
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 if err := client.StartWebSiteNetworkTraceOperationSlotThenPoll(ctx, id, webapps.DefaultStartWebSiteNetworkTraceOperationSlotOperationOptions()); err != nil {
 	// handle the error
@@ -5880,7 +5880,7 @@ if err := client.StartWebSiteNetworkTraceOperationSlotThenPoll(ctx, id, webapps.
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.StartWebSiteNetworkTraceSlot(ctx, id, webapps.DefaultStartWebSiteNetworkTraceSlotOperationOptions())
 if err != nil {
@@ -5912,7 +5912,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "webJobName")
+id := webapps.NewContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "continuousWebJobName")
 
 read, err := client.StopContinuousWebJob(ctx, id)
 if err != nil {
@@ -5928,7 +5928,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "webJobName")
+id := webapps.NewSlotContinuousWebJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "continuousWebJobName")
 
 read, err := client.StopContinuousWebJobSlot(ctx, id)
 if err != nil {
@@ -5960,7 +5960,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.StopNetworkTraceSlot(ctx, id)
 if err != nil {
@@ -5976,7 +5976,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.StopSlot(ctx, id)
 if err != nil {
@@ -6008,7 +6008,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.StopWebSiteNetworkTraceSlot(ctx, id)
 if err != nil {
@@ -6024,7 +6024,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -6074,7 +6074,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.SyncFunctionTriggersSlot(ctx, id)
 if err != nil {
@@ -6106,7 +6106,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.SyncFunctionsSlot(ctx, id)
 if err != nil {
@@ -6138,7 +6138,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 read, err := client.SyncRepositorySlot(ctx, id)
 if err != nil {
@@ -6196,7 +6196,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.StringDictionary{
 	// ...
@@ -6238,7 +6238,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteAuthSettings{
 	// ...
@@ -6280,7 +6280,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteAuthSettingsV2{
 	// ...
@@ -6322,7 +6322,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.AzureStoragePropertyDictionaryResource{
 	// ...
@@ -6364,7 +6364,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -6406,7 +6406,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteConfigResource{
 	// ...
@@ -6448,7 +6448,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.ConnectionStringDictionary{
 	// ...
@@ -6490,7 +6490,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteLogsConfig{
 	// ...
@@ -6511,7 +6511,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "domainOwnershipIdentifierName")
+id := webapps.NewSiteDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "domainOwnershipIdentifierName")
 
 payload := webapps.Identifier{
 	// ...
@@ -6532,7 +6532,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "domainOwnershipIdentifierName")
+id := webapps.NewSlotDomainOwnershipIdentifierID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "domainOwnershipIdentifierName")
 
 payload := webapps.Identifier{
 	// ...
@@ -6574,7 +6574,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmPublishingCredentialsPoliciesEntity{
 	// ...
@@ -6595,7 +6595,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := webapps.NewRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionNamespaceName", "relayName")
 
 payload := webapps.HybridConnection{
 	// ...
@@ -6616,7 +6616,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "namespaceName", "relayName")
+id := webapps.NewSlotHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionNamespaceName", "relayName")
 
 payload := webapps.HybridConnection{
 	// ...
@@ -6658,7 +6658,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.StringDictionary{
 	// ...
@@ -6679,7 +6679,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "premierAddOnName")
+id := webapps.NewPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "premierAddonName")
 
 payload := webapps.PremierAddOnPatchResource{
 	// ...
@@ -6700,7 +6700,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "premierAddOnName")
+id := webapps.NewSlotPremierAddonID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "premierAddonName")
 
 payload := webapps.PremierAddOnPatchResource{
 	// ...
@@ -6721,7 +6721,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "entityName")
+id := webapps.NewHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "hybridConnectionName")
 
 payload := webapps.RelayServiceConnectionEntity{
 	// ...
@@ -6742,7 +6742,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "entityName")
+id := webapps.NewSlotHybridConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "hybridConnectionName")
 
 payload := webapps.RelayServiceConnectionEntity{
 	// ...
@@ -6784,7 +6784,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.CsmPublishingCredentialsPoliciesEntity{
 	// ...
@@ -6826,7 +6826,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.PushSettings{
 	// ...
@@ -6847,7 +6847,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SitePatchResource{
 	// ...
@@ -6910,7 +6910,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SiteSourceControl{
 	// ...
@@ -6952,7 +6952,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slot")
+id := webapps.NewSlotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName")
 
 payload := webapps.SwiftVirtualNetwork{
 	// ...
@@ -6973,7 +6973,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := webapps.NewVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName")
 
 payload := webapps.VnetInfoResource{
 	// ...
@@ -6994,7 +6994,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "gatewayName")
+id := webapps.NewGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "virtualNetworkConnectionName", "gatewayName")
 
 payload := webapps.VnetGateway{
 	// ...
@@ -7015,7 +7015,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName", "gatewayName")
+id := webapps.NewSlotVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName", "gatewayName")
 
 payload := webapps.VnetGateway{
 	// ...
@@ -7036,7 +7036,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "slot", "vnetName")
+id := webapps.NewSlotVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteName", "slotName", "virtualNetworkConnectionName")
 
 payload := webapps.VnetInfoResource{
 	// ...

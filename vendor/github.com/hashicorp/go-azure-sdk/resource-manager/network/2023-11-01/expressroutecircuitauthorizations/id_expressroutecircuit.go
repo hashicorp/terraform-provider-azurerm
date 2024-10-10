@@ -115,7 +115,7 @@ func (id ExpressRouteCircuitId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteCircuits", "expressRouteCircuits", "expressRouteCircuits"),
-		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "circuitName"),
+		resourceids.UserSpecifiedSegment("expressRouteCircuitName", "expressRouteCircuitName"),
 	}
 }
 

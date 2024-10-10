@@ -12,6 +12,6 @@ type DicomServiceProperties struct {
 	PrivateEndpointConnections  *[]PrivateEndpointConnection             `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState           *ProvisioningState                       `json:"provisioningState,omitempty"`
 	PublicNetworkAccess         *PublicNetworkAccess                     `json:"publicNetworkAccess,omitempty"`
-	ServiceUrl                  *string                                  `json:"serviceUrl,omitempty"`
+	ServiceURL                  *string                                  `json:"serviceUrl,omitempty"`
 	StorageConfiguration        *StorageConfiguration                    `json:"storageConfiguration,omitempty"`
 }

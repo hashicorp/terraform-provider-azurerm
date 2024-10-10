@@ -41,7 +41,7 @@ type SpringCloudGatewayModel struct {
 type ApiMetadataModel struct {
 	Description      string `tfschema:"description"`
 	DocumentationUrl string `tfschema:"documentation_url"`
-	ServerUrl        string `tfschema:"server_url"`
+	ServerURL        string `tfschema:"server_url"`
 	Title            string `tfschema:"title"`
 	Version          string `tfschema:"version"`
 }
@@ -688,7 +688,7 @@ func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *apppla
 		Description:   pointer.To(v.Description),
 		Documentation: pointer.To(v.DocumentationUrl),
 		Version:       pointer.To(v.Version),
-		ServerUrl:     pointer.To(v.ServerUrl),
+		ServerURL:     pointer.To(v.ServerURL),
 	}
 }
 
@@ -807,7 +807,7 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMet
 		{
 			Description:      pointer.From(input.Description),
 			DocumentationUrl: pointer.From(input.Documentation),
-			ServerUrl:        pointer.From(input.ServerUrl),
+			ServerURL:        pointer.From(input.ServerURL),
 			Title:            pointer.From(input.Title),
 			Version:          pointer.From(input.Version),
 		},

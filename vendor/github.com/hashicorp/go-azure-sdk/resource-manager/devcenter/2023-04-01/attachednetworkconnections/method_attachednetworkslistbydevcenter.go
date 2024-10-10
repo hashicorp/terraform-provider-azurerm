@@ -73,7 +73,7 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByDevCenter(ctx co
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
 		Pager:         &AttachedNetworksListByDevCenterCustomPager{},
-		Path:          fmt.Sprintf("%s/attachednetworks", id.ID()),
+		Path:          fmt.Sprintf("%s/attachedNetworks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

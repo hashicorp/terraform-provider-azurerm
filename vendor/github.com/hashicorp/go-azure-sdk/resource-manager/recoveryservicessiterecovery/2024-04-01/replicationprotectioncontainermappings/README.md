@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName", "mappingName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName", "replicationProtectionContainerMappingName")
 
 payload := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName", "mappingName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName", "replicationProtectionContainerMappingName")
 
 payload := replicationprotectioncontainermappings.RemoveProtectionContainerMappingInput{
 	// ...
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName", "mappingName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName", "replicationProtectionContainerMappingName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := replicationprotectioncontainermappings.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -91,7 +91,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName")
 
 // alternatively `client.ListByReplicationProtectionContainers(ctx, id)` can be used to do batched pagination
 items, err := client.ListByReplicationProtectionContainersComplete(ctx, id)
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName", "mappingName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName", "replicationProtectionContainerMappingName")
 
 if err := client.PurgeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -120,7 +120,7 @@ if err := client.PurgeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "protectionContainerName", "mappingName")
+id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationProtectionContainerName", "replicationProtectionContainerMappingName")
 
 payload := replicationprotectioncontainermappings.UpdateProtectionContainerMappingInput{
 	// ...

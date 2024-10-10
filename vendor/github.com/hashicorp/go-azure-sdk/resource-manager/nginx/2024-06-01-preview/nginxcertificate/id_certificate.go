@@ -121,7 +121,7 @@ func (id CertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticNginxNginxPlus", "Nginx.NginxPlus", "Nginx.NginxPlus"),
 		resourceids.StaticSegment("staticNginxDeployments", "nginxDeployments", "nginxDeployments"),
-		resourceids.UserSpecifiedSegment("nginxDeploymentName", "deploymentName"),
+		resourceids.UserSpecifiedSegment("nginxDeploymentName", "nginxDeploymentName"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
 		resourceids.UserSpecifiedSegment("certificateName", "certificateName"),
 	}

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := backups.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "backupName")
+id := backups.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "backupName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backups.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
+id := backups.NewFlexibleServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -57,7 +57,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := backups.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "backupName")
+id := backups.NewBackupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "backupName")
 
 read, err := client.Put(ctx, id)
 if err != nil {

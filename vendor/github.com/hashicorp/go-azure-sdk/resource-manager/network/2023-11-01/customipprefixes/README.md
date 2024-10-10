@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIpPrefixName")
+id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIPPrefixName")
 
 payload := customipprefixes.CustomIPPrefix{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIpPrefixName")
+id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIPPrefixName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIpPrefixName")
+id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIPPrefixName")
 
 read, err := client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIpPrefixName")
+id := customipprefixes.NewCustomIPPrefixID("12345678-1234-9876-4563-123456789012", "example-resource-group", "customIPPrefixName")
 
 payload := customipprefixes.TagsObject{
 	// ...

@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "routeName")
+id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "routeName")
 
 payload := appserviceplans.VnetRoute{
 	// ...
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.DeleteHybridConnection(ctx, id)
 if err != nil {
@@ -95,7 +95,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "routeName")
+id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "routeName")
 
 read, err := client.DeleteVnetRoute(ctx, id)
 if err != nil {
@@ -127,7 +127,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.GetHybridConnection(ctx, id)
 if err != nil {
@@ -159,7 +159,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "routeName")
+id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "routeName")
 
 read, err := client.GetRouteForVnet(ctx, id)
 if err != nil {
@@ -191,7 +191,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewServerFarmVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := appserviceplans.NewServerFarmVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName")
 
 read, err := client.GetVnetFromServerFarm(ctx, id)
 if err != nil {
@@ -207,7 +207,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "gatewayName")
+id := appserviceplans.NewVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "gatewayName")
 
 read, err := client.GetVnetGateway(ctx, id)
 if err != nil {
@@ -273,7 +273,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "hybridConnectionNamespaceName", "relayName")
 
 read, err := client.ListHybridConnectionKeys(ctx, id)
 if err != nil {
@@ -306,7 +306,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewServerFarmVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName")
+id := appserviceplans.NewServerFarmVirtualNetworkConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName")
 
 read, err := client.ListRoutesForVnet(ctx, id)
 if err != nil {
@@ -372,7 +372,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "namespaceName", "relayName")
+id := appserviceplans.NewHybridConnectionNamespaceRelayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "hybridConnectionNamespaceName", "relayName")
 
 // alternatively `client.ListWebAppsByHybridConnection(ctx, id)` can be used to do batched pagination
 items, err := client.ListWebAppsByHybridConnectionComplete(ctx, id)
@@ -389,7 +389,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewWorkerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "workerName")
+id := appserviceplans.NewWorkerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "workerName")
 
 read, err := client.RebootWorker(ctx, id)
 if err != nil {
@@ -442,7 +442,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "gatewayName")
+id := appserviceplans.NewVirtualNetworkConnectionGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "gatewayName")
 
 payload := appserviceplans.VnetGateway{
 	// ...
@@ -463,7 +463,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name", "vnetName", "routeName")
+id := appserviceplans.NewRouteID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverFarmName", "virtualNetworkConnectionName", "routeName")
 
 payload := appserviceplans.VnetRoute{
 	// ...

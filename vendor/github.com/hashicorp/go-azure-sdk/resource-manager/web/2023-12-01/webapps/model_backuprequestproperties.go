@@ -8,5 +8,5 @@ type BackupRequestProperties struct {
 	BackupSchedule    *BackupSchedule          `json:"backupSchedule,omitempty"`
 	Databases         *[]DatabaseBackupSetting `json:"databases,omitempty"`
 	Enabled           *bool                    `json:"enabled,omitempty"`
-	StorageAccountUrl string                   `json:"storageAccountUrl"`
+	StorageAccountURL string                   `json:"storageAccountUrl"`
 }

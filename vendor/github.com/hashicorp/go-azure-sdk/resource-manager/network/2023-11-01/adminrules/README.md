@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName", "ruleName")
+id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "securityAdminConfigurationName", "ruleCollectionName", "ruleName")
 
 payload := adminrules.BaseAdminRule{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName", "ruleName")
+id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "securityAdminConfigurationName", "ruleCollectionName", "ruleName")
 
 if err := client.DeleteThenPoll(ctx, id, adminrules.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id, adminrules.DefaultDeleteOperationOption
 
 ```go
 ctx := context.TODO()
-id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName", "ruleName")
+id := adminrules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "securityAdminConfigurationName", "ruleCollectionName", "ruleName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := adminrules.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName", "ruleCollectionName")
+id := adminrules.NewRuleCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "securityAdminConfigurationName", "ruleCollectionName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

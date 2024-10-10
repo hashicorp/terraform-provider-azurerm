@@ -81,7 +81,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 	config := input[0].(map[string]interface{})
 
 	if v, ok := config["url"]; ok && v != "" {
-		props.EndpointUrl = pointer.To(v.(string))
+		props.EndpointURL = pointer.To(v.(string))
 	}
 
 	if v, ok := config["max_events_per_batch"]; ok && v != 0 {
@@ -359,13 +359,13 @@ func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullUrl) []interface{} {
+func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
 	output := make([]interface{}, 0)
 	val, ok := input.(eventsubscriptions.WebHookEventSubscriptionDestination)
 	if ok {
 		webHookUrl := ""
 		if fullUrl != nil {
-			webHookUrl = *fullUrl.EndpointUrl
+			webHookUrl = *fullUrl.EndpointURL
 		}
 
 		azureActiveDirectoryApplicationIdOrUrl := ""
@@ -374,8 +374,8 @@ func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubsc
 		preferredBatchSizeInKilobytes := 0
 		webhookBaseURL := ""
 		if props := val.Properties; props != nil {
-			if props.EndpointBaseUrl != nil {
-				webhookBaseURL = *props.EndpointBaseUrl
+			if props.EndpointBaseURL != nil {
+				webhookBaseURL = *props.EndpointBaseURL
 			}
 
 			if props.MaxEventsPerBatch != nil {

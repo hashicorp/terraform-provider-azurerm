@@ -10,5 +10,5 @@ type SiteSourceControlProperties struct {
 	IsGitHubAction            *bool                      `json:"isGitHubAction,omitempty"`
 	IsManualIntegration       *bool                      `json:"isManualIntegration,omitempty"`
 	IsMercurial               *bool                      `json:"isMercurial,omitempty"`
-	RepoUrl                   *string                    `json:"repoUrl,omitempty"`
+	RepoURL                   *string                    `json:"repoUrl,omitempty"`
 }

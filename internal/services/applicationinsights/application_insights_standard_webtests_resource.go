@@ -558,7 +558,7 @@ func expandApplicationInsightsStandardWebTestRequest(input []RequestModel) (requ
 	}
 
 	if v := requestInput.URL; v != "" {
-		request.RequestUrl = pointer.To(v)
+		request.RequestURL = pointer.To(v)
 	}
 
 	return request
@@ -593,7 +593,7 @@ func flattenApplicationInsightsStandardWebTestRequest(input *webtests.WebTestPro
 		FollowRedirects:        pointer.From(req.FollowRedirects),
 		HTTPVerb:               pointer.From(req.HTTPVerb),
 		ParseDependentRequests: pointer.From(req.ParseDependentRequests),
-		URL:                    pointer.From(req.RequestUrl),
+		URL:                    pointer.From(req.RequestURL),
 		Header:                 flattenApplicationInsightsStandardWebTestRequestHeaders(req.Headers),
 	}
 

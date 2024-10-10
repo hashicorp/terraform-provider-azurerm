@@ -7,7 +7,7 @@ type DataBoxEdgeDeviceExtendedInfoProperties struct {
 	ChannelIntegrityKeyName        *string             `json:"channelIntegrityKeyName,omitempty"`
 	ChannelIntegrityKeyVersion     *string             `json:"channelIntegrityKeyVersion,omitempty"`
 	ClientSecretStoreId            *string             `json:"clientSecretStoreId,omitempty"`
-	ClientSecretStoreUrl           *string             `json:"clientSecretStoreUrl,omitempty"`
+	ClientSecretStoreURL           *string             `json:"clientSecretStoreUrl,omitempty"`
 	CloudWitnessContainerName      *string             `json:"cloudWitnessContainerName,omitempty"`
 	CloudWitnessStorageAccountName *string             `json:"cloudWitnessStorageAccountName,omitempty"`
 	CloudWitnessStorageEndpoint    *string             `json:"cloudWitnessStorageEndpoint,omitempty"`

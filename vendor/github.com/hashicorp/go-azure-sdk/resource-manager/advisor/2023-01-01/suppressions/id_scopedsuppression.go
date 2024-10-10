@@ -114,7 +114,7 @@ func (id ScopedSuppressionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticRecommendations", "recommendations", "recommendations"),
 		resourceids.UserSpecifiedSegment("recommendationId", "recommendationId"),
 		resourceids.StaticSegment("staticSuppressions", "suppressions", "suppressions"),
-		resourceids.UserSpecifiedSegment("suppressionName", "name"),
+		resourceids.UserSpecifiedSegment("suppressionName", "suppressionName"),
 	}
 }
 

@@ -127,9 +127,9 @@ func (id MongodbDatabaseCollectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticMongodbDatabases", "mongodbDatabases", "mongodbDatabases"),
-		resourceids.UserSpecifiedSegment("mongodbDatabaseName", "databaseName"),
+		resourceids.UserSpecifiedSegment("mongodbDatabaseName", "mongodbDatabaseName"),
 		resourceids.StaticSegment("staticCollections", "collections", "collections"),
 		resourceids.UserSpecifiedSegment("collectionName", "collectionName"),
 	}

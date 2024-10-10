@@ -117,7 +117,7 @@ func (id ProjectId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.UserSpecifiedSegment("resourceGroupName", "groupName"),
+		resourceids.UserSpecifiedSegment("resourceGroupName", "resourceGroupName"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataMigration", "Microsoft.DataMigration", "Microsoft.DataMigration"),
 		resourceids.StaticSegment("staticServices", "services", "services"),

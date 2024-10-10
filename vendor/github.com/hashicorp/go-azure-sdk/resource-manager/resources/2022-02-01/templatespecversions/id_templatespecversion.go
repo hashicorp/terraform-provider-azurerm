@@ -123,7 +123,7 @@ func (id TemplateSpecVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticTemplateSpecs", "templateSpecs", "templateSpecs"),
 		resourceids.UserSpecifiedSegment("templateSpecName", "templateSpecName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionName", "templateSpecVersion"),
+		resourceids.UserSpecifiedSegment("versionName", "versionName"),
 	}
 }
 

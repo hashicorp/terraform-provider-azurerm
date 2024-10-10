@@ -99,7 +99,7 @@ func (id BuiltInTemplateSpecId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticBuiltInTemplateSpecs", "builtInTemplateSpecs", "builtInTemplateSpecs"),
-		resourceids.UserSpecifiedSegment("builtInTemplateSpecName", "templateSpecName"),
+		resourceids.UserSpecifiedSegment("builtInTemplateSpecName", "builtInTemplateSpecName"),
 	}
 }
 

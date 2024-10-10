@@ -794,7 +794,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 		}
 		containerGroup.Properties.EncryptionProperties = &containerinstance.EncryptionProperties{
-			VaultBaseUrl: keyId.KeyVaultBaseUrl,
+			VaultBaseURL: keyId.KeyVaultBaseUrl,
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
@@ -1004,8 +1004,8 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if kvProps := props.EncryptionProperties; kvProps != nil {
 			var keyVaultUri, keyName, keyVersion string
-			if kvProps.VaultBaseUrl != "" {
-				keyVaultUri = kvProps.VaultBaseUrl
+			if kvProps.VaultBaseURL != "" {
+				keyVaultUri = kvProps.VaultBaseURL
 			} else {
 				return fmt.Errorf("empty value returned for Key Vault URI")
 			}

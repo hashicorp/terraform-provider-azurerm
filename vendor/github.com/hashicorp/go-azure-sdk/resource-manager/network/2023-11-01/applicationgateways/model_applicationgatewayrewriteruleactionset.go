@@ -6,5 +6,5 @@ package applicationgateways
 type ApplicationGatewayRewriteRuleActionSet struct {
 	RequestHeaderConfigurations  *[]ApplicationGatewayHeaderConfiguration `json:"requestHeaderConfigurations,omitempty"`
 	ResponseHeaderConfigurations *[]ApplicationGatewayHeaderConfiguration `json:"responseHeaderConfigurations,omitempty"`
-	UrlConfiguration             *ApplicationGatewayUrlConfiguration      `json:"urlConfiguration,omitempty"`
+	UrlConfiguration             *ApplicationGatewayURLConfiguration      `json:"urlConfiguration,omitempty"`
 }

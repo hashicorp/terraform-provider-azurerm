@@ -121,7 +121,7 @@ func (id NodeTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceFabric", "Microsoft.ServiceFabric", "Microsoft.ServiceFabric"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "clusterName"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterName"),
 		resourceids.StaticSegment("staticNodeTypes", "nodeTypes", "nodeTypes"),
 		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeName"),
 	}

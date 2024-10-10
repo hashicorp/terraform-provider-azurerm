@@ -127,9 +127,9 @@ func (id VolumeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("netAppAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountName"),
 		resourceids.StaticSegment("staticCapacityPools", "capacityPools", "capacityPools"),
-		resourceids.UserSpecifiedSegment("capacityPoolName", "poolName"),
+		resourceids.UserSpecifiedSegment("capacityPoolName", "capacityPoolName"),
 		resourceids.StaticSegment("staticVolumes", "volumes", "volumes"),
 		resourceids.UserSpecifiedSegment("volumeName", "volumeName"),
 	}

@@ -2650,7 +2650,7 @@ func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	for _, v := range input {
 		result = append(result, containerapps.Secret{
 			Identity:    pointer.To(v.Identity),
-			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
+			KeyVaultURL: pointer.To(v.KeyVaultSecretId),
 			Name:        pointer.To(v.Name),
 			Value:       pointer.To(v.Value),
 		})
@@ -2668,7 +2668,7 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
 					Identity:    pointer.To(v["Identity"].(string)),
-					KeyVaultUrl: pointer.To(v["KeyVaultUrl"].(string)),
+					KeyVaultURL: pointer.To(v["KeyVaultURL"].(string)),
 					Name:        pointer.To(v["name"].(string)),
 					Value:       pointer.To(v["value"].(string)),
 				})
@@ -2787,10 +2787,10 @@ func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret
 	for _, v := range input.Value {
 		secret := Secret{
 			Identity:         pointer.From(v.Identity),
-			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			KeyVaultSecretId: pointer.From(v.KeyVaultURL),
 			Name:             pointer.From(v.Name),
 		}
-		if v.KeyVaultUrl == nil {
+		if v.KeyVaultURL == nil {
 			secret.Value = pointer.From(v.Value)
 		}
 		result = append(result, secret)

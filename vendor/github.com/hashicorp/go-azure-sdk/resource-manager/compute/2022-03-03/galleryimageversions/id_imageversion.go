@@ -129,9 +129,9 @@ func (id ImageVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticGalleries", "galleries", "galleries"),
 		resourceids.UserSpecifiedSegment("galleryName", "galleryName"),
 		resourceids.StaticSegment("staticImages", "images", "images"),
-		resourceids.UserSpecifiedSegment("imageName", "galleryImageName"),
+		resourceids.UserSpecifiedSegment("imageName", "imageName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionName", "galleryImageVersionName"),
+		resourceids.UserSpecifiedSegment("versionName", "versionName"),
 	}
 }
 

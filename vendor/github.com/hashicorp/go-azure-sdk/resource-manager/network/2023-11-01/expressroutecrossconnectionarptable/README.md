@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnectionarptable.NewPeeringArpTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName", "peeringName", "devicePath")
+id := expressroutecrossconnectionarptable.NewPeeringArpTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName", "peeringName", "arpTableName")
 
 // alternatively `client.ExpressRouteCrossConnectionsListArpTable(ctx, id)` can be used to do batched pagination
 items, err := client.ExpressRouteCrossConnectionsListArpTableComplete(ctx, id)

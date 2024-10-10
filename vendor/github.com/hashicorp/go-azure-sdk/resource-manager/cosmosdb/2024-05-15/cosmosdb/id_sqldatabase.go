@@ -121,9 +121,9 @@ func (id SqlDatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticSqlDatabases", "sqlDatabases", "sqlDatabases"),
-		resourceids.UserSpecifiedSegment("sqlDatabaseName", "databaseName"),
+		resourceids.UserSpecifiedSegment("sqlDatabaseName", "sqlDatabaseName"),
 	}
 }
 

@@ -36,7 +36,7 @@ func (p *ConnectorListCustomPager) NextPageLink() *odata.Link {
 }
 
 // ConnectorList ...
-func (c ServiceLinkerClient) ConnectorList(ctx context.Context, id LocationId) (result ConnectorListOperationResponse, err error) {
+func (c ServicelinkerClient) ConnectorList(ctx context.Context, id LocationId) (result ConnectorListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -75,12 +75,12 @@ func (c ServiceLinkerClient) ConnectorList(ctx context.Context, id LocationId) (
 }
 
 // ConnectorListComplete retrieves all the results into a single object
-func (c ServiceLinkerClient) ConnectorListComplete(ctx context.Context, id LocationId) (ConnectorListCompleteResult, error) {
+func (c ServicelinkerClient) ConnectorListComplete(ctx context.Context, id LocationId) (ConnectorListCompleteResult, error) {
 	return c.ConnectorListCompleteMatchingPredicate(ctx, id, LinkerResourceOperationPredicate{})
 }
 
 // ConnectorListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ServiceLinkerClient) ConnectorListCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate LinkerResourceOperationPredicate) (result ConnectorListCompleteResult, err error) {
+func (c ServicelinkerClient) ConnectorListCompleteMatchingPredicate(ctx context.Context, id LocationId, predicate LinkerResourceOperationPredicate) (result ConnectorListCompleteResult, err error) {
 	items := make([]LinkerResource, 0)
 
 	resp, err := c.ConnectorList(ctx, id)

@@ -18,7 +18,7 @@ type ApplicationRule struct {
 	SourceAddresses      *[]string                                `json:"sourceAddresses,omitempty"`
 	SourceIPGroups       *[]string                                `json:"sourceIpGroups,omitempty"`
 	TargetFqdns          *[]string                                `json:"targetFqdns,omitempty"`
-	TargetUrls           *[]string                                `json:"targetUrls,omitempty"`
+	TargetURLs           *[]string                                `json:"targetUrls,omitempty"`
 	TerminateTLS         *bool                                    `json:"terminateTLS,omitempty"`
 	WebCategories        *[]string                                `json:"webCategories,omitempty"`
 

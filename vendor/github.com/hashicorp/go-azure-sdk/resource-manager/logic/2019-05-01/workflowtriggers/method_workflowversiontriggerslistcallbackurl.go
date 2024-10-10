@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type WorkflowVersionTriggersListCallbackUrlOperationResponse struct {
+type WorkflowVersionTriggersListCallbackURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *WorkflowTriggerCallbackUrl
+	Model        *WorkflowTriggerCallbackURL
 }
 
-// WorkflowVersionTriggersListCallbackUrl ...
-func (c WorkflowTriggersClient) WorkflowVersionTriggersListCallbackUrl(ctx context.Context, id VersionTriggerId, input GetCallbackUrlParameters) (result WorkflowVersionTriggersListCallbackUrlOperationResponse, err error) {
+// WorkflowVersionTriggersListCallbackURL ...
+func (c WorkflowTriggersClient) WorkflowVersionTriggersListCallbackURL(ctx context.Context, id VersionTriggerId, input GetCallbackURLParameters) (result WorkflowVersionTriggersListCallbackURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -48,7 +48,7 @@ func (c WorkflowTriggersClient) WorkflowVersionTriggersListCallbackUrl(ctx conte
 		return
 	}
 
-	var model WorkflowTriggerCallbackUrl
+	var model WorkflowTriggerCallbackURL
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

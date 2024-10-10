@@ -133,13 +133,13 @@ func (id BuildPackBindingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "serviceName"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
 		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticBuilders", "builders", "builders"),
 		resourceids.UserSpecifiedSegment("builderName", "builderName"),
 		resourceids.StaticSegment("staticBuildPackBindings", "buildPackBindings", "buildPackBindings"),
-		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildpackBindingName"),
+		resourceids.UserSpecifiedSegment("buildPackBindingName", "buildPackBindingName"),
 	}
 }
 

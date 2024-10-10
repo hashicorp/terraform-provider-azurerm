@@ -121,7 +121,7 @@ func (id WorkerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticServerFarms", "serverFarms", "serverFarms"),
-		resourceids.UserSpecifiedSegment("serverFarmName", "name"),
+		resourceids.UserSpecifiedSegment("serverFarmName", "serverFarmName"),
 		resourceids.StaticSegment("staticWorkers", "workers", "workers"),
 		resourceids.UserSpecifiedSegment("workerName", "workerName"),
 	}

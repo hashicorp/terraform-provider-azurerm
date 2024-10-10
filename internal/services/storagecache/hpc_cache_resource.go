@@ -183,7 +183,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		cache.Properties.EncryptionSettings = &caches.CacheEncryptionSettings{
 			KeyEncryptionKey: &caches.KeyVaultKeyReference{
-				KeyUrl: keyVaultKeyId,
+				KeyURL: keyVaultKeyId,
 				SourceVault: caches.KeyVaultKeyReferenceSourceVault{
 					Id: pointer.To(keyVaultDetails.keyVaultId),
 				},
@@ -332,7 +332,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			autoKeyRotationEnabled := false
 			if eprops := props.EncryptionSettings; eprops != nil {
 				if eprops.KeyEncryptionKey != nil {
-					keyVaultKeyId = eprops.KeyEncryptionKey.KeyUrl
+					keyVaultKeyId = eprops.KeyEncryptionKey.KeyURL
 				}
 
 				if eprops.RotationToLatestKeyVersionEnabled != nil {

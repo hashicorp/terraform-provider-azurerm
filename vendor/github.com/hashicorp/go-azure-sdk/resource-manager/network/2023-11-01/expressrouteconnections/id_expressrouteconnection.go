@@ -123,7 +123,7 @@ func (id ExpressRouteConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticExpressRouteGateways", "expressRouteGateways", "expressRouteGateways"),
 		resourceids.UserSpecifiedSegment("expressRouteGatewayName", "expressRouteGatewayName"),
 		resourceids.StaticSegment("staticExpressRouteConnections", "expressRouteConnections", "expressRouteConnections"),
-		resourceids.UserSpecifiedSegment("expressRouteConnectionName", "connectionName"),
+		resourceids.UserSpecifiedSegment("expressRouteConnectionName", "expressRouteConnectionName"),
 	}
 }
 

@@ -115,7 +115,7 @@ func (id AutoScaleSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticAutoScaleSettings", "autoScaleSettings", "autoScaleSettings"),
-		resourceids.UserSpecifiedSegment("autoScaleSettingName", "autoscaleSettingName"),
+		resourceids.UserSpecifiedSegment("autoScaleSettingName", "autoScaleSettingName"),
 	}
 }
 

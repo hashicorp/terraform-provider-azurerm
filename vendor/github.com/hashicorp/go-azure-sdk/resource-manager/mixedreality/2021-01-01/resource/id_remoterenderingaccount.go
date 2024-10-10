@@ -115,7 +115,7 @@ func (id RemoteRenderingAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMixedReality", "Microsoft.MixedReality", "Microsoft.MixedReality"),
 		resourceids.StaticSegment("staticRemoteRenderingAccounts", "remoteRenderingAccounts", "remoteRenderingAccounts"),
-		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountName"),
 	}
 }
 

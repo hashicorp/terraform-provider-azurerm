@@ -115,7 +115,7 @@ func (id VirtualWANId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualWans", "virtualWans", "virtualWans"),
-		resourceids.UserSpecifiedSegment("virtualWanName", "virtualWANName"),
+		resourceids.UserSpecifiedSegment("virtualWanName", "virtualWanName"),
 	}
 }
 

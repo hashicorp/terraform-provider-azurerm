@@ -540,8 +540,8 @@ func flattenOrderTrackingInfo(input *[]orders.TrackingInfo) []interface{} {
 			trackingId = *item.TrackingId
 		}
 		var trackingUrl string
-		if item.TrackingUrl != nil {
-			trackingUrl = *item.TrackingUrl
+		if item.TrackingURL != nil {
+			trackingUrl = *item.TrackingURL
 		}
 		results = append(results, map[string]interface{}{
 			"carrier_name":  carrierName,

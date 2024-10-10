@@ -12,39 +12,39 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListPredefinedUrlCategoriesOperationResponse struct {
+type ListPredefinedURLCategoriesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]PredefinedUrlCategory
+	Model        *[]PredefinedURLCategory
 }
 
-type ListPredefinedUrlCategoriesCompleteResult struct {
+type ListPredefinedURLCategoriesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []PredefinedUrlCategory
+	Items              []PredefinedURLCategory
 }
 
-type ListPredefinedUrlCategoriesOperationOptions struct {
+type ListPredefinedURLCategoriesOperationOptions struct {
 	Skip *string
 	Top  *int64
 }
 
-func DefaultListPredefinedUrlCategoriesOperationOptions() ListPredefinedUrlCategoriesOperationOptions {
-	return ListPredefinedUrlCategoriesOperationOptions{}
+func DefaultListPredefinedURLCategoriesOperationOptions() ListPredefinedURLCategoriesOperationOptions {
+	return ListPredefinedURLCategoriesOperationOptions{}
 }
 
-func (o ListPredefinedUrlCategoriesOperationOptions) ToHeaders() *client.Headers {
+func (o ListPredefinedURLCategoriesOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 
 	return &out
 }
 
-func (o ListPredefinedUrlCategoriesOperationOptions) ToOData() *odata.Query {
+func (o ListPredefinedURLCategoriesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
 
 	return &out
 }
 
-func (o ListPredefinedUrlCategoriesOperationOptions) ToQuery() *client.QueryParams {
+func (o ListPredefinedURLCategoriesOperationOptions) ToQuery() *client.QueryParams {
 	out := client.QueryParams{}
 	if o.Skip != nil {
 		out.Append("skip", fmt.Sprintf("%v", *o.Skip))
@@ -55,11 +55,11 @@ func (o ListPredefinedUrlCategoriesOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
-type ListPredefinedUrlCategoriesCustomPager struct {
+type ListPredefinedURLCategoriesCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListPredefinedUrlCategoriesCustomPager) NextPageLink() *odata.Link {
+func (p *ListPredefinedURLCategoriesCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -67,8 +67,8 @@ func (p *ListPredefinedUrlCategoriesCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListPredefinedUrlCategories ...
-func (c GlobalRulestackClient) ListPredefinedUrlCategories(ctx context.Context, id GlobalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (result ListPredefinedUrlCategoriesOperationResponse, err error) {
+// ListPredefinedURLCategories ...
+func (c GlobalRulestackClient) ListPredefinedURLCategories(ctx context.Context, id GlobalRulestackId, options ListPredefinedURLCategoriesOperationOptions) (result ListPredefinedURLCategoriesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,7 +76,7 @@ func (c GlobalRulestackClient) ListPredefinedUrlCategories(ctx context.Context, 
 		},
 		HttpMethod:    http.MethodPost,
 		OptionsObject: options,
-		Pager:         &ListPredefinedUrlCategoriesCustomPager{},
+		Pager:         &ListPredefinedURLCategoriesCustomPager{},
 		Path:          fmt.Sprintf("%s/listPredefinedUrlCategories", id.ID()),
 	}
 
@@ -96,7 +96,7 @@ func (c GlobalRulestackClient) ListPredefinedUrlCategories(ctx context.Context, 
 	}
 
 	var values struct {
-		Values *[]PredefinedUrlCategory `json:"value"`
+		Values *[]PredefinedURLCategory `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -107,16 +107,16 @@ func (c GlobalRulestackClient) ListPredefinedUrlCategories(ctx context.Context, 
 	return
 }
 
-// ListPredefinedUrlCategoriesComplete retrieves all the results into a single object
-func (c GlobalRulestackClient) ListPredefinedUrlCategoriesComplete(ctx context.Context, id GlobalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (ListPredefinedUrlCategoriesCompleteResult, error) {
-	return c.ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx, id, options, PredefinedUrlCategoryOperationPredicate{})
+// ListPredefinedURLCategoriesComplete retrieves all the results into a single object
+func (c GlobalRulestackClient) ListPredefinedURLCategoriesComplete(ctx context.Context, id GlobalRulestackId, options ListPredefinedURLCategoriesOperationOptions) (ListPredefinedURLCategoriesCompleteResult, error) {
+	return c.ListPredefinedURLCategoriesCompleteMatchingPredicate(ctx, id, options, PredefinedURLCategoryOperationPredicate{})
 }
 
-// ListPredefinedUrlCategoriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c GlobalRulestackClient) ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx context.Context, id GlobalRulestackId, options ListPredefinedUrlCategoriesOperationOptions, predicate PredefinedUrlCategoryOperationPredicate) (result ListPredefinedUrlCategoriesCompleteResult, err error) {
-	items := make([]PredefinedUrlCategory, 0)
+// ListPredefinedURLCategoriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c GlobalRulestackClient) ListPredefinedURLCategoriesCompleteMatchingPredicate(ctx context.Context, id GlobalRulestackId, options ListPredefinedURLCategoriesOperationOptions, predicate PredefinedURLCategoryOperationPredicate) (result ListPredefinedURLCategoriesCompleteResult, err error) {
+	items := make([]PredefinedURLCategory, 0)
 
-	resp, err := c.ListPredefinedUrlCategories(ctx, id, options)
+	resp, err := c.ListPredefinedURLCategories(ctx, id, options)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -130,7 +130,7 @@ func (c GlobalRulestackClient) ListPredefinedUrlCategoriesCompleteMatchingPredic
 		}
 	}
 
-	result = ListPredefinedUrlCategoriesCompleteResult{
+	result = ListPredefinedURLCategoriesCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

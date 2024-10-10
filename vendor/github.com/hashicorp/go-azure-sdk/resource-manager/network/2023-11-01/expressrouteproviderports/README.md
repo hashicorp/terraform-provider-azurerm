@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := expressrouteproviderports.NewExpressRouteProviderPortID("12345678-1234-9876-4563-123456789012", "providerport")
+id := expressrouteproviderports.NewExpressRouteProviderPortID("12345678-1234-9876-4563-123456789012", "expressRouteProviderPortName")
 
 read, err := client.ExpressRouteProviderPort(ctx, id)
 if err != nil {

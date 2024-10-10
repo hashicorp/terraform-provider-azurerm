@@ -79,13 +79,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ChannelClient.EmailCreateSignInUrl`
+### Example Usage: `ChannelClient.EmailCreateSignInURL`
 
 ```go
 ctx := context.TODO()
 id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceName")
 
-read, err := client.EmailCreateSignInUrl(ctx, id)
+read, err := client.EmailCreateSignInURL(ctx, id)
 if err != nil {
 	// handle the error
 }

@@ -4,5 +4,5 @@ package managedapis
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApiResourceBackendService struct {
-	ServiceUrl *string `json:"serviceUrl,omitempty"`
+	ServiceURL *string `json:"serviceUrl,omitempty"`
 }

@@ -127,11 +127,11 @@ func (id ReplicationNetworkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticReplicationFabrics", "replicationFabrics", "replicationFabrics"),
-		resourceids.UserSpecifiedSegment("replicationFabricName", "fabricName"),
+		resourceids.UserSpecifiedSegment("replicationFabricName", "replicationFabricName"),
 		resourceids.StaticSegment("staticReplicationNetworks", "replicationNetworks", "replicationNetworks"),
-		resourceids.UserSpecifiedSegment("replicationNetworkName", "networkName"),
+		resourceids.UserSpecifiedSegment("replicationNetworkName", "replicationNetworkName"),
 	}
 }
 

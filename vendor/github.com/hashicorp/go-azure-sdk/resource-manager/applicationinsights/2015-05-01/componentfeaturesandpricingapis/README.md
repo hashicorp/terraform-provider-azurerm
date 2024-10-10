@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentAvailableFeaturesGet(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentCurrentBillingFeaturesGet(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 payload := componentfeaturesandpricingapis.ApplicationInsightsComponentBillingFeatures{
 	// ...
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentFeatureCapabilitiesGet(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentfeaturesandpricingapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ComponentQuotaStatusGet(ctx, id)
 if err != nil {

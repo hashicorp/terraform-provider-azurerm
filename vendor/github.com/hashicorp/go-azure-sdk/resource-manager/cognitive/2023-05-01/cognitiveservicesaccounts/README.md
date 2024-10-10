@@ -229,7 +229,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := cognitiveservicesaccounts.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := cognitiveservicesaccounts.CheckSkuAvailabilityParameter{
 	// ...
@@ -250,7 +250,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "location", "example-resource-group", "accountName")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationName", "example-resource-group", "deletedAccountName")
 
 read, err := client.DeletedAccountsGet(ctx, id)
 if err != nil {
@@ -283,7 +283,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "location", "example-resource-group", "accountName")
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationName", "example-resource-group", "deletedAccountName")
 
 if err := client.DeletedAccountsPurgeThenPoll(ctx, id); err != nil {
 	// handle the error

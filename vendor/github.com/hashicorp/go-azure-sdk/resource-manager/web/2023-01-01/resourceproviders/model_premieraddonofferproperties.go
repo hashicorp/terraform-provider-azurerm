@@ -4,10 +4,10 @@ package resourceproviders
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PremierAddOnOfferProperties struct {
-	LegalTermsUrl              *string                     `json:"legalTermsUrl,omitempty"`
+	LegalTermsURL              *string                     `json:"legalTermsUrl,omitempty"`
 	MarketplaceOffer           *string                     `json:"marketplaceOffer,omitempty"`
 	MarketplacePublisher       *string                     `json:"marketplacePublisher,omitempty"`
-	PrivacyPolicyUrl           *string                     `json:"privacyPolicyUrl,omitempty"`
+	PrivacyPolicyURL           *string                     `json:"privacyPolicyUrl,omitempty"`
 	Product                    *string                     `json:"product,omitempty"`
 	PromoCodeRequired          *bool                       `json:"promoCodeRequired,omitempty"`
 	Quota                      *int64                      `json:"quota,omitempty"`

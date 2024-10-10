@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineruncommands.NewRunCommandID("12345678-1234-9876-4563-123456789012", "location", "commandId")
+id := virtualmachineruncommands.NewRunCommandID("12345678-1234-9876-4563-123456789012", "locationName", "commandId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineruncommands.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := virtualmachineruncommands.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

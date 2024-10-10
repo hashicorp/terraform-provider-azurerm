@@ -11,7 +11,7 @@ type ApiPortalProperties struct {
 	ProvisioningState     *ApiPortalProvisioningState     `json:"provisioningState,omitempty"`
 	Public                *bool                           `json:"public,omitempty"`
 	ResourceRequests      *ApiPortalResourceRequests      `json:"resourceRequests,omitempty"`
-	SourceUrls            *[]string                       `json:"sourceUrls,omitempty"`
+	SourceURLs            *[]string                       `json:"sourceUrls,omitempty"`
 	SsoProperties         *SsoProperties                  `json:"ssoProperties,omitempty"`
 	Url                   *string                         `json:"url,omitempty"`
 }

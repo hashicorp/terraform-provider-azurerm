@@ -123,7 +123,7 @@ func (id OutboundFirewallRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
 		resourceids.UserSpecifiedSegment("serverName", "serverName"),
 		resourceids.StaticSegment("staticOutboundFirewallRules", "outboundFirewallRules", "outboundFirewallRules"),
-		resourceids.UserSpecifiedSegment("outboundFirewallRuleName", "outboundRuleFqdn"),
+		resourceids.UserSpecifiedSegment("outboundFirewallRuleName", "outboundFirewallRuleName"),
 	}
 }
 

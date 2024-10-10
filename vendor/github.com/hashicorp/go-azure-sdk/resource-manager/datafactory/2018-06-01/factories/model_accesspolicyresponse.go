@@ -5,6 +5,6 @@ package factories
 
 type AccessPolicyResponse struct {
 	AccessToken  *string           `json:"accessToken,omitempty"`
-	DataPlaneUrl *string           `json:"dataPlaneUrl,omitempty"`
+	DataPlaneURL *string           `json:"dataPlaneUrl,omitempty"`
 	Policy       *UserAccessPolicy `json:"policy,omitempty"`
 }

@@ -111,7 +111,7 @@ func (id LoadBalancerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.UserSpecifiedSegment("resourceGroupName", "groupName"),
+		resourceids.UserSpecifiedSegment("resourceGroupName", "resourceGroupName"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),

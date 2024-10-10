@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerName")
+id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "attestationProviderName")
 
 payload := attestationproviders.AttestationServiceCreationParams{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerName")
+id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "attestationProviderName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerName")
+id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "attestationProviderName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := attestationproviders.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := attestationproviders.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.GetDefaultByLocation(ctx, id)
 if err != nil {
@@ -142,7 +142,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "providerName")
+id := attestationproviders.NewAttestationProvidersID("12345678-1234-9876-4563-123456789012", "example-resource-group", "attestationProviderName")
 
 payload := attestationproviders.AttestationServicePatchParams{
 	// ...
