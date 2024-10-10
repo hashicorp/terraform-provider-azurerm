@@ -39,11 +39,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Fluid Relay Server should exist. Changing this forces a new Fluid Relay Server to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Fluid Relay Server.
-
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `storage_sku` - (Optional) Sku of the storage associated with the resource, Possible values are `standard` and `basic`. Changing this forces a new Fluid Relay Server to be created.
+
+* `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Fluid Relay Server.
 
 ---
 
@@ -52,6 +54,14 @@ An `identity` block supports the following:
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Fluid Relay Service. Possible values are `SystemAssigned`,`UserAssigned` and `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Fluid Relay Service.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_id` - (Required) The Key Vault Key Id that will be used to encrypt the Fluid Relay Server.
+
+* `user_assigned_identity_id` - (Required) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
 ## Attributes Reference
 

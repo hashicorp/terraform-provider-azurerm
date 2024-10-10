@@ -10,30 +10,38 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServerModel struct {
-	Name             string                                     `tfschema:"name"`
-	ResourceGroup    string                                     `tfschema:"resource_group_name"`
-	Location         string                                     `tfschema:"location"`
-	StorageSKU       string                                     `tfschema:"storage_sku"`
-	FrsTenantId      string                                     `tfschema:"frs_tenant_id"`
-	PrimaryKey       string                                     `tfschema:"primary_key"`
-	SecondaryKey     string                                     `tfschema:"secondary_key"`
-	OrdererEndpoints []string                                   `tfschema:"orderer_endpoints"`
-	StorageEndpoints []string                                   `tfschema:"storage_endpoints"`
-	ServiceEndpoints []string                                   `tfschema:"service_endpoints"`
-	Tags             map[string]string                          `tfschema:"tags"`
-	Identity         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Name               string                                     `tfschema:"name"`
+	ResourceGroup      string                                     `tfschema:"resource_group_name"`
+	Location           string                                     `tfschema:"location"`
+	StorageSKU         string                                     `tfschema:"storage_sku"`
+	FrsTenantId        string                                     `tfschema:"frs_tenant_id"`
+	PrimaryKey         string                                     `tfschema:"primary_key"`
+	SecondaryKey       string                                     `tfschema:"secondary_key"`
+	OrdererEndpoints   []string                                   `tfschema:"orderer_endpoints"`
+	StorageEndpoints   []string                                   `tfschema:"storage_endpoints"`
+	ServiceEndpoints   []string                                   `tfschema:"service_endpoints"`
+	Tags               map[string]string                          `tfschema:"tags"`
+	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	CustomerManagedKey []CustomerManagedKey                       `tfschema:"customer_managed_key"`
+}
+
+type CustomerManagedKey struct {
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+	KeyVaultKeyID          string `tfschema:"key_vault_key_id"`
 }
 
 func (s *ServerModel) flattenIdentity(input *identity.SystemAndUserAssignedMap) error {
@@ -83,6 +91,27 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(fluidrelayservers.PossibleValuesForStorageSKU(), false),
+		},
+		"customer_managed_key": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
 		},
 	}
 }
@@ -176,6 +205,10 @@ func (s Server) Create() sdk.ResourceFunc {
 				payload.Properties.Storagesku = pointer.To(fluidrelayservers.StorageSKU(model.StorageSKU))
 			}
 
+			if customerManagedKey := expandFluidRelayServerCustomerManagedKey(model.CustomerManagedKey); customerManagedKey != nil {
+				payload.Properties.Encryption = customerManagedKey
+			}
+
 			if _, err = client.CreateOrUpdate(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %v err: %+v", id, err)
 			}
@@ -211,6 +244,12 @@ func (s Server) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding user identities: %+v", err)
 				}
 			}
+			if meta.ResourceData.HasChange("customer_managed_key") {
+				payload.Properties = &fluidrelayservers.FluidRelayServerUpdateProperties{
+					Encryption: expandFluidRelayServerCustomerManagedKey(model.CustomerManagedKey),
+				}
+			}
+
 			if _, err = client.Update(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
@@ -258,6 +297,8 @@ func (s Server) Read() sdk.ResourceFunc {
 					output.Tags = *server.Model.Tags
 				}
 				if prop := model.Properties; prop != nil {
+					output.CustomerManagedKey = flattenFluidRelayServerCustomerManagedKey(prop.Encryption)
+
 					if prop.FrsTenantId != nil {
 						output.FrsTenantId = *prop.FrsTenantId
 					}
@@ -311,4 +352,40 @@ func (s Server) Delete() sdk.ResourceFunc {
 
 func (s Server) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fluidrelayservers.ValidateFluidRelayServerID
+}
+
+func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluidrelayservers.EncryptionProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0]
+	encryption := &fluidrelayservers.EncryptionProperties{
+		CustomerManagedKeyEncryption: &fluidrelayservers.CustomerManagedKeyEncryptionProperties{
+			KeyEncryptionKeyUrl: pointer.To(v.KeyVaultKeyID),
+			KeyEncryptionKeyIdentity: &fluidrelayservers.CustomerManagedKeyEncryptionPropertiesKeyEncryptionKeyIdentity{
+				IdentityType:                   pointer.To(fluidrelayservers.CmkIdentityTypeUserAssigned),
+				UserAssignedIdentityResourceId: pointer.To(v.UserAssignedIdentityId),
+			},
+		},
+	}
+
+	return encryption
+}
+
+func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) []CustomerManagedKey {
+	if input == nil || input.CustomerManagedKeyEncryption == nil {
+		return []CustomerManagedKey{}
+	}
+
+	customerManagedKey := CustomerManagedKey{}
+
+	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl != nil {
+		customerManagedKey.KeyVaultKeyID = pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl)
+	}
+	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity != nil && input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId != nil {
+		customerManagedKey.UserAssignedIdentityId = pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
+	}
+
+	return []CustomerManagedKey{customerManagedKey}
 }
