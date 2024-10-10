@@ -1085,6 +1085,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/comm
 github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appservicecertificateorders
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites
