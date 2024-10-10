@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,11 +69,28 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				},
 			},
 
+			"operational_default_retention_duration": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
+				ValidateFunc: helperValidate.ISO8601Duration,
+			},
+
 			"time_zone": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"vault_default_retention_duration": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
+				RequiredWith: []string{"backup_repeating_time_intervals"},
+				ValidateFunc: helperValidate.ISO8601Duration,
 			},
 
 			"retention_rule": {
@@ -204,54 +220,6 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["operational_default_retention_duration"] = &pluginsdk.Schema{
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Computed: true,
-			AtLeastOneOf: []string{
-				"retention_duration", "operational_default_retention_duration", "vault_default_retention_duration"},
-			ValidateFunc: helperValidate.ISO8601Duration,
-		}
-
-		resource.Schema["retention_duration"] = &pluginsdk.Schema{
-			Type:         schema.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			AtLeastOneOf: []string{"retention_duration", "operational_default_retention_duration", "vault_default_retention_duration"},
-			ValidateFunc: helperValidate.ISO8601Duration,
-			Deprecated:   "This property has been renamed to `operational_default_retention_duration` and will be removed in v4.0 of the AzureRM provider",
-		}
-
-		resource.Schema["vault_default_retention_duration"] = &pluginsdk.Schema{
-			Type:         schema.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			AtLeastOneOf: []string{"retention_duration", "operational_default_retention_duration", "vault_default_retention_duration"},
-			RequiredWith: []string{"backup_repeating_time_intervals"},
-			ValidateFunc: helperValidate.ISO8601Duration,
-		}
-	} else {
-		resource.Schema["operational_default_retention_duration"] = &pluginsdk.Schema{
-			Type:         schema.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
-			ValidateFunc: helperValidate.ISO8601Duration,
-		}
-
-		resource.Schema["vault_default_retention_duration"] = &pluginsdk.Schema{
-			Type:         schema.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			AtLeastOneOf: []string{"operational_default_retention_duration", "vault_default_retention_duration"},
-			RequiredWith: []string{"backup_repeating_time_intervals"},
-			ValidateFunc: helperValidate.ISO8601Duration,
-		}
-	}
-
 	return resource
 }
 
@@ -277,16 +245,7 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	// expand the default operational retention rule when the operational default duration is specified
-	operationalDefaultDuration := ""
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("retention_duration"); ok {
-			operationalDefaultDuration = v.(string)
-		} else if v, ok := d.GetOk("operational_default_retention_duration"); ok {
-			operationalDefaultDuration = v.(string)
-		}
-	} else {
-		operationalDefaultDuration = d.Get("operational_default_retention_duration").(string)
-	}
+	operationalDefaultDuration := d.Get("operational_default_retention_duration").(string)
 	if operationalDefaultDuration != "" {
 		policyRules = append(policyRules, expandBackupPolicyBlobStorageDefaultRetentionRuleArray(operationalDefaultDuration, backuppolicies.DataStoreTypesOperationalStore))
 	}
@@ -351,11 +310,6 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 				}
 				if err := d.Set("operational_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
 					return fmt.Errorf("setting `operational_default_retention_duration`: %+v", err)
-				}
-				if !features.FourPointOhBeta() {
-					if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
-						return fmt.Errorf("setting `retention_duration`: %+v", err)
-					}
 				}
 				d.Set("time_zone", flattenBackupPolicyBlobStorageVaultBackupTimeZone(&props.PolicyRules))
 				if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)); err != nil {
