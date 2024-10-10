@@ -157,11 +157,18 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
   hardware {
     cpu_count    = 1
-    memory_in_mb = 512
+    memory_in_mb = 1024
+  }
+
+  network_interface {
+    name               = "testNIC"
+    ipv4_address_type  = "Dynamic"
+    ipv6_address_type  = "Dynamic"
+    mac_address_type   = "Dynamic"
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default
     ignore_changes = [storage_disk]
   }
 }
@@ -172,7 +179,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) require
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "import" {
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
   scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test.scoped_resource_id
   custom_location_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test.custom_location_id
 
@@ -189,7 +196,19 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
   hardware {
     cpu_count    = 1
-    memory_in_mb = 512
+    memory_in_mb = 1024
+  }
+
+  network_interface {
+    name               = "testNIC"
+    ipv4_address_type  = "Dynamic"
+    ipv6_address_type  = "Dynamic"
+    mac_address_type   = "Dynamic"
+  }
+
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default
+    ignore_changes = [storage_disk]
   }
 }
 `, r.basic(data))
@@ -243,7 +262,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   hardware {
     cpu_count                       = 1
     limit_cpu_for_migration_enabled = false
-    memory_in_mb                    = 512
+    memory_in_mb                    = 1024
     dynamic_memory_min_in_mb        = 32
     dynamic_memory_max_in_mb        = 1024
   }
@@ -331,9 +350,9 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   hardware {
     cpu_count                       = 1
     limit_cpu_for_migration_enabled = true
-    memory_in_mb                    = 544
+    memory_in_mb                    = 1048
     dynamic_memory_min_in_mb        = 64
-    dynamic_memory_max_in_mb        = 1056
+    dynamic_memory_max_in_mb        = 1048
   }
 
   network_interface {
@@ -345,12 +364,12 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   storage_disk {
-    name         = "testStorageDisk2"
+    name         = "testStorageDisk"
     bus_type     = "SCSI"
-    bus          = 1
-    lun          = 1
-    disk_size_gb = 20
-    vhd_type     = "Fixed"
+    bus          = 0
+    lun          = 0
+    disk_size_gb = 10
+    vhd_type     = "Dynamic"
   }
 
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
