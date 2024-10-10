@@ -27,13 +27,16 @@ var _ sdk.ResourceWithUpdate = AppServiceConnectorResource{}
 type AppServiceConnectorResource struct{}
 
 type AppServiceConnectorResourceModel struct {
-	Name             string             `tfschema:"name"`
-	AppServiceId     string             `tfschema:"app_service_id"`
-	TargetResourceId string             `tfschema:"target_resource_id"`
-	ClientType       string             `tfschema:"client_type"`
-	AuthInfo         []AuthInfoModel    `tfschema:"authentication"`
-	VnetSolution     string             `tfschema:"vnet_solution"`
-	SecretStore      []SecretStoreModel `tfschema:"secret_store"`
+	Name                  string                  `tfschema:"name"`
+	AppServiceId          string                  `tfschema:"app_service_id"`
+	TargetResourceId      string                  `tfschema:"target_resource_id"`
+	ClientType            string                  `tfschema:"client_type"`
+	AuthInfo              []AuthInfoModel         `tfschema:"authentication"`
+	VnetSolution          string                  `tfschema:"vnet_solution"`
+	SecretStore           []SecretStoreModel      `tfschema:"secret_store"`
+	Scope                 string                  `tfschema:"scope"`
+	ConfigurationInfo     []ConfigurationInfo     `tfschema:"configuration"`
+	PublicNetworkSolution []PublicNetworkSolution `tfschema:"public_network_solution"`
 }
 
 func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
@@ -89,6 +92,61 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"authentication": authInfoSchema(),
+
+		"scope": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
+
+		"configuration": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(servicelinker.ActionTypeOptOut),
+							string(servicelinker.ActionTypeEnable),
+						}, false),
+					},
+
+					"configuration_store": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"app_configuration_id": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"public_network_solution": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(servicelinker.ActionTypeOptOut),
+							string(servicelinker.ActionTypeEnable),
+						}, false),
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -163,6 +221,18 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				serviceConnectorProperties.VNetSolution = &vNetSolution
 			}
 
+			if model.Scope != "" {
+				serviceConnectorProperties.Scope = pointer.To(model.Scope)
+			}
+
+			if model.ConfigurationInfo != nil {
+				serviceConnectorProperties.ConfigurationInfo = expandConfigurationInfo(model.ConfigurationInfo)
+			}
+
+			if model.PublicNetworkSolution != nil {
+				serviceConnectorProperties.PublicNetworkSolution = expandPublicNetworkSolution(model.PublicNetworkSolution)
+			}
+
 			props := servicelinker.LinkerResource{
 				Id:         utils.String(id.ID()),
 				Name:       utils.String(model.Name),
@@ -224,6 +294,16 @@ func (r AppServiceConnectorResource) Read() sdk.ResourceFunc {
 					state.SecretStore = flattenSecretStore(*props.SecretStore)
 				}
 
+				state.Scope = pointer.From(props.Scope)
+
+				if props.ConfigurationInfo != nil {
+					state.ConfigurationInfo = flattenConfigurationInfo(pointer.From(props.ConfigurationInfo))
+				}
+
+				if props.PublicNetworkSolution != nil {
+					state.PublicNetworkSolution = flattenPublicNetworkSolution(pointer.From(props.PublicNetworkSolution))
+				}
+
 				return metadata.Encode(&state)
 			}
 			return nil
@@ -256,8 +336,8 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceConnector.LinksClient
-			id, err := links.ParseScopedLinkerID(metadata.ResourceData.Id())
+			client := metadata.Client.ServiceConnector.ServiceLinkerClient
+			id, err := servicelinker.ParseScopedLinkerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -267,24 +347,26 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			linkerProps := links.LinkerProperties{}
+			existing, err := client.LinkerGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
+			}
+			linkerProps := existing.Model.Properties
 			d := metadata.ResourceData
 
 			if d.HasChange("client_type") {
-				clientType := links.ClientType(state.ClientType)
-				linkerProps.ClientType = &clientType
+				linkerProps.ClientType = pointer.To(servicelinker.ClientType(state.ClientType))
 			}
 
 			if d.HasChange("vnet_solution") {
-				vnetSolutionType := links.VNetSolutionType(state.VnetSolution)
-				vnetSolution := links.VNetSolution{
-					Type: &vnetSolutionType,
+				vnetSolution := servicelinker.VNetSolution{
+					Type: pointer.To(servicelinker.VNetSolutionType(state.VnetSolution)),
 				}
-				linkerProps.VNetSolution = &vnetSolution
+				linkerProps.VNetSolution = pointer.To(vnetSolution)
 			}
 
 			if d.HasChange("secret_store") {
-				linkerProps.SecretStore = pointer.To(links.SecretStore{KeyVaultId: expandSecretStore(state.SecretStore).KeyVaultId})
+				linkerProps.SecretStore = pointer.To(servicelinker.SecretStore{KeyVaultId: expandSecretStore(state.SecretStore).KeyVaultId})
 			}
 
 			if d.HasChange("authentication") {
@@ -296,11 +378,23 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 				linkerProps.AuthInfo = authInfo
 			}
 
-			props := links.LinkerPatch{
-				Properties: &linkerProps,
+			if d.HasChange("scope") {
+				linkerProps.Scope = pointer.To(state.Scope)
 			}
 
-			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
+			if d.HasChange("configuration") {
+				linkerProps.ConfigurationInfo = expandConfigurationInfo(state.ConfigurationInfo)
+			}
+
+			if d.HasChange("public_network_solution") {
+				linkerProps.PublicNetworkSolution = expandPublicNetworkSolution(state.PublicNetworkSolution)
+			}
+
+			props := servicelinker.LinkerResource{
+				Properties: linkerProps,
+			}
+
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
