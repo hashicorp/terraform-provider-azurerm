@@ -948,10 +948,11 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceStorageDisks(
 	}
 
 	for _, v := range *input {
+		// service team confirmed that diskSizeGB in the request payload and maxDiskSizeGB in the API response both represent the maximum size of the disk but diskSizeGB in the API response represents the actual disk size
 		storageDisk := StorageDisk{
 			Bus:            pointer.From(v.Bus),
 			BusType:        pointer.From(v.BusType),
-			DiskSizeGB:     pointer.From(v.MaxDiskSizeGB), // service team confirmed that diskSizeGB in the request payload and maxDiskSizeGB in the API response both represent the maximum size of the disk
+			DiskSizeGB:     pointer.From(v.MaxDiskSizeGB),
 			Lun:            pointer.From(v.Lun),
 			Name:           pointer.From(v.Name),
 			TemplateDiskId: pointer.From(v.TemplateDiskId),

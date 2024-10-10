@@ -161,10 +161,10 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name               = "testNIC"
-    ipv4_address_type  = "Dynamic"
-    ipv6_address_type  = "Dynamic"
-    mac_address_type   = "Dynamic"
+    name              = "testNIC"
+    ipv4_address_type = "Dynamic"
+    ipv6_address_type = "Dynamic"
+    mac_address_type  = "Dynamic"
   }
 
   lifecycle {
@@ -200,10 +200,10 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name               = "testNIC"
-    ipv4_address_type  = "Dynamic"
-    ipv6_address_type  = "Dynamic"
-    mac_address_type   = "Dynamic"
+    name              = "testNIC"
+    ipv4_address_type = "Dynamic"
+    ipv6_address_type = "Dynamic"
+    mac_address_type  = "Dynamic"
   }
 
   lifecycle {
