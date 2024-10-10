@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -418,12 +417,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return err
 		}
-
-		locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-
-		locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
