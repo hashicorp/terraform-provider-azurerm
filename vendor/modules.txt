@@ -1315,6 +1315,10 @@ github.com/hashicorp/terraform-svchost
 # github.com/hashicorp/yamux v0.1.1
 ## explicit; go 1.15
 github.com/hashicorp/yamux
+# github.com/jackofallops/kermit v0.20241010.1180132
+## explicit; go 1.22
+github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
+github.com/jackofallops/kermit/version
 # github.com/kr/pretty v0.3.0
 ## explicit; go 1.12
 # github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
@@ -1356,7 +1360,6 @@ github.com/rickb777/plural
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/tombuildsstuff/giovanni v0.27.0
-# github.com/jackofallops/giovanni v0.27.0
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
@@ -1372,9 +1375,7 @@ github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
-# github.com/jackofallops/kermit v0.20240122.1123108
 ## explicit; go 1.18
-github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
@@ -1389,7 +1390,6 @@ github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web
 github.com/tombuildsstuff/kermit/version
-github.com/jackofallops/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
