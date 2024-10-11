@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_bastion_host` - support for the `Premium` SKU and `session_recording_enabled` property [GH-27278]
+* `azurerm_log_analytics_cluster` - the `size_gb` property now supports all of 100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, and 50000 [GH-27616]
 
 BUG FIXES:
 
