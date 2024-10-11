@@ -72,7 +72,7 @@ The following arguments are supported:
 
 ~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard`.
 
-* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic` and `Standard`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
 ~> **Note** Downgrading the SKU will force a new resource to be created.
 
@@ -97,6 +97,10 @@ The following arguments are supported:
 * `tunneling_enabled` - (Optional) Is Tunneling feature enabled for the Bastion Host. Defaults to `false`.
 
 ~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
+
+* `session_recording_enabled` - (Optional) Is Session Recording feature enabled for the Bastion Host. Defaults to `false`.
+
+~> **Note:** `session_recording_enabled` is only supported when `sku` is `Premium`.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network for the Developer Bastion Host. Changing this forces a new resource to be created.
 
