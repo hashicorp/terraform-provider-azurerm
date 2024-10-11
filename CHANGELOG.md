@@ -11,6 +11,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale [GH-27505]
+* `azurerm_postgresql_flexible_server_configuration` - now locks to prevent conflicts when deploying multiple [GH-27355]
+
 
 ## 4.4.0 (October 04, 2024)
 
