@@ -70,7 +70,7 @@ A `maintenance_window` block supports the following:
 
 * `months` - (Optional) Months during the year when maintenance should be performed.
 
-* `patching_mode` - (Optional) Cloud Exadata infrastructure node patching method, either "ROLLING" or "NONROLLING". Default value is ROLLING. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
+* `patching_mode` - (Optional) Cloud Exadata infrastructure node patching method, either `ROLLING` or `NONROLLING`. Default value is `ROLLING`. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
 
 * `preference` - (Optional) The maintenance window scheduling preference.
 
