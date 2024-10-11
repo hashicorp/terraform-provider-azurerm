@@ -1560,7 +1560,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, "eastus", data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (IotHubResource) disableLocalAuth(data acceptance.TestData) string {
@@ -1593,7 +1593,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-  `, data.RandomInteger, "eastus", data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (IotHubResource) enableLocalAuth(data acceptance.TestData) string {
@@ -1626,7 +1626,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-  `, data.RandomInteger, "eastus", data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (IotHubResource) cloudToDevice(data acceptance.TestData) string {
@@ -2229,12 +2229,12 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "iothub" {
   name     = "acctest-iothub-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "endpoint" {
   name     = "acctest-iothub-db-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2278,7 +2278,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  %[2]s
+  %[3]s
 }
 
 resource "azurerm_iothub_endpoint_cosmosdb_account" "test" {
@@ -2303,5 +2303,5 @@ resource "azurerm_iothub_route" "test" {
   enabled        = false
   depends_on     = [azurerm_iothub_endpoint_cosmosdb_account.test]
 }
-`, data.RandomInteger, tagsBlock)
+`, data.RandomInteger, data.Locations.Primary, tagsBlock)
 }
