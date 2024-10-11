@@ -20,6 +20,7 @@ type IotHubResource struct{}
 
 func TestAccIotHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,6 +36,7 @@ func TestAccIotHub_basic(t *testing.T) {
 
 func TestAccIotHub_networkRulesSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -57,6 +59,7 @@ func TestAccIotHub_networkRulesSet(t *testing.T) {
 
 func TestAccIotHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -75,6 +78,7 @@ func TestAccIotHub_requiresImport(t *testing.T) {
 
 func TestAccIotHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -90,6 +94,7 @@ func TestAccIotHub_standard(t *testing.T) {
 
 func TestAccIotHub_customRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -113,6 +118,7 @@ func TestAccIotHub_customRoutes(t *testing.T) {
 
 func TestAccIotHub_enrichments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -142,6 +148,7 @@ func TestAccIotHub_enrichments(t *testing.T) {
 
 func TestAccIotHub_removeEndpointsAndRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -164,6 +171,7 @@ func TestAccIotHub_removeEndpointsAndRoutes(t *testing.T) {
 
 func TestAccIotHub_fileUpload(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -191,6 +199,7 @@ func TestAccIotHub_fileUpload(t *testing.T) {
 
 func TestAccIotHub_fileUploadAuthenticationTypeUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -206,6 +215,7 @@ func TestAccIotHub_fileUploadAuthenticationTypeUserAssignedIdentity(t *testing.T
 
 func TestAccIotHub_fileUploadAuthenticationTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -242,6 +252,7 @@ func TestAccIotHub_fileUploadAuthenticationTypeUpdate(t *testing.T) {
 
 func TestAccIotHub_withDifferentEndpointResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -257,6 +268,7 @@ func TestAccIotHub_withDifferentEndpointResourceGroup(t *testing.T) {
 
 func TestAccIotHub_fallbackRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -275,6 +287,7 @@ func TestAccIotHub_fallbackRoute(t *testing.T) {
 
 func TestAccIotHub_publicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -311,6 +324,7 @@ func TestAccIotHub_publicAccess(t *testing.T) {
 
 func TestAccIotHub_minTLSVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -326,6 +340,7 @@ func TestAccIotHub_minTLSVersion(t *testing.T) {
 
 func TestAccIotHub_LocalAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -356,6 +371,7 @@ func TestAccIotHub_LocalAuth(t *testing.T) {
 
 func TestAccIotHub_cloudToDevice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -387,6 +403,7 @@ func TestAccIotHub_cloudToDevice(t *testing.T) {
 
 func TestAccIotHub_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -402,6 +419,7 @@ func TestAccIotHub_identitySystemAssigned(t *testing.T) {
 
 func TestAccIotHub_identitySystemAssignedUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -417,6 +435,7 @@ func TestAccIotHub_identitySystemAssignedUserAssigned(t *testing.T) {
 
 func TestAccIotHub_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -439,6 +458,7 @@ func TestAccIotHub_identityUserAssigned(t *testing.T) {
 
 func TestAccIotHub_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -482,6 +502,7 @@ func TestAccIotHub_identityUpdate(t *testing.T) {
 
 func TestAccIotHub_endpointAuthenticationTypeUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -497,6 +518,7 @@ func TestAccIotHub_endpointAuthenticationTypeUserAssignedIdentity(t *testing.T) 
 
 func TestAccIotHub_endpointAuthenticationTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -533,6 +555,7 @@ func TestAccIotHub_endpointAuthenticationTypeUpdate(t *testing.T) {
 
 func TestAccIotHub_cosmosDBRouteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+	data.Locations.Primary = "eastus" // iothub is only avaliable on limited regions
 	r := IotHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
