@@ -1,8 +1,12 @@
 ## 4.5.0 (Unreleased)
 
-ENHANCEMENTS:
+FEATURES:
 
 * **New Resource**: `azurerm_stack_hci_virtual_hard_disk` [GH-27474]
+
+ENHANCEMENTS:
+
+* `azurerm_bastion_host` - support for the `Premium` SKU and `session_recording_enabled` property [GH-27278]
 
 BUG FIXES:
 
