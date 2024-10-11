@@ -155,25 +155,6 @@ resource "azurerm_iotcentral_organization" "test" {
 `, r.template(data))
 }
 
-func (r IoTCentralOrganizationResource) completeUnsetParent(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-%s
-resource "azurerm_iotcentral_organization" "test_parent" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-parent-id"
-  display_name              = "Org parent"
-}
-resource "azurerm_iotcentral_organization" "test" {
-  iotcentral_application_id = azurerm_iotcentral_application.test.id
-  organization_id           = "org-test-id"
-  display_name              = "Org child"
-}
-`, r.template(data))
-}
-
 func (IoTCentralOrganizationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
