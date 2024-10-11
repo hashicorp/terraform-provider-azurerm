@@ -1,20 +1,20 @@
-## 4.5.0 (Unreleased)
+## 4.5.0 (October 10, 2024)
 
 FEATURES:
 
-* **New Resource**: `azurerm_stack_hci_virtual_hard_disk` [GH-27474]
+* **New Resource**: `azurerm_stack_hci_virtual_hard_disk` ([#27474](https://github.com/hashicorp/terraform-provider-azurerm/issues/27474))
 
 ENHANCEMENTS:
 
-* `azurerm_bastion_host` - support for the `Premium` SKU and `session_recording_enabled` property [GH-27278]
-* `azurerm_log_analytics_cluster` - the `size_gb` property now supports all of 100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, and 50000 [GH-27616]
-* `azurerm_mssql_elasticpool` - allow `PRMS` for the `family` property [GH-27615]
+* `azurerm_bastion_host` - support for the `Premium` SKU and `session_recording_enabled` property ([#27278](https://github.com/hashicorp/terraform-provider-azurerm/issues/27278))
+* `azurerm_log_analytics_cluster` - the `size_gb` property now supports all of 100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, and 50000 ([#27616](https://github.com/hashicorp/terraform-provider-azurerm/issues/27616))
+* `azurerm_mssql_elasticpool` - allow `PRMS` for the `family` property ([#27615](https://github.com/hashicorp/terraform-provider-azurerm/issues/27615))
 
 
 BUG FIXES:
 
-* `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale [GH-27505]
-* `azurerm_postgresql_flexible_server_configuration` - now locks to prevent conflicts when deploying multiple [GH-27355]
+* `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale ([#27505](https://github.com/hashicorp/terraform-provider-azurerm/issues/27505))
+* `azurerm_postgresql_flexible_server_configuration` - now locks to prevent conflicts when deploying multiple ([#27355](https://github.com/hashicorp/terraform-provider-azurerm/issues/27355))
 
 
 ## 4.4.0 (October 04, 2024)
