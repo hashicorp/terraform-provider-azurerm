@@ -77,7 +77,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
   hardware {
     cpu_count    = 1
-    memory_in_mb = 512
+    memory_in_mb = 1024
   }
 
   lifecycle {

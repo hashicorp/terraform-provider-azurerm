@@ -236,10 +236,10 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name               = "testNetworkInterface"
-    ipv4_address_type  = "Dynamic"
-    ipv6_address_type  = "Dynamic"
-    mac_address_type   = "Dynamic"
+    name              = "testNetworkInterface"
+    ipv4_address_type = "Dynamic"
+    ipv6_address_type = "Dynamic"
+    mac_address_type  = "Dynamic"
   }
 
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id]
@@ -301,10 +301,10 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name               = "testNetworkInterface2"
-    ipv4_address_type  = "Static"
-    ipv6_address_type  = "Static"
-    mac_address_type   = "Static"
+    name              = "testNetworkInterface2"
+    ipv4_address_type = "Static"
+    ipv6_address_type = "Static"
+    mac_address_type  = "Static"
   }
 
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
