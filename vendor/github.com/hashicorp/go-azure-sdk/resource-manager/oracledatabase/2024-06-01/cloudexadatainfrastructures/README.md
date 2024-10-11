@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 if err := client.AddStorageCapacityThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.AddStorageCapacityThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 payload := cloudexadatainfrastructures.CloudExadataInfrastructure{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -116,7 +116,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 payload := cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 	// ...

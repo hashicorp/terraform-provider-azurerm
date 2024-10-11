@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.AutonomousDatabase{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.PeerDbDetails{
 	// ...
@@ -71,7 +71,7 @@ if err := client.FailoverThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.GenerateAutonomousDatabaseWalletDetails{
 	// ...
@@ -92,7 +92,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -142,7 +142,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.RestoreAutonomousDatabaseDetails{
 	// ...
@@ -159,7 +159,7 @@ if err := client.RestoreThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 if err := client.ShrinkThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -171,7 +171,7 @@ if err := client.ShrinkThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.PeerDbDetails{
 	// ...
@@ -188,7 +188,7 @@ if err := client.SwitchoverThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousdatabasename")
+id := autonomousdatabases.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
 payload := autonomousdatabases.AutonomousDatabaseUpdate{
 	// ...

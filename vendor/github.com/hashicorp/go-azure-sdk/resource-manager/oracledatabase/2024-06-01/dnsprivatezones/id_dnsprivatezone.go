@@ -113,9 +113,9 @@ func (id DnsPrivateZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDnsPrivateZones", "dnsPrivateZones", "dnsPrivateZones"),
-		resourceids.UserSpecifiedSegment("dnsPrivateZoneName", "dnsprivatezonename"),
+		resourceids.UserSpecifiedSegment("dnsPrivateZoneName", "dnsPrivateZoneName"),
 	}
 }
 

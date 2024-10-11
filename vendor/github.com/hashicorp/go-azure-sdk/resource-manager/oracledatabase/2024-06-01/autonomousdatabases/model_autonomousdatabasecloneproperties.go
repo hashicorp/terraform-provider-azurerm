@@ -37,7 +37,7 @@ type AutonomousDatabaseCloneProperties struct {
 	ComputeCount                             *float64                           `json:"computeCount,omitempty"`
 	ComputeModel                             *ComputeModel                      `json:"computeModel,omitempty"`
 	ConnectionStrings                        *ConnectionStringType              `json:"connectionStrings,omitempty"`
-	ConnectionUrls                           *ConnectionUrlType                 `json:"connectionUrls,omitempty"`
+	ConnectionURLs                           *ConnectionURLType                 `json:"connectionUrls,omitempty"`
 	CpuCoreCount                             *int64                             `json:"cpuCoreCount,omitempty"`
 	CustomerContacts                         *[]CustomerContact                 `json:"customerContacts,omitempty"`
 	DataBaseType                             DataBaseType                       `json:"dataBaseType"`
@@ -67,7 +67,7 @@ type AutonomousDatabaseCloneProperties struct {
 	MemoryPerOracleComputeUnitInGbs          *int64                             `json:"memoryPerOracleComputeUnitInGbs,omitempty"`
 	NcharacterSet                            *string                            `json:"ncharacterSet,omitempty"`
 	NextLongTermBackupTimeStamp              *string                            `json:"nextLongTermBackupTimeStamp,omitempty"`
-	OciUrl                                   *string                            `json:"ociUrl,omitempty"`
+	OciURL                                   *string                            `json:"ociUrl,omitempty"`
 	Ocid                                     *string                            `json:"ocid,omitempty"`
 	OpenMode                                 *OpenModeType                      `json:"openMode,omitempty"`
 	OperationsInsightsStatus                 *OperationsInsightsStatusType      `json:"operationsInsightsStatus,omitempty"`
@@ -81,8 +81,8 @@ type AutonomousDatabaseCloneProperties struct {
 	ProvisioningState                        *AzureResourceProvisioningState    `json:"provisioningState,omitempty"`
 	Role                                     *RoleType                          `json:"role,omitempty"`
 	ScheduledOperations                      *ScheduledOperationsType           `json:"scheduledOperations,omitempty"`
-	ServiceConsoleUrl                        *string                            `json:"serviceConsoleUrl,omitempty"`
-	SqlWebDeveloperUrl                       *string                            `json:"sqlWebDeveloperUrl,omitempty"`
+	ServiceConsoleURL                        *string                            `json:"serviceConsoleUrl,omitempty"`
+	SqlWebDeveloperURL                       *string                            `json:"sqlWebDeveloperUrl,omitempty"`
 	SubnetId                                 *string                            `json:"subnetId,omitempty"`
 	SupportedRegionsToCloneTo                *[]string                          `json:"supportedRegionsToCloneTo,omitempty"`
 	TimeCreated                              *string                            `json:"timeCreated,omitempty"`
@@ -116,7 +116,7 @@ func (s AutonomousDatabaseCloneProperties) AutonomousDatabaseBaseProperties() Ba
 		ComputeCount:                             s.ComputeCount,
 		ComputeModel:                             s.ComputeModel,
 		ConnectionStrings:                        s.ConnectionStrings,
-		ConnectionUrls:                           s.ConnectionUrls,
+		ConnectionURLs:                           s.ConnectionURLs,
 		CpuCoreCount:                             s.CpuCoreCount,
 		CustomerContacts:                         s.CustomerContacts,
 		DataBaseType:                             s.DataBaseType,
@@ -146,7 +146,7 @@ func (s AutonomousDatabaseCloneProperties) AutonomousDatabaseBaseProperties() Ba
 		MemoryPerOracleComputeUnitInGbs:          s.MemoryPerOracleComputeUnitInGbs,
 		NcharacterSet:                            s.NcharacterSet,
 		NextLongTermBackupTimeStamp:              s.NextLongTermBackupTimeStamp,
-		OciUrl:                                   s.OciUrl,
+		OciURL:                                   s.OciURL,
 		Ocid:                                     s.Ocid,
 		OpenMode:                                 s.OpenMode,
 		OperationsInsightsStatus:                 s.OperationsInsightsStatus,
@@ -160,8 +160,8 @@ func (s AutonomousDatabaseCloneProperties) AutonomousDatabaseBaseProperties() Ba
 		ProvisioningState:                        s.ProvisioningState,
 		Role:                                     s.Role,
 		ScheduledOperations:                      s.ScheduledOperations,
-		ServiceConsoleUrl:                        s.ServiceConsoleUrl,
-		SqlWebDeveloperUrl:                       s.SqlWebDeveloperUrl,
+		ServiceConsoleURL:                        s.ServiceConsoleURL,
+		SqlWebDeveloperURL:                       s.SqlWebDeveloperURL,
 		SubnetId:                                 s.SubnetId,
 		SupportedRegionsToCloneTo:                s.SupportedRegionsToCloneTo,
 		TimeCreated:                              s.TimeCreated,

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dbservers.NewDbServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename", "dbserverocid")
+id := dbservers.NewDbServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName", "dbServerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := dbservers.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudexadatainfrastructurename")
+id := dbservers.NewCloudExadataInfrastructureID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudExadataInfrastructureName")
 
 // alternatively `client.ListByCloudExadataInfrastructure(ctx, id)` can be used to do batched pagination
 items, err := client.ListByCloudExadataInfrastructureComplete(ctx, id)
