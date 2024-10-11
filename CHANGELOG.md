@@ -1,3 +1,9 @@
+## 4.6.0 (Unrelerased)
+
+BUGS:
+
+* `azurerm_api_management_api_diagnostic` - do not seet `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
+
 ## 4.5.0 (October 10, 2024)
 
 FEATURES:
