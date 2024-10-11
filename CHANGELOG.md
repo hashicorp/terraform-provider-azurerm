@@ -1,5 +1,10 @@
 ## 4.6.0 (Unrelerased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
+* **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
+
 BUGS:
 
 * `azurerm_api_management_api_diagnostic` - do not seet `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
