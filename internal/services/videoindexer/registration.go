@@ -11,7 +11,7 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return nil
+	return []string{"Video Indexer"}
 }
 
 func (r Registration) Name() string {
