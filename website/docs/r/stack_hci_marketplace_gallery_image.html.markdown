@@ -3,12 +3,12 @@ subcategory: "Azure Stack HCI"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stack_hci_marketplace_gallery_image"
 description: |-
-  Manages a Azure Stack HCI Marketplace Gallery Image.
+  Manages an Azure Stack HCI Marketplace Gallery Image.
 ---
 
 # azurerm_stack_hci_marketplace_gallery_image
 
-Manages a Azure Stack HCI Marketplace Gallery Image.
+Manages an Azure Stack HCI Marketplace Gallery Image.
 
 ## Example Usage
 
@@ -61,11 +61,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Stack HCI Marketplace Gallery Image should exist. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 
-* `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Marketplace Gallery Image should exist. Changing this forces a new resource to be created.
+* `custom_location_id` - (Required) The ID of the Custom Location where the Azure Stack HCI Marketplace Gallery Image should exist. Changing this forces a new resource to be created.
 
 * `hyperv_generation` - (Required) The hypervisor generation of the Azure Stack HCI Marketplace Gallery Image. Possible values are `V1` and `V2`. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 
-* `identifier` - (Required) One or more `identifier` blocks as defined below. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
+* `identifier` - (Required) An `identifier` block as defined below. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 
 * `os_type` - (Required) The Operating System type of the Azure Stack HCI Marketplace Gallery Image. Possible values are `Windows` and `Linux`. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 ---
 
-A `identifier` block supports the following:
+An `identifier` block supports the following:
 
 * `offer` - (Required) The offer of the Azure Stack HCI Marketplace Gallery Image. Changing this forces a new Azure Stack HCI Marketplace Gallery Image to be created.
 

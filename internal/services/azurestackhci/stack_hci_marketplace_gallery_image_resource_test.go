@@ -73,7 +73,14 @@ func TestAccStackHCIMarketplaceGalleryImage_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data),
+			Config: r.updateNoTag(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTag(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,7 +94,7 @@ func TestAccStackHCIMarketplaceGalleryImage_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.updateNoTag(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -183,7 +190,42 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "import" {
 `, config)
 }
 
-func (r StackHCIMarketplaceGalleryImageResource) update(data acceptance.TestData) string {
+func (r StackHCIMarketplaceGalleryImageResource) updateNoTag(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_stack_hci_storage_path" "test" {
+  name                = "acctest-sp-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-mgi-%[2]s"
+}
+
+resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
+  name                = "acctest-mgi-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  hyperv_generation   = "V2"
+  os_type             = "Windows"
+  version             = "%s"
+  storage_path_id     = azurerm_stack_hci_storage_path.test.id
+  identifier {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition-core"
+  }
+}
+`, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
+}
+
+func (r StackHCIMarketplaceGalleryImageResource) updateTag(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s

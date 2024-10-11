@@ -73,27 +73,20 @@ func (StackHCIMarketplaceGalleryImageResource) Arguments() map[string]*pluginsdk
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": {
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
+
+		"hyperv_generation": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: customlocations.ValidateCustomLocationID,
-		},
-
-		"hyperv_generation": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(marketplacegalleryimages.HyperVGenerationVOne),
-				string(marketplacegalleryimages.HyperVGenerationVTwo),
-			}, false),
+			ValidateFunc: validation.StringInSlice(marketplacegalleryimages.PossibleValuesForHyperVGeneration(), false),
 		},
 
 		"identifier": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"publisher": {
@@ -121,13 +114,10 @@ func (StackHCIMarketplaceGalleryImageResource) Arguments() map[string]*pluginsdk
 		},
 
 		"os_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(marketplacegalleryimages.OperatingSystemTypesLinux),
-				string(marketplacegalleryimages.OperatingSystemTypesWindows),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(marketplacegalleryimages.PossibleValuesForOperatingSystemTypes(), false),
 		},
 
 		"version": {
@@ -183,23 +173,17 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 					Type: pointer.To(marketplacegalleryimages.ExtendedLocationTypesCustomLocation),
 				},
 				Properties: &marketplacegalleryimages.MarketplaceGalleryImageProperties{
-					Identifier: expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
-					OsType:     marketplacegalleryimages.OperatingSystemTypes(config.OsType),
+					Identifier:       expandStackHCIMarketplaceGalleryImageIdentifier(config.Identifier),
+					OsType:           marketplacegalleryimages.OperatingSystemTypes(config.OsType),
+					HyperVGeneration: pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration)),
+					Version: &marketplacegalleryimages.GalleryImageVersion{
+						Name: pointer.To(config.Version),
+					},
 				},
 			}
 
 			if config.StoragePathId != "" {
 				payload.Properties.ContainerId = pointer.To(config.StoragePathId)
-			}
-
-			if config.HypervGeneration != "" {
-				payload.Properties.HyperVGeneration = pointer.To(marketplacegalleryimages.HyperVGeneration(config.HypervGeneration))
-			}
-
-			if config.Version != "" {
-				payload.Properties.Version = &marketplacegalleryimages.GalleryImageVersion{
-					Name: pointer.To(config.Version),
-				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
