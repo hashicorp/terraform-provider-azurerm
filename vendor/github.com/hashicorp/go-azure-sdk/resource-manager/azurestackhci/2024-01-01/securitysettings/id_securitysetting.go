@@ -123,7 +123,7 @@ func (id SecuritySettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
 		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticSecuritySettings", "securitySettings", "securitySettings"),
-		resourceids.UserSpecifiedSegment("securitySettingName", "securitySettingsName"),
+		resourceids.UserSpecifiedSegment("securitySettingName", "securitySettingName"),
 	}
 }
 

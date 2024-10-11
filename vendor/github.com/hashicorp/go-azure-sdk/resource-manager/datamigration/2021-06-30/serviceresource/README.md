@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 // alternatively `client.ServiceTasksList(ctx, id, serviceresource.DefaultServiceTasksListOperationOptions())` can be used to do batched pagination
 items, err := client.ServiceTasksListComplete(ctx, id, serviceresource.DefaultServiceTasksListOperationOptions())
@@ -42,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 read, err := client.ServicesCheckStatus(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 payload := serviceresource.DataMigrationService{
 	// ...
@@ -75,7 +75,7 @@ if err := client.ServicesCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 if err := client.ServicesDeleteThenPoll(ctx, id, serviceresource.DefaultServicesDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -87,7 +87,7 @@ if err := client.ServicesDeleteThenPoll(ctx, id, serviceresource.DefaultServices
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 read, err := client.ServicesGet(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "groupName")
+id := serviceresource.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "resourceGroupName")
 
 // alternatively `client.ServicesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ServicesListByResourceGroupComplete(ctx, id)
@@ -137,7 +137,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 // alternatively `client.ServicesListSkus(ctx, id)` can be used to do batched pagination
 items, err := client.ServicesListSkusComplete(ctx, id)
@@ -154,7 +154,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 if err := client.ServicesStartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -166,7 +166,7 @@ if err := client.ServicesStartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 if err := client.ServicesStopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -178,7 +178,7 @@ if err := client.ServicesStopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName")
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName")
 
 payload := serviceresource.DataMigrationService{
 	// ...
@@ -195,7 +195,7 @@ if err := client.ServicesUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serviceresource.NewProjectID("12345678-1234-9876-4563-123456789012", "groupName", "serviceName", "projectName")
+id := serviceresource.NewProjectID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "serviceName", "projectName")
 
 // alternatively `client.TasksList(ctx, id, serviceresource.DefaultTasksListOperationOptions())` can be used to do batched pagination
 items, err := client.TasksListComplete(ctx, id, serviceresource.DefaultTasksListOperationOptions())
