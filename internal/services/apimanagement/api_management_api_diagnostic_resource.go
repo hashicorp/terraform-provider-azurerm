@@ -191,8 +191,12 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 		},
 	}
 
-	if d.Get("identifier") == "applicationinsights" {
-		parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(d.Get("operation_name_format").(string)))
+	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+		if d.Get("identifier") == "applicationinsights" {
+			parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(operationNameFormat.(string)))
+		} else {
+			return fmt.Errorf("operation_name_format cannot be set when identifier is not applicationinsights on %s", id)
+		}
 	}
 
 	samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]

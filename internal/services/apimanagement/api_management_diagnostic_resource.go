@@ -150,9 +150,11 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if d.Get("identifier") == "applicationinsights" {
-		if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+		if d.Get("identifier") == "" {
 			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+		} else {
+			return fmt.Errorf("operation_name_format cannot be set when identifier is not applicationinsights on %s", id)
 		}
 	}
 
