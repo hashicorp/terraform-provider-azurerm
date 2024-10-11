@@ -123,7 +123,7 @@ func (id LocalRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
 		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticLocalRules", "localRules", "localRules"),
-		resourceids.UserSpecifiedSegment("localRuleName", "priority"),
+		resourceids.UserSpecifiedSegment("localRuleName", "localRuleName"),
 	}
 }
 

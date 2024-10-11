@@ -187,18 +187,18 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			if keyBundle.Key != nil {
-				activeKey.KeyUrl = pointer.From(keyBundle.Key.Kid)
+				activeKey.KeyURL = pointer.From(keyBundle.Key.Kid)
 			}
 		} else {
 			// Use the passed version of the key...
-			activeKey.KeyUrl = keyVaultKey.ID()
+			activeKey.KeyURL = keyVaultKey.ID()
 		}
 	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
-		keyUrl, err := getManagedHsmKeyUrl(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
+		keyUrl, err := getManagedHsmKeyURL(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
 		if err != nil {
 			return err
 		}
-		activeKey.KeyUrl = keyUrl
+		activeKey.KeyURL = keyUrl
 	}
 
 	encryptionType := diskencryptionsets.DiskEncryptionSetType(d.Get("encryption_type").(string))
@@ -286,8 +286,8 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		RotationToLatestKeyVersionEnabled := pointer.From(props.RotationToLatestKeyVersionEnabled)
 		d.Set("auto_key_rotation_enabled", RotationToLatestKeyVersionEnabled)
 
-		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
-			keyVaultURI := props.ActiveKey.KeyUrl
+		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
+			keyVaultURI := props.ActiveKey.KeyURL
 
 			isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
@@ -297,7 +297,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			switch {
 			case !isHSMURI:
 				{
-					keyVaultKey, err = keyVaultParse.ParseOptionallyVersionedNestedItemID(props.ActiveKey.KeyUrl)
+					keyVaultKey, err = keyVaultParse.ParseOptionallyVersionedNestedItemID(props.ActiveKey.KeyURL)
 					if err != nil {
 						return err
 					}
@@ -434,11 +434,11 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			if keyBundle.Key != nil {
-				update.Properties.ActiveKey.KeyUrl = pointer.From(keyBundle.Key.Kid)
+				update.Properties.ActiveKey.KeyURL = pointer.From(keyBundle.Key.Kid)
 			}
 		} else {
 			// Use the passed version of the key...
-			update.Properties.ActiveKey.KeyUrl = keyVaultKey.ID()
+			update.Properties.ActiveKey.KeyURL = keyVaultKey.ID()
 		}
 
 		if keyVaultDetails != nil {
@@ -447,11 +447,11 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok && d.HasChange("managed_hsm_key_id") {
-		keyUrl, err := getManagedHsmKeyUrl(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
+		keyUrl, err := getManagedHsmKeyURL(ctx, managedkeyBundleClient, managedHsmKeyId.(string), rotationToLatestKeyVersionEnabled, env)
 		if err != nil {
 			return err
 		}
-		update.Properties.ActiveKey.KeyUrl = keyUrl
+		update.Properties.ActiveKey.KeyURL = keyUrl
 	}
 
 	if d.HasChange("auto_key_rotation_enabled") {
@@ -483,7 +483,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 	return resourceDiskEncryptionSetRead(d, meta)
 }
 
-func getManagedHsmKeyUrl(ctx context.Context, managedkeyBundleClient *keyvault.BaseClient, managedHsmKeyId string, rotationToLatestKeyVersionEnabled bool, env environments.Environment) (string, error) {
+func getManagedHsmKeyURL(ctx context.Context, managedkeyBundleClient *keyvault.BaseClient, managedHsmKeyId string, rotationToLatestKeyVersionEnabled bool, env environments.Environment) (string, error) {
 	domainSuffix, ok := env.ManagedHSM.DomainSuffix()
 	if !ok {
 		return "", fmt.Errorf("managed HSM is not supported in this Environment")

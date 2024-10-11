@@ -115,7 +115,7 @@ func (id ResourceManagementPrivateLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticResourceManagementPrivateLinks", "resourceManagementPrivateLinks", "resourceManagementPrivateLinks"),
-		resourceids.UserSpecifiedSegment("resourceManagementPrivateLinkName", "rmplName"),
+		resourceids.UserSpecifiedSegment("resourceManagementPrivateLinkName", "resourceManagementPrivateLinkName"),
 	}
 }
 

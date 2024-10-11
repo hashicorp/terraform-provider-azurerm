@@ -22,7 +22,6 @@ import (
 	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
-	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
 	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -107,6 +106,7 @@ import (
 	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
+	oracledatabase "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
@@ -213,7 +213,6 @@ type Client struct {
 	HealthCare                        *healthcare.Client
 	IoTCentral                        *iotcentral.Client
 	IoTHub                            *iothub.Client
-	IoTTimeSeriesInsights             *timeseriesinsights_v2020_05_15.Client
 	KeyVault                          *keyvault.Client
 	Kusto                             *kusto.Client
 	Lighthouse                        *lighthouse.Client
@@ -239,6 +238,7 @@ type Client struct {
 	NewRelic                          *newrelic.Client
 	Nginx                             *nginx_2024_06_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
+	OracleDatabase                    *oracledatabase.Client
 	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
 	Policy                            *policy.Client
@@ -535,6 +535,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
+	}
+	if client.OracleDatabase, err = oracledatabase.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for OracleDatabase: %+v", err)
 	}
 	if client.Orbital, err = orbital.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Orbital: %+v", err)
