@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces` Documentation
 
-The `networkinterfaces` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `networkinterfaces` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 payload := networkinterfaces.NetworkInterface{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 read, err := client.Get(ctx, id, networkinterfaces.DefaultGetOperationOptions())
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewRoleInstanceNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue")
+id := networkinterfaces.NewRoleInstanceNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName", "roleInstanceName", "networkInterfaceName")
 
 read, err := client.GetCloudServiceNetworkInterface(ctx, id, networkinterfaces.DefaultGetCloudServiceNetworkInterfaceOperationOptions())
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 // alternatively `client.GetEffectiveRouteTable(ctx, id)` can be used to do batched pagination
 items, err := client.GetEffectiveRouteTableComplete(ctx, id)
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue", "networkInterfaceValue", "ipConfigurationValue")
+id := commonids.NewVirtualMachineScaleSetIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName", "ipConfigurationName")
 
 read, err := client.GetVirtualMachineScaleSetIPConfiguration(ctx, id, networkinterfaces.DefaultGetVirtualMachineScaleSetIPConfigurationOperationOptions())
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue", "networkInterfaceValue")
+id := commonids.NewVirtualMachineScaleSetNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName")
 
 read, err := client.GetVirtualMachineScaleSetNetworkInterface(ctx, id, networkinterfaces.DefaultGetVirtualMachineScaleSetNetworkInterfaceOperationOptions())
 if err != nil {
@@ -169,7 +169,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewProviderCloudServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue")
+id := networkinterfaces.NewProviderCloudServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName")
 
 // alternatively `client.ListCloudServiceNetworkInterfaces(ctx, id)` can be used to do batched pagination
 items, err := client.ListCloudServiceNetworkInterfacesComplete(ctx, id)
@@ -186,7 +186,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewRoleInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue")
+id := networkinterfaces.NewRoleInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName", "roleInstanceName")
 
 // alternatively `client.ListCloudServiceRoleInstanceNetworkInterfaces(ctx, id)` can be used to do batched pagination
 items, err := client.ListCloudServiceRoleInstanceNetworkInterfacesComplete(ctx, id)
@@ -203,7 +203,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 // alternatively `client.ListEffectiveNetworkSecurityGroups(ctx, id)` can be used to do batched pagination
 items, err := client.ListEffectiveNetworkSecurityGroupsComplete(ctx, id)
@@ -220,7 +220,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualMachineScaleSetNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue", "networkInterfaceValue")
+id := commonids.NewVirtualMachineScaleSetNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualMachineIndex", "networkInterfaceName")
 
 // alternatively `client.ListVirtualMachineScaleSetIPConfigurations(ctx, id, networkinterfaces.DefaultListVirtualMachineScaleSetIPConfigurationsOperationOptions())` can be used to do batched pagination
 items, err := client.ListVirtualMachineScaleSetIPConfigurationsComplete(ctx, id, networkinterfaces.DefaultListVirtualMachineScaleSetIPConfigurationsOperationOptions())
@@ -237,7 +237,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue")
+id := networkinterfaces.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
 
 // alternatively `client.ListVirtualMachineScaleSetNetworkInterfaces(ctx, id)` can be used to do batched pagination
 items, err := client.ListVirtualMachineScaleSetNetworkInterfacesComplete(ctx, id)
@@ -254,7 +254,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetValue", "virtualMachineValue")
+id := networkinterfaces.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName", "virtualmachineIndex")
 
 // alternatively `client.ListVirtualMachineScaleSetVMNetworkInterfaces(ctx, id)` can be used to do batched pagination
 items, err := client.ListVirtualMachineScaleSetVMNetworkInterfacesComplete(ctx, id)
@@ -271,7 +271,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue", "ipConfigurationValue")
+id := commonids.NewNetworkInterfaceIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName", "ipConfigurationName")
 
 read, err := client.NetworkInterfaceIPConfigurationsGet(ctx, id)
 if err != nil {
@@ -287,7 +287,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 // alternatively `client.NetworkInterfaceIPConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.NetworkInterfaceIPConfigurationsListComplete(ctx, id)
@@ -304,7 +304,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 // alternatively `client.NetworkInterfaceLoadBalancersList(ctx, id)` can be used to do batched pagination
 items, err := client.NetworkInterfaceLoadBalancersListComplete(ctx, id)
@@ -321,7 +321,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkinterfaces.NewTapConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue", "tapConfigurationValue")
+id := networkinterfaces.NewTapConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName", "tapConfigurationName")
 
 read, err := client.NetworkInterfaceTapConfigurationsGet(ctx, id)
 if err != nil {
@@ -337,7 +337,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 // alternatively `client.NetworkInterfaceTapConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.NetworkInterfaceTapConfigurationsListComplete(ctx, id)
@@ -354,7 +354,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
+id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceName")
 
 payload := networkinterfaces.TagsObject{
 	// ...

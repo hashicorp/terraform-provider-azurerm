@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DeploymentScript
+	Model        DeploymentScript
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c DeploymentScriptsClient) Get(ctx context.Context, id DeploymentScriptId)
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDeploymentScriptImplementation(respObj)
+	model, err := UnmarshalDeploymentScriptImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

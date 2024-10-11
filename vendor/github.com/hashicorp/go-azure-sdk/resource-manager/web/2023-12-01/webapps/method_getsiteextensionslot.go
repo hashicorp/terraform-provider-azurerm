@@ -45,7 +45,6 @@ func (c WebAppsClient) GetSiteExtensionSlot(ctx context.Context, id SlotSiteExte
 
 	var model SiteExtensionInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

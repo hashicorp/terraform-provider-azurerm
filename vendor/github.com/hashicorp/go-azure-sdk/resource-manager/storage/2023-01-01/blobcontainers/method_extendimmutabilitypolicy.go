@@ -37,6 +37,7 @@ func (o ExtendImmutabilityPolicyOperationOptions) ToHeaders() *client.Headers {
 
 func (o ExtendImmutabilityPolicyOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -79,7 +80,6 @@ func (c BlobContainersClient) ExtendImmutabilityPolicy(ctx context.Context, id c
 
 	var model ImmutabilityPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/cluster` Documentation
 
-The `cluster` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2024-01-01`).
+The `cluster` SDK allows for interaction with Azure Resource Manager `azurestackhci` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 if err := client.CreateIdentityThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -36,7 +36,7 @@ if err := client.CreateIdentityThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := cluster.SoftwareAssuranceChangeRequest{
 	// ...
@@ -53,7 +53,7 @@ if err := client.ExtendSoftwareAssuranceBenefitThenPoll(ctx, id, payload); err !
 
 ```go
 ctx := context.TODO()
-id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := cluster.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := cluster.UploadCertificateRequest{
 	// ...

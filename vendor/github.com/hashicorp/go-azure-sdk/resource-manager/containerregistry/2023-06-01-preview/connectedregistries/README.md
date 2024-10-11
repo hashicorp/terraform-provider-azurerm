@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/connectedregistries` Documentation
 
-The `connectedregistries` SDK allows for interaction with the Azure Resource Manager Service `containerregistry` (API Version `2023-06-01-preview`).
+The `connectedregistries` SDK allows for interaction with Azure Resource Manager `containerregistry` (API Version `2023-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "connectedRegistryValue")
+id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "connectedRegistryName")
 
 payload := connectedregistries.ConnectedRegistry{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "connectedRegistryValue")
+id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "connectedRegistryName")
 
 if err := client.DeactivateThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeactivateThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "connectedRegistryValue")
+id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "connectedRegistryName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "connectedRegistryValue")
+id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "connectedRegistryName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -81,7 +81,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue")
+id := connectedregistries.NewRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName")
 
 // alternatively `client.List(ctx, id, connectedregistries.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, connectedregistries.DefaultListOperationOptions())
@@ -98,7 +98,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryValue", "connectedRegistryValue")
+id := connectedregistries.NewConnectedRegistryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "registryName", "connectedRegistryName")
 
 payload := connectedregistries.ConnectedRegistryUpdateParameters{
 	// ...

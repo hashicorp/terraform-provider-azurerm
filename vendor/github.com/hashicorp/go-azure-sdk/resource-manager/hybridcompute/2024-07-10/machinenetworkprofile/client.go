@@ -15,7 +15,7 @@ type MachineNetworkProfileClient struct {
 }
 
 func NewMachineNetworkProfileClientWithBaseURI(sdkApi sdkEnv.Api) (*MachineNetworkProfileClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "machinenetworkprofile", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "machinenetworkprofile", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MachineNetworkProfileClient: %+v", err)
 	}

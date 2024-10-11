@@ -40,7 +40,7 @@ func ParsePredefinedPolicyID(input string) (*PredefinedPolicyId, error) {
 	}
 
 	id := PredefinedPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParsePredefinedPolicyIDInsensitively(input string) (*PredefinedPolicyId, er
 	}
 
 	id := PredefinedPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (id PredefinedPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticApplicationGatewayAvailableSslOptions", "applicationGatewayAvailableSslOptions", "applicationGatewayAvailableSslOptions"),
 		resourceids.StaticSegment("staticDefault", "default", "default"),
 		resourceids.StaticSegment("staticPredefinedPolicies", "predefinedPolicies", "predefinedPolicies"),
-		resourceids.UserSpecifiedSegment("predefinedPolicyName", "predefinedPolicyValue"),
+		resourceids.UserSpecifiedSegment("predefinedPolicyName", "predefinedPolicyName"),
 	}
 }
 

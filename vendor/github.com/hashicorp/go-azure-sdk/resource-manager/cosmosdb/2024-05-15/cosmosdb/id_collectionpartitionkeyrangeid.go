@@ -50,7 +50,7 @@ func ParseCollectionPartitionKeyRangeIdID(input string) (*CollectionPartitionKey
 	}
 
 	id := CollectionPartitionKeyRangeIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func ParseCollectionPartitionKeyRangeIdIDInsensitively(input string) (*Collectio
 	}
 
 	id := CollectionPartitionKeyRangeIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -139,15 +139,15 @@ func (id CollectionPartitionKeyRangeIdId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 		resourceids.StaticSegment("staticRegion", "region", "region"),
-		resourceids.UserSpecifiedSegment("regionName", "regionValue"),
+		resourceids.UserSpecifiedSegment("regionName", "region"),
 		resourceids.StaticSegment("staticDatabases", "databases", "databases"),
-		resourceids.UserSpecifiedSegment("databaseName", "databaseValue"),
+		resourceids.UserSpecifiedSegment("databaseName", "databaseRid"),
 		resourceids.StaticSegment("staticCollections", "collections", "collections"),
-		resourceids.UserSpecifiedSegment("collectionName", "collectionValue"),
+		resourceids.UserSpecifiedSegment("collectionName", "collectionRid"),
 		resourceids.StaticSegment("staticPartitionKeyRangeId", "partitionKeyRangeId", "partitionKeyRangeId"),
-		resourceids.UserSpecifiedSegment("partitionKeyRangeId", "partitionKeyRangeIdValue"),
+		resourceids.UserSpecifiedSegment("partitionKeyRangeId", "partitionKeyRangeId"),
 	}
 }
 

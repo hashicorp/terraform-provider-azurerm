@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis` Documentation
 
-The `workbooksapis` SDK allows for interaction with the Azure Resource Manager Service `applicationinsights` (API Version `2022-04-01`).
+The `workbooksapis` SDK allows for interaction with Azure Resource Manager `applicationinsights` (API Version `2022-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := workbooksapis.Workbook{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.WorkbooksDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 read, err := client.WorkbooksGet(ctx, id, workbooksapis.DefaultWorkbooksGetOperationOptions())
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue", "revisionIdValue")
+id := workbooksapis.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "revisionId")
 
 read, err := client.WorkbooksRevisionGet(ctx, id)
 if err != nil {
@@ -128,7 +128,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 // alternatively `client.WorkbooksRevisionsList(ctx, id)` can be used to do batched pagination
 items, err := client.WorkbooksRevisionsListComplete(ctx, id)
@@ -145,7 +145,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookValue")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
 
 payload := workbooksapis.WorkbookUpdateParameters{
 	// ...

@@ -14,9 +14,20 @@ type EventHubEventSourceCreateOrUpdateParameters struct {
 	Properties EventHubEventSourceCreationProperties `json:"properties"`
 
 	// Fields inherited from EventSourceCreateOrUpdateParameters
+
+	Kind           EventSourceKind    `json:"kind"`
 	LocalTimestamp *LocalTimestamp    `json:"localTimestamp,omitempty"`
 	Location       string             `json:"location"`
 	Tags           *map[string]string `json:"tags,omitempty"`
+}
+
+func (s EventHubEventSourceCreateOrUpdateParameters) EventSourceCreateOrUpdateParameters() BaseEventSourceCreateOrUpdateParametersImpl {
+	return BaseEventSourceCreateOrUpdateParametersImpl{
+		Kind:           s.Kind,
+		LocalTimestamp: s.LocalTimestamp,
+		Location:       s.Location,
+		Tags:           s.Tags,
+	}
 }
 
 var _ json.Marshaler = EventHubEventSourceCreateOrUpdateParameters{}
@@ -30,9 +41,10 @@ func (s EventHubEventSourceCreateOrUpdateParameters) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubEventSourceCreateOrUpdateParameters: %+v", err)
 	}
+
 	decoded["kind"] = "Microsoft.EventHub"
 
 	encoded, err = json.Marshal(decoded)

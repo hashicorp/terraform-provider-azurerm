@@ -42,7 +42,7 @@ func ParseSignalRID(input string) (*SignalRId, error) {
 	}
 
 	id := SignalRId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSignalRIDInsensitively(input string) (*SignalRId, error) {
 	}
 
 	id := SignalRId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SignalRId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "resourceName"),
 	}
 }
 

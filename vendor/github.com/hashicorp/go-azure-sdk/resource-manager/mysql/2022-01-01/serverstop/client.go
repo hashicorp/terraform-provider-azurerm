@@ -15,7 +15,7 @@ type ServerStopClient struct {
 }
 
 func NewServerStopClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerStopClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverstop", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverstop", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerStopClient: %+v", err)
 	}

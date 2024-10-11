@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares` Documentation
 
-The `fileshares` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `fileshares` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 payload := fileshares.FileShare{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 read, err := client.Delete(ctx, id, fileshares.DefaultDeleteOperationOptions())
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 read, err := client.Get(ctx, id, fileshares.DefaultGetOperationOptions())
 if err != nil {
@@ -78,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 payload := fileshares.LeaseShareRequest{
 	// ...
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 // alternatively `client.List(ctx, id, fileshares.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, fileshares.DefaultListOperationOptions())
@@ -116,7 +116,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 payload := fileshares.DeletedShare{
 	// ...
@@ -137,7 +137,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "shareValue")
+id := fileshares.NewShareID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "shareName")
 
 payload := fileshares.FileShare{
 	// ...

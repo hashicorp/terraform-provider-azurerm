@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/staticmembers` Documentation
 
-The `staticmembers` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `staticmembers` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "networkGroupValue", "staticMemberValue")
+id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "networkGroupName", "staticMemberName")
 
 payload := staticmembers.StaticMember{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "networkGroupValue", "staticMemberValue")
+id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "networkGroupName", "staticMemberName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "networkGroupValue", "staticMemberValue")
+id := staticmembers.NewStaticMemberID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "networkGroupName", "staticMemberName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := staticmembers.NewNetworkGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "networkGroupValue")
+id := staticmembers.NewNetworkGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "networkGroupName")
 
 // alternatively `client.List(ctx, id, staticmembers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, staticmembers.DefaultListOperationOptions())

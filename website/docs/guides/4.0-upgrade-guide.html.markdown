@@ -924,7 +924,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 ### `azurerm_monitor_data_collection_rule`
 
-* The `data_sources.data_import.syslog.streams` property is now Required.
+* The `data_sources.syslog.streams` property is now Required.
 
 ### `azurerm_monitor_diagnostic_setting`
 

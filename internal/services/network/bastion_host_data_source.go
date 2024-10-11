@@ -89,6 +89,11 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"session_recording_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"dns_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -136,6 +141,7 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("ip_connect_enabled", props.EnableIPConnect)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
+			d.Set("session_recording_enabled", props.EnableSessionRecording)
 
 			copyPasteEnabled := true
 			if props.DisableCopyPaste != nil {

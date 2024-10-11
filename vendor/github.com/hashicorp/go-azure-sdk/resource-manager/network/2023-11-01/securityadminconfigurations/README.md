@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/securityadminconfigurations` Documentation
 
-The `securityadminconfigurations` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `securityadminconfigurations` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue")
+id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName")
 
 payload := securityadminconfigurations.SecurityAdminConfiguration{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue")
+id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName")
 
 if err := client.DeleteThenPoll(ctx, id, securityadminconfigurations.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id, securityadminconfigurations.DefaultDele
 
 ```go
 ctx := context.TODO()
-id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue", "securityAdminConfigurationValue")
+id := securityadminconfigurations.NewSecurityAdminConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := securityadminconfigurations.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := securityadminconfigurations.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 // alternatively `client.List(ctx, id, securityadminconfigurations.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, securityadminconfigurations.DefaultListOperationOptions())

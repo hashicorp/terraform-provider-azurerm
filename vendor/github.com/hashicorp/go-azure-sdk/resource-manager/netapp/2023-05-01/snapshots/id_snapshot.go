@@ -48,7 +48,7 @@ func ParseSnapshotID(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseSnapshotIDInsensitively(input string) (*SnapshotId, error) {
 	}
 
 	id := SnapshotId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id SnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountValue"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "accountName"),
 		resourceids.StaticSegment("staticCapacityPools", "capacityPools", "capacityPools"),
-		resourceids.UserSpecifiedSegment("capacityPoolName", "capacityPoolValue"),
+		resourceids.UserSpecifiedSegment("capacityPoolName", "poolName"),
 		resourceids.StaticSegment("staticVolumes", "volumes", "volumes"),
-		resourceids.UserSpecifiedSegment("volumeName", "volumeValue"),
+		resourceids.UserSpecifiedSegment("volumeName", "volumeName"),
 		resourceids.StaticSegment("staticSnapshots", "snapshots", "snapshots"),
-		resourceids.UserSpecifiedSegment("snapshotName", "snapshotValue"),
+		resourceids.UserSpecifiedSegment("snapshotName", "snapshotName"),
 	}
 }
 

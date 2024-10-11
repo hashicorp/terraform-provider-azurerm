@@ -40,6 +40,7 @@ func (o ListPerfMonCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListPerfMonCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

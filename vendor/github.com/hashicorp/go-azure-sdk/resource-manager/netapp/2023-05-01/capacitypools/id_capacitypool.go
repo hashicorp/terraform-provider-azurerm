@@ -44,7 +44,7 @@ func ParseCapacityPoolID(input string) (*CapacityPoolId, error) {
 	}
 
 	id := CapacityPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCapacityPoolIDInsensitively(input string) (*CapacityPoolId, error) {
 	}
 
 	id := CapacityPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CapacityPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetApp", "Microsoft.NetApp", "Microsoft.NetApp"),
 		resourceids.StaticSegment("staticNetAppAccounts", "netAppAccounts", "netAppAccounts"),
-		resourceids.UserSpecifiedSegment("netAppAccountName", "netAppAccountValue"),
+		resourceids.UserSpecifiedSegment("netAppAccountName", "accountName"),
 		resourceids.StaticSegment("staticCapacityPools", "capacityPools", "capacityPools"),
-		resourceids.UserSpecifiedSegment("capacityPoolName", "capacityPoolValue"),
+		resourceids.UserSpecifiedSegment("capacityPoolName", "poolName"),
 	}
 }
 

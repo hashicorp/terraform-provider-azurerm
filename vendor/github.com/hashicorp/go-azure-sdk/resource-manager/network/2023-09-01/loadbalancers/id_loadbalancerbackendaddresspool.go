@@ -44,7 +44,7 @@ func ParseLoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAd
 	}
 
 	id := LoadBalancerBackendAddressPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLoadBalancerBackendAddressPoolIDInsensitively(input string) (*LoadBala
 	}
 
 	id := LoadBalancerBackendAddressPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LoadBalancerBackendAddressPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),
-		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerValue"),
+		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerName"),
 		resourceids.StaticSegment("staticBackendAddressPools", "backendAddressPools", "backendAddressPools"),
-		resourceids.UserSpecifiedSegment("backendAddressPoolName", "backendAddressPoolValue"),
+		resourceids.UserSpecifiedSegment("backendAddressPoolName", "backendAddressPoolName"),
 	}
 }
 

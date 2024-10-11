@@ -49,7 +49,6 @@ func (c AccessPoliciesClient) Update(ctx context.Context, id AccessPolicyId, inp
 
 	var model AccessPolicyResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

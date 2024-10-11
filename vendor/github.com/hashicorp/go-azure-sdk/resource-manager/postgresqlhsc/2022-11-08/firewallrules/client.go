@@ -15,7 +15,7 @@ type FirewallRulesClient struct {
 }
 
 func NewFirewallRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*FirewallRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "firewallrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "firewallrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FirewallRulesClient: %+v", err)
 	}

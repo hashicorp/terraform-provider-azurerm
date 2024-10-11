@@ -44,7 +44,7 @@ func ParseApplicationGatewayPrivateEndpointConnectionID(input string) (*Applicat
 	}
 
 	id := ApplicationGatewayPrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApplicationGatewayPrivateEndpointConnectionIDInsensitively(input strin
 	}
 
 	id := ApplicationGatewayPrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApplicationGatewayPrivateEndpointConnectionId) Segments() []resourceids
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticApplicationGateways", "applicationGateways", "applicationGateways"),
-		resourceids.UserSpecifiedSegment("applicationGatewayName", "applicationGatewayValue"),
+		resourceids.UserSpecifiedSegment("applicationGatewayName", "applicationGatewayName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "connectionName"),
 	}
 }
 

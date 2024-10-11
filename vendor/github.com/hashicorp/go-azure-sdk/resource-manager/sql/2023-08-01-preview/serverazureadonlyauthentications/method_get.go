@@ -47,7 +47,6 @@ func (c ServerAzureADOnlyAuthenticationsClient) Get(ctx context.Context, id comm
 
 	var model ServerAzureADOnlyAuthentication
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type BatchAccountClient struct {
 }
 
 func NewBatchAccountClientWithBaseURI(sdkApi sdkEnv.Api) (*BatchAccountClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "batchaccount", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "batchaccount", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BatchAccountClient: %+v", err)
 	}

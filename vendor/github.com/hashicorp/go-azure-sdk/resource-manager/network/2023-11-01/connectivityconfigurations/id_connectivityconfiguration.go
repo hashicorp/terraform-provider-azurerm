@@ -44,7 +44,7 @@ func ParseConnectivityConfigurationID(input string) (*ConnectivityConfigurationI
 	}
 
 	id := ConnectivityConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConnectivityConfigurationIDInsensitively(input string) (*ConnectivityC
 	}
 
 	id := ConnectivityConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConnectivityConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagers", "networkManagers", "networkManagers"),
-		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerValue"),
+		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerName"),
 		resourceids.StaticSegment("staticConnectivityConfigurations", "connectivityConfigurations", "connectivityConfigurations"),
-		resourceids.UserSpecifiedSegment("connectivityConfigurationName", "connectivityConfigurationValue"),
+		resourceids.UserSpecifiedSegment("connectivityConfigurationName", "configurationName"),
 	}
 }
 

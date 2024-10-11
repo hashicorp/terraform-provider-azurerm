@@ -42,7 +42,7 @@ func ParseDeploymentScriptID(input string) (*DeploymentScriptId, error) {
 	}
 
 	id := DeploymentScriptId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDeploymentScriptIDInsensitively(input string) (*DeploymentScriptId, er
 	}
 
 	id := DeploymentScriptId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DeploymentScriptId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticDeploymentScripts", "deploymentScripts", "deploymentScripts"),
-		resourceids.UserSpecifiedSegment("deploymentScriptName", "deploymentScriptValue"),
+		resourceids.UserSpecifiedSegment("deploymentScriptName", "scriptName"),
 	}
 }
 

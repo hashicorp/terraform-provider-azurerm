@@ -15,7 +15,7 @@ type UpdateSummariesClient struct {
 }
 
 func NewUpdateSummariesClientWithBaseURI(sdkApi sdkEnv.Api) (*UpdateSummariesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "updatesummaries", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "updatesummaries", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating UpdateSummariesClient: %+v", err)
 	}

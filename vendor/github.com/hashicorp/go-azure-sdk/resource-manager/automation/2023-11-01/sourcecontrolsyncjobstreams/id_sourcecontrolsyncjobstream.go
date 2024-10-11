@@ -48,7 +48,7 @@ func ParseSourceControlSyncJobStreamID(input string) (*SourceControlSyncJobStrea
 	}
 
 	id := SourceControlSyncJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseSourceControlSyncJobStreamIDInsensitively(input string) (*SourceContro
 	}
 
 	id := SourceControlSyncJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id SourceControlSyncJobStreamId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticSourceControls", "sourceControls", "sourceControls"),
-		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlValue"),
+		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlName"),
 		resourceids.StaticSegment("staticSourceControlSyncJobs", "sourceControlSyncJobs", "sourceControlSyncJobs"),
-		resourceids.UserSpecifiedSegment("sourceControlSyncJobId", "sourceControlSyncJobIdValue"),
+		resourceids.UserSpecifiedSegment("sourceControlSyncJobId", "sourceControlSyncJobId"),
 		resourceids.StaticSegment("staticStreams", "streams", "streams"),
-		resourceids.UserSpecifiedSegment("streamId", "streamIdValue"),
+		resourceids.UserSpecifiedSegment("streamId", "streamId"),
 	}
 }
 

@@ -45,7 +45,6 @@ func (c AutomationRulesClient) Get(ctx context.Context, id AutomationRuleId) (re
 
 	var model AutomationRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

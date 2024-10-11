@@ -40,7 +40,7 @@ func ParsePrefixListID(input string) (*PrefixListId, error) {
 	}
 
 	id := PrefixListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParsePrefixListIDInsensitively(input string) (*PrefixListId, error) {
 	}
 
 	id := PrefixListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -105,9 +105,9 @@ func (id PrefixListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
-		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackValue"),
+		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticPrefixLists", "prefixLists", "prefixLists"),
-		resourceids.UserSpecifiedSegment("prefixListName", "prefixListValue"),
+		resourceids.UserSpecifiedSegment("prefixListName", "name"),
 	}
 }
 

@@ -49,7 +49,6 @@ func (c FactoriesClient) Update(ctx context.Context, id FactoryId, input Factory
 
 	var model Factory
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type ComponentsAPIsClient struct {
 }
 
 func NewComponentsAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ComponentsAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "componentsapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "componentsapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ComponentsAPIsClient: %+v", err)
 	}

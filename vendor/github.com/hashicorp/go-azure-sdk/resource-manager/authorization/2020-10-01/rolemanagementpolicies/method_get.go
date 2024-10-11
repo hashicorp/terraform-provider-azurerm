@@ -45,7 +45,6 @@ func (c RoleManagementPoliciesClient) Get(ctx context.Context, id ScopedRoleMana
 
 	var model RoleManagementPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

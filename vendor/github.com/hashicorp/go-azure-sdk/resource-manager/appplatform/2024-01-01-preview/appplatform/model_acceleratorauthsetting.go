@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AcceleratorAuthSetting interface {
+	AcceleratorAuthSetting() BaseAcceleratorAuthSettingImpl
 }
 
-// RawAcceleratorAuthSettingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ AcceleratorAuthSetting = BaseAcceleratorAuthSettingImpl{}
+
+type BaseAcceleratorAuthSettingImpl struct {
+	AuthType string `json:"authType"`
+}
+
+func (s BaseAcceleratorAuthSettingImpl) AcceleratorAuthSetting() BaseAcceleratorAuthSettingImpl {
+	return s
+}
+
+var _ AcceleratorAuthSetting = RawAcceleratorAuthSettingImpl{}
+
+// RawAcceleratorAuthSettingImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawAcceleratorAuthSettingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	acceleratorAuthSetting BaseAcceleratorAuthSettingImpl
+	Type                   string
+	Values                 map[string]interface{}
 }
 
-func unmarshalAcceleratorAuthSettingImplementation(input []byte) (AcceleratorAuthSetting, error) {
+func (s RawAcceleratorAuthSettingImpl) AcceleratorAuthSetting() BaseAcceleratorAuthSettingImpl {
+	return s.acceleratorAuthSetting
+}
+
+func UnmarshalAcceleratorAuthSettingImplementation(input []byte) (AcceleratorAuthSetting, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalAcceleratorAuthSettingImplementation(input []byte) (AcceleratorAut
 		return nil, fmt.Errorf("unmarshaling AcceleratorAuthSetting into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["authType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["authType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "BasicAuth") {
@@ -60,10 +77,15 @@ func unmarshalAcceleratorAuthSettingImplementation(input []byte) (AcceleratorAut
 		return out, nil
 	}
 
-	out := RawAcceleratorAuthSettingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseAcceleratorAuthSettingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAcceleratorAuthSettingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawAcceleratorAuthSettingImpl{
+		acceleratorAuthSetting: parent,
+		Type:                   value,
+		Values:                 temp,
+	}, nil
 
 }

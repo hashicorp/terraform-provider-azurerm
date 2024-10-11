@@ -41,6 +41,7 @@ func (o ListWebAppsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListWebAppsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

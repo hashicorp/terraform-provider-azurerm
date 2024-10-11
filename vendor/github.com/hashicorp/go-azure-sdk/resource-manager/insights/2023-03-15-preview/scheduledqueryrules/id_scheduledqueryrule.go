@@ -42,7 +42,7 @@ func ParseScheduledQueryRuleID(input string) (*ScheduledQueryRuleId, error) {
 	}
 
 	id := ScheduledQueryRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseScheduledQueryRuleIDInsensitively(input string) (*ScheduledQueryRuleId
 	}
 
 	id := ScheduledQueryRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ScheduledQueryRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticScheduledQueryRules", "scheduledQueryRules", "scheduledQueryRules"),
-		resourceids.UserSpecifiedSegment("scheduledQueryRuleName", "scheduledQueryRuleValue"),
+		resourceids.UserSpecifiedSegment("scheduledQueryRuleName", "ruleName"),
 	}
 }
 

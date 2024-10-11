@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions` Documentation
 
-The `galleryapplicationversions` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2022-03-03`).
+The `galleryapplicationversions` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2022-03-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue", "applicationValue", "versionValue")
+id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName", "galleryApplicationName", "galleryApplicationVersionName")
 
 payload := galleryapplicationversions.GalleryApplicationVersion{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue", "applicationValue", "versionValue")
+id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName", "galleryApplicationName", "galleryApplicationVersionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue", "applicationValue", "versionValue")
+id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName", "galleryApplicationName", "galleryApplicationVersionName")
 
 read, err := client.Get(ctx, id, galleryapplicationversions.DefaultGetOperationOptions())
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := galleryapplicationversions.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue", "applicationValue")
+id := galleryapplicationversions.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName", "galleryApplicationName")
 
 // alternatively `client.ListByGalleryApplication(ctx, id)` can be used to do batched pagination
 items, err := client.ListByGalleryApplicationComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue", "applicationValue", "versionValue")
+id := galleryapplicationversions.NewApplicationVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryName", "galleryApplicationName", "galleryApplicationVersionName")
 
 payload := galleryapplicationversions.GalleryApplicationVersionUpdate{
 	// ...

@@ -44,7 +44,7 @@ func ParsePython2PackageID(input string) (*Python2PackageId, error) {
 	}
 
 	id := Python2PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePython2PackageIDInsensitively(input string) (*Python2PackageId, error)
 	}
 
 	id := Python2PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id Python2PackageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticPython2Packages", "python2Packages", "python2Packages"),
-		resourceids.UserSpecifiedSegment("python2PackageName", "python2PackageValue"),
+		resourceids.UserSpecifiedSegment("python2PackageName", "packageName"),
 	}
 }
 

@@ -50,7 +50,6 @@ func (c Python2PackageClient) CreateOrUpdate(ctx context.Context, id Python2Pack
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -19,6 +19,14 @@ type CertificateDatastoreCredentials struct {
 	Thumbprint   string                      `json:"thumbprint"`
 
 	// Fields inherited from DatastoreCredentials
+
+	CredentialsType CredentialsType `json:"credentialsType"`
+}
+
+func (s CertificateDatastoreCredentials) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return BaseDatastoreCredentialsImpl{
+		CredentialsType: s.CredentialsType,
+	}
 }
 
 var _ json.Marshaler = CertificateDatastoreCredentials{}
@@ -32,9 +40,10 @@ func (s CertificateDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CertificateDatastoreCredentials: %+v", err)
 	}
+
 	decoded["credentialsType"] = "Certificate"
 
 	encoded, err = json.Marshal(decoded)

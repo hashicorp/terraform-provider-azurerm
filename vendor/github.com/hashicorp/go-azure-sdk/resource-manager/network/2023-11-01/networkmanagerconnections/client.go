@@ -15,7 +15,7 @@ type NetworkManagerConnectionsClient struct {
 }
 
 func NewNetworkManagerConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkManagerConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkmanagerconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkmanagerconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkManagerConnectionsClient: %+v", err)
 	}

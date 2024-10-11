@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies` Documentation
 
-The `integrationaccountassemblies` SDK allows for interaction with the Azure Resource Manager Service `logic` (API Version `2019-05-01`).
+The `integrationaccountassemblies` SDK allows for interaction with Azure Resource Manager `logic` (API Version `2019-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "assemblyValue")
+id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "assemblyArtifactName")
 
 payload := integrationaccountassemblies.AssemblyDefinition{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "assemblyValue")
+id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "assemblyArtifactName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "assemblyValue")
+id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "assemblyArtifactName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountassemblies.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue")
+id := integrationaccountassemblies.NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountValue", "assemblyValue")
+id := integrationaccountassemblies.NewAssemblyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "assemblyArtifactName")
 
 read, err := client.ListContentCallbackUrl(ctx, id)
 if err != nil {

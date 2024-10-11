@@ -44,7 +44,7 @@ func ParseCustomDomainID(input string) (*CustomDomainId, error) {
 	}
 
 	id := CustomDomainId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCustomDomainIDInsensitively(input string) (*CustomDomainId, error) {
 	}
 
 	id := CustomDomainId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CustomDomainId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "resourceName"),
 		resourceids.StaticSegment("staticCustomDomains", "customDomains", "customDomains"),
-		resourceids.UserSpecifiedSegment("customDomainName", "customDomainValue"),
+		resourceids.UserSpecifiedSegment("customDomainName", "name"),
 	}
 }
 

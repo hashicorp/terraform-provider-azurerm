@@ -19,6 +19,14 @@ type RecoveryPlanA2AInput struct {
 	RecoveryZone             *string          `json:"recoveryZone,omitempty"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanA2AInput) RecoveryPlanProviderSpecificInput() BaseRecoveryPlanProviderSpecificInputImpl {
+	return BaseRecoveryPlanProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanA2AInput{}
@@ -32,9 +40,10 @@ func (s RecoveryPlanA2AInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanA2AInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

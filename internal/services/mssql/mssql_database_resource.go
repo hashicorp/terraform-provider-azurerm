@@ -277,6 +277,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
 	// if the 'enclave_type' matches. If they don't we need to raise an error stating that they must match.
 	elasticPoolId := d.Get("elastic_pool_id").(string)
+	elasticPoolSku := ""
 	if elasticPoolId != "" {
 		elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
 		if err != nil {
@@ -288,12 +289,18 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("retrieving %s: %s", elasticId, err)
 		}
 
-		if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-			elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-			databaseEnclaveType := string(enclaveType)
+		if elasticPool.Model != nil {
+			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				databaseEnclaveType := string(enclaveType)
 
-			if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+					return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				}
+			}
+
+			if elasticPool.Model.Sku != nil {
+				elasticPoolSku = elasticPool.Model.Sku.Name
 			}
 		}
 	}
@@ -613,7 +620,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
 		}
 
-		if strings.HasPrefix(skuName, "HS") {
+		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
 		}
 

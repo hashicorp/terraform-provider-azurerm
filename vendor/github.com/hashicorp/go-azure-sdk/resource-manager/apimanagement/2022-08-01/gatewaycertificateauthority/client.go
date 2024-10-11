@@ -15,7 +15,7 @@ type GatewayCertificateAuthorityClient struct {
 }
 
 func NewGatewayCertificateAuthorityClientWithBaseURI(sdkApi sdkEnv.Api) (*GatewayCertificateAuthorityClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "gatewaycertificateauthority", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "gatewaycertificateauthority", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GatewayCertificateAuthorityClient: %+v", err)
 	}

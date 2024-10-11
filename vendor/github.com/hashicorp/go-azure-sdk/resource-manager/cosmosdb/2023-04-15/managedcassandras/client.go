@@ -15,7 +15,7 @@ type ManagedCassandrasClient struct {
 }
 
 func NewManagedCassandrasClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedCassandrasClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedcassandras", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedcassandras", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedCassandrasClient: %+v", err)
 	}

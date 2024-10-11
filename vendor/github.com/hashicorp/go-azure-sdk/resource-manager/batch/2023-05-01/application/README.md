@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application` Documentation
 
-The `application` SDK allows for interaction with the Azure Resource Manager Service `batch` (API Version `2023-05-01`).
+The `application` SDK allows for interaction with Azure Resource Manager `batch` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "applicationName")
 
 payload := application.Application{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "applicationName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "applicationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := application.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue")
+id := application.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
 
 // alternatively `client.List(ctx, id, application.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, application.DefaultListOperationOptions())
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountValue", "applicationValue")
+id := application.NewApplicationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "applicationName")
 
 payload := application.Application{
 	// ...

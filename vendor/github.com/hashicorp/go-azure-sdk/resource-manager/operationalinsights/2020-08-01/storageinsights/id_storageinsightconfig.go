@@ -44,7 +44,7 @@ func ParseStorageInsightConfigID(input string) (*StorageInsightConfigId, error) 
 	}
 
 	id := StorageInsightConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseStorageInsightConfigIDInsensitively(input string) (*StorageInsightConf
 	}
 
 	id := StorageInsightConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id StorageInsightConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticStorageInsightConfigs", "storageInsightConfigs", "storageInsightConfigs"),
-		resourceids.UserSpecifiedSegment("storageInsightConfigName", "storageInsightConfigValue"),
+		resourceids.UserSpecifiedSegment("storageInsightConfigName", "storageInsightName"),
 	}
 }
 

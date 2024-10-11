@@ -48,7 +48,7 @@ func ParseReplicationNetworkMappingID(input string) (*ReplicationNetworkMappingI
 	}
 
 	id := ReplicationNetworkMappingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -65,7 +65,7 @@ func ParseReplicationNetworkMappingIDInsensitively(input string) (*ReplicationNe
 	}
 
 	id := ReplicationNetworkMappingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -133,13 +133,13 @@ func (id ReplicationNetworkMappingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
 		resourceids.StaticSegment("staticReplicationFabrics", "replicationFabrics", "replicationFabrics"),
-		resourceids.UserSpecifiedSegment("replicationFabricName", "replicationFabricValue"),
+		resourceids.UserSpecifiedSegment("replicationFabricName", "fabricName"),
 		resourceids.StaticSegment("staticReplicationNetworks", "replicationNetworks", "replicationNetworks"),
-		resourceids.UserSpecifiedSegment("replicationNetworkName", "replicationNetworkValue"),
+		resourceids.UserSpecifiedSegment("replicationNetworkName", "networkName"),
 		resourceids.StaticSegment("staticReplicationNetworkMappings", "replicationNetworkMappings", "replicationNetworkMappings"),
-		resourceids.UserSpecifiedSegment("replicationNetworkMappingName", "replicationNetworkMappingValue"),
+		resourceids.UserSpecifiedSegment("replicationNetworkMappingName", "networkMappingName"),
 	}
 }
 

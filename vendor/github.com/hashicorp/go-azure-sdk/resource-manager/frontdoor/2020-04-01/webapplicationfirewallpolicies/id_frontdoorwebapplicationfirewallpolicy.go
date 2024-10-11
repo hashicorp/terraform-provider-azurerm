@@ -42,7 +42,7 @@ func ParseFrontDoorWebApplicationFirewallPolicyID(input string) (*FrontDoorWebAp
 	}
 
 	id := FrontDoorWebApplicationFirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(input string) (*F
 	}
 
 	id := FrontDoorWebApplicationFirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id FrontDoorWebApplicationFirewallPolicyId) Segments() []resourceids.Segme
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFrontDoorWebApplicationFirewallPolicies", "frontDoorWebApplicationFirewallPolicies", "frontDoorWebApplicationFirewallPolicies"),
-		resourceids.UserSpecifiedSegment("frontDoorWebApplicationFirewallPolicyName", "frontDoorWebApplicationFirewallPolicyValue"),
+		resourceids.UserSpecifiedSegment("frontDoorWebApplicationFirewallPolicyName", "policyName"),
 	}
 }
 

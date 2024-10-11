@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages` Documentation
 
-The `virtualmachineimages` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2024-03-01`).
+The `virtualmachineimages` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewOfferSkuVersionID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue", "publisherValue", "offerValue", "skuValue", "versionValue")
+id := virtualmachineimages.NewOfferSkuVersionID("12345678-1234-9876-4563-123456789012", "location", "edgeZone", "publisherName", "offer", "skus", "version")
 
 read, err := client.EdgeZoneGet(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewOfferSkuID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue", "publisherValue", "offerValue", "skuValue")
+id := virtualmachineimages.NewOfferSkuID("12345678-1234-9876-4563-123456789012", "location", "edgeZone", "publisherName", "offer", "skus")
 
 read, err := client.EdgeZoneList(ctx, id, virtualmachineimages.DefaultEdgeZoneListOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewEdgeZonePublisherID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue", "publisherValue")
+id := virtualmachineimages.NewEdgeZonePublisherID("12345678-1234-9876-4563-123456789012", "location", "edgeZone", "publisherName")
 
 read, err := client.EdgeZoneListOffers(ctx, id)
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewEdgeZoneID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue")
+id := virtualmachineimages.NewEdgeZoneID("12345678-1234-9876-4563-123456789012", "location", "edgeZone")
 
 read, err := client.EdgeZoneListPublishers(ctx, id)
 if err != nil {
@@ -88,7 +88,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewVMImageOfferID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue", "publisherValue", "offerValue")
+id := virtualmachineimages.NewVMImageOfferID("12345678-1234-9876-4563-123456789012", "location", "edgeZone", "publisherName", "offer")
 
 read, err := client.EdgeZoneListSkus(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewSkuVersionID("12345678-1234-9876-4563-123456789012", "locationValue", "publisherValue", "offerValue", "skuValue", "versionValue")
+id := virtualmachineimages.NewSkuVersionID("12345678-1234-9876-4563-123456789012", "location", "publisherName", "offer", "skus", "version")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewSkuID("12345678-1234-9876-4563-123456789012", "locationValue", "publisherValue", "offerValue", "skuValue")
+id := virtualmachineimages.NewSkuID("12345678-1234-9876-4563-123456789012", "location", "publisherName", "offer", "skus")
 
 read, err := client.List(ctx, id, virtualmachineimages.DefaultListOperationOptions())
 if err != nil {
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewEdgeZoneID("12345678-1234-9876-4563-123456789012", "locationValue", "edgeZoneValue")
+id := virtualmachineimages.NewEdgeZoneID("12345678-1234-9876-4563-123456789012", "location", "edgeZone")
 
 // alternatively `client.ListByEdgeZone(ctx, id)` can be used to do batched pagination
 items, err := client.ListByEdgeZoneComplete(ctx, id)
@@ -153,7 +153,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewPublisherID("12345678-1234-9876-4563-123456789012", "locationValue", "publisherValue")
+id := virtualmachineimages.NewPublisherID("12345678-1234-9876-4563-123456789012", "location", "publisherName")
 
 read, err := client.ListOffers(ctx, id)
 if err != nil {
@@ -169,7 +169,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewLocationID("12345678-1234-9876-4563-123456789012", "locationValue")
+id := virtualmachineimages.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
 
 read, err := client.ListPublishers(ctx, id)
 if err != nil {
@@ -185,7 +185,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineimages.NewOfferID("12345678-1234-9876-4563-123456789012", "locationValue", "publisherValue", "offerValue")
+id := virtualmachineimages.NewOfferID("12345678-1234-9876-4563-123456789012", "location", "publisherName", "offer")
 
 read, err := client.ListSkus(ctx, id)
 if err != nil {

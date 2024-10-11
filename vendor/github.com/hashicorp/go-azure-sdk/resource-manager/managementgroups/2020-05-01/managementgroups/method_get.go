@@ -40,6 +40,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -86,7 +87,6 @@ func (c ManagementGroupsClient) Get(ctx context.Context, id commonids.Management
 
 	var model ManagementGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
