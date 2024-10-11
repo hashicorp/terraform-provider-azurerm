@@ -409,7 +409,7 @@ func (d ExadataInfraDataSource) ModelObject() interface{} {
 }
 
 func (d ExadataInfraDataSource) ResourceType() string {
-	return "azurerm_oracledatabase_exadata_infrastructure"
+	return "azurerm_oracle_exadata_infrastructure"
 }
 
 func (d ExadataInfraDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

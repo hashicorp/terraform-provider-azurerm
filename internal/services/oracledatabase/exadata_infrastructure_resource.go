@@ -172,7 +172,7 @@ func (ExadataInfraResource) ModelObject() interface{} {
 }
 
 func (ExadataInfraResource) ResourceType() string {
-	return "azurerm_oracledatabase_exadata_infrastructure"
+	return "azurerm_oracle_exadata_infrastructure"
 }
 
 func (r ExadataInfraResource) Create() sdk.ResourceFunc {

@@ -109,7 +109,7 @@ func (a ExadataInfraResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
+resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -128,7 +128,7 @@ func (a ExadataInfraResource) allFields(data acceptance.TestData) string {
 
 %s
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
+resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -162,7 +162,7 @@ func (a ExadataInfraResource) update(data acceptance.TestData) string {
 
 %s
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
+resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -182,15 +182,15 @@ func (a ExadataInfraResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "import" {
-  name                = azurerm_oracledatabase_exadata_infrastructure.test.name
-  location            = azurerm_oracledatabase_exadata_infrastructure.test.location
-  resource_group_name = azurerm_oracledatabase_exadata_infrastructure.test.resource_group_name
-  compute_count       = azurerm_oracledatabase_exadata_infrastructure.test.compute_count
-  display_name        = azurerm_oracledatabase_exadata_infrastructure.test.display_name
-  shape               = azurerm_oracledatabase_exadata_infrastructure.test.shape
-  storage_count       = azurerm_oracledatabase_exadata_infrastructure.test.storage_count
-  zones               = azurerm_oracledatabase_exadata_infrastructure.test.zones
+resource "azurerm_oracle_exadata_infrastructure" "import" {
+  name                = azurerm_oracle_exadata_infrastructure.test.name
+  location            = azurerm_oracle_exadata_infrastructure.test.location
+  resource_group_name = azurerm_oracle_exadata_infrastructure.test.resource_group_name
+  compute_count       = azurerm_oracle_exadata_infrastructure.test.compute_count
+  display_name        = azurerm_oracle_exadata_infrastructure.test.display_name
+  shape               = azurerm_oracle_exadata_infrastructure.test.shape
+  storage_count       = azurerm_oracle_exadata_infrastructure.test.storage_count
+  zones               = azurerm_oracle_exadata_infrastructure.test.zones
 }
 `, a.basic(data))
 }

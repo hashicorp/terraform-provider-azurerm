@@ -1,25 +1,25 @@
 ---
 subcategory: "Oracle Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_exadata_infrastructure"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_exadata_infrastructure"
 description: |-
   Gets information about an existing Exadata Infrastructure.
 ---
 
-# Data Source: azurerm_oracledatabase_exadata_infrastructure
+# Data Source: azurerm_oracle_exadata_infrastructure
 
 Use this data source to access information about an existing Exadata Infrastructure.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracledatabase_exadata_infrastructure" "example" {
+data "azurerm_oracle_exadata_infrastructure" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_oracledatabase_exadata_infrastructure.example.id
+  value = data.azurerm_oracle_exadata_infrastructure.example.id
 }
 ```
 
