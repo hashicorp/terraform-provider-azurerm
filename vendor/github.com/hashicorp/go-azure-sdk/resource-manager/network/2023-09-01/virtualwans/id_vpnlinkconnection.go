@@ -127,11 +127,11 @@ func (id VpnLinkConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnGateways", "vpnGateways", "vpnGateways"),
-		resourceids.UserSpecifiedSegment("vpnGatewayName", "gatewayName"),
+		resourceids.UserSpecifiedSegment("vpnGatewayName", "vpnGatewayName"),
 		resourceids.StaticSegment("staticVpnConnections", "vpnConnections", "vpnConnections"),
-		resourceids.UserSpecifiedSegment("vpnConnectionName", "connectionName"),
+		resourceids.UserSpecifiedSegment("vpnConnectionName", "vpnConnectionName"),
 		resourceids.StaticSegment("staticVpnLinkConnections", "vpnLinkConnections", "vpnLinkConnections"),
-		resourceids.UserSpecifiedSegment("vpnLinkConnectionName", "linkConnectionName"),
+		resourceids.UserSpecifiedSegment("vpnLinkConnectionName", "vpnLinkConnectionName"),
 	}
 }
 

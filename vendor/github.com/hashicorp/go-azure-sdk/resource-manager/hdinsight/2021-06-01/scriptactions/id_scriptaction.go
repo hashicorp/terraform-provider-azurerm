@@ -123,7 +123,7 @@ func (id ScriptActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
 		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticScriptActions", "scriptActions", "scriptActions"),
-		resourceids.UserSpecifiedSegment("scriptActionName", "scriptName"),
+		resourceids.UserSpecifiedSegment("scriptActionName", "scriptActionName"),
 	}
 }
 

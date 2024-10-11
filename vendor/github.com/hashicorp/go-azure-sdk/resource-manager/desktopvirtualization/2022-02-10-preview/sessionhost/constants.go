@@ -21,7 +21,7 @@ const (
 	HealthCheckNameMonitoringAgentCheck     HealthCheckName = "MonitoringAgentCheck"
 	HealthCheckNameSupportedEncryptionCheck HealthCheckName = "SupportedEncryptionCheck"
 	HealthCheckNameSxSStackListenerCheck    HealthCheckName = "SxSStackListenerCheck"
-	HealthCheckNameUrlsAccessibleCheck      HealthCheckName = "UrlsAccessibleCheck"
+	HealthCheckNameURLsAccessibleCheck      HealthCheckName = "UrlsAccessibleCheck"
 	HealthCheckNameWebRTCRedirectorCheck    HealthCheckName = "WebRTCRedirectorCheck"
 )
 
@@ -36,7 +36,7 @@ func PossibleValuesForHealthCheckName() []string {
 		string(HealthCheckNameMonitoringAgentCheck),
 		string(HealthCheckNameSupportedEncryptionCheck),
 		string(HealthCheckNameSxSStackListenerCheck),
-		string(HealthCheckNameUrlsAccessibleCheck),
+		string(HealthCheckNameURLsAccessibleCheck),
 		string(HealthCheckNameWebRTCRedirectorCheck),
 	}
 }
@@ -65,7 +65,7 @@ func parseHealthCheckName(input string) (*HealthCheckName, error) {
 		"monitoringagentcheck":     HealthCheckNameMonitoringAgentCheck,
 		"supportedencryptioncheck": HealthCheckNameSupportedEncryptionCheck,
 		"sxsstacklistenercheck":    HealthCheckNameSxSStackListenerCheck,
-		"urlsaccessiblecheck":      HealthCheckNameUrlsAccessibleCheck,
+		"urlsaccessiblecheck":      HealthCheckNameURLsAccessibleCheck,
 		"webrtcredirectorcheck":    HealthCheckNameWebRTCRedirectorCheck,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

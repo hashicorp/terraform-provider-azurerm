@@ -69,13 +69,13 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `WorkflowTriggersClient.ListCallbackUrl`
+### Example Usage: `WorkflowTriggersClient.ListCallbackURL`
 
 ```go
 ctx := context.TODO()
 id := workflowtriggers.NewTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "triggerName")
 
-read, err := client.ListCallbackUrl(ctx, id)
+read, err := client.ListCallbackURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -138,18 +138,18 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `WorkflowTriggersClient.WorkflowVersionTriggersListCallbackUrl`
+### Example Usage: `WorkflowTriggersClient.WorkflowVersionTriggersListCallbackURL`
 
 ```go
 ctx := context.TODO()
 id := workflowtriggers.NewVersionTriggerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "versionId", "triggerName")
 
-payload := workflowtriggers.GetCallbackUrlParameters{
+payload := workflowtriggers.GetCallbackURLParameters{
 	// ...
 }
 
 
-read, err := client.WorkflowVersionTriggersListCallbackUrl(ctx, id, payload)
+read, err := client.WorkflowVersionTriggersListCallbackURL(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

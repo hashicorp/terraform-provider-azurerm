@@ -115,7 +115,7 @@ func (id IPGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticIpGroups", "ipGroups", "ipGroups"),
-		resourceids.UserSpecifiedSegment("ipGroupName", "ipGroupsName"),
+		resourceids.UserSpecifiedSegment("ipGroupName", "ipGroupName"),
 	}
 }
 

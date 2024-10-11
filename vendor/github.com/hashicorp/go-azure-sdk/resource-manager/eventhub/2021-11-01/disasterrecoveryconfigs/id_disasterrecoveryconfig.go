@@ -123,7 +123,7 @@ func (id DisasterRecoveryConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticDisasterRecoveryConfigs", "disasterRecoveryConfigs", "disasterRecoveryConfigs"),
-		resourceids.UserSpecifiedSegment("disasterRecoveryConfigName", "alias"),
+		resourceids.UserSpecifiedSegment("disasterRecoveryConfigName", "disasterRecoveryConfigName"),
 	}
 }
 
