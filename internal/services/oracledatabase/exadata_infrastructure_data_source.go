@@ -469,7 +469,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						MonthlyDbServerVersion:      pointer.From(prop.MonthlyDbServerVersion),
 						MonthlyStorageServerVersion: pointer.From(prop.MonthlyStorageServerVersion),
 						NextMaintenanceRunId:        pointer.From(prop.NextMaintenanceRunId),
-						OciUrl:                      pointer.From(prop.OciUrl),
+						OciUrl:                      pointer.From(prop.OciURL),
 						Ocid:                        pointer.From(prop.Ocid),
 						ProvisioningState:           string(*prop.ProvisioningState),
 						Shape:                       prop.Shape,
