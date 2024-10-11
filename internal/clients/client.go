@@ -140,6 +140,7 @@ import (
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	systemCenterVirtualMachineManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
+	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
@@ -270,6 +271,7 @@ type Client struct {
 	Synapse                           *synapse.Client
 	SystemCenterVirtualMachineManager *systemcentervirtualmachinemanager_2023_10_07.Client
 	TrafficManager                    *trafficManager.Client
+	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
@@ -629,6 +631,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
 	}
+
+	if client.VideoIndexer, err = videoindexer.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Video Indexer: %+v", err)
+	}
+
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}
