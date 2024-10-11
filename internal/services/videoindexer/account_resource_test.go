@@ -107,20 +107,20 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_video_indexer_account" "test" {
-  name = "acctestvi-%[2]s"
+  name                = "acctestvi-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  
+
   storage {
-    storage_account_id  = azurerm_storage_account.test.id
+    storage_account_id = azurerm_storage_account.test.id
   }
 
   identity {
     type = "SystemAssigned"
-  } 
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -131,13 +131,13 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_video_indexer_account" "test" {
-  name = "acctestvi-%[2]s"
+  name                = "acctestvi-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  
+
   storage {
     storage_account_id        = azurerm_storage_account.test.id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
@@ -146,7 +146,7 @@ resource "azurerm_video_indexer_account" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
-  } 
+  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -157,20 +157,20 @@ provider "azurerm" {
   features {}
 }
 
-%s 
+%[1]s
 
 resource "azurerm_video_indexer_account" "test" {
-  name = "acctestvi-%[2]s"
+  name                = "acctestvi-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  
+
   storage {
-    storage_account_id  = azurerm_storage_account.test.id
+    storage_account_id = azurerm_storage_account.test.id
   }
 
   identity {
     type = "SystemAssigned"
-  } 
+  }
 
   tags = {
     environment = "AccTest"
@@ -179,7 +179,7 @@ resource "azurerm_video_indexer_account" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (AccountResource) template(data acceptance.TestData) string {
+func (r AccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-VI-%[1]d"
@@ -187,7 +187,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
+  name                     = "acctestvi%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
