@@ -34,14 +34,14 @@ resource "azurerm_video_indexer_account" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
-  
+
   storage {
-    storage_account_id  = azurerm_storage_account.example.id
+    storage_account_id = azurerm_storage_account.example.id
   }
 
   identity {
     type = "SystemAssigned"
-  } 
+  }
 }
 ```
 
