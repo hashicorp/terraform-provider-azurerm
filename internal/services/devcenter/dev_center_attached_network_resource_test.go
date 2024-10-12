@@ -119,6 +119,8 @@ resource "azurerm_dev_center" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_dev_center_network_connection" "test" {
@@ -127,6 +129,8 @@ resource "azurerm_dev_center_network_connection" "test" {
   location            = azurerm_resource_group.test.location
   domain_join_type    = "AzureADJoin"
   subnet_id           = azurerm_subnet.test.id
+
+  depends_on = [azurerm_dev_center.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
