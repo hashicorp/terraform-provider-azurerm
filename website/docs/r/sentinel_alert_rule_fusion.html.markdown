@@ -10,6 +10,8 @@ description: |-
 
 Manages a Sentinel Fusion Alert Rule.
 
+~> **Note:** The fusion alert rule (multistage attack detection) is enabled by default, for more details please check the [document](https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-fusion-rules)
+
 ## Example Usage
 
 ```hcl
@@ -25,22 +27,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  workspace_name        = azurerm_log_analytics_workspace.example.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "example" {
   name                       = "example-fusion-alert-rule"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.example.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
 }
 ```
@@ -49,11 +42,13 @@ resource "azurerm_sentinel_alert_rule_fusion" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
-
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel Fusion Alert Rule belongs to. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
-* `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+* `name` - (Optional) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+~> **Note:** This property has been deprecated and will be removed in version 5.0.
+
+* `alert_rule_template_guid` - (Optional) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+~> **Note:** This property has been deprecated and will be removed in version 5.0.
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 

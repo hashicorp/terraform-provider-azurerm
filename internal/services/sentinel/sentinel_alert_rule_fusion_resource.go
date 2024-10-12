@@ -4,18 +4,21 @@
 package sentinel
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+const BUILTINFUSIONALERTRULENAME = "BuiltInFusion"
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,11 +40,19 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			// TODO5.0: remove the `name` property in 5.0, keep it optional to keep forward compatibility, there might be users have already crated fusion rule before it was enabled by default.
 			"name": {
+				Deprecated:   "The `name` property is deprecated and will be removed in 5.0, there is only one fusion alert rule and enabled by default, the name can not be specify.",
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Optional:     true,
+				Default:      BUILTINFUSIONALERTRULENAME,
 				ValidateFunc: validation.StringIsNotEmpty,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					if newValue == "" {
+						return true
+					}
+					return newValue == oldValue
+				},
 			},
 
 			"log_analytics_workspace_id": {
@@ -51,11 +62,19 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				ValidateFunc: alertrules.ValidateWorkspaceID,
 			},
 
+			// TODO5.0: remove the `alert_rule_template_guid` property in 5.0, keep it optional to avoid breaking existing configs, there might be users have already crated fusion rule before it was enabled by default.
 			"alert_rule_template_guid": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
+				Deprecated: "The `alert_rule_template_guid` property is deprecated and will be removed in v5.0, there is only one fusion alert rule and enabled by default, no need to specify the template guid.",
+				Type:       pluginsdk.TypeString,
+				Optional:   true,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					// oldValue is what in the state, comes from the service.
+					// newValue is what specified on the config.
+					if newValue == "" {
+						return true
+					}
+					return newValue == oldValue
+				},
 			},
 
 			"enabled": {
@@ -121,6 +140,26 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, i interface{}) error {
+			if d.HasChange("name") {
+				oldName, newName := d.GetChange("name")
+				oldNameStr := oldName.(string)
+				newNameStr := newName.(string)
+				if oldNameStr != "" && newNameStr != "" {
+					d.ForceNew("name")
+				}
+			}
+			if d.HasChange("alert_rule_template_guid") {
+				oldTemplateId, newTeamplteId := d.GetChange("alert_rule_template_guid")
+				oldTemplateIdString := oldTemplateId.(string)
+				newTemplateIdString := newTeamplteId.(string)
+				if oldTemplateIdString != "" && newTemplateIdString != "" {
+					d.ForceNew("alert_rule_template_guid")
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -135,41 +174,41 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return err
 	}
+
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
-	if d.IsNewResource() {
+	// Since the only one fusion alert rule is enabled by default, we can not do existing check here.
+	// Reference: https://learn.microsoft.com/en-us/azure/sentinel/fusion#configure-fusion
+	templateId := d.Get("alert_rule_template_guid").(string)
+
+	if templateId == "" {
 		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
-			}
+			return fmt.Errorf("retrieving built in Sentinel Alert Rule Fusion %q: %+v", id, err)
 		}
 
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", id.ID())
+		model := resp.Model
+		if model == nil {
+			return fmt.Errorf("retrieving built in Sentinel Alert Rule Fusion %q: `Model` was nil", id)
+		}
+
+		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
+			return fmt.Errorf("retrieving built in Sentinel ALert Rule Fusion %[1]q: asserting alert rule of %[1]q: %+v", id, err)
+		}
+
+		if rule, ok := model.(alertrules.FusionAlertRule); ok {
+			if prop := rule.Properties; prop != nil {
+				templateId = prop.AlertRuleTemplateName
+			}
 		}
 	}
 
 	params := alertrules.FusionAlertRule{
 		Properties: &alertrules.FusionAlertRuleProperties{
-			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),
 			Enabled:               d.Get("enabled").(bool),
 			SourceSettings:        expandFusionSourceSettings(d.Get("source").([]interface{})),
+			AlertRuleTemplateName: templateId,
 		},
-	}
-
-	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("retrieving %q: %+v", id, err)
-		}
-
-		if resp.Model == nil {
-			return fmt.Errorf("retrieving %q: model was nil", id)
-		}
-		if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
-		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
