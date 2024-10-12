@@ -7,7 +7,7 @@ type SiteAuthSettingsProperties struct {
 	AadClaimsAuthorization                  *string                        `json:"aadClaimsAuthorization,omitempty"`
 	AdditionalLoginParams                   *[]string                      `json:"additionalLoginParams,omitempty"`
 	AllowedAudiences                        *[]string                      `json:"allowedAudiences,omitempty"`
-	AllowedExternalRedirectUrls             *[]string                      `json:"allowedExternalRedirectUrls,omitempty"`
+	AllowedExternalRedirectURLs             *[]string                      `json:"allowedExternalRedirectUrls,omitempty"`
 	AuthFilePath                            *string                        `json:"authFilePath,omitempty"`
 	ClientId                                *string                        `json:"clientId,omitempty"`
 	ClientSecret                            *string                        `json:"clientSecret,omitempty"`

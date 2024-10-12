@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName")
+id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName")
 
 payload := expressroutecrossconnections.ExpressRouteCrossConnection{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName")
+id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -92,7 +92,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName")
+id := expressroutecrossconnections.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName")
 
 payload := expressroutecrossconnections.TagsObject{
 	// ...

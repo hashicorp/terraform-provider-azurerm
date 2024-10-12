@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := privateendpoints.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.AvailablePrivateEndpointTypesList(ctx, id)` can be used to do batched pagination
 items, err := client.AvailablePrivateEndpointTypesListComplete(ctx, id)
@@ -42,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privateendpoints.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := privateendpoints.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 // alternatively `client.AvailablePrivateEndpointTypesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.AvailablePrivateEndpointTypesListByResourceGroupComplete(ctx, id)

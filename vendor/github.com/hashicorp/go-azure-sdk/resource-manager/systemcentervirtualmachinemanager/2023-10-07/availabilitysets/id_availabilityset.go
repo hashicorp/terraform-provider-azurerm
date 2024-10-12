@@ -115,7 +115,7 @@ func (id AvailabilitySetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticAvailabilitySets", "availabilitySets", "availabilitySets"),
-		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetResourceName"),
+		resourceids.UserSpecifiedSegment("availabilitySetName", "availabilitySetName"),
 	}
 }
 

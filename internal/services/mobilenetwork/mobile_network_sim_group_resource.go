@@ -21,7 +21,7 @@ import (
 
 type SimGroupResourceModel struct {
 	Name             string                       `tfschema:"name"`
-	EncryptionKeyUrl string                       `tfschema:"encryption_key_url"`
+	EncryptionKeyURL string                       `tfschema:"encryption_key_url"`
 	Identity         []identity.ModelUserAssigned `tfschema:"identity"`
 	Location         string                       `tfschema:"location"`
 	MobileNetworkId  string                       `tfschema:"mobile_network_id"`
@@ -120,9 +120,9 @@ func (r SimGroupResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if model.EncryptionKeyUrl != "" {
+			if model.EncryptionKeyURL != "" {
 				properties.Properties.EncryptionKey = &simgroup.KeyVaultKey{
-					KeyUrl: &model.EncryptionKeyUrl,
+					KeyURL: &model.EncryptionKeyURL,
 				}
 			}
 
@@ -173,7 +173,7 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("encryption_key") {
 				properties.Properties.EncryptionKey = &simgroup.KeyVaultKey{
-					KeyUrl: &model.EncryptionKeyUrl,
+					KeyURL: &model.EncryptionKeyURL,
 				}
 			}
 
@@ -231,8 +231,8 @@ func (r SimGroupResource) Read() sdk.ResourceFunc {
 				state.Identity = identityValue
 
 				properties := model.Properties
-				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
-					state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
+				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyURL != nil {
+					state.EncryptionKeyURL = *properties.EncryptionKey.KeyURL
 				}
 
 				if properties.MobileNetwork != nil {

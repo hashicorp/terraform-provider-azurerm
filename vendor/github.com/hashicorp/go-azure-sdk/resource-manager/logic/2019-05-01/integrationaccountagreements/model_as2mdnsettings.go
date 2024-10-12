@@ -8,7 +8,7 @@ type AS2MdnSettings struct {
 	MdnText                    *string          `json:"mdnText,omitempty"`
 	MicHashingAlgorithm        HashingAlgorithm `json:"micHashingAlgorithm"`
 	NeedMDN                    bool             `json:"needMDN"`
-	ReceiptDeliveryUrl         *string          `json:"receiptDeliveryUrl,omitempty"`
+	ReceiptDeliveryURL         *string          `json:"receiptDeliveryUrl,omitempty"`
 	SendInboundMDNToMessageBox bool             `json:"sendInboundMDNToMessageBox"`
 	SendMDNAsynchronously      bool             `json:"sendMDNAsynchronously"`
 	SignMDN                    bool             `json:"signMDN"`

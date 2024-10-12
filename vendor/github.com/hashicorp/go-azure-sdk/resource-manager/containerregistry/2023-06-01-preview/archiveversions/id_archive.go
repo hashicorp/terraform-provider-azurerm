@@ -129,7 +129,7 @@ func (id ArchiveId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
 		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticPackages", "packages", "packages"),
-		resourceids.UserSpecifiedSegment("packageName", "packageType"),
+		resourceids.UserSpecifiedSegment("packageName", "packageName"),
 		resourceids.StaticSegment("staticArchives", "archives", "archives"),
 		resourceids.UserSpecifiedSegment("archiveName", "archiveName"),
 	}

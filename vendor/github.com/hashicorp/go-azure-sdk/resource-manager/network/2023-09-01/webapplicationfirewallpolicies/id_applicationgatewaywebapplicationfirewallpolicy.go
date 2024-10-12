@@ -115,7 +115,7 @@ func (id ApplicationGatewayWebApplicationFirewallPolicyId) Segments() []resource
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticApplicationGatewayWebApplicationFirewallPolicies", "applicationGatewayWebApplicationFirewallPolicies", "applicationGatewayWebApplicationFirewallPolicies"),
-		resourceids.UserSpecifiedSegment("applicationGatewayWebApplicationFirewallPolicyName", "policyName"),
+		resourceids.UserSpecifiedSegment("applicationGatewayWebApplicationFirewallPolicyName", "applicationGatewayWebApplicationFirewallPolicyName"),
 	}
 }
 
