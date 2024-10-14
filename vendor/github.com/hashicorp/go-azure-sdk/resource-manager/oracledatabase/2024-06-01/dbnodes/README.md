@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dbnodes.NewDbNodeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername", "dbnodeocid")
+id := dbnodes.NewDbNodeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName", "dbNodeName")
 
 payload := dbnodes.DbNodeAction{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ActionThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := dbnodes.NewDbNodeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername", "dbnodeocid")
+id := dbnodes.NewDbNodeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName", "dbNodeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := dbnodes.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := dbnodes.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 // alternatively `client.ListByCloudVMCluster(ctx, id)` can be used to do batched pagination
 items, err := client.ListByCloudVMClusterComplete(ctx, id)

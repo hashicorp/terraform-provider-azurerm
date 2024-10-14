@@ -1,12 +1,12 @@
 ---
 subcategory: "Oracle Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_oracledatabase_exadata_infrastructure"
+page_title: "Azure Resource Manager: azurerm_oracle_exadata_infrastructure"
 description: |-
   Manages a Exadata Infrastructure.
 ---
 
-# azurerm_oracledatabase_exadata_infrastructure
+# azurerm_oracle_exadata_infrastructure
 
 Manages a Exadata Infrastructure.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "example" {
+resource "azurerm_oracle_exadata_infrastructure" "example" {
   name                = "example-exadata-infra"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -70,7 +70,7 @@ A `maintenance_window` block supports the following:
 
 * `months` - (Optional) Months during the year when maintenance should be performed.
 
-* `patching_mode` - (Optional) Cloud Exadata infrastructure node patching method, either "ROLLING" or "NONROLLING". Default value is ROLLING. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
+* `patching_mode` - (Optional) Cloud Exadata infrastructure node patching method, either `ROLLING` or `NONROLLING`. Default value is `ROLLING`. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
 
 * `preference` - (Optional) The maintenance window scheduling preference.
 
@@ -96,5 +96,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Exadata Infrastructures can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracledatabase_exadata_infrastructure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudExadataInfrastructures/cloudExadataInfrastructures1
+terraform import azurerm_oracle_exadata_infrastructure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudExadataInfrastructures/cloudExadataInfrastructures1
 ```

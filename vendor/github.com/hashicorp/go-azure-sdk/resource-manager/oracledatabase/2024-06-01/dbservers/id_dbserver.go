@@ -121,9 +121,9 @@ func (id DbServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticCloudExadataInfrastructures", "cloudExadataInfrastructures", "cloudExadataInfrastructures"),
-		resourceids.UserSpecifiedSegment("cloudExadataInfrastructureName", "cloudexadatainfrastructurename"),
+		resourceids.UserSpecifiedSegment("cloudExadataInfrastructureName", "cloudExadataInfrastructureName"),
 		resourceids.StaticSegment("staticDbServers", "dbServers", "dbServers"),
-		resourceids.UserSpecifiedSegment("dbServerName", "dbserverocid"),
+		resourceids.UserSpecifiedSegment("dbServerName", "dbServerName"),
 	}
 }
 

@@ -172,7 +172,7 @@ func (ExadataInfraResource) ModelObject() interface{} {
 }
 
 func (ExadataInfraResource) ResourceType() string {
-	return "azurerm_oracledatabase_exadata_infrastructure"
+	return "azurerm_oracle_exadata_infrastructure"
 }
 
 func (r ExadataInfraResource) Create() sdk.ResourceFunc {
@@ -259,6 +259,10 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
 			}
 
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				return fmt.Errorf("only `tags` currently support updates")
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: tags.Expand(model.Tags),
@@ -267,8 +271,6 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("updating %s: %v", id, err)
 				}
-			} else if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
 			}
 			return nil
 		},

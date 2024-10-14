@@ -28,7 +28,7 @@ type BaseAutonomousDatabaseBasePropertiesImpl struct {
 	ComputeCount                             *float64                           `json:"computeCount,omitempty"`
 	ComputeModel                             *ComputeModel                      `json:"computeModel,omitempty"`
 	ConnectionStrings                        *ConnectionStringType              `json:"connectionStrings,omitempty"`
-	ConnectionUrls                           *ConnectionUrlType                 `json:"connectionUrls,omitempty"`
+	ConnectionURLs                           *ConnectionURLType                 `json:"connectionUrls,omitempty"`
 	CpuCoreCount                             *int64                             `json:"cpuCoreCount,omitempty"`
 	CustomerContacts                         *[]CustomerContact                 `json:"customerContacts,omitempty"`
 	DataBaseType                             DataBaseType                       `json:"dataBaseType"`
@@ -58,7 +58,7 @@ type BaseAutonomousDatabaseBasePropertiesImpl struct {
 	MemoryPerOracleComputeUnitInGbs          *int64                             `json:"memoryPerOracleComputeUnitInGbs,omitempty"`
 	NcharacterSet                            *string                            `json:"ncharacterSet,omitempty"`
 	NextLongTermBackupTimeStamp              *string                            `json:"nextLongTermBackupTimeStamp,omitempty"`
-	OciUrl                                   *string                            `json:"ociUrl,omitempty"`
+	OciURL                                   *string                            `json:"ociUrl,omitempty"`
 	Ocid                                     *string                            `json:"ocid,omitempty"`
 	OpenMode                                 *OpenModeType                      `json:"openMode,omitempty"`
 	OperationsInsightsStatus                 *OperationsInsightsStatusType      `json:"operationsInsightsStatus,omitempty"`
@@ -72,8 +72,8 @@ type BaseAutonomousDatabaseBasePropertiesImpl struct {
 	ProvisioningState                        *AzureResourceProvisioningState    `json:"provisioningState,omitempty"`
 	Role                                     *RoleType                          `json:"role,omitempty"`
 	ScheduledOperations                      *ScheduledOperationsType           `json:"scheduledOperations,omitempty"`
-	ServiceConsoleUrl                        *string                            `json:"serviceConsoleUrl,omitempty"`
-	SqlWebDeveloperUrl                       *string                            `json:"sqlWebDeveloperUrl,omitempty"`
+	ServiceConsoleURL                        *string                            `json:"serviceConsoleUrl,omitempty"`
+	SqlWebDeveloperURL                       *string                            `json:"sqlWebDeveloperUrl,omitempty"`
 	SubnetId                                 *string                            `json:"subnetId,omitempty"`
 	SupportedRegionsToCloneTo                *[]string                          `json:"supportedRegionsToCloneTo,omitempty"`
 	TimeCreated                              *string                            `json:"timeCreated,omitempty"`

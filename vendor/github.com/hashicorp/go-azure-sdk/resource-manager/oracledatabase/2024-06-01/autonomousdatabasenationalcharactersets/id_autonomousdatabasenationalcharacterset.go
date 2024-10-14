@@ -113,9 +113,9 @@ func (id AutonomousDatabaseNationalCharacterSetId) Segments() []resourceids.Segm
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticAutonomousDatabaseNationalCharacterSets", "autonomousDatabaseNationalCharacterSets", "autonomousDatabaseNationalCharacterSets"),
-		resourceids.UserSpecifiedSegment("autonomousDatabaseNationalCharacterSetName", "adbsncharsetname"),
+		resourceids.UserSpecifiedSegment("autonomousDatabaseNationalCharacterSetName", "autonomousDatabaseNationalCharacterSetName"),
 	}
 }
 

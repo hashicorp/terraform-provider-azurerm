@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sapavailabilityzonedetails.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := sapavailabilityzonedetails.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := sapavailabilityzonedetails.SAPAvailabilityZoneDetailsRequest{
 	// ...

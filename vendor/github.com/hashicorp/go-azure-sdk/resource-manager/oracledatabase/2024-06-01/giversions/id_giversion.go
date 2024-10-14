@@ -113,9 +113,9 @@ func (id GiVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticGiVersions", "giVersions", "giVersions"),
-		resourceids.UserSpecifiedSegment("giVersionName", "giversionname"),
+		resourceids.UserSpecifiedSegment("giVersionName", "giVersionName"),
 	}
 }
 

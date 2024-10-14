@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabasenationalcharactersets.NewAutonomousDatabaseNationalCharacterSetID("12345678-1234-9876-4563-123456789012", "location", "adbsncharsetname")
+id := autonomousdatabasenationalcharactersets.NewAutonomousDatabaseNationalCharacterSetID("12345678-1234-9876-4563-123456789012", "locationName", "autonomousDatabaseNationalCharacterSetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := autonomousdatabasenationalcharactersets.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := autonomousdatabasenationalcharactersets.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.ListByLocation(ctx, id)` can be used to do batched pagination
 items, err := client.ListByLocationComplete(ctx, id)

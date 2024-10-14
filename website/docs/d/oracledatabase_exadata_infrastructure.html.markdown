@@ -1,25 +1,25 @@
 ---
 subcategory: "Oracle Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_exadata_infrastructure"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_exadata_infrastructure"
 description: |-
   Gets information about an existing Exadata Infrastructure.
 ---
 
-# Data Source: azurerm_oracledatabase_exadata_infrastructure
+# Data Source: azurerm_oracle_exadata_infrastructure
 
 Use this data source to access information about an existing Exadata Infrastructure.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracledatabase_exadata_infrastructure" "example" {
+data "azurerm_oracle_exadata_infrastructure" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_oracledatabase_exadata_infrastructure.example.id
+  value = data.azurerm_oracle_exadata_infrastructure.example.id
 }
 ```
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `db_node_storage_size_in_gbs` - The local node storage allocated in GBs.
 
-* `db_server_version` - The software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: 20.1.15
+* `db_server_version` - The software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: `20.1.15`
 
 * `display_name` - The user-friendly name for the cloud Exadata infrastructure resource. The name does not need to be unique.
 
@@ -79,9 +79,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_size_in_gbs` - The memory allocated in GBs.
 
-* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: 20.1.15
+* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: `20.1.15`
 
-* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the cloud Exadata infrastructure. Example: 20.1.15
+* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the cloud Exadata infrastructure. Example: `20.1.15`
 
 * `next_maintenance_run_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the next maintenance run.
 
@@ -95,7 +95,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_count` - The number of storage servers for the cloud Exadata infrastructure.
 
-* `storage_server_version` - The software version of the storage servers (cells) in the Exadata infrastructure. Example: 20.1.15
+* `storage_server_version` - The software version of the storage servers (cells) in the Exadata infrastructure. Example: `20.1.15`
 
 * `system_data` - A `system_data` block as defined below.
 
@@ -131,7 +131,7 @@ A `maintenance_window` block exports the following:
 
 * `months` - A `months` block as defined below.
 
-* `patching_mode` -  Cloud Exadata infrastructure node patching method, either "ROLLING" or "NONROLLING".
+* `patching_mode` -  Cloud Exadata infrastructure node patching method, either `ROLLING` or `NONROLLING`.
 
 * `preference` - The maintenance window scheduling preference.
 

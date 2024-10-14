@@ -121,9 +121,9 @@ func (id DbNodeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticCloudVmClusters", "cloudVmClusters", "cloudVmClusters"),
-		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudvmclustername"),
+		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudVmClusterName"),
 		resourceids.StaticSegment("staticDbNodes", "dbNodes", "dbNodes"),
-		resourceids.UserSpecifiedSegment("dbNodeName", "dbnodeocid"),
+		resourceids.UserSpecifiedSegment("dbNodeName", "dbNodeName"),
 	}
 }
 

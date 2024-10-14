@@ -115,7 +115,7 @@ func (id AutonomousDatabaseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticAutonomousDatabases", "autonomousDatabases", "autonomousDatabases"),
-		resourceids.UserSpecifiedSegment("autonomousDatabaseName", "autonomousdatabasename"),
+		resourceids.UserSpecifiedSegment("autonomousDatabaseName", "autonomousDatabaseName"),
 	}
 }
 

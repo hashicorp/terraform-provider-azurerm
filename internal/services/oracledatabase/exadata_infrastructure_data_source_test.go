@@ -38,9 +38,9 @@ func (d ExadataInfraDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracledatabase_exadata_infrastructure" "test" {
-  name                = azurerm_oracledatabase_exadata_infrastructure.test.name
-  resource_group_name = azurerm_oracledatabase_exadata_infrastructure.test.resource_group_name
+data "azurerm_oracle_exadata_infrastructure" "test" {
+  name                = azurerm_oracle_exadata_infrastructure.test.name
+  resource_group_name = azurerm_oracle_exadata_infrastructure.test.resource_group_name
 }
 `, ExadataInfraResource{}.basic(data))
 }

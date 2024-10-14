@@ -409,7 +409,7 @@ func (d ExadataInfraDataSource) ModelObject() interface{} {
 }
 
 func (d ExadataInfraDataSource) ResourceType() string {
-	return "azurerm_oracledatabase_exadata_infrastructure"
+	return "azurerm_oracle_exadata_infrastructure"
 }
 
 func (d ExadataInfraDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -443,13 +443,6 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 
 				var output ExadataInfraDataModel
 
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
-
 				prop := model.Properties
 				if prop != nil {
 					output = ExadataInfraDataModel{
@@ -476,7 +469,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						MonthlyDbServerVersion:      pointer.From(prop.MonthlyDbServerVersion),
 						MonthlyStorageServerVersion: pointer.From(prop.MonthlyStorageServerVersion),
 						NextMaintenanceRunId:        pointer.From(prop.NextMaintenanceRunId),
-						OciUrl:                      pointer.From(prop.OciUrl),
+						OciUrl:                      pointer.From(prop.OciURL),
 						Ocid:                        pointer.From(prop.Ocid),
 						ProvisioningState:           string(*prop.ProvisioningState),
 						Shape:                       prop.Shape,
@@ -500,6 +493,13 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						},
 					}
 				}
+
+				output.Name = id.CloudExadataInfrastructureName
+				output.ResourceGroupName = id.ResourceGroupName
+				output.Type = pointer.From(model.Type)
+				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
+				output.Location = model.Location
+				output.Zones = model.Zones
 
 				metadata.SetID(id)
 				return metadata.Encode(&output)
@@ -547,7 +547,7 @@ func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.Mai
 			},
 		}
 	}
-	return nil
+	return []MaintenanceWindowModel{}
 }
 
 func FlattenDayOfWeek(dayOfWeeks *[]cloudexadatainfrastructures.DayOfWeek) []string {

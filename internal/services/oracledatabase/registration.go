@@ -16,12 +16,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		CloudVmClusterDataSource{},
 		DBServersDataSource{},
+		ExadataInfraDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CloudVmClusterResource{},
+		ExadataInfraResource{},
 	}
 }
 
