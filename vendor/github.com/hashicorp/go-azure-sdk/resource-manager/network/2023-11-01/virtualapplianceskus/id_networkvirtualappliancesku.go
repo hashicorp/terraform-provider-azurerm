@@ -107,7 +107,7 @@ func (id NetworkVirtualApplianceSkuId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkVirtualApplianceSkus", "networkVirtualApplianceSkus", "networkVirtualApplianceSkus"),
-		resourceids.UserSpecifiedSegment("networkVirtualApplianceSkuName", "skuName"),
+		resourceids.UserSpecifiedSegment("networkVirtualApplianceSkuName", "networkVirtualApplianceSkuName"),
 	}
 }
 

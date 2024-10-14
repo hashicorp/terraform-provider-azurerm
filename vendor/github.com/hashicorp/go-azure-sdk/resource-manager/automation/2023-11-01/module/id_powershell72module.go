@@ -123,7 +123,7 @@ func (id PowerShell72ModuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
 		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticPowerShell72Modules", "powerShell72Modules", "powerShell72Modules"),
-		resourceids.UserSpecifiedSegment("powerShell72ModuleName", "moduleName"),
+		resourceids.UserSpecifiedSegment("powerShell72ModuleName", "powerShell72ModuleName"),
 	}
 }
 

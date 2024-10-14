@@ -123,7 +123,7 @@ func (id VirtualMachineScaleSetExtensionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVirtualMachineScaleSets", "virtualMachineScaleSets", "virtualMachineScaleSets"),
 		resourceids.UserSpecifiedSegment("virtualMachineScaleSetName", "virtualMachineScaleSetName"),
 		resourceids.StaticSegment("staticExtensions", "extensions", "extensions"),
-		resourceids.UserSpecifiedSegment("extensionName", "vmssExtensionName"),
+		resourceids.UserSpecifiedSegment("extensionName", "extensionName"),
 	}
 }
 

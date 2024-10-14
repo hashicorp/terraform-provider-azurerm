@@ -63,7 +63,7 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 				}
 				return 100
 			}(),
-			ValidateFunc: validation.IntInSlice([]int{100, 500, 1000, 2000, 5000}),
+			ValidateFunc: validation.IntInSlice([]int{100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, 50000}),
 		},
 
 		"tags": tags.Schema(),

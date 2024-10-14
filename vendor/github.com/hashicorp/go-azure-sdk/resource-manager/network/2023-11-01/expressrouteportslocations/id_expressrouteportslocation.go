@@ -107,7 +107,7 @@ func (id ExpressRoutePortsLocationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRoutePortsLocations", "expressRoutePortsLocations", "expressRoutePortsLocations"),
-		resourceids.UserSpecifiedSegment("expressRoutePortsLocationName", "locationName"),
+		resourceids.UserSpecifiedSegment("expressRoutePortsLocationName", "expressRoutePortsLocationName"),
 	}
 }
 

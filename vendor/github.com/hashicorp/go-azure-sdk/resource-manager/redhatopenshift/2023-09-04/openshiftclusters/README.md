@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 payload := openshiftclusters.OpenShiftCluster{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -87,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 read, err := client.ListAdminCredentials(ctx, id)
 if err != nil {
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 read, err := client.ListCredentials(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := openshiftclusters.NewProviderOpenShiftClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "openShiftClusterName")
 
 payload := openshiftclusters.OpenShiftClusterUpdate{
 	// ...

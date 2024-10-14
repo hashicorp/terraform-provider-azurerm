@@ -123,7 +123,7 @@ func (id LocalRulestackCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
 		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
-		resourceids.UserSpecifiedSegment("certificateName", "name"),
+		resourceids.UserSpecifiedSegment("certificateName", "certificateName"),
 	}
 }
 
