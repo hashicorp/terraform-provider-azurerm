@@ -21,8 +21,9 @@ import (
 
 func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceApiManagementApiOperationTagCreateUpdate,
+		Create: resourceApiManagementApiOperationTagCreate,
 		Read:   resourceApiManagementApiOperationTagRead,
+		Update: resourceApiManagementApiOperationTagUpdate,
 		Delete: resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -33,6 +34,7 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -54,9 +56,6 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOhBeta() {
-		resource.Update = resourceApiManagementApiOperationTagCreateUpdate
-		resource.Timeouts.Update = pluginsdk.DefaultTimeout(30 * time.Minute)
-
 		resource.Schema["display_name"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Optional:   true,
@@ -68,7 +67,7 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tagClient := meta.(*clients.Client).ApiManagement.TagClient
 	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
@@ -176,6 +175,14 @@ func resourceApiManagementApiOperationTagRead(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func resourceApiManagementApiOperationTagUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	if features.FivePointOhBeta() {
+		return nil
+	}
+
+	return resourceApiManagementApiOperationTagCreate(d, meta)
 }
 
 func resourceApiManagementApiOperationTagDelete(d *pluginsdk.ResourceData, meta interface{}) error {
