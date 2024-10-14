@@ -409,7 +409,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 			output.Hostname = result.Model.Properties.Hostname
 			output.LicenseModel = string(pointer.From(result.Model.Properties.LicenseModel))
 			output.MemorySizeInGbs = pointer.From(result.Model.Properties.MemorySizeInGbs)
-			//output.SshPublicKeys = result.Model.Properties.SshPublicKeys
+			output.SshPublicKeys = result.Model.Properties.SshPublicKeys
 			tmp := make([]string, 0)
 			for _, key := range result.Model.Properties.SshPublicKeys {
 				if key != "" {
@@ -502,10 +502,7 @@ func GiVersionDiffSuppress(key string, old string, new string, d *schema.Resourc
 	oldVersion := strings.Split(old, ".")
 	newVersion := strings.Split(new, ".")
 
-	if oldVersion[0] == newVersion[0] {
-		return true
-	}
-	return false
+	return oldVersion[0] == newVersion[0]
 }
 
 func DbSystemHostnameDiffSuppress(key string, old string, new string, d *schema.ResourceData) bool {
