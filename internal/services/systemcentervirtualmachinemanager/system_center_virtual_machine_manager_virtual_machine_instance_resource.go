@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
@@ -372,8 +371,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 
 			parameters := virtualmachineinstances.VirtualMachineInstance{
 				ExtendedLocation: virtualmachineinstances.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Type: pointer.To("customLocation"),
+					Name: pointer.To(model.CustomLocationId),
 				},
 				Properties: &virtualmachineinstances.VirtualMachineInstanceProperties{
 					InfrastructureProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceInfrastructureProfileForCreate(model.Infrastructure),
@@ -507,7 +506,9 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				parameters.Properties.AvailabilitySets = availabilitySets
 			}
 
-			if metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk") {
+			needToRestart := metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk")
+
+			if needToRestart {
 				if err := client.StopThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.StopVirtualMachineOptions{
 					SkipShutdown: pointer.To(virtualmachineinstances.SkipShutdownFalse),
 				}); err != nil {
@@ -519,7 +520,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChange("hardware") || metadata.ResourceData.HasChange("network_interface") || metadata.ResourceData.HasChange("storage_disk") {
+			if needToRestart {
 				if err := client.StartThenPoll(ctx, commonids.NewScopeID(id.Scope)); err != nil {
 					return fmt.Errorf("starting %s: %+v", *id, err)
 				}
