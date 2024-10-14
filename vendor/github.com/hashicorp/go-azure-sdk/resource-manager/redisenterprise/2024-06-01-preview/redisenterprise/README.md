@@ -105,7 +105,7 @@ if err := client.DatabasesFlushThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
 
 payload := redisenterprise.ForceLinkParameters{
 	// ...
@@ -239,7 +239,7 @@ if err := client.DatabasesUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "databaseName")
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
 
 if err := client.DatabasesUpgradeDBRedisVersionThenPoll(ctx, id); err != nil {
 	// handle the error
