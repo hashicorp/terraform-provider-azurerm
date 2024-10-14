@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 )
 
 func Name(i interface{}, k string) (warnings []string, errors []error) {
@@ -58,6 +60,37 @@ func DataStorageSizeInTbs(i interface{}, k string) (warnings []string, errors []
 
 	if v < 2 || v > 192 {
 		errors = append(errors, fmt.Errorf("%v must be between %v and %v", k, 2, 192))
+		return
+	}
+
+	return
+}
+
+func LicenseModel(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if v != string(cloudvmclusters.LicenseModelBringYourOwnLicense) && v != string(cloudvmclusters.LicenseModelLicenseIncluded) {
+		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
+			string(cloudvmclusters.LicenseModelBringYourOwnLicense), string(cloudvmclusters.LicenseModelLicenseIncluded)))
+		return
+	}
+
+	return
+}
+
+func DataStoragePercentage(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
+		return
+	}
+
+	if v != 35 && v != 40 && v != 60 && v != 80 {
+		errors = append(errors, fmt.Errorf("%v must 35, 40, 60 or 80", k))
 		return
 	}
 

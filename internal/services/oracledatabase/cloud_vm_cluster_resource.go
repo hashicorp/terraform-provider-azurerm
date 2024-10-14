@@ -129,8 +129,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.LicenseModel,
 		},
 
 		"memory_size_in_gbs": {
@@ -202,10 +203,11 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"data_storage_percentage": {
-			Type:     schema.TypeInt,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DataStoragePercentage,
 		},
 
 		"is_local_backup_enabled": {

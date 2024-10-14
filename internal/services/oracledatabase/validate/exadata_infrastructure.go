@@ -126,7 +126,7 @@ func WeeksOfMonth(i interface{}, k string) (warnings []string, errors []error) {
 func Preference(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
@@ -142,7 +142,7 @@ func Preference(i interface{}, k string) (warnings []string, errors []error) {
 func PatchingMode(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be list of strings", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
