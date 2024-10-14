@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `data_collection_options` - (Optional) A `data_collection_options` block as defined below.
 
-* `data_storage_percentage` - (Optional) The percentage assigned to DATA storage (user data and database files). The remaining percentage is assigned to RECO storage (database redo logs, archive logs, and recovery manager backups). Accepted values are 35, 40, 60 and 80.
+* `data_storage_percentage` - (Optional) The percentage assigned to DATA storage (user data and database files). The remaining percentage is assigned to RECO storage (database redo logs, archive logs, and recovery manager backups). Accepted values are `35`, `40`, `60` and `80`.
 
 * `data_storage_size_in_tbs` - (Optional) The data disk group size to be allocated in TBs.
 

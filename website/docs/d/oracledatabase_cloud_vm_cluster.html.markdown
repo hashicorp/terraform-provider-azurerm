@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cloud VM Cluster.
 
-* `backup_subnet_cidr` - Client OCI backup subnet CIDR, default is 192.168.252.0/22.
+* `backup_subnet_cidr` - Client OCI backup subnet CIDR, default is `192.168.252.0/22`.
 
 * `cloud_exadata_infrastructure_id` - Cloud Exadata Infrastructure ID.
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `db_servers` - A `db_servers` block as defined below.
 
-* `disk_redundancy` - The type of redundancy configured for the cloud Vm cluster. NORMAL is 2-way redundancy. HIGH is 3-way redundancy.
+* `disk_redundancy` - The type of redundancy configured for the cloud Vm cluster. `NORMAL` is 2-way redundancy. `HIGH` is 3-way redundancy.
 
 * `display_name` - The user-friendly name for the cloud VM cluster. The name does not need to be unique.
 
