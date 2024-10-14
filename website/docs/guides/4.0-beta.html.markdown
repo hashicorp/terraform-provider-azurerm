@@ -53,4 +53,4 @@ On a Windows System (in PowerShell) you can do this via:
 
 Firstly - thanks for trialling the new functionality coming in version 4.0 of the Azure Provider.
 
-We're keeping track of Beta Feedback in the GitHub Repository - as such [please follow this link to open an issue containing your feedback](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=Beta_Feedback.md).
+We're keeping track of Feedback in the GitHub Repository - as such [please follow this link to open an issue containing your feedback](https://github.com/hashicorp/terraform-provider-azurerm/issues/new/choose).
