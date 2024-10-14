@@ -473,7 +473,8 @@ func FlattenDataCollectionOptions(dataCollectionOptions *cloudvmclusters.DataCol
 	return nil
 }
 
-func GiVersionDiffSuppress(_ string, old string, new string, d *schema.ResourceData) bool {
+// GiVersionDiffSuppress Due to possible upgrades we only want a diff if the major component of the version has changed.
+func GiVersionDiffSuppress(_ string, old string, new string, _ *schema.ResourceData) bool {
 	if old == "" || new == "" {
 		return false
 	}
@@ -483,7 +484,11 @@ func GiVersionDiffSuppress(_ string, old string, new string, d *schema.ResourceD
 	return oldVersion[0] == newVersion[0]
 }
 
-func DbSystemHostnameDiffSuppress(_ string, old string, new string, d *schema.ResourceData) bool {
+// DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
+// therefore when computing the diff if the new Hostname is a prefix of the old then we will ignore the diff.
+// Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.
+// Since testHostname is a prefix of testHostname-abc, then computed diff is zero.
+func DbSystemHostnameDiffSuppress(_ string, old string, new string, _ *schema.ResourceData) bool {
 	return EqualIgnoreCaseSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
 }
 
