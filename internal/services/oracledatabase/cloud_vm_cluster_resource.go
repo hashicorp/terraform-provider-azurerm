@@ -470,32 +470,7 @@ func ConvertDataCollectionOptionsToInternal(dataCollectionOptions *cloudvmcluste
 	return nil
 }
 
-func ConvertExadataIormConfigToInternal(exadataIormConfig *cloudvmclusters.ExadataIormConfig) []ExadataIormConfigModel {
-	if exadataIormConfig != nil {
-		var dbIormConfigModel []DbIormConfigModel
-		if exadataIormConfig.DbPlans != nil {
-			dbPlans := *exadataIormConfig.DbPlans
-			for _, dbPlan := range dbPlans {
-				dbIormConfigModel = append(dbIormConfigModel, DbIormConfigModel{
-					DbName:          pointer.From(dbPlan.DbName),
-					FlashCacheLimit: pointer.From(dbPlan.FlashCacheLimit),
-					Share:           pointer.From(dbPlan.Share),
-				})
-			}
-		}
-		return []ExadataIormConfigModel{
-			{
-				DbPlans:          dbIormConfigModel,
-				LifecycleDetails: pointer.From(exadataIormConfig.LifecycleDetails),
-				LifecycleState:   string(pointer.From(exadataIormConfig.LifecycleState)),
-				Objective:        string(pointer.From(exadataIormConfig.Objective)),
-			},
-		}
-	}
-	return nil
-}
-
-func GiVersionDiffSuppress(key string, old string, new string, d *schema.ResourceData) bool {
+func GiVersionDiffSuppress(_ string, old string, new string, d *schema.ResourceData) bool {
 	if old == "" || new == "" {
 		return false
 	}
@@ -506,13 +481,13 @@ func GiVersionDiffSuppress(key string, old string, new string, d *schema.Resourc
 }
 
 func DbSystemHostnameDiffSuppress(key string, old string, new string, d *schema.ResourceData) bool {
-	return EqualIgnoreCaseSuppressDiff(key, old, new, d) || NewIsPrefixOfOldDiffSuppress(key, old, new, d)
+	return EqualIgnoreCaseSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
 }
 
-func NewIsPrefixOfOldDiffSuppress(key string, old string, new string, d *schema.ResourceData) bool {
+func NewIsPrefixOfOldDiffSuppress(old string, new string) bool {
 	return strings.HasPrefix(strings.ToLower(old), strings.ToLower(new))
 }
 
-func EqualIgnoreCaseSuppressDiff(key string, old string, new string, d *schema.ResourceData) bool {
+func EqualIgnoreCaseSuppressDiff(old string, new string) bool {
 	return strings.EqualFold(old, new)
 }
