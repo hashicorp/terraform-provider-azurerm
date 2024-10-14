@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
@@ -72,21 +73,24 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Required
 		"cloud_exadata_infrastructure_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: cloudexadatainfrastructures.ValidateCloudExadataInfrastructureID,
 		},
 
 		"cpu_core_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.CpuCoreCount,
 		},
 
 		"data_storage_size_in_tbs": {
-			Type:     pluginsdk.TypeFloat,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeFloat,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DataStorageSizeInTbs,
 		},
 
 		"db_node_storage_size_in_gbs": {

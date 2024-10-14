@@ -33,3 +33,33 @@ func Name(i interface{}, k string) (warnings []string, errors []error) {
 
 	return
 }
+
+func CpuCoreCount(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
+		return
+	}
+
+	if v < 2 {
+		errors = append(errors, fmt.Errorf("cpu_core_count must be at least %v", 2))
+		return
+	}
+
+	return
+}
+
+func DataStorageSizeInTbs(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
+		return
+	}
+
+	if v < 2 || v > 192 {
+		errors = append(errors, fmt.Errorf("%v must be between %v and %v", k, 2, 192))
+		return
+	}
+
+	return
+}
