@@ -62,6 +62,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_object_replication":           resourceStorageObjectReplication(),
 		"azurerm_storage_queue":                        resourceStorageQueue(),
 		"azurerm_storage_share":                        resourceStorageShare(),
+		"azurerm_storage_share_rm":                     resourceStorageShareRm(),
 		"azurerm_storage_share_file":                   resourceStorageShareFile(),
 		"azurerm_storage_share_directory":              resourceStorageShareDirectory(),
 		"azurerm_storage_table":                        resourceStorageTable(),
