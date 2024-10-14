@@ -5,11 +5,12 @@ package oracledatabase
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -75,15 +76,6 @@ type CloudVmClusterDataModel struct {
 	VipIds                       []string                     `tfschema:"vip_ods"`
 	VnetId                       string                       `tfschema:"vnet_id"`
 	ZoneId                       string                       `tfschema:"zone_id"`
-}
-
-type SystemDataModel struct {
-	CreatedBy          string `tfschema:"created_by"`
-	CreatedByType      string `tfschema:"created_by_type"`
-	CreatedAt          string `tfschema:"created_at"`
-	LastModifiedBy     string `tfschema:"last_modified_by"`
-	LastModifiedbyType string `tfschema:"last_modified_by_type"`
-	LastModifiedAt     string `tfschema:"last_modified_at"`
 }
 
 type DataCollectionOptionsModel struct {
@@ -544,8 +536,8 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 						ListenerPort:                 pointer.From(prop.ListenerPort),
 						MemorySizeInGbs:              pointer.From(prop.MemorySizeInGbs),
 						NodeCount:                    pointer.From(prop.NodeCount),
-						NsgUrl:                       pointer.From(prop.NsgUrl),
-						OciUrl:                       pointer.From(prop.OciUrl),
+						NsgUrl:                       pointer.From(prop.NsgURL),
+						OciUrl:                       pointer.From(prop.OciURL),
 						Ocid:                         pointer.From(prop.Ocid),
 						ProvisioningState:            string(pointer.From(prop.ProvisioningState)),
 						Shape:                        pointer.From(prop.Shape),
