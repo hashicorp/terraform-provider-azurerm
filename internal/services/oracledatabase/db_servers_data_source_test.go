@@ -4,9 +4,10 @@ package oracledatabase_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"testing"
 )
 
 type DBServersDataSource struct{}
