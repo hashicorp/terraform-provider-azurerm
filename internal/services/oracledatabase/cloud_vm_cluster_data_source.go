@@ -526,7 +526,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 						Domain:                       pointer.From(prop.Domain),
 						GiVersion:                    prop.GiVersion,
 						Hostname:                     prop.Hostname,
-						IormConfigCache:              ConvertExadataIormConfigToInternal(prop.IormConfigCache),
+						IormConfigCache:              FlattenExadataIormConfig(prop.IormConfigCache),
 						IsLocalBackupEnabled:         pointer.From(prop.IsLocalBackupEnabled),
 						IsSparseDiskgroupEnabled:     pointer.From(prop.IsSparseDiskgroupEnabled),
 						LastUpdateHistoryEntryId:     pointer.From(prop.LastUpdateHistoryEntryId),
@@ -576,7 +576,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func ConvertExadataIormConfigToInternal(exadataIormConfig *cloudvmclusters.ExadataIormConfig) []ExadataIormConfigModel {
+func FlattenExadataIormConfig(exadataIormConfig *cloudvmclusters.ExadataIormConfig) []ExadataIormConfigModel {
 	if exadataIormConfig != nil {
 		var dbIormConfigModel []DbIormConfigModel
 		if exadataIormConfig.DbPlans != nil {

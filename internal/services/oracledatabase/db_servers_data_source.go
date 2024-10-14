@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbservers"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -45,10 +46,7 @@ type DBServerDataModel struct {
 
 func (d DBServersDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"cloud_exadata_infrastructure_name": {
 			Type:     pluginsdk.TypeString,

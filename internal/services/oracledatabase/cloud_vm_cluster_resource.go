@@ -68,10 +68,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.Name,
 		},
 
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		// Required
 		"cloud_exadata_infrastructure_id": {
@@ -246,7 +243,7 @@ func (CloudVmClusterResource) ResourceType() string {
 
 func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudVMClusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -422,7 +419,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 			// Optional
 			output.BackupSubnetCidr = pointer.From(result.Model.Properties.BackupSubnetCidr)
 			output.ClusterName = pointer.From(result.Model.Properties.ClusterName)
-			output.DataCollectionOptions = ConvertDataCollectionOptionsToInternal(result.Model.Properties.DataCollectionOptions)
+			output.DataCollectionOptions = FlattenDataCollectionOptions(result.Model.Properties.DataCollectionOptions)
 			output.DataStoragePercentage = pointer.From(result.Model.Properties.DataStoragePercentage)
 			output.IsLocalBackupEnabled = pointer.From(result.Model.Properties.IsLocalBackupEnabled)
 			output.IsSparseDiskgroupEnabled = pointer.From(result.Model.Properties.IsSparseDiskgroupEnabled)
@@ -457,7 +454,7 @@ func (CloudVmClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cloudvmclusters.ValidateCloudVMClusterID
 }
 
-func ConvertDataCollectionOptionsToInternal(dataCollectionOptions *cloudvmclusters.DataCollectionOptions) []DataCollectionOptionsModel {
+func FlattenDataCollectionOptions(dataCollectionOptions *cloudvmclusters.DataCollectionOptions) []DataCollectionOptionsModel {
 	if dataCollectionOptions != nil {
 		return []DataCollectionOptionsModel{
 			{
@@ -480,7 +477,7 @@ func GiVersionDiffSuppress(_ string, old string, new string, d *schema.ResourceD
 	return oldVersion[0] == newVersion[0]
 }
 
-func DbSystemHostnameDiffSuppress(key string, old string, new string, d *schema.ResourceData) bool {
+func DbSystemHostnameDiffSuppress(_ string, old string, new string, d *schema.ResourceData) bool {
 	return EqualIgnoreCaseSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
 }
 
