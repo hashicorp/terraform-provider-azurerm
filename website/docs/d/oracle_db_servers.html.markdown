@@ -1,25 +1,25 @@
 ---
-subcategory: "Oracle Database"
+subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_db_servers"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_db_servers"
 description: |-
   Gets information about an existing DB Server.
 ---
 
-# Data Source: azurerm_oracledatabase_db_servers
+# Data Source: azurerm_oracle_db_servers
 
 Use this data source to access information about an existing DB Server.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracledatabase_db_servers" "example" {
+data "azurerm_oracle_db_servers" "example" {
   resource_group_name               = "existing"
   cloud_exadata_infrastructure_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_oracledatabase_db_servers.example.id
+  value = data.azurerm_oracle_db_servers.example.id
 }
 ```
 

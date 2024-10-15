@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 type DBServersDataSource struct{}
 
 func TestDBServersDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_oracledatabase_db_servers", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_db_servers", "test")
 	r := DBServersDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -32,9 +32,9 @@ func (d DBServersDataSource) basic(data acceptance.TestData) string {
 
 %s
 
-data "azurerm_oracledatabase_db_servers" "test" {
+data "azurerm_oracle_db_servers" "test" {
   resource_group_name               = azurerm_resource_group.test.name
-  cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
+  cloud_exadata_infrastructure_name = azurerm_oracle_exadata_infrastructure.test.name
 }
 `, d.template(data))
 }

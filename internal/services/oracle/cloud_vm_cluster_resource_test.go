@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,7 +24,7 @@ func (a CloudVmClusterResource) Exists(ctx context.Context, client *clients.Clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.OracleDatabase.OracleDatabaseClient.CloudVMClusters.Get(ctx, *id)
+	resp, err := client.Oracle.OracleClient.CloudVMClusters.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving cloud vm cluster %s: %+v", id, err)
 	}
@@ -36,14 +36,14 @@ func (a CloudVmClusterResource) Destroy(ctx context.Context, client *clients.Cli
 	if err != nil {
 		return nil, err
 	}
-	if _, err := client.OracleDatabase.OracleDatabaseClient.CloudVMClusters.Delete(ctx, *id); err != nil {
+	if _, err := client.Oracle.OracleClient.CloudVMClusters.Delete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting vm cluster %s: %+v", id, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func TestCloudVmClusterResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,7 +57,7 @@ func TestCloudVmClusterResource_basic(t *testing.T) {
 }
 
 func TestCloudVmClusterResource_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestCloudVmClusterResource_complete(t *testing.T) {
 }
 
 func TestCloudVmClusterResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,7 +85,7 @@ func TestCloudVmClusterResource_requiresImport(t *testing.T) {
 }
 
 func TestCloudVmClusterResource_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterResource{}.ResourceType(), "test")
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -108,15 +108,15 @@ func TestCloudVmClusterResource_update(t *testing.T) {
 func (a CloudVmClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
+resource "azurerm_oracle_cloud_vm_cluster" "test" {
   location                        = "%[3]s"
   name                            = "OFakeVmacctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
-  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.test.id
   cpu_core_count                  = 4
   data_storage_size_in_tbs        = 2
   db_node_storage_size_in_gbs     = 120
-  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  db_servers                      = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                    = "OFakeVmacctest%[2]d"
   gi_version                      = "23.0.0.0"
   license_model                   = "BringYourOwnLicense"
@@ -131,11 +131,11 @@ resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
 func (a CloudVmClusterResource) allFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
-resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
+resource "azurerm_oracle_cloud_vm_cluster" "test" {
   location                        = "%[3]s"
   name                            = "OFakeVmacctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
-  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.test.id
   cpu_core_count                  = 4
   data_collection_options {
     is_diagnostics_events_enabled = true
@@ -144,7 +144,7 @@ resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
   }
   data_storage_size_in_tbs    = 2
   db_node_storage_size_in_gbs = 120
-  db_servers                  = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
   gi_version                  = "23.0.0.0"
   is_local_backup_enabled     = true
@@ -165,15 +165,15 @@ resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
 func (a CloudVmClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_oracledatabase_cloud_vm_cluster" "test" {
+resource "azurerm_oracle_cloud_vm_cluster" "test" {
   location                        = "%[3]s"
   name                            = "OFakeVmacctest%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
-  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.test.id
+  cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.test.id
   cpu_core_count                  = 4
   data_storage_size_in_tbs        = 2
   db_node_storage_size_in_gbs     = 120
-  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.test.db_servers : obj.ocid]
+  db_servers                      = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                    = "OFakeVmacctest%[2]d"
   gi_version                      = "23.0.0.0"
   license_model                   = "BringYourOwnLicense"
@@ -192,23 +192,23 @@ func (a CloudVmClusterResource) requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracledatabase_cloud_vm_cluster" "import" {
-  location                        = azurerm_oracledatabase_cloud_vm_cluster.test.location
-  name                            = azurerm_oracledatabase_cloud_vm_cluster.test.name
-  resource_group_name             = azurerm_oracledatabase_cloud_vm_cluster.test.resource_group_name
-  cloud_exadata_infrastructure_id = azurerm_oracledatabase_cloud_vm_cluster.test.cloud_exadata_infrastructure_id
-  cpu_core_count                  = azurerm_oracledatabase_cloud_vm_cluster.test.cpu_core_count
-  data_storage_size_in_tbs        = azurerm_oracledatabase_cloud_vm_cluster.test.data_storage_size_in_tbs
-  db_node_storage_size_in_gbs     = azurerm_oracledatabase_cloud_vm_cluster.test.db_node_storage_size_in_gbs
-  db_servers                      = azurerm_oracledatabase_cloud_vm_cluster.test.db_servers
-  display_name                    = azurerm_oracledatabase_cloud_vm_cluster.test.display_name
-  gi_version                      = azurerm_oracledatabase_cloud_vm_cluster.test.gi_version
-  license_model                   = azurerm_oracledatabase_cloud_vm_cluster.test.license_model
-  memory_size_in_gbs              = azurerm_oracledatabase_cloud_vm_cluster.test.memory_size_in_gbs
-  hostname                        = azurerm_oracledatabase_cloud_vm_cluster.test.hostname
-  ssh_public_keys                 = azurerm_oracledatabase_cloud_vm_cluster.test.ssh_public_keys
-  subnet_id                       = azurerm_oracledatabase_cloud_vm_cluster.test.subnet_id
-  vnet_id                         = azurerm_oracledatabase_cloud_vm_cluster.test.vnet_id
+resource "azurerm_oracle_cloud_vm_cluster" "import" {
+  location                        = azurerm_oracle_cloud_vm_cluster.test.location
+  name                            = azurerm_oracle_cloud_vm_cluster.test.name
+  resource_group_name             = azurerm_oracle_cloud_vm_cluster.test.resource_group_name
+  cloud_exadata_infrastructure_id = azurerm_oracle_cloud_vm_cluster.test.cloud_exadata_infrastructure_id
+  cpu_core_count                  = azurerm_oracle_cloud_vm_cluster.test.cpu_core_count
+  data_storage_size_in_tbs        = azurerm_oracle_cloud_vm_cluster.test.data_storage_size_in_tbs
+  db_node_storage_size_in_gbs     = azurerm_oracle_cloud_vm_cluster.test.db_node_storage_size_in_gbs
+  db_servers                      = azurerm_oracle_cloud_vm_cluster.test.db_servers
+  display_name                    = azurerm_oracle_cloud_vm_cluster.test.display_name
+  gi_version                      = azurerm_oracle_cloud_vm_cluster.test.gi_version
+  license_model                   = azurerm_oracle_cloud_vm_cluster.test.license_model
+  memory_size_in_gbs              = azurerm_oracle_cloud_vm_cluster.test.memory_size_in_gbs
+  hostname                        = azurerm_oracle_cloud_vm_cluster.test.hostname
+  ssh_public_keys                 = azurerm_oracle_cloud_vm_cluster.test.ssh_public_keys
+  subnet_id                       = azurerm_oracle_cloud_vm_cluster.test.subnet_id
+  vnet_id                         = azurerm_oracle_cloud_vm_cluster.test.vnet_id
 }
 `, a.basic(data))
 }
@@ -252,7 +252,7 @@ resource "azurerm_subnet" "virtual_network_subnet" {
   }
 }
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
+resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[1]d"
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -263,9 +263,9 @@ resource "azurerm_oracledatabase_exadata_infrastructure" "test" {
   zones               = ["3"]
 }
 
-data "azurerm_oracledatabase_db_servers" "test" {
+data "azurerm_oracle_db_servers" "test" {
   resource_group_name               = azurerm_resource_group.test.name
-  cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.test.name
+  cloud_exadata_infrastructure_name = azurerm_oracle_exadata_infrastructure.test.name
 }
 
 

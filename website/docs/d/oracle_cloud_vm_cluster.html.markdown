@@ -1,25 +1,25 @@
 ---
-subcategory: "Oracle Database"
+subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_cloud_vm_cluster"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_cloud_vm_cluster"
 description: |-
   Gets information about an existing Cloud VM Cluster.
 ---
 
-# Data Source: azurerm_oracledatabase_cloud_vm_cluster
+# Data Source: azurerm_oracle_cloud_vm_cluster
 
 Use this data source to access information about an existing Cloud VM Cluster.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracledatabase_cloud_vm_cluster" "example" {
+data "azurerm_oracle_cloud_vm_cluster" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_oracledatabase_cloud_vm_cluster.example.id
+  value = data.azurerm_oracle_cloud_vm_cluster.example.id
 }
 ```
 

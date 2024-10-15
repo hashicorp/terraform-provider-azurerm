@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,12 +29,12 @@ func (r Registration) Resources() []sdk.Resource {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Oracle Database"
+	return "Oracle"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Oracle Database",
+		"Oracle",
 	}
 }

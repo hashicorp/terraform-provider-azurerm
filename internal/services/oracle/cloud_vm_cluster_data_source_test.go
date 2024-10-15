@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 )
 
 type CloudVmClusterDataSource struct{}
 
 func TestCloudVmClusterDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.CloudVmClusterDataSource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.CloudVmClusterDataSource{}.ResourceType(), "test")
 	r := CloudVmClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -36,9 +36,9 @@ func (d CloudVmClusterDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracledatabase_cloud_vm_cluster" "test" {
-  name                = azurerm_oracledatabase_cloud_vm_cluster.test.name
-  resource_group_name = azurerm_oracledatabase_cloud_vm_cluster.test.resource_group_name
+data "azurerm_oracle_cloud_vm_cluster" "test" {
+  name                = azurerm_oracle_cloud_vm_cluster.test.name
+  resource_group_name = azurerm_oracle_cloud_vm_cluster.test.resource_group_name
 }
 `, CloudVmClusterResource{}.basic(data))
 }

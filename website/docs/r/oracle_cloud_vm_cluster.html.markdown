@@ -1,12 +1,12 @@
 ---
-subcategory: "Oracle Database"
+subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_oracledatabase_cloud_vm_cluster"
+page_title: "Azure Resource Manager: azurerm_oracle_cloud_vm_cluster"
 description: |-
   Manages a Cloud VM Cluster.
 ---
 
-# azurerm_oracledatabase_cloud_vm_cluster
+# azurerm_oracle_cloud_vm_cluster
 
 Manages a Cloud VM Cluster.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_oracledatabase_exadata_infrastructure" "example" {
+resource "azurerm_oracle_exadata_infrastructure" "example" {
   name                = "example-exadata-infrastructure"
   display_name        = "example-exadata-infrastructure"
   location            = azurerm_resource_group.example.location
@@ -55,22 +55,22 @@ resource "azurerm_subnet" "example" {
   }
 }
 
-data "azurerm_oracledatabase_db_servers" "example" {
+data "azurerm_oracle_db_servers" "example" {
   resource_group_name               = azurerm_resource_group.example.name
-  cloud_exadata_infrastructure_name = azurerm_oracledatabase_exadata_infrastructure.example.name
+  cloud_exadata_infrastructure_name = azurerm_oracle_exadata_infrastructure.example.name
 }
 
-resource "azurerm_oracledatabase_cloud_vm_cluster" "example" {
+resource "azurerm_oracle_cloud_vm_cluster" "example" {
   name                            = "example-cloud-vm-cluster"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.example.location
   gi_version                      = "23.0.0.0"
   vnet_id                         = azurerm_virtual_network.example.id
   license_model                   = "BringYourOwnLicense"
-  db_servers                      = [for obj in data.azurerm_oracledatabase_db_servers.example.db_servers : obj.ocid]
+  db_servers                      = [for obj in data.azurerm_oracle_db_servers.example.db_servers : obj.ocid]
   ssh_public_keys                 = [file("~/.ssh/id_rsa.pub")]
   display_name                    = "example-cloud-vm-cluster"
-  cloud_exadata_infrastructure_id = azurerm_oracledatabase_exadata_infrastructure.example.id
+  cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.example.id
   cpu_core_count                  = 2
   hostname                        = "hostname"
   subnet_id                       = azurerm_subnet.example.id
@@ -161,5 +161,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Cloud VM Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracledatabase_cloud_vm_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudVmClusters/cloudVmClusters1
+terraform import azurerm_oracle_cloud_vm_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudVmClusters/cloudVmClusters1
 ```

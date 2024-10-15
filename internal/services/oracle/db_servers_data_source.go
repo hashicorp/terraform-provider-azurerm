@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
@@ -179,7 +179,7 @@ func (d DBServersDataSource) ModelObject() interface{} {
 }
 
 func (d DBServersDataSource) ResourceType() string {
-	return "azurerm_oracledatabase_db_servers"
+	return "azurerm_oracle_db_servers"
 }
 
 func (d DBServersDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -190,7 +190,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.DbServers
+			client := metadata.Client.Oracle.OracleClient.DbServers
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := dbservers.NewCloudExadataInfrastructureID(subscriptionId,

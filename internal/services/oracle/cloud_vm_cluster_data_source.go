@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
@@ -475,7 +475,7 @@ func (d CloudVmClusterDataSource) ModelObject() interface{} {
 }
 
 func (d CloudVmClusterDataSource) ResourceType() string {
-	return "azurerm_oracledatabase_cloud_vm_cluster"
+	return "azurerm_oracle_cloud_vm_cluster"
 }
 
 func (d CloudVmClusterDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -486,7 +486,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudVMClusters
+			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId,
