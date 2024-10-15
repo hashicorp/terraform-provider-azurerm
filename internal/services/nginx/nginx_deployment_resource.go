@@ -106,7 +106,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			// used for testing and for F5 NGINX private offers
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
