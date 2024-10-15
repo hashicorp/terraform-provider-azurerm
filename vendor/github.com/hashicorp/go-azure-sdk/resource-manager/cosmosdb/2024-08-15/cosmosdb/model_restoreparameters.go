@@ -15,6 +15,7 @@ type RestoreParameters struct {
 	RestoreMode               *RestoreMode                      `json:"restoreMode,omitempty"`
 	RestoreSource             *string                           `json:"restoreSource,omitempty"`
 	RestoreTimestampInUtc     *string                           `json:"restoreTimestampInUtc,omitempty"`
+	RestoreWithTtlDisabled    *bool                             `json:"restoreWithTtlDisabled,omitempty"`
 	TablesToRestore           *[]string                         `json:"tablesToRestore,omitempty"`
 }
 
