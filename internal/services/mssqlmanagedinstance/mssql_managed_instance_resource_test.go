@@ -1230,7 +1230,6 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1-sql-%[1]d"
   location = "%[2]s"
