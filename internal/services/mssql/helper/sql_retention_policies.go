@@ -86,8 +86,11 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 					Default:      12,
 					// HyperScale SKus can't set `backup_interval_in_hours so we'll ignore that value when it is 0 in the state file so we don't break the Default Value for existing users
 					DiffSuppressFunc: func(_, old, _ string, d *pluginsdk.ResourceData) bool {
-						oldInt, _ := strconv.Atoi(old)
-						return oldInt == 0
+						if !d.IsNewResource() {
+							oldInt, _ := strconv.Atoi(old)
+							return oldInt == 0
+						}
+						return false
 
 					},
 				},
