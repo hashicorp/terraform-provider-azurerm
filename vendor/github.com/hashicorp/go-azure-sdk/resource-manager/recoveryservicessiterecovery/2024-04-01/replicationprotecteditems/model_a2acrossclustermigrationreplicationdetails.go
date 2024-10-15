@@ -19,6 +19,14 @@ type A2ACrossClusterMigrationReplicationDetails struct {
 	VMProtectionStateDescription *string `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ACrossClusterMigrationReplicationDetails) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return BaseReplicationProviderSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ACrossClusterMigrationReplicationDetails{}
@@ -32,9 +40,10 @@ func (s A2ACrossClusterMigrationReplicationDetails) MarshalJSON() ([]byte, error
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ACrossClusterMigrationReplicationDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2ACrossClusterMigration"
 
 	encoded, err = json.Marshal(decoded)

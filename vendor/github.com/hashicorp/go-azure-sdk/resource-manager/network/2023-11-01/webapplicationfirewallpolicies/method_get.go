@@ -45,7 +45,6 @@ func (c WebApplicationFirewallPoliciesClient) Get(ctx context.Context, id Applic
 
 	var model WebApplicationFirewallPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -47,7 +47,6 @@ func (c ClustersClient) ListSkusByResource(ctx context.Context, id commonids.Kus
 
 	var model ListResourceSkusResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

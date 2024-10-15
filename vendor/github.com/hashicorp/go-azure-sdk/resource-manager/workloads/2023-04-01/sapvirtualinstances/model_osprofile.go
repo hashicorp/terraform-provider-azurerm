@@ -17,10 +17,12 @@ type OSProfile struct {
 var _ json.Unmarshaler = &OSProfile{}
 
 func (s *OSProfile) UnmarshalJSON(bytes []byte) error {
-	type alias OSProfile
-	var decoded alias
+	var decoded struct {
+		AdminPassword *string `json:"adminPassword,omitempty"`
+		AdminUsername *string `json:"adminUsername,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into OSProfile: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AdminPassword = decoded.AdminPassword
@@ -32,11 +34,12 @@ func (s *OSProfile) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["osConfiguration"]; ok {
-		impl, err := unmarshalOSConfigurationImplementation(v)
+		impl, err := UnmarshalOSConfigurationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'OsConfiguration' for 'OSProfile': %+v", err)
 		}
 		s.OsConfiguration = impl
 	}
+
 	return nil
 }

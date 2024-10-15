@@ -45,7 +45,6 @@ func (c EdgeDevicesClient) Get(ctx context.Context, id ScopedEdgeDeviceId) (resu
 
 	var model EdgeDevice
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

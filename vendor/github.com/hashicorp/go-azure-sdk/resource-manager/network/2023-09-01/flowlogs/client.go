@@ -15,7 +15,7 @@ type FlowLogsClient struct {
 }
 
 func NewFlowLogsClientWithBaseURI(sdkApi sdkEnv.Api) (*FlowLogsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "flowlogs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "flowlogs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FlowLogsClient: %+v", err)
 	}

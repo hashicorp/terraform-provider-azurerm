@@ -15,7 +15,7 @@ type NginxDeploymentClient struct {
 }
 
 func NewNginxDeploymentClientWithBaseURI(sdkApi sdkEnv.Api) (*NginxDeploymentClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "nginxdeployment", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "nginxdeployment", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NginxDeploymentClient: %+v", err)
 	}

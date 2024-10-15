@@ -45,7 +45,6 @@ func (c SuppressionsClient) Get(ctx context.Context, id ScopedSuppressionId) (re
 
 	var model SuppressionContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -44,7 +44,7 @@ func ParseCacheID(input string) (*CacheId, error) {
 	}
 
 	id := CacheId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCacheIDInsensitively(input string) (*CacheId, error) {
 	}
 
 	id := CacheId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CacheId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticCaches", "caches", "caches"),
-		resourceids.UserSpecifiedSegment("cacheId", "cacheIdValue"),
+		resourceids.UserSpecifiedSegment("cacheId", "cacheId"),
 	}
 }
 

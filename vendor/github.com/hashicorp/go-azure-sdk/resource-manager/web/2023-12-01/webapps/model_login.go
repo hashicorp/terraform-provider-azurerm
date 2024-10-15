@@ -4,10 +4,10 @@ package webapps
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Login struct {
-	AllowedExternalRedirectUrls   *[]string         `json:"allowedExternalRedirectUrls,omitempty"`
+	AllowedExternalRedirectURLs   *[]string         `json:"allowedExternalRedirectUrls,omitempty"`
 	CookieExpiration              *CookieExpiration `json:"cookieExpiration,omitempty"`
 	Nonce                         *Nonce            `json:"nonce,omitempty"`
-	PreserveUrlFragmentsForLogins *bool             `json:"preserveUrlFragmentsForLogins,omitempty"`
+	PreserveURLFragmentsForLogins *bool             `json:"preserveUrlFragmentsForLogins,omitempty"`
 	Routes                        *LoginRoutes      `json:"routes,omitempty"`
 	TokenStore                    *TokenStore       `json:"tokenStore,omitempty"`
 }

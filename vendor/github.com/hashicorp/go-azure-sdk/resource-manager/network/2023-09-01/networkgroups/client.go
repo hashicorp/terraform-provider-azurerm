@@ -15,7 +15,7 @@ type NetworkGroupsClient struct {
 }
 
 func NewNetworkGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkgroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkgroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkGroupsClient: %+v", err)
 	}

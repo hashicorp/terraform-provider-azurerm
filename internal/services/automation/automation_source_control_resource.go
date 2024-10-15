@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrol"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -186,7 +187,7 @@ func (m SourceControlResource) Create() sdk.ResourceFunc {
 				Description:    utils.String(model.Description),
 				FolderPath:     utils.String(model.FolderPath),
 				PublishRunbook: utils.Bool(model.PublishRunbook),
-				RepoUrl:        utils.String(model.RepoURL),
+				RepoURL:        utils.String(model.RepoURL),
 				SourceType:     &sourceType,
 			}
 
@@ -241,17 +242,17 @@ func (m SourceControlResource) Read() sdk.ResourceFunc {
 			output.Name = id.SourceControlName
 
 			if props := resp.Model.Properties; props != nil {
-				output.RepoURL = utils.NormalizeNilableString(props.RepoUrl)
-				output.Branch = utils.NormalizeNilableString(props.Branch)
-				output.FolderPath = utils.NormalizeNilableString(props.FolderPath)
-				output.AutoSync = utils.NormaliseNilableBool(props.AutoSync)
-				output.PublishRunbook = utils.NormaliseNilableBool(props.PublishRunbook)
+				output.RepoURL = pointer.From(props.RepoURL)
+				output.Branch = pointer.From(props.Branch)
+				output.FolderPath = pointer.From(props.FolderPath)
+				output.AutoSync = pointer.From(props.AutoSync)
+				output.PublishRunbook = pointer.From(props.PublishRunbook)
 				sourceType := ""
 				if props.SourceType != nil {
 					sourceType = string(*props.SourceType)
 				}
 				output.SourceType = sourceType
-				output.Description = utils.NormalizeNilableString(props.Description)
+				output.Description = pointer.From(props.Description)
 			}
 
 			return meta.Encode(&output)

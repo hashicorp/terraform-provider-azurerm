@@ -45,7 +45,6 @@ func (c NginxCertificateClient) CertificatesGet(ctx context.Context, id Certific
 
 	var model NginxCertificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

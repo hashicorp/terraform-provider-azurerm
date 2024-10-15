@@ -42,7 +42,7 @@ func ParseBastionHostID(input string) (*BastionHostId, error) {
 	}
 
 	id := BastionHostId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseBastionHostIDInsensitively(input string) (*BastionHostId, error) {
 	}
 
 	id := BastionHostId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id BastionHostId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticBastionHosts", "bastionHosts", "bastionHosts"),
-		resourceids.UserSpecifiedSegment("bastionHostName", "bastionHostValue"),
+		resourceids.UserSpecifiedSegment("bastionHostName", "bastionHostName"),
 	}
 }
 

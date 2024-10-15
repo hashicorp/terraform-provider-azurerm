@@ -15,7 +15,7 @@ type CloudServicePublicIPAddressesClient struct {
 }
 
 func NewCloudServicePublicIPAddressesClientWithBaseURI(sdkApi sdkEnv.Api) (*CloudServicePublicIPAddressesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cloudservicepublicipaddresses", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cloudservicepublicipaddresses", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CloudServicePublicIPAddressesClient: %+v", err)
 	}

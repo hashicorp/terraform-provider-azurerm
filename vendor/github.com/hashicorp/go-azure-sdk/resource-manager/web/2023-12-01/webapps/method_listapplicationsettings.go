@@ -47,7 +47,6 @@ func (c WebAppsClient) ListApplicationSettings(ctx context.Context, id commonids
 
 	var model StringDictionary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type ExpressRouteCrossConnectionRouteTableClient struct {
 }
 
 func NewExpressRouteCrossConnectionRouteTableClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCrossConnectionRouteTableClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecrossconnectionroutetable", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecrossconnectionroutetable", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCrossConnectionRouteTableClient: %+v", err)
 	}

@@ -53,6 +53,14 @@ type InMageReplicationDetails struct {
 	ValidationErrors             *[]HealthError                `json:"validationErrors,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageReplicationDetails) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return BaseReplicationProviderSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageReplicationDetails{}
@@ -66,9 +74,10 @@ func (s InMageReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageReplicationDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMage"
 
 	encoded, err = json.Marshal(decoded)

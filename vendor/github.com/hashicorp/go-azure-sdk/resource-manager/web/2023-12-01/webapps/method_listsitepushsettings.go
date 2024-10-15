@@ -47,7 +47,6 @@ func (c WebAppsClient) ListSitePushSettings(ctx context.Context, id commonids.Ap
 
 	var model PushSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

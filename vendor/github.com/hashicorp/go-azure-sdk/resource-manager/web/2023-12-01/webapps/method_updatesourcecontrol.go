@@ -53,7 +53,6 @@ func (c WebAppsClient) UpdateSourceControl(ctx context.Context, id commonids.App
 
 	var model SiteSourceControl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

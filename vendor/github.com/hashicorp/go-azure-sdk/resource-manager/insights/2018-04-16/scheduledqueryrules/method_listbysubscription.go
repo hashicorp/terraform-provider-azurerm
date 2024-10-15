@@ -35,6 +35,7 @@ func (o ListBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c ScheduledQueryRulesClient) ListBySubscription(ctx context.Context, id co
 
 	var model LogSearchRuleResourceCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

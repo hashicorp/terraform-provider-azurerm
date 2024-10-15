@@ -42,7 +42,7 @@ func ParseExpressRouteGatewayID(input string) (*ExpressRouteGatewayId, error) {
 	}
 
 	id := ExpressRouteGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseExpressRouteGatewayIDInsensitively(input string) (*ExpressRouteGateway
 	}
 
 	id := ExpressRouteGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ExpressRouteGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRouteGateways", "expressRouteGateways", "expressRouteGateways"),
-		resourceids.UserSpecifiedSegment("expressRouteGatewayName", "expressRouteGatewayValue"),
+		resourceids.UserSpecifiedSegment("expressRouteGatewayName", "expressRouteGatewayName"),
 	}
 }
 

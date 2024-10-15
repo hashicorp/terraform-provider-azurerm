@@ -44,7 +44,7 @@ func ParseCatalogID(input string) (*CatalogId, error) {
 	}
 
 	id := CatalogId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCatalogIDInsensitively(input string) (*CatalogId, error) {
 	}
 
 	id := CatalogId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CatalogId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevCenter", "Microsoft.DevCenter", "Microsoft.DevCenter"),
 		resourceids.StaticSegment("staticDevCenters", "devCenters", "devCenters"),
-		resourceids.UserSpecifiedSegment("devCenterName", "devCenterValue"),
+		resourceids.UserSpecifiedSegment("devCenterName", "devCenterName"),
 		resourceids.StaticSegment("staticCatalogs", "catalogs", "catalogs"),
-		resourceids.UserSpecifiedSegment("catalogName", "catalogValue"),
+		resourceids.UserSpecifiedSegment("catalogName", "catalogName"),
 	}
 }
 

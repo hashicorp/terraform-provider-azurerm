@@ -1,0 +1,70 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 5.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 5.0 Upgrade Guide
+
+---
+
+# Azure Provider
+
+## Azure Provider Version 5.0
+
+TODO
+
+### Pinning your Provider Version
+
+TODO
+
+## What's available in Version 5.0 of the Azure Provider?
+
+* [Removed Resources](#removed-resources)
+* [Removed Data Sources](#removed-data-sources)
+* [Breaking Changes in Resources](#breaking-changes-in-resources)
+* [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
+
+
+## Removed Resources
+
+Please follow the format in the example below for adding removed resources:
+
+```markdown
+### `azurerm_example_resource`
+
+This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
+```
+
+
+## Removed Data Sources
+
+Please follow the format in the example below for adding removed data sources:
+
+```markdown
+### `azurerm_example_resource`
+
+This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
+```
+
+## Breaking Changes in Resources
+
+Please follow the format in the example below for listing breaking changes in resources:
+
+```markdown
+### `azurerm_example_resource`
+
+* The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
+* The deprecated `example_property_with_no_replacement` property has been removed.
+* The `example_property_with_changed_default` property now defaults to `NewDefault`.
+```
+
+
+## Breaking Changes in Data Sources
+
+Please follow the format in the example below for listing breaking changes in data sources:
+
+```markdown
+### `azurerm_example_resource`
+
+* The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
+* The deprecated `example_property_with_no_replacement` property has been removed.
+```

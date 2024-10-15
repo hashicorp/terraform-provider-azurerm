@@ -13,6 +13,14 @@ var _ ReplicationProviderSpecificContainerCreationInput = A2ACrossClusterMigrati
 type A2ACrossClusterMigrationContainerCreationInput struct {
 
 	// Fields inherited from ReplicationProviderSpecificContainerCreationInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ACrossClusterMigrationContainerCreationInput) ReplicationProviderSpecificContainerCreationInput() BaseReplicationProviderSpecificContainerCreationInputImpl {
+	return BaseReplicationProviderSpecificContainerCreationInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ACrossClusterMigrationContainerCreationInput{}
@@ -26,9 +34,10 @@ func (s A2ACrossClusterMigrationContainerCreationInput) MarshalJSON() ([]byte, e
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ACrossClusterMigrationContainerCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2ACrossClusterMigration"
 
 	encoded, err = json.Marshal(decoded)

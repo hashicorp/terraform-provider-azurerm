@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EnableProtectionProviderSpecificInput interface {
+	EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl
 }
 
-// RawEnableProtectionProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EnableProtectionProviderSpecificInput = BaseEnableProtectionProviderSpecificInputImpl{}
+
+type BaseEnableProtectionProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseEnableProtectionProviderSpecificInputImpl) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return s
+}
+
+var _ EnableProtectionProviderSpecificInput = RawEnableProtectionProviderSpecificInputImpl{}
+
+// RawEnableProtectionProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEnableProtectionProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	enableProtectionProviderSpecificInput BaseEnableProtectionProviderSpecificInputImpl
+	Type                                  string
+	Values                                map[string]interface{}
 }
 
-func unmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) (EnableProtectionProviderSpecificInput, error) {
+func (s RawEnableProtectionProviderSpecificInputImpl) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return s.enableProtectionProviderSpecificInput
+}
+
+func UnmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) (EnableProtectionProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) 
 		return nil, fmt.Errorf("unmarshaling EnableProtectionProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2ACrossClusterMigration") {
@@ -84,10 +101,15 @@ func unmarshalEnableProtectionProviderSpecificInputImplementation(input []byte) 
 		return out, nil
 	}
 
-	out := RawEnableProtectionProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEnableProtectionProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEnableProtectionProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEnableProtectionProviderSpecificInputImpl{
+		enableProtectionProviderSpecificInput: parent,
+		Type:                                  value,
+		Values:                                temp,
+	}, nil
 
 }

@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx cont
 
 	var model SwiftVirtualNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

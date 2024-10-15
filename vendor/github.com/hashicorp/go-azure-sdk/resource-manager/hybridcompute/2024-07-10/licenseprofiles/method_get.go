@@ -46,7 +46,6 @@ func (c LicenseProfilesClient) Get(ctx context.Context, id MachineId) (result Ge
 
 	var model LicenseProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
