@@ -52,9 +52,9 @@ func CpuCoreCount(i interface{}, k string) (warnings []string, errors []error) {
 }
 
 func DataStorageSizeInTbs(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(int)
+	v, ok := i.(float64)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be int", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be float", k))
 		return
 	}
 
