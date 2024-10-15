@@ -155,7 +155,7 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(account.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := AccountModel{
@@ -174,7 +174,10 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 				state.Identity = flattenedIdentity
 
 				if props := model.Properties; props != nil {
-					state.Storage = flattenStorage(props.StorageServices)
+					state.Storage, err = flattenStorage(props.StorageServices)
+					if err != nil {
+						return fmt.Errorf("flattening `storage`: %+v", err)
+					}
 				}
 			}
 
@@ -232,13 +235,14 @@ func (r AccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.VideoIndexer.AccountClient
+
 			id, err := accounts.ParseAccountID(metadata.ResourceData.Id())
+			metadata.Logger.Infof("deleting %s", id)
+
 			if err != nil {
 				return err
 			}
-
-			client := metadata.Client.VideoIndexer.AccountClient
-			metadata.Logger.Infof("deleting %s", id)
 
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
@@ -270,13 +274,27 @@ func expandStorageForUpdate(input []StorageModel) *accounts.StorageServicesForPa
 	}
 }
 
-func flattenStorage(input *accounts.StorageServicesForPutRequest) []StorageModel {
+func flattenStorage(input *accounts.StorageServicesForPutRequest) ([]StorageModel, error) {
 	if input == nil {
-		return []StorageModel{}
+		return []StorageModel{}, nil
 	}
 
-	return []StorageModel{{
-		StorageAccountId:       pointer.From(input.ResourceId),
-		UserAssignedIdentityId: pointer.From(input.UserAssignedIdentity),
-	}}
+	storage := StorageModel{}
+	if v := pointer.From(input.ResourceId); v != "" {
+		id, err := commonids.ParseStorageAccountID(v)
+		if err != nil {
+			return []StorageModel{}, err
+		}
+		storage.StorageAccountId = id.ID()
+	}
+
+	if v := pointer.From(input.UserAssignedIdentity); v != "" {
+		id, err := commonids.ParseUserAssignedIdentityID(v)
+		if err != nil {
+			return []StorageModel{}, err
+		}
+		storage.UserAssignedIdentityId = id.ID()
+	}
+
+	return []StorageModel{storage}, nil
 }

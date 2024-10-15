@@ -4113,7 +4113,7 @@ resource "azurerm_key_vault" "test" {
 
     secret_permissions = [
       "Get",
-      "List", l
+      "List",
     ]
   }
 

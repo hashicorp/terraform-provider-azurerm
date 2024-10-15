@@ -3,15 +3,14 @@ package videoindexer_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2024-01-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AccountResource struct{}
@@ -37,7 +36,7 @@ func TestAccVideoIndexerAccount_userAssignedIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -88,17 +87,12 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := client.VideoIndexer.AccountClient.Get(ctx, *id)
+	_, err = client.VideoIndexer.AccountClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
-	}
-	return utils.Bool(true), nil
+
+	return pointer.To(true), nil
 }
 
 func (r AccountResource) basic(data acceptance.TestData) string {
