@@ -3,7 +3,7 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01"
+	v2024_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
