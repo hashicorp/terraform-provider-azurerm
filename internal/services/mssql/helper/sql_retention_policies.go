@@ -5,6 +5,7 @@ package helper
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
@@ -82,16 +83,18 @@ func ShortTermRetentionPolicySchema() *pluginsdk.Schema {
 				"backup_interval_in_hours": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntInSlice([]int{12, 24}),
-					Default:      12,
 					// HyperScale SKus can't set `backup_interval_in_hours so we'll ignore that value when it is 0 in the state file so we don't break the Default Value for existing users
 					DiffSuppressFunc: func(_, old, _ string, d *pluginsdk.ResourceData) bool {
-						if !d.IsNewResource() {
-							oldInt, _ := strconv.Atoi(old)
-							return oldInt == 0
+						skuName, ok := d.GetOk("sku_name")
+						if ok {
+							if strings.HasPrefix(skuName.(string), "HS") {
+								oldInt, _ := strconv.Atoi(old)
+								return oldInt == 0
+							}
 						}
 						return false
-
 					},
 				},
 			},

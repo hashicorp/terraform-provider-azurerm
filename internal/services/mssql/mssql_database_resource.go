@@ -622,6 +622,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		} else if shortTermSecurityAlertPolicyProps.DiffBackupIntervalInHours == nil || pointer.From(shortTermSecurityAlertPolicyProps.DiffBackupIntervalInHours) == 0 {
+			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHours(int64(12)))
 		}
 
 		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
