@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "certificateName")
+id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "certificateName")
 
 payload := certificates.Certificate{
 	// ...
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "certificateName")
+id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "certificateName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -152,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "certificateName")
+id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "certificateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
+id := certificates.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -185,7 +185,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "certificateName")
+id := certificates.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "certificateName")
 
 payload := certificates.CertificatePatch{
 	// ...

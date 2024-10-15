@@ -24,7 +24,7 @@ type StartNetworkTraceSlotOperationResponse struct {
 type StartNetworkTraceSlotOperationOptions struct {
 	DurationInSeconds *int64
 	MaxFrameLength    *int64
-	SasUrl            *string
+	SasURL            *string
 }
 
 func DefaultStartNetworkTraceSlotOperationOptions() StartNetworkTraceSlotOperationOptions {
@@ -51,8 +51,8 @@ func (o StartNetworkTraceSlotOperationOptions) ToQuery() *client.QueryParams {
 	if o.MaxFrameLength != nil {
 		out.Append("maxFrameLength", fmt.Sprintf("%v", *o.MaxFrameLength))
 	}
-	if o.SasUrl != nil {
-		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasUrl))
+	if o.SasURL != nil {
+		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasURL))
 	}
 	return &out
 }

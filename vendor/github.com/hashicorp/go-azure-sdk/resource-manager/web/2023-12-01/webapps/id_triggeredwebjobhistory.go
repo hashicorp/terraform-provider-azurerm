@@ -133,13 +133,13 @@ func (id TriggeredWebJobHistoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "name"),
+		resourceids.UserSpecifiedSegment("siteName", "siteName"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slot"),
+		resourceids.UserSpecifiedSegment("slotName", "slotName"),
 		resourceids.StaticSegment("staticTriggeredWebJobs", "triggeredWebJobs", "triggeredWebJobs"),
-		resourceids.UserSpecifiedSegment("triggeredWebJobName", "webJobName"),
+		resourceids.UserSpecifiedSegment("triggeredWebJobName", "triggeredWebJobName"),
 		resourceids.StaticSegment("staticHistory", "history", "history"),
-		resourceids.UserSpecifiedSegment("historyName", "id"),
+		resourceids.UserSpecifiedSegment("historyName", "historyName"),
 	}
 }
 
