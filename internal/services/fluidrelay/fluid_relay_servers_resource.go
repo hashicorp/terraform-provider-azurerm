@@ -297,7 +297,10 @@ func (s Server) Read() sdk.ResourceFunc {
 					output.Tags = *server.Model.Tags
 				}
 				if prop := model.Properties; prop != nil {
-					output.CustomerManagedKey = flattenFluidRelayServerCustomerManagedKey(prop.Encryption)
+					output.CustomerManagedKey, err = flattenFluidRelayServerCustomerManagedKey(prop.Encryption)
+					if err != nil {
+						return fmt.Errorf("flattening `customer_managed_key`: %v", err)
+					}
 
 					if prop.FrsTenantId != nil {
 						output.FrsTenantId = *prop.FrsTenantId
@@ -373,19 +376,31 @@ func expandFluidRelayServerCustomerManagedKey(input []CustomerManagedKey) *fluid
 	return encryption
 }
 
-func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) []CustomerManagedKey {
+func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.EncryptionProperties) ([]CustomerManagedKey, error) {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
-		return []CustomerManagedKey{}
+		return []CustomerManagedKey{}, nil
 	}
 
 	customerManagedKey := CustomerManagedKey{}
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl != nil {
-		customerManagedKey.KeyVaultKeyID = pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl)
+		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl); v != "" {
+			id, err := commonids.ParseKeyVaultID(v)
+			if err != nil {
+				return []CustomerManagedKey{}, err
+			}
+			customerManagedKey.KeyVaultKeyID = id.ID()
+		}
 	}
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity != nil && input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId != nil {
-		customerManagedKey.UserAssignedIdentityId = pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
+		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId); v != "" {
+			id, err := commonids.ParseUserAssignedIdentityID(v)
+			if err != nil {
+				return []CustomerManagedKey{}, err
+			}
+			customerManagedKey.UserAssignedIdentityId = id.ID()
+		}
 	}
 
-	return []CustomerManagedKey{customerManagedKey}
+	return []CustomerManagedKey{customerManagedKey}, nil
 }
