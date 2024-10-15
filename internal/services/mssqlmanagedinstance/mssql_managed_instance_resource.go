@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql"
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -20,6 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceadministrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstanceazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -389,7 +388,6 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
-
 				Location: location.Normalize(model.Location),
 				Properties: &managedinstances.ManagedInstanceProperties{
 					AdministratorLogin:               pointer.To(model.AdministratorLogin),
@@ -407,16 +405,15 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					TimezoneId:                       pointer.To(model.TimezoneId),
 					VCores:                           pointer.To(model.VCores),
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
-					Administrators:                   expandMsSqlManagedInstanceExternalAdministrators(model.MicrosoftEntraAdministrator),
 				},
 				Tags: pointer.To(model.Tags),
 			}
 
-			administrators, err := expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator)
-			if err != nil {
-				return fmt.Errorf("expanding `azure_active_directory_administrator` for SQL Managed Instance Server %q: %v", id.ID(), err)
+			administrators := expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator)
+			if administrators != nil {
+				parameters.Properties.Administrators = administrators
 			}
-			parameters.ManagedInstanceProperties.Administrators = administrators
+
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
 				for k := range parameters.Identity.IdentityIds {
 					parameters.Properties.PrimaryUserAssignedIdentityId = pointer.To(k)
@@ -517,9 +514,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				// AAD Admin must be set before enabling/disabling AAD Authentication Only.
 				log.Printf("[INFO] Checking if AAD Administrator exists")
 				aadAdminExists := false
-				resp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
+				resp, err := adminClient.Get(ctx, *id)
 				if err != nil {
-					if !utils.ResponseWasNotFound(resp.Response) {
+					if !response.WasNotFound(resp.HttpResponse) {
 						return fmt.Errorf("retrieving the Administrators of %s: %+v", *id, err)
 					}
 				} else {
@@ -527,60 +524,36 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				}
 
 				if aadAdminExists {
-					future, err := azureADAuthenticationOnlyClient.Delete(ctx, id.ResourceGroup, id.Name)
-					if err != nil {
+					if err := azureADAuthenticationOnlyClient.DeleteThenPoll(ctx, *id); err != nil {
 						log.Printf("[INFO] Deletion of AAD Authentication Only failed for %s: %+v", *id, err)
 						return fmt.Errorf("disabling AAD Authentication Only for %s: %+v", *id, err)
 					}
 
-					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting to disable AAD Authentication Only for %s: %+v", *id, err)
-					}
-
-					resp, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
-					if err != nil {
+					if err := adminClient.DeleteThenPoll(ctx, *id); err != nil {
 						return fmt.Errorf("removing the AAD Administrator for %s: %+v", *id, err)
 					}
-					if err = resp.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for removal of AAD Administrator for %s: %+v", *id, err)
-					}
 				}
 
-				aadAdminProps, err := expandMsSqlManagedInstanceAdministrators(state.AzureActiveDirectoryAdministrator)
-				if err != nil {
-					return err
-				}
+				aadAdminProps := expandMsSqlManagedInstanceAdministrators(state.AzureActiveDirectoryAdministrator)
 				if aadAdminProps != nil {
-					future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdminProps)
-					if err != nil {
+					if err := adminClient.CreateOrUpdateThenPoll(ctx, *id, *aadAdminProps); err != nil {
 						return fmt.Errorf("creating AAD Administrator for %s: %+v", *id, err)
-					}
-					if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for creation of AAD Administrator for %s: %+v", *id, err)
 					}
 				}
 
 				if aadOnlyAuthenticationsEnabled := expandMsSqlManagedInstanceAadAuthenticationOnly(state.AzureActiveDirectoryAdministrator); aadOnlyAuthenticationsEnabled {
-					aadOnlyAuthenticationsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
-						ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
-							AzureADOnlyAuthentication: pointer.To(true),
+					aadOnlyAuthenticationsProps := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
+						Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
+							AzureADOnlyAuthentication: true,
 						},
 					}
 
-					future, err := azureADAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthenticationsProps)
+					err := azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
 					if err != nil {
 						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
-					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting to set `azuread_authentication_only_enabled` for  %s: %+v", *id, err)
-					}
 				}
-
-				administrators, err := expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
-				if err != nil {
-					return fmt.Errorf("expanding `azure_active_directory_administrator` for SQL Managed Instance Server %q: %v", id.ID(), err)
-				}
-				properties.ManagedInstanceProperties.Administrators = administrators
+				properties.Properties.Administrators = expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
 			}
 
 			metadata.Logger.Infof("Updating %s", *id)
@@ -827,72 +800,55 @@ func expandMsSqlManagedInstanceAadAuthenticationOnly(input []AzureActiveDirector
 	return false
 }
 
-func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirectoryAdministrator) (*sql.ManagedInstanceExternalAdministrator, error) {
+func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirectoryAdministrator) *managedinstances.ManagedInstanceExternalAdministrator {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	admin := input[0]
-	sid, err := uuid.FromString(admin.ObjectID)
-	if err != nil {
-		return nil, err
-	}
-
-	adminParams := sql.ManagedInstanceExternalAdministrator{
-		AdministratorType: sql.AdministratorTypeActiveDirectory,
+	adminParams := managedinstances.ManagedInstanceExternalAdministrator{
+		AdministratorType: pointer.To(managedinstances.AdministratorTypeActiveDirectory),
 		Login:             pointer.To(admin.LoginUserName),
-		Sid:               pointer.To(sid),
+		Sid:               pointer.To(admin.ObjectID),
 	}
 
 	if admin.TenantID != "" {
-		tenantId, err := uuid.FromString(admin.TenantID)
-		if err != nil {
-			return nil, err
-		}
-		adminParams.TenantID = pointer.To(tenantId)
+		adminParams.TenantId = pointer.To(admin.TenantID)
 	}
 
 	adminParams.AzureADOnlyAuthentication = pointer.To(admin.AzureADAuthenticationOnlyEnabled)
 
-	return &adminParams, nil
+	return &adminParams
 }
 
-func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdministrator) (*sql.ManagedInstanceAdministrator, error) {
+func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdministrator) *managedinstanceadministrators.ManagedInstanceAdministrator {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	admin := input[0]
-	sid, err := uuid.FromString(admin.ObjectID)
-	if err != nil {
-		return nil, err
-	}
 
-	adminProps := sql.ManagedInstanceAdministrator{
-		ManagedInstanceAdministratorProperties: &sql.ManagedInstanceAdministratorProperties{
-			AdministratorType: pointer.To(string(sql.AdministratorTypeActiveDirectory)),
-			Login:             pointer.To(admin.LoginUserName),
-			Sid:               pointer.To(sid),
+	adminProps := managedinstanceadministrators.ManagedInstanceAdministrator{
+		Properties: &managedinstanceadministrators.ManagedInstanceAdministratorProperties{
+			AdministratorType: managedinstanceadministrators.ManagedInstanceAdministratorTypeActiveDirectory,
+			Login:             admin.LoginUserName,
+			Sid:               admin.ObjectID,
 		},
 	}
 
 	if admin.TenantID != "" {
-		tenantId, err := uuid.FromString(admin.TenantID)
-		if err != nil {
-			return nil, err
-		}
-		adminProps.ManagedInstanceAdministratorProperties.TenantID = pointer.To(tenantId)
+		adminProps.Properties.TenantId = pointer.To(admin.TenantID)
 	}
 
-	return pointer.To(adminProps), nil
+	return pointer.To(adminProps)
 }
 
-func flattenMsSqlManagedInstanceAdministrators(admin sql.ManagedInstanceExternalAdministrator) []AzureActiveDirectoryAdministrator {
+func flattenMsSqlManagedInstanceAdministrators(admin managedinstances.ManagedInstanceExternalAdministrator) []AzureActiveDirectoryAdministrator {
 	results := make([]AzureActiveDirectoryAdministrator, 0)
 	return append(results, AzureActiveDirectoryAdministrator{
 		LoginUserName:                    pointer.From(admin.Login),
-		ObjectID:                         pointer.From(admin.Sid).String(),
-		TenantID:                         pointer.From(admin.TenantID).String(),
+		ObjectID:                         pointer.From(admin.Sid),
+		TenantID:                         pointer.From(admin.TenantId),
 		AzureADAuthenticationOnlyEnabled: pointer.From(admin.AzureADOnlyAuthentication),
 	})
 }
