@@ -2184,7 +2184,7 @@ func flattenApiManagementPolicies(d *pluginsdk.ResourceData, input *policy.Polic
 	// as such we need to retrieve this value from the state if it's present
 	if existing, ok := d.GetOk("policy"); ok {
 		existingVs := existing.([]interface{})
-		if len(existingVs) > 0 {
+		if len(existingVs) > 0 && existingVs[0] != nil {
 			existingV := existingVs[0].(map[string]interface{})
 			output["xml_link"] = existingV["xml_link"].(string)
 		}
