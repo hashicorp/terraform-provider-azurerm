@@ -236,10 +236,19 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name              = "testNetworkInterface"
+    name              = "testNIC%s"
     ipv4_address_type = "Dynamic"
     ipv6_address_type = "Dynamic"
     mac_address_type  = "Dynamic"
+  }
+
+  storage_disk {
+    name         = "testSD%s"
+    bus_type     = "SCSI"
+    vhd_type     = "Dynamic"
+    bus          = 1
+    lun          = 1
+    disk_size_gb = 30
   }
 
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id]
@@ -249,7 +258,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(data acceptance.TestData) string {
@@ -301,10 +310,19 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name              = "testNetworkInterface2"
+    name              = "testNIC2%s"
     ipv4_address_type = "Static"
     ipv6_address_type = "Static"
     mac_address_type  = "Static"
+  }
+
+  storage_disk {
+    name         = "testSD%s"
+    bus_type     = "SCSI"
+    vhd_type     = "Dynamic"
+    bus          = 1
+    lun          = 1
+    disk_size_gb = 30
   }
 
   system_center_virtual_machine_manager_availability_set_ids = [azurerm_system_center_virtual_machine_manager_availability_set.test.id, azurerm_system_center_virtual_machine_manager_availability_set.test2.id]
@@ -314,7 +332,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) template(data acceptance.TestData) string {
