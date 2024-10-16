@@ -115,10 +115,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"gi_version": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: GiVersionDiffSuppress,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"hostname": {
@@ -489,13 +488,13 @@ func GiVersionDiffSuppress(_ string, old string, new string, _ *schema.ResourceD
 // Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.
 // Since testHostname is a prefix of testHostname-abc, then computed diff is zero.
 func DbSystemHostnameDiffSuppress(_ string, old string, new string, _ *schema.ResourceData) bool {
-	return EqualIgnoreCaseSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
+	return EqualSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
 }
 
 func NewIsPrefixOfOldDiffSuppress(old string, new string) bool {
 	return strings.HasPrefix(strings.ToLower(old), strings.ToLower(new))
 }
 
-func EqualIgnoreCaseSuppressDiff(old string, new string) bool {
-	return strings.EqualFold(old, new)
+func EqualSuppressDiff(old string, new string) bool {
+	return old == new
 }
