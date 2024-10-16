@@ -29,10 +29,11 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceSequential(t 
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmVirtualMachineInstance": {
-			"basic":          testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_update,
+			"basic":           testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic,
+			"requiresImport":  testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_requiresImport,
+			"complete":        testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_complete,
+			"update":          testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_update,
+			"inventoryItemId": testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_inventoryItemId,
 		},
 	})
 }
@@ -104,6 +105,21 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_update(t *te
 	})
 }
 
+func testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_inventoryItemId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_machine_instance", "test")
+	r := SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.inventoryItemId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SystemCenterVirtualMachineManagerVirtualMachineInstanceID(state.ID)
 	if err != nil {
@@ -124,6 +140,32 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) basic(d
 
 provider "azurerm" {
   features {}
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
+  name                                                           = "acctest-scvmmc-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
+  name                                                           = "acctest-scvmmvmt-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
 }
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
@@ -158,7 +200,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) requiresImport(data acceptance.TestData) string {
@@ -201,6 +243,32 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) complet
 
 provider "azurerm" {
   features {}
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
+  name                                                           = "acctest-scvmmc-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
+  name                                                           = "acctest-scvmmvmt-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
 }
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
@@ -258,7 +326,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(data acceptance.TestData) string {
@@ -267,6 +335,32 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(
 
 provider "azurerm" {
   features {}
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
+  name                                                           = "acctest-scvmmc-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
+  name                                                           = "acctest-scvmmvmt-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
 }
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
@@ -332,7 +426,38 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+}
+
+func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) inventoryItemId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test4" {
+  inventory_type                                  = "VirtualMachine"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
+  scoped_resource_id = azurerm_arc_machine.test.id
+  custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+
+  infrastructure {
+    checkpoint_type                                                 = "Standard"
+    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+    system_center_virtual_machine_manager_inventory_item_id         = data.azurerm_system_center_virtual_machine_manager_inventory_items.test4.inventory_items[0].id
+  }
+
+  lifecycle {
+    // Service API provisions VM Instance based on the existing VM Instance that includes hardware, network_interface, operating_system and storage_disk
+    ignore_changes = [hardware, network_interface, operating_system, storage_disk]
+  }
+}
+`, r.template(data))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) template(data acceptance.TestData) string {
@@ -358,31 +483,5 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   username            = "%s"
   password            = "%s"
 }
-
-data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
-  inventory_type                                  = "Cloud"
-  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-}
-
-resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
-  name                                                           = "acctest-scvmmc-%d"
-  location                                                       = azurerm_resource_group.test.location
-  resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
-}
-
-data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
-  inventory_type                                  = "VirtualMachineTemplate"
-  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-}
-
-resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
-  name                                                           = "acctest-scvmmvmt-%d"
-  location                                                       = azurerm_resource_group.test.location
-  resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
