@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -385,7 +386,7 @@ func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.Encrypti
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL != nil {
 		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL); v != "" {
-			id, err := commonids.ParseKeyVaultID(v)
+			id, err := keyVaultParse.ParseNestedItemID(v)
 			if err != nil {
 				return []CustomerManagedKey{}, err
 			}
