@@ -76,13 +76,12 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleAnomalyDuplicate_ThresholdWithCustomObservation(t *testing.T) {
+func TestAccSentinelAlertRuleAnomalyDuplicate_thresholdWithCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-
 			Config: r.basicWithThresholdObservation(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -92,7 +91,7 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_ThresholdWithCustomObservation(t *
 	})
 }
 
-func TestAccSentinelAlertRuleAnomalyDuplicate_MultiSelectWithCustomObservation(t *testing.T) {
+func TestAccSentinelAlertRuleAnomalyDuplicate_multiSelectWithCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -106,7 +105,7 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_MultiSelectWithCustomObservation(t
 	})
 }
 
-func TestAccSentinelAlertRuleAnomalyDuplicate_SingleSelectWithCustomObservation(t *testing.T) {
+func TestAccSentinelAlertRuleAnomalyDuplicate_singleSelectWithCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -120,7 +119,7 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_SingleSelectWithCustomObservation(
 	})
 }
 
-func TestAccSentinelAlertRuleAnomalyDuplicate_PrioritizeExcludeWithCustomObservation(t *testing.T) {
+func TestAccSentinelAlertRuleAnomalyDuplicate_prioritizeExcludeWithCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -132,7 +131,6 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_PrioritizeExcludeWithCustomObserva
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func (SentinelAlertRuleAnomalyDuplicateResource) basic(data acceptance.TestData) string {
@@ -236,6 +234,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
+
 func (SentinelAlertRuleAnomalyDuplicateResource) basicWithPrioritizeExcludeObservation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
