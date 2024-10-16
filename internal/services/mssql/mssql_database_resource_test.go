@@ -1404,7 +1404,7 @@ resource "azurerm_mssql_database" "test" {
   }
 
   short_term_retention_policy {
-    retention_days = 12
+    retention_days = 10
   }
 }
 `, r.template(data), data.RandomInteger)
