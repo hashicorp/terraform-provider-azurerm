@@ -23,8 +23,8 @@ type SystemCenterVirtualMachineManagerVirtualMachineInstanceResource struct{}
 func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceSequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
 
-	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" || os.Getenv("ARM_TEST_VIRTUAL_NETWORK_INVENTORY_NAME") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD`, `ARM_TEST_VIRTUAL_NETWORK_INVENTORY_NAME` was not specified")
 	}
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -271,6 +271,19 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template
   system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
 }
 
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test3" {
+  inventory_type                                  = "VirtualNetwork"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_network" "test" {
+  name                                                           = "acctest-scvmmvnet-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = [for item in data.azurerm_system_center_virtual_machine_manager_inventory_items.test3.inventory_items : item.id if item.name == "%s"][0]
+}
+
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
   resource_group_name                             = azurerm_resource_group.test.name
@@ -304,10 +317,11 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name              = "testNIC%s"
-    ipv4_address_type = "Dynamic"
-    ipv6_address_type = "Dynamic"
-    mac_address_type  = "Dynamic"
+    name               = "testNIC%s"
+    virtual_network_id = azurerm_system_center_virtual_machine_manager_virtual_network.test.id
+    ipv4_address_type  = "Dynamic"
+    ipv6_address_type  = "Dynamic"
+    mac_address_type   = "Dynamic"
   }
 
   storage_disk {
@@ -326,7 +340,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_VIRTUAL_NETWORK_INVENTORY_NAME"), data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) update(data acceptance.TestData) string {
@@ -361,6 +375,19 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template
   resource_group_name                                            = azurerm_resource_group.test.name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test3" {
+  inventory_type                                  = "VirtualNetwork"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_network" "test" {
+  name                                                           = "acctest-scvmmvnet-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = [for item in data.azurerm_system_center_virtual_machine_manager_inventory_items.test3.inventory_items : item.id if item.name == "%s"][0]
 }
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
@@ -404,10 +431,11 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   network_interface {
-    name              = "testNIC2%s"
-    ipv4_address_type = "Static"
-    ipv6_address_type = "Static"
-    mac_address_type  = "Static"
+    name               = "testNIC2%s"
+    virtual_network_id = azurerm_system_center_virtual_machine_manager_virtual_network.test.id
+    ipv4_address_type  = "Static"
+    ipv6_address_type  = "Static"
+    mac_address_type   = "Static"
   }
 
   storage_disk {
@@ -426,7 +454,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     ignore_changes = [storage_disk]
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_VIRTUAL_NETWORK_INVENTORY_NAME"), data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) inventoryItemId(data acceptance.TestData) string {
