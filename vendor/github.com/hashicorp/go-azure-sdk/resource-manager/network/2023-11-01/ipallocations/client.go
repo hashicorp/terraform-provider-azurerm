@@ -15,7 +15,7 @@ type IPAllocationsClient struct {
 }
 
 func NewIPAllocationsClientWithBaseURI(sdkApi sdkEnv.Api) (*IPAllocationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "ipallocations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "ipallocations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IPAllocationsClient: %+v", err)
 	}

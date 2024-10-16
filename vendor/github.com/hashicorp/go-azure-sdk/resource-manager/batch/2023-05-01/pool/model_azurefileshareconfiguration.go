@@ -6,7 +6,7 @@ package pool
 type AzureFileShareConfiguration struct {
 	AccountKey        string  `json:"accountKey"`
 	AccountName       string  `json:"accountName"`
-	AzureFileUrl      string  `json:"azureFileUrl"`
+	AzureFileURL      string  `json:"azureFileUrl"`
 	MountOptions      *string `json:"mountOptions,omitempty"`
 	RelativeMountPath string  `json:"relativeMountPath"`
 }

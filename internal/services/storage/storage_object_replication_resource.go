@@ -66,14 +66,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 						"source_container_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.StorageContainerName,
 						},
 
 						"destination_container_name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.StorageContainerName,
 						},
 

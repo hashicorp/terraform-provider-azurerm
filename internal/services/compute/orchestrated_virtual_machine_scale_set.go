@@ -1432,11 +1432,13 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 		extensionType := extensionRaw["type"].(string)
 
+		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
+
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
 			Type:                     &extensionType,
 			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
+			AutoUpgradeMinorVersion:  pointer.To(autoUpgradeMinorVersion),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
 		}
 

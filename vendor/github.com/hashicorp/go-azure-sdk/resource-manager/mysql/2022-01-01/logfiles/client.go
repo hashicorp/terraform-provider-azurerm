@@ -15,7 +15,7 @@ type LogFilesClient struct {
 }
 
 func NewLogFilesClientWithBaseURI(sdkApi sdkEnv.Api) (*LogFilesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "logfiles", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "logfiles", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LogFilesClient: %+v", err)
 	}

@@ -14,6 +14,14 @@ type CsvSerialization struct {
 	Properties *CsvSerializationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Serialization
+
+	Type EventSerializationType `json:"type"`
+}
+
+func (s CsvSerialization) Serialization() BaseSerializationImpl {
+	return BaseSerializationImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = CsvSerialization{}
@@ -27,9 +35,10 @@ func (s CsvSerialization) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CsvSerialization: %+v", err)
 	}
+
 	decoded["type"] = "Csv"
 
 	encoded, err = json.Marshal(decoded)

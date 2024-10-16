@@ -46,7 +46,6 @@ func (c CosmosDBClient) TableResourcesListTables(ctx context.Context, id Databas
 
 	var model TableListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -50,7 +50,6 @@ func (c ManagedClusterSnapshotsClient) CreateOrUpdate(ctx context.Context, id Ma
 
 	var model ManagedClusterSnapshot
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

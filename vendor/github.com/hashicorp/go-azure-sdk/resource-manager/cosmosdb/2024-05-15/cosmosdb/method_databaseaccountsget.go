@@ -45,7 +45,6 @@ func (c CosmosDBClient) DatabaseAccountsGet(ctx context.Context, id DatabaseAcco
 
 	var model DatabaseAccountGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

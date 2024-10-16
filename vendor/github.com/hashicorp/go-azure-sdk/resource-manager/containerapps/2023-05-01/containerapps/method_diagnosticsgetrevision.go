@@ -45,7 +45,6 @@ func (c ContainerAppsClient) DiagnosticsGetRevision(ctx context.Context, id Revi
 
 	var model Revision
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

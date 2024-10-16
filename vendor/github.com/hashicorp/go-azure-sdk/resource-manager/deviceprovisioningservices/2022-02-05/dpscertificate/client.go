@@ -15,7 +15,7 @@ type DpsCertificateClient struct {
 }
 
 func NewDpsCertificateClientWithBaseURI(sdkApi sdkEnv.Api) (*DpsCertificateClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dpscertificate", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dpscertificate", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DpsCertificateClient: %+v", err)
 	}

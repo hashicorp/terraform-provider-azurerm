@@ -15,7 +15,7 @@ type VirtualNetworkGatewaysClient struct {
 }
 
 func NewVirtualNetworkGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualNetworkGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualnetworkgateways", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualnetworkgateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualNetworkGatewaysClient: %+v", err)
 	}

@@ -50,7 +50,6 @@ func (c VariableClient) CreateOrUpdate(ctx context.Context, id VariableId, input
 
 	var model Variable
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

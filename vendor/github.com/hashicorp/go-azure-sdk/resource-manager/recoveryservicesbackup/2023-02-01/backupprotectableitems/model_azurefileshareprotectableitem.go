@@ -16,10 +16,22 @@ type AzureFileShareProtectableItem struct {
 	ParentContainerFriendlyName *string             `json:"parentContainerFriendlyName,omitempty"`
 
 	// Fields inherited from WorkloadProtectableItem
+
 	BackupManagementType *string           `json:"backupManagementType,omitempty"`
 	FriendlyName         *string           `json:"friendlyName,omitempty"`
+	ProtectableItemType  string            `json:"protectableItemType"`
 	ProtectionState      *ProtectionStatus `json:"protectionState,omitempty"`
 	WorkloadType         *string           `json:"workloadType,omitempty"`
+}
+
+func (s AzureFileShareProtectableItem) WorkloadProtectableItem() BaseWorkloadProtectableItemImpl {
+	return BaseWorkloadProtectableItemImpl{
+		BackupManagementType: s.BackupManagementType,
+		FriendlyName:         s.FriendlyName,
+		ProtectableItemType:  s.ProtectableItemType,
+		ProtectionState:      s.ProtectionState,
+		WorkloadType:         s.WorkloadType,
+	}
 }
 
 var _ json.Marshaler = AzureFileShareProtectableItem{}
@@ -33,9 +45,10 @@ func (s AzureFileShareProtectableItem) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureFileShareProtectableItem: %+v", err)
 	}
+
 	decoded["protectableItemType"] = "AzureFileShare"
 
 	encoded, err = json.Marshal(decoded)

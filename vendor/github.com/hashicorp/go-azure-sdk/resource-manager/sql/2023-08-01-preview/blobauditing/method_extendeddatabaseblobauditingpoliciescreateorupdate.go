@@ -52,7 +52,6 @@ func (c BlobAuditingClient) ExtendedDatabaseBlobAuditingPoliciesCreateOrUpdate(c
 
 	var model ExtendedDatabaseBlobAuditingPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -36,6 +36,7 @@ func (o PowerOffOperationOptions) ToHeaders() *client.Headers {
 
 func (o PowerOffOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

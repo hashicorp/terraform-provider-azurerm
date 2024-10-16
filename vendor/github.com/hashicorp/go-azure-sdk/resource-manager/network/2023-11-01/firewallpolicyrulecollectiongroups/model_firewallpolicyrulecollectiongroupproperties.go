@@ -18,10 +18,13 @@ type FirewallPolicyRuleCollectionGroupProperties struct {
 var _ json.Unmarshaler = &FirewallPolicyRuleCollectionGroupProperties{}
 
 func (s *FirewallPolicyRuleCollectionGroupProperties) UnmarshalJSON(bytes []byte) error {
-	type alias FirewallPolicyRuleCollectionGroupProperties
-	var decoded alias
+	var decoded struct {
+		Priority          *int64             `json:"priority,omitempty"`
+		ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+		Size              *string            `json:"size,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into FirewallPolicyRuleCollectionGroupProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Priority = decoded.Priority
@@ -41,7 +44,7 @@ func (s *FirewallPolicyRuleCollectionGroupProperties) UnmarshalJSON(bytes []byte
 
 		output := make([]FirewallPolicyRuleCollection, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalFirewallPolicyRuleCollectionImplementation(val)
+			impl, err := UnmarshalFirewallPolicyRuleCollectionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'RuleCollections' for 'FirewallPolicyRuleCollectionGroupProperties': %+v", i, err)
 			}
@@ -49,5 +52,6 @@ func (s *FirewallPolicyRuleCollectionGroupProperties) UnmarshalJSON(bytes []byte
 		}
 		s.RuleCollections = &output
 	}
+
 	return nil
 }

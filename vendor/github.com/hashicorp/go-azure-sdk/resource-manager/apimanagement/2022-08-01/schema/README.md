@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/schema` Documentation
 
-The `schema` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2022-08-01`).
+The `schema` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "schemaIdValue")
+id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "schemaId")
 
 payload := schema.GlobalSchemaContract{
 	// ...
@@ -41,7 +41,7 @@ if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.Def
 
 ```go
 ctx := context.TODO()
-id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "schemaIdValue")
+id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "schemaId")
 
 read, err := client.GlobalSchemaDelete(ctx, id, schema.DefaultGlobalSchemaDeleteOperationOptions())
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "schemaIdValue")
+id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "schemaId")
 
 read, err := client.GlobalSchemaGet(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "schemaIdValue")
+id := schema.NewSchemaID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "schemaId")
 
 read, err := client.GlobalSchemaGetEntityTag(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := schema.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := schema.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.GlobalSchemaListByService(ctx, id, schema.DefaultGlobalSchemaListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.GlobalSchemaListByServiceComplete(ctx, id, schema.DefaultGlobalSchemaListByServiceOperationOptions())

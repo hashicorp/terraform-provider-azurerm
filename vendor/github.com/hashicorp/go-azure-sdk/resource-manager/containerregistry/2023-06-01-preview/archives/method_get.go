@@ -45,7 +45,6 @@ func (c ArchivesClient) Get(ctx context.Context, id ArchiveId) (result GetOperat
 
 	var model Archive
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

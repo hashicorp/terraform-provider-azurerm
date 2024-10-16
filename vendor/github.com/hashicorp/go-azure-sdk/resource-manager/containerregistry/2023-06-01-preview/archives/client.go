@@ -15,7 +15,7 @@ type ArchivesClient struct {
 }
 
 func NewArchivesClientWithBaseURI(sdkApi sdkEnv.Api) (*ArchivesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "archives", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "archives", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ArchivesClient: %+v", err)
 	}

@@ -49,7 +49,6 @@ func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterP
 
 	var model Cluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

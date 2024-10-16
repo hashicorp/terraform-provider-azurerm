@@ -15,7 +15,7 @@ type ServerFailoverClient struct {
 }
 
 func NewServerFailoverClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerFailoverClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverfailover", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverfailover", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerFailoverClient: %+v", err)
 	}

@@ -42,7 +42,7 @@ func ParseVirtualNetworkGatewayID(input string) (*VirtualNetworkGatewayId, error
 	}
 
 	id := VirtualNetworkGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVirtualNetworkGatewayIDInsensitively(input string) (*VirtualNetworkGat
 	}
 
 	id := VirtualNetworkGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VirtualNetworkGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualNetworkGateways", "virtualNetworkGateways", "virtualNetworkGateways"),
-		resourceids.UserSpecifiedSegment("virtualNetworkGatewayName", "virtualNetworkGatewayValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkGatewayName", "virtualNetworkGatewayName"),
 	}
 }
 
