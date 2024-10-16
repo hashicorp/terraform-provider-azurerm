@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -194,22 +195,22 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			entity := appconfiguration.KeyValue{
-				Key:   utils.String(model.Key),
-				Label: utils.String(model.Label),
+				Key:   pointer.To(model.Key),
+				Label: pointer.To(model.Label),
 				Tags:  tags.Expand(model.Tags),
 			}
 
 			switch model.Type {
 			case KeyTypeKV:
-				entity.ContentType = utils.String(model.ContentType)
-				entity.Value = utils.String(model.Value)
+				entity.ContentType = pointer.To(model.ContentType)
+				entity.Value = pointer.To(model.Value)
 			case KeyTypeVault:
-				entity.ContentType = utils.String(VaultKeyContentType)
+				entity.ContentType = pointer.To(VaultKeyContentType)
 				ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 				if err != nil {
 					return fmt.Errorf("while encoding vault key reference: %+v", err)
 				}
-				entity.Value = utils.String(string(ref))
+				entity.Value = pointer.To(string(ref))
 			}
 
 			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
@@ -302,19 +303,20 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: configurationStoreId.ID(),
-				Key:                  utils.NormalizeNilableString(kv.Key),
-				ContentType:          utils.NormalizeNilableString(kv.ContentType),
-				Etag:                 utils.NormalizeNilableString(kv.Etag),
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Key:                  pointer.From(kv.Key),
+				ContentType:          pointer.From(kv.ContentType),
+				Etag:                 pointer.From(kv.Etag),
+				Label:                pointer.From(kv.Label),
+				Locked:               pointer.From(kv.Locked),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
-			if utils.NormalizeNilableString(kv.ContentType) != VaultKeyContentType {
+			if pointer.From(kv.ContentType) != VaultKeyContentType {
 				model.Type = KeyTypeKV
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			} else {
 				var ref VaultKeyReference
-				refBytes := []byte(utils.NormalizeNilableString(kv.Value))
+				refBytes := []byte(pointer.From(kv.Value))
 				err := json.Unmarshal(refBytes, &ref)
 				if err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
@@ -323,12 +325,9 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				model.Type = KeyTypeVault
 				model.VaultKeyReference = ref.URI
 				model.ContentType = VaultKeyContentType
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			}
 
-			if kv.Locked != nil {
-				model.Locked = *kv.Locked
-			}
 			return metadata.Encode(&model)
 		},
 		Timeout: 5 * time.Minute,
@@ -348,6 +347,11 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
+			if err != nil {
+				return fmt.Errorf("while checking for key %q existence: %+v", *nestedItemId, err)
+			}
+
 			var model KeyResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
@@ -360,31 +364,31 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			metadata.Client.AppConfiguration.AddToCache(*configurationStoreId, nestedItemId.ConfigurationStoreEndpoint)
 
-			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
-				entity := appconfiguration.KeyValue{
-					Key:   utils.String(model.Key),
-					Label: utils.String(model.Label),
-					Tags:  tags.Expand(model.Tags),
-				}
+			if metadata.ResourceData.HasChange("tag") {
+				kv.Tags = tags.Expand(model.Tags)
+			}
 
+			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
 				switch model.Type {
 				case KeyTypeKV:
-					entity.ContentType = utils.String(model.ContentType)
-					entity.Value = utils.String(model.Value)
+					kv.ContentType = pointer.To(model.ContentType)
+					kv.Value = pointer.To(model.Value)
 				case KeyTypeVault:
-					entity.ContentType = utils.String(VaultKeyContentType)
+					kv.ContentType = pointer.To(VaultKeyContentType)
 					ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 					if err != nil {
 						return fmt.Errorf("while encoding vault key reference: %+v", err)
 					}
-					entity.Value = utils.String(string(ref))
-				}
-				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
-					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)
+					kv.Value = pointer.To(string(ref))
 				}
 			}
 
+			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &kv, "", ""); err != nil {
+				return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)
+			}
+
 			if metadata.ResourceData.HasChange("locked") {
+				kv.Locked = pointer.To(model.Locked)
 				if model.Locked {
 					if _, err = client.PutLock(ctx, model.Key, model.Label, "", ""); err != nil {
 						return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Key, model.Label, err)
@@ -395,6 +399,27 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 					}
 				}
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q to be synced", model.Key)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Syncing"},
+				Target:                    []string{"Synced"},
+				Refresh:                   appConfigurationGetKeyRefreshFuncForUpdate(ctx, client, nestedItemId.Key, model.Label, kv),
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Key %q to be synced: %+v", nestedItemId.Key, err)
+			}
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,
