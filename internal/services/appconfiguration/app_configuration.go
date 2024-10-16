@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -65,6 +66,7 @@ func resourceConfigurationStoreReplicaHash(input interface{}) int {
 
 func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfiguration.BaseClient, key, label string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Refresh App Configuration status")
 		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
 		if err != nil {
 			if v, ok := err.(autorest.DetailedError); ok {
@@ -80,4 +82,62 @@ func appConfigurationGetKeyRefreshFunc(ctx context.Context, client *appconfigura
 
 		return res, "Exists", nil
 	}
+}
+
+func appConfigurationGetKeyRefreshFuncForUpdate(ctx context.Context, client *appconfiguration.BaseClient, key, label string, model appconfiguration.KeyValue) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Refresh App Configuration to ensure all properties are synced")
+		res, err := client.GetKeyValue(ctx, key, label, "", "", "", []appconfiguration.KeyValueFields{})
+		if err != nil {
+			if v, ok := err.(autorest.DetailedError); ok {
+				if response.WasForbidden(v.Response) {
+					return "Forbidden", "Forbidden", nil
+				}
+				if response.WasNotFound(v.Response) {
+					return "NotFound", "NotFound", nil
+				}
+			}
+			return res, "Error", nil
+		}
+
+		if !appConfigurationKeyValueEuqals(res, model) {
+			return "Syncing", "Syncing", nil
+		}
+
+		return res, "Synced", nil
+	}
+}
+
+func appConfigurationKeyValueEuqals(kv1, kv2 appconfiguration.KeyValue) bool {
+	if (kv1.ContentType == nil) != (kv2.ContentType == nil) || pointer.From(kv1.ContentType) != pointer.From(kv2.ContentType) {
+		log.Printf("[DEBUG] Syncing App Configuration Key `content_type`: one with value %q, another with value %q", pointer.From(kv1.ContentType), pointer.From(kv2.ContentType))
+		return false
+	}
+
+	if (kv1.Locked == nil) != (kv2.Locked == nil) || pointer.From(kv1.Locked) != pointer.From(kv2.Locked) {
+		log.Printf("[DEBUG] Syncing App Configuration Key `locked`: one with value %q, another with value %q", pointer.From(kv1.ContentType), pointer.From(kv2.ContentType))
+		return false
+	}
+
+	if (kv1.Value == nil) != (kv2.Value == nil) || pointer.From(kv1.Value) != pointer.From(kv2.Value) {
+		log.Printf("[DEBUG] Syncing App Configuration Key `value` field: one with value %q, another with value %q", pointer.From(kv1.Value), pointer.From(kv2.Value))
+		return false
+	}
+
+	if (kv1.Tags == nil) != (kv2.Tags == nil) || len(kv1.Tags) != len(kv2.Tags) {
+		log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with length %q, another with length %q", len(kv1.Tags), len(kv2.Tags))
+		return false
+	}
+
+	for k, v := range kv1.Tags {
+		if v != nil {
+			v2, ok := kv2.Tags[k]
+			if !ok || v2 == nil || *v != *v2 {
+				log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with value %q, another with value %q", pointer.From(v), pointer.From(v2))
+				return false
+			}
+		}
+	}
+
+	return true
 }

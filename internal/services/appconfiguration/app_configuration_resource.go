@@ -289,7 +289,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
 			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+				return userIsMissingNecessaryPermission(name, location)
 			}
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
@@ -896,8 +896,8 @@ func parsePublicNetworkAccess(input string) *configurationstores.PublicNetworkAc
 	return &out
 }
 
-func userIsMissingNecessaryPermission(name, location string) string {
-	return fmt.Sprintf(`
+func userIsMissingNecessaryPermission(name, location string) error {
+	return fmt.Errorf(`
 An existing soft-deleted App Configuration exists with the Name %q in the location %q, however
 the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
 You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
@@ -925,7 +925,6 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 	}
 
 	return nil
-
 }
 
 func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {

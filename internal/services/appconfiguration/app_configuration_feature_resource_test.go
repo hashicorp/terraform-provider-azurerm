@@ -77,6 +77,7 @@ func TestAccAppConfigurationFeature_percentFilter(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
