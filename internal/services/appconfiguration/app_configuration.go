@@ -125,7 +125,7 @@ func appConfigurationKeyValueEuqals(kv1, kv2 appconfiguration.KeyValue) bool {
 	}
 
 	if (kv1.Tags == nil) != (kv2.Tags == nil) || len(kv1.Tags) != len(kv2.Tags) {
-		log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with value %q, another with value %q", kv1.Tags, kv2.Tags)
+		log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with length %q, another with length %q", len(kv1.Tags), len(kv2.Tags))
 		return false
 	}
 
@@ -133,7 +133,7 @@ func appConfigurationKeyValueEuqals(kv1, kv2 appconfiguration.KeyValue) bool {
 		if v != nil {
 			v2, ok := kv2.Tags[k]
 			if !ok || v2 == nil || *v != *v2 {
-				log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with value %q, another with value %q", kv1.Tags, kv2.Tags)
+				log.Printf("[DEBUG] Syncing App Configuration Key `tags` field: one with value %q, another with value %q", pointer.From(v), pointer.From(v2))
 				return false
 			}
 		}
