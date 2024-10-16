@@ -19,15 +19,15 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mongo_cluster" "example" {
-  name                         = "example-mc"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  shard_count                  = "1"
-  compute_tier                 = "Free"
-  high_availability_mode       = "Disabled"
-  storage_size_in_gb           = "32"
+  name                   = "example-mc"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  shard_count            = "1"
+  compute_tier           = "Free"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
 }
 
 ```
@@ -41,16 +41,16 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_mongo_cluster" "example" {
-  name                         = "example-mc"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  shard_count                  = "1"
-  compute_tier                 = "M30"
-  high_availability_mode       = "ZoneRedundantPreferred"
-  storage_size_in_gb           = "64"
-  preview_features             = ["GeoReplicas"]
+  name                   = "example-mc"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "ZoneRedundantPreferred"
+  storage_size_in_gb     = "64"
+  preview_features       = ["GeoReplicas"]
 }
 
 resource "azurerm_mongo_cluster" "example_geo_replica" {
@@ -62,7 +62,7 @@ resource "azurerm_mongo_cluster" "example_geo_replica" {
   create_mode         = "GeoReplica"
 
   lifecycle {
-    ignore_changes = ["administrator_login", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
+    ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
 ```
@@ -77,11 +77,11 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the Azure Cosmos DB for MongoDB vCore exists. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Optional) The administrator username of the Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
+* `administrator_username` - (Optional) The administrator username of the Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
 
-* `create_mode` - (Optional) The creation mode for the Azure Cosmos DB for MongoDB vCore. Possibles values are `Default` and `GeoReplica`. Defaults to 'Default'. Changing this forces a new resource to be created.
+* `create_mode` - (Optional) The creation mode for the Azure Cosmos DB for MongoDB vCore. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`. Changing this forces a new resource to be created.
 
--> **Note** The creation mode "GeoReplica" is currently in preview. It is only available when specified via `preview_features`.
+-> **Note** The creation mode `GeoReplica` is currently in preview. It is only available when `preview_features` is set.
 
 * `preview_features` - (Optional) The preview features that can be enabled on the Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
 
@@ -89,15 +89,15 @@ The following arguments are supported:
 
 * `source_location` - (Optional) The location of the source Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
 
-* `source_resource_id` - (Optional) The ID of the replication source Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
+* `source_server_id` - (Optional) The ID of the replication source Azure Cosmos DB for MongoDB vCore. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the Azure Cosmos DB for MongoDB vCore.
+* `administrator_password` - (Optional) The Password associated with the `administrator_username` for the Azure Cosmos DB for MongoDB vCore.
 
 * `compute_tier` - (Optional) The compute tier to assign to the Azure Cosmos DB for MongoDB vCore. Possible values are `Free`, `M25`, `M30`, `M40`, `M50`, `M60` and `M80`.
 
 * `high_availability_mode` - (Optional) The high availability mode for the Azure Cosmos DB for MongoDB vCore. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Azure Cosmos DB for MongoDB vCore. Defaults to 'true'.
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Azure Cosmos DB for MongoDB vCore. Defaults to `true`.
 
 * `storage_size_in_gb` - (Optional) The size of the data disk space for the Azure Cosmos DB for MongoDB vCore.
 

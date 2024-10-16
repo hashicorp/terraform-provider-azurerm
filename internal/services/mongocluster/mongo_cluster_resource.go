@@ -31,8 +31,8 @@ type MongoClusterResourceModel struct {
 	Name                       string            `tfschema:"name"`
 	ResourceGroupName          string            `tfschema:"resource_group_name"`
 	Location                   string            `tfschema:"location"`
-	AdministratorLogin         string            `tfschema:"administrator_login"`
-	AdministratorLoginPassword string            `tfschema:"administrator_login_password"`
+	AdministratorUserName      string            `tfschema:"administrator_username"`
+	AdministratorPassword      string            `tfschema:"administrator_password"`
 	CreateMode                 string            `tfschema:"create_mode"`
 	ShardCount                 int64             `tfschema:"shard_count"`
 	SourceLocation             string            `tfschema:"source_location"`
@@ -64,12 +64,9 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			ForceNew: true,
 			Required: true,
 			Type:     schema.TypeString,
-			ValidateFunc: validation.All(
-				validation.StringLenBetween(3, 40),
-				validation.StringMatch(
-					regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`),
-					"The name contains only lowercase letters, numbers and hyphens.",
-				),
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-z\d]([-a-z\d]{3,40}[a-z\d])?$`),
+				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 			),
 		},
 
@@ -77,11 +74,12 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"administrator_login": {
+		"administrator_username": {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_username", "administrator_password"},
 		},
 
 		"create_mode": {
@@ -130,11 +128,12 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"administrator_login_password": {
+		"administrator_password": {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"administrator_username", "administrator_password"},
 		},
 
 		"compute_tier": {
@@ -219,14 +218,14 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				Properties: &mongoclusters.MongoClusterProperties{},
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("administrator_login"); ok {
+			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
-					UserName: pointer.To(state.AdministratorLogin),
-					Password: pointer.To(state.AdministratorLoginPassword),
+					UserName: pointer.To(state.AdministratorUserName),
+					Password: pointer.To(state.AdministratorPassword),
 				}
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("create_mode"); ok {
+			if state.CreateMode != "" {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
 
@@ -247,13 +246,13 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("compute_tier"); ok {
+			if state.ComputeTier != "" {
 				parameter.Properties.Compute = &mongoclusters.ComputeProperties{
 					Tier: pointer.To(state.ComputeTier),
 				}
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("high_availability_mode"); ok {
+			if state.HighAvailabilityMode != "" {
 				parameter.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
 				}
@@ -275,7 +274,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Tags = pointer.To(state.Tags)
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("version"); ok {
+			if state.Version != "" {
 				parameter.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
@@ -336,10 +335,10 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("updating other configurations for %s", *id)
-			if metadata.ResourceData.HasChange("administrator_login_password") {
+			if metadata.ResourceData.HasChange("administrator_password") {
 				model.Properties.Administrator = &mongoclusters.AdministratorProperties{
-					UserName: pointer.To(state.AdministratorLogin),
-					Password: pointer.To(state.AdministratorLoginPassword),
+					UserName: pointer.To(state.AdministratorUserName),
+					Password: pointer.To(state.AdministratorPassword),
 				}
 			}
 
@@ -408,14 +407,14 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 				state.Location = location.NormalizeNilable(&model.Location)
 
 				if props := model.Properties; props != nil {
-					// API doesn't return the value of administrator_login_password
-					state.AdministratorLoginPassword = metadata.ResourceData.Get("administrator_login_password").(string)
+					// API doesn't return the value of administrator_password
+					state.AdministratorPassword = metadata.ResourceData.Get("administrator_password").(string)
 
 					// API doesn't return the value of create_mode
 					state.CreateMode = metadata.ResourceData.Get("create_mode").(string)
 
 					if v := props.Administrator; v != nil {
-						state.AdministratorLogin = pointer.From(v.UserName)
+						state.AdministratorUserName = pointer.From(v.UserName)
 					}
 
 					if v := props.Replica; v != nil {
@@ -484,15 +483,15 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			switch state.CreateMode {
 			case string(mongoclusters.CreateModeDefault):
-				if _, ok := metadata.ResourceDiff.GetOk("administrator_login"); !ok {
-					return fmt.Errorf("`administrator_login` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+				if state.AdministratorUserName == "" {
+					return fmt.Errorf("`administrator_username` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("administrator_login_password"); !ok {
-					return fmt.Errorf("`administrator_login_password` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+				if state.AdministratorPassword == "" {
+					return fmt.Errorf("`administrator_password` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("compute_tier"); !ok {
+				if state.ComputeTier == "" {
 					return fmt.Errorf("`compute_tier` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
@@ -500,7 +499,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("high_availability_mode"); !ok {
+				if state.HighAvailabilityMode == "" {
 					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
@@ -508,7 +507,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`shard_count` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("version"); !ok {
+				if state.Version == "" {
 					return fmt.Errorf("`version` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 			case string(mongoclusters.CreateModeGeoReplica):
