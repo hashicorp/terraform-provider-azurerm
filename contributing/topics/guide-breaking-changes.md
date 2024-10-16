@@ -126,17 +126,22 @@ The steps outlined below uses an example resource that is deprecated, but the sa
    
    This deprecated resources has been removed from the Azure Provider.
    ```
-   **Note:** The Resource documentation does not need to be updated with a note since the provider will inform any users using the resource of the deprecation with a warning.
 
+5. Update the resource (or data source) documentation
+
+   ```markdown
+   ~> **Note:** The `azurerm_example` resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v5.0 of the AzureRM Provider.
+   ```
 
 ## Breaking Schema Changes and Deprecations
 
 Breaking schema changes can include:
 - Property renames
 - When properties become Required
-- When properties have Computed removed in some cases
+- When properties have Computed removed and need to be added to `ignore_changes` to prevent diffs
 - Changes to the validation e.g. the validation becomes more restrictive
 - Changing the default value
+- Changing the type
 
 In all cases the deprecation is handled the same way and will be illustrated by the example below.
 
@@ -157,7 +162,7 @@ The following example follows a fictional resource that will have the following 
          "version": {
             Type:     pluginsdk.TypeString,
             Optional: true,
-            Default: 1,
+            Default: 2,
          },
       }
    
@@ -174,7 +179,7 @@ The following example follows a fictional resource that will have the following 
          args["scaling_enabled"].Computed = true
          args["scaling_enabled"].ConflictsWith = []string{"enable_scaling"}
          
-         args["version"].Default = 2
+         args["version"].Default = 1
       }
    
       return args
