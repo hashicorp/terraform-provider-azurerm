@@ -187,7 +187,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
   compute_model                    = "ECPU"
-  compute_count                    = "2"
+  compute_count                    = "3"
   license_model                    = "BringYourOwnLicense"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
