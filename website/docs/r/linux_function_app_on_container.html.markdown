@@ -61,7 +61,7 @@ resource "azurerm_linux_function_app_on_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Containerized Linux Function App. Changing this forces a new Containerized Linux Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
+* `name` - (Required) The name which should be used for this Containerized Linux Function App. Changing this forces a new Containerized Linux Function App to be created. See [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions) for more information.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Containerized Linux Function App should exist. Changing this forces a new Containerized Linux Function App to be created.
 
@@ -71,19 +71,25 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** Please use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `FUNCTIONS_EXTENSION_VERSION` in app setting.
+~> **Note:** Please use `functions_extension_version` to set the function runtime version. Terraform will assign the values to the key `FUNCTIONS_EXTENSION_VERSION` in app setting.
 
-~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
+~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`. Terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
 
-~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
+~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`. Terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. See [Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity) for more information.
 
 * `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
 
+~> **NOTE:** One of `storage_account_access_key` or `key_vault_reference_identity_id` must be specified.
+
 * `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
+
+* `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
+
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
 
 * `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
 
@@ -115,9 +121,9 @@ A `site_config` block supports the following:
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Containerized Linux Function App to Application Insights.
 
-* `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
+* `app_scale_limit` - (Optional) The number of workers this function app can scale out to, which is only applicable to apps on the Consumption and Premium plan. The accepted value is from `10` to `30`. Defaults to `10`.
 
-* `elastic_instance_minimum` - (Optional) The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.
+* `elastic_instance_minimum` - (Optional) The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans. The accepted value is from `10` to `30`.
 
 ---
 

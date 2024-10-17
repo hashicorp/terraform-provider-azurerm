@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -82,16 +82,18 @@ func SiteConfigSchemaLinuxFunctionAppOnContainer() *pluginsdk.Schema {
 				},
 
 				"app_scale_limit": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Default:     10,
-					Description: "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      10,
+					ValidateFunc: validation.IntBetween(10, 30),
+					Description:  "The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.",
 				},
 
 				"elastic_instance_minimum": {
-					Type:        pluginsdk.TypeInt,
-					Optional:    true,
-					Description: "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(10, 30),
+					Description:  "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},
 
 				"linux_fx_version": {
@@ -104,9 +106,9 @@ func SiteConfigSchemaLinuxFunctionAppOnContainer() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFunctionAppOnContainer, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, registry Registry, version string, storageString string) *webapps.SiteConfig {
+func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFunctionAppOnContainer, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, registry Registry, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
 	if len(siteConfig) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	expanded := &webapps.SiteConfig{}
@@ -117,7 +119,13 @@ func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFun
 	appSettings := make([]webapps.NameValuePair, 0)
 
 	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
-	appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+
+	if storageUsesMSI {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+
+	}
 
 	linuxFunctionOnContainerSiteConfig := siteConfig[0]
 
@@ -145,17 +153,17 @@ func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFun
 	}
 
 	expanded.AppSettings = &appSettings
-	return expanded
+	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) *SiteConfigLinuxFunctionAppOnContainer {
+func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppOnContainer, error) {
 	result := &SiteConfigLinuxFunctionAppOnContainer{
 		ElasticInstanceMinimum: pointer.From(functionAppOnContainer.MinimumElasticInstanceCount),
 		AppScaleLimit:          pointer.From(functionAppOnContainer.FunctionAppScaleLimit),
 		LinuxFxVersion:         pointer.From(functionAppOnContainer.LinuxFxVersion),
 	}
 
-	return result
+	return result, nil
 }
 
 func EncodeLinuxFunctionAppOnContainerRegistryImage(input []Registry, image string) *string {
@@ -178,7 +186,7 @@ func DecodeLinuxFunctionAppOnContainerRegistryImage(input *string, partial *weba
 	parts := strings.Split(*input, "|")
 	value := parts[1]
 	if len(parts) != 2 || parts[0] != "DOCKER" {
-		return "", []Registry{}, fmt.Errorf("unrecognised LinuxFxVersion format received, got %s", *input)
+		return "", []Registry{}, fmt.Errorf("unrecognised LinuxFxVersion format received, got %s", input)
 	}
 
 	// mcr.microsoft.com/dockerimage:tag

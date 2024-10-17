@@ -2,7 +2,10 @@ package appservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -11,11 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -24,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinuxFunctionAppOnContainerResource struct{}
@@ -34,9 +35,11 @@ type LinuxFunctionAppOnContainerModel struct {
 	ResourceGroup        string `tfschema:"resource_group_name"`
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
-	StorageAccountName      string `tfschema:"storage_account_name"`
-	StorageAccountKey       string `tfschema:"storage_account_access_key"`
-	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
+	StorageAccountName          string `tfschema:"storage_account_name"`
+	StorageAccountKey           string `tfschema:"storage_account_access_key"`
+	StorageKeyVaultSecretID     string `tfschema:"storage_key_vault_secret_id"`
+	StorageUsesMSI              bool   `tfschema:"storage_uses_managed_identity"`
+	KeyVaultReferenceIdentityID string `tfschema:"key_vault_reference_identity_id"`
 
 	AppSettings               map[string]string `tfschema:"app_settings"`
 	FunctionExtensionsVersion string            `tfschema:"functions_extension_version"`
@@ -116,6 +119,17 @@ func (r LinuxFunctionAppOnContainerResource) Arguments() map[string]*pluginsdk.S
 			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
 
+		"storage_uses_managed_identity": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ConflictsWith: []string{
+				"storage_account_access_key",
+				"storage_key_vault_secret_id",
+			},
+			Description: "Should the Function App use its Managed Identity to access storage?",
+		},
+
 		"functions_extension_version": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
@@ -143,6 +157,14 @@ func (r LinuxFunctionAppOnContainerResource) Arguments() map[string]*pluginsdk.S
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppOnContainer(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -223,13 +245,16 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			// storage using MSI is currently not supported in function on container.
-			storageString := fmt.Sprintf(helpers.StorageStringFmt, linuxFunctionAppOnContainer.StorageAccountName, linuxFunctionAppOnContainer.StorageAccountKey, *storageDomainSuffix)
-			if linuxFunctionAppOnContainer.StorageKeyVaultSecretID != "" {
-				storageString = fmt.Sprintf(helpers.StorageStringFmtKV, linuxFunctionAppOnContainer.StorageKeyVaultSecretID)
+			storageString := linuxFunctionAppOnContainer.StorageAccountName
+			if !linuxFunctionAppOnContainer.StorageUsesMSI {
+				if linuxFunctionAppOnContainer.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, linuxFunctionAppOnContainer.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, linuxFunctionAppOnContainer.StorageAccountName, linuxFunctionAppOnContainer.StorageAccountKey, *storageDomainSuffix)
+				}
 			}
 
-			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString)
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString, linuxFunctionAppOnContainer.StorageUsesMSI)
 			siteConfig.LinuxFxVersion = helpers.EncodeLinuxFunctionAppOnContainerRegistryImage(linuxFunctionAppOnContainer.Registries, linuxFunctionAppOnContainer.ContainerImage)
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(linuxFunctionAppOnContainer.Identity)
@@ -239,7 +264,7 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(env.Model.Location),
-				Kind:     utils.String("functionapp,linux,container,azurecontainerapps"),
+				Kind:     pointer.To("functionapp,linux,container,azurecontainerapps"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
 					SiteConfig:           siteConfig,
@@ -248,14 +273,20 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(linuxFunctionAppOnContainer.Tags),
 			}
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, linuxFunctionAppOnContainer.AppSettings)
+			if linuxFunctionAppOnContainer.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(linuxFunctionAppOnContainer.KeyVaultReferenceIdentityID)
+			}
+
+			js, _ := json.Marshal(siteEnvelope)
+			log.Printf("DDDDDsiteACA%s", js)
 
 			_, err = client.CreateOrUpdate(ctx, id, siteEnvelope)
 			if err != nil {
-				return fmt.Errorf("creating Linux Function On Container %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
-			// issue: https://github.com/hashicorp/go-azure-sdk/issues/957
+			//the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
+			//issue: https://github.com/hashicorp/go-azure-sdk/issues/957
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:                     5 * time.Minute,
 				Pending:                   []string{"204"},
@@ -268,14 +299,6 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-			}
-
-			appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
-
-			if appSettingsUpdate.Properties != nil {
-				if _, err := client.UpdateApplicationSettings(ctx, id, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("setting App Settings for Linux %s: %+v", id, err)
-				}
 			}
 
 			metadata.SetID(id)
@@ -321,6 +344,7 @@ func (r LinuxFunctionAppOnContainerResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.ManagedEnvironmentId = pointer.From(props.ManagedEnvironmentId)
+					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 					configResp, err := client.GetConfiguration(ctx, *id)
 					if err != nil {
 						return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
@@ -328,7 +352,7 @@ func (r LinuxFunctionAppOnContainerResource) Read() sdk.ResourceFunc {
 
 					if configRespModel := configResp.Model; configRespModel != nil && configRespModel.Properties != nil {
 						state.Identity = pointer.From(flattenedIdentity)
-						siteConfig := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
+						siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
 						state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppOnContainer{*siteConfig}
 						state.ContainerImage, state.Registries, err = helpers.DecodeLinuxFunctionAppOnContainerRegistryImage(configRespModel.Properties.LinuxFxVersion, appSettingsResp.Model)
 						if err != nil {
@@ -386,9 +410,6 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			// need to set this property to true as the config got written to state despite the update action actually failed.
-			metadata.ResourceData.Partial(true)
-
 			var state LinuxFunctionAppOnContainerModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -408,15 +429,21 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 			model.Properties.State = nil
 			model.Properties.ResourceConfig = nil
 
-			storageString := fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
-			if state.StorageKeyVaultSecretID != "" {
-				storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+			storageString := state.StorageAccountName
+			if !state.StorageUsesMSI {
+				if state.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
+				}
 			}
 
-			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString)
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
 			}
+
+			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
 			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
@@ -455,13 +482,13 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating Site Config for Linux %s: %s", id, err)
 			}
 
-			if metadata.ResourceData.HasChanges("app_settings") {
-				mergedAppSettings := helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
-				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(mergedAppSettings)
-				if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsUpdate); err != nil {
-					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
-				}
-			}
+			//if metadata.ResourceData.HasChanges("app_settings") {
+			//	mergedAppSettings := helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			//	appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(mergedAppSettings)
+			//	if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsUpdate); err != nil {
+			//		return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
+			//	}
+			//}
 
 			return nil
 		},
@@ -507,6 +534,10 @@ func (m *LinuxFunctionAppOnContainerModel) unpackLinuxFunctionAppOnContainerAppS
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
 			}
+		case "AzureWebJobsStorage__accountName":
+			m.StorageUsesMSI = true
+			m.StorageAccountName = v
+
 		default:
 			appSettings[k] = v
 		}
