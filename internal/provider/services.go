@@ -163,6 +163,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		digitaltwins.Registration{},
 		domainservices.Registration{},
 		elasticsan.Registration{},
+		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
 		fluidrelay.Registration{},
