@@ -123,7 +123,7 @@ func (id HubRouteTableId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticVirtualHubs", "virtualHubs", "virtualHubs"),
 		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubName"),
 		resourceids.StaticSegment("staticHubRouteTables", "hubRouteTables", "hubRouteTables"),
-		resourceids.UserSpecifiedSegment("hubRouteTableName", "routeTableName"),
+		resourceids.UserSpecifiedSegment("hubRouteTableName", "hubRouteTableName"),
 	}
 }
 

@@ -226,7 +226,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
-		if strings.Contains(err.Error(), "could not be found") {
+		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)

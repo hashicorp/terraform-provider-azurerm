@@ -133,7 +133,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("testdata/certificate-to-import.pfx")
+    contents = filebase64("testdata/updated-cert-to-import.pfx")
     password = ""
   }
 }

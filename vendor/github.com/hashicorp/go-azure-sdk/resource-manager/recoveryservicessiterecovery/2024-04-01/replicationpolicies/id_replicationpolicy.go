@@ -121,9 +121,9 @@ func (id ReplicationPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "resourceName"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticReplicationPolicies", "replicationPolicies", "replicationPolicies"),
-		resourceids.UserSpecifiedSegment("replicationPolicyName", "policyName"),
+		resourceids.UserSpecifiedSegment("replicationPolicyName", "replicationPolicyName"),
 	}
 }
 

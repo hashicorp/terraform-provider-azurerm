@@ -121,9 +121,9 @@ func (id ScopedResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "scopeName"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeName"),
 		resourceids.StaticSegment("staticScopedResources", "scopedResources", "scopedResources"),
-		resourceids.UserSpecifiedSegment("scopedResourceName", "name"),
+		resourceids.UserSpecifiedSegment("scopedResourceName", "scopedResourceName"),
 	}
 }
 

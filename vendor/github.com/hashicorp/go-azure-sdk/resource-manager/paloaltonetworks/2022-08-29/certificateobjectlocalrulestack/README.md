@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "name")
+id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "certificateName")
 
 payload := certificateobjectlocalrulestack.CertificateObjectLocalRulestackResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "name")
+id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "certificateName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "name")
+id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackName", "certificateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
