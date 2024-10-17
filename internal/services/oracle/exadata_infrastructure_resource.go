@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -49,7 +49,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ValidateFunc: validate.ExadataName,
 			ForceNew:     true,
 		},
 
@@ -66,7 +66,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
 		},
 
@@ -174,7 +174,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": commonschema.ZonesMultipleRequired(),
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
@@ -194,7 +194,7 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ExadataInfraResourceModel
@@ -255,7 +255,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -266,15 +266,9 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: ", *id)
-			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -295,7 +289,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {
@@ -343,7 +337,7 @@ func (ExadataInfraResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {

@@ -1,5 +1,5 @@
 ---
-subcategory: "Oracle Database"
+subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_exadata_infrastructure"
 description: |-

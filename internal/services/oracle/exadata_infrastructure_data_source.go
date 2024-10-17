@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -84,7 +84,7 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ValidateFunc: validate.ExadataName,
 		},
 	}
 }
@@ -357,7 +357,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state ExadataInfraDataModel

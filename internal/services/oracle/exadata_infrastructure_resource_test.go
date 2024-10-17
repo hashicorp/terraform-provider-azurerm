@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -24,7 +24,7 @@ func (a ExadataInfraResource) Exists(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures.Get(ctx, *id)
+	resp, err := client.Oracle.OracleClient.CloudExadataInfrastructures.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -32,7 +32,7 @@ func (a ExadataInfraResource) Exists(ctx context.Context, client *clients.Client
 }
 
 func TestExaInfra_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -46,7 +46,7 @@ func TestExaInfra_basic(t *testing.T) {
 }
 
 func TestExaInfra_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestExaInfra_complete(t *testing.T) {
 }
 
 func TestExaInfra_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -74,7 +74,7 @@ func TestExaInfra_requiresImport(t *testing.T) {
 }
 
 func TestExaInfra_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
