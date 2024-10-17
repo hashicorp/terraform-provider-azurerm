@@ -171,6 +171,27 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"credential": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"reference_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -257,6 +278,11 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
 		azureSQLDatabaseLinkedService.Annotations = &annotations
+	}
+
+	if v, ok := d.GetOk("credential"); ok {
+		credential := v.([]interface{})
+		azureSQLDatabaseLinkedService.Credential = expandAzureCredentialReference(credential)
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -350,6 +376,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
+	}
+
+	if credential := sql.Credential; credential != nil {
+		d.Set("credential", flattenAzureCredentialReference(credential))
 	}
 
 	return nil
