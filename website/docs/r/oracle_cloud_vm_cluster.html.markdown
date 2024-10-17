@@ -91,7 +91,9 @@ The following arguments are supported:
 
 * `gi_version` - (Required) A valid Oracle Grid Infrastructure (GI) software version.
 
-* `hostname` - (Required) The hostname for the cloud VM cluster.
+* `hostname` - (Required) The hostname for the cloud VM cluster without suffix.
+
+* `hostname_actual` - The hostname for the cloud VM cluster with suffix.
 
 * `license_model` - (Required) The Oracle license model that applies to the cloud VM cluster, either `BringYourOwnLicense` or `LicenseIncluded`.
 

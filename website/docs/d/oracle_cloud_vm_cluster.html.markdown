@@ -67,7 +67,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `gi_version` - A valid Oracle Grid Infrastructure (GI) software version.
 
-* `hostname` - The hostname for the cloud VM cluster.
+* `hostname` - The hostname for the cloud VM cluster without suffix.
+
+* `hostname_actual` - The hostname for the cloud VM cluster with suffix.
 
 * `iorm_config_cache` - A `iorm_config_cache` block as defined below.
 
