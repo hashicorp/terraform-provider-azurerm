@@ -89,7 +89,7 @@ A `data_protection_backup_policy` block supports the following:
 
 * `backup_policy_id` - The Resource ID of the backup policy.
 
-* `policy_enforced` - Backup policy is enforced or not.
+* `policy_enabled` - Backup policy is enabled or not.
 
 ---
 

@@ -131,7 +131,7 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"policy_enforced": {
+						"policy_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},

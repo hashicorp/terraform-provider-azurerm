@@ -88,7 +88,7 @@ resource "azurerm_netapp_volume" "example" {
   data_protection_backup_policy {
     backup_vault_id  = azurerm_netapp_backup_vault.example.id
     backup_policy_id = azurerm_netapp_backup_policy.example.id
-    policy_enforced  = true
+    policy_enabled   = true
   }
 
   export_policy_rule {

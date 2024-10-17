@@ -331,11 +331,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Description:  "The ID of the backup policy to associate with this volume.",
 						},
 
-						"policy_enforced": {
+						"policy_enabled": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     true,
-							Description: "If set to false, the backup policy will not be enforced on this volume, thus disabling scheduled backups.",
+							Description: "If set to false, the backup policy will not be enabled on this volume, thus disabling scheduled backups.",
 						},
 
 						"backup_vault_id": {
@@ -699,6 +699,8 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		shouldUpdate = true
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
 		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
+
+		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy.Snapshot
 	}
 
@@ -711,17 +713,13 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
-		// Validate applicability of backup policies
-		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
-			// Validate that backup policies are not being enforced in a data protection replication destination volume
-			if strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst") && dataProtectionReplication.Backup.PolicyEnforced == utils.Bool(true) {
-				return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
-			}
-		}
-
 		shouldUpdate = true
 		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
 		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
+
+		if update.Properties.DataProtection == nil {
+			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
+		}
 		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy.Backup
 	}
 
@@ -1251,7 +1249,7 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 	return []interface{}{
 		map[string]interface{}{
 			"backup_policy_id": backupPolicyID,
-			"policy_enforced":  policyEnforced,
+			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
 		},
 	}

@@ -50,6 +50,28 @@ func TestAccNetAppVolume_backupPolicy(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_updateBackupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateBackupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetAppVolume_availabilityZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
@@ -539,7 +561,55 @@ resource "azurerm_netapp_volume" "test" {
   data_protection_backup_policy {
     backup_vault_id  = azurerm_netapp_backup_vault.test.id
     backup_policy_id = azurerm_netapp_backup_policy.test.id
-    policy_enforced  = true
+    policy_enabled   = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) updateBackupPolicy(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_backup_vault" "test" {
+  name                = "acctest-NetAppBackupVault-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_name        = azurerm_netapp_account.test.name
+
+  tags = {
+    "testTag" = "testTagValue"
+  }
+}
+
+resource "azurerm_netapp_backup_policy" "test" {
+  name                    = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  account_name            = azurerm_netapp_account.test.name
+  daily_backups_to_keep   = 2
+  weekly_backups_to_keep  = 2
+  monthly_backups_to_keep = 2
+  enabled                 = true
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 10
+
+  data_protection_backup_policy {
+    backup_vault_id  = azurerm_netapp_backup_vault.test.id
+    backup_policy_id = azurerm_netapp_backup_policy.test.id
+    policy_enabled   = false
   }
 }
 `, template, data.RandomInteger)
@@ -1428,7 +1498,7 @@ provider "azurerm" {
     netapp {
       prevent_volume_destruction = false
       delete_backups_on_backup_vault_destroy = true
-	  } 
+    } 
   }
 }
 `

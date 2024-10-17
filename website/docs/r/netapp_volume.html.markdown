@@ -122,7 +122,7 @@ resource "azurerm_netapp_volume" "example" {
   data_protection_backup_policy {
     backup_vault_id  = azurerm_netapp_backup_vault.example.id
     backup_policy_id = azurerm_netapp_backup_policy.example.id
-    policy_enforced  = true
+    policy_enabled   = true
   }
 
   # prevent the possibility of accidental data loss
@@ -258,7 +258,7 @@ A `data_protection_backup_policy` block is used to setup automatic backups throu
 
 * `backup_policy_id` - (Required) Resource ID of the backup policy to apply to the volume.
 
-* `policy_enforced` - (Optional) Enables the backup policy on the volume, defaults to `true`.
+* `policy_enabled` - (Optional) Enables the backup policy on the volume, defaults to `true`.
 
 For more information on Azure NetApp Files Backup feature please see [Understand Azure NetApp Files backup](https://learn.microsoft.com/en-us/azure/azure-netapp-files/backup-introduction)
   
