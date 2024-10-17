@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbservers"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +18,9 @@ import (
 type DBServersDataSource struct{}
 
 type DBServersDataModel struct {
-	DBServers []DBServerDataModel `tfschema:"db_servers"`
+	CloudExadataInfrastructureName string              `tfschema:"cloud_exadata_infrastructure_name"`
+	DBServers                      []DBServerDataModel `tfschema:"db_servers"`
+	ResourceGroupName              string              `tfschema:"resource_group_name"`
 }
 
 type DBServerDataModel struct {
@@ -38,7 +39,6 @@ type DBServerDataModel struct {
 	MaxMemoryInGbs              int64    `tfschema:"max_memory_in_gbs"`
 	MemorySizeInGbs             int64    `tfschema:"memory_size_in_gbs"`
 	Ocid                        string   `tfschema:"ocid"`
-	ProvisioningState           string   `tfschema:"provisioning_state"`
 	Shape                       string   `tfschema:"shape"`
 	TimeCreated                 string   `tfschema:"time_created"`
 	VMClusterIds                []string `tfschema:"vm_cluster_ids"`
@@ -175,7 +175,7 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d DBServersDataSource) ModelObject() interface{} {
-	return nil
+	return &DBServersDataModel{}
 }
 
 func (d DBServersDataSource) ResourceType() string {
@@ -193,9 +193,12 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.DbServers
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := dbservers.NewCloudExadataInfrastructureID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("cloud_exadata_infrastructure_name").(string))
+			var state DBServersDataModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := dbservers.NewCloudExadataInfrastructureID(subscriptionId, state.ResourceGroupName, state.CloudExadataInfrastructureName)
 
 			resp, err := client.ListByCloudExadataInfrastructure(ctx, id)
 			if err != nil {
@@ -210,38 +213,35 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 					DBServers: make([]DBServerDataModel, 0),
 				}
 				for _, element := range *model {
-					if element.Properties != nil {
-						properties := element.Properties
+					if props := element.Properties; props != nil {
 						dbServer := DBServerDataModel{
-							AutonomousVMClusterIds:      pointer.From(properties.AutonomousVMClusterIds),
-							AutonomousVirtualMachineIds: pointer.From(properties.AutonomousVirtualMachineIds),
-							CompartmentId:               pointer.From(properties.CompartmentId),
-							CpuCoreCount:                pointer.From(properties.CpuCoreCount),
-							DbNodeIds:                   pointer.From(properties.DbNodeIds),
-							DbNodeStorageSizeInGbs:      pointer.From(properties.DbNodeStorageSizeInGbs),
-							DisplayName:                 pointer.From(properties.DisplayName),
-							ExadataInfrastructureId:     pointer.From(properties.ExadataInfrastructureId),
-							LifecycleDetails:            pointer.From(properties.LifecycleDetails),
-							LifecycleState:              string(pointer.From(properties.LifecycleState)),
-							MaxCPUCount:                 pointer.From(properties.MaxCPUCount),
-							MaxDbNodeStorageInGbs:       pointer.From(properties.MaxDbNodeStorageInGbs),
-							MaxMemoryInGbs:              pointer.From(properties.MaxMemoryInGbs),
-							MemorySizeInGbs:             pointer.From(properties.MemorySizeInGbs),
-							Ocid:                        pointer.From(properties.Ocid),
-							ProvisioningState:           string(pointer.From(properties.ProvisioningState)),
-							Shape:                       pointer.From(properties.Shape),
-							TimeCreated:                 pointer.From(properties.TimeCreated),
-							VMClusterIds:                pointer.From(properties.VMClusterIds),
+							AutonomousVMClusterIds:      pointer.From(props.AutonomousVMClusterIds),
+							AutonomousVirtualMachineIds: pointer.From(props.AutonomousVirtualMachineIds),
+							CompartmentId:               pointer.From(props.CompartmentId),
+							CpuCoreCount:                pointer.From(props.CpuCoreCount),
+							DbNodeIds:                   pointer.From(props.DbNodeIds),
+							DbNodeStorageSizeInGbs:      pointer.From(props.DbNodeStorageSizeInGbs),
+							DisplayName:                 pointer.From(props.DisplayName),
+							ExadataInfrastructureId:     pointer.From(props.ExadataInfrastructureId),
+							LifecycleDetails:            pointer.From(props.LifecycleDetails),
+							LifecycleState:              string(pointer.From(props.LifecycleState)),
+							MaxCPUCount:                 pointer.From(props.MaxCPUCount),
+							MaxDbNodeStorageInGbs:       pointer.From(props.MaxDbNodeStorageInGbs),
+							MaxMemoryInGbs:              pointer.From(props.MaxMemoryInGbs),
+							MemorySizeInGbs:             pointer.From(props.MemorySizeInGbs),
+							Ocid:                        pointer.From(props.Ocid),
+							Shape:                       pointer.From(props.Shape),
+							TimeCreated:                 pointer.From(props.TimeCreated),
+							VMClusterIds:                pointer.From(props.VMClusterIds),
 						}
 						output.DBServers = append(output.DBServers, dbServer)
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }

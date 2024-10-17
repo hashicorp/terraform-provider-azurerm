@@ -28,8 +28,6 @@ func TestDBServersDataSource_basic(t *testing.T) {
 
 func (d DBServersDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 data "azurerm_oracle_db_servers" "test" {
