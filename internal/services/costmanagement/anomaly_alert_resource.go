@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/costmanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,6 +46,13 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			Computed:     true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
+		},
+
+		"email_address_sender": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"email_subject": {
@@ -117,6 +124,13 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
 
+			var senderEmail string
+			if v, ok := metadata.ResourceData.GetOk("email_address_sender"); ok {
+				senderEmail = v.(string)
+			} else {
+				senderEmail = (*emailAddresses)[0]
+			}
+
 			param := scheduledactions.ScheduledAction{
 				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
 				Properties: &scheduledactions.ScheduledActionProperties{
@@ -126,6 +140,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 					FileDestination: &scheduledactions.FileDestination{
 						FileFormats: &[]scheduledactions.FileFormat{},
 					},
+					NotificationEmail: &senderEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
 						Message: utils.String(metadata.ResourceData.Get("message").(string)),
@@ -134,7 +149,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 					Schedule: schedule,
 				},
 			}
-			if _, err := client.CreateOrUpdateByScope(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdateByScope(ctx, id, param, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -183,13 +198,21 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
 			schedule.SetStartDateAsTime(time.Now())
 
+			var senderEmail string
+			if v, ok := metadata.ResourceData.GetOk("email_address_sender"); ok {
+				senderEmail = v.(string)
+			} else {
+				senderEmail = (*emailAddresses)[0]
+			}
+
 			param := scheduledactions.ScheduledAction{
 				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
 				ETag: resp.Model.ETag,
 				Properties: &scheduledactions.ScheduledActionProperties{
-					DisplayName: metadata.ResourceData.Get("display_name").(string),
-					Status:      scheduledactions.ScheduledActionStatusEnabled,
-					ViewId:      viewId.ID(),
+					DisplayName:       metadata.ResourceData.Get("display_name").(string),
+					Status:            scheduledactions.ScheduledActionStatusEnabled,
+					ViewId:            viewId.ID(),
+					NotificationEmail: &senderEmail,
 					Notification: scheduledactions.NotificationProperties{
 						Subject: metadata.ResourceData.Get("email_subject").(string),
 						Message: utils.String(metadata.ResourceData.Get("message").(string)),
@@ -198,7 +221,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 					Schedule: schedule,
 				},
 			}
-			if _, err := client.CreateOrUpdateByScope(ctx, *id, param); err != nil {
+			if _, err := client.CreateOrUpdateByScope(ctx, *id, param, scheduledactions.CreateOrUpdateByScopeOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -234,6 +257,7 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 					metadata.ResourceData.Set("display_name", props.DisplayName)
 					metadata.ResourceData.Set("subscription_id", fmt.Sprint("/", *props.Scope))
 					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
+					metadata.ResourceData.Set("email_address_sender", props.NotificationEmail)
 					metadata.ResourceData.Set("email_addresses", props.Notification.To)
 					metadata.ResourceData.Set("message", props.Notification.Message)
 				}
