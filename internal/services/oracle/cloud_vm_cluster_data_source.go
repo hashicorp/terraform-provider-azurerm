@@ -9,25 +9,20 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type CloudVmClusterDataSource struct{}
 
 type CloudVmClusterDataModel struct {
-	Name string                 `tfschema:"name"`
-	Type string                 `tfschema:"type"`
-	Tags map[string]interface{} `tfschema:"tags"`
-
-	// SystemData
-	SystemData []SystemDataModel `tfschema:"system_data"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Tags              map[string]string `tfschema:"tags"`
 
 	// CloudVMClusterProperties
 	BackupSubnetCidr             string                       `tfschema:"backup_subnet_cidr"`
@@ -48,20 +43,20 @@ type CloudVmClusterDataModel struct {
 	Hostname                     string                       `tfschema:"hostname"`
 	HostnameActual               string                       `tfschema:"hostname_actual"`
 	IormConfigCache              []ExadataIormConfigModel     `tfschema:"iorm_config_cache"`
-	IsLocalBackupEnabled         bool                         `tfschema:"is_local_backup_enabled"`
-	IsSparseDiskgroupEnabled     bool                         `tfschema:"is_sparse_diskgroup_enabled"`
+	IsLocalBackupEnabled         bool                         `tfschema:"local_backup_enabled"`
+	IsSparseDiskgroupEnabled     bool                         `tfschema:"sparse_diskgroup_enabled"`
 	LastUpdateHistoryEntryId     string                       `tfschema:"last_update_history_entry_id"`
 	LicenseModel                 string                       `tfschema:"license_model"`
 	LifecycleDetails             string                       `tfschema:"lifecycle_details"`
 	LifecycleState               string                       `tfschema:"lifecycle_state"`
 	ListenerPort                 int64                        `tfschema:"listener_port"`
+	Location                     string                       `tfschema:"location"`
 	MemorySizeInGbs              int64                        `tfschema:"memory_size_in_gbs"`
 	NodeCount                    int64                        `tfschema:"node_count"`
 	NsgUrl                       string                       `tfschema:"nsg_url"`
 	OciUrl                       string                       `tfschema:"oci_url"`
 	Ocid                         string                       `tfschema:"ocid"`
 	OcpuCount                    float64                      `tfschema:"ocpu_count"`
-	ProvisioningState            string                       `tfschema:"provisioning_state"`
 	ScanDnsName                  string                       `tfschema:"scan_dns_name"`
 	ScanDnsRecordId              string                       `tfschema:"scan_dns_record_id"`
 	ScanIPIds                    []string                     `tfschema:"scan_ip_ids"`
@@ -76,14 +71,14 @@ type CloudVmClusterDataModel struct {
 	TimeCreated                  string                       `tfschema:"time_created"`
 	TimeZone                     string                       `tfschema:"time_zone"`
 	VipIds                       []string                     `tfschema:"vip_ods"`
-	VnetId                       string                       `tfschema:"vnet_id"`
+	VnetId                       string                       `tfschema:"virtual_network_id"`
 	ZoneId                       string                       `tfschema:"zone_id"`
 }
 
 type DataCollectionOptionsModel struct {
-	IsDiagnosticsEventsEnabled bool `tfschema:"is_diagnostics_events_enabled"`
-	IsHealthMonitoringEnabled  bool `tfschema:"is_health_monitoring_enabled"`
-	IsIncidentLogsEnabled      bool `tfschema:"is_incident_logs_enabled"`
+	IsDiagnosticsEventsEnabled bool `tfschema:"diagnostics_events_enabled"`
+	IsHealthMonitoringEnabled  bool `tfschema:"health_monitoring_enabled"`
+	IsIncidentLogsEnabled      bool `tfschema:"incident_logs_enabled"`
 }
 
 type ExadataIormConfigModel struct {
@@ -114,50 +109,6 @@ func (d CloudVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		// SystemData
-		"system_data": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"created_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
 
 		// CloudVMClusterProperties
 		"backup_subnet_cidr": {
@@ -198,17 +149,17 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"is_diagnostics_events_enabled": {
+					"diagnostics_events_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
-					"is_health_monitoring_enabled": {
+					"health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
-					"is_incident_logs_enabled": {
+					"incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -315,12 +266,12 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"is_local_backup_enabled": {
+		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
-		"is_sparse_diskgroup_enabled": {
+		"sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -377,11 +328,6 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"ocpu_count": {
 			Type:     pluginsdk.TypeFloat,
-			Computed: true,
-		},
-
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
@@ -464,7 +410,7 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"vnet_id": {
+		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -479,7 +425,7 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d CloudVmClusterDataSource) ModelObject() interface{} {
-	return nil
+	return &CloudVmClusterDataModel{}
 }
 
 func (d CloudVmClusterDataSource) ResourceType() string {
@@ -497,9 +443,12 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("name").(string))
+			var state CloudVmClusterDataModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -510,86 +459,63 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				err := metadata.ResourceData.Set("location", location.NormalizeNilable(&model.Location))
-				if err != nil {
-					return err
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
+					state.CloudExadataInfrastructureId = props.CloudExadataInfrastructureId
+					state.ClusterName = pointer.From(props.ClusterName)
+					state.CompartmentId = pointer.From(props.CompartmentId)
+					state.ComputeNodes = pointer.From(props.ComputeNodes)
+					state.CpuCoreCount = props.CpuCoreCount
+					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
+					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
+					state.DbServers = pointer.From(props.DbServers)
+					state.DiskRedundancy = string(pointer.From(props.DiskRedundancy))
+					state.DisplayName = props.DisplayName
+					state.Domain = pointer.From(props.Domain)
+					state.GiVersion = props.GiVersion
+					state.Hostname = removeHostnameSuffix(props.Hostname)
+					state.HostnameActual = props.Hostname
+					state.IormConfigCache = FlattenExadataIormConfig(props.IormConfigCache)
+					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
+					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
+					state.LastUpdateHistoryEntryId = pointer.From(props.LastUpdateHistoryEntryId)
+					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
+					state.LifecycleState = string(*props.LifecycleState)
+					state.ListenerPort = pointer.From(props.ListenerPort)
+					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.NodeCount = pointer.From(props.NodeCount)
+					state.NsgUrl = pointer.From(props.NsgURL)
+					state.OciUrl = pointer.From(props.OciURL)
+					state.Ocid = pointer.From(props.Ocid)
+					state.Shape = pointer.From(props.Shape)
+					state.StorageSizeInGbs = pointer.From(props.StorageSizeInGbs)
+					state.SubnetId = props.SubnetId
+					state.SubnetOcid = pointer.From(props.SubnetOcid)
+					state.SystemVersion = pointer.From(props.SystemVersion)
+					state.TimeCreated = pointer.From(props.TimeCreated)
+					state.TimeZone = pointer.From(props.TimeZone)
+					state.ZoneId = pointer.From(props.ZoneId)
 				}
-
-				var output CloudVmClusterDataModel
-				prop := model.Properties
-				if prop != nil {
-					output = CloudVmClusterDataModel{
-						BackupSubnetCidr:             pointer.From(prop.BackupSubnetCidr),
-						CloudExadataInfrastructureId: prop.CloudExadataInfrastructureId,
-						ClusterName:                  pointer.From(prop.ClusterName),
-						CompartmentId:                pointer.From(prop.CompartmentId),
-						ComputeNodes:                 pointer.From(prop.ComputeNodes),
-						CpuCoreCount:                 prop.CpuCoreCount,
-						DataStoragePercentage:        pointer.From(prop.DataStoragePercentage),
-						DataStorageSizeInTbs:         pointer.From(prop.DataStorageSizeInTbs),
-						DbNodeStorageSizeInGbs:       pointer.From(prop.DbNodeStorageSizeInGbs),
-						DbServers:                    pointer.From(prop.DbServers),
-						DiskRedundancy:               string(pointer.From(prop.DiskRedundancy)),
-						DisplayName:                  prop.DisplayName,
-						Domain:                       pointer.From(prop.Domain),
-						GiVersion:                    prop.GiVersion,
-						Hostname:                     removeHostnameSuffix(prop.Hostname),
-						HostnameActual:               prop.Hostname,
-						IormConfigCache:              FlattenExadataIormConfig(prop.IormConfigCache),
-						IsLocalBackupEnabled:         pointer.From(prop.IsLocalBackupEnabled),
-						IsSparseDiskgroupEnabled:     pointer.From(prop.IsSparseDiskgroupEnabled),
-						LastUpdateHistoryEntryId:     pointer.From(prop.LastUpdateHistoryEntryId),
-						LicenseModel:                 string(pointer.From(prop.LicenseModel)),
-						LifecycleDetails:             pointer.From(prop.LifecycleDetails),
-						LifecycleState:               string(*prop.LifecycleState),
-						ListenerPort:                 pointer.From(prop.ListenerPort),
-						MemorySizeInGbs:              pointer.From(prop.MemorySizeInGbs),
-						NodeCount:                    pointer.From(prop.NodeCount),
-						NsgUrl:                       pointer.From(prop.NsgURL),
-						OciUrl:                       pointer.From(prop.OciURL),
-						Ocid:                         pointer.From(prop.Ocid),
-						ProvisioningState:            string(pointer.From(prop.ProvisioningState)),
-						Shape:                        pointer.From(prop.Shape),
-						StorageSizeInGbs:             pointer.From(prop.StorageSizeInGbs),
-						SubnetId:                     prop.SubnetId,
-						SubnetOcid:                   pointer.From(prop.SubnetOcid),
-						SystemVersion:                pointer.From(prop.SystemVersion),
-						TimeCreated:                  pointer.From(prop.TimeCreated),
-						TimeZone:                     pointer.From(prop.TimeZone),
-						ZoneId:                       pointer.From(prop.ZoneId),
-					}
-				}
-
-				systemData := model.SystemData
-				if systemData != nil {
-					output.SystemData = []SystemDataModel{
-						{
-							CreatedBy:          systemData.CreatedBy,
-							CreatedByType:      systemData.CreatedByType,
-							CreatedAt:          systemData.CreatedAt,
-							LastModifiedBy:     systemData.LastModifiedBy,
-							LastModifiedbyType: systemData.LastModifiedbyType,
-							LastModifiedAt:     systemData.LastModifiedAt,
-						},
-					}
-				}
-				output.Name = id.CloudVmClusterName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-
-				metadata.SetID(id)
-				return metadata.Encode(&output)
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }
 
-func FlattenExadataIormConfig(exadataIormConfig *cloudvmclusters.ExadataIormConfig) []ExadataIormConfigModel {
-	if exadataIormConfig != nil {
+func FlattenExadataIormConfig(input *cloudvmclusters.ExadataIormConfig) []ExadataIormConfigModel {
+	output := make([]ExadataIormConfigModel, 0)
+
+	if input != nil {
 		var dbIormConfigModel []DbIormConfigModel
-		if exadataIormConfig.DbPlans != nil {
-			dbPlans := *exadataIormConfig.DbPlans
+		if input.DbPlans != nil {
+			dbPlans := *input.DbPlans
 			for _, dbPlan := range dbPlans {
 				dbIormConfigModel = append(dbIormConfigModel, DbIormConfigModel{
 					DbName:          pointer.From(dbPlan.DbName),
@@ -598,14 +524,13 @@ func FlattenExadataIormConfig(exadataIormConfig *cloudvmclusters.ExadataIormConf
 				})
 			}
 		}
-		return []ExadataIormConfigModel{
-			{
-				DbPlans:          dbIormConfigModel,
-				LifecycleDetails: pointer.From(exadataIormConfig.LifecycleDetails),
-				LifecycleState:   string(pointer.From(exadataIormConfig.LifecycleState)),
-				Objective:        string(pointer.From(exadataIormConfig.Objective)),
-			},
-		}
+		return append(output, ExadataIormConfigModel{
+			DbPlans:          dbIormConfigModel,
+			LifecycleDetails: pointer.From(input.LifecycleDetails),
+			LifecycleState:   string(pointer.From(input.LifecycleState)),
+			Objective:        string(pointer.From(input.Objective)),
+		})
 	}
-	return nil
+
+	return output
 }
