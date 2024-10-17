@@ -562,10 +562,8 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				pna = helpers.PublicNetworkAccessDisabled
 			}
 
-			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
-			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
-
+			
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
@@ -1028,9 +1026,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					pna = helpers.PublicNetworkAccessDisabled
 				}
 
-				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
-				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
 			if err = client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {

@@ -380,10 +380,8 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 				pna = helpers.PublicNetworkAccessDisabled
 			}
 
-			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
-			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
-
+			
 			if webApp.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(webApp.VirtualNetworkSubnetID)
 			}
@@ -836,9 +834,7 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					pna = helpers.PublicNetworkAccessDisabled
 				}
 
-				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
-				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
