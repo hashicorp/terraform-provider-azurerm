@@ -179,10 +179,6 @@ func (a ExadataInfraResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_oracle_exadata_infrastructure" "import" {
   name                = azurerm_oracle_exadata_infrastructure.test.name
   location            = azurerm_oracle_exadata_infrastructure.test.location
