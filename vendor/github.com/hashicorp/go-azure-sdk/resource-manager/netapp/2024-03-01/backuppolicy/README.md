@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy` Documentation
 
-The `backuppolicy` SDK allows for interaction with the Azure Resource Manager Service `netapp` (API Version `2024-03-01`).
+The `backuppolicy` SDK allows for interaction with Azure Resource Manager `netapp` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "backupPolicyValue")
+id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "backupPolicyName")
 
 payload := backuppolicy.BackupPolicy{
 	// ...
@@ -41,7 +41,7 @@ if err := client.BackupPoliciesCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "backupPolicyValue")
+id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "backupPolicyName")
 
 if err := client.BackupPoliciesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.BackupPoliciesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "backupPolicyValue")
+id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "backupPolicyName")
 
 read, err := client.BackupPoliciesGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backuppolicy.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue")
+id := backuppolicy.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName")
 
 read, err := client.BackupPoliciesList(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountValue", "backupPolicyValue")
+id := backuppolicy.NewBackupPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "backupPolicyName")
 
 payload := backuppolicy.BackupPolicyPatch{
 	// ...

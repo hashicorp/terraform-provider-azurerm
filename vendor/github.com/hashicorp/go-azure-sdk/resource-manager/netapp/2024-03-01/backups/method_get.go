@@ -45,7 +45,6 @@ func (c BackupsClient) Get(ctx context.Context, id BackupId) (result GetOperatio
 
 	var model Backup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -39,6 +39,7 @@ func (o ListByVaultOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByVaultOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

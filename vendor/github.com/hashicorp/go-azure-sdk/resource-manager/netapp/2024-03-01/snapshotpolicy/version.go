@@ -6,5 +6,5 @@ package snapshotpolicy
 const defaultApiVersion = "2024-03-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/snapshotpolicy/2023-05-01"
+	return "hashicorp/go-azure-sdk/snapshotpolicy/2024-03-01"
 }

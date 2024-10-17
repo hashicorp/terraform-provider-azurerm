@@ -46,7 +46,6 @@ func (c BackupsClient) GetLatestStatus(ctx context.Context, id VolumeId) (result
 
 	var model BackupStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

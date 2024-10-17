@@ -6,5 +6,5 @@ package netappaccounts
 const defaultApiVersion = "2024-03-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/netappaccounts/2023-05-01"
+	return "hashicorp/go-azure-sdk/netappaccounts/2024-03-01"
 }

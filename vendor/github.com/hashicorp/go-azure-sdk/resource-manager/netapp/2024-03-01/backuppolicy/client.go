@@ -15,7 +15,7 @@ type BackupPolicyClient struct {
 }
 
 func NewBackupPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*BackupPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "backuppolicy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "backuppolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BackupPolicyClient: %+v", err)
 	}

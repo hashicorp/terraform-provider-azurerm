@@ -6,5 +6,5 @@ package volumes
 const defaultApiVersion = "2024-03-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/volumes/2023-05-01"
+	return "hashicorp/go-azure-sdk/volumes/2024-03-01"
 }

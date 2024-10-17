@@ -6,5 +6,5 @@ package volumesreplication
 const defaultApiVersion = "2024-03-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/volumesreplication/2023-05-01"
+	return "hashicorp/go-azure-sdk/volumesreplication/2024-03-01"
 }
