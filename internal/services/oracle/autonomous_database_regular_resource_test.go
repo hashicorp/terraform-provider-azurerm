@@ -115,7 +115,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
-  data_storage_size_in_gbs         = "32"
+  data_storage_size_in_tbs         = "2"
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
@@ -154,7 +154,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
-  data_storage_size_in_gbs         = "32"
+  data_storage_size_in_tbs         = "2"
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
@@ -193,7 +193,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
-  data_storage_size_in_gbs         = "32"
+  data_storage_size_in_tbs         = "2"
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
@@ -229,7 +229,7 @@ resource "azurerm_oracle_autonomous_database" "import" {
   auto_scaling_enabled             = azurerm_oracle_autonomous_database.test.auto_scaling_enabled
   auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database.test.auto_scaling_for_storage_enabled
   mtls_connection_required         = azurerm_oracle_autonomous_database.test.mtls_connection_required
-  data_storage_size_in_gbs         = azurerm_oracle_autonomous_database.test.data_storage_size_in_gbs
+  data_storage_size_in_tbs         = azurerm_oracle_autonomous_database.test.data_storage_size_in_tbs
   db_workload                      = azurerm_oracle_autonomous_database.test.db_workload
   admin_password                   = azurerm_oracle_autonomous_database.test.admin_password
   db_version                       = azurerm_oracle_autonomous_database.test.db_version
