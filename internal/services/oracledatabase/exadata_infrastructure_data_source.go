@@ -25,7 +25,7 @@ type ExadataInfraDataModel struct {
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
 	Type              string                 `tfschema:"type"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Tags              map[string]string `tfschema:"tags"`
 	Zones             zones.Schema           `tfschema:"zones"`
 
 	// CloudExadataInfrastructureProperties
