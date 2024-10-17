@@ -175,6 +175,21 @@ func TestAccContainerAppEnvironment_infraResourceGroupWithoutName(t *testing.T) 
 	})
 }
 
+func TestAccContainerAppEnvironment_infraResourceGroupWithConsumptionWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infraResourceGroupWithConsumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("workload_profile"),
+	})
+}
+
 func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
 	if err != nil {
@@ -573,6 +588,33 @@ resource "azurerm_container_app_environment" "test" {
   }
 
   zone_redundancy_enabled = true
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) infraResourceGroupWithConsumptionWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 
   tags = {
     Foo    = "Bar"
