@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -61,6 +60,25 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_update(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_cross_region(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossRegion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.crossRegion,
+			TestResource: r,
+		}),
+	})
+}
+
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
 	if err != nil {
@@ -81,8 +99,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Destroy(ctx context.Con
 		return nil, err
 	}
 
-	if err := postgres.DeletePostgresFlexibileServerVirtualEndpoint(ctx, client.Postgres.VirtualEndpointClient, id); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", id, err)
+	if err := client.Postgres.VirtualEndpointClient.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
@@ -199,4 +217,228 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   depends_on = [azurerm_postgresql_flexible_server.test_replica_0, azurerm_postgresql_flexible_server.test_replica_1]
 }
 `, data.RandomInteger, "eastus", replicaId) // force region due to SKU constraints
+}
+
+/** Complex test cases across regions and resource groups */
+func (PostgresqlFlexibleServerVirtualEndpointResource) crossRegion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+###### EAST RG ######
+
+resource "azurerm_resource_group" "east" {
+  name     = "acctest%[1]d-east"
+  location = "eastus"
+}
+
+resource "azurerm_virtual_network" "east" {
+  name                = "acctest%[1]d-east-vn"
+  location            = azurerm_resource_group.east.location
+  resource_group_name = azurerm_resource_group.east.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_network_security_group" "east" {
+  name                = "acctest%[1]d-east-nsg"
+  location            = azurerm_resource_group.east.location
+  resource_group_name = azurerm_resource_group.east.name
+
+  security_rule {
+    name                       = "allow_all"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet" "east" {
+  name                 = "acctest%[1]d-east-sn"
+  resource_group_name  = azurerm_resource_group.east.name
+  virtual_network_name = azurerm_virtual_network.east.name
+  address_prefixes     = ["10.0.1.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "east" {
+  subnet_id                 = azurerm_subnet.east.id
+  network_security_group_id = azurerm_network_security_group.east.id
+}
+
+resource "azurerm_private_dns_zone" "east" {
+  name                = "acctest%[1]d-pdz.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.east.name
+
+  depends_on = [azurerm_subnet_network_security_group_association.east]
+}
+
+resource "azurerm_virtual_network_peering" "east" {
+  name                         = "east-to-west"
+  resource_group_name          = azurerm_resource_group.east.name
+  virtual_network_name         = azurerm_virtual_network.east.name
+  remote_virtual_network_id    = azurerm_virtual_network.west.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "east" {
+  name                  = "acctest%[1]d-east-pdzvnetlink.com"
+  private_dns_zone_name = azurerm_private_dns_zone.east.name
+  virtual_network_id    = azurerm_virtual_network.east.id
+  resource_group_name   = azurerm_resource_group.east.name
+
+  depends_on = [azurerm_virtual_network_peering.east]
+}
+
+resource "azurerm_postgresql_flexible_server" "east" {
+  name                          = "acctest%[1]d-east-pg"
+  resource_group_name           = azurerm_resource_group.east.name
+  location                      = azurerm_resource_group.east.location
+  version                       = "13"
+  public_network_access_enabled = false
+  administrator_login           = "adminTerraform"
+  administrator_password        = "maLTq5SnDBrWfyban7Wz"
+  sku_name                      = "GP_Standard_D2s_v3"
+
+  delegated_subnet_id = azurerm_subnet.east.id
+  private_dns_zone_id = azurerm_private_dns_zone.east.id
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.east]
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
+
+  timeouts {
+    create = "120m"
+  }
+}
+
+resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
+  name              = "acctest%[1]d-endpoint"
+  source_server_id  = azurerm_postgresql_flexible_server.east.id
+  replica_server_id = azurerm_postgresql_flexible_server.west.id
+  type              = "ReadWrite"
+}
+
+###### WEST RG ######
+
+resource "azurerm_resource_group" "west" {
+  name     = "acctest%[1]d-west"
+  location = "westus"
+}
+
+resource "azurerm_virtual_network" "west" {
+  name                = "acctest%[1]d-west-vn"
+  location            = azurerm_resource_group.west.location
+  resource_group_name = azurerm_resource_group.west.name
+  address_space       = ["11.0.0.0/16"]
+}
+
+resource "azurerm_network_security_group" "west" {
+  name                = "acctest%[1]d-west-nsg"
+  location            = azurerm_resource_group.west.location
+  resource_group_name = azurerm_resource_group.west.name
+
+  security_rule {
+    name                       = "allow_all"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_subnet" "west" {
+  name                 = "acctest%[1]d-west-sn"
+  resource_group_name  = azurerm_resource_group.west.name
+  virtual_network_name = azurerm_virtual_network.west.name
+  address_prefixes     = ["11.0.1.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "west" {
+  subnet_id                 = azurerm_subnet.west.id
+  network_security_group_id = azurerm_network_security_group.west.id
+}
+
+resource "azurerm_private_dns_zone" "west" {
+  name                = "acctest%[1]d-pdz.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.west.name
+
+  depends_on = [azurerm_subnet_network_security_group_association.west]
+}
+
+resource "azurerm_virtual_network_peering" "west" {
+  name                         = "acctest-pfs%[1]d-west-to-east"
+  resource_group_name          = azurerm_resource_group.west.name
+  virtual_network_name         = azurerm_virtual_network.west.name
+  remote_virtual_network_id    = azurerm_virtual_network.east.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "west" {
+  name                  = "acctest%[1]d-west-pdzvnetlink.com"
+  private_dns_zone_name = azurerm_private_dns_zone.west.name
+  virtual_network_id    = azurerm_virtual_network.west.id
+  resource_group_name   = azurerm_resource_group.west.name
+
+  depends_on = [azurerm_virtual_network_peering.west]
+}
+
+resource "azurerm_postgresql_flexible_server" "west" {
+  name                          = "acctest%[1]d-west-pg"
+  resource_group_name           = azurerm_resource_group.west.name
+  location                      = azurerm_resource_group.west.location
+  create_mode                   = "Replica"
+  source_server_id              = azurerm_postgresql_flexible_server.east.id
+  version                       = azurerm_postgresql_flexible_server.east.version
+  public_network_access_enabled = azurerm_postgresql_flexible_server.east.public_network_access_enabled
+  sku_name                      = azurerm_postgresql_flexible_server.east.sku_name
+
+  delegated_subnet_id = azurerm_subnet.west.id
+  private_dns_zone_id = azurerm_private_dns_zone.west.id
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.west]
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
+
+  timeouts {
+    create = "120m"
+  }
+}
+`, data.RandomInteger)
 }
