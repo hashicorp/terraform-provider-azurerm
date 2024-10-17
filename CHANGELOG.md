@@ -11,7 +11,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `redis` - upgrade api version to `2024-06-01-preview`  [GH-27597]
+* `redisenterprise` - upgrade api version to `2024-06-01-preview`  [GH-27597]
 * `azurerm_app_configuration` - support for premium sku [GH-27674]
 * `azurerm_container_app` - support for the `max_inactive_revisions` property [GH-27598]
 * `azurerm_kubernetes_cluster` - remove lock on subnets [GH-27583]
@@ -22,7 +22,7 @@ ENHANCEMENTS:
 
 BUGS:
 
-* `azurerm_api_management_api_diagnostic` - do not seet `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
+* `azurerm_api_management_api_diagnostic` - do not set `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
 * `azurerm_api_management` - prevent a panic [GH-27649]
 * `azurerm_mssql_database` - make `short_term_retention_policy.backup_interval_in_hours` computed [GH-27656]
 
