@@ -656,6 +656,51 @@ func TestAccLinuxFunctionApp_standardComplete(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_flexConsumptionBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexConsumptionBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_flexConsumptionSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexConsumptionSystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionApp_flexConsumptionUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexConsumptionUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Individual Settings / Blocks
 
 func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
@@ -3419,6 +3464,137 @@ resource "azurerm_linux_function_app" "test" {
     terraform = "true"
     Env       = "AccTest"
   }
+}
+`, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r LinuxFunctionAppResource) flexConsumptionBasic(data acceptance.TestData) string {
+	planSku := "FC1"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  flex_function_app_deployment {
+    storage_container_type                   = "blobContainer"
+    storage_container_endpoint               = azurerm_storage_container.test.id
+    storage_connection_string_access_enabled = true
+    storage_access_key                       = azurerm_storage_account.test.primary_access_key
+    runtime_name                             = "node"
+    runtime_version                          = "20"
+    maximum_instance_count                   = 50
+    instance_memory_in_mb                    = 2048
+  }
+
+  site_config {}
+}
+`, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r LinuxFunctionAppResource) flexConsumptionSystemAssignedIdentity(data acceptance.TestData) string {
+	planSku := "FC1"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  flex_function_app_deployment {
+    storage_container_type                          = "blobContainer"
+    storage_container_endpoint                      = azurerm_storage_container.test.id
+    storage_system_assigned_identity_access_enabled = true
+    runtime_name                                    = "node"
+    runtime_version                                 = "20"
+    maximum_instance_count                          = 50
+    instance_memory_in_mb                           = 2048
+  }
+
+  site_config {}
+}
+`, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
+}
+
+func (r LinuxFunctionAppResource) flexConsumptionUserAssignedIdentity(data acceptance.TestData) string {
+	planSku := "FC1"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  flex_function_app_deployment {
+    storage_container_type                        = "blobContainer"
+    storage_container_endpoint                    = azurerm_storage_container.test.id
+    storage_user_assigned_identity_access_enabled = true
+    storage_user_assigned_identity_id             = azurerm_user_assigned_identity.test.id
+    runtime_name                                  = "node"
+    runtime_version                               = "20"
+    maximum_instance_count                        = 50
+    instance_memory_in_mb                         = 2048
+  }
+
+  site_config {}
 }
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
