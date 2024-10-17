@@ -106,7 +106,6 @@ import (
 	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
-	oracledatabase "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/client"
 	oracle "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
@@ -238,7 +237,6 @@ type Client struct {
 	NewRelic                          *newrelic.Client
 	Nginx                             *nginx_2024_06_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
-	OracleDatabase                    *oracledatabase.Client
 	Oracle                            *oracle.Client
 	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client

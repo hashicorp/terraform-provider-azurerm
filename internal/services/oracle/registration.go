@@ -17,6 +17,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		CloudVmClusterDataSource{},
 		DBServersDataSource{},
 		ExadataInfraDataSource{},
+		AutonomousDatabaseRegularDataSource{},
 	}
 }
 
@@ -24,6 +25,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
+		AutonomousDatabaseRegularResource{},
 	}
 }
 

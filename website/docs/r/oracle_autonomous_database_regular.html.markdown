@@ -1,19 +1,19 @@
 ---
 subcategory: "App Service"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_oracledatabase_autonomous_database_regular"
+page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database"
 description: |-
   Manages a Autonomous Databases.
 ---
 
-# azurerm_oracledatabase_autonomous_database_regular
+# azurerm_oracle_autonomous_database
 
 Manages a Autonomous Databases.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_oracledatabase_autonomous_database_regular" "example" {
+resource "azurerm_oracle_autonomous_database" "example" {
   name                                = "example"
   resource_group_name                 = "example"
   location                            = "West Europe"
@@ -109,5 +109,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Autonomous Databases can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracledatabase_autonomous_database_regular.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/autonomousDatabases/autonomousDatabases1
+terraform import azurerm_oracle_autonomous_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/autonomousDatabases/autonomousDatabases1
 ```

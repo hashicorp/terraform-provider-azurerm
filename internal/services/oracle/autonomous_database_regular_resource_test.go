@@ -1,18 +1,19 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"context"
 	"fmt"
+	"testing"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"testing"
 )
 
 type AdbsRegularResource struct{}
@@ -22,26 +23,15 @@ func (a AdbsRegularResource) Exists(ctx context.Context, client *clients.Client,
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases.Get(ctx, *id)
+	resp, err := client.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving adbs %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
-}
-
-func (a AdbsRegularResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := autonomousdatabases.ParseAutonomousDatabaseID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting adbs %s: %+v", id, err)
-	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAdbsRegularResource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.AdbsRegularResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +45,7 @@ func TestAdbsRegularResource_basic(t *testing.T) {
 }
 
 func TestAdbsRegularResource_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.AdbsRegularResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +66,7 @@ func TestAdbsRegularResource_update(t *testing.T) {
 }
 
 func TestAdbsRegularResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.AdbsRegularResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +84,7 @@ func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 
 %s
 
-resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
+resource "azurerm_oracle_autonomous_database" "test" {
   name = "OFake%[2]d"
 
   display_name = "OFake%[2]d"
@@ -129,7 +119,7 @@ func (a AdbsRegularResource) update(data acceptance.TestData) string {
 
 %s
 
-resource "azurerm_oracledatabase_autonomous_database_regular" "test" {
+resource "azurerm_oracle_autonomous_database" "test" {
   name = "OFake%[2]d"
   display_name = "OFake%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -165,26 +155,26 @@ func (a AdbsRegularResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracledatabase_autonomous_database_regular" "import" {
-  name = azurerm_oracledatabase_autonomous_database_regular.test.name
-  display_name = azurerm_oracledatabase_autonomous_database_regular.test.display_name
-  resource_group_name = azurerm_oracledatabase_autonomous_database_regular.test.resource_group_name
-  location = azurerm_oracledatabase_autonomous_database_regular.test.location
-  compute_model = azurerm_oracledatabase_autonomous_database_regular.test.compute_model
-  compute_count = azurerm_oracledatabase_autonomous_database_regular.test.compute_count
-  license_model = azurerm_oracledatabase_autonomous_database_regular.test.license_model
-  backup_retention_period_in_days = azurerm_oracledatabase_autonomous_database_regular.test.backup_retention_period_in_days
-  is_auto_scaling_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_enabled
-  is_auto_scaling_for_storage_enabled = azurerm_oracledatabase_autonomous_database_regular.test.is_auto_scaling_for_storage_enabled
-  is_mtls_connection_required = azurerm_oracledatabase_autonomous_database_regular.test.is_mtls_connection_required
-  data_storage_size_in_gbs = azurerm_oracledatabase_autonomous_database_regular.test.data_storage_size_in_gbs
-  db_workload = azurerm_oracledatabase_autonomous_database_regular.test.db_workload
-  admin_password = azurerm_oracledatabase_autonomous_database_regular.test.admin_password
-  db_version = azurerm_oracledatabase_autonomous_database_regular.test.db_version
-  character_set = azurerm_oracledatabase_autonomous_database_regular.test.character_set
-  ncharacter_set = azurerm_oracledatabase_autonomous_database_regular.test.ncharacter_set
-  subnet_id = azurerm_oracledatabase_autonomous_database_regular.test.subnet_id
-  vnet_id = azurerm_oracledatabase_autonomous_database_regular.test.vnet_id
+resource "azurerm_oracle_autonomous_database" "import" {
+  name = azurerm_oracle_autonomous_database.test.name
+  display_name = azurerm_oracle_autonomous_database.test.display_name
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
+  location = azurerm_oracle_autonomous_database.test.location
+  compute_model = azurerm_oracle_autonomous_database.test.compute_model
+  compute_count = azurerm_oracle_autonomous_database.test.compute_count
+  license_model = azurerm_oracle_autonomous_database.test.license_model
+  backup_retention_period_in_days = azurerm_oracle_autonomous_database.test.backup_retention_period_in_days
+  is_auto_scaling_enabled = azurerm_oracle_autonomous_database.test.is_auto_scaling_enabled
+  is_auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database.test.is_auto_scaling_for_storage_enabled
+  is_mtls_connection_required = azurerm_oracle_autonomous_database.test.is_mtls_connection_required
+  data_storage_size_in_gbs = azurerm_oracle_autonomous_database.test.data_storage_size_in_gbs
+  db_workload = azurerm_oracle_autonomous_database.test.db_workload
+  admin_password = azurerm_oracle_autonomous_database.test.admin_password
+  db_version = azurerm_oracle_autonomous_database.test.db_version
+  character_set = azurerm_oracle_autonomous_database.test.character_set
+  ncharacter_set = azurerm_oracle_autonomous_database.test.ncharacter_set
+  subnet_id = azurerm_oracle_autonomous_database.test.subnet_id
+  vnet_id = azurerm_oracle_autonomous_database.test.vnet_id
   lifecycle {
     ignore_changes = [
       admin_password

@@ -1,25 +1,25 @@
 ---
 subcategory: "App Service"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracledatabase_autonomous_database_regular"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database"
 description: |-
   Gets information about an existing Autonomous Databases.
 ---
 
-# Data Source: azurerm_oracledatabase_autonomous_database_regular
+# Data Source: azurerm_oracle_autonomous_database
 
 Use this data source to access information about an existing Autonomous Databases.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracledatabase_autonomous_database_regular" "example" {
+data "azurerm_oracle_autonomous_database" "example" {
   name = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_oracledatabase_autonomous_database_regular.example.id
+  value = data.azurerm_oracle_autonomous_database.example.id
 }
 ```
 

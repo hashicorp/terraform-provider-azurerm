@@ -1,19 +1,20 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase_test
+package oracle_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
-	"testing"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 )
 
 type AutonomousDatabaseRegularDataSource struct{}
 
 func TestAdbsRegularDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracledatabase.AutonomousDatabaseRegularDataSource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularDataSource{}.ResourceType(), "test")
 	r := AutonomousDatabaseRegularDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -35,9 +36,9 @@ func (d AutonomousDatabaseRegularDataSource) basic(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracledatabase_autonomous_database_regular" "test" {
-  name = azurerm_oracledatabase_autonomous_database_regular.test.name
-  resource_group_name = azurerm_oracledatabase_autonomous_database_regular.test.resource_group_name
+data "azurerm_oracle_autonomous_database" "test" {
+  name = azurerm_oracle_autonomous_database.test.name
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
 }
 `, AdbsRegularResource{}.basic(data))
 }

@@ -1,15 +1,16 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -19,14 +20,11 @@ import (
 
 type AutonomousDatabaseRegularDataSource struct{}
 
-type AutonomousDatabaseRegularModel struct {
+type AutonomousDatabaseRegularDataSourceModel struct {
 	Location string                 `tfschema:"location"`
 	Name     string                 `tfschema:"name"`
 	Type     string                 `tfschema:"type"`
 	Tags     map[string]interface{} `tfschema:"tags"`
-
-	// SystemData
-	SystemData []SystemDataModel `tfschema:"system_data"`
 
 	// AutonomousDatabaseProperties
 	ActualUsedDataStorageSizeInTbs           float64  `tfschema:"actual_used_data_storage_size_in_tbs"`
@@ -377,7 +375,7 @@ func (d AutonomousDatabaseRegularDataSource) ModelObject() interface{} {
 }
 
 func (d AutonomousDatabaseRegularDataSource) ResourceType() string {
-	return "azurerm_oracledatabase_autonomous_database_regular"
+	return "azurerm_oracle_autonomous_database"
 }
 
 func (d AutonomousDatabaseRegularDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -388,7 +386,7 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId,
@@ -410,15 +408,15 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					return err
 				}
 
-				var output AutonomousDatabaseRegularModel
+				var output AutonomousDatabaseRegularDataSourceModel
 				prop := model.Properties
 
-				output = AutonomousDatabaseRegularModel{}
+				output = AutonomousDatabaseRegularDataSourceModel{}
 
 				if prop != nil {
 					switch adbsPropModel := prop.(type) {
 					case autonomousdatabases.AutonomousDatabaseProperties:
-						output = AutonomousDatabaseRegularModel{
+						output = AutonomousDatabaseRegularDataSourceModel{
 							ActualUsedDataStorageSizeInTbs:           pointer.From(adbsPropModel.ActualUsedDataStorageSizeInTbs),
 							AllocatedStorageSizeInTbs:                pointer.From(adbsPropModel.AllocatedStorageSizeInTbs),
 							AutonomousDatabaseId:                     pointer.From(adbsPropModel.AutonomousDatabaseId),
@@ -445,7 +443,7 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 							MemoryPerOracleComputeUnitInGbs:          pointer.From(adbsPropModel.MemoryPerOracleComputeUnitInGbs),
 							NcharacterSet:                            pointer.From(adbsPropModel.NcharacterSet),
 							NextLongTermBackupTimeStamp:              pointer.From(adbsPropModel.NextLongTermBackupTimeStamp),
-							OciUrl:                                   pointer.From(adbsPropModel.OciUrl),
+							OciUrl:                                   pointer.From(adbsPropModel.OciURL),
 							Ocid:                                     pointer.From(adbsPropModel.Ocid),
 							PeerDbId:                                 pointer.From(adbsPropModel.PeerDbId),
 							PeerDbIds:                                pointer.From(adbsPropModel.PeerDbIds),
@@ -453,8 +451,8 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 							PrivateEndpointIP:                        pointer.From(adbsPropModel.PrivateEndpointIP),
 							PrivateEndpointLabel:                     pointer.From(adbsPropModel.PrivateEndpointLabel),
 							ProvisionableCPUs:                        pointer.From(adbsPropModel.ProvisionableCPUs),
-							ServiceConsoleUrl:                        pointer.From(adbsPropModel.ServiceConsoleUrl),
-							SqlWebDeveloperUrl:                       pointer.From(adbsPropModel.SqlWebDeveloperUrl),
+							ServiceConsoleUrl:                        pointer.From(adbsPropModel.ServiceConsoleURL),
+							SqlWebDeveloperUrl:                       pointer.From(adbsPropModel.SqlWebDeveloperURL),
 							SubnetId:                                 pointer.From(adbsPropModel.SubnetId),
 							SupportedRegionsToCloneTo:                pointer.From(adbsPropModel.SupportedRegionsToCloneTo),
 							TimeCreated:                              pointer.From(adbsPropModel.TimeCreated),
@@ -478,19 +476,6 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				systemData := model.SystemData
-				if systemData != nil {
-					output.SystemData = []SystemDataModel{
-						{
-							CreatedBy:          systemData.CreatedBy,
-							CreatedByType:      systemData.CreatedByType,
-							CreatedAt:          systemData.CreatedAt,
-							LastModifiedBy:     systemData.LastModifiedBy,
-							LastModifiedbyType: systemData.LastModifiedbyType,
-							LastModifiedAt:     systemData.LastModifiedAt,
-						},
-					}
-				}
 				output.Name = id.AutonomousDatabaseName
 				output.Type = pointer.From(model.Type)
 				output.Tags = utils.FlattenPtrMapStringString(model.Tags)

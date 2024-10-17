@@ -1,15 +1,16 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = AdbsRegularResource{}
+var _ sdk.Resource = AutonomousDatabaseRegularResource{}
 
-type AdbsRegularResource struct{}
+type AutonomousDatabaseRegularResource struct{}
 
-type AdbsRegularResourceModel struct {
+type AutonomousDatabaseRegularResourceModel struct {
 	// Azure
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
@@ -50,7 +51,7 @@ type AdbsRegularResourceModel struct {
 	CustomerContacts []string `tfschema:"customer_contacts"`
 }
 
-func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		// Azure
 		"location": commonschema.Location(),
@@ -143,16 +144,16 @@ func (AdbsRegularResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AdbsRegularResource) Attributes() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AdbsRegularResource) ModelObject() interface{} {
-	return &AdbsRegularResource{}
+func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
+	return &AutonomousDatabaseRegularResource{}
 }
 
-func (AdbsRegularResource) ResourceType() string {
-	return "azurerm_oracledatabase_autonomous_database_regular"
+func (AutonomousDatabaseRegularResource) ResourceType() string {
+	return "azurerm_oracle_autonomous_database"
 }
 
 func convertAdbsCustomerContactsToSDK(customerContactsList []string) []autonomousdatabases.CustomerContact {
@@ -177,14 +178,14 @@ func convertAdbsCustomerContactsToInternalModel(customerContactsList *[]autonomo
 	return customerContacts
 }
 
-func (r AdbsRegularResource) Create() sdk.ResourceFunc {
+func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AdbsRegularResourceModel
+			var model AutonomousDatabaseRegularResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -236,18 +237,18 @@ func (r AdbsRegularResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AdbsRegularResource) Update() sdk.ResourceFunc {
+func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var model AdbsRegularResourceModel
+			var model AutonomousDatabaseRegularResourceModel
 			if err = metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
@@ -276,7 +277,7 @@ func (r AdbsRegularResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (AdbsRegularResource) Read() sdk.ResourceFunc {
+func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -285,7 +286,7 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
@@ -300,7 +301,7 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 			prop := result.Model.Properties
 			switch adbsPropModel := prop.(type) {
 			case autonomousdatabases.AutonomousDatabaseProperties:
-				var output AdbsRegularResourceModel
+				var output AutonomousDatabaseRegularResourceModel
 				output.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
 				output.BackupRetentionPeriodInDays = pointer.From(adbsPropModel.BackupRetentionPeriodInDays)
 				output.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
@@ -330,11 +331,11 @@ func (AdbsRegularResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (AdbsRegularResource) Delete() sdk.ResourceFunc {
+func (AutonomousDatabaseRegularResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -350,6 +351,6 @@ func (AdbsRegularResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (AdbsRegularResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (AutonomousDatabaseRegularResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }
