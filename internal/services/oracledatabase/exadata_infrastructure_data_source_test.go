@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracle_test
+package oracledatabase_test
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
 )
 
 type ExadataInfraDataSource struct{}
 
 func TestExadataInfraDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.ExadataInfraDataSource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraDataSource{}.ResourceType(), "test")
 	r := ExadataInfraDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
