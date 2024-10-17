@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CloudVmClusterResource struct{}
@@ -26,20 +25,9 @@ func (a CloudVmClusterResource) Exists(ctx context.Context, client *clients.Clie
 	}
 	resp, err := client.Oracle.OracleClient.CloudVMClusters.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving cloud vm cluster %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
-}
-
-func (a CloudVmClusterResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cloudvmclusters.ParseCloudVMClusterID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := client.Oracle.OracleClient.CloudVMClusters.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting vm cluster %s: %+v", id, err)
-	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestCloudVmClusterResource_basic(t *testing.T) {
@@ -61,7 +49,7 @@ func TestCloudVmClusterResource_complete(t *testing.T) {
 	r := CloudVmClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allFields(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -124,11 +112,11 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   hostname                        = "hostname"
   ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
   subnet_id                       = azurerm_subnet.virtual_network_subnet.id
-  vnet_id                         = azurerm_virtual_network.virtual_network.id
+  virtual_network_id              = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a CloudVmClusterResource) allFields(data acceptance.TestData) string {
+func (a CloudVmClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
   %s
 resource "azurerm_oracle_cloud_vm_cluster" "test" {
@@ -138,17 +126,17 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   cloud_exadata_infrastructure_id = azurerm_oracle_exadata_infrastructure.test.id
   cpu_core_count                  = 4
   data_collection_options {
-    is_diagnostics_events_enabled = true
-    is_health_monitoring_enabled  = true
-    is_incident_logs_enabled      = true
+    diagnostics_events_enabled = true
+    health_monitoring_enabled  = true
+    incident_logs_enabled      = true
   }
   data_storage_size_in_tbs    = 2
   db_node_storage_size_in_gbs = 120
   db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
   gi_version                  = "23.0.0.0"
-  is_local_backup_enabled     = true
-  is_sparse_diskgroup_enabled = true
+  local_backup_enabled        = true
+  sparse_diskgroup_enabled    = true
   license_model               = "BringYourOwnLicense"
   memory_size_in_gbs          = 60
   hostname                    = "hostname"
@@ -157,8 +145,8 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   tags = {
     test = "testTag1"
   }
-  time_zone = "UTC"
-  vnet_id   = azurerm_virtual_network.virtual_network.id
+  time_zone          = "UTC"
+  virtual_network_id = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -184,7 +172,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   tags = {
     test = "testTag1"
   }
-  vnet_id = azurerm_virtual_network.virtual_network.id
+  virtual_network_id = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -208,7 +196,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "import" {
   hostname                        = azurerm_oracle_cloud_vm_cluster.test.hostname
   ssh_public_keys                 = azurerm_oracle_cloud_vm_cluster.test.ssh_public_keys
   subnet_id                       = azurerm_oracle_cloud_vm_cluster.test.subnet_id
-  vnet_id                         = azurerm_oracle_cloud_vm_cluster.test.vnet_id
+  virtual_network_id              = azurerm_oracle_cloud_vm_cluster.test.virtual_network_id
 }
 `, a.basic(data))
 }

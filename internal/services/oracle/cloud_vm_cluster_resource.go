@@ -10,16 +10,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = CloudVmClusterResource{}
@@ -28,10 +27,10 @@ type CloudVmClusterResource struct{}
 
 type CloudVmClusterResourceModel struct {
 	// Azure
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Location          string            `tfschema:"location"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Tags              map[string]string `tfschema:"tags"`
 
 	// Required
 	CloudExadataInfrastructureId string   `tfschema:"cloud_exadata_infrastructure_id"`
@@ -47,15 +46,15 @@ type CloudVmClusterResourceModel struct {
 	MemorySizeInGbs              int64    `tfschema:"memory_size_in_gbs"`
 	SshPublicKeys                []string `tfschema:"ssh_public_keys"`
 	SubnetId                     string   `tfschema:"subnet_id"`
-	VnetId                       string   `tfschema:"vnet_id"`
+	VnetId                       string   `tfschema:"virtual_network_id"`
 
 	// Optional
 	BackupSubnetCidr         string                       `tfschema:"backup_subnet_cidr"`
 	ClusterName              string                       `tfschema:"cluster_name"`
 	DataCollectionOptions    []DataCollectionOptionsModel `tfschema:"data_collection_options"`
 	DataStoragePercentage    int64                        `tfschema:"data_storage_percentage"`
-	IsLocalBackupEnabled     bool                         `tfschema:"is_local_backup_enabled"`
-	IsSparseDiskgroupEnabled bool                         `tfschema:"is_sparse_diskgroup_enabled"`
+	IsLocalBackupEnabled     bool                         `tfschema:"local_backup_enabled"`
+	IsSparseDiskgroupEnabled bool                         `tfschema:"sparse_diskgroup_enabled"`
 	TimeZone                 string                       `tfschema:"time_zone"`
 }
 
@@ -68,6 +67,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.Name,
+			ForceNew:     true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -148,21 +148,24 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"vnet_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+		"virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		// Optional
 		"backup_subnet_cidr": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsCIDR,
 		},
 
 		"cluster_name": {
@@ -180,19 +183,19 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"is_diagnostics_events_enabled": {
+					"diagnostics_events_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
 					},
 
-					"is_health_monitoring_enabled": {
+					"health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
 					},
 
-					"is_incident_logs_enabled": {
+					"incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
@@ -209,14 +212,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DataStoragePercentage,
 		},
 
-		"is_local_backup_enabled": {
+		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
 
-		"is_sparse_diskgroup_enabled": {
+		"sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
@@ -263,9 +266,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId,
-				model.ResourceGroupName,
-				model.Name)
+			id := cloudvmclusters.NewCloudVMClusterID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -279,7 +280,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 				// Azure
 				Name:     pointer.To(model.Name),
 				Location: model.Location,
-				Tags:     tags.Expand(model.Tags),
+				Tags:     pointer.To(model.Tags),
 				Properties: &cloudvmclusters.CloudVMClusterProperties{
 					// Required
 					CloudExadataInfrastructureId: model.CloudExadataInfrastructureId,
@@ -354,24 +355,53 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving exists when updating: +%v", *id)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if existing.Model == nil && existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving as nil when updating for %v", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
+			payload := existing.Model
+
+			if metadata.ResourceData.HasChange("cpu_core_count") {
+				payload.Properties.CpuCoreCount = model.CpuCoreCount
+			}
+			if metadata.ResourceData.HasChange("db_node_storage_size_in_gbs") {
+				payload.Properties.DbNodeStorageSizeInGbs = pointer.To(model.DbNodeStorageSizeInGbs)
+			}
+			if metadata.ResourceData.HasChange("display_name") {
+				payload.Properties.DisplayName = model.DisplayName
+			}
+			if metadata.ResourceData.HasChange("license_model") {
+				payload.Properties.LicenseModel = pointer.To(cloudvmclusters.LicenseModel(model.LicenseModel))
+			}
+			if metadata.ResourceData.HasChange("memory_size_in_gbs") {
+				payload.Properties.MemorySizeInGbs = pointer.To(model.MemorySizeInGbs)
+			}
+			if metadata.ResourceData.HasChange("ssh_public_keys") {
+				payload.Properties.SshPublicKeys = model.SshPublicKeys
+			}
+			if metadata.ResourceData.HasChange("backup_subnet_cidr") {
+				payload.Properties.BackupSubnetCidr = pointer.To(model.BackupSubnetCidr)
+			}
+			if metadata.ResourceData.HasChange("data_collection_options") {
+				payload.Properties.DataCollectionOptions = &cloudvmclusters.DataCollectionOptions{
+					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOptions[0].IsDiagnosticsEventsEnabled),
+					IsHealthMonitoringEnabled:  pointer.To(model.DataCollectionOptions[0].IsHealthMonitoringEnabled),
+					IsIncidentLogsEnabled:      pointer.To(model.DataCollectionOptions[0].IsIncidentLogsEnabled),
+				}
 			}
 			if metadata.ResourceData.HasChange("tags") {
-				update := &cloudvmclusters.CloudVMClusterUpdate{
-					Tags: tags.Expand(model.Tags),
-				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
-					return fmt.Errorf("updating %s: %v", id, err)
-				}
+				payload.Tags = pointer.To(model.Tags)
 			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
@@ -387,56 +417,58 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
-			result, err := client.Get(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(result.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
+			state := CloudVmClusterResourceModel{
+				Name:              id.CloudVmClusterName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
-			var output CloudVmClusterResourceModel
 
 			// Azure
-			output.Name = pointer.ToString(result.Model.Name)
-			output.Location = result.Model.Location
-			output.Tags = utils.FlattenPtrMapStringString(result.Model.Tags)
-			output.ResourceGroupName = id.ResourceGroupName
-			// Required
-			output.CloudExadataInfrastructureId = result.Model.Properties.CloudExadataInfrastructureId
-			output.CpuCoreCount = result.Model.Properties.CpuCoreCount
-			output.DataStorageSizeInTbs = pointer.From(result.Model.Properties.DataStorageSizeInTbs)
-			output.DbNodeStorageSizeInGbs = pointer.From(result.Model.Properties.DbNodeStorageSizeInGbs)
-			output.DbServers = pointer.From(result.Model.Properties.DbServers)
-			output.DisplayName = result.Model.Properties.DisplayName
-			output.GiVersion = result.Model.Properties.GiVersion
-			output.Hostname = removeHostnameSuffix(result.Model.Properties.Hostname)
-			output.HostnameActual = result.Model.Properties.Hostname
-			output.LicenseModel = string(pointer.From(result.Model.Properties.LicenseModel))
-			output.MemorySizeInGbs = pointer.From(result.Model.Properties.MemorySizeInGbs)
-			output.SshPublicKeys = result.Model.Properties.SshPublicKeys
-			tmp := make([]string, 0)
-			for _, key := range result.Model.Properties.SshPublicKeys {
-				if key != "" {
-					tmp = append(tmp, key)
+			if model := resp.Model; model != nil {
+				state.Location = model.Location
+				state.Tags = pointer.From(model.Tags)
+
+				if props := model.Properties; props != nil {
+					state.CloudExadataInfrastructureId = props.CloudExadataInfrastructureId
+					state.CpuCoreCount = props.CpuCoreCount
+					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
+					state.DbServers = pointer.From(props.DbServers)
+					state.DisplayName = props.DisplayName
+					state.GiVersion = props.GiVersion
+					state.Hostname = removeHostnameSuffix(props.Hostname)
+					state.HostnameActual = props.Hostname
+					state.LicenseModel = string(pointer.From(props.LicenseModel))
+					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.SshPublicKeys = props.SshPublicKeys
+					tmp := make([]string, 0)
+					for _, key := range props.SshPublicKeys {
+						if key != "" {
+							tmp = append(tmp, key)
+						}
+					}
+					state.SshPublicKeys = tmp
+					state.SubnetId = props.SubnetId
+					state.VnetId = props.VnetId
+					// Optional
+					state.BackupSubnetCidr = pointer.From(props.BackupSubnetCidr)
+					state.ClusterName = pointer.From(props.ClusterName)
+					state.DataCollectionOptions = FlattenDataCollectionOptions(props.DataCollectionOptions)
+					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
+					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
+					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
+					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
-			output.SshPublicKeys = tmp
-			output.SubnetId = result.Model.Properties.SubnetId
-			output.VnetId = result.Model.Properties.VnetId
-			// Optional
-			output.BackupSubnetCidr = pointer.From(result.Model.Properties.BackupSubnetCidr)
-			output.ClusterName = pointer.From(result.Model.Properties.ClusterName)
-			output.DataCollectionOptions = FlattenDataCollectionOptions(result.Model.Properties.DataCollectionOptions)
-			output.DataStoragePercentage = pointer.From(result.Model.Properties.DataStoragePercentage)
-			output.IsLocalBackupEnabled = pointer.From(result.Model.Properties.IsLocalBackupEnabled)
-			output.IsSparseDiskgroupEnabled = pointer.From(result.Model.Properties.IsSparseDiskgroupEnabled)
-			output.TimeZone = pointer.From(result.Model.Properties.TimeZone)
 
-			return metadata.Encode(&output)
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -466,16 +498,15 @@ func (CloudVmClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func FlattenDataCollectionOptions(dataCollectionOptions *cloudvmclusters.DataCollectionOptions) []DataCollectionOptionsModel {
+	output := make([]DataCollectionOptionsModel, 0)
 	if dataCollectionOptions != nil {
-		return []DataCollectionOptionsModel{
-			{
-				IsDiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
-				IsHealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
-				IsIncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
-			},
-		}
+		return append(output, DataCollectionOptionsModel{
+			IsDiagnosticsEventsEnabled: pointer.From(dataCollectionOptions.IsDiagnosticsEventsEnabled),
+			IsHealthMonitoringEnabled:  pointer.From(dataCollectionOptions.IsHealthMonitoringEnabled),
+			IsIncidentLogsEnabled:      pointer.From(dataCollectionOptions.IsIncidentLogsEnabled),
+		})
 	}
-	return nil
+	return output
 }
 
 func removeHostnameSuffix(hostnameActual string) string {
@@ -487,6 +518,7 @@ func removeHostnameSuffix(hostnameActual string) string {
 	}
 }
 
+// TODO ask if this is supposed to be in use?
 // DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
 // therefore when computing the diff if the new Hostname is a prefix of the old then we will ignore the diff.
 // Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.
