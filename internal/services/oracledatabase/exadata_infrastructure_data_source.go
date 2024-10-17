@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,7 +25,6 @@ type ExadataInfraDataModel struct {
 	Location          string                 `tfschema:"location"`
 	Name              string                 `tfschema:"name"`
 	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Type              string                 `tfschema:"type"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 	Zones             zones.Schema           `tfschema:"zones"`
 
@@ -83,8 +83,9 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.Name,
 		},
 	}
 }
@@ -92,11 +93,6 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 
 		// CloudExadataInfrastructureProperties
 		"activated_storage_count": {
@@ -347,7 +343,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d ExadataInfraDataSource) ModelObject() interface{} {
-	return nil
+	return &ExadataInfraDataModel{}
 }
 
 func (d ExadataInfraDataSource) ResourceType() string {
@@ -365,9 +361,11 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("name").(string))
+			var state ExadataInfraDataModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -423,7 +421,6 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 
 				output.Name = id.CloudExadataInfrastructureName
 				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
 				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
 				output.Location = model.Location
 				output.Zones = model.Zones
