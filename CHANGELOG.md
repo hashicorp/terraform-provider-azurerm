@@ -17,6 +17,7 @@ BUGS:
 
 * `azurerm_api_management_api_diagnostic` - do not seet `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
 * `azurerm_api_management` - prevent a panic [GH-27649]
+* `azurerm_mssql_database` - make `short_term_retention_policy.backup_interval_in_hours` computed [GH-27656]
 
 ## 4.5.0 (October 10, 2024)
 
