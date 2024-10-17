@@ -32,6 +32,7 @@ resource "azurerm_container_app_environment" "example" {
   resource_group_name        = azurerm_resource_group.example.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
+
 resource "azurerm_container_app" "example" {
   name                         = "example-app"
   container_app_environment_id = azurerm_container_app_environment.example.id
@@ -78,6 +79,8 @@ The following arguments are supported:
 * `workload_profile_name` - (Optional) The name of the Workload Profile in the Container App Environment to place this Container App.
 
 ~> **Note:** Omit this value to use the default `Consumption` Workload Profile.
+
+* `max_inactive_revisions` - (Optional) The maximum of inactive revisions allowed for this Container App.
 
 * `tags` - (Optional) A mapping of tags to assign to the Container App.
 
