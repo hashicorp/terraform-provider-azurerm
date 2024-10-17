@@ -1,6 +1,6 @@
 // Copyright © 2024, Oracle and/or its affiliates. All rights reserved
 
-package oracledatabase
+package oracle
 
 import (
 	"context"
@@ -420,7 +420,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID(subscriptionId,
