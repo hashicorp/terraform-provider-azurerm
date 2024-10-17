@@ -50,7 +50,6 @@ func (c ConnectivityConfigurationsClient) CreateOrUpdate(ctx context.Context, id
 
 	var model ConnectivityConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

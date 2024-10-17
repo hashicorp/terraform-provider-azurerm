@@ -51,7 +51,6 @@ func (c AppsClient) CheckNameAvailability(ctx context.Context, id commonids.Subs
 
 	var model AppAvailabilityInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

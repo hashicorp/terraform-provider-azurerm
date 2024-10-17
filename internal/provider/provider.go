@@ -143,7 +143,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
 				Description: "The Subscription ID which should be used.",
 			},
@@ -385,6 +385,11 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		subscriptionId := d.Get("subscription_id").(string)
+		if subscriptionId == "" {
+			return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+		}
+
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
@@ -467,7 +472,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
 
-			AzureCliSubscriptionIDHint: d.Get("subscription_id").(string),
+			AzureCliSubscriptionIDHint: subscriptionId,
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,

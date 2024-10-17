@@ -27,7 +27,7 @@ type CloudExadataInfrastructureProperties struct {
 	MonthlyDbServerVersion      *string                                   `json:"monthlyDbServerVersion,omitempty"`
 	MonthlyStorageServerVersion *string                                   `json:"monthlyStorageServerVersion,omitempty"`
 	NextMaintenanceRunId        *string                                   `json:"nextMaintenanceRunId,omitempty"`
-	OciUrl                      *string                                   `json:"ociUrl,omitempty"`
+	OciURL                      *string                                   `json:"ociUrl,omitempty"`
 	Ocid                        *string                                   `json:"ocid,omitempty"`
 	ProvisioningState           *AzureResourceProvisioningState           `json:"provisioningState,omitempty"`
 	Shape                       string                                    `json:"shape"`

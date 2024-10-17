@@ -45,7 +45,6 @@ func (c AutonomousDatabaseBackupsClient) Get(ctx context.Context, id AutonomousD
 
 	var model AutonomousDatabaseBackup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

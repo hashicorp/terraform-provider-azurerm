@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice` Documentation
 
-The `apimanagementservice` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2022-08-01`).
+The `apimanagementservice` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := apimanagementservice.ApiManagementServiceApplyNetworkConfigurationParameters{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ApplyNetworkConfigurationUpdatesThenPoll(ctx, id, payload); err
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := apimanagementservice.ApiManagementServiceBackupRestoreParameters{
 	// ...
@@ -80,7 +80,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := apimanagementservice.ApiManagementServiceResource{
 	// ...
@@ -97,7 +97,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -109,7 +109,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -141,7 +141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 read, err := client.GetSsoToken(ctx, id)
 if err != nil {
@@ -191,7 +191,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 if err := client.MigrateToStv2ThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -203,7 +203,7 @@ if err := client.MigrateToStv2ThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := apimanagementservice.ApiManagementServiceBackupRestoreParameters{
 	// ...
@@ -220,7 +220,7 @@ if err := client.RestoreThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 payload := apimanagementservice.ApiManagementServiceUpdateParameters{
 	// ...

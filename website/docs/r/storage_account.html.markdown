@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
-* `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
+* `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `false`.
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
@@ -164,7 +164,7 @@ The following arguments are supported:
 
 * `table_encryption_key_type` - (Optional) The encryption type of the table service. Possible values are `Service` and `Account`. Changing this forces a new resource to be created. Default value is `Service`.
 
-~> **Note:** For the `queue_encryption_key_type` and `table_encryption_key_type`, the `Account` key type is only allowed when the `account_kind` is set to `StorageV2`
+~> **Note:** `queue_encryption_key_type` and `table_encryption_key_type` cannot be set to `Account` when `account_kind` is set `Storage`
 
 * `infrastructure_encryption_enabled` - (Optional) Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to `false`.
 

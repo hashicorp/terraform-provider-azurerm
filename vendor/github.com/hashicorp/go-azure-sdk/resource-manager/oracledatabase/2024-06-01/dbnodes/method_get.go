@@ -45,7 +45,6 @@ func (c DbNodesClient) Get(ctx context.Context, id DbNodeId) (result GetOperatio
 
 	var model DbNode
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

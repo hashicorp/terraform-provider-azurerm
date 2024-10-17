@@ -42,7 +42,7 @@ func ParseNetworkManagerID(input string) (*NetworkManagerId, error) {
 	}
 
 	id := NetworkManagerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseNetworkManagerIDInsensitively(input string) (*NetworkManagerId, error)
 	}
 
 	id := NetworkManagerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id NetworkManagerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagers", "networkManagers", "networkManagers"),
-		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerValue"),
+		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerName"),
 	}
 }
 

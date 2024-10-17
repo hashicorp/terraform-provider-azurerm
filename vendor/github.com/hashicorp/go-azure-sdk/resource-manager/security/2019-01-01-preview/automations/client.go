@@ -15,7 +15,7 @@ type AutomationsClient struct {
 }
 
 func NewAutomationsClientWithBaseURI(sdkApi sdkEnv.Api) (*AutomationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "automations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "automations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AutomationsClient: %+v", err)
 	}

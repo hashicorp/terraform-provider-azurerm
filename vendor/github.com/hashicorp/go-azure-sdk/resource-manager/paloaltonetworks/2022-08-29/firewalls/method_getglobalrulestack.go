@@ -46,7 +46,6 @@ func (c FirewallsClient) GetGlobalRulestack(ctx context.Context, id FirewallId) 
 
 	var model GlobalRulestackInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

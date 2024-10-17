@@ -16,10 +16,11 @@ type NetworkManagerEffectiveSecurityAdminRulesListResult struct {
 var _ json.Unmarshaler = &NetworkManagerEffectiveSecurityAdminRulesListResult{}
 
 func (s *NetworkManagerEffectiveSecurityAdminRulesListResult) UnmarshalJSON(bytes []byte) error {
-	type alias NetworkManagerEffectiveSecurityAdminRulesListResult
-	var decoded alias
+	var decoded struct {
+		SkipToken *string `json:"skipToken,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into NetworkManagerEffectiveSecurityAdminRulesListResult: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.SkipToken = decoded.SkipToken
@@ -37,7 +38,7 @@ func (s *NetworkManagerEffectiveSecurityAdminRulesListResult) UnmarshalJSON(byte
 
 		output := make([]EffectiveBaseSecurityAdminRule, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalEffectiveBaseSecurityAdminRuleImplementation(val)
+			impl, err := UnmarshalEffectiveBaseSecurityAdminRuleImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Value' for 'NetworkManagerEffectiveSecurityAdminRulesListResult': %+v", i, err)
 			}
@@ -45,5 +46,6 @@ func (s *NetworkManagerEffectiveSecurityAdminRulesListResult) UnmarshalJSON(byte
 		}
 		s.Value = &output
 	}
+
 	return nil
 }

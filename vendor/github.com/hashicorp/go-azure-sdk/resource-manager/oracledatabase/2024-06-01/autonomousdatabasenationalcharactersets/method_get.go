@@ -45,7 +45,6 @@ func (c AutonomousDatabaseNationalCharacterSetsClient) Get(ctx context.Context, 
 
 	var model AutonomousDatabaseNationalCharacterSet
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

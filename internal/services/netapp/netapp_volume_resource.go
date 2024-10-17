@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -146,6 +145,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
+				ForceNew:    true,
+			},
+
+			"smb3_protocol_encryption_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Description: "SMB3 encryption option should be used only for SMB/DualProtocol volumes. Using it for any other workloads is not supported.",
 				ForceNew:    true,
 			},
 
@@ -357,18 +363,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["network_features"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(volumes.NetworkFeaturesBasic),
-				string(volumes.NetworkFeaturesStandard),
-			}, false),
-		}
-	}
-
 	return resource
 }
 
@@ -405,6 +399,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 	smbContiuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
+	smbEncryption := d.Get("smb3_protocol_encryption_enabled").(bool)
 	networkFeatures := volumes.NetworkFeatures(d.Get("network_features").(string))
 
 	smbNonBrowsable := volumes.SmbNonBrowsableDisabled
@@ -533,6 +528,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			SubnetId:                  subnetID,
 			KerberosEnabled:           &kerberosEnabled,
 			SmbContinuouslyAvailable:  &smbContiuouslyAvailable,
+			SmbEncryption:             &smbEncryption,
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
 			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
@@ -741,6 +737,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("kerberos_enabled", props.KerberosEnabled)
 		d.Set("smb_continuous_availability_enabled", props.SmbContinuouslyAvailable)
+		d.Set("smb3_protocol_encryption_enabled", props.SmbEncryption)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))

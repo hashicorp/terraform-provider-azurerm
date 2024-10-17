@@ -45,7 +45,6 @@ func (c ExpressRoutePortsLocationsClient) Get(ctx context.Context, id ExpressRou
 
 	var model ExpressRoutePortsLocation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

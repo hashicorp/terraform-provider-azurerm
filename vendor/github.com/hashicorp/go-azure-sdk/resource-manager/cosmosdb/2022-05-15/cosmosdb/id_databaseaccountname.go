@@ -38,7 +38,7 @@ func ParseDatabaseAccountNameID(input string) (*DatabaseAccountNameId, error) {
 	}
 
 	id := DatabaseAccountNameId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseDatabaseAccountNameIDInsensitively(input string) (*DatabaseAccountName
 	}
 
 	id := DatabaseAccountNameId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id DatabaseAccountNameId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccountNames", "databaseAccountNames", "databaseAccountNames"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "accountName"),
 	}
 }
 

@@ -45,7 +45,6 @@ func (c SystemVersionsClient) Get(ctx context.Context, id SystemVersionId) (resu
 
 	var model SystemVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

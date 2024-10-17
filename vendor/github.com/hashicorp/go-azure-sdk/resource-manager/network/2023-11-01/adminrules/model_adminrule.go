@@ -16,11 +16,24 @@ type AdminRule struct {
 	Properties *AdminPropertiesFormat `json:"properties,omitempty"`
 
 	// Fields inherited from BaseAdminRule
+
 	Etag       *string                `json:"etag,omitempty"`
 	Id         *string                `json:"id,omitempty"`
+	Kind       AdminRuleKind          `json:"kind"`
 	Name       *string                `json:"name,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
+}
+
+func (s AdminRule) BaseAdminRule() BaseBaseAdminRuleImpl {
+	return BaseBaseAdminRuleImpl{
+		Etag:       s.Etag,
+		Id:         s.Id,
+		Kind:       s.Kind,
+		Name:       s.Name,
+		SystemData: s.SystemData,
+		Type:       s.Type,
+	}
 }
 
 var _ json.Marshaler = AdminRule{}
@@ -34,9 +47,10 @@ func (s AdminRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AdminRule: %+v", err)
 	}
+
 	decoded["kind"] = "Custom"
 
 	encoded, err = json.Marshal(decoded)

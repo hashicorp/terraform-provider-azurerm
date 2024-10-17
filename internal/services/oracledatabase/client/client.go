@@ -3,6 +3,8 @@
 package client
 
 import (
+	"fmt"
+
 	oracedatabase "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -18,7 +20,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building Database client: %+v", err)
 	}
 	return &Client{
 		OracleDatabaseClient: oracleDatabaseClient,

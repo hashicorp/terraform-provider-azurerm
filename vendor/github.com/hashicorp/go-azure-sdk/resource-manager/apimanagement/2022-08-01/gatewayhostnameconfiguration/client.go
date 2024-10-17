@@ -15,7 +15,7 @@ type GatewayHostnameConfigurationClient struct {
 }
 
 func NewGatewayHostnameConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*GatewayHostnameConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "gatewayhostnameconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "gatewayhostnameconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GatewayHostnameConfigurationClient: %+v", err)
 	}

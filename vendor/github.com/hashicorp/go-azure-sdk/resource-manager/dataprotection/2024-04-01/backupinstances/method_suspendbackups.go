@@ -38,6 +38,7 @@ func (o SuspendBackupsOperationOptions) ToHeaders() *client.Headers {
 
 func (o SuspendBackupsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

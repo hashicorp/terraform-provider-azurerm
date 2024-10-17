@@ -50,7 +50,6 @@ func (c AutonomousDatabasesClient) GenerateWallet(ctx context.Context, id Autono
 
 	var model AutonomousDatabaseWalletFile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

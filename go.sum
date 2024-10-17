@@ -93,10 +93,10 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.70.1 h1:7hlnRrZobMZxpOzdlNEsayzAayj/KRG4wpDS1jgo4GM=
 github.com/hashicorp/go-azure-helpers v0.70.1/go.mod h1:BmbF4JDYXK5sEmFeU5hcn8Br21uElcqLfdQxjatwQKw=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20240731.1212841 h1:H7BkxZl0qitdWq7sEGzNqkn5/11YTamwq2XTI8/7Jq0=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20240731.1212841/go.mod h1:/4Ly9Gppp/Nu9AaWDfod6atYQ4n2OqN0ERpE2xZQz8A=
-github.com/hashicorp/go-azure-sdk/sdk v0.20240731.1212841 h1:RzWuy96j/7q3Vi2aZoiIrokm8yotUNX1UGD3pbWi5Ck=
-github.com/hashicorp/go-azure-sdk/sdk v0.20240731.1212841/go.mod h1:dMKF6bXrgGmy1d3pLzkmBpG2JIHgSAV2/OMSCEgyMwE=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20241009.1142232 h1:LAN6wm2cHFo56ly09tg0jXHioh4ygq3SzDoX+XBsMOU=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20241009.1142232/go.mod h1:Zifz0xUVKdiNCzvp3HTa0CNCueZlxD2tdgqPf2QA3qs=
+github.com/hashicorp/go-azure-sdk/sdk v0.20241009.1142232 h1:CxBWfnrsR/Vdyd+4N782xzYoqw5bczBSguwOpiF7VO8=
+github.com/hashicorp/go-azure-sdk/sdk v0.20241009.1142232/go.mod h1:dMKF6bXrgGmy1d3pLzkmBpG2JIHgSAV2/OMSCEgyMwE=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -151,6 +151,8 @@ github.com/hashicorp/terraform-svchost v0.1.1/go.mod h1:mNsjQfZyf/Jhz35v6/0LWcv2
 github.com/hashicorp/yamux v0.1.1 h1:yrQxtgseBDrq9Y652vSRDvsKCJKOUD+GzTS4Y0Y8pvE=
 github.com/hashicorp/yamux v0.1.1/go.mod h1:CtWFDAQgb7dxtzFs4tWbplKIe2jSi3+5vKbgIO0SLnQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
+github.com/jackofallops/kermit v0.20241010.1180132 h1:3EwOQarDKNhtJ1zmtQAwtozYEayxN1AHT3/AMTDZNmw=
+github.com/jackofallops/kermit v0.20241010.1180132/go.mod h1:3Qf3rz0MOUsmzd3mxRb5ehTZ0+zhf7fOraV6jJxntLU=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99/go.mod h1:1lJo3i6rXxKeerYnT8Nvf0QmHCRC1n8sfWVwXF2Frvo=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

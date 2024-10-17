@@ -147,7 +147,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplications` - (Optional) A `georeplications` block as documented below.
+* `georeplications` - (Optional) One or more `georeplications` blocks as documented below.
 
 ~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
@@ -161,15 +161,15 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy` - (Optional) A `retention_policy` block as documented below.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
 
-* `trust_policy` - (Optional) A `trust_policy` block as documented below.
+* `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`. 
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
-  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -214,20 +214,6 @@ The `ip_rule` block supports the following:
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
-
----
-
-The `trust_policy` block supports the following:
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
-
----
-
-The `retention_policy` block supports the following:
-
-* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
 ---
 

@@ -110,8 +110,7 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) Exists(ctx context.Context
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
+		rule, ok := model.(alertrules.MLBehaviorAnalyticsAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

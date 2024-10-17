@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.70.1
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240731.1212841
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240731.1212841
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241009.1142232
+	github.com/hashicorp/go-azure-sdk/sdk v0.20241009.1142232
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -29,6 +29,7 @@ require (
 	github.com/hashicorp/terraform-plugin-mux v0.15.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.33.0
 	github.com/hashicorp/terraform-plugin-testing v1.8.0
+	github.com/jackofallops/kermit v0.20241010.1180132
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
@@ -93,4 +94,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.4.0 // indirect
 )
 
-go 1.21
+go 1.22

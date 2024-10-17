@@ -45,7 +45,6 @@ func (c PublishersClient) Get(ctx context.Context, id PublisherId) (result GetOp
 
 	var model Publisher
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -45,7 +45,6 @@ func (c BatchAccountClient) Get(ctx context.Context, id BatchAccountId) (result 
 
 	var model BatchAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

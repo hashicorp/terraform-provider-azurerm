@@ -45,7 +45,6 @@ func (c GiVersionsClient) Get(ctx context.Context, id GiVersionId) (result GetOp
 
 	var model GiVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

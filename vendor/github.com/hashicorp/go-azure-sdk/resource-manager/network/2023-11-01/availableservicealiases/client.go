@@ -15,7 +15,7 @@ type AvailableServiceAliasesClient struct {
 }
 
 func NewAvailableServiceAliasesClientWithBaseURI(sdkApi sdkEnv.Api) (*AvailableServiceAliasesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "availableservicealiases", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "availableservicealiases", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AvailableServiceAliasesClient: %+v", err)
 	}

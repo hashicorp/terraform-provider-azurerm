@@ -15,7 +15,7 @@ type CloudExadataInfrastructuresClient struct {
 }
 
 func NewCloudExadataInfrastructuresClientWithBaseURI(sdkApi sdkEnv.Api) (*CloudExadataInfrastructuresClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cloudexadatainfrastructures", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cloudexadatainfrastructures", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CloudExadataInfrastructuresClient: %+v", err)
 	}

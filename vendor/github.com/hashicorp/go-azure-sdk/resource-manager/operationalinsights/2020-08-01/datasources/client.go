@@ -15,7 +15,7 @@ type DataSourcesClient struct {
 }
 
 func NewDataSourcesClientWithBaseURI(sdkApi sdkEnv.Api) (*DataSourcesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "datasources", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "datasources", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataSourcesClient: %+v", err)
 	}

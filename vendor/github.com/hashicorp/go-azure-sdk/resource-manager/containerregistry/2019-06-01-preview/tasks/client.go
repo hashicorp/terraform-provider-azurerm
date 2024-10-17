@@ -15,7 +15,7 @@ type TasksClient struct {
 }
 
 func NewTasksClientWithBaseURI(sdkApi sdkEnv.Api) (*TasksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tasks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tasks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TasksClient: %+v", err)
 	}

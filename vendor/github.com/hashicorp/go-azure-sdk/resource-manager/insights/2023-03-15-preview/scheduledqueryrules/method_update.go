@@ -49,7 +49,6 @@ func (c ScheduledQueryRulesClient) Update(ctx context.Context, id ScheduledQuery
 
 	var model ScheduledQueryRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

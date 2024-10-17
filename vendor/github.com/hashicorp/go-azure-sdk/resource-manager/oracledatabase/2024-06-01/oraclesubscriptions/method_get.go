@@ -47,7 +47,6 @@ func (c OracleSubscriptionsClient) Get(ctx context.Context, id commonids.Subscri
 
 	var model OracleSubscription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

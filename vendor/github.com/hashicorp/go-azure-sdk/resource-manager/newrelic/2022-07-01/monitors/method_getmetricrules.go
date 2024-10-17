@@ -50,7 +50,6 @@ func (c MonitorsClient) GetMetricRules(ctx context.Context, id MonitorId, input 
 
 	var model MetricRules
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

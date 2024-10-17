@@ -45,7 +45,6 @@ func (c VirtualNetworkAddressesClient) Get(ctx context.Context, id VirtualNetwor
 
 	var model VirtualNetworkAddress
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

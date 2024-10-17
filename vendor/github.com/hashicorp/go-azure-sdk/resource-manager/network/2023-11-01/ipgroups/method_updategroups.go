@@ -49,7 +49,6 @@ func (c IPGroupsClient) UpdateGroups(ctx context.Context, id IPGroupId, input Ta
 
 	var model IPGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

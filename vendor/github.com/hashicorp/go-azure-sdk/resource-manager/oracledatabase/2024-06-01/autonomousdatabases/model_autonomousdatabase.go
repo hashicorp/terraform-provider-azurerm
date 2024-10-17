@@ -23,10 +23,16 @@ type AutonomousDatabase struct {
 var _ json.Unmarshaler = &AutonomousDatabase{}
 
 func (s *AutonomousDatabase) UnmarshalJSON(bytes []byte) error {
-	type alias AutonomousDatabase
-	var decoded alias
+	var decoded struct {
+		Id         *string                `json:"id,omitempty"`
+		Location   string                 `json:"location"`
+		Name       *string                `json:"name,omitempty"`
+		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+		Tags       *map[string]string     `json:"tags,omitempty"`
+		Type       *string                `json:"type,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AutonomousDatabase: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Id = decoded.Id
@@ -42,11 +48,12 @@ func (s *AutonomousDatabase) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalAutonomousDatabaseBasePropertiesImplementation(v)
+		impl, err := UnmarshalAutonomousDatabaseBasePropertiesImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'AutonomousDatabase': %+v", err)
 		}
 		s.Properties = impl
 	}
+
 	return nil
 }

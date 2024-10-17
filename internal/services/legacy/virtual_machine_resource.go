@@ -911,15 +911,19 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	virtualMachine, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		if !response.WasNotFound(virtualMachine.HttpResponse) {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
 	}
 
-	// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
-	// the previous behaviour - we're only splitting this out so it's clear why
-	opts := virtualmachines.DefaultDeleteOperationOptions()
-	opts.ForceDeletion = nil
-	if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if !response.WasNotFound(virtualMachine.HttpResponse) {
+		// @tombuildsstuff: sending `nil` here omits this value from being sent - which matches
+		// the previous behaviour - we're only splitting this out so it's clear why
+		opts := virtualmachines.DefaultDeleteOperationOptions()
+		opts.ForceDeletion = nil
+		if err := client.DeleteThenPoll(ctx, *id, opts); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	// delete OS Disk if opted in
@@ -1157,7 +1161,7 @@ func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]virtualmachines.Vau
 			certs := make([]map[string]interface{}, 0, len(*secret.VaultCertificates))
 			for _, cert := range *secret.VaultCertificates {
 				vaultCert := make(map[string]interface{})
-				vaultCert["certificate_url"] = *cert.CertificateUrl
+				vaultCert["certificate_url"] = *cert.CertificateURL
 
 				if cert.CertificateStore != nil {
 					vaultCert["certificate_store"] = *cert.CertificateStore
@@ -1243,8 +1247,8 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *virtualma
 			listener := make(map[string]interface{})
 			listener["protocol"] = string(pointer.From(i.Protocol))
 
-			if i.CertificateUrl != nil {
-				listener["certificate_url"] = *i.CertificateUrl
+			if i.CertificateURL != nil {
+				listener["certificate_url"] = *i.CertificateURL
 			}
 
 			listeners = append(listeners, listener)
@@ -1449,7 +1453,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *pluginsdk.ResourceData) *[]v
 
 				certUrl := config["certificate_url"].(string)
 				cert := virtualmachines.VaultCertificate{
-					CertificateUrl: &certUrl,
+					CertificateURL: &certUrl,
 				}
 				if v := config["certificate_store"].(string); v != "" {
 					cert.CertificateStore = &v
@@ -1535,7 +1539,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 					Protocol: pointer.To(virtualmachines.ProtocolTypes(protocol)),
 				}
 				if v := config["certificate_url"].(string); v != "" {
-					winRmListener.CertificateUrl = &v
+					winRmListener.CertificateURL = &v
 				}
 
 				winRmListeners = append(winRmListeners, winRmListener)
