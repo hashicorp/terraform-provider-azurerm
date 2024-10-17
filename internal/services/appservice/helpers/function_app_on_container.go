@@ -106,9 +106,9 @@ func SiteConfigSchemaLinuxFunctionAppOnContainer() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFunctionAppOnContainer, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, registry Registry, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
+func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFunctionAppOnContainer, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, registry Registry, version string, storageString string, storageUsesMSI bool) *webapps.SiteConfig {
 	if len(siteConfig) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	expanded := &webapps.SiteConfig{}
@@ -153,17 +153,17 @@ func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFun
 	}
 
 	expanded.AppSettings = &appSettings
-	return expanded, nil
+	return expanded
 }
 
-func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppOnContainer, error) {
+func FlattenSiteConfigLinuxFunctionAppOnContainer(functionAppOnContainer *webapps.SiteConfig) *SiteConfigLinuxFunctionAppOnContainer {
 	result := &SiteConfigLinuxFunctionAppOnContainer{
 		ElasticInstanceMinimum: pointer.From(functionAppOnContainer.MinimumElasticInstanceCount),
 		AppScaleLimit:          pointer.From(functionAppOnContainer.FunctionAppScaleLimit),
 		LinuxFxVersion:         pointer.From(functionAppOnContainer.LinuxFxVersion),
 	}
 
-	return result, nil
+	return result
 }
 
 func EncodeLinuxFunctionAppOnContainerRegistryImage(input []Registry, image string) *string {
@@ -186,7 +186,7 @@ func DecodeLinuxFunctionAppOnContainerRegistryImage(input *string, partial *weba
 	parts := strings.Split(*input, "|")
 	value := parts[1]
 	if len(parts) != 2 || parts[0] != "DOCKER" {
-		return "", []Registry{}, fmt.Errorf("unrecognised LinuxFxVersion format received, got %s", input)
+		return "", []Registry{}, fmt.Errorf("unrecognised LinuxFxVersion format received, got %s", *input)
 	}
 
 	// mcr.microsoft.com/dockerimage:tag

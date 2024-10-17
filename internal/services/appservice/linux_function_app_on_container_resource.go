@@ -252,7 +252,7 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString, linuxFunctionAppOnContainer.StorageUsesMSI)
+			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(linuxFunctionAppOnContainer.SiteConfig, nil, metadata, linuxFunctionAppOnContainer.Registries[0], linuxFunctionAppOnContainer.FunctionExtensionsVersion, storageString, linuxFunctionAppOnContainer.StorageUsesMSI)
 			siteConfig.LinuxFxVersion = helpers.EncodeLinuxFunctionAppOnContainerRegistryImage(linuxFunctionAppOnContainer.Registries, linuxFunctionAppOnContainer.ContainerImage)
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(linuxFunctionAppOnContainer.Identity)
@@ -280,8 +280,8 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			//the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
-			//issue: https://github.com/hashicorp/go-azure-sdk/issues/957
+			// the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
+			// issue: https://github.com/hashicorp/go-azure-sdk/issues/957
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:                     5 * time.Minute,
 				Pending:                   []string{"204"},
@@ -347,7 +347,7 @@ func (r LinuxFunctionAppOnContainerResource) Read() sdk.ResourceFunc {
 
 					if configRespModel := configResp.Model; configRespModel != nil && configRespModel.Properties != nil {
 						state.Identity = pointer.From(flattenedIdentity)
-						siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
+						siteConfig := helpers.FlattenSiteConfigLinuxFunctionAppOnContainer(configRespModel.Properties)
 						state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppOnContainer{*siteConfig}
 						state.ContainerImage, state.Registries, err = helpers.DecodeLinuxFunctionAppOnContainerRegistryImage(configRespModel.Properties.LinuxFxVersion, appSettingsResp.Model)
 						if err != nil {
@@ -433,7 +433,7 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			siteConfig := helpers.ExpandSiteConfigLinuxFunctionAppOnContainer(state.SiteConfig, model.Properties.SiteConfig, metadata, state.Registries[0], state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
 			}
@@ -476,14 +476,6 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 			if _, err := client.UpdateConfiguration(ctx, *id, webapps.SiteConfigResource{Properties: model.Properties.SiteConfig}); err != nil {
 				return fmt.Errorf("updating Site Config for Linux %s: %s", id, err)
 			}
-
-			//if metadata.ResourceData.HasChanges("app_settings") {
-			//	mergedAppSettings := helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
-			//	appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(mergedAppSettings)
-			//	if _, err := client.UpdateApplicationSettings(ctx, *id, *appSettingsUpdate); err != nil {
-			//		return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
-			//	}
-			//}
 
 			return nil
 		},
