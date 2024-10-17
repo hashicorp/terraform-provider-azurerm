@@ -40,9 +40,9 @@ type AutonomousDatabaseRegularResourceModel struct {
 	DbWorkload                     string  `tfschema:"db_workload"`
 	DisplayName                    string  `tfschema:"display_name"`
 	LicenseModel                   string  `tfschema:"license_model"`
-	IsAutoScalingEnabled           bool    `tfschema:"is_auto_scaling_enabled"`
-	IsAutoScalingForStorageEnabled bool    `tfschema:"is_auto_scaling_for_storage_enabled"`
-	IsMtlsConnectionRequired       bool    `tfschema:"is_mtls_connection_required"`
+	IsAutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
+	IsAutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
+	IsMtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
 	NcharacterSet                  string  `tfschema:"ncharacter_set"`
 	SubnetId                       string  `tfschema:"subnet_id"`
 	VnetId                         string  `tfschema:"vnet_id"`
@@ -103,15 +103,15 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"is_auto_scaling_enabled": {
+		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},
-		"is_auto_scaling_for_storage_enabled": {
+		"auto_scaling_for_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},
-		"is_mtls_connection_required": {
+		"mtls_connection_required": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
 		},

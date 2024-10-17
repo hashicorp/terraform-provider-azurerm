@@ -82,29 +82,30 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_oracle_autonomous_database" "test" {
   name = "OFake%[2]d"
 
-  display_name = "OFake%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = "%[3]s"
-  compute_model = "ECPU"
-  compute_count = "2"
-  license_model = "BringYourOwnLicense"
-  backup_retention_period_in_days = 12
-  is_auto_scaling_enabled = false
-  is_auto_scaling_for_storage_enabled = false
-  is_mtls_connection_required = false
-  data_storage_size_in_gbs = "32"
-  db_workload = "OLTP"
-  admin_password = "TestPass#2024#"
-  db_version = "19c"
-  character_set = "AL32UTF8"
-  ncharacter_set = "AL16UTF16"
-  subnet_id = azurerm_subnet.virtual_network_subnet.id
-  vnet_id = azurerm_virtual_network.virtual_network.id
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = "2"
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = false
+  data_storage_size_in_gbs         = "32"
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  ncharacter_set                   = "AL16UTF16"
+  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
+  vnet_id                          = azurerm_virtual_network.virtual_network.id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -117,28 +118,29 @@ resource "azurerm_oracle_autonomous_database" "test" {
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_oracle_autonomous_database" "test" {
-  name = "OFake%[2]d"
-  display_name = "OFake%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = "%[3]s"
-  compute_model = "ECPU"
-  compute_count = "2"
-  license_model = "BringYourOwnLicense"
-  backup_retention_period_in_days = 12
-  is_auto_scaling_enabled = false
-  is_auto_scaling_for_storage_enabled = false
-  is_mtls_connection_required = false
-  data_storage_size_in_gbs = "32"
-  db_workload = "OLTP"
-  admin_password = "TestPass#2024#"
-  db_version = "19c"
-  character_set = "AL32UTF8"
-  ncharacter_set = "AL16UTF16"
-  subnet_id = azurerm_subnet.virtual_network_subnet.id
-  vnet_id = azurerm_virtual_network.virtual_network.id
+  name                             = "OFake%[2]d"
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = "2"
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = false
+  data_storage_size_in_gbs         = "32"
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  ncharacter_set                   = "AL16UTF16"
+  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
+  vnet_id                          = azurerm_virtual_network.virtual_network.id
   tags = {
     test = "test1"
   }
@@ -156,25 +158,25 @@ func (a AdbsRegularResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_oracle_autonomous_database" "import" {
-  name = azurerm_oracle_autonomous_database.test.name
-  display_name = azurerm_oracle_autonomous_database.test.display_name
-  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
-  location = azurerm_oracle_autonomous_database.test.location
-  compute_model = azurerm_oracle_autonomous_database.test.compute_model
-  compute_count = azurerm_oracle_autonomous_database.test.compute_count
-  license_model = azurerm_oracle_autonomous_database.test.license_model
-  backup_retention_period_in_days = azurerm_oracle_autonomous_database.test.backup_retention_period_in_days
-  is_auto_scaling_enabled = azurerm_oracle_autonomous_database.test.is_auto_scaling_enabled
-  is_auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database.test.is_auto_scaling_for_storage_enabled
-  is_mtls_connection_required = azurerm_oracle_autonomous_database.test.is_mtls_connection_required
-  data_storage_size_in_gbs = azurerm_oracle_autonomous_database.test.data_storage_size_in_gbs
-  db_workload = azurerm_oracle_autonomous_database.test.db_workload
-  admin_password = azurerm_oracle_autonomous_database.test.admin_password
-  db_version = azurerm_oracle_autonomous_database.test.db_version
-  character_set = azurerm_oracle_autonomous_database.test.character_set
-  ncharacter_set = azurerm_oracle_autonomous_database.test.ncharacter_set
-  subnet_id = azurerm_oracle_autonomous_database.test.subnet_id
-  vnet_id = azurerm_oracle_autonomous_database.test.vnet_id
+  name                             = azurerm_oracle_autonomous_database.test.name
+  display_name                     = azurerm_oracle_autonomous_database.test.display_name
+  resource_group_name              = azurerm_oracle_autonomous_database.test.resource_group_name
+  location                         = azurerm_oracle_autonomous_database.test.location
+  compute_model                    = azurerm_oracle_autonomous_database.test.compute_model
+  compute_count                    = azurerm_oracle_autonomous_database.test.compute_count
+  license_model                    = azurerm_oracle_autonomous_database.test.license_model
+  backup_retention_period_in_days  = azurerm_oracle_autonomous_database.test.backup_retention_period_in_days
+  auto_scaling_enabled             = azurerm_oracle_autonomous_database.test.auto_scaling_enabled
+  auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database.test.auto_scaling_for_storage_enabled
+  mtls_connection_required         = azurerm_oracle_autonomous_database.test.mtls_connection_required
+  data_storage_size_in_gbs         = azurerm_oracle_autonomous_database.test.data_storage_size_in_gbs
+  db_workload                      = azurerm_oracle_autonomous_database.test.db_workload
+  admin_password                   = azurerm_oracle_autonomous_database.test.admin_password
+  db_version                       = azurerm_oracle_autonomous_database.test.db_version
+  character_set                    = azurerm_oracle_autonomous_database.test.character_set
+  ncharacter_set                   = azurerm_oracle_autonomous_database.test.ncharacter_set
+  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
+  vnet_id                          = azurerm_oracle_autonomous_database.test.vnet_id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -216,12 +218,13 @@ resource "azurerm_subnet" "virtual_network_subnet" {
     service_delegation {
       actions = [
         "Microsoft.Network/networkinterfaces/*",
-		"Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
       name = "Oracle.Database/networkAttachments"
     }
   }
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

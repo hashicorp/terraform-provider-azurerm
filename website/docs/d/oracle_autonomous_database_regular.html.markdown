@@ -14,7 +14,7 @@ Use this data source to access information about an existing Autonomous Database
 
 ```hcl
 data "azurerm_oracle_autonomous_database" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
@@ -68,19 +68,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `in_memory_area_in_gbs` - The area assigned to In-Memory tables in Autonomous Database.
 
-* `is_auto_scaling_enabled` - Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
+* `auto_scaling_enabled` - Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
 
-* `is_auto_scaling_for_storage_enabled` - Indicates if auto scaling is enabled for the Autonomous Database storage.
+* `auto_scaling_for_storage_enabled` - Indicates if auto scaling is enabled for the Autonomous Database storage.
 
-* `is_local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+* `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
 
-* `is_mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
+* `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
 
-* `is_preview` - Indicates if the Autonomous Database version is a preview version.
+* `preview` - Indicates if the Autonomous Database version is a preview version.
 
-* `is_preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
+* `preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
 
-* `is_remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+* `remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
 
 * `key_history_entry` - Key History Entry.
 

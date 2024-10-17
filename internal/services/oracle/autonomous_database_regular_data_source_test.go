@@ -37,7 +37,7 @@ func (d AutonomousDatabaseRegularDataSource) basic(data acceptance.TestData) str
 %s
 
 data "azurerm_oracle_autonomous_database" "test" {
-  name = azurerm_oracle_autonomous_database.test.name
+  name                = azurerm_oracle_autonomous_database.test.name
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
 }
 `, AdbsRegularResource{}.basic(data))

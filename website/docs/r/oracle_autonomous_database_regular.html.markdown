@@ -14,25 +14,25 @@ Manages a Autonomous Databases.
 
 ```hcl
 resource "azurerm_oracle_autonomous_database" "example" {
-  name                                = "example"
-  resource_group_name                 = "example"
-  location                            = "West Europe"
-  subnet_id                           = "example"
-  display_name                        = "example"
-  db_workload                         = "example"
-  is_mtls_connection_required         = false
-  backup_retention_period_in_days     = 42
-  compute_model                       = "example"
-  data_storage_size_in_gbs            = 42
-  is_auto_scaling_for_storage_enabled = false
-  vnet_id                             = "example"
-  admin_password                      = "example"
-  is_auto_scaling_enabled             = "example"
-  character_set                       = "example"
-  compute_count                       = 1.23456
-  ncharacter_set                      = "example"
-  license_model                       = false
-  db_version                          = "example"
+  name                             = "example"
+  resource_group_name              = "example"
+  location                         = "West Europe"
+  subnet_id                        = "example"
+  display_name                     = "example"
+  db_workload                      = "example"
+  mtls_connection_required         = false
+  backup_retention_period_in_days  = 42
+  compute_model                    = "example"
+  data_storage_size_in_gbs         = 42
+  auto_scaling_for_storage_enabled = false
+  vnet_id                          = "example"
+  admin_password                   = "example"
+  auto_scaling_enabled             = "example"
+  character_set                    = "example"
+  compute_count                    = 1.23456
+  ncharacter_set                   = "example"
+  license_model                    = false
+  db_version                       = "example"
 }
 ```
 
@@ -63,11 +63,11 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. The name does not have to be unique.
 
-* `is_auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count. The default value is `TRUE`.
+* `auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count. The default value is `TRUE`.
 
-* `is_auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `FALSE`.
+* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `FALSE`.
 
-* `is_mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections.
+* `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections.
 
 * `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Bring your own license (BYOL) allows you to apply your current on-premises Oracle software licenses to equivalent, highly automated Oracle services in the cloud. License Included allows you to subscribe to new Oracle Database software licenses and the Oracle Database service. Note that when provisioning an [Autonomous Database on dedicated Exadata infrastructure](https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html), this attribute must be null. It is already set at the Autonomous Exadata Infrastructure level. When provisioning an [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) database, if a value is not specified, the system defaults the value to `BRING_YOUR_OWN_LICENSE`. Bring your own license (BYOL) also allows you to select the DB edition using the optional parameter.
 
