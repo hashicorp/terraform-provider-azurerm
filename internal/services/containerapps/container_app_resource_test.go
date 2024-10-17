@@ -1351,8 +1351,8 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
         sub_path = "subdirectory"
       }
     }
