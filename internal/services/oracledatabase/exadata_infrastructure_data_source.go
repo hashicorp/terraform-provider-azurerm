@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -375,57 +374,48 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				err := metadata.ResourceData.Set("location", location.NormalizeNilable(&model.Location))
-				if err != nil {
-					return err
+				if props := model.Properties; props != nil {
+					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
+					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
+					state.AdditionalStorageCount = pointer.From(props.AdditionalStorageCount)
+					state.AvailableStorageSizeInGbs = pointer.From(props.AvailableStorageSizeInGbs)
+					state.CpuCount = pointer.From(props.CpuCount)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.CustomerContacts = FlattenCustomerContacts(props.CustomerContacts)
+					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
+					state.DbServerVersion = pointer.From(props.DbServerVersion)
+					state.DisplayName = props.DisplayName
+					state.EstimatedPatchingTime = FlattenEstimatedPatchingTimes(props.EstimatedPatchingTime)
+					state.LastMaintenanceRunId = pointer.From(props.LastMaintenanceRunId)
+					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
+					state.LifecycleState = string(*props.LifecycleState)
+					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
+					state.MaxCPUCount = pointer.From(props.MaxCPUCount)
+					state.MaxDataStorageInTbs = pointer.From(props.MaxDataStorageInTbs)
+					state.MaxDbNodeStorageSizeInGbs = pointer.From(props.MaxDbNodeStorageSizeInGbs)
+					state.MaxMemoryInGbs = pointer.From(props.MaxMemoryInGbs)
+					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.MonthlyDbServerVersion = pointer.From(props.MonthlyDbServerVersion)
+					state.MonthlyStorageServerVersion = pointer.From(props.MonthlyStorageServerVersion)
+					state.NextMaintenanceRunId = pointer.From(props.NextMaintenanceRunId)
+					state.OciUrl = pointer.From(props.OciURL)
+					state.Ocid = pointer.From(props.Ocid)
+					state.Shape = props.Shape
+					state.StorageCount = pointer.From(props.StorageCount)
+					state.StorageServerVersion = pointer.From(props.StorageServerVersion)
+					state.TimeCreated = pointer.From(props.TimeCreated)
+					state.TotalStorageSizeInGbs = pointer.From(props.TotalStorageSizeInGbs)
 				}
 
-				var output ExadataInfraDataModel
-
-				prop := model.Properties
-				if prop != nil {
-					output = ExadataInfraDataModel{
-						ActivatedStorageCount:       pointer.From(prop.ActivatedStorageCount),
-						AdditionalStorageCount:      pointer.From(prop.AdditionalStorageCount),
-						AvailableStorageSizeInGbs:   pointer.From(prop.AvailableStorageSizeInGbs),
-						CpuCount:                    pointer.From(prop.CpuCount),
-						ComputeCount:                pointer.From(prop.ComputeCount),
-						CustomerContacts:            FlattenCustomerContacts(prop.CustomerContacts),
-						DataStorageSizeInTbs:        pointer.From(prop.DataStorageSizeInTbs),
-						DbNodeStorageSizeInGbs:      pointer.From(prop.DbNodeStorageSizeInGbs),
-						DbServerVersion:             pointer.From(prop.DbServerVersion),
-						DisplayName:                 prop.DisplayName,
-						EstimatedPatchingTime:       FlattenEstimatedPatchingTimes(prop.EstimatedPatchingTime),
-						LastMaintenanceRunId:        pointer.From(prop.LastMaintenanceRunId),
-						LifecycleDetails:            pointer.From(prop.LifecycleDetails),
-						LifecycleState:              string(*prop.LifecycleState),
-						MaintenanceWindow:           FlattenMaintenanceWindow(prop.MaintenanceWindow),
-						MaxCPUCount:                 pointer.From(prop.MaxCPUCount),
-						MaxDataStorageInTbs:         pointer.From(prop.MaxDataStorageInTbs),
-						MaxDbNodeStorageSizeInGbs:   pointer.From(prop.MaxDbNodeStorageSizeInGbs),
-						MaxMemoryInGbs:              pointer.From(prop.MaxMemoryInGbs),
-						MemorySizeInGbs:             pointer.From(prop.MemorySizeInGbs),
-						MonthlyDbServerVersion:      pointer.From(prop.MonthlyDbServerVersion),
-						MonthlyStorageServerVersion: pointer.From(prop.MonthlyStorageServerVersion),
-						NextMaintenanceRunId:        pointer.From(prop.NextMaintenanceRunId),
-						OciUrl:                      pointer.From(prop.OciURL),
-						Ocid:                        pointer.From(prop.Ocid),
-						Shape:                       prop.Shape,
-						StorageCount:                pointer.From(prop.StorageCount),
-						StorageServerVersion:        pointer.From(prop.StorageServerVersion),
-						TimeCreated:                 pointer.From(prop.TimeCreated),
-						TotalStorageSizeInGbs:       pointer.From(prop.TotalStorageSizeInGbs),
-					}
-				}
-
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Tags = pointer.From(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
+				state.Name = id.CloudExadataInfrastructureName
+				state.ResourceGroupName = id.ResourceGroupName
+				state.Tags = pointer.From(model.Tags)
+				state.Location = model.Location
+				state.Zones = model.Zones
 
 				metadata.SetID(id)
-				return metadata.Encode(&output)
+				return metadata.Encode(&state)
 			}
 			return nil
 		},
@@ -443,17 +433,17 @@ func FlattenCustomerContacts(customerContactsList *[]cloudexadatainfrastructures
 }
 
 func FlattenEstimatedPatchingTimes(estimatedPatchingTime *cloudexadatainfrastructures.EstimatedPatchingTime) []EstimatedPatchingTimeModel {
+	estimatedPatchingTimes := make([]EstimatedPatchingTimeModel, 0)
 	if estimatedPatchingTime != nil {
-		return []EstimatedPatchingTimeModel{
-			{
-				EstimatedDbServerPatchingTime:        estimatedPatchingTime.EstimatedDbServerPatchingTime,
-				EstimatedNetworkSwitchesPatchingTime: estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime,
-				EstimatedStorageServerPatchingTime:   estimatedPatchingTime.EstimatedStorageServerPatchingTime,
-				TotalEstimatedPatchingTime:           estimatedPatchingTime.TotalEstimatedPatchingTime,
-			},
-		}
+		return append(estimatedPatchingTimes, EstimatedPatchingTimeModel{
+
+			EstimatedDbServerPatchingTime:        estimatedPatchingTime.EstimatedDbServerPatchingTime,
+			EstimatedNetworkSwitchesPatchingTime: estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime,
+			EstimatedStorageServerPatchingTime:   estimatedPatchingTime.EstimatedStorageServerPatchingTime,
+			TotalEstimatedPatchingTime:           estimatedPatchingTime.TotalEstimatedPatchingTime,
+		})
 	}
-	return nil
+	return estimatedPatchingTimes
 }
 
 func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.MaintenanceWindow) []MaintenanceWindowModel {
