@@ -73,8 +73,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
-			// TODO: this should become `cluster_id` in 4.0
-			"cluster_resource_id": {
+			"cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -223,7 +222,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			if parseErr != nil {
 				return parseErr
 			}
-			d.Set("cluster_resource_id", clusterResourceId.ID())
+			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
@@ -259,7 +258,7 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceData) *attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties {
 	AttachedDatabaseConfigurationProperties := &attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties{}
 
-	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
 	}
 
