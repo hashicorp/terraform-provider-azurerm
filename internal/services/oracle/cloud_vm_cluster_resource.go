@@ -66,7 +66,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ValidateFunc: validate.CloudVMClusterName,
 			ForceNew:     true,
 		},
 
@@ -83,6 +83,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"cpu_core_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.CpuCoreCount,
 		},
 
@@ -98,6 +99,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"db_servers": {
@@ -112,7 +114,8 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 
 		"gi_version": {
@@ -130,6 +133,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"license_model": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validate.LicenseModel,
 		},
 
@@ -137,11 +141,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 		},
 
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -165,6 +171,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"backup_subnet_cidr": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IsCIDR,
 		},
 
@@ -179,6 +186,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 			MaxItems: 1,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -187,18 +195,21 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 					},
 
 					"health_monitoring_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 					},
 
 					"incident_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 					},
 				},
 			},
@@ -353,53 +364,18 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-			}
 
-			payload := existing.Model
-
-			if metadata.ResourceData.HasChange("cpu_core_count") {
-				payload.Properties.CpuCoreCount = model.CpuCoreCount
-			}
-			if metadata.ResourceData.HasChange("db_node_storage_size_in_gbs") {
-				payload.Properties.DbNodeStorageSizeInGbs = pointer.To(model.DbNodeStorageSizeInGbs)
-			}
-			if metadata.ResourceData.HasChange("display_name") {
-				payload.Properties.DisplayName = model.DisplayName
-			}
-			if metadata.ResourceData.HasChange("license_model") {
-				payload.Properties.LicenseModel = pointer.To(cloudvmclusters.LicenseModel(model.LicenseModel))
-			}
-			if metadata.ResourceData.HasChange("memory_size_in_gbs") {
-				payload.Properties.MemorySizeInGbs = pointer.To(model.MemorySizeInGbs)
-			}
-			if metadata.ResourceData.HasChange("ssh_public_keys") {
-				payload.Properties.SshPublicKeys = model.SshPublicKeys
-			}
-			if metadata.ResourceData.HasChange("backup_subnet_cidr") {
-				payload.Properties.BackupSubnetCidr = pointer.To(model.BackupSubnetCidr)
-			}
-			if metadata.ResourceData.HasChange("data_collection_options") {
-				payload.Properties.DataCollectionOptions = &cloudvmclusters.DataCollectionOptions{
-					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOptions[0].IsDiagnosticsEventsEnabled),
-					IsHealthMonitoringEnabled:  pointer.To(model.DataCollectionOptions[0].IsHealthMonitoringEnabled),
-					IsIncidentLogsEnabled:      pointer.To(model.DataCollectionOptions[0].IsIncidentLogsEnabled),
-				}
-			}
 			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = pointer.To(model.Tags)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				update := cloudvmclusters.CloudVMClusterUpdate{
+					Tags: pointer.To(model.Tags),
+				}
+				if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 
 			return nil
@@ -518,7 +494,6 @@ func removeHostnameSuffix(hostnameActual string) string {
 	}
 }
 
-// TODO ask if this is supposed to be in use?
 // DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
 // therefore when computing the diff if the new Hostname is a prefix of the old then we will ignore the diff.
 // Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.

@@ -10,13 +10,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.Resource = ExadataInfraResource{}
@@ -25,11 +24,11 @@ type ExadataInfraResource struct{}
 
 type ExadataInfraResourceModel struct {
 	// Azure
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	Zones             zones.Schema           `tfschema:"zones"`
+	Location          string            `tfschema:"location"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Tags              map[string]string `tfschema:"tags"`
+	Zones             zones.Schema      `tfschema:"zones"`
 
 	// Required
 	ComputeCount int64  `tfschema:"compute_count"`
@@ -48,8 +47,10 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ExadataName,
+			ForceNew:     true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -59,22 +60,27 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validate.ComputeCount,
+			ForceNew:     true,
 		},
 
 		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.CloudVMClusterName,
+			ForceNew:     true,
 		},
 
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"storage_count": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validate.StorageCount,
+			ForceNew:     true,
 		},
 
 		// Optional
@@ -82,6 +88,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -91,12 +98,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days_of_week": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.DaysOfWeek,
@@ -107,6 +116,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.HoursOfDay,
@@ -117,6 +127,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Computed:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.LeadTimeInWeeks,
 					},
 
@@ -124,6 +135,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validate.Month,
@@ -134,6 +146,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.PatchingMode,
 					},
 
@@ -141,6 +154,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Computed:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.Preference,
 					},
 
@@ -148,6 +162,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Computed: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeInt,
 							ValidateFunc: validate.WeeksOfMonth,
@@ -159,7 +174,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 
-		"zones": commonschema.ZonesMultipleRequired(),
+		"zones": commonschema.ZonesMultipleRequiredForceNew(),
 	}
 }
 
@@ -201,8 +216,8 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 
 			param := cloudexadatainfrastructures.CloudExadataInfrastructure{
 				Name:     pointer.To(model.Name),
-				Location: model.Location,
-				Tags:     tags.Expand(model.Tags),
+				Location: location.Normalize(model.Location),
+				Tags:     pointer.To(model.Tags),
 				Zones:    model.Zones,
 				Properties: &cloudexadatainfrastructures.CloudExadataInfrastructureProperties{
 					ComputeCount:     pointer.To(model.ComputeCount),
@@ -251,21 +266,14 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving exists when updating: +%v", *id)
-			}
-			if existing.Model == nil && existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving as nil when updating for %v", *id)
-			}
-
-			if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
+				return fmt.Errorf("retrieving %s: ", *id)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
-					Tags: tags.Expand(model.Tags),
+					Tags: pointer.To(model.Tags),
 				}
 				err = client.UpdateThenPoll(ctx, *id, *update)
 				if err != nil {
@@ -281,40 +289,46 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
+
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
-			}
-
-			prop := result.Model.Properties
-			output := ExadataInfraResourceModel{
-				CustomerContacts:  FlattenCustomerContacts(result.Model.Properties.CustomerContacts),
-				Name:              pointer.ToString(result.Model.Name),
-				Location:          result.Model.Location,
-				Zones:             result.Model.Zones,
+			state := ExadataInfraResourceModel{
+				Name:              id.CloudExadataInfrastructureName,
 				ResourceGroupName: id.ResourceGroupName,
-				Tags:              utils.FlattenPtrMapStringString(result.Model.Tags),
-				ComputeCount:      pointer.From(prop.ComputeCount),
-				DisplayName:       prop.DisplayName,
-				StorageCount:      pointer.From(prop.StorageCount),
-				Shape:             prop.Shape,
-				MaintenanceWindow: FlattenMaintenanceWindow(prop.MaintenanceWindow),
 			}
 
-			return metadata.Encode(&output)
+			if model := result.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Zones = model.Zones
+				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
+					state.Name = pointer.ToString(result.Model.Name)
+					state.Location = result.Model.Location
+					state.Zones = result.Model.Zones
+					state.ResourceGroupName = id.ResourceGroupName
+					state.Tags = pointer.From(result.Model.Tags)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.DisplayName = props.DisplayName
+					state.StorageCount = pointer.From(props.StorageCount)
+					state.Shape = props.Shape
+					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
+				}
+			}
+
+			return metadata.Encode(&state)
 		},
 	}
 }

@@ -101,7 +101,7 @@ func (d CloudVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.Name,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 	}
 }

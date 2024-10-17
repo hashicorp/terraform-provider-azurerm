@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -16,21 +14,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type ExadataInfraDataSource struct{}
 
 type ExadataInfraDataModel struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Type              string                 `tfschema:"type"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	Zones             zones.Schema           `tfschema:"zones"`
-
-	// SystemData
-	SystemData []SystemDataModel `tfschema:"system_data"`
+	Location          string            `tfschema:"location"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Tags              map[string]string `tfschema:"tags"`
+	Zones             zones.Schema      `tfschema:"zones"`
 
 	// CloudExadataInfrastructureProperties
 	ActivatedStorageCount       int64                        `tfschema:"activated_storage_count"`
@@ -58,7 +53,6 @@ type ExadataInfraDataModel struct {
 	NextMaintenanceRunId        string                       `tfschema:"next_maintenance_run_id"`
 	OciUrl                      string                       `tfschema:"oci_url"`
 	Ocid                        string                       `tfschema:"ocid"`
-	ProvisioningState           string                       `tfschema:"provisioning_state"`
 	Shape                       string                       `tfschema:"shape"`
 	StorageCount                int64                        `tfschema:"storage_count"`
 	StorageServerVersion        string                       `tfschema:"storage_server_version"`
@@ -66,20 +60,11 @@ type ExadataInfraDataModel struct {
 	TotalStorageSizeInGbs       int64                        `tfschema:"total_storage_size_in_gbs"`
 }
 
-type SystemDataModel struct {
-	CreatedBy          string `tfschema:"created_by"`
-	CreatedByType      string `tfschema:"created_by_type"`
-	CreatedAt          string `tfschema:"created_at"`
-	LastModifiedBy     string `tfschema:"last_modified_by"`
-	LastModifiedbyType string `tfschema:"last_modified_by_type"`
-	LastModifiedAt     string `tfschema:"last_modified_at"`
-}
-
 type EstimatedPatchingTimeModel struct {
-	EstimatedDbServerPatchingTime        *int64 `tfschema:"estimated_db_server_patching_time"`
-	EstimatedNetworkSwitchesPatchingTime *int64 `tfschema:"estimated_network_switches_patching_time"`
-	EstimatedStorageServerPatchingTime   *int64 `tfschema:"estimated_storage_server_patching_time"`
-	TotalEstimatedPatchingTime           *int64 `tfschema:"total_estimated_patching_time"`
+	EstimatedDbServerPatchingTime        int64 `tfschema:"estimated_db_server_patching_time"`
+	EstimatedNetworkSwitchesPatchingTime int64 `tfschema:"estimated_network_switches_patching_time"`
+	EstimatedStorageServerPatchingTime   int64 `tfschema:"estimated_storage_server_patching_time"`
+	TotalEstimatedPatchingTime           int64 `tfschema:"total_estimated_patching_time"`
 }
 
 type MaintenanceWindowModel struct {
@@ -97,8 +82,9 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ExadataName,
 		},
 	}
 }
@@ -106,50 +92,6 @@ func (d ExadataInfraDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		// SystemData
-		"system_data": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"created_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
 
 		// CloudExadataInfrastructureProperties
 		"activated_storage_count": {
@@ -274,12 +216,12 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"is_custom_action_timeout_enabled": {
+					"custom_action_timeout_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
-					"is_monthly_patching_enabled": {
+					"monthly_patching_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -368,11 +310,6 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -405,7 +342,7 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d ExadataInfraDataSource) ModelObject() interface{} {
-	return nil
+	return &ExadataInfraDataModel{}
 }
 
 func (d ExadataInfraDataSource) ResourceType() string {
@@ -423,9 +360,11 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("name").(string))
+			var state ExadataInfraDataModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			id := cloudexadatainfrastructures.NewCloudExadataInfrastructureID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -436,75 +375,47 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				err := metadata.ResourceData.Set("location", location.NormalizeNilable(&model.Location))
-				if err != nil {
-					return err
+				state.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Zones = model.Zones
+				if props := model.Properties; props != nil {
+					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
+					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
+					state.AdditionalStorageCount = pointer.From(props.AdditionalStorageCount)
+					state.AvailableStorageSizeInGbs = pointer.From(props.AvailableStorageSizeInGbs)
+					state.CpuCount = pointer.From(props.CpuCount)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.CustomerContacts = FlattenCustomerContacts(props.CustomerContacts)
+					state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+					state.DbNodeStorageSizeInGbs = pointer.From(props.DbNodeStorageSizeInGbs)
+					state.DbServerVersion = pointer.From(props.DbServerVersion)
+					state.DisplayName = props.DisplayName
+					state.EstimatedPatchingTime = FlattenEstimatedPatchingTimes(props.EstimatedPatchingTime)
+					state.LastMaintenanceRunId = pointer.From(props.LastMaintenanceRunId)
+					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
+					state.LifecycleState = string(*props.LifecycleState)
+					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
+					state.MaxCPUCount = pointer.From(props.MaxCPUCount)
+					state.MaxDataStorageInTbs = pointer.From(props.MaxDataStorageInTbs)
+					state.MaxDbNodeStorageSizeInGbs = pointer.From(props.MaxDbNodeStorageSizeInGbs)
+					state.MaxMemoryInGbs = pointer.From(props.MaxMemoryInGbs)
+					state.MemorySizeInGbs = pointer.From(props.MemorySizeInGbs)
+					state.MonthlyDbServerVersion = pointer.From(props.MonthlyDbServerVersion)
+					state.MonthlyStorageServerVersion = pointer.From(props.MonthlyStorageServerVersion)
+					state.NextMaintenanceRunId = pointer.From(props.NextMaintenanceRunId)
+					state.OciUrl = pointer.From(props.OciURL)
+					state.Ocid = pointer.From(props.Ocid)
+					state.Shape = props.Shape
+					state.StorageCount = pointer.From(props.StorageCount)
+					state.StorageServerVersion = pointer.From(props.StorageServerVersion)
+					state.TimeCreated = pointer.From(props.TimeCreated)
+					state.TotalStorageSizeInGbs = pointer.From(props.TotalStorageSizeInGbs)
 				}
-
-				var output ExadataInfraDataModel
-
-				prop := model.Properties
-				if prop != nil {
-					output = ExadataInfraDataModel{
-						ActivatedStorageCount:       pointer.From(prop.ActivatedStorageCount),
-						AdditionalStorageCount:      pointer.From(prop.AdditionalStorageCount),
-						AvailableStorageSizeInGbs:   pointer.From(prop.AvailableStorageSizeInGbs),
-						CpuCount:                    pointer.From(prop.CpuCount),
-						ComputeCount:                pointer.From(prop.ComputeCount),
-						CustomerContacts:            FlattenCustomerContacts(prop.CustomerContacts),
-						DataStorageSizeInTbs:        pointer.From(prop.DataStorageSizeInTbs),
-						DbNodeStorageSizeInGbs:      pointer.From(prop.DbNodeStorageSizeInGbs),
-						DbServerVersion:             pointer.From(prop.DbServerVersion),
-						DisplayName:                 prop.DisplayName,
-						EstimatedPatchingTime:       FlattenEstimatedPatchingTimes(prop.EstimatedPatchingTime),
-						LastMaintenanceRunId:        pointer.From(prop.LastMaintenanceRunId),
-						LifecycleDetails:            pointer.From(prop.LifecycleDetails),
-						LifecycleState:              string(*prop.LifecycleState),
-						MaintenanceWindow:           FlattenMaintenanceWindow(prop.MaintenanceWindow),
-						MaxCPUCount:                 pointer.From(prop.MaxCPUCount),
-						MaxDataStorageInTbs:         pointer.From(prop.MaxDataStorageInTbs),
-						MaxDbNodeStorageSizeInGbs:   pointer.From(prop.MaxDbNodeStorageSizeInGbs),
-						MaxMemoryInGbs:              pointer.From(prop.MaxMemoryInGbs),
-						MemorySizeInGbs:             pointer.From(prop.MemorySizeInGbs),
-						MonthlyDbServerVersion:      pointer.From(prop.MonthlyDbServerVersion),
-						MonthlyStorageServerVersion: pointer.From(prop.MonthlyStorageServerVersion),
-						NextMaintenanceRunId:        pointer.From(prop.NextMaintenanceRunId),
-						OciUrl:                      pointer.From(prop.OciURL),
-						Ocid:                        pointer.From(prop.Ocid),
-						ProvisioningState:           string(*prop.ProvisioningState),
-						Shape:                       prop.Shape,
-						StorageCount:                pointer.From(prop.StorageCount),
-						StorageServerVersion:        pointer.From(prop.StorageServerVersion),
-						TimeCreated:                 pointer.From(prop.TimeCreated),
-						TotalStorageSizeInGbs:       pointer.From(prop.TotalStorageSizeInGbs),
-					}
-				}
-
-				systemData := model.SystemData
-				if systemData != nil {
-					output.SystemData = []SystemDataModel{
-						{
-							CreatedBy:          systemData.CreatedBy,
-							CreatedByType:      systemData.CreatedByType,
-							CreatedAt:          systemData.CreatedAt,
-							LastModifiedBy:     systemData.LastModifiedBy,
-							LastModifiedbyType: systemData.LastModifiedbyType,
-							LastModifiedAt:     systemData.LastModifiedAt,
-						},
-					}
-				}
-
-				output.Name = id.CloudExadataInfrastructureName
-				output.ResourceGroupName = id.ResourceGroupName
-				output.Type = pointer.From(model.Type)
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
-				output.Location = model.Location
-				output.Zones = model.Zones
-
-				metadata.SetID(id)
-				return metadata.Encode(&output)
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -520,34 +431,33 @@ func FlattenCustomerContacts(customerContactsList *[]cloudexadatainfrastructures
 }
 
 func FlattenEstimatedPatchingTimes(estimatedPatchingTime *cloudexadatainfrastructures.EstimatedPatchingTime) []EstimatedPatchingTimeModel {
+	estimatedPatchingTimes := make([]EstimatedPatchingTimeModel, 0)
 	if estimatedPatchingTime != nil {
-		return []EstimatedPatchingTimeModel{
-			{
-				EstimatedDbServerPatchingTime:        estimatedPatchingTime.EstimatedDbServerPatchingTime,
-				EstimatedNetworkSwitchesPatchingTime: estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime,
-				EstimatedStorageServerPatchingTime:   estimatedPatchingTime.EstimatedStorageServerPatchingTime,
-				TotalEstimatedPatchingTime:           estimatedPatchingTime.TotalEstimatedPatchingTime,
-			},
-		}
+		return append(estimatedPatchingTimes, EstimatedPatchingTimeModel{
+
+			EstimatedDbServerPatchingTime:        pointer.From(estimatedPatchingTime.EstimatedDbServerPatchingTime),
+			EstimatedNetworkSwitchesPatchingTime: pointer.From(estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime),
+			EstimatedStorageServerPatchingTime:   pointer.From(estimatedPatchingTime.EstimatedStorageServerPatchingTime),
+			TotalEstimatedPatchingTime:           pointer.From(estimatedPatchingTime.TotalEstimatedPatchingTime),
+		})
 	}
-	return nil
+	return estimatedPatchingTimes
 }
 
 func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.MaintenanceWindow) []MaintenanceWindowModel {
+	output := make([]MaintenanceWindowModel, 0)
 	if maintenanceWindow != nil {
-		return []MaintenanceWindowModel{
-			{
-				DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
-				HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
-				LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
-				Months:          FlattenMonths(maintenanceWindow.Months),
-				PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
-				Preference:      string(pointer.From(maintenanceWindow.Preference)),
-				WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
-			},
-		}
+		return append(output, MaintenanceWindowModel{
+			DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
+			HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
+			LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
+			Months:          FlattenMonths(maintenanceWindow.Months),
+			PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
+			Preference:      string(pointer.From(maintenanceWindow.Preference)),
+			WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
+		})
 	}
-	return []MaintenanceWindowModel{}
+	return output
 }
 
 func FlattenDayOfWeek(dayOfWeeks *[]cloudexadatainfrastructures.DayOfWeek) []string {

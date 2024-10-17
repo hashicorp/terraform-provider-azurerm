@@ -2,16 +2,15 @@
 
 FEATURES:
 
-* **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
 * **New Resource**: `azurerm_dev_center_attached_network` [GH-27638]
-* **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
 
 ENHANCEMENTS:
 
-* `redit` - upgrade api version to `2024-06-01-preview`  [GH-27597]
-* `azurerm_fluid_relay_server` - add support for `customer_managed_key` [GH-27581]
+* `redis` - upgrade api version to `2024-06-01-preview`  [GH-27597]
+* `azurerm_app_configuration` - support for premium sku [GH-27674]
+* `azurerm_container_app` - support for the `max_inactive_revisions` property [GH-27598]
+* `azurerm_fluid_relay_server` - support for the `customer_managed_key` property [GH-27581]
 * `azurerm_linux_virtual_machine` - support the `UBUNTU_PRO` value for the `license_type` property [GH-27534]
-* `azurerm_stack_hci_logical_network` - the `marksubnet.route.name` property is now optional [GH-27479]
 
 
 BUGS:
