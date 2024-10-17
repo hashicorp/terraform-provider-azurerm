@@ -309,10 +309,6 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthorit
 }
 
 func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("Service Mesh Profile Revisions are only available in version 4.0.0 and later")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
