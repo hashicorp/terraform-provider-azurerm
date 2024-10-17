@@ -2,10 +2,7 @@ package appservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
@@ -276,9 +274,6 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 			if linuxFunctionAppOnContainer.KeyVaultReferenceIdentityID != "" {
 				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(linuxFunctionAppOnContainer.KeyVaultReferenceIdentityID)
 			}
-
-			js, _ := json.Marshal(siteEnvelope)
-			log.Printf("DDDDDsiteACA%s", js)
 
 			_, err = client.CreateOrUpdate(ctx, id, siteEnvelope)
 			if err != nil {
