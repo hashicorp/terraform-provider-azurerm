@@ -19,7 +19,7 @@ import (
 
 type AutonomousDatabaseRegularDataSource struct{}
 
-type AutonomousDatabaseRegularDataSourceModel struct {
+type AutonomousDatabaseRegularDataModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -388,7 +388,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 }
 
 func (d AutonomousDatabaseRegularDataSource) ModelObject() interface{} {
-	return &AutonomousDatabaseRegularDataSourceModel{}
+	return &AutonomousDatabaseRegularDataModel{}
 }
 
 func (d AutonomousDatabaseRegularDataSource) ResourceType() string {
@@ -406,7 +406,7 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state AutonomousDatabaseRegularDataSourceModel
+			var state AutonomousDatabaseRegularDataModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
