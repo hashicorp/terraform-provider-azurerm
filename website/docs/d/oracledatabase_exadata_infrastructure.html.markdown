@@ -51,11 +51,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
 
-* `data_storage_size_in_tbs` - Size, in terabytes, of the DATA disk group.
+* `data_storage_size_in_tbs` - The data storage size in terabytes of the DATA disk group.
 
 * `db_node_storage_size_in_gbs` - The local node storage allocated in GBs.
 
-* `db_server_version` - The software version of the database servers (dom0) in the Cloud Exadata Infrastructure. Example: `20.1.15`
+* `db_server_version` - The software version of the database servers (dom0) in the Cloud Exadata Infrastructure.
 
 * `display_name` - The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.
 
@@ -81,11 +81,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_size_in_gbs` - The memory allocated in GBs.
 
-* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the Cloud Exadata Infrastructure. Example: `20.1.15`
+* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the Cloud Exadata Infrastructure.
 
 * `monthly_patching_enabled` - If true, enables the monthly patching option.
 
-* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the Cloud Exadata Infrastructure. Example: `20.1.15`
+* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the Cloud Exadata Infrastructure.
 
 * `next_maintenance_run_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the next maintenance run.
 
@@ -97,7 +97,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_count` - The number of storage servers for the Cloud Exadata Infrastructure.
 
-* `storage_server_version` - The software version of the storage servers (cells) in the Cloud Exadata Infrastructure. Example: `20.1.15`
+* `storage_server_version` - The software version of the storage servers (cells) in the Cloud Exadata Infrastructure.
 
 * `tags` - A mapping of tags assigned to the Cloud Exadata Infrastructure.
 
@@ -125,17 +125,17 @@ A `maintenance_window` block exports the following:
 
 * `days_of_week` - Days during the week when maintenance should be performed.
 
-* `hours_of_day` - The window of hours during the day when maintenance should be performed. The window is a 4 hour slot. Valid values are: 0 - represents time slot 0:00 - 3:59 UTC - 4 - represents time slot 4:00 - 7:59 UTC - 8 - represents time slot 8:00 - 11:59 UTC - 12 - represents time slot 12:00 - 15:59 UTC - 16 - represents time slot 16:00 - 19:59 UTC - 20 - represents time slot 20:00 - 23:59 UTC
+* `hours_of_day` - The window of hours during the day when maintenance should be performed.
 
-* `lead_time_in_weeks` -  Lead time window allows user to set a lead time to prepare for a down time. The lead time is in weeks and valid value is between 1 to 4.
+* `lead_time_in_weeks` -  Lead time window allows user to set a lead time to prepare for a down time.
 
 * `months` - A `months` block as defined below.
 
-* `patching_mode` -  Cloud Exadata Infrastructure node patching method, either `ROLLING` or `NONROLLING`.
+* `patching_mode` -  Cloud Exadata Infrastructure node patching method.
 
 * `preference` - The maintenance window scheduling preference.
 
-* `weeks_of_month` - Weeks during the month when maintenance should be performed. Weeks start on the 1st, 8th, 15th, and 22nd days of the month, and have a duration of 7 days. Weeks start and end based on calendar dates, not days of the week. For example, to allow maintenance during the 2nd week of the month (from the 8th day to the 14th day of the month), use the value 2. Maintenance cannot be scheduled for the fifth week of months that contain more than 28 days. Note that this parameter works in conjunction with the daysOfWeek and hoursOfDay parameters to allow you to specify specific days of the week and hours that maintenance will be performed.
+* `weeks_of_month` - Weeks during the month when maintenance should be performed.
 
 ---
 

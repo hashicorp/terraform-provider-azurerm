@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExadataInfraResource struct{}
@@ -26,20 +26,9 @@ func (a ExadataInfraResource) Exists(ctx context.Context, client *clients.Client
 	}
 	resp, err := client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Exadata Infrastructure %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
-}
-
-func (a ExadataInfraResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting Exadata Infrastructure %s: %+v", id, err)
-	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestExaInfra_basic(t *testing.T) {
@@ -56,12 +45,12 @@ func TestExaInfra_basic(t *testing.T) {
 	})
 }
 
-func TestExaInfra_allFields(t *testing.T) {
+func TestExaInfra_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracledatabase.ExadataInfraResource{}.ResourceType(), "test")
 	r := ExadataInfraResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allFields(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -109,6 +98,10 @@ func (a ExadataInfraResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
@@ -122,11 +115,13 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a ExadataInfraResource) allFields(data acceptance.TestData) string {
+func (a ExadataInfraResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
@@ -158,9 +153,11 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
 
 func (a ExadataInfraResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
   name                = "OFakeacctest%[2]d"
@@ -182,6 +179,10 @@ func (a ExadataInfraResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_oracle_exadata_infrastructure" "import" {
   name                = azurerm_oracle_exadata_infrastructure.test.name
   location            = azurerm_oracle_exadata_infrastructure.test.location
@@ -197,10 +198,6 @@ resource "azurerm_oracle_exadata_infrastructure" "import" {
 
 func (a ExadataInfraResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
