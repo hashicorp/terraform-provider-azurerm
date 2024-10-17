@@ -263,12 +263,12 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 
 			var model ExadataInfraResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+				return fmt.Errorf("decoding err: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: ", *id)
 			}
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
@@ -277,45 +277,19 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			payload := existing.Model
+			if metadata.ResourceData.HasChangesExcept("tags") {
+				return fmt.Errorf("only `tags` currently support updates")
+			}
 
-			if metadata.ResourceData.HasChange("compute_count") {
-				payload.Properties.ComputeCount = pointer.To(model.ComputeCount)
-			}
-			if metadata.ResourceData.HasChange("display_name") {
-				payload.Properties.DisplayName = model.DisplayName
-			}
-			if metadata.ResourceData.HasChange("shape") {
-				payload.Properties.Shape = model.Shape
-			}
-			if metadata.ResourceData.HasChange("storage_count") {
-				payload.Properties.StorageCount = pointer.To(model.StorageCount)
-			}
-			if metadata.ResourceData.HasChange("customer_contacts") {
-				payload.Properties.CustomerContacts = pointer.To(ExpandCustomerContacts(model.CustomerContacts))
-			}
-			if metadata.ResourceData.HasChange("maintenance_window") {
-				payload.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
-					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
-					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
-					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
-					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
-					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
-					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
-					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
+			if metadata.ResourceData.HasChange("tags") {
+				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
+					Tags: pointer.To(model.Tags),
+				}
+				err = client.UpdateThenPoll(ctx, *id, *update)
+				if err != nil {
+					return fmt.Errorf("updating %s: %v", id, err)
 				}
 			}
-			if metadata.ResourceData.HasChange("zones") {
-				payload.Zones = model.Zones
-			}
-			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = pointer.To(model.Tags)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
 			return nil
 		},
 	}
