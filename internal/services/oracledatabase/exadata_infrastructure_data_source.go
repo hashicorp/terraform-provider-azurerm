@@ -16,17 +16,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExadataInfraDataSource struct{}
 
 type ExadataInfraDataModel struct {
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Tags              map[string]string `tfschema:"tags"`
-	Zones             zones.Schema           `tfschema:"zones"`
+	Zones             zones.Schema      `tfschema:"zones"`
 
 	// CloudExadataInfrastructureProperties
 	ActivatedStorageCount       int64                        `tfschema:"activated_storage_count"`
@@ -421,7 +420,7 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 
 				output.Name = id.CloudExadataInfrastructureName
 				output.ResourceGroupName = id.ResourceGroupName
-				output.Tags = utils.FlattenPtrMapStringString(model.Tags)
+				output.Tags = pointer.From(model.Tags)
 				output.Location = model.Location
 				output.Zones = model.Zones
 
