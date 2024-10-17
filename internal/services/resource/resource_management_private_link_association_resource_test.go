@@ -54,7 +54,7 @@ func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport(data, randomUUID)
+			return r.requiresImport(data)
 		}),
 	})
 }
@@ -124,7 +124,7 @@ resource "azurerm_resource_management_private_link_association" "test" {
 `, r.template(data))
 }
 
-func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData, uuid string) string {
+func (r ResourceManagementPrivateLinkAssociationTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
