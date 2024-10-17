@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -60,10 +61,10 @@ type ExadataInfraDataModel struct {
 }
 
 type EstimatedPatchingTimeModel struct {
-	EstimatedDbServerPatchingTime        *int64 `tfschema:"estimated_db_server_patching_time"`
-	EstimatedNetworkSwitchesPatchingTime *int64 `tfschema:"estimated_network_switches_patching_time"`
-	EstimatedStorageServerPatchingTime   *int64 `tfschema:"estimated_storage_server_patching_time"`
-	TotalEstimatedPatchingTime           *int64 `tfschema:"total_estimated_patching_time"`
+	EstimatedDbServerPatchingTime        int64 `tfschema:"estimated_db_server_patching_time"`
+	EstimatedNetworkSwitchesPatchingTime int64 `tfschema:"estimated_network_switches_patching_time"`
+	EstimatedStorageServerPatchingTime   int64 `tfschema:"estimated_storage_server_patching_time"`
+	TotalEstimatedPatchingTime           int64 `tfschema:"total_estimated_patching_time"`
 }
 
 type MaintenanceWindowModel struct {
@@ -374,6 +375,9 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
+				state.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Zones = model.Zones
 				if props := model.Properties; props != nil {
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
 					state.ActivatedStorageCount = pointer.From(props.ActivatedStorageCount)
@@ -407,17 +411,11 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 					state.TimeCreated = pointer.From(props.TimeCreated)
 					state.TotalStorageSizeInGbs = pointer.From(props.TotalStorageSizeInGbs)
 				}
-
-				state.Name = id.CloudExadataInfrastructureName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Tags = pointer.From(model.Tags)
-				state.Location = model.Location
-				state.Zones = model.Zones
-
-				metadata.SetID(id)
-				return metadata.Encode(&state)
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -437,30 +435,29 @@ func FlattenEstimatedPatchingTimes(estimatedPatchingTime *cloudexadatainfrastruc
 	if estimatedPatchingTime != nil {
 		return append(estimatedPatchingTimes, EstimatedPatchingTimeModel{
 
-			EstimatedDbServerPatchingTime:        estimatedPatchingTime.EstimatedDbServerPatchingTime,
-			EstimatedNetworkSwitchesPatchingTime: estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime,
-			EstimatedStorageServerPatchingTime:   estimatedPatchingTime.EstimatedStorageServerPatchingTime,
-			TotalEstimatedPatchingTime:           estimatedPatchingTime.TotalEstimatedPatchingTime,
+			EstimatedDbServerPatchingTime:        pointer.From(estimatedPatchingTime.EstimatedDbServerPatchingTime),
+			EstimatedNetworkSwitchesPatchingTime: pointer.From(estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime),
+			EstimatedStorageServerPatchingTime:   pointer.From(estimatedPatchingTime.EstimatedStorageServerPatchingTime),
+			TotalEstimatedPatchingTime:           pointer.From(estimatedPatchingTime.TotalEstimatedPatchingTime),
 		})
 	}
 	return estimatedPatchingTimes
 }
 
 func FlattenMaintenanceWindow(maintenanceWindow *cloudexadatainfrastructures.MaintenanceWindow) []MaintenanceWindowModel {
+	output := make([]MaintenanceWindowModel, 0)
 	if maintenanceWindow != nil {
-		return []MaintenanceWindowModel{
-			{
-				DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
-				HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
-				LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
-				Months:          FlattenMonths(maintenanceWindow.Months),
-				PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
-				Preference:      string(pointer.From(maintenanceWindow.Preference)),
-				WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
-			},
-		}
+		return append(output, MaintenanceWindowModel{
+			DaysOfWeek:      FlattenDayOfWeek(maintenanceWindow.DaysOfWeek),
+			HoursOfDay:      pointer.From(maintenanceWindow.HoursOfDay),
+			LeadTimeInWeeks: pointer.From(maintenanceWindow.LeadTimeInWeeks),
+			Months:          FlattenMonths(maintenanceWindow.Months),
+			PatchingMode:    string(pointer.From(maintenanceWindow.PatchingMode)),
+			Preference:      string(pointer.From(maintenanceWindow.Preference)),
+			WeeksOfMonth:    pointer.From(maintenanceWindow.WeeksOfMonth),
+		})
 	}
-	return []MaintenanceWindowModel{}
+	return output
 }
 
 func FlattenDayOfWeek(dayOfWeeks *[]cloudexadatainfrastructures.DayOfWeek) []string {

@@ -50,6 +50,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.Name,
+			ForceNew:     true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -202,7 +203,7 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 
 			param := cloudexadatainfrastructures.CloudExadataInfrastructure{
 				Name:     pointer.To(model.Name),
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Zones:    model.Zones,
 				Properties: &cloudexadatainfrastructures.CloudExadataInfrastructureProperties{
@@ -249,12 +250,12 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 
 			var model ExadataInfraResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: ", *id)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
@@ -263,15 +264,45 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChange("tags") {
-				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
-					Tags: pointer.To(model.Tags),
-				}
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
-					return fmt.Errorf("updating %s: %v", id, err)
+			payload := existing.Model
+
+			if metadata.ResourceData.HasChange("compute_count") {
+				payload.Properties.ComputeCount = pointer.To(model.ComputeCount)
+			}
+			if metadata.ResourceData.HasChange("display_name") {
+				payload.Properties.DisplayName = model.DisplayName
+			}
+			if metadata.ResourceData.HasChange("shape") {
+				payload.Properties.Shape = model.Shape
+			}
+			if metadata.ResourceData.HasChange("storage_count") {
+				payload.Properties.StorageCount = pointer.To(model.StorageCount)
+			}
+			if metadata.ResourceData.HasChange("customer_contacts") {
+				payload.Properties.CustomerContacts = pointer.To(ExpandCustomerContacts(model.CustomerContacts))
+			}
+			if metadata.ResourceData.HasChange("maintenance_window") {
+				payload.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
+					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
+					HoursOfDay:      pointer.To(model.MaintenanceWindow[0].HoursOfDay),
+					LeadTimeInWeeks: pointer.To(model.MaintenanceWindow[0].LeadTimeInWeeks),
+					Months:          pointer.To(ExpandMonths(model.MaintenanceWindow[0].Months)),
+					PatchingMode:    pointer.To(cloudexadatainfrastructures.PatchingMode(model.MaintenanceWindow[0].PatchingMode)),
+					Preference:      pointer.To(cloudexadatainfrastructures.Preference(model.MaintenanceWindow[0].Preference)),
+					WeeksOfMonth:    pointer.To(model.MaintenanceWindow[0].WeeksOfMonth),
 				}
 			}
+			if metadata.ResourceData.HasChange("zones") {
+				payload.Zones = model.Zones
+			}
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
@@ -281,18 +312,19 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
+
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client := metadata.Client.OracleDatabase.OracleDatabaseClient.CloudExadataInfrastructures
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := ExadataInfraResourceModel{
@@ -319,22 +351,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			prop := result.Model.Properties
-			output := ExadataInfraResourceModel{
-				CustomerContacts:  FlattenCustomerContacts(result.Model.Properties.CustomerContacts),
-				Name:              pointer.ToString(result.Model.Name),
-				Location:          result.Model.Location,
-				Zones:             result.Model.Zones,
-				ResourceGroupName: id.ResourceGroupName,
-				Tags:              pointer.From(result.Model.Tags),
-				ComputeCount:      pointer.From(prop.ComputeCount),
-				DisplayName:       prop.DisplayName,
-				StorageCount:      pointer.From(prop.StorageCount),
-				Shape:             prop.Shape,
-				MaintenanceWindow: FlattenMaintenanceWindow(prop.MaintenanceWindow),
-			}
-
-			return metadata.Encode(&output)
+			return metadata.Encode(&state)
 		},
 	}
 }
