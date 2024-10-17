@@ -46,6 +46,7 @@ type CloudVmClusterDataModel struct {
 	Domain                       string                       `tfschema:"domain"`
 	GiVersion                    string                       `tfschema:"gi_version"`
 	Hostname                     string                       `tfschema:"hostname"`
+	HostnameActual               string                       `tfschema:"hostname_actual"`
 	IormConfigCache              []ExadataIormConfigModel     `tfschema:"iorm_config_cache"`
 	IsLocalBackupEnabled         bool                         `tfschema:"is_local_backup_enabled"`
 	IsSparseDiskgroupEnabled     bool                         `tfschema:"is_sparse_diskgroup_enabled"`
@@ -259,6 +260,11 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"hostname_actual": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -527,7 +533,8 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 						DisplayName:                  prop.DisplayName,
 						Domain:                       pointer.From(prop.Domain),
 						GiVersion:                    prop.GiVersion,
-						Hostname:                     prop.Hostname,
+						Hostname:                     removeHostnameSuffix(prop.Hostname),
+						HostnameActual:               prop.Hostname,
 						IormConfigCache:              FlattenExadataIormConfig(prop.IormConfigCache),
 						IsLocalBackupEnabled:         pointer.From(prop.IsLocalBackupEnabled),
 						IsSparseDiskgroupEnabled:     pointer.From(prop.IsSparseDiskgroupEnabled),

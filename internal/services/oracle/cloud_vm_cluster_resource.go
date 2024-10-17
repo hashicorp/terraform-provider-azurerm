@@ -42,6 +42,7 @@ type CloudVmClusterResourceModel struct {
 	DisplayName                  string   `tfschema:"display_name"`
 	GiVersion                    string   `tfschema:"gi_version"`
 	Hostname                     string   `tfschema:"hostname"`
+	HostnameActual               string   `tfschema:"hostname_actual"`
 	LicenseModel                 string   `tfschema:"license_model"`
 	MemorySizeInGbs              int64    `tfschema:"memory_size_in_gbs"`
 	SshPublicKeys                []string `tfschema:"ssh_public_keys"`
@@ -121,10 +122,9 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"hostname": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			DiffSuppressFunc: DbSystemHostnameDiffSuppress,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"license_model": {
@@ -235,7 +235,12 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"hostname_actual": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (CloudVmClusterResource) ModelObject() interface{} {
@@ -408,7 +413,8 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 			output.DbServers = pointer.From(result.Model.Properties.DbServers)
 			output.DisplayName = result.Model.Properties.DisplayName
 			output.GiVersion = result.Model.Properties.GiVersion
-			output.Hostname = result.Model.Properties.Hostname
+			output.Hostname = removeHostnameSuffix(result.Model.Properties.Hostname)
+			output.HostnameActual = result.Model.Properties.Hostname
 			output.LicenseModel = string(pointer.From(result.Model.Properties.LicenseModel))
 			output.MemorySizeInGbs = pointer.From(result.Model.Properties.MemorySizeInGbs)
 			output.SshPublicKeys = result.Model.Properties.SshPublicKeys
@@ -470,6 +476,15 @@ func FlattenDataCollectionOptions(dataCollectionOptions *cloudvmclusters.DataCol
 		}
 	}
 	return nil
+}
+
+func removeHostnameSuffix(hostnameActual string) string {
+	suffixIndex := strings.LastIndex(hostnameActual, "-")
+	if suffixIndex != -1 {
+		return hostnameActual[:suffixIndex]
+	} else {
+		return hostnameActual
+	}
 }
 
 // DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
