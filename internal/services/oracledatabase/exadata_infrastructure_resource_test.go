@@ -103,7 +103,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
-  name                = "acctestoexadata%[2]d"
+  name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
@@ -124,7 +124,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
-  name                = "acctestoexadata%[2]d"
+  name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
@@ -160,7 +160,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_exadata_infrastructure" "test" {
-  name                = "acctestoexadata%[2]d"
+  name                = "OFakeacctest%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
