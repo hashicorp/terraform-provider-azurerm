@@ -187,9 +187,12 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 
 	parameters := apidiagnostic.DiagnosticContract{
 		Properties: &apidiagnostic.DiagnosticContractProperties{
-			LoggerId:            d.Get("api_management_logger_id").(string),
-			OperationNameFormat: pointer.To(apidiagnostic.OperationNameFormat(d.Get("operation_name_format").(string))),
+			LoggerId: d.Get("api_management_logger_id").(string),
 		},
+	}
+
+	if d.Get("identifier") == "applicationinsights" {
+		parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(d.Get("operation_name_format").(string)))
 	}
 
 	samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]

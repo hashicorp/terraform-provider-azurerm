@@ -1,6 +1,4 @@
 // Package appconfiguration implements the Azure ARM Appconfiguration service API version 1.0.
-//
-//
 package appconfiguration
 
 // Copyright (c) Microsoft Corporation. All rights reserved.

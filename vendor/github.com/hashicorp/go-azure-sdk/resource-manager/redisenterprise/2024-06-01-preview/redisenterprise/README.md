@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise` Documentation
 
-The `redisenterprise` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2023-10-01-preview`).
+The `redisenterprise` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
 ```
 
 
@@ -18,27 +18,6 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-
 ```go
 client := redisenterprise.NewRedisEnterpriseClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
-```
-
-
-### Example Usage: `RedisEnterpriseClient.CheckNameAvailability`
-
-```go
-ctx := context.TODO()
-id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
-
-payload := redisenterprise.CheckNameAvailabilityParameters{
-	// ...
-}
-
-
-read, err := client.CheckNameAvailability(ctx, id, payload)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
 ```
 
 
@@ -117,6 +96,23 @@ payload := redisenterprise.FlushParameters{
 
 
 if err := client.DatabasesFlushThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `RedisEnterpriseClient.DatabasesForceLinkToReplicationGroup`
+
+```go
+ctx := context.TODO()
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
+
+payload := redisenterprise.ForceLinkParameters{
+	// ...
+}
+
+
+if err := client.DatabasesForceLinkToReplicationGroupThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
@@ -234,6 +230,18 @@ payload := redisenterprise.DatabaseUpdate{
 
 
 if err := client.DatabasesUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `RedisEnterpriseClient.DatabasesUpgradeDBRedisVersion`
+
+```go
+ctx := context.TODO()
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
+
+if err := client.DatabasesUpgradeDBRedisVersionThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
