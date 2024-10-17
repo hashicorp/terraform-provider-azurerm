@@ -209,9 +209,6 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := DBServersDataModel{
-					DBServers: make([]DBServerDataModel, 0),
-				}
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						dbServer := DBServerDataModel{
@@ -234,7 +231,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 							TimeCreated:                 pointer.From(props.TimeCreated),
 							VMClusterIds:                pointer.From(props.VMClusterIds),
 						}
-						output.DBServers = append(output.DBServers, dbServer)
+						state.DBServers = append(state.DBServers, dbServer)
 					}
 				}
 			}
