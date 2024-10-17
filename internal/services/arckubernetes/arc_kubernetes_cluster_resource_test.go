@@ -93,6 +93,104 @@ func TestAccArcKubernetesCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccArcKubernetesCluster_provisionedClusterBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
+	r := ArcKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.provisionedClusterBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccArcKubernetesCluster_provisionedClusterComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
+	r := ArcKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.provisionedClusterComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccArcKubernetesCluster_provisionedClusterUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
+	r := ArcKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.provisionedClusterBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccArcKubernetesCluster_provisionedClusterAadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_arc_kubernetes_cluster", "test")
+	r := ArcKubernetesClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.provisionedClusterBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterAadProfileBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterAadProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.provisionedClusterBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ArcKubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := arckubernetes.ParseConnectedClusterID(state.ID)
 	if err != nil {
@@ -388,4 +486,127 @@ func (r ArcKubernetesClusterResource) getCredentials(t *testing.T) (credential, 
 	}
 
 	return
+}
+
+func (r ArcKubernetesClusterResource) provisionedClusterBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-arck8s-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_arc_kubernetes_cluster" "test" {
+  name                = "acctest-akcc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "ProvisionedCluster"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ArcKubernetesClusterResource) provisionedClusterUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-arck8s-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_arc_kubernetes_cluster" "test" {
+  name                           = "acctest-akcc-%[1]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  kind                           = "ProvisionedCluster"
+  azure_hybrid_benefit           = "NotApplicable"
+  arc_agent_auto_upgrade_enabled = false
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ArcKubernetesClusterResource) provisionedClusterComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-arck8s-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_arc_kubernetes_cluster" "test" {
+  name                           = "acctest-akcc-%[1]d"
+  resource_group_name            = azurerm_resource_group.test.name
+  location                       = azurerm_resource_group.test.location
+  kind                           = "ProvisionedCluster"
+  azure_hybrid_benefit           = "NotApplicable"
+  arc_agent_auto_upgrade_enabled = true
+  arc_agent_desired_version      = "1.18.3"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ArcKubernetesClusterResource) provisionedClusterAadProfileBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-arck8s-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_arc_kubernetes_cluster" "test" {
+  name                = "acctest-akcc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "ProvisionedCluster"
+
+  aad_profile {
+    azure_rbac_enabled = false
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ArcKubernetesClusterResource) provisionedClusterAadProfileComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-arck8s-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azuread_group" "test" {
+  display_name     = "acctestADG-arck8s-%[1]d"
+  owners           = [data.azurerm_client_config.current.object_id]
+  security_enabled = true
+}
+
+resource "azurerm_arc_kubernetes_cluster" "test" {
+  name                = "acctest-akcc-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "ProvisionedCluster"
+
+  aad_profile {
+    azure_rbac_enabled     = true
+    admin_group_object_ids = [azuread_group.test.id]
+    tenant_id              = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
