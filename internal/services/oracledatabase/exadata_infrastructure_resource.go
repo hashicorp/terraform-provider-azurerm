@@ -277,10 +277,6 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			if metadata.ResourceData.HasChangesExcept("tags") {
-				return fmt.Errorf("only `tags` currently support updates")
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				update := &cloudexadatainfrastructures.CloudExadataInfrastructureUpdate{
 					Tags: pointer.To(model.Tags),
