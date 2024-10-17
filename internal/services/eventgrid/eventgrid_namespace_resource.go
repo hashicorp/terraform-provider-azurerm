@@ -415,7 +415,7 @@ func (r EventGridNamespaceResource) IDValidationFunc() pluginsdk.SchemaValidateF
 func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRule {
 	var ipRules []namespaces.InboundIPRule
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &ipRules
 	}
 
@@ -501,7 +501,7 @@ func expandAlternativeAuthenticationNameSources(input []string) *[]namespaces.Al
 
 func expandDynamicRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespaces.DynamicRoutingEnrichment {
 	var dynamicRoutingEnrichments []namespaces.DynamicRoutingEnrichment
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &dynamicRoutingEnrichments
 	}
 
@@ -517,7 +517,7 @@ func expandDynamicRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespac
 
 func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespaces.StaticRoutingEnrichment {
 	var staticRoutingEnrichments []namespaces.StaticRoutingEnrichment
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &staticRoutingEnrichments
 	}
 
