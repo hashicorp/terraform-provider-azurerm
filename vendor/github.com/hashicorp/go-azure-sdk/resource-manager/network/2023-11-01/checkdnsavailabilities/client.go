@@ -15,7 +15,7 @@ type CheckDnsAvailabilitiesClient struct {
 }
 
 func NewCheckDnsAvailabilitiesClientWithBaseURI(sdkApi sdkEnv.Api) (*CheckDnsAvailabilitiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "checkdnsavailabilities", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "checkdnsavailabilities", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CheckDnsAvailabilitiesClient: %+v", err)
 	}

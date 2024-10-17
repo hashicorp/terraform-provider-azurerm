@@ -42,6 +42,7 @@ func (o GetAllMachinesInSiteOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetAllMachinesInSiteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -15,7 +15,7 @@ type RecordSetsClient struct {
 }
 
 func NewRecordSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*RecordSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "recordsets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "recordsets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RecordSetsClient: %+v", err)
 	}

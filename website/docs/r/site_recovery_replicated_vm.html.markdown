@@ -260,6 +260,8 @@ The following arguments are supported:
 
 * `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
 
+* `target_virtual_machine_size` - (Optional) Specifies the size the Virtual Machine should have.
+
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
 * `test_network_id` - (Optional) Network to use when a test failover is done.

@@ -15,7 +15,7 @@ type DnsClient struct {
 }
 
 func NewDnsClientWithBaseURI(sdkApi sdkEnv.Api) (*DnsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dns", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dns", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DnsClient: %+v", err)
 	}

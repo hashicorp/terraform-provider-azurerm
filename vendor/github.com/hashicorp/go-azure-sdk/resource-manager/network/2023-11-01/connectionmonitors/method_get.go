@@ -45,7 +45,6 @@ func (c ConnectionMonitorsClient) Get(ctx context.Context, id ConnectionMonitorI
 
 	var model ConnectionMonitorResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

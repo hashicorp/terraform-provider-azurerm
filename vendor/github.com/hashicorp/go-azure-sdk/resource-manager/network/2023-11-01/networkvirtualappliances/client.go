@@ -15,7 +15,7 @@ type NetworkVirtualAppliancesClient struct {
 }
 
 func NewNetworkVirtualAppliancesClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkVirtualAppliancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkvirtualappliances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkvirtualappliances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkVirtualAppliancesClient: %+v", err)
 	}

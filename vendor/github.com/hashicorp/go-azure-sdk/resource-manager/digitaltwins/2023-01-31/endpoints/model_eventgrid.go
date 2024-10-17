@@ -19,12 +19,26 @@ type EventGrid struct {
 	TopicEndpoint string  `json:"TopicEndpoint"`
 
 	// Fields inherited from DigitalTwinsEndpointResourceProperties
+
 	AuthenticationType *AuthenticationType        `json:"authenticationType,omitempty"`
 	CreatedTime        *string                    `json:"createdTime,omitempty"`
 	DeadLetterSecret   *string                    `json:"deadLetterSecret,omitempty"`
 	DeadLetterUri      *string                    `json:"deadLetterUri,omitempty"`
+	EndpointType       EndpointType               `json:"endpointType"`
 	Identity           *ManagedIdentityReference  `json:"identity,omitempty"`
 	ProvisioningState  *EndpointProvisioningState `json:"provisioningState,omitempty"`
+}
+
+func (s EventGrid) DigitalTwinsEndpointResourceProperties() BaseDigitalTwinsEndpointResourcePropertiesImpl {
+	return BaseDigitalTwinsEndpointResourcePropertiesImpl{
+		AuthenticationType: s.AuthenticationType,
+		CreatedTime:        s.CreatedTime,
+		DeadLetterSecret:   s.DeadLetterSecret,
+		DeadLetterUri:      s.DeadLetterUri,
+		EndpointType:       s.EndpointType,
+		Identity:           s.Identity,
+		ProvisioningState:  s.ProvisioningState,
+	}
 }
 
 func (o *EventGrid) GetCreatedTimeAsTime() (*time.Time, error) {
@@ -50,9 +64,10 @@ func (s EventGrid) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventGrid: %+v", err)
 	}
+
 	decoded["endpointType"] = "EventGrid"
 
 	encoded, err = json.Marshal(decoded)

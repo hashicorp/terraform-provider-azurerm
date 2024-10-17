@@ -15,7 +15,7 @@ type IotDpsResourceClient struct {
 }
 
 func NewIotDpsResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*IotDpsResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "iotdpsresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "iotdpsresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IotDpsResourceClient: %+v", err)
 	}

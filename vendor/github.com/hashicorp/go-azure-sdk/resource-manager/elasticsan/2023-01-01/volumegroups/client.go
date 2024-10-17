@@ -15,7 +15,7 @@ type VolumeGroupsClient struct {
 }
 
 func NewVolumeGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*VolumeGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "volumegroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "volumegroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VolumeGroupsClient: %+v", err)
 	}

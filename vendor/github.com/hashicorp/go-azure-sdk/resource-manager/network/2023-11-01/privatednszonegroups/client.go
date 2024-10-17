@@ -15,7 +15,7 @@ type PrivateDnsZoneGroupsClient struct {
 }
 
 func NewPrivateDnsZoneGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateDnsZoneGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privatednszonegroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privatednszonegroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateDnsZoneGroupsClient: %+v", err)
 	}

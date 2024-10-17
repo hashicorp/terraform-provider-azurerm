@@ -14,6 +14,14 @@ type AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters s
 	BindingRetrievalProperties *AzureMachineLearningWebServiceFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
 
 	// Fields inherited from FunctionRetrieveDefaultDefinitionParameters
+
+	BindingType string `json:"bindingType"`
+}
+
+func (s AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters) FunctionRetrieveDefaultDefinitionParameters() BaseFunctionRetrieveDefaultDefinitionParametersImpl {
+	return BaseFunctionRetrieveDefaultDefinitionParametersImpl{
+		BindingType: s.BindingType,
+	}
 }
 
 var _ json.Marshaler = AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters{}
@@ -27,9 +35,10 @@ func (s AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameter
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureMachineLearningWebServiceFunctionRetrieveDefaultDefinitionParameters: %+v", err)
 	}
+
 	decoded["bindingType"] = "Microsoft.MachineLearning/WebService"
 
 	encoded, err = json.Marshal(decoded)

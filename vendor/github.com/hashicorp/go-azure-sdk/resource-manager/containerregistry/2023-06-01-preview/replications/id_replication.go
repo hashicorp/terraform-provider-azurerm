@@ -44,7 +44,7 @@ func ParseReplicationID(input string) (*ReplicationId, error) {
 	}
 
 	id := ReplicationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseReplicationIDInsensitively(input string) (*ReplicationId, error) {
 	}
 
 	id := ReplicationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ReplicationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticReplications", "replications", "replications"),
-		resourceids.UserSpecifiedSegment("replicationName", "replicationValue"),
+		resourceids.UserSpecifiedSegment("replicationName", "replicationName"),
 	}
 }
 

@@ -44,6 +44,7 @@ func (o GenerateVerificationCodeOperationOptions) ToHeaders() *client.Headers {
 
 func (o GenerateVerificationCodeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -105,7 +106,6 @@ func (c DpsCertificateClient) GenerateVerificationCode(ctx context.Context, id C
 
 	var model VerificationCodeResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

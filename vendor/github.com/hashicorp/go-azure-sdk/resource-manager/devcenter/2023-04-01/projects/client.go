@@ -15,7 +15,7 @@ type ProjectsClient struct {
 }
 
 func NewProjectsClientWithBaseURI(sdkApi sdkEnv.Api) (*ProjectsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "projects", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "projects", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProjectsClient: %+v", err)
 	}

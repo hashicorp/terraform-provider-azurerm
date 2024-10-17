@@ -15,7 +15,7 @@ type EmailTemplatesClient struct {
 }
 
 func NewEmailTemplatesClientWithBaseURI(sdkApi sdkEnv.Api) (*EmailTemplatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "emailtemplates", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "emailtemplates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EmailTemplatesClient: %+v", err)
 	}

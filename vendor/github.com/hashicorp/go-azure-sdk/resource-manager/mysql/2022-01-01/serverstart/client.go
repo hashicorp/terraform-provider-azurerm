@@ -15,7 +15,7 @@ type ServerStartClient struct {
 }
 
 func NewServerStartClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerStartClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverstart", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverstart", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerStartClient: %+v", err)
 	}

@@ -34,6 +34,7 @@ func (o InboundNatRulesGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o InboundNatRulesGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c LoadBalancersClient) InboundNatRulesGet(ctx context.Context, id InboundN
 
 	var model InboundNatRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

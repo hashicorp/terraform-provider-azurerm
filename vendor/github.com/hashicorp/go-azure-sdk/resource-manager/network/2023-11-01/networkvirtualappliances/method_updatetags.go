@@ -49,7 +49,6 @@ func (c NetworkVirtualAppliancesClient) UpdateTags(ctx context.Context, id Netwo
 
 	var model NetworkVirtualAppliance
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

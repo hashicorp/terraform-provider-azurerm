@@ -44,7 +44,7 @@ func ParseDataSourceTypeID(input string) (*DataSourceTypeId, error) {
 	}
 
 	id := DataSourceTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDataSourceTypeIDInsensitively(input string) (*DataSourceTypeId, error)
 	}
 
 	id := DataSourceTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +129,7 @@ func (id DataSourceTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticLinkedStorageAccounts", "linkedStorageAccounts", "linkedStorageAccounts"),
 		resourceids.ConstantSegment("dataSourceType", PossibleValuesForDataSourceType(), "Alerts"),
 	}

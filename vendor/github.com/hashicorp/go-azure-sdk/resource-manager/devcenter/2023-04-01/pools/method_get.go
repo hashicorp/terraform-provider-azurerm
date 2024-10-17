@@ -45,7 +45,6 @@ func (c PoolsClient) Get(ctx context.Context, id PoolId) (result GetOperationRes
 
 	var model Pool
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -49,7 +49,6 @@ func (c RoleManagementPoliciesClient) Update(ctx context.Context, id ScopedRoleM
 
 	var model RoleManagementPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

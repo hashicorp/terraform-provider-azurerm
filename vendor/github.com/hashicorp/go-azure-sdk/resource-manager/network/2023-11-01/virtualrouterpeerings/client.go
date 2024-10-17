@@ -15,7 +15,7 @@ type VirtualRouterPeeringsClient struct {
 }
 
 func NewVirtualRouterPeeringsClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualRouterPeeringsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualrouterpeerings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualrouterpeerings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualRouterPeeringsClient: %+v", err)
 	}

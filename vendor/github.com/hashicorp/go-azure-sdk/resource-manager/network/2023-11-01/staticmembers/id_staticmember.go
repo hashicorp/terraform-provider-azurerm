@@ -46,7 +46,7 @@ func ParseStaticMemberID(input string) (*StaticMemberId, error) {
 	}
 
 	id := StaticMemberId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseStaticMemberIDInsensitively(input string) (*StaticMemberId, error) {
 	}
 
 	id := StaticMemberId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id StaticMemberId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagers", "networkManagers", "networkManagers"),
-		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerValue"),
+		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerName"),
 		resourceids.StaticSegment("staticNetworkGroups", "networkGroups", "networkGroups"),
-		resourceids.UserSpecifiedSegment("networkGroupName", "networkGroupValue"),
+		resourceids.UserSpecifiedSegment("networkGroupName", "networkGroupName"),
 		resourceids.StaticSegment("staticStaticMembers", "staticMembers", "staticMembers"),
-		resourceids.UserSpecifiedSegment("staticMemberName", "staticMemberValue"),
+		resourceids.UserSpecifiedSegment("staticMemberName", "staticMemberName"),
 	}
 }
 

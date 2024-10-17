@@ -111,7 +111,7 @@ func dataSourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props := model.Properties; props != nil {
 			d.Set("private_endpoint_connection", flattenPrivateEndpointConnectionsDataSource(props.PrivateEndpointConnections))
-			d.Set("hybrid_service_url", props.AutomationHybridServiceUrl)
+			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 		}
 	}
 

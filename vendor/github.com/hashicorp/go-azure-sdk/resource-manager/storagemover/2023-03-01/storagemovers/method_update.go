@@ -49,7 +49,6 @@ func (c StorageMoversClient) Update(ctx context.Context, id StorageMoverId, inpu
 
 	var model StorageMover
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

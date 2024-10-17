@@ -15,7 +15,7 @@ type DevicesClient struct {
 }
 
 func NewDevicesClientWithBaseURI(sdkApi sdkEnv.Api) (*DevicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "devices", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "devices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DevicesClient: %+v", err)
 	}

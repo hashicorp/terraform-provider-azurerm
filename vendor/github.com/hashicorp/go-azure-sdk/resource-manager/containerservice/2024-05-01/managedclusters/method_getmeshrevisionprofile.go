@@ -45,7 +45,6 @@ func (c ManagedClustersClient) GetMeshRevisionProfile(ctx context.Context, id Me
 
 	var model MeshRevisionProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

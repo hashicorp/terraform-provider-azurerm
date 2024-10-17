@@ -46,7 +46,6 @@ func (c CosmosDBClient) DatabaseListMetricDefinitions(ctx context.Context, id Da
 
 	var model MetricDefinitionsListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
