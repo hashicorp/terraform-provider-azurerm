@@ -326,24 +326,22 @@ resource "azurerm_nginx_deployment" "test" {
   location                  = azurerm_resource_group.test.location
   diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
+
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
+
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
   web_application_firewall_settings {
     activation_state = "Enabled"
   }
+
+  capacity = 20
+
   email = "test@test.com"
-  tags = {
-    foo = "bar"
-  }
-  lifecycle {
-    ignore_changes = [
-      capacity,
-    ]
-  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
