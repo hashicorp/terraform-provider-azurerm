@@ -79,7 +79,11 @@ The following arguments are supported:
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy PostgreSQL to be created.
   
-* `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
+* `default_retention_duration` - (Optional) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+-> **Note:** `default_retention_duration` has been deprecated and will be removed in version 4.0 of the provider in favour of `default_retention_rule.0.life_cycle.#.duration`.
+
+* `default_retention_rule` - (Optional) A `default_retention_rule` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
@@ -87,15 +91,25 @@ The following arguments are supported:
 
 ---
 
+A `default_retention_rule` block supports the following:
+
+* `life_cycle` - (Optional) One or more `life_cycle` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+---
+
 A `retention_rule` block supports the following:
 
 * `name` - (Required) The name which should be used for this retention rule. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
-
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 * `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+* `duration` - (Optional) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+-> **Note:** `duration` has been deprecated and will be removed in version 4.0 of the provider in favour of `life_cycle.#.duration`.
+
+* `life_cycle` - (Optional) One or more `life_cycle` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ---
 
@@ -110,6 +124,24 @@ A `criteria` block supports the following:
 * `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 * `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+---
+
+A `life_cycle` block supports the following:
+
+* `data_store_type` - (Required) The type of data store. Possible values are `VaultStore`, `ArchiveStore`. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+* `target_copy` - (Optional) A `target_copy` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+---
+
+A `target_copy` block supports the following:
+
+* `option_json` - (Required) Specifies when the backups are tiered across two or more selected data stores as a json encoded string. Changing this forces a new Backup Policy PostgreSQL to be created.
+
+* `data_store_type` - (Required) The type of data store. The only possible value is `ArchiveStore`. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ## Attributes Reference
 
