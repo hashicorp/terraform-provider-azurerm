@@ -70,7 +70,14 @@ func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schem
 
 		"encryption_key": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			Description:  "The versionless encryption key url.",
+		},
+
+		"managed_hsm_key_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			Description:  "The versionless encryption key url.",
 		},
