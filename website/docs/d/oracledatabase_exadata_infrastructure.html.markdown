@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The number of compute servers for the Cloud Exadata Infrastructure.
 
+* `custom_action_timeout_enabled` - If true, enables the configuration of a custom action timeout (waiting period) between database servers patching operations.
+
 * `cpu_count` - The total number of CPU cores allocated.
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
@@ -80,6 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `memory_size_in_gbs` - The memory allocated in GBs.
 
 * `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the Cloud Exadata Infrastructure. Example: `20.1.15`
+
+* `monthly_patching_enabled` - If true, enables the monthly patching option.
 
 * `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the Cloud Exadata Infrastructure. Example: `20.1.15`
 

@@ -221,12 +221,12 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"is_custom_action_timeout_enabled": {
+					"custom_action_timeout_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
 
-					"is_monthly_patching_enabled": {
+					"monthly_patching_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
