@@ -62,6 +62,7 @@ func (r Registration) Resources() []sdk.Resource {
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
 		DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{},
 		DataProtectionBackupInstanceKubernatesClusterResource{},
+		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
 		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
 	}
 }
