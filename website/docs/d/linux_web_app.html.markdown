@@ -683,6 +683,8 @@ A `sticky_settings` block exports the following:
 
 * `app_setting_names` - A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
+* `azure_storage_config_names` - A list of external Azure storage account identifier names that the Linux Web App will not swap between Slots when a swap operation is triggered.
+
 * `connection_string_names` - A list of `connection_string` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
 ---

@@ -811,6 +811,8 @@ A `sticky_settings` block supports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
+* `azure_storage_config_names` - (Optional) A list of external Azure storage account identifier names that the Windows Web App will not swap between Slots when a swap operation is triggered.
+
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Web App will not swap between Slots when a swap operation is triggered.
 
 ---
