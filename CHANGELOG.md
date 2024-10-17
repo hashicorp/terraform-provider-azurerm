@@ -2,10 +2,8 @@
 
 FEATURES:
 
-* **New Data Source**: `azurerm_oracle_cloud_vm_cluster` [GH-27176]
 * **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
 * **New Resource**: `azurerm_dev_center_attached_network` [GH-27638]
-* **New Resource**: `azurerm_oracle_cloud_vm_cluster` [GH-27176]
 * **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27177]
 
 ENHANCEMENTS:
