@@ -175,6 +175,13 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 						}, false),
 					},
 
+					"locale": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // TODO: make this required in 4.0
+						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForCultureCode(), false),
+					},
+
 					"contact_emails": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -564,6 +571,9 @@ func expandConsumptionBudgetNotifications(input []interface{}) *map[string]budge
 			contactEmails := utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
 			notification.ContactEmails = *contactEmails
 
+			locale := budgets.CultureCode(notificationRaw["locale"].(string))
+			notification.Locale = &locale
+
 			// contact_roles cannot be set on consumption budgets for management groups
 			if _, ok := notificationRaw["contact_roles"]; ok {
 				notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
@@ -606,6 +616,12 @@ func flattenConsumptionBudgetNotifications(input *map[string]budgets.Notificatio
 			thresholdType = string(*v)
 		}
 		block["threshold_type"] = thresholdType
+
+		locale := ""
+		if v := n.Locale; v != nil {
+			locale = string(*v)
+		}
+		block["locale"] = locale
 
 		var emails []interface{}
 		if v := n.ContactEmails; v != nil {
