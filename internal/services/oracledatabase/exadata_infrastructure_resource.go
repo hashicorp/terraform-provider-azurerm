@@ -254,7 +254,7 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: +%v", *id)
+				return fmt.Errorf("retrieving %s: ", *id)
 			}
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
