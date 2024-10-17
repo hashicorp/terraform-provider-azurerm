@@ -8,7 +8,6 @@ var services = mapOf(
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
         "appconfiguration" to "App Configuration",
-        "oracledatabase" to "App Service",
         "appservice" to "AppService",
         "applicationinsights" to "Application Insights",
         "arcresourcebridge" to "Arc Resource Bridge",
