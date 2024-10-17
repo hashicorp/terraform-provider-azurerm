@@ -73,8 +73,6 @@ A `db_servers` block exports the following:
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DB Server.
 
-* `provisioning_state` - DbServer provisioning state.
-
 * `shape` - The shape of the DB Server. The shape determines the amount of CPU, storage, and memory resources available.
 
 * `time_created` - The date and time that the DB Server was created.

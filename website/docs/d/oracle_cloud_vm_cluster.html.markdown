@@ -102,8 +102,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ocpu_count` - The number of OCPU cores to enable on the Cloud VM Cluster. Only 1 decimal place is allowed for the fractional part.
 
-* `provisioning_state` - Azure resource provisioning state.
-
 * `scan_dns_name` - The FQDN of the DNS record for the SCAN IP addresses that are associated with the Cloud VM Cluster.
 
 * `scan_dns_record_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DNS record for the SCAN IP addresses that are associated with the Cloud VM Cluster.
@@ -123,8 +121,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `subnet_id` - The ID of the Azure Resource Manager subnet resource.
 
 * `subnet_ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the subnet associated with the Cloud VM Cluster.
-
-* `system_data` - A `system_data` block as defined below.
 
 * `system_version` - Operating system version of the image.
 
