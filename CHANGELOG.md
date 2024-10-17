@@ -3,12 +3,19 @@
 FEATURES:
 
 * **New Resource**: `azurerm_dev_center_attached_network` [GH-27638]
+* **New Resource**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
+* **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
+* **New Data Source**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
+* **New Data Sourcee**: `azurerm_oracle_db_servers` [GH-27678]
+* **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
 
 ENHANCEMENTS:
 
 * `redis` - upgrade api version to `2024-06-01-preview`  [GH-27597]
 * `azurerm_app_configuration` - support for premium sku [GH-27674]
 * `azurerm_container_app` - support for the `max_inactive_revisions` property [GH-27598]
+* `azurerm_kubernetes_cluster` - remove lock on subnets [GH-27583]
+* `azurerm_nginx_deployment` - allow updates for `sku` [GH-27604]
 * `azurerm_fluid_relay_server` - support for the `customer_managed_key` property [GH-27581]
 * `azurerm_linux_virtual_machine` - support the `UBUNTU_PRO` value for the `license_type` property [GH-27534]
 
