@@ -3,12 +3,12 @@ subcategory: "Oracle Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_exadata_infrastructure"
 description: |-
-  Gets information about an existing Exadata Infrastructure.
+  Gets information about an existing Cloud Exadata Infrastructure.
 ---
 
 # Data Source: azurerm_oracle_exadata_infrastructure
 
-Use this data source to access information about an existing Exadata Infrastructure.
+Use this data source to access information about an existing Cloud Exadata Infrastructure.
 
 ## Example Usage
 
@@ -27,23 +27,23 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Exadata Infrastructure.
+* `name` - (Required) The name of this Cloud Exadata Infrastructure.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Exadata Infrastructure exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Cloud Exadata Infrastructure exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Exadata Infrastructure.
+* `id` - The ID of the Cloud Exadata Infrastructure.
 
-* `activated_storage_count` - The requested number of additional storage servers activated for the Exadata infrastructure.
+* `activated_storage_count` - The requested number of additional storage servers activated for the Cloud Exadata Infrastructure.
 
-* `additional_storage_count` - The requested number of additional storage servers for the Exadata infrastructure.
+* `additional_storage_count` - The requested number of additional storage servers for the Cloud Exadata Infrastructure.
 
-* `available_storage_size_in_gbs` - The available storage can be allocated to the cloud Exadata infrastructure resource, in gigabytes (GB).
+* `available_storage_size_in_gbs` - The available storage can be allocated to the Cloud Exadata Infrastructure resource, in gigabytes (GB).
 
-* `compute_count` - The number of compute servers for the cloud Exadata infrastructure.
+* `compute_count` - The number of compute servers for the Cloud Exadata Infrastructure.
 
 * `cpu_count` - The total number of CPU cores allocated.
 
@@ -53,9 +53,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `db_node_storage_size_in_gbs` - The local node storage allocated in GBs.
 
-* `db_server_version` - The software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: `20.1.15`
+* `db_server_version` - The software version of the database servers (dom0) in the Cloud Exadata Infrastructure. Example: `20.1.15`
 
-* `display_name` - The user-friendly name for the cloud Exadata infrastructure resource. The name does not need to be unique.
+* `display_name` - The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.
 
 * `estimated_patching_time` - A `estimated_patching_time` block as defined below.
 
@@ -63,9 +63,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `lifecycle_details` - Additional information about the current lifecycle state.
 
-* `lifecycle_state` - CloudExadataInfrastructure lifecycle state.
+* `lifecycle_state` - Cloud Exadata Infrastructure lifecycle state.
 
-* `location` - The Azure Region where the Exadata Infrastructure exists.
+* `location` - The Azure Region where the Cloud Exadata Infrastructure exists.
 
 * `maintenance_window` - A `maintenance_window` block as defined below.
 
@@ -79,33 +79,29 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_size_in_gbs` - The memory allocated in GBs.
 
-* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the cloud Exadata infrastructure. Example: `20.1.15`
+* `monthly_db_server_version` - The monthly software version of the database servers (dom0) in the Cloud Exadata Infrastructure. Example: `20.1.15`
 
-* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the cloud Exadata infrastructure. Example: `20.1.15`
+* `monthly_storage_server_version` - The monthly software version of the storage servers (cells) in the Cloud Exadata Infrastructure. Example: `20.1.15`
 
 * `next_maintenance_run_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the next maintenance run.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
-* `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Exadata infrastructure.
+* `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Cloud Exadata Infrastructure.
 
-* `provisioning_state` - CloudExadataInfrastructure provisioning state
+* `shape` - The model name of the Cloud Exadata Infrastructure resource.
 
-* `shape` - The model name of the cloud Exadata infrastructure resource.
+* `storage_count` - The number of storage servers for the Cloud Exadata Infrastructure.
 
-* `storage_count` - The number of storage servers for the cloud Exadata infrastructure.
+* `storage_server_version` - The software version of the storage servers (cells) in the Cloud Exadata Infrastructure. Example: `20.1.15`
 
-* `storage_server_version` - The software version of the storage servers (cells) in the Exadata infrastructure. Example: `20.1.15`
+* `tags` - A mapping of tags assigned to the Cloud Exadata Infrastructure.
 
-* `system_data` - A `system_data` block as defined below.
+* `time_created` - The date and time the Cloud Exadata Infrastructure resource was created.
 
-* `tags` - A mapping of tags assigned to the Exadata Infrastructure.
+* `total_storage_size_in_gbs` -  The total storage allocated to the Cloud Exadata Infrastructure resource, in gigabytes (GB).
 
-* `time_created` - The date and time the cloud Exadata infrastructure resource was created.
-
-* `total_storage_size_in_gbs` -  The total storage allocated to the cloud Exadata infrastructure resource, in gigabytes (GB).
-
-* `zones` - The Exadata infrastructure Azure zones.
+* `zones` - The Cloud Exadata Infrastructure Azure zones.
 
 ---
 
@@ -131,7 +127,7 @@ A `maintenance_window` block exports the following:
 
 * `months` - A `months` block as defined below.
 
-* `patching_mode` -  Cloud Exadata infrastructure node patching method, either `ROLLING` or `NONROLLING`.
+* `patching_mode` -  Cloud Exadata Infrastructure node patching method, either `ROLLING` or `NONROLLING`.
 
 * `preference` - The maintenance window scheduling preference.
 
@@ -143,4 +139,4 @@ A `maintenance_window` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Exadata Infrastructure.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Exadata Infrastructure.

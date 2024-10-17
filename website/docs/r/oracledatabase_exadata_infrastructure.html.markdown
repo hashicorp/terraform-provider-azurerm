@@ -3,12 +3,12 @@ subcategory: "Oracle Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_exadata_infrastructure"
 description: |-
-  Manages a Exadata Infrastructure.
+  Manages a Cloud Exadata Infrastructure.
 ---
 
 # azurerm_oracle_exadata_infrastructure
 
-Manages a Exadata Infrastructure.
+Manages a Cloud Exadata Infrastructure.
 
 ## Example Usage
 
@@ -34,21 +34,21 @@ resource "azurerm_oracle_exadata_infrastructure" "example" {
 
 The following arguments are supported:
 
-* `compute_count` - (Required) The number of compute servers for the cloud Exadata infrastructure.
+* `compute_count` - (Required) The number of compute servers for the Cloud Exadata Infrastructure.
 
-* `display_name` - (Required) The user-friendly name for the cloud Exadata infrastructure resource. The name does not need to be unique.
+* `display_name` - (Required) The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.
 
-* `location` - (Required) The Azure Region where the Exadata Infrastructure should exist. Changing this forces a new Exadata Infrastructure to be created.
+* `location` - (Required) The Azure Region where the Cloud Exadata Infrastructure should exist. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
-* `name` - (Required) The name which should be used for this Exadata Infrastructure.
+* `name` - (Required) The name which should be used for this Cloud Exadata Infrastructure.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Exadata Infrastructure should exist.
+* `resource_group_name` - (Required) The name of the Resource Group where the ODB@A Infrastructure should exist.
 
-* `shape` - (Required) The shape of the cloud Exadata infrastructure resource.
+* `shape` - (Required) The shape of the ODB@A infrastructure resource.
 
-* `storage_count` - (Required) The number of storage servers for the cloud Exadata infrastructure.
+* `storage_count` - (Required) The number of storage servers for the Cloud Exadata Infrastructure.
 
-* `zones` - (Required) CloudExadataInfrastructure zones.
+* `zones` - (Required) Cloud Exadata Infrastructure zones.
 
 ---
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `maintenance_window` - (Optional) One or more `maintenance_window` blocks as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Exadata Infrastructure.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Cloud Exadata Infrastructure.
 
 ---
 
@@ -70,7 +70,7 @@ A `maintenance_window` block supports the following:
 
 * `months` - (Optional) Months during the year when maintenance should be performed.
 
-* `patching_mode` - (Optional) Cloud Exadata infrastructure node patching method, either `ROLLING` or `NONROLLING`. Default value is `ROLLING`. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
+* `patching_mode` - (Optional) Cloud Exadata Infrastructure node patching method, either `ROLLING` or `NONROLLING`. Default value is `ROLLING`. IMPORTANT: Non-rolling infrastructure patching involves system down time. See [Oracle-Managed Infrastructure Maintenance Updates](https://docs.cloud.oracle.com/iaas/Content/Database/Concepts/examaintenance.htm#Oracle) for more information.
 
 * `preference` - (Optional) The maintenance window scheduling preference.
 
@@ -80,20 +80,20 @@ A `maintenance_window` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Exadata Infrastructure.
+* `id` - The ID of the Cloud Exadata Infrastructure.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Exadata Infrastructure.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Exadata Infrastructure.
-* `update` - (Defaults to 30 minutes) Used when updating the Exadata Infrastructure.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Exadata Infrastructure.
+* `create` - (Defaults to 120 minutes) Used when creating the Cloud Exadata Infrastructure.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Exadata Infrastructure.
+* `update` - (Defaults to 30 minutes) Used when updating the Cloud Exadata Infrastructure.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Cloud Exadata Infrastructure.
 
 ## Import
 
-Exadata Infrastructures can be imported using the `resource id`, e.g.
+Cloud Exadata Infrastructures can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_oracle_exadata_infrastructure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudExadataInfrastructures/cloudExadataInfrastructures1

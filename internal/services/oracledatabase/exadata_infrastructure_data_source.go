@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -17,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExadataInfraDataSource struct{}
@@ -28,9 +27,6 @@ type ExadataInfraDataModel struct {
 	Type              string                 `tfschema:"type"`
 	Tags              map[string]interface{} `tfschema:"tags"`
 	Zones             zones.Schema           `tfschema:"zones"`
-
-	// SystemData
-	SystemData []SystemDataModel `tfschema:"system_data"`
 
 	// CloudExadataInfrastructureProperties
 	ActivatedStorageCount       int64                        `tfschema:"activated_storage_count"`
@@ -58,21 +54,11 @@ type ExadataInfraDataModel struct {
 	NextMaintenanceRunId        string                       `tfschema:"next_maintenance_run_id"`
 	OciUrl                      string                       `tfschema:"oci_url"`
 	Ocid                        string                       `tfschema:"ocid"`
-	ProvisioningState           string                       `tfschema:"provisioning_state"`
 	Shape                       string                       `tfschema:"shape"`
 	StorageCount                int64                        `tfschema:"storage_count"`
 	StorageServerVersion        string                       `tfschema:"storage_server_version"`
 	TimeCreated                 string                       `tfschema:"time_created"`
 	TotalStorageSizeInGbs       int64                        `tfschema:"total_storage_size_in_gbs"`
-}
-
-type SystemDataModel struct {
-	CreatedBy          string `tfschema:"created_by"`
-	CreatedByType      string `tfschema:"created_by_type"`
-	CreatedAt          string `tfschema:"created_at"`
-	LastModifiedBy     string `tfschema:"last_modified_by"`
-	LastModifiedbyType string `tfschema:"last_modified_by_type"`
-	LastModifiedAt     string `tfschema:"last_modified_at"`
 }
 
 type EstimatedPatchingTimeModel struct {
@@ -110,45 +96,6 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		// SystemData
-		"system_data": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"created_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"created_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_by_type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"last_modified_at": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
 		},
 
 		// CloudExadataInfrastructureProperties
@@ -368,11 +315,6 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"shape": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -471,26 +413,11 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 						NextMaintenanceRunId:        pointer.From(prop.NextMaintenanceRunId),
 						OciUrl:                      pointer.From(prop.OciURL),
 						Ocid:                        pointer.From(prop.Ocid),
-						ProvisioningState:           string(*prop.ProvisioningState),
 						Shape:                       prop.Shape,
 						StorageCount:                pointer.From(prop.StorageCount),
 						StorageServerVersion:        pointer.From(prop.StorageServerVersion),
 						TimeCreated:                 pointer.From(prop.TimeCreated),
 						TotalStorageSizeInGbs:       pointer.From(prop.TotalStorageSizeInGbs),
-					}
-				}
-
-				systemData := model.SystemData
-				if systemData != nil {
-					output.SystemData = []SystemDataModel{
-						{
-							CreatedBy:          systemData.CreatedBy,
-							CreatedByType:      systemData.CreatedByType,
-							CreatedAt:          systemData.CreatedAt,
-							LastModifiedBy:     systemData.LastModifiedBy,
-							LastModifiedbyType: systemData.LastModifiedbyType,
-							LastModifiedAt:     systemData.LastModifiedAt,
-						},
 					}
 				}
 
