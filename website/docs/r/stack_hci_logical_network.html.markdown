@@ -29,12 +29,11 @@ resource "azurerm_stack_hci_logical_network" "example" {
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.0.0/24"
+    vlan_id              = 123
     route {
-      name                = "example-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.0.1"
     }
-    vlan_id = 123
   }
 
   tags = {
@@ -75,11 +74,11 @@ A `ip_pool` block supports the following:
 
 A `route` block supports the following:
 
-* `name` - (Required) The name of the route. Changing this forces a new resource to be created.
-
 * `address_prefix` - (Optional) The Address in CIDR notation. Changing this forces a new resource to be created.
 
 * `next_hop_ip_address` - (Optional) The IPv4 address of the next hop. Changing this forces a new resource to be created.
+
+* `name` - (Optional) The name of the route. Changing this forces a new resource to be created.
 
 ---
 
@@ -91,7 +90,7 @@ A `subnet` block supports the following:
 
 * `ip_pool` - (Optional) One or more `ip_pool` block as defined above. Changing this forces a new resource to be created.
 
-* `route` - (Optional) One or more `route` block as defined above. Changing this forces a new resource to be created.
+* `route` - (Optional) A `route` block as defined above. Changing this forces a new resource to be created.
 
 * `vlan_id` - (Optional) The VLAN ID for the Logical Network. Changing this forces a new resource to be created.
 
