@@ -40,7 +40,7 @@ func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadat
 	}
 
 	id := ProviderAssessmentMetadataId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseProviderAssessmentMetadataIDInsensitively(input string) (*ProviderAsse
 	}
 
 	id := ProviderAssessmentMetadataId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +107,7 @@ func (id ProviderAssessmentMetadataId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurity", "Microsoft.Security", "Microsoft.Security"),
 		resourceids.StaticSegment("staticAssessmentMetadata", "assessmentMetadata", "assessmentMetadata"),
-		resourceids.UserSpecifiedSegment("assessmentMetadataName", "assessmentMetadataValue"),
+		resourceids.UserSpecifiedSegment("assessmentMetadataName", "assessmentMetadataName"),
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *BaseAdminRule
+	Model        BaseAdminRule
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c AdminRulesClient) Get(ctx context.Context, id RuleId) (result GetOperati
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalBaseAdminRuleImplementation(respObj)
+	model, err := UnmarshalBaseAdminRuleImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

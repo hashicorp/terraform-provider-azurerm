@@ -54,14 +54,13 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 	}
 }
 
-func assertAlertRuleKind(rule *alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
+func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
 	if rule == nil {
 		return fmt.Errorf("model was nil")
 	}
 
-	rulePtr := *rule
 	var kind alertrules.AlertRuleKind
-	switch rulePtr.(type) {
+	switch rule.(type) {
 	case alertrules.MLBehaviorAnalyticsAlertRule:
 		kind = alertrules.AlertRuleKindMLBehaviorAnalytics
 	case alertrules.FusionAlertRule:

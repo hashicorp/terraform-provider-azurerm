@@ -49,7 +49,6 @@ func (c ExpressRoutePortsClient) UpdateTags(ctx context.Context, id ExpressRoute
 
 	var model ExpressRoutePort
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

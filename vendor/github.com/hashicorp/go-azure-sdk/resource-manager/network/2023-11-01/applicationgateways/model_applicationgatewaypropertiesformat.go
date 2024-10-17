@@ -38,6 +38,6 @@ type ApplicationGatewayPropertiesFormat struct {
 	SslProfiles                         *[]ApplicationGatewaySslProfile                        `json:"sslProfiles,omitempty"`
 	TrustedClientCertificates           *[]ApplicationGatewayTrustedClientCertificate          `json:"trustedClientCertificates,omitempty"`
 	TrustedRootCertificates             *[]ApplicationGatewayTrustedRootCertificate            `json:"trustedRootCertificates,omitempty"`
-	UrlPathMaps                         *[]ApplicationGatewayUrlPathMap                        `json:"urlPathMaps,omitempty"`
+	UrlPathMaps                         *[]ApplicationGatewayURLPathMap                        `json:"urlPathMaps,omitempty"`
 	WebApplicationFirewallConfiguration *ApplicationGatewayWebApplicationFirewallConfiguration `json:"webApplicationFirewallConfiguration,omitempty"`
 }

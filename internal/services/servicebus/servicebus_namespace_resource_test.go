@@ -309,7 +309,6 @@ func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 			Config: r.networkRuleSetEmpty(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),

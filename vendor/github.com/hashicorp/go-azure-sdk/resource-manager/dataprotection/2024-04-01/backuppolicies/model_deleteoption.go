@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DeleteOption interface {
+	DeleteOption() BaseDeleteOptionImpl
 }
 
-// RawDeleteOptionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DeleteOption = BaseDeleteOptionImpl{}
+
+type BaseDeleteOptionImpl struct {
+	Duration   string `json:"duration"`
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseDeleteOptionImpl) DeleteOption() BaseDeleteOptionImpl {
+	return s
+}
+
+var _ DeleteOption = RawDeleteOptionImpl{}
+
+// RawDeleteOptionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDeleteOptionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	deleteOption BaseDeleteOptionImpl
+	Type         string
+	Values       map[string]interface{}
 }
 
-func unmarshalDeleteOptionImplementation(input []byte) (DeleteOption, error) {
+func (s RawDeleteOptionImpl) DeleteOption() BaseDeleteOptionImpl {
+	return s.deleteOption
+}
+
+func UnmarshalDeleteOptionImplementation(input []byte) (DeleteOption, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalDeleteOptionImplementation(input []byte) (DeleteOption, error) {
 		return nil, fmt.Errorf("unmarshaling DeleteOption into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AbsoluteDeleteOption") {
@@ -44,10 +62,15 @@ func unmarshalDeleteOptionImplementation(input []byte) (DeleteOption, error) {
 		return out, nil
 	}
 
-	out := RawDeleteOptionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDeleteOptionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDeleteOptionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDeleteOptionImpl{
+		deleteOption: parent,
+		Type:         value,
+		Values:       temp,
+	}, nil
 
 }

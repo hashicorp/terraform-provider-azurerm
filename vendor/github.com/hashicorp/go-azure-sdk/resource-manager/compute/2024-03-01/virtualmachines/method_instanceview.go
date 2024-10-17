@@ -46,7 +46,6 @@ func (c VirtualMachinesClient) InstanceView(ctx context.Context, id VirtualMachi
 
 	var model VirtualMachineInstanceView
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

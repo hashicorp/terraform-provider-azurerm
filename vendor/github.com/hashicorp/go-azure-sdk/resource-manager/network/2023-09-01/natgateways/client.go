@@ -15,7 +15,7 @@ type NatGatewaysClient struct {
 }
 
 func NewNatGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*NatGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "natgateways", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "natgateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NatGatewaysClient: %+v", err)
 	}

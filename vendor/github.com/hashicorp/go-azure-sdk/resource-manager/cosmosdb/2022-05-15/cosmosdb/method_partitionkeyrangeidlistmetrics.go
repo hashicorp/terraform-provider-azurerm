@@ -34,6 +34,7 @@ func (o PartitionKeyRangeIdListMetricsOperationOptions) ToHeaders() *client.Head
 
 func (o PartitionKeyRangeIdListMetricsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CosmosDBClient) PartitionKeyRangeIdListMetrics(ctx context.Context, id P
 
 	var model PartitionMetricListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

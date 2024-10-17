@@ -50,7 +50,6 @@ func (c ResourceManagementPrivateLinkClient) Put(ctx context.Context, id Resourc
 
 	var model ResourceManagementPrivateLink
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -47,7 +47,6 @@ func (c AppServiceEnvironmentsClient) GetPrivateLinkResources(ctx context.Contex
 
 	var model PrivateLinkResourcesWrapper
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

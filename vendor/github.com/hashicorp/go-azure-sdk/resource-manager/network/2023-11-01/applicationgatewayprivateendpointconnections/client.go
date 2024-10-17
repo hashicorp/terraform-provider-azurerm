@@ -15,7 +15,7 @@ type ApplicationGatewayPrivateEndpointConnectionsClient struct {
 }
 
 func NewApplicationGatewayPrivateEndpointConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*ApplicationGatewayPrivateEndpointConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "applicationgatewayprivateendpointconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "applicationgatewayprivateendpointconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApplicationGatewayPrivateEndpointConnectionsClient: %+v", err)
 	}

@@ -10,18 +10,38 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RunRequest interface {
+	RunRequest() BaseRunRequestImpl
 }
 
-// RawRunRequestImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ RunRequest = BaseRunRequestImpl{}
+
+type BaseRunRequestImpl struct {
+	AgentPoolName    *string `json:"agentPoolName,omitempty"`
+	IsArchiveEnabled *bool   `json:"isArchiveEnabled,omitempty"`
+	LogTemplate      *string `json:"logTemplate,omitempty"`
+	Type             string  `json:"type"`
+}
+
+func (s BaseRunRequestImpl) RunRequest() BaseRunRequestImpl {
+	return s
+}
+
+var _ RunRequest = RawRunRequestImpl{}
+
+// RawRunRequestImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawRunRequestImpl struct {
-	Type   string
-	Values map[string]interface{}
+	runRequest BaseRunRequestImpl
+	Type       string
+	Values     map[string]interface{}
 }
 
-func unmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
+func (s RawRunRequestImpl) RunRequest() BaseRunRequestImpl {
+	return s.runRequest
+}
+
+func UnmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +51,9 @@ func unmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
 		return nil, fmt.Errorf("unmarshaling RunRequest into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "DockerBuildRequest") {
@@ -68,10 +88,15 @@ func unmarshalRunRequestImplementation(input []byte) (RunRequest, error) {
 		return out, nil
 	}
 
-	out := RawRunRequestImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseRunRequestImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseRunRequestImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawRunRequestImpl{
+		runRequest: parent,
+		Type:       value,
+		Values:     temp,
+	}, nil
 
 }

@@ -15,7 +15,7 @@ type VirtualNetworkPeeringsClient struct {
 }
 
 func NewVirtualNetworkPeeringsClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualNetworkPeeringsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualnetworkpeerings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualnetworkpeerings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualNetworkPeeringsClient: %+v", err)
 	}

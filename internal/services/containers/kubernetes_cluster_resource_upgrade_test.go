@@ -455,11 +455,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = %q
 
   default_node_pool {
-    name                = "default"
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    min_count           = %d
-    max_count           = %d
+    name                 = "default"
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    min_count            = %d
+    max_count            = %d
     upgrade_settings {
       max_surge = "10%%"
     }

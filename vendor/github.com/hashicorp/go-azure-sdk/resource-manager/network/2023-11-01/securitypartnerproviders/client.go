@@ -15,7 +15,7 @@ type SecurityPartnerProvidersClient struct {
 }
 
 func NewSecurityPartnerProvidersClientWithBaseURI(sdkApi sdkEnv.Api) (*SecurityPartnerProvidersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "securitypartnerproviders", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "securitypartnerproviders", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SecurityPartnerProvidersClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type RoutesClient struct {
 }
 
 func NewRoutesClientWithBaseURI(sdkApi sdkEnv.Api) (*RoutesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "routes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "routes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RoutesClient: %+v", err)
 	}

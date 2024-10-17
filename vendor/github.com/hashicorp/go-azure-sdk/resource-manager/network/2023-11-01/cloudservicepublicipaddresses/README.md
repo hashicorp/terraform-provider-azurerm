@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/cloudservicepublicipaddresses` Documentation
 
-The `cloudservicepublicipaddresses` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `cloudservicepublicipaddresses` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewCloudServicesPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue", "publicIPAddressValue")
+id := commonids.NewCloudServicesPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName", "roleInstanceName", "networkInterfaceName", "ipConfigurationName", "publicIPAddressName")
 
 read, err := client.PublicIPAddressesGetCloudServicePublicIPAddress(ctx, id, cloudservicepublicipaddresses.DefaultPublicIPAddressesGetCloudServicePublicIPAddressOperationOptions())
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudservicepublicipaddresses.NewProviderCloudServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue")
+id := cloudservicepublicipaddresses.NewProviderCloudServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName")
 
 // alternatively `client.PublicIPAddressesListCloudServicePublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListCloudServicePublicIPAddressesComplete(ctx, id)
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewCloudServicesIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue")
+id := commonids.NewCloudServicesIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceName", "roleInstanceName", "networkInterfaceName", "ipConfigurationName")
 
 // alternatively `client.PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesComplete(ctx, id)

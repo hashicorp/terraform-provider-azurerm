@@ -114,7 +114,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-  name                         = "acctest-ca%[2]d"
+  name                         = "acctest-mads-%[2]d"
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
 
   filter {
@@ -134,7 +134,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-  name                         = "acctest-complete-%[2]d"
+  name                         = "acctest-mads-%[2]d"
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
 
   filter {

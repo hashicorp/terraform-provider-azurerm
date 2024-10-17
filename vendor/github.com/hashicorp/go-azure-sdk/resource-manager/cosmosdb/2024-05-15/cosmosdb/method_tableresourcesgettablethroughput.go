@@ -46,7 +46,6 @@ func (c CosmosDBClient) TableResourcesGetTableThroughput(ctx context.Context, id
 
 	var model ThroughputSettingsGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

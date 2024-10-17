@@ -15,7 +15,7 @@ type TrafficAnalyticsClient struct {
 }
 
 func NewTrafficAnalyticsClientWithBaseURI(sdkApi sdkEnv.Api) (*TrafficAnalyticsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "trafficanalytics", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "trafficanalytics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TrafficAnalyticsClient: %+v", err)
 	}

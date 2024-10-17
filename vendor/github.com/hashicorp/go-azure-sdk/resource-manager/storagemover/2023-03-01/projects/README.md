@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects` Documentation
 
-The `projects` SDK allows for interaction with the Azure Resource Manager Service `storagemover` (API Version `2023-03-01`).
+The `projects` SDK allows for interaction with Azure Resource Manager `storagemover` (API Version `2023-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverValue", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverName", "projectName")
 
 payload := projects.Project{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverValue", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverName", "projectName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverValue", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverName", "projectName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := projects.NewStorageMoverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverValue")
+id := projects.NewStorageMoverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -90,7 +90,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverValue", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageMoverName", "projectName")
 
 payload := projects.ProjectUpdateParameters{
 	// ...
