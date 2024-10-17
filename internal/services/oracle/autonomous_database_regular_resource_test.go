@@ -44,6 +44,20 @@ func TestAdbsRegularResource_basic(t *testing.T) {
 	})
 }
 
+func TestAdbsRegularResource_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
+	r := AdbsRegularResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAdbsRegularResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
@@ -82,8 +96,11 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_oracle_autonomous_database" "test" {
   name = "OFake%[2]d"
@@ -115,11 +132,54 @@ resource "azurerm_oracle_autonomous_database" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
+func (a AdbsRegularResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_autonomous_database" "test" {
+  name = "OFake%[2]d"
+
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = "2"
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = false
+  data_storage_size_in_gbs         = "32"
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  ncharacter_set                   = "AL16UTF16"
+  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
+  vnet_id                          = azurerm_virtual_network.virtual_network.id
+  customer_contacts                = ["test@test.com"]
+  lifecycle {
+    ignore_changes = [
+      admin_password
+    ]
+  }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
-
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_oracle_autonomous_database" "test" {
   name                             = "OFake%[2]d"
@@ -188,9 +248,6 @@ resource "azurerm_oracle_autonomous_database" "import" {
 
 func (a AdbsRegularResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 data "azurerm_client_config" "current" {}
 
