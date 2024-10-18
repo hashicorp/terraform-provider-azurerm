@@ -14,13 +14,13 @@ var (
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		CloudVmClusterDataSource{},
-		DBServersDataSource{},
-		ExadataInfraDataSource{},
 		AdbsCharSetsDataSource{},
 		AdbsNCharSetsDataSource{},
-		DBNodesDataSource{},
+		CloudVmClusterDataSource{},
 		DbSystemShapesDataSource{},
+		DBNodesDataSource{},
+		DBServersDataSource{},
+		ExadataInfraDataSource{},
 		GiVersionsDataSource{},
 	}
 }
