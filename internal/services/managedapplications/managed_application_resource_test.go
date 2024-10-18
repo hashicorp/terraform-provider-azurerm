@@ -195,12 +195,11 @@ func TestAccManagedApplication_plan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.empty(),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, plan)),
-			),
-		},
-		{
+			PreConfig: func() {
+				if err := r.cancelExistingAgreement(publisher, offer, plan); err != nil {
+					t.Fatalf("Failed to cancel existing agreement with error: %+v", err)
+				}
+			},
 			Config: r.plan(data, publisher, offer, plan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -699,14 +698,6 @@ resource "azurerm_managed_application_definition" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, parameters)
-}
-
-func (ManagedApplicationResource) empty() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-`
 }
 
 func (ManagedApplicationResource) cancelExistingAgreement(publisher string, offer string, plan string) acceptance.ClientCheckFunc {
