@@ -1496,6 +1496,42 @@ func TestAccLinuxFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_tlsSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_128_GCM_SHA256"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_256_GCM_SHA384"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Configs
 
 func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1534,6 +1570,27 @@ resource "azurerm_linux_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    minimum_tls_cipher_suite = "%s"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, tlsCipherSuiteValue)
 }
 
 func (r LinuxFunctionAppSlotResource) healthCheckPath(data acceptance.TestData, planSku string) string {
@@ -2388,8 +2445,9 @@ resource "azurerm_linux_function_app_slot" "test" {
       python_version = "3.9"
     }
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
@@ -2766,8 +2824,9 @@ resource "azurerm_linux_function_app_slot" "test" {
     health_check_path  = "/health-check"
     worker_count       = 3
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
@@ -3126,8 +3185,9 @@ resource "azurerm_linux_function_app_slot" "test" {
     health_check_path  = "/health-check"
     worker_count       = 3
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
