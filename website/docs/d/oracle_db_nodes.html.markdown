@@ -14,7 +14,7 @@ Lists the database nodes for the specified Cloud VM Cluster.
 
 ```hcl
 data "azurerm_oracle_db_nodes" "example" {
-  resource_group_name = "existing"
+  resource_group_name   = "existing"
   cloud_vm_cluster_name = "existing"
 }
 
