@@ -14,5 +14,7 @@ type MonitorProperties struct {
 	OrgCreationSource             *OrgCreationSource             `json:"orgCreationSource,omitempty"`
 	PlanData                      *PlanData                      `json:"planData,omitempty"`
 	ProvisioningState             *ProvisioningState             `json:"provisioningState,omitempty"`
+	SaaSAzureSubscriptionStatus   *string                        `json:"saaSAzureSubscriptionStatus,omitempty"`
+	SubscriptionState             *string                        `json:"subscriptionState,omitempty"`
 	UserInfo                      *UserInfo                      `json:"userInfo,omitempty"`
 }
