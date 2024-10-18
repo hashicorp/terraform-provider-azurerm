@@ -96,6 +96,20 @@ func TestAccStorageBlobInventoryPolicy_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlobInventoryPolicy_containerFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
+	r := StorageBlobInventoryPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.containerFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageBlobInventoryPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -279,4 +293,34 @@ resource "azurerm_storage_blob_inventory_policy" "test" {
   }
 }
 `, template)
+}
+
+func (r StorageBlobInventoryPolicyResource) containerFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob_inventory_policy" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  rules {
+    name                   = "rule1"
+    storage_container_name = azurerm_storage_container.test.name
+    format                 = "Csv"
+    schedule               = "Daily"
+    scope                  = "Container"
+    filter {
+      blob_types      = []
+      include_deleted = true
+    }
+    schema_fields = [
+      "Name",
+      "Last-Modified",
+      "Deleted",
+      "HasImmutabilityPolicy",
+      "Version",
+      "DeletedTime",
+      "RemainingRetentionDays"
+    ]
+  }
+}
+`, r.template(data))
 }

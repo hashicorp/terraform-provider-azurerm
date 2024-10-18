@@ -10,18 +10,40 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EffectiveBaseSecurityAdminRule interface {
+	EffectiveBaseSecurityAdminRule() BaseEffectiveBaseSecurityAdminRuleImpl
 }
 
-// RawEffectiveBaseSecurityAdminRuleImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EffectiveBaseSecurityAdminRule = BaseEffectiveBaseSecurityAdminRuleImpl{}
+
+type BaseEffectiveBaseSecurityAdminRuleImpl struct {
+	ConfigurationDescription      *string                            `json:"configurationDescription,omitempty"`
+	Id                            *string                            `json:"id,omitempty"`
+	Kind                          EffectiveAdminRuleKind             `json:"kind"`
+	RuleCollectionAppliesToGroups *[]NetworkManagerSecurityGroupItem `json:"ruleCollectionAppliesToGroups,omitempty"`
+	RuleCollectionDescription     *string                            `json:"ruleCollectionDescription,omitempty"`
+	RuleGroups                    *[]ConfigurationGroup              `json:"ruleGroups,omitempty"`
+}
+
+func (s BaseEffectiveBaseSecurityAdminRuleImpl) EffectiveBaseSecurityAdminRule() BaseEffectiveBaseSecurityAdminRuleImpl {
+	return s
+}
+
+var _ EffectiveBaseSecurityAdminRule = RawEffectiveBaseSecurityAdminRuleImpl{}
+
+// RawEffectiveBaseSecurityAdminRuleImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEffectiveBaseSecurityAdminRuleImpl struct {
-	Type   string
-	Values map[string]interface{}
+	effectiveBaseSecurityAdminRule BaseEffectiveBaseSecurityAdminRuleImpl
+	Type                           string
+	Values                         map[string]interface{}
 }
 
-func unmarshalEffectiveBaseSecurityAdminRuleImplementation(input []byte) (EffectiveBaseSecurityAdminRule, error) {
+func (s RawEffectiveBaseSecurityAdminRuleImpl) EffectiveBaseSecurityAdminRule() BaseEffectiveBaseSecurityAdminRuleImpl {
+	return s.effectiveBaseSecurityAdminRule
+}
+
+func UnmarshalEffectiveBaseSecurityAdminRuleImplementation(input []byte) (EffectiveBaseSecurityAdminRule, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +53,9 @@ func unmarshalEffectiveBaseSecurityAdminRuleImplementation(input []byte) (Effect
 		return nil, fmt.Errorf("unmarshaling EffectiveBaseSecurityAdminRule into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Default") {
@@ -52,10 +74,15 @@ func unmarshalEffectiveBaseSecurityAdminRuleImplementation(input []byte) (Effect
 		return out, nil
 	}
 
-	out := RawEffectiveBaseSecurityAdminRuleImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEffectiveBaseSecurityAdminRuleImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEffectiveBaseSecurityAdminRuleImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEffectiveBaseSecurityAdminRuleImpl{
+		effectiveBaseSecurityAdminRule: parent,
+		Type:                           value,
+		Values:                         temp,
+	}, nil
 
 }

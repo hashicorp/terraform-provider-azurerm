@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -663,7 +663,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
@@ -1034,7 +1034,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 			Status: &status,
 			SourceRepository: tasks.SourceProperties{
 				SourceControlType: tasks.SourceControlType(trigger.SourceType),
-				RepositoryUrl:     trigger.RepositoryURL,
+				RepositoryURL:     trigger.RepositoryURL,
 			},
 		}
 		if len(trigger.Events) != 0 {
@@ -1076,7 +1076,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 		}
 
 		obj.SourceType = string(trigger.SourceRepository.SourceControlType)
-		obj.RepositoryURL = trigger.SourceRepository.RepositoryUrl
+		obj.RepositoryURL = trigger.SourceRepository.RepositoryURL
 		if trigger.SourceRepository.Branch != nil {
 			obj.Branch = *trigger.SourceRepository.Branch
 		}

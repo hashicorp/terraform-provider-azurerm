@@ -241,6 +241,8 @@ The following arguments are supported:
 
 * `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`.
 
+* `service_principal_type` - (Optional) The service principal type. The only possible value is `SystemAssigned`.
+
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `GZRS`, `LRS`, and `ZRS`. Defaults to `GRS`.
 
 * `zone_redundant_enabled` - (Optional) Specifies whether or not the SQL Managed Instance is zone redundant. Defaults to `false`.

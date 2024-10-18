@@ -24,6 +24,14 @@ type HanaDbProviderInstanceProperties struct {
 	SslPreference            *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s HanaDbProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = HanaDbProviderInstanceProperties{}
@@ -37,9 +45,10 @@ func (s HanaDbProviderInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HanaDbProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "SapHana"
 
 	encoded, err = json.Marshal(decoded)

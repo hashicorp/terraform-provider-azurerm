@@ -45,7 +45,6 @@ func (c LoadBalancersClient) LoadBalancerOutboundRulesGet(ctx context.Context, i
 
 	var model OutboundRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

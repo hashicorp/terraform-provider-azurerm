@@ -44,6 +44,7 @@ func (o VirtualNetworksListDdosProtectionStatusOperationOptions) ToHeaders() *cl
 
 func (o VirtualNetworksListDdosProtectionStatusOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

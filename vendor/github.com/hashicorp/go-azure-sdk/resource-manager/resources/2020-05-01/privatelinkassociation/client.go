@@ -15,7 +15,7 @@ type PrivateLinkAssociationClient struct {
 }
 
 func NewPrivateLinkAssociationClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateLinkAssociationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privatelinkassociation", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privatelinkassociation", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateLinkAssociationClient: %+v", err)
 	}

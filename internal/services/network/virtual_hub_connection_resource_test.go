@@ -471,7 +471,7 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
 
   private_endpoint_network_policies             = "Disabled"
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = true
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",

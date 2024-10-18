@@ -15,7 +15,7 @@ type ExpressRouteCircuitPeeringsClient struct {
 }
 
 func NewExpressRouteCircuitPeeringsClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitPeeringsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitpeerings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecircuitpeerings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitPeeringsClient: %+v", err)
 	}

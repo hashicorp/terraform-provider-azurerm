@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkmanagers` Documentation
 
-The `networkmanagers` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
+The `networkmanagers` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 payload := networkmanagers.NetworkManager{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 if err := client.DeleteThenPoll(ctx, id, networkmanagers.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id, networkmanagers.DefaultDeleteOperationO
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 payload := networkmanagers.NetworkManagerCommit{
 	// ...
@@ -125,7 +125,7 @@ if err := client.NetworkManagerCommitsPostThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 payload := networkmanagers.NetworkManagerDeploymentStatusParameter{
 	// ...
@@ -146,7 +146,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerValue")
+id := networkmanagers.NewNetworkManagerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkManagerName")
 
 payload := networkmanagers.PatchObject{
 	// ...

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints` Documentation
 
-The `outboundendpoints` SDK allows for interaction with the Azure Resource Manager Service `dnsresolver` (API Version `2022-07-01`).
+The `outboundendpoints` SDK allows for interaction with Azure Resource Manager `dnsresolver` (API Version `2022-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue", "outboundEndpointValue")
+id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName", "outboundEndpointName")
 
 payload := outboundendpoints.OutboundEndpoint{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, outboundendpoints.Defa
 
 ```go
 ctx := context.TODO()
-id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue", "outboundEndpointValue")
+id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName", "outboundEndpointName")
 
 if err := client.DeleteThenPoll(ctx, id, outboundendpoints.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, outboundendpoints.DefaultDeleteOperatio
 
 ```go
 ctx := context.TODO()
-id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue", "outboundEndpointValue")
+id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName", "outboundEndpointName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := outboundendpoints.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue")
+id := outboundendpoints.NewDnsResolverID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName")
 
 // alternatively `client.List(ctx, id, outboundendpoints.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, outboundendpoints.DefaultListOperationOptions())
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverValue", "outboundEndpointValue")
+id := outboundendpoints.NewOutboundEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsResolverName", "outboundEndpointName")
 
 payload := outboundendpoints.OutboundEndpointPatch{
 	// ...
