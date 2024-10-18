@@ -342,7 +342,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
 				state.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
 				state.CustomerContacts = flattenAdbsCustomerContacts(adbsPropModel.CustomerContacts)
-				state.DataStorageSizeInTbs = pointer.From(adbsPropModel.DataStorageSizeInGbs)
+				state.DataStorageSizeInTbs = pointer.From(adbsPropModel.DataStorageSizeInTbs)
 				state.DbWorkload = string(pointer.From(adbsPropModel.DbWorkload))
 				state.DbVersion = pointer.From(adbsPropModel.DbVersion)
 				state.DisplayName = pointer.From(adbsPropModel.DisplayName)

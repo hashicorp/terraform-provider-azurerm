@@ -2,7 +2,7 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
+	"net/mail"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -106,39 +106,17 @@ func LicenseType(i interface{}, k string) (warnings []string, errors []error) {
 	return
 }
 
-func CustomerContactEmail(v interface{}, k string) (warnings []string, errors []error) {
-	value, ok := v.(string)
+func CustomerContactEmail(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
-		return warnings, errors
-	}
-
-	vSegments := strings.Split(value, ".")
-	if len(vSegments) < 2 || len(vSegments) > 34 {
-		errors = append(errors, fmt.Errorf("%q must be between 2 and 34 segments", k))
-		return warnings, errors
-	}
-
-	for _, segment := range vSegments {
-		if segment == "" {
-			errors = append(errors, fmt.Errorf("%q cannot contain consecutive period", k))
-			return warnings, errors
-		}
-
-		if len(segment) > 63 {
-			errors = append(errors, fmt.Errorf("the each segment of the `email` must contain between 1 and 63 characters"))
-			return warnings, errors
-		}
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z\d._-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q only contains letters, numbers, underscores, dashes and periods", k))
-		return warnings, errors
+	_, err := mail.ParseAddress(v)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%v must be a valid email address", k))
+		return
 	}
 
 	return warnings, errors

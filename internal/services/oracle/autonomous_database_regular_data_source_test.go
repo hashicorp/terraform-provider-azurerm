@@ -24,7 +24,7 @@ func TestAdbsRegularDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("data_storage_size_in_gbs").Exists(),
+				check.That(data.ResourceName).Key("data_storage_size_in_tbs").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("license_model").Exists(),
 			),
