@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/giversions"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,21 +20,17 @@ type GiVersionsDataSource struct{}
 
 type GiVersionsModel struct {
 	Versions []string `tfschema:"versions"`
+	Location string   `tfschema:"location"`
 }
 
 func (d GiVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"location": commonschema.Location(),
 	}
 }
 
 func (d GiVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
-		// GiVersionProperties
 		"versions": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -45,7 +42,7 @@ func (d GiVersionsDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d GiVersionsDataSource) ModelObject() interface{} {
-	return nil
+	return &GiVersionsModel{}
 }
 
 func (d GiVersionsDataSource) ResourceType() string {
@@ -63,8 +60,13 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.GiVersions
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
+			var state GiVersionsModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			id := giversions.NewLocationID(subscriptionId,
-				metadata.ResourceData.Get("location_name").(string))
+				state.Location)
 
 			resp, err := client.ListByLocation(ctx, id)
 			if err != nil {
@@ -75,20 +77,16 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := GiVersionsModel{
-					Versions: make([]string, 0),
-				}
 				for _, element := range *model {
 					if element.Properties != nil {
-						output.Versions = append(output.Versions, pointer.From(element.Properties.Version))
+						state.Versions = append(state.Versions, pointer.From(element.Properties.Version))
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }

@@ -31,17 +31,18 @@ func (d GiVersionsDataSource) basic() string {
 
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_oracle_gi_versions" "test" {
-  location_name = "eastus"
+  location = "eastus"
 }
 `, d.template())
 }
 
 func (d GiVersionsDataSource) template() string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 data "azurerm_client_config" "current" {}
 

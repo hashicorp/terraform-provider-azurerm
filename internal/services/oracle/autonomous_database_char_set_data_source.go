@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasecharactersets"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,6 +20,7 @@ type AdbsCharSetsDataSource struct{}
 
 type AdbsCharSetsModel struct {
 	AdbsCharSets []AdbsCharSetModel `tfschema:"character_sets"`
+	Location     string             `tfschema:"location"`
 }
 
 type AdbsCharSetModel struct {
@@ -28,10 +30,7 @@ type AdbsCharSetModel struct {
 
 func (d AdbsCharSetsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"location": commonschema.Location(),
 	}
 }
 
@@ -46,6 +45,7 @@ func (d AdbsCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"character_set": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -57,7 +57,7 @@ func (d AdbsCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d AdbsCharSetsDataSource) ModelObject() interface{} {
-	return nil
+	return &AdbsCharSetsModel{}
 }
 
 func (d AdbsCharSetsDataSource) ResourceType() string {
@@ -75,8 +75,14 @@ func (d AdbsCharSetsDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseCharacterSets
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := autonomousdatabasecharactersets.NewLocationID(subscriptionId,
-				metadata.ResourceData.Get("location_name").(string))
+			state := AdbsCharSetsModel{
+				AdbsCharSets: make([]AdbsCharSetModel, 0),
+			}
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := autonomousdatabasecharactersets.NewLocationID(subscriptionId, state.Location)
 
 			resp, err := client.ListByLocation(ctx, id)
 			if err != nil {
@@ -87,24 +93,20 @@ func (d AdbsCharSetsDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := AdbsCharSetsModel{
-					AdbsCharSets: make([]AdbsCharSetModel, 0),
-				}
 				for _, element := range *model {
 					if element.Properties != nil {
 						properties := element.Properties
-						output.AdbsCharSets = append(output.AdbsCharSets, AdbsCharSetModel{
+						state.AdbsCharSets = append(state.AdbsCharSets, AdbsCharSetModel{
 							Name:         pointer.From(element.Name),
 							CharacterSet: pointer.From(properties.CharacterSet),
 						})
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }

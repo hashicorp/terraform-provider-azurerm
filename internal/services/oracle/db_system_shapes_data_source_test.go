@@ -31,17 +31,18 @@ func (d DbSystemShapesDataSource) basic() string {
 
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_oracle_db_system_shapes" "test" {
-  location_name = "eastus"
+  location = "eastus"
 }
 `, d.template())
 }
 
 func (d DbSystemShapesDataSource) template() string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 data "azurerm_client_config" "current" {}
 

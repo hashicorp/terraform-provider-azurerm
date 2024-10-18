@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbsystemshapes"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -16,6 +17,11 @@ import (
 )
 
 type DbSystemShapesDataSource struct{}
+
+type DbSystemShapesModel struct {
+	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
+	Location       string               `tfschema:"location"`
+}
 
 type DbSystemShapeModel struct {
 	AvailableCoreCount                 int64   `tfschema:"available_core_count"`
@@ -40,16 +46,9 @@ type DbSystemShapeModel struct {
 	ShapeFamily                        string  `tfschema:"shape_family"`
 }
 
-type DbSystemShapesModel struct {
-	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
-}
-
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"location": commonschema.Location(),
 	}
 }
 
@@ -147,7 +146,7 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d DbSystemShapesDataSource) ModelObject() interface{} {
-	return nil
+	return &DbSystemShapesModel{}
 }
 
 func (d DbSystemShapesDataSource) ResourceType() string {
@@ -165,8 +164,14 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.DbSystemShapes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := dbsystemshapes.NewLocationID(subscriptionId,
-				metadata.ResourceData.Get("location_name").(string))
+			state := DbSystemShapesModel{
+				DbSystemShapes: make([]DbSystemShapeModel, 0),
+			}
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
 			resp, err := client.ListByLocation(ctx, id)
 			if err != nil {
@@ -177,13 +182,10 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := DbSystemShapesModel{
-					DbSystemShapes: make([]DbSystemShapeModel, 0),
-				}
 				for _, element := range *model {
 					if element.Properties != nil {
 						properties := element.Properties
-						output.DbSystemShapes = append(output.DbSystemShapes, DbSystemShapeModel{
+						state.DbSystemShapes = append(state.DbSystemShapes, DbSystemShapeModel{
 							AvailableCoreCount:                 pointer.From(properties.AvailableCoreCount),
 							AvailableCoreCountPerNode:          pointer.From(properties.AvailableCoreCountPerNode),
 							AvailableDataStorageInTbs:          pointer.From(properties.AvailableDataStorageInTbs),
@@ -207,12 +209,11 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 						})
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }

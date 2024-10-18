@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbnodes"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,7 +19,9 @@ import (
 type DBNodesDataSource struct{}
 
 type DBNodesDataModel struct {
-	DBNodes []DBNodeDataModel `tfschema:"db_nodes"`
+	CloudVmClusterName string            `tfschema:"cloud_vm_cluster_name"`
+	DBNodes            []DBNodeDataModel `tfschema:"db_nodes"`
+	ResourceGroupName  string            `tfschema:"resource_group_name"`
 }
 
 type DBNodeDataModel struct {
@@ -49,10 +52,8 @@ type DBNodeDataModel struct {
 
 func (d DBNodesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
 		"cloud_vm_cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -71,90 +72,112 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"backup_ip_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"backup_vnic_2_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"backup_vnic_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"cpu_core_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"db_node_storage_size_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"db_server_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"db_system_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"fault_domain": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"host_ip_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"hostname": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"lifecycle_details": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"lifecycle_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"maintenance_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"memory_size_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"ocid": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"provisioning_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"software_storage_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"time_created": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"time_maintenance_window_end": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"time_maintenance_window_start": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"vnic_2_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"vnic_id": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -166,7 +189,7 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d DBNodesDataSource) ModelObject() interface{} {
-	return nil
+	return &DBNodesDataModel{}
 }
 
 func (d DBNodesDataSource) ResourceType() string {
@@ -184,9 +207,14 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.DbNodes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := dbnodes.NewCloudVMClusterID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("cloud_vm_cluster_name").(string))
+			state := DBNodesDataModel{
+				DBNodes: make([]DBNodeDataModel, 0),
+			}
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := dbnodes.NewCloudVMClusterID(subscriptionId, state.ResourceGroupName, state.CloudVmClusterName)
 
 			resp, err := client.ListByCloudVMCluster(ctx, id)
 			if err != nil {
@@ -197,9 +225,6 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := DBNodesDataModel{
-					DBNodes: make([]DBNodeDataModel, 0),
-				}
 				for _, element := range *model {
 					if element.Properties != nil {
 						properties := element.Properties
@@ -228,15 +253,14 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 							VnicId:                     pointer.From(properties.VnicId),
 							Vnic2Id:                    pointer.From(properties.Vnic2Id),
 						}
-						output.DBNodes = append(output.DBNodes, dbNode)
+						state.DBNodes = append(state.DBNodes, dbNode)
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }

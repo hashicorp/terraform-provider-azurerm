@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasecharactersets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasenationalcharactersets"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,20 +19,18 @@ import (
 type AdbsNCharSetsDataSource struct{}
 
 type AdbsNCharSetsModel struct {
-	AdbsNCharSets []AdbsNCharSetModel `tfschema:"character_sets"`
+	AdbsCharSets []AdbsNCharSetModel `tfschema:"character_sets"`
+	Location     string              `tfschema:"location"`
 }
 
 type AdbsNCharSetModel struct {
-	Name          string `tfschema:"name"`
-	NCharacterSet string `tfschema:"character_set"`
+	Name         string `tfschema:"name"`
+	CharacterSet string `tfschema:"character_set"`
 }
 
 func (d AdbsNCharSetsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+		"location": commonschema.Location(),
 	}
 }
 
@@ -47,6 +45,7 @@ func (d AdbsNCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"character_set": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -58,7 +57,7 @@ func (d AdbsNCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (d AdbsNCharSetsDataSource) ModelObject() interface{} {
-	return nil
+	return &AdbsNCharSetsModel{}
 }
 
 func (d AdbsNCharSetsDataSource) ResourceType() string {
@@ -73,11 +72,17 @@ func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseNationalCharacterSets
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseCharacterSets
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := autonomousdatabasenationalcharactersets.NewLocationID(subscriptionId,
-				metadata.ResourceData.Get("location_name").(string))
+			state := AdbsNCharSetsModel{
+				AdbsCharSets: make([]AdbsNCharSetModel, 0),
+			}
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := autonomousdatabasecharactersets.NewLocationID(subscriptionId, state.Location)
 
 			resp, err := client.ListByLocation(ctx, id)
 			if err != nil {
@@ -88,24 +93,20 @@ func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output := AdbsNCharSetsModel{
-					AdbsNCharSets: make([]AdbsNCharSetModel, 0),
-				}
 				for _, element := range *model {
 					if element.Properties != nil {
 						properties := element.Properties
-						output.AdbsNCharSets = append(output.AdbsNCharSets, AdbsNCharSetModel{
-							Name:          pointer.From(element.Name),
-							NCharacterSet: pointer.From(properties.CharacterSet),
+						state.AdbsCharSets = append(state.AdbsCharSets, AdbsNCharSetModel{
+							Name:         pointer.From(element.Name),
+							CharacterSet: pointer.From(properties.CharacterSet),
 						})
 					}
 				}
-				metadata.SetID(id)
-				if err := metadata.Encode(&output); err != nil {
-					return fmt.Errorf("encoding %s: %+v", id, err)
-				}
 			}
-			return nil
+
+			metadata.SetID(id)
+
+			return metadata.Encode(&state)
 		},
 	}
 }
