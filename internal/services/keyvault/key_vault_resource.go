@@ -777,9 +777,12 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	//
 	// We don't know if the private endpoint has been created yet, so we need
 	// to ignore the error if the data plane call fails.
+	//
+	// if the tenant id is not the same as the current account, we need to ignore the error
 	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 	if err != nil {
-		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+		theSameTenant := resp.Model == nil || resp.Model.Properties.TenantId == meta.(*clients.Client).Account.TenantId
+		if theSameTenant && publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
 			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
 	}
