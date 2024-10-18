@@ -110,18 +110,18 @@ resource "azurerm_automation_watcher" "test" {
   location              = "%[3]s"
 
   tags = {
-    "foo" = "bar"
+    "foo" = "bar-update"
   }
 
   script_parameters = {
-    foo = "bar"
+    param_foo = "arg_bar"
   }
 
-  etag                           = "etag example"
+  etag                           = "etag example-update"
   execution_frequency_in_seconds = 20
   script_name                    = azurerm_automation_runbook.test.name
   script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
-  description                    = "example-watcher desc"
+  description                    = "example-watcher desc update"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
