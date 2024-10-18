@@ -25,13 +25,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -336,6 +337,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
+				ConflictsWith:    []string{"managed_hsm_key_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID,
+				ConflictsWith: []string{"key_vault_key_id"},
 			},
 
 			"consistency_policy": {
@@ -764,7 +774,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
 	databaseClient := meta.(*clients.Client).Cosmos.DatabaseClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	accountClient := meta.(*clients.Client).Account
+	subscriptionId := accountClient.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] Preparing arguments for AzureRM Cosmos DB Account creation")
@@ -902,12 +913,10 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
-	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
-		if err != nil {
-			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
-		}
-		account.Properties.KeyVaultKeyUri = pointer.To(keyVaultKey.ID())
+	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+		return fmt.Errorf("parse key vault key id: %+v", err)
+	} else if key != nil {
+		account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
@@ -942,6 +951,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
+	apiEnvs := meta.(*clients.Client).Account.Environment
 	// subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1049,7 +1059,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// TODO Post 4.0 remove `enable_automatic_failover` from this list
 		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
-			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
+			"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_automatic_failover", "automatic_failover_enabled", "analytical_storage_enabled",
 			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
@@ -1106,12 +1116,10 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			Tags: t,
 		}
 
-		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
-			keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
-			if err != nil {
-				return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
-			}
-			account.Properties.KeyVaultKeyUri = pointer.To(keyVaultKey.ID())
+		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, apiEnvs.KeyVault, apiEnvs.ManagedHSM); err != nil {
+			return err
+		} else if key != nil {
+			account.Properties.KeyVaultKeyUri = pointer.To(key.ID())
 		}
 
 		// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
@@ -1390,16 +1398,25 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
 		d.Set("burst_capacity_enabled", pointer.From(props.EnableBurstCapacity))
 
-		if v := existing.Model.Properties.IsVirtualNetworkFilterEnabled; v != nil {
+		if v := props.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
 		}
 
-		if v := existing.Model.Properties.EnableAutomaticFailover; v != nil {
+		if v := props.EnableAutomaticFailover; v != nil {
 			d.Set("automatic_failover_enabled", props.EnableAutomaticFailover)
 		}
 
-		if v := existing.Model.Properties.KeyVaultKeyUri; v != nil {
-			d.Set("key_vault_key_id", props.KeyVaultKeyUri)
+		if v := props.KeyVaultKeyUri; v != nil {
+			envs := meta.(*clients.Client).Account.Environment
+			if key, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(*v, envs.KeyVault, envs.ManagedHSM); err != nil {
+				return fmt.Errorf("flatten key vault uri: %+v", err)
+			} else if key.IsSet() {
+				if key.KeyVaultKeyId != nil {
+					d.Set("key_vault_key_id", key.KeyVaultKeyId.ID())
+				} else {
+					d.Set("managed_hsm_key_id", key.ManagedHSMKeyID())
+				}
+			}
 		}
 
 		if v := existing.Model.Properties.EnableMultipleWriteLocations; v != nil {
