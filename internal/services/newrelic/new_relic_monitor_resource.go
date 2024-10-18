@@ -101,6 +101,7 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
 
+					// Enum is removed https://github.com/Azure/azure-rest-api-specs/issues/31093
 					"billing_cycle": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
