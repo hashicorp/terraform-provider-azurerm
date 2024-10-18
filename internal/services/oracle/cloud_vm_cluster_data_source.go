@@ -498,6 +498,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeCreated = pointer.From(props.TimeCreated)
 					state.TimeZone = pointer.From(props.TimeZone)
+					state.VnetId = props.VnetId
 					state.ZoneId = pointer.From(props.ZoneId)
 				}
 			}
