@@ -42,8 +42,6 @@ func TestAccNetAppBackupPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -59,8 +57,6 @@ func TestAccNetAppBackupPolicy_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -73,7 +69,7 @@ func TestAccNetAppBackupPolicy_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

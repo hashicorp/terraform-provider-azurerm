@@ -50,7 +50,7 @@ func TestAccNetAppVolume_backupPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_updateBackupPolicy(t *testing.T) {
+func TestAccNetAppVolume_backupPolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
