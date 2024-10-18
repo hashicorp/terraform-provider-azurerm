@@ -410,10 +410,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedica
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views
 github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices

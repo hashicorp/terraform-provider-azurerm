@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -146,7 +146,7 @@ func (r CostManagementScheduledActionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+			client := metadata.Client.CostManagement.ScheduledActionsClient
 
 			viewId, err := views.ParseScopedViewID(metadata.ResourceData.Get("view_id").(string))
 			if err != nil {
@@ -223,7 +223,7 @@ func (r CostManagementScheduledActionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+			client := metadata.Client.CostManagement.ScheduledActionsClient
 
 			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -273,7 +273,7 @@ func (r CostManagementScheduledActionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+			client := metadata.Client.CostManagement.ScheduledActionsClient
 
 			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -293,7 +293,7 @@ func (r CostManagementScheduledActionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CostManagement.ScheduledActionsClient_v2022_10_01
+			client := metadata.Client.CostManagement.ScheduledActionsClient
 
 			id, err := scheduledactions.ParseScopedScheduledActionID(metadata.ResourceData.Id())
 			if err != nil {
