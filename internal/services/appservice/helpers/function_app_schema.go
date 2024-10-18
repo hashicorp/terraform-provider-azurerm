@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -22,6 +23,152 @@ const (
 	StorageStringFmt   = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	StorageStringFmtKV = "@Microsoft.KeyVault(SecretUri=%s)"
 )
+
+type FlexFunctionAppDeployment struct {
+	StorageContainerType                       string `tfschema:"storage_container_type"`
+	StorageContainerEndpoint                   string `tfschema:"storage_container_endpoint"`
+	StorageConnectionStringAccessEnabled       bool   `tfschema:"storage_connection_string_access_enabled"`
+	StorageAccessKey                           string `tfschema:"storage_access_key"`
+	StorageSystemAssignedIdentityAccessEnabled bool   `tfschema:"storage_system_assigned_identity_access_enabled"`
+	StorageUserAssignedIdentityAccessEnabled   bool   `tfschema:"storage_user_assigned_identity_access_enabled"`
+	StorageUserAssignedIdentityID              string `tfschema:"storage_user_assigned_identity_id"`
+	RuntimeName                                string `tfschema:"runtime_name"`
+	RuntimeVersion                             string `tfschema:"runtime_version"`
+	MaximumInstanceCount                       int64  `tfschema:"maximum_instance_count"`
+	InstanceMemoryInMB                         int64  `tfschema:"instance_memory_in_mb"`
+}
+
+func FlexFunctionAppDeploymentSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"storage_container_type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
+					}, false),
+					Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+				},
+
+				"storage_container_endpoint": {
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Description: "The endpoint of the storage container where the function app's code is hosted.",
+				},
+
+				"storage_connection_string_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					RequiredWith: []string{
+						"flex_function_app_deployment.0.storage_access_key",
+					},
+					ConflictsWith: []string{
+						"flex_function_app_deployment.0.storage_system_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+					},
+					ExactlyOneOf: []string{
+						"flex_function_app_deployment.0.storage_system_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+					},
+				},
+
+				"storage_access_key": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					RequiredWith: []string{
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+					},
+				},
+
+				"storage_system_assigned_identity_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ConflictsWith: []string{
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+					},
+					ExactlyOneOf: []string{
+						"flex_function_app_deployment.0.storage_system_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+					},
+				},
+
+				"storage_user_assigned_identity_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					RequiredWith: []string{
+						"flex_function_app_deployment.0.storage_user_assigned_identity_id",
+					},
+					ConflictsWith: []string{
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+						"flex_function_app_deployment.0.storage_system_assigned_identity_access_enabled",
+					},
+					ExactlyOneOf: []string{
+						"flex_function_app_deployment.0.storage_system_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+						"flex_function_app_deployment.0.storage_connection_string_access_enabled",
+					},
+				},
+
+				"storage_user_assigned_identity_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					RequiredWith: []string{
+						"flex_function_app_deployment.0.storage_user_assigned_identity_access_enabled",
+					},
+				},
+
+				"runtime_name": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.RuntimeNameDotnetNegativeisolated),
+						string(webapps.RuntimeNameJava),
+						string(webapps.RuntimeNameNode),
+						string(webapps.RuntimeNamePowershell),
+						string(webapps.RuntimeNamePython),
+						string(webapps.RuntimeNameCustom),
+					}, false),
+				},
+
+				"runtime_version": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"instance_memory_in_mb": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      2048,
+					ValidateFunc: validation.IntInSlice([]int{512, 2048, 4096}),
+				},
+
+				"maximum_instance_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      100,
+					ValidateFunc: validation.IntBetween(40, 1000),
+				},
+			},
+		},
+		ConflictsWith: []string{
+			"site_config.0.application_stack",
+			"storage_account_name",
+			"storage_account_access_key",
+			"storage_uses_managed_identity",
+			"storage_key_vault_secret_id",
+		},
+	}
+}
 
 type SiteConfigLinuxFunctionApp struct {
 	AlwaysOn                      bool                               `tfschema:"always_on"`
@@ -1539,7 +1686,7 @@ func FunctionAppAppServiceLogsSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
+func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool, storageStringFlex string) (*webapps.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
@@ -1557,12 +1704,16 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		appSettings = *existing.AppSettings
 	}
 
-	appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
-
-	if storageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
-	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+	if storageString != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_EXTENSION_VERSION", version, false)
+		if storageUsesMSI {
+			appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+		} else {
+			appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+		}
+	} else if storageStringFlex != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "DEPLOYMENT_STORAGE_CONNECTION_STRING", storageStringFlex, false)
 	}
 
 	linuxSiteConfig := siteConfig[0]
@@ -1608,61 +1759,64 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.AppCommandLine = pointer.To(linuxSiteConfig.AppCommandLine)
 	}
 
-	if len(linuxSiteConfig.ApplicationStack) > 0 {
-		linuxAppStack := linuxSiteConfig.ApplicationStack[0]
-		if linuxAppStack.DotNetVersion != "" {
-			if linuxAppStack.DotNetIsolated {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
-			} else {
-				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
-			}
-		}
-
-		if linuxAppStack.NodeVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
-			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
-		}
-
-		if linuxAppStack.PythonVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
-		}
-
-		if linuxAppStack.JavaVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("JAVA|%s", linuxAppStack.JavaVersion))
-		}
-
-		if linuxAppStack.PowerShellCoreVersion != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("POWERSHELL|%s", linuxAppStack.PowerShellCoreVersion))
-		}
-
-		if linuxAppStack.CustomHandler {
-			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
-			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
-		}
-
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
-			dockerConfig := linuxAppStack.Docker[0]
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
-			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
-			var dockerUrl string = dockerConfig.RegistryURL
-			for _, prefix := range urlSchemes {
-				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
-					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
-					continue
+	// the app stack related appsettings are not applied to the flex consumption function app
+	if storageString != "" {
+		if len(linuxSiteConfig.ApplicationStack) > 0 {
+			linuxAppStack := linuxSiteConfig.ApplicationStack[0]
+			if linuxAppStack.DotNetVersion != "" {
+				if linuxAppStack.DotNetIsolated {
+					appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated", false)
+					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+				} else {
+					appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "dotnet", false)
+					expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 				}
 			}
-			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
+
+			if linuxAppStack.NodeVersion != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "node", false)
+				appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_NODE_DEFAULT_VERSION", linuxAppStack.NodeVersion, false)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			}
+
+			if linuxAppStack.PythonVersion != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "python", false)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PYTHON|%s", linuxAppStack.PythonVersion))
+			}
+
+			if linuxAppStack.JavaVersion != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "java", false)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("JAVA|%s", linuxAppStack.JavaVersion))
+			}
+
+			if linuxAppStack.PowerShellCoreVersion != "" {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "powershell", false)
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("POWERSHELL|%s", linuxAppStack.PowerShellCoreVersion))
+			}
+
+			if linuxAppStack.CustomHandler {
+				appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
+				expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
+			}
+
+			if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+				dockerConfig := linuxAppStack.Docker[0]
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
+				appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
+				var dockerUrl string = dockerConfig.RegistryURL
+				for _, prefix := range urlSchemes {
+					if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
+						dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)
+						continue
+					}
+				}
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerUrl, dockerConfig.ImageName, dockerConfig.ImageTag))
+			}
+		} else {
+			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
+			expanded.LinuxFxVersion = pointer.To("")
 		}
-	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
-		expanded.LinuxFxVersion = pointer.To("")
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
@@ -2261,4 +2415,105 @@ func ParseContentSettings(input *webapps.StringDictionary, existing map[string]s
 	}
 
 	return out
+}
+
+func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageDomainSuffix string) (*webapps.FunctionAppConfig, string, error) {
+	if len(input) == 0 {
+		return nil, "", nil
+	}
+	flexFaDeployment := input[0]
+	blobContainerType := webapps.FunctionsDeploymentStorageType(flexFaDeployment.StorageContainerType)
+	storageDeployment := &webapps.FunctionsDeployment{
+		Storage: &webapps.FunctionsDeploymentStorage{
+			Type:  &blobContainerType,
+			Value: &flexFaDeployment.StorageContainerEndpoint,
+		},
+	}
+
+	storageAuthType := webapps.AuthenticationTypeStorageAccountConnectionString
+	storageConnectionStringName := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+	endpoint := strings.TrimPrefix(flexFaDeployment.StorageContainerEndpoint, "https://")
+	storageString := ""
+	if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
+		storageName := endpoint[:storageNameIndex]
+		storageString = fmt.Sprintf(StorageStringFmt, storageName, flexFaDeployment.StorageAccessKey, storageDomainSuffix)
+	} else {
+		return nil, "", fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", flexFaDeployment.StorageContainerEndpoint)
+	}
+
+	storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
+		Type: &storageAuthType,
+	}
+
+	if flexFaDeployment.StorageSystemAssignedIdentityAccessEnabled {
+		storageAuthType = webapps.AuthenticationTypeSystemAssignedIdentity
+		storageConnectionStringName = ""
+	} else if flexFaDeployment.StorageUserAssignedIdentityAccessEnabled {
+		storageAuthType = webapps.AuthenticationTypeUserAssignedIdentity
+		storageAuth.UserAssignedIdentityResourceId = &flexFaDeployment.StorageUserAssignedIdentityID
+		storageConnectionStringName = ""
+	}
+	storageAuth.Type = &storageAuthType
+	storageAuth.StorageAccountConnectionStringName = &storageConnectionStringName
+	storageDeployment.Storage.Authentication = &storageAuth
+
+	runtimeName := webapps.RuntimeName(flexFaDeployment.RuntimeName)
+	runtime := webapps.FunctionsRuntime{
+		Name:    &runtimeName,
+		Version: &flexFaDeployment.RuntimeVersion,
+	}
+
+	scaleAndConcurrencyConfig := webapps.FunctionsScaleAndConcurrency{
+		InstanceMemoryMB:     &flexFaDeployment.InstanceMemoryInMB,
+		MaximumInstanceCount: &flexFaDeployment.MaximumInstanceCount,
+	}
+	expanded := &webapps.FunctionAppConfig{
+		Deployment:          storageDeployment,
+		Runtime:             &runtime,
+		ScaleAndConcurrency: &scaleAndConcurrencyConfig,
+	}
+
+	return expanded, storageString, nil
+}
+
+func FlattenFlexFunctionAppDeployment(input *webapps.FunctionAppConfig) []FlexFunctionAppDeployment {
+	if input == nil || input.Deployment == nil || input.Deployment.Storage == nil || input.Runtime == nil || input.ScaleAndConcurrency == nil {
+		return nil
+	}
+
+	storageConfig := *input.Deployment.Storage
+	runtimeConfig := *input.Runtime
+	scaleConfig := *input.ScaleAndConcurrency
+
+	result := FlexFunctionAppDeployment{
+		StorageContainerType:     string(pointer.From(storageConfig.Type)),
+		StorageContainerEndpoint: pointer.From(storageConfig.Value),
+		RuntimeName:              string(pointer.From(runtimeConfig.Name)),
+		RuntimeVersion:           pointer.From(runtimeConfig.Version),
+		InstanceMemoryInMB:       pointer.From(scaleConfig.InstanceMemoryMB),
+		MaximumInstanceCount:     pointer.From(scaleConfig.MaximumInstanceCount),
+	}
+
+	if storageConfig.Authentication != nil {
+		if storageConfig.Authentication.Type != nil {
+			switch *storageConfig.Authentication.Type {
+			case webapps.AuthenticationTypeSystemAssignedIdentity:
+				result.StorageSystemAssignedIdentityAccessEnabled = true
+				result.StorageUserAssignedIdentityAccessEnabled = false
+				result.StorageConnectionStringAccessEnabled = false
+			case webapps.AuthenticationTypeUserAssignedIdentity:
+				result.StorageSystemAssignedIdentityAccessEnabled = false
+				result.StorageUserAssignedIdentityAccessEnabled = true
+				result.StorageConnectionStringAccessEnabled = false
+				result.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
+			default:
+				result.StorageSystemAssignedIdentityAccessEnabled = false
+				result.StorageUserAssignedIdentityAccessEnabled = false
+				result.StorageConnectionStringAccessEnabled = true
+			}
+
+		}
+	}
+
+	return []FlexFunctionAppDeployment{result}
 }

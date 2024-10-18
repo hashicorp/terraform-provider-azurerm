@@ -64,6 +64,7 @@ type LinuxFunctionAppModel struct {
 	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
 	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
 	SiteConfig                       []helpers.SiteConfigLinuxFunctionApp       `tfschema:"site_config"`
+	FlexFunctionAppDeployment        []helpers.FlexFunctionAppDeployment        `tfschema:"flex_function_app_deployment"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
@@ -135,6 +136,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
+				"flex_function_app_deployment",
 			},
 		},
 
@@ -146,6 +148,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"storage_uses_managed_identity",
 				"storage_key_vault_secret_id",
+				"flex_function_app_deployment",
 			},
 			Description: "The access key which will be used to access the storage account for the Function App.",
 		},
@@ -157,6 +160,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"storage_account_access_key",
 				"storage_key_vault_secret_id",
+				"flex_function_app_deployment",
 			},
 			Description: "Should the Function App use its Managed Identity to access storage?",
 		},
@@ -168,6 +172,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_key_vault_secret_id",
+				"flex_function_app_deployment",
 			},
 			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
@@ -286,6 +291,8 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionApp(),
+
+		"flex_function_app_deployment": helpers.FlexFunctionAppDeploymentSchema(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
 
@@ -447,6 +454,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
 			sendContentSettings := elasticOrConsumptionPlan && !functionApp.ForceDisableContentShare
 
+			flexConsumptionPlan := helpers.PlanIsFlexConsumption(planSKU)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
@@ -466,21 +474,33 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			storageString := functionApp.StorageAccountName
-			if !functionApp.StorageUsesMSI {
-				if functionApp.StorageKeyVaultSecretID != "" {
-					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionApp.StorageKeyVaultSecretID)
-				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, *storageDomainSuffix)
+			if !flexConsumptionPlan && len(functionApp.FlexFunctionAppDeployment) > 0 {
+				return fmt.Errorf("the site is running in %q sku while `flex_function_app_deployment` can only be set for sites whose ServerFarm has `FlexConsumption` SKU", *planSKU)
+			}
+
+			flexFunctionAppConfig, storageStringFlex, err := helpers.ExpandFlexFunctionAppDeployment(functionApp.FlexFunctionAppDeployment, *storageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("expanding flex_function_app_deployment for Linux flex consumption %s: %+v", id, err)
+			}
+
+			var storageString string
+			if functionApp.StorageAccountName != "" {
+				storageString = functionApp.StorageAccountName
+				if !functionApp.StorageUsesMSI && functionApp.FlexFunctionAppDeployment == nil {
+					if functionApp.StorageKeyVaultSecretID != "" {
+						storageString = fmt.Sprintf(helpers.StorageStringFmtKV, functionApp.StorageKeyVaultSecretID)
+					} else {
+						storageString = fmt.Sprintf(helpers.StorageStringFmt, functionApp.StorageAccountName, functionApp.StorageAccountKey, *storageDomainSuffix)
+					}
 				}
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI)
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(functionApp.SiteConfig, nil, metadata, functionApp.FunctionExtensionsVersion, storageString, functionApp.StorageUsesMSI, storageStringFlex)
 			if err != nil {
 				return fmt.Errorf("expanding site_config for Linux %s: %+v", id, err)
 			}
 
-			if functionApp.BuiltinLogging {
+			if functionApp.BuiltinLogging && !flexConsumptionPlan {
 				if functionApp.AppSettings == nil {
 					functionApp.AppSettings = make(map[string]string)
 				}
@@ -517,7 +537,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
+			if storageString != "" {
+				siteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(functionApp.SiteConfig[0].ApplicationStack)
+			}
+
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionApp.AppSettings)
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(functionApp.Identity)
@@ -535,6 +558,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					Enabled:              pointer.To(functionApp.Enabled),
 					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
 					SiteConfig:           siteConfig,
+					FunctionAppConfig:    flexFunctionAppConfig,
 					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
@@ -822,7 +846,14 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					}
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
-					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
+					isFlexFunctionApp := false
+					flexFunctionAppDeployment := helpers.FlattenFlexFunctionAppDeployment(props.FunctionAppConfig)
+					state.FlexFunctionAppDeployment = flexFunctionAppDeployment
+					if flexFunctionAppDeployment != nil {
+						isFlexFunctionApp = true
+					}
+
+					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata, isFlexFunctionApp)
 
 					state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 
@@ -991,12 +1022,25 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			storageString := state.StorageAccountName
-			if !state.StorageUsesMSI {
-				if state.StorageKeyVaultSecretID != "" {
-					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
-				} else {
-					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
+			flexConsumptionPlan := helpers.PlanIsFlexConsumption(planSKU)
+			if !flexConsumptionPlan && len(state.FlexFunctionAppDeployment) > 0 {
+				return fmt.Errorf("the site is running in %q sku while `flex_function_app_deployment` can only be set for sites whose ServerFarm has `FlexConsumption` SKU", *planSKU)
+			}
+
+			flexFunctionAppConfig, storageStringFlex, err := helpers.ExpandFlexFunctionAppDeployment(state.FlexFunctionAppDeployment, *storageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("expanding flex_function_app_deployment for Linux flex consumption %s: %+v", id, err)
+			}
+
+			var storageString string
+			if state.StorageAccountName != "" {
+				storageString = state.StorageAccountName
+				if !state.StorageUsesMSI {
+					if state.StorageKeyVaultSecretID != "" {
+						storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+					} else {
+						storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
+					}
 				}
 			}
 
@@ -1032,12 +1076,12 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI, storageStringFlex)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
 			}
 
-			if state.BuiltinLogging {
+			if state.BuiltinLogging && !flexConsumptionPlan {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
 				}
@@ -1051,6 +1095,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
 				model.Properties.VnetRouteAllEnabled = siteConfig.VnetRouteAllEnabled
+			}
+
+			if metadata.ResourceData.HasChange("flex_function_app_deployment") {
+				model.Properties.FunctionAppConfig = flexFunctionAppConfig
 			}
 
 			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
@@ -1337,7 +1385,7 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData) {
+func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData, isFlexFunctionApp bool) {
 	if input.Properties == nil {
 		return
 	}
@@ -1389,11 +1437,15 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 			m.SiteConfig[0].AppInsightsConnectionString = v
 
 		case "AzureWebJobsStorage":
-			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.StorageKeyVaultSecretID = trimmed
+			if !isFlexFunctionApp {
+				if strings.HasPrefix(v, "@Microsoft.KeyVault") {
+					trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
+					m.StorageKeyVaultSecretID = trimmed
+				} else {
+					m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+				}
 			} else {
-				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+				_, m.FlexFunctionAppDeployment[0].StorageAccessKey = helpers.ParseWebJobsStorageString(v)
 			}
 
 		case "AzureWebJobsDashboard":
@@ -1404,14 +1456,20 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		case "AzureWebJobsStorage__accountName":
-			m.StorageUsesMSI = true
-			m.StorageAccountName = v
+			if !isFlexFunctionApp {
+				m.StorageUsesMSI = true
+				m.StorageAccountName = v
+			}
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
 		case "WEBSITE_VNET_ROUTE_ALL":
-			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+		// Filter out - handled by site_config setting `vnet_route_all_enabled`
+
+		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
+			// Filter out - not user faced
+
 		default:
 			appSettings[k] = v
 		}
