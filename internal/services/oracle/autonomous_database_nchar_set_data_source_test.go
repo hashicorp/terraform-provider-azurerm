@@ -42,7 +42,7 @@ data "azurerm_oracle_adbs_national_character_sets" "test" {
 }
 
 func (d AdbsNCharSetsDataSource) template() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 
 data "azurerm_client_config" "current" {}
 

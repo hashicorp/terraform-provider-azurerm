@@ -42,7 +42,7 @@ data "azurerm_oracle_db_system_shapes" "test" {
 }
 
 func (d DbSystemShapesDataSource) template() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 
 data "azurerm_client_config" "current" {}
 
