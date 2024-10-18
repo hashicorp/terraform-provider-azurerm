@@ -118,7 +118,7 @@ resource "azurerm_automation_watcher" "test" {
     param_foo = "arg_bar"
   }
 
-  etag                           = "etag example-update"
+  etag                           = "etag example"
   execution_frequency_in_seconds = 20
   script_name                    = azurerm_automation_runbook.test.name
   script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
