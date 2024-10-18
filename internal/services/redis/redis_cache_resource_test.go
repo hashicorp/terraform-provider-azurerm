@@ -208,7 +208,7 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.backupEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -544,7 +544,7 @@ func TestAccRedisCache_SkuDowngrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
