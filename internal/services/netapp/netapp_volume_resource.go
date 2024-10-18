@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backupvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
@@ -335,7 +333,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"backup_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+							ValidateFunc: azure.ValidateResourceID,
 							Description:  "The ID of the backup policy to associate with this volume.",
 						},
 
@@ -349,7 +347,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"backup_vault_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: backupvaults.ValidateBackupVaultID,
+							ValidateFunc: azure.ValidateResourceID,
 							Description:  "The ID of the backup vault to associate with this volume.",
 						},
 					},
