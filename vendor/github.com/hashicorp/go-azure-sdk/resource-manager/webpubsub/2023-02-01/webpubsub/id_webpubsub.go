@@ -115,7 +115,7 @@ func (id WebPubSubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "resourceName"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubName"),
 	}
 }
 

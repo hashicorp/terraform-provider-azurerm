@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventhubName", "consumerGroupName")
 
 payload := consumergroups.ConsumerGroup{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventhubName", "consumerGroupName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName", "consumerGroupName")
+id := consumergroups.NewConsumerGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventhubName", "consumerGroupName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := consumergroups.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventHubName")
+id := consumergroups.NewEventhubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "eventhubName")
 
 // alternatively `client.ListByEventHub(ctx, id, consumergroups.DefaultListByEventHubOperationOptions())` can be used to do batched pagination
 items, err := client.ListByEventHubComplete(ctx, id, consumergroups.DefaultListByEventHubOperationOptions())

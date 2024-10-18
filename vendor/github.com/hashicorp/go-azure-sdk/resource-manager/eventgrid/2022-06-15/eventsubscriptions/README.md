@@ -111,13 +111,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.DomainEventSubscriptionsGetFullUrl`
+### Example Usage: `EventSubscriptionsClient.DomainEventSubscriptionsGetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewDomainEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName", "eventSubscriptionName")
 
-read, err := client.DomainEventSubscriptionsGetFullUrl(ctx, id)
+read, err := client.DomainEventSubscriptionsGetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -222,13 +222,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.DomainTopicEventSubscriptionsGetFullUrl`
+### Example Usage: `EventSubscriptionsClient.DomainTopicEventSubscriptionsGetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewTopicEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName", "topicName", "eventSubscriptionName")
 
-read, err := client.DomainTopicEventSubscriptionsGetFullUrl(ctx, id)
+read, err := client.DomainTopicEventSubscriptionsGetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -304,13 +304,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.GetFullUrl`
+### Example Usage: `EventSubscriptionsClient.GetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewScopedEventSubscriptionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "eventSubscriptionName")
 
-read, err := client.GetFullUrl(ctx, id)
+read, err := client.GetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -426,7 +426,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := eventsubscriptions.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 // alternatively `client.ListRegionalByResourceGroup(ctx, id, eventsubscriptions.DefaultListRegionalByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListRegionalByResourceGroupComplete(ctx, id, eventsubscriptions.DefaultListRegionalByResourceGroupOperationOptions())
@@ -443,7 +443,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewProviderLocationTopicTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location", "topicTypeName")
+id := eventsubscriptions.NewProviderLocationTopicTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "topicTypeName")
 
 // alternatively `client.ListRegionalByResourceGroupForTopicType(ctx, id, eventsubscriptions.DefaultListRegionalByResourceGroupForTopicTypeOperationOptions())` can be used to do batched pagination
 items, err := client.ListRegionalByResourceGroupForTopicTypeComplete(ctx, id, eventsubscriptions.DefaultListRegionalByResourceGroupForTopicTypeOperationOptions())
@@ -460,7 +460,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := eventsubscriptions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.ListRegionalBySubscription(ctx, id, eventsubscriptions.DefaultListRegionalBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListRegionalBySubscriptionComplete(ctx, id, eventsubscriptions.DefaultListRegionalBySubscriptionOperationOptions())
@@ -477,7 +477,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventsubscriptions.NewLocationTopicTypeID("12345678-1234-9876-4563-123456789012", "location", "topicTypeName")
+id := eventsubscriptions.NewLocationTopicTypeID("12345678-1234-9876-4563-123456789012", "locationName", "topicTypeName")
 
 // alternatively `client.ListRegionalBySubscriptionForTopicType(ctx, id, eventsubscriptions.DefaultListRegionalBySubscriptionForTopicTypeOperationOptions())` can be used to do batched pagination
 items, err := client.ListRegionalBySubscriptionForTopicTypeComplete(ctx, id, eventsubscriptions.DefaultListRegionalBySubscriptionForTopicTypeOperationOptions())
@@ -551,13 +551,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.PartnerTopicEventSubscriptionsGetFullUrl`
+### Example Usage: `EventSubscriptionsClient.PartnerTopicEventSubscriptionsGetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewPartnerTopicEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "partnerTopicName", "eventSubscriptionName")
 
-read, err := client.PartnerTopicEventSubscriptionsGetFullUrl(ctx, id)
+read, err := client.PartnerTopicEventSubscriptionsGetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -662,13 +662,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.SystemTopicEventSubscriptionsGetFullUrl`
+### Example Usage: `EventSubscriptionsClient.SystemTopicEventSubscriptionsGetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewSystemTopicEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "systemTopicName", "eventSubscriptionName")
 
-read, err := client.SystemTopicEventSubscriptionsGetFullUrl(ctx, id)
+read, err := client.SystemTopicEventSubscriptionsGetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -773,13 +773,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EventSubscriptionsClient.TopicEventSubscriptionsGetFullUrl`
+### Example Usage: `EventSubscriptionsClient.TopicEventSubscriptionsGetFullURL`
 
 ```go
 ctx := context.TODO()
 id := eventsubscriptions.NewEventSubscriptionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName", "eventSubscriptionName")
 
-read, err := client.TopicEventSubscriptionsGetFullUrl(ctx, id)
+read, err := client.TopicEventSubscriptionsGetFullURL(ctx, id)
 if err != nil {
 	// handle the error
 }

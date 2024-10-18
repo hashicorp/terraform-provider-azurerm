@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := servicetags.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := servicetags.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.ServiceTagInformationList(ctx, id, servicetags.DefaultServiceTagInformationListOperationOptions())` can be used to do batched pagination
 items, err := client.ServiceTagInformationListComplete(ctx, id, servicetags.DefaultServiceTagInformationListOperationOptions())
@@ -41,7 +41,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := servicetags.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := servicetags.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.ServiceTagsList(ctx, id)
 if err != nil {

@@ -136,13 +136,13 @@ type OperationNameFormat string
 
 const (
 	OperationNameFormatName OperationNameFormat = "Name"
-	OperationNameFormatUrl  OperationNameFormat = "Url"
+	OperationNameFormatURL  OperationNameFormat = "Url"
 )
 
 func PossibleValuesForOperationNameFormat() []string {
 	return []string{
 		string(OperationNameFormatName),
-		string(OperationNameFormatUrl),
+		string(OperationNameFormatURL),
 	}
 }
 
@@ -162,7 +162,7 @@ func (s *OperationNameFormat) UnmarshalJSON(bytes []byte) error {
 func parseOperationNameFormat(input string) (*OperationNameFormat, error) {
 	vals := map[string]OperationNameFormat{
 		"name": OperationNameFormatName,
-		"url":  OperationNameFormatUrl,
+		"url":  OperationNameFormatURL,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

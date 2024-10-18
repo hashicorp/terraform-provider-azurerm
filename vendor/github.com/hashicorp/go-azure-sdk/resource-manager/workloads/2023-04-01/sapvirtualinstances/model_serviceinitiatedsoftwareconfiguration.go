@@ -11,7 +11,7 @@ import (
 var _ SoftwareConfiguration = ServiceInitiatedSoftwareConfiguration{}
 
 type ServiceInitiatedSoftwareConfiguration struct {
-	BomUrl                                string                                 `json:"bomUrl"`
+	BomURL                                string                                 `json:"bomUrl"`
 	HighAvailabilitySoftwareConfiguration *HighAvailabilitySoftwareConfiguration `json:"highAvailabilitySoftwareConfiguration,omitempty"`
 	SapBitsStorageAccountId               string                                 `json:"sapBitsStorageAccountId"`
 	SapFqdn                               string                                 `json:"sapFqdn"`

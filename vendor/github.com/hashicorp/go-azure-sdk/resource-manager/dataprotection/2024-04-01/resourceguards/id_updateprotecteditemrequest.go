@@ -121,9 +121,9 @@ func (id UpdateProtectedItemRequestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataProtection", "Microsoft.DataProtection", "Microsoft.DataProtection"),
 		resourceids.StaticSegment("staticResourceGuards", "resourceGuards", "resourceGuards"),
-		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardsName"),
+		resourceids.UserSpecifiedSegment("resourceGuardName", "resourceGuardName"),
 		resourceids.StaticSegment("staticUpdateProtectedItemRequests", "updateProtectedItemRequests", "updateProtectedItemRequests"),
-		resourceids.UserSpecifiedSegment("updateProtectedItemRequestName", "requestName"),
+		resourceids.UserSpecifiedSegment("updateProtectedItemRequestName", "updateProtectedItemRequestName"),
 	}
 }
 

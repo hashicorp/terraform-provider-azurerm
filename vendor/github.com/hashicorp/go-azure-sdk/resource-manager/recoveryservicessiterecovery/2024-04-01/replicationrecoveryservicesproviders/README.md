@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "providerName")
+id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationRecoveryServicesProviderName")
 
 payload := replicationrecoveryservicesproviders.AddRecoveryServicesProviderInput{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "providerName")
+id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationRecoveryServicesProviderName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "providerName")
+id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationRecoveryServicesProviderName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := replicationrecoveryservicesproviders.NewVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName")
+id := replicationrecoveryservicesproviders.NewReplicationFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName")
 
 // alternatively `client.ListByReplicationFabrics(ctx, id)` can be used to do batched pagination
 items, err := client.ListByReplicationFabricsComplete(ctx, id)
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "providerName")
+id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationRecoveryServicesProviderName")
 
 if err := client.PurgeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -115,7 +115,7 @@ if err := client.PurgeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "fabricName", "providerName")
+id := replicationrecoveryservicesproviders.NewReplicationRecoveryServicesProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "replicationFabricName", "replicationRecoveryServicesProviderName")
 
 if err := client.RefreshProviderThenPoll(ctx, id); err != nil {
 	// handle the error

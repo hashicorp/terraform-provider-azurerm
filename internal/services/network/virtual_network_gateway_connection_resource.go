@@ -77,8 +77,10 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			},
 
 			"shared_key": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C the API generates a key for the user if not supplied
+				Computed:  true,
 				Sensitive: true,
 			},
 

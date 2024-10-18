@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workflowrunactions.NewScopeRepetitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "runName", "actionName", "repetitionName")
+id := workflowrunactions.NewScopeRepetitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowName", "runName", "actionName", "scopeRepetitionName")
 
 read, err := client.CopeRepetitionsGet(ctx, id)
 if err != nil {
