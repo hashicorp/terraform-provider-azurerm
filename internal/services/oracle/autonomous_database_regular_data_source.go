@@ -67,7 +67,7 @@ type AutonomousDatabaseRegularDataModel struct {
 	TimeCreated                             string   `tfschema:"time_created"`
 	TimeDataGuardRoleChanged                string   `tfschema:"time_data_guard_role_changed"`
 	TimeDeletionOfFreeAutonomousDatabase    string   `tfschema:"time_deletion_of_free_autonomous_database"`
-	TimeLocalDataGuardEnabled               string   `tfschema:"time_local_data_guard_enabled"`
+	TimeLocalDataGuardEnabled               string   `tfschema:"time_local_data_guard_enabled_on"`
 	TimeMaintenanceBegin                    string   `tfschema:"time_maintenance_begin"`
 	TimeMaintenanceEnd                      string   `tfschema:"time_maintenance_end"`
 	TimeOfLastFailover                      string   `tfschema:"time_of_last_failover"`
@@ -320,7 +320,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"time_local_data_guard_enabled": {
+		"time_local_data_guard_enabled_on": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

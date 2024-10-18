@@ -125,7 +125,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_deletion_of_free_autonomous_database` - The date and time the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
 
-* `time_local_data_guard_enabled` - The date and time that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
+* `time_local_data_guard_enabled_on` - The date and time that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
 * `time_maintenance_begin` - The date and time when maintenance will begin.
 
