@@ -4,9 +4,12 @@
 package dataprotection
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -24,7 +28,7 @@ import (
 )
 
 func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupPolicyPostgreSQLCreate,
 		Read:   resourceDataProtectionBackupPolicyPostgreSQLRead,
 		Delete: resourceDataProtectionBackupPolicyPostgreSQLDelete,
@@ -69,13 +73,6 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				},
 			},
 
-			"default_retention_duration": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ISO8601Duration,
-			},
-
 			"retention_rule": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -86,13 +83,6 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ForceNew: true,
-						},
-
-						"duration": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validate.ISO8601Duration,
 						},
 
 						"criteria": {
@@ -184,7 +174,291 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if !features.FourPointOhBeta() {
+				retentionRules := diff.Get("retention_rule")
+				defaultRetentionDuration := diff.Get("default_retention_duration")
+				defaultRetentionRule := diff.Get("default_retention_rule")
+
+				for i, rule := range retentionRules.([]interface{}) {
+					v := rule.(map[string]interface{})
+					if v["duration"].(string) == "" && len(v["life_cycle"].([]interface{})) == 0 || v["duration"].(string) != "" && len(v["life_cycle"].([]interface{})) > 0 {
+						return fmt.Errorf(`one of "retention_rule.%s.duration", "retention_rule.%s.life_cycle" must be specified`, strconv.Itoa(i), strconv.Itoa(i))
+					}
+
+					if defaultRetentionDuration != "" && v["duration"].(string) == "" {
+						return fmt.Errorf(`"default_retention_duration", "retention_rule.%s.duration" must be specified at the same time`, strconv.Itoa(i))
+					}
+
+					if len(defaultRetentionRule.([]interface{})) > 0 && len(v["life_cycle"].([]interface{})) == 0 {
+						return fmt.Errorf(`"default_retention_rule", "retention_rule.%s.life_cycle" must be specified at the same time`, strconv.Itoa(i))
+					}
+				}
+			}
+			return nil
+		}),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["default_retention_duration"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
+			Deprecated:   "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
+			ValidateFunc: validate.ISO8601Duration,
+		}
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["duration"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
+			ValidateFunc: validate.ISO8601Duration,
+		}
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"data_store_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							// confirmed with the service team that the possible values do not include `OperationalStore`.
+							string(backuppolicies.DataStoreTypesVaultStore),
+							string(backuppolicies.DataStoreTypesArchiveStore),
+						}, false),
+					},
+
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ISO8601Duration,
+					},
+
+					"target_copy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"option_json": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsJSON,
+								},
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"life_cycle": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// confirmed with the service team that the possible values do not include `OperationalStore`.
+										string(backuppolicies.DataStoreTypesVaultStore),
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.ISO8601Duration,
+								},
+
+								"target_copy": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"option_json": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsJSON,
+											},
+											"data_store_type": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ForceNew: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+													string(backuppolicies.DataStoreTypesArchiveStore),
+												}, false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	} else {
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"data_store_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							// confirmed with the service team that the possible values do not include `OperationalStore`.
+							string(backuppolicies.DataStoreTypesVaultStore),
+							string(backuppolicies.DataStoreTypesArchiveStore),
+						}, false),
+					},
+
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ISO8601Duration,
+					},
+
+					"target_copy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"option_json": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsJSON,
+								},
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"life_cycle": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// confirmed with the service team that the possible values do not include `OperationalStore`.
+										string(backuppolicies.DataStoreTypesVaultStore),
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.ISO8601Duration,
+								},
+
+								"target_copy": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"option_json": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsJSON,
+											},
+											"data_store_type": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ForceNew: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+													string(backuppolicies.DataStoreTypesArchiveStore),
+												}, false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -216,8 +490,15 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+
+	if v, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
+		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(v))
+		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+	} else {
+		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultRetentionRule(d.Get("default_retention_rule").([]interface{})))
+		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRules(d.Get("retention_rule").([]interface{}))...)
+	}
+
 	parameters := backuppolicies.BaseBackupPolicyResource{
 		Properties: &backuppolicies.BackupPolicy{
 			PolicyRules:     policyRules,
@@ -262,12 +543,23 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyPostgreSQLBackupRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
-				if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
-					return fmt.Errorf("setting `default_retention_duration`: %+v", err)
+
+				if _, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
+					if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `default_retention_duration`: %+v", err)
+					}
+					if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRuleArray(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `retention_rule`: %+v", err)
+					}
+				} else {
+					if err := d.Set("default_retention_rule", flattenBackupPolicyPostgreSQLDefaultRetentionRule(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `default_retention_rule`: %+v", err)
+					}
+					if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRules(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `retention_rule`: %+v", err)
+					}
 				}
-				if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRuleArray(&props.PolicyRules)); err != nil {
-					return fmt.Errorf("setting `retention_rule`: %+v", err)
-				}
+
 				d.Set("time_zone", flattenBackupPolicyPostgreSQLBackupTimeZone(&props.PolicyRules))
 			}
 		}
@@ -342,6 +634,21 @@ func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []
 	return results
 }
 
+func expandBackupPolicyPostgreSQLAzureRetentionRules(input []interface{}) []backuppolicies.BasePolicyRule {
+	results := make([]backuppolicies.BasePolicyRule, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		lifeCycle := expandBackupPolicyPostgreSQLLifeCycle(v["life_cycle"].([]interface{}))
+
+		results = append(results, backuppolicies.AzureRetentionRule{
+			Name:       v["name"].(string),
+			IsDefault:  pointer.To(false),
+			Lifecycles: lifeCycle,
+		})
+	}
+	return results
+}
+
 func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) backuppolicies.BasePolicyRule {
 	return backuppolicies.AzureRetentionRule{
 		Name:      "Default",
@@ -361,9 +668,79 @@ func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) ba
 	}
 }
 
+func expandBackupPolicyPostgreSQLDefaultRetentionRule(input []interface{}) backuppolicies.BasePolicyRule {
+	results := backuppolicies.AzureRetentionRule{}
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		lifeCycle := expandBackupPolicyPostgreSQLLifeCycle(v["life_cycle"].([]interface{}))
+		results.Name = "Default"
+		results.IsDefault = pointer.To(true)
+		results.Lifecycles = lifeCycle
+	}
+	return results
+}
+
+func expandBackupPolicyPostgreSQLLifeCycle(input []interface{}) []backuppolicies.SourceLifeCycle {
+	results := make([]backuppolicies.SourceLifeCycle, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		targetCopySettingList := make([]backuppolicies.TargetCopySetting, 0)
+		if tcs := v["target_copy"].([]interface{}); len(tcs) > 0 {
+			tcsv := tcs[0].(map[string]interface{})
+			copyAfter, err := expandTargetCopySettingFromJSON(tcsv["option_json"].(string))
+			if err != nil {
+				return results
+			}
+
+			targetCopySetting := backuppolicies.TargetCopySetting{
+				CopyAfter: copyAfter,
+				DataStore: backuppolicies.DataStoreInfoBase{
+					DataStoreType: backuppolicies.DataStoreTypes(tcsv["data_store_type"].(string)),
+					ObjectType:    "DataStoreInfoBase",
+				},
+			}
+			targetCopySettingList = append(targetCopySettingList, targetCopySetting)
+		}
+
+		sourceLifeCycle := backuppolicies.SourceLifeCycle{
+			DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+				Duration: v["duration"].(string),
+			},
+			SourceDataStore: backuppolicies.DataStoreInfoBase{
+				DataStoreType: backuppolicies.DataStoreTypes(v["data_store_type"].(string)),
+				ObjectType:    "DataStoreInfoBase",
+			},
+			TargetDataStoreCopySettings: pointer.To(targetCopySettingList),
+		}
+		results = append(results, sourceLifeCycle)
+	}
+
+	return results
+}
+
+func expandTargetCopySettingFromJSON(input string) (backuppolicies.CopyOption, error) {
+	if input == "" {
+		return nil, nil
+	}
+	targetCopySetting := &backuppolicies.TargetCopySetting{}
+	err := targetCopySetting.UnmarshalJSON([]byte(fmt.Sprintf(`{ "copyAfter": %s }`, input)))
+	if err != nil {
+		return nil, err
+	}
+	return targetCopySetting.CopyAfter, nil
+}
+
+func flattenTargetCopySettingFromJSON(input backuppolicies.CopyOption) (string, error) {
+	if input == nil {
+		return "", nil
+	}
+	result, err := json.Marshal(input)
+	return string(result), err
+}
+
 func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]backuppolicies.TaggingCriteria, error) {
 	results := []backuppolicies.TaggingCriteria{
-
 		{
 			Criteria:        nil,
 			IsDefault:       true,
@@ -390,7 +767,6 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]b
 			return nil, err
 		}
 		result.Criteria = criteria
-
 		results = append(results, result)
 	}
 	return &results, nil
@@ -400,6 +776,7 @@ func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) (*[]backuppo
 	if len(input) == 0 || input[0] == nil {
 		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
 	}
+
 	results := make([]backuppolicies.BackupCriteria, 0)
 
 	for _, item := range input {
@@ -543,6 +920,75 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]backuppolicies.Bas
 	return results
 }
 
+func flattenBackupPolicyPostgreSQLRetentionRules(input *[]backuppolicies.BasePolicyRule) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	var taggingCriterias []backuppolicies.TaggingCriteria
+	for _, item := range *input {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				if trigger.TaggingCriteria != nil {
+					taggingCriterias = trigger.TaggingCriteria
+				}
+			}
+		}
+	}
+
+	for _, item := range *input {
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
+			var name string
+			var taggingPriority int64
+			var taggingCriteria []interface{}
+			if retentionRule.IsDefault == nil || !*retentionRule.IsDefault {
+				name = retentionRule.Name
+				for _, criteria := range taggingCriterias {
+					if strings.EqualFold(criteria.TagInfo.TagName, name) {
+						taggingPriority = criteria.TaggingPriority
+						taggingCriteria = flattenBackupPolicyPostgreSQLBackupCriteriaArray(criteria.Criteria)
+					}
+				}
+
+				var lifeCycle []interface{}
+				if v := retentionRule.Lifecycles; len(v) > 0 {
+					lifeCycle = flattenBackupPolicyPostgreSQLBackupLifeCycleArray(v)
+				}
+				results = append(results, map[string]interface{}{
+					"name":       name,
+					"priority":   taggingPriority,
+					"criteria":   taggingCriteria,
+					"life_cycle": lifeCycle,
+				})
+			}
+		}
+	}
+	return results
+}
+
+func flattenBackupPolicyPostgreSQLDefaultRetentionRule(input *[]backuppolicies.BasePolicyRule) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
+			if pointer.From(retentionRule.IsDefault) {
+				var lifeCycle []interface{}
+				if v := retentionRule.Lifecycles; len(v) > 0 {
+					lifeCycle = flattenBackupPolicyPostgreSQLBackupLifeCycleArray(v)
+				}
+				results = append(results, map[string]interface{}{
+					"life_cycle": lifeCycle,
+				})
+			}
+		}
+	}
+	return results
+}
+
 func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.BackupCriteria) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
@@ -590,6 +1036,54 @@ func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.Ba
 				"scheduled_backup_times": scheduleTimes,
 			})
 		}
+	}
+	return results
+}
+
+func flattenBackupPolicyPostgreSQLBackupLifeCycleArray(input []backuppolicies.SourceLifeCycle) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range input {
+		var targetDataStoreCopySetting []interface{}
+		var duration string
+		var dataStoreType string
+		if v := item.TargetDataStoreCopySettings; v != nil && len(*v) > 0 {
+			targetDataStoreCopySetting = flattenBackupPolicyPostgreSQLBackupTargetDataStoreCopySettingArray(v)
+		}
+		if deleteOption, ok := item.DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			duration = deleteOption.Duration
+		}
+		dataStoreType = string(item.SourceDataStore.DataStoreType)
+
+		results = append(results, map[string]interface{}{
+			"duration":        duration,
+			"target_copy":     targetDataStoreCopySetting,
+			"data_store_type": dataStoreType,
+		})
+	}
+	return results
+}
+
+func flattenBackupPolicyPostgreSQLBackupTargetDataStoreCopySettingArray(input *[]backuppolicies.TargetCopySetting) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		copyAfter, err := flattenTargetCopySettingFromJSON(item.CopyAfter)
+		if err != nil {
+			return nil
+		}
+		dataStoreType := string(item.DataStore.DataStoreType)
+
+		results = append(results, map[string]interface{}{
+			"option_json":     copyAfter,
+			"data_store_type": dataStoreType,
+		})
 	}
 	return results
 }
