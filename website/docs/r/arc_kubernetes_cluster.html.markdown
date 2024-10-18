@@ -38,6 +38,40 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
 
 -> **Note:** An extensive example on connecting the `azurerm_arc_kubernetes_cluster` to an external kubernetes cluster can be found in [the `./examples/arckubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/arckubernetes).
 
+## Example Usage (ProvisionedCluster)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azuread_group" "example" {
+  display_name     = "example-adg"
+  owners           = [data.azurerm_client_config.current.object_id]
+  security_enabled = true
+}
+
+resource "azurerm_arc_kubernetes_cluster" "example" {
+  name                = "example-akcc-provisioned"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  kind                = "ProvisionedCluster"
+
+  aad_profile {
+    azure_rbac_enabled     = true
+    admin_group_object_ids = [azuread_group.example.id]
+    tenant_id              = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -46,13 +80,38 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Arc Kubernetes Cluster should exist. Changing this forces a new Arc Kubernetes Cluster to be created.
 
-* `agent_public_key_certificate` - (Required) Specifies the base64-encoded public certificate used by the agent to do the initial handshake to the backend services in Azure. Changing this forces a new Arc Kubernetes Cluster to be created.
-
 * `identity` - (Required) An `identity` block as defined below. Changing this forces a new Arc Kubernetes Cluster to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Arc Kubernetes Cluster should exist. Changing this forces a new Arc Kubernetes Cluster to be created.
 
+* `aad_profile` - (Optional) An `aad_profile` block as specified below.
+
+~> **NOTE** `aad_profile` can only be specified if `kind` is `ProvisionedCluster`.
+
+* `arc_agent_auto_upgrade_enabled` - (Optional) Whether the Arc agents will be upgraded automatically to the latest version. Defaults to `true`.
+
+* `arc_agent_desired_version` - (Optional) The version of the Arc agents to be installed on the cluster.
+
+* `agent_public_key_certificate` - (Optional) Specifies the base64-encoded public certificate used by the agent to do the initial handshake to the backend services in Azure. Changing this forces a new Arc Kubernetes Cluster to be created.
+
+-> **NOTE** `agent_public_key_certificate` must not be specified if `kind` is `ProvisionedCluster`.
+
+* `azure_hybrid_benefit` - (Optional) Indicates whether Azure Hybrid Benefit is opted in. Possible values are `True`, `False` and `NotApplicable`. Defaults to `NotApplicable`.
+
+* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. The only possible value is `ProvisionedCluster`. Changing this forces a new Arc Kubernetes Cluster to be created.
+
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Cluster.
+
+---
+
+An `aad_profile` block supports the following:
+
+* `azure_rbac_enabled` - (Optional) Whether to enable Microsoft Entra authentication with Kubernetes RBAC. Defaults to `false`.
+
+* `admin_group_object_ids` - (Optional) A list of IDs of Microsoft Entra Groups. All members of the specified Microsoft Entra Groups have the cluster administrator access to the Kubernetes cluster.
+
+* `tenant_id` - (Optional) The Tenant ID to use for authentication. If not specified, the Tenant of the Arc Kubernetes Cluster will be used.
 
 ---
 
