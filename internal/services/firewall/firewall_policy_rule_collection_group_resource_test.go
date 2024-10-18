@@ -748,6 +748,7 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
   dns {
     proxy_enabled = true
   }

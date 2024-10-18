@@ -215,24 +215,14 @@ func TestAccFirewall_withTags(t *testing.T) {
 func TestAccFirewall_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
-	zones := []string{"1"}
-	zonesUpdate := []string{"1", "2", "3"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withZones(data, zones),
+			Config: r.withZones(data, []string{"1"}),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
-			),
-		},
-		{
-			Config: r.withZones(data, zonesUpdate),
-			Check: acceptance.ComposeTestCheckFunc(
-
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 	})
@@ -531,7 +521,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 

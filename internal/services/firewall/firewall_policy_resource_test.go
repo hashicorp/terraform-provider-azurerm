@@ -590,7 +590,7 @@ resource "azurerm_key_vault_certificate" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.test, azurerm_key_vault_access_policy.test2]
 }
-`, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (FirewallPolicyResource) defaultWorkspaceOnly(data acceptance.TestData) string {
