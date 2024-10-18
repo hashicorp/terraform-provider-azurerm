@@ -63,6 +63,21 @@ func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccSoftwareUpdateConfiguration_occurrence(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
+	r := newSoftwareUpdateConfigurationResource()
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.monthOccurrence(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// scheduleInfo.advancedSchedule always returns null - https://github.com/Azure/azure-rest-api-specs/issues/24436
+		data.ImportStep("schedule.0.advanced", "schedule.0.monthly_occurrence"),
+	})
+}
+
 func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
@@ -341,6 +356,55 @@ resource "azurerm_automation_software_update_configuration" "test" {
 
 }
 `, a.template(data), data.RandomInteger)
+}
+
+func (a SoftwareUpdateConfigurationResource) monthOccurrence(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_software_update_configuration" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-suc-%[2]d"
+
+  linux {
+    classifications_included = ["Critical", "Security"]
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "RebootOnly"
+  }
+
+  duration            = "PT1H1M1S"
+  virtual_machine_ids = []
+
+  target {
+    azure_query {
+      scope     = [azurerm_resource_group.test.id]
+      locations = [azurerm_resource_group.test.location]
+    }
+
+    non_azure_query {
+      function_alias = "savedSearch1"
+      workspace_id   = azurerm_log_analytics_workspace.test.id
+    }
+  }
+
+  schedule {
+    description = "foo-schedule"
+    start_time  = "%[3]s"
+    expiry_time = "%[4]s"
+    is_enabled  = true
+    interval    = 1
+    frequency   = "Month"
+    time_zone   = "Etc/UTC"
+    monthly_occurrence {
+      occurrence = -1
+      day        = "Tuesday"
+    }
+  }
+
+  depends_on = [azurerm_log_analytics_linked_service.test]
+}
+`, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
 func (a SoftwareUpdateConfigurationResource) linuxComplete(data acceptance.TestData) string {
