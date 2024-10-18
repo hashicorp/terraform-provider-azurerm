@@ -215,8 +215,10 @@ resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctestdfp%d"
   data_factory_id = azurerm_data_factory.test.id
 
-  parameters = {
-    test = "testparameter"
+  parameters {
+    name          = "test"
+    type          = "String"
+    default_value = "testparameter"
   }
 }
 
