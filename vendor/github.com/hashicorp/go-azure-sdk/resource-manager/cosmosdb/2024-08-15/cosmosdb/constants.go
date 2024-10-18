@@ -1018,12 +1018,13 @@ func parseRestoreMode(input string) (*RestoreMode, error) {
 type ServerVersion string
 
 const (
-	ServerVersionFivePointZero ServerVersion = "5.0"
-	ServerVersionFourPointTwo  ServerVersion = "4.2"
-	ServerVersionFourPointZero ServerVersion = "4.0"
-	ServerVersionSixPointZero  ServerVersion = "6.0"
-	ServerVersionThreePointSix ServerVersion = "3.6"
-	ServerVersionThreePointTwo ServerVersion = "3.2"
+	ServerVersionFivePointZero  ServerVersion = "5.0"
+	ServerVersionFourPointTwo   ServerVersion = "4.2"
+	ServerVersionFourPointZero  ServerVersion = "4.0"
+	ServerVersionSevenPointZero ServerVersion = "7.0"
+	ServerVersionSixPointZero   ServerVersion = "6.0"
+	ServerVersionThreePointSix  ServerVersion = "3.6"
+	ServerVersionThreePointTwo  ServerVersion = "3.2"
 )
 
 func PossibleValuesForServerVersion() []string {
@@ -1031,6 +1032,7 @@ func PossibleValuesForServerVersion() []string {
 		string(ServerVersionFivePointZero),
 		string(ServerVersionFourPointTwo),
 		string(ServerVersionFourPointZero),
+		string(ServerVersionSevenPointZero),
 		string(ServerVersionSixPointZero),
 		string(ServerVersionThreePointSix),
 		string(ServerVersionThreePointTwo),
@@ -1055,6 +1057,7 @@ func parseServerVersion(input string) (*ServerVersion, error) {
 		"5.0": ServerVersionFivePointZero,
 		"4.2": ServerVersionFourPointTwo,
 		"4.0": ServerVersionFourPointZero,
+		"7.0": ServerVersionSevenPointZero,
 		"6.0": ServerVersionSixPointZero,
 		"3.6": ServerVersionThreePointSix,
 		"3.2": ServerVersionThreePointTwo,
