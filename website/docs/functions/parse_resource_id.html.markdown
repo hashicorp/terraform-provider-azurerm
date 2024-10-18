@@ -61,7 +61,7 @@ output "resource_name" {
 ## Signature
 
 ```text
-normalise_resource_id(id string) string
+parse_resource_id(id string) string
 ```
 
 ## Arguments
