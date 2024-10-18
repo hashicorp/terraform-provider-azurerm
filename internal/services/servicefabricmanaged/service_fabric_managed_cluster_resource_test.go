@@ -28,7 +28,7 @@ func TestAccServiceFabricManagedCluster_basic(t *testing.T) {
 			Config: r.basic(data, nodeTypeData1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
 		},
 		data.ImportStep("password"),
@@ -44,7 +44,7 @@ func TestAccServiceFabricManagedCluster_withCustomSettings(t *testing.T) {
 			Config: r.withCustomSettings(data, nodeTypeData1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
 		},
 		data.ImportStep("password"),
@@ -61,7 +61,7 @@ func TestAccServiceFabricManagedCluster_importError(t *testing.T) {
 			Config: r.basic(data, nodeTypeData1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
 		},
 		{
@@ -83,7 +83,7 @@ func TestAccServiceFabricManagedCluster_full(t *testing.T) {
 			Config: r.basic(data, nodeTypeData1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.Test").HasValue("value")),
 		},
 		data.ImportStep("password"),
@@ -178,7 +178,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   %[4]s
 
   tags = {
-    Test = "value"
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
@@ -224,7 +225,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   %[4]s
 
   tags = {
-    Test = "value"
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
@@ -257,7 +259,8 @@ resource "azurerm_service_fabric_managed_cluster" "test1" {
   %[3]s
 
   tags = {
-    Test = "value"
+    Test                                = "value"
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, r.basic(data, nt), data.RandomString, nt)
@@ -318,6 +321,10 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
       thumbprint = "AAAA0982E0241795C04A61168D95B8DEE1B2CCCC"
       type       = "AdminClient"
     }
+  }
+
+  tags = {
+    "SFRP.DisableDefaultOutboundAccess" = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
