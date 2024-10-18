@@ -132,6 +132,10 @@ resource "azurerm_new_relic_monitor" "test" {
     last_name    = "last"
     phone_number = "123456"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
