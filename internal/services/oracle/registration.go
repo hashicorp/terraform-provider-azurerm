@@ -17,6 +17,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 		CloudVmClusterDataSource{},
 		DBServersDataSource{},
 		ExadataInfraDataSource{},
+		AdbsCharSetsDataSource{},
+		AdbsNCharSetsDataSource{},
+		DBNodesDataSource{},
+		DbSystemShapesDataSource{},
+		GiVersionsDataSource{},
 	}
 }
 
