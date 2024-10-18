@@ -15,7 +15,7 @@ type SignUpSettingsClient struct {
 }
 
 func NewSignUpSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*SignUpSettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "signupsettings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "signupsettings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SignUpSettingsClient: %+v", err)
 	}

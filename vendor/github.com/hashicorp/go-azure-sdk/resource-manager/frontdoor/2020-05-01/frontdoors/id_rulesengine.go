@@ -44,7 +44,7 @@ func ParseRulesEngineID(input string) (*RulesEngineId, error) {
 	}
 
 	id := RulesEngineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRulesEngineIDInsensitively(input string) (*RulesEngineId, error) {
 	}
 
 	id := RulesEngineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id RulesEngineId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFrontDoors", "frontDoors", "frontDoors"),
-		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorValue"),
+		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorName"),
 		resourceids.StaticSegment("staticRulesEngines", "rulesEngines", "rulesEngines"),
-		resourceids.UserSpecifiedSegment("rulesEngineName", "rulesEngineValue"),
+		resourceids.UserSpecifiedSegment("rulesEngineName", "rulesEngineName"),
 	}
 }
 

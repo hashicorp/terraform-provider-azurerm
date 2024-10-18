@@ -45,7 +45,6 @@ func (c ServerEndpointResourceClient) ServerEndpointsGet(ctx context.Context, id
 
 	var model ServerEndpoint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

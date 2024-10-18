@@ -45,7 +45,6 @@ func (c CosmosDBClient) LocationsGet(ctx context.Context, id LocationId) (result
 
 	var model LocationGetResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

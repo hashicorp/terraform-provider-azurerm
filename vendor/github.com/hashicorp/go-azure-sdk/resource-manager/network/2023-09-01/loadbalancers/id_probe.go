@@ -44,7 +44,7 @@ func ParseProbeID(input string) (*ProbeId, error) {
 	}
 
 	id := ProbeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseProbeIDInsensitively(input string) (*ProbeId, error) {
 	}
 
 	id := ProbeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ProbeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLoadBalancers", "loadBalancers", "loadBalancers"),
-		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerValue"),
+		resourceids.UserSpecifiedSegment("loadBalancerName", "loadBalancerName"),
 		resourceids.StaticSegment("staticProbes", "probes", "probes"),
-		resourceids.UserSpecifiedSegment("probeName", "probeValue"),
+		resourceids.UserSpecifiedSegment("probeName", "probeName"),
 	}
 }
 

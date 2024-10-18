@@ -102,7 +102,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // IoT Hub Device Update is only available in certain locations
-        "iothub" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "eastus2", "westus2", false)),
+        "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
 
         // Lab Service is only available in certain locations
         "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),

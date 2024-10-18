@@ -15,7 +15,7 @@ type LocalNetworkGatewaysClient struct {
 }
 
 func NewLocalNetworkGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*LocalNetworkGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "localnetworkgateways", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "localnetworkgateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LocalNetworkGatewaysClient: %+v", err)
 	}

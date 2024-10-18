@@ -44,7 +44,7 @@ func ParseCredentialSetID(input string) (*CredentialSetId, error) {
 	}
 
 	id := CredentialSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCredentialSetIDInsensitively(input string) (*CredentialSetId, error) {
 	}
 
 	id := CredentialSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CredentialSetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticCredentialSets", "credentialSets", "credentialSets"),
-		resourceids.UserSpecifiedSegment("credentialSetName", "credentialSetValue"),
+		resourceids.UserSpecifiedSegment("credentialSetName", "credentialSetName"),
 	}
 }
 

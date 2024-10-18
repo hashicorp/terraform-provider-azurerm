@@ -41,6 +41,7 @@ func (o ListByBatchAccountOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByBatchAccountOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

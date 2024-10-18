@@ -4,7 +4,6 @@
 package hybridcompute
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -44,20 +43,15 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	dataSources := []sdk.DataSource{
+	return []sdk.DataSource{
 		ArcMachineDataSource{},
 	}
-
-	if !features.FourPointOhBeta() {
-		dataSources = append(dataSources, HybridComputeMachineDataSource{})
-	}
-
-	return dataSources
 }
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		ArcMachineResource{},
 		ArcMachineExtensionResource{},
 		ArcPrivateLinkScopeResource{},
 	}

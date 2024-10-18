@@ -45,7 +45,6 @@ func (c SecurityRulesClient) DefaultSecurityRulesGet(ctx context.Context, id Def
 
 	var model SecurityRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

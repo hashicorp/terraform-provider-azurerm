@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
           # we cannot use go-version-file here because no repositories are checked out so there is no file to reference
-          go-version: '1.21.6'
+          go-version: '1.22.7'
       - run: |
           go install github.com/stephybun/link-milestone@latest
           link-milestone

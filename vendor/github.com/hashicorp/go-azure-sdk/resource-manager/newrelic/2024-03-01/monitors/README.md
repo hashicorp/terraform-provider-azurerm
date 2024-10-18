@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors` Documentation
 
-The `monitors` SDK allows for interaction with the Azure Resource Manager Service `newrelic` (API Version `2024-03-01`).
+The `monitors` SDK allows for interaction with Azure Resource Manager `newrelic` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.NewRelicMonitorResource{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 if err := client.DeleteThenPoll(ctx, id, monitors.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, monitors.DefaultDeleteOperationOptions(
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.MetricsRequest{
 	// ...
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.MetricsStatusRequest{
 	// ...
@@ -112,7 +112,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.AppServicesGetRequest{
 	// ...
@@ -168,7 +168,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.HostsGetRequest{
 	// ...
@@ -190,7 +190,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 // alternatively `client.ListMonitoredResources(ctx, id)` can be used to do batched pagination
 items, err := client.ListMonitoredResourcesComplete(ctx, id)
@@ -207,7 +207,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.SwitchBillingRequest{
 	// ...
@@ -228,7 +228,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitors.NewRelicMonitorResourceUpdate{
 	// ...
@@ -245,7 +245,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitors.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 read, err := client.VMHostPayload(ctx, id)
 if err != nil {

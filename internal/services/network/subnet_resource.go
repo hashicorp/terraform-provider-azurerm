@@ -59,6 +59,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.DBforPostgreSQL/singleServers",
 	"Microsoft.DelegatedNetwork/controller",
 	"Microsoft.DevCenter/networkConnection",
+	"Microsoft.DevOpsInfrastructure/pools",
 	"Microsoft.DocumentDB/cassandraClusters",
 	"Microsoft.Fidalgo/networkSettings",
 	"Microsoft.HardwareSecurityModules/dedicatedHSMs",

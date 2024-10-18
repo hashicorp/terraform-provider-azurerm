@@ -15,7 +15,7 @@ type ExpressRouteLinksClient struct {
 }
 
 func NewExpressRouteLinksClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteLinksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutelinks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutelinks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteLinksClient: %+v", err)
 	}

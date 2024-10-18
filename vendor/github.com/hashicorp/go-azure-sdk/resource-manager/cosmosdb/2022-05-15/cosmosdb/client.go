@@ -15,7 +15,7 @@ type CosmosDBClient struct {
 }
 
 func NewCosmosDBClientWithBaseURI(sdkApi sdkEnv.Api) (*CosmosDBClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cosmosdb", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cosmosdb", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CosmosDBClient: %+v", err)
 	}

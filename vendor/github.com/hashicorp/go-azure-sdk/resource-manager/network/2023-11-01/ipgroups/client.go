@@ -15,7 +15,7 @@ type IPGroupsClient struct {
 }
 
 func NewIPGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*IPGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "ipgroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "ipgroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IPGroupsClient: %+v", err)
 	}

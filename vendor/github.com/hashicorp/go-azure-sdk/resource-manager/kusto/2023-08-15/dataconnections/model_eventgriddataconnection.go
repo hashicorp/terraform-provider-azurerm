@@ -14,10 +14,22 @@ type EventGridDataConnection struct {
 	Properties *EventGridConnectionProperties `json:"properties,omitempty"`
 
 	// Fields inherited from DataConnection
-	Id       *string `json:"id,omitempty"`
-	Location *string `json:"location,omitempty"`
-	Name     *string `json:"name,omitempty"`
-	Type     *string `json:"type,omitempty"`
+
+	Id       *string            `json:"id,omitempty"`
+	Kind     DataConnectionKind `json:"kind"`
+	Location *string            `json:"location,omitempty"`
+	Name     *string            `json:"name,omitempty"`
+	Type     *string            `json:"type,omitempty"`
+}
+
+func (s EventGridDataConnection) DataConnection() BaseDataConnectionImpl {
+	return BaseDataConnectionImpl{
+		Id:       s.Id,
+		Kind:     s.Kind,
+		Location: s.Location,
+		Name:     s.Name,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = EventGridDataConnection{}
@@ -31,9 +43,10 @@ func (s EventGridDataConnection) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventGridDataConnection: %+v", err)
 	}
+
 	decoded["kind"] = "EventGrid"
 
 	encoded, err = json.Marshal(decoded)

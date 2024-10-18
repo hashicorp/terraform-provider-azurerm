@@ -148,7 +148,7 @@ func (r LoadTestDataSource) Read() sdk.ResourceFunc {
 				if encryption := model.Properties.Encryption; encryption != nil {
 					outputEncryption := make([]LoadTestEncryption, 0)
 					outputEncryption = append(outputEncryption, LoadTestEncryption{
-						KeyURL:   pointer.From(encryption.KeyUrl),
+						KeyURL:   pointer.From(encryption.KeyURL),
 						Identity: []LoadTestEncryptionIdentity{},
 					})
 					loadTest.Encryption = outputEncryption

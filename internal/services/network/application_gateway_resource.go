@@ -3569,7 +3569,7 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 			conditions := make([]applicationgateways.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
 			responseConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
-			urlConfiguration := applicationgateways.ApplicationGatewayUrlConfiguration{}
+			urlConfiguration := applicationgateways.ApplicationGatewayURLConfiguration{}
 
 			rule := applicationgateways.ApplicationGatewayRewriteRule{
 				Name:         pointer.To(r["name"].(string)),
@@ -3841,7 +3841,7 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 		}
 
 		if targetUrl != "" {
-			output.Properties.TargetUrl = pointer.To(targetUrl)
+			output.Properties.TargetURL = pointer.To(targetUrl)
 		}
 
 		results = append(results, output)
@@ -3881,8 +3881,8 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 				}
 			}
 
-			if props.TargetUrl != nil {
-				output["target_url"] = *props.TargetUrl
+			if props.TargetURL != nil {
+				output["target_url"] = *props.TargetURL
 			}
 
 			if props.IncludePath != nil {
@@ -4238,9 +4238,9 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 	return results, nil
 }
 
-func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayUrlPathMap, error) {
+func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayURLPathMap, error) {
 	vs := d.Get("url_path_map").([]interface{})
-	results := make([]applicationgateways.ApplicationGatewayUrlPathMap, 0)
+	results := make([]applicationgateways.ApplicationGatewayURLPathMap, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -4317,9 +4317,9 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 			pathRules = append(pathRules, rule)
 		}
 
-		output := applicationgateways.ApplicationGatewayUrlPathMap{
+		output := applicationgateways.ApplicationGatewayURLPathMap{
 			Name: pointer.To(name),
-			Properties: &applicationgateways.ApplicationGatewayUrlPathMapPropertiesFormat{
+			Properties: &applicationgateways.ApplicationGatewayURLPathMapPropertiesFormat{
 				PathRules: &pathRules,
 			},
 		}
@@ -4374,7 +4374,7 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 	return &results, nil
 }
 
-func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayUrlPathMap) ([]interface{}, error) {
+func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
@@ -4668,7 +4668,7 @@ func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]appl
 
 		output := applicationgateways.ApplicationGatewayCustomError{
 			StatusCode:         pointer.To(applicationgateways.ApplicationGatewayCustomErrorStatusCode(statusCode)),
-			CustomErrorPageUrl: pointer.To(customErrorPageUrl),
+			CustomErrorPageURL: pointer.To(customErrorPageUrl),
 		}
 		results = append(results, output)
 	}
@@ -4687,8 +4687,8 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgate
 
 		output["status_code"] = v.StatusCode
 
-		if v.CustomErrorPageUrl != nil {
-			output["custom_error_page_url"] = *v.CustomErrorPageUrl
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
 		}
 
 		results = append(results, output)

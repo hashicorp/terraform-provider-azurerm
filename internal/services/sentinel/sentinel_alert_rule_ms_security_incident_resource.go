@@ -224,28 +224,27 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 
-		modelPtr := *model
-		rule := modelPtr.(alertrules.MicrosoftSecurityIncidentCreationAlertRule)
+		if rule, ok := model.(alertrules.MicrosoftSecurityIncidentCreationAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
+			if prop := rule.Properties; prop != nil {
+				d.Set("product_filter", string(prop.ProductFilter))
+				d.Set("display_name", prop.DisplayName)
+				d.Set("description", prop.Description)
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-		if prop := rule.Properties; prop != nil {
-			d.Set("product_filter", string(prop.ProductFilter))
-			d.Set("display_name", prop.DisplayName)
-			d.Set("description", prop.Description)
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-
-			if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
-				return fmt.Errorf(`setting "display_name_filter": %+v`, err)
-			}
-			if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
-				return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
-			}
-			if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
-				return fmt.Errorf(`setting "severity_filter": %+v`, err)
+				if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+					return fmt.Errorf(`setting "display_name_filter": %+v`, err)
+				}
+				if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+					return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
+				}
+				if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
+					return fmt.Errorf(`setting "severity_filter": %+v`, err)
+				}
 			}
 		}
 	}

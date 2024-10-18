@@ -44,7 +44,7 @@ func ParseJobScheduleID(input string) (*JobScheduleId, error) {
 	}
 
 	id := JobScheduleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseJobScheduleIDInsensitively(input string) (*JobScheduleId, error) {
 	}
 
 	id := JobScheduleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id JobScheduleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticJobSchedules", "jobSchedules", "jobSchedules"),
-		resourceids.UserSpecifiedSegment("jobScheduleId", "jobScheduleIdValue"),
+		resourceids.UserSpecifiedSegment("jobScheduleId", "jobScheduleId"),
 	}
 }
 

@@ -46,7 +46,6 @@ func (c CosmosDBClient) SqlResourcesListSqlUserDefinedFunctions(ctx context.Cont
 
 	var model SqlUserDefinedFunctionListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

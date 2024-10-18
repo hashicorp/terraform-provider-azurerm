@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var _ sdk.ResourceWithUpdate = AppServiceConnectorResource{}
+
 type AppServiceConnectorResource struct{}
 
 type AppServiceConnectorResourceModel struct {
@@ -123,7 +125,7 @@ func (r AppServiceConnectorResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			authInfo, err := expandServiceConnectorAuthInfo(model.AuthInfo)
+			authInfo, err := expandServiceConnectorAuthInfoForCreate(model.AuthInfo)
 			if err != nil {
 				return fmt.Errorf("expanding `authentication`: %+v", err)
 			}
@@ -286,7 +288,12 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("authentication") {
-				linkerProps.AuthInfo = state.AuthInfo
+				authInfo, err := expandServiceConnectorAuthInfoForUpdate(state.AuthInfo)
+				if err != nil {
+					return fmt.Errorf("expanding `authentication`: %+v", err)
+				}
+
+				linkerProps.AuthInfo = authInfo
 			}
 
 			props := links.LinkerPatch{

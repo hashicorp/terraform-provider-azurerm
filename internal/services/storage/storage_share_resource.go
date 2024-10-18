@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
@@ -359,8 +360,19 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		log.Printf("[DEBUG] Updating Access Tier for %s", id)
 
 		tier := shares.AccessTier(d.Get("access_tier").(string))
-		if err = client.UpdateTier(ctx, id.ShareName, tier); err != nil {
-			return fmt.Errorf("updating Access Tier for %s: %v", id, err)
+		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
+			err = client.UpdateTier(ctx, id.ShareName, tier)
+			if err != nil {
+				if strings.Contains(err.Error(), "Cannot change access tier at this moment") {
+					return pluginsdk.RetryableError(err)
+				}
+				return pluginsdk.NonRetryableError(err)
+			}
+			time.Sleep(30 * time.Second)
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("updating access tier %s: %+v", id, err)
 		}
 
 		log.Printf("[DEBUG] Updated Access Tier for %s", id)
@@ -395,6 +407,9 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = client.Delete(ctx, id.ShareName); err != nil {
+		if strings.Contains(err.Error(), "The specified share does not exist") {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

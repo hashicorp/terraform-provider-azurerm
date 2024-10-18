@@ -14,7 +14,16 @@ type PeriodicModeBackupPolicy struct {
 	PeriodicModeProperties *PeriodicModeProperties `json:"periodicModeProperties,omitempty"`
 
 	// Fields inherited from BackupPolicy
+
 	MigrationState *BackupPolicyMigrationState `json:"migrationState,omitempty"`
+	Type           BackupPolicyType            `json:"type"`
+}
+
+func (s PeriodicModeBackupPolicy) BackupPolicy() BaseBackupPolicyImpl {
+	return BaseBackupPolicyImpl{
+		MigrationState: s.MigrationState,
+		Type:           s.Type,
+	}
 }
 
 var _ json.Marshaler = PeriodicModeBackupPolicy{}
@@ -28,9 +37,10 @@ func (s PeriodicModeBackupPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PeriodicModeBackupPolicy: %+v", err)
 	}
+
 	decoded["type"] = "Periodic"
 
 	encoded, err = json.Marshal(decoded)

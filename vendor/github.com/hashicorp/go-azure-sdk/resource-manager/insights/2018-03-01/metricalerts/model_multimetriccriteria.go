@@ -10,18 +10,41 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MultiMetricCriteria interface {
+	MultiMetricCriteria() BaseMultiMetricCriteriaImpl
 }
 
-// RawMultiMetricCriteriaImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ MultiMetricCriteria = BaseMultiMetricCriteriaImpl{}
+
+type BaseMultiMetricCriteriaImpl struct {
+	CriterionType        CriterionType       `json:"criterionType"`
+	Dimensions           *[]MetricDimension  `json:"dimensions,omitempty"`
+	MetricName           string              `json:"metricName"`
+	MetricNamespace      *string             `json:"metricNamespace,omitempty"`
+	Name                 string              `json:"name"`
+	SkipMetricValidation *bool               `json:"skipMetricValidation,omitempty"`
+	TimeAggregation      AggregationTypeEnum `json:"timeAggregation"`
+}
+
+func (s BaseMultiMetricCriteriaImpl) MultiMetricCriteria() BaseMultiMetricCriteriaImpl {
+	return s
+}
+
+var _ MultiMetricCriteria = RawMultiMetricCriteriaImpl{}
+
+// RawMultiMetricCriteriaImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawMultiMetricCriteriaImpl struct {
-	Type   string
-	Values map[string]interface{}
+	multiMetricCriteria BaseMultiMetricCriteriaImpl
+	Type                string
+	Values              map[string]interface{}
 }
 
-func unmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriteria, error) {
+func (s RawMultiMetricCriteriaImpl) MultiMetricCriteria() BaseMultiMetricCriteriaImpl {
+	return s.multiMetricCriteria
+}
+
+func UnmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriteria, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +54,9 @@ func unmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriter
 		return nil, fmt.Errorf("unmarshaling MultiMetricCriteria into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["criterionType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["criterionType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "DynamicThresholdCriterion") {
@@ -52,10 +75,15 @@ func unmarshalMultiMetricCriteriaImplementation(input []byte) (MultiMetricCriter
 		return out, nil
 	}
 
-	out := RawMultiMetricCriteriaImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseMultiMetricCriteriaImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseMultiMetricCriteriaImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawMultiMetricCriteriaImpl{
+		multiMetricCriteria: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

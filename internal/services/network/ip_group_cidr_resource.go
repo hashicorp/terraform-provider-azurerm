@@ -57,7 +57,6 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 
 func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.IPGroups
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -67,7 +66,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	id := parse.NewIpGroupCidrID(subscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
+	id := parse.NewIpGroupCidrID(ipGroupId.SubscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
 
 	locks.ByID(ipGroupId.ID())
 	defer locks.UnlockByID(ipGroupId.ID())
