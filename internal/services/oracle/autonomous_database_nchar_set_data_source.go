@@ -24,7 +24,6 @@ type AdbsNCharSetsModel struct {
 }
 
 type AdbsNCharSetModel struct {
-	Name         string `tfschema:"name"`
 	CharacterSet string `tfschema:"character_set"`
 }
 
@@ -41,11 +40,6 @@ func (d AdbsNCharSetsDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"character_set": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -97,7 +91,6 @@ func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 					if element.Properties != nil {
 						properties := element.Properties
 						state.AdbsCharSets = append(state.AdbsCharSets, AdbsNCharSetModel{
-							Name:         pointer.From(element.Name),
 							CharacterSet: pointer.From(properties.CharacterSet),
 						})
 					}

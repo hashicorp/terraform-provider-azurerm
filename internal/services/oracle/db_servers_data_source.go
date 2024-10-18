@@ -146,11 +146,6 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"provisioning_state": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"shape": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,

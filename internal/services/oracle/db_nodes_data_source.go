@@ -41,7 +41,6 @@ type DBNodeDataModel struct {
 	MaintenanceType            string `tfschema:"maintenance_type"`
 	MemorySizeInGbs            int64  `tfschema:"memory_size_in_gbs"`
 	Ocid                       string `tfschema:"ocid"`
-	ProvisioningState          string `tfschema:"provisioning_state"`
 	SoftwareStorageSizeInGb    int64  `tfschema:"software_storage_size_in_gb"`
 	TimeCreated                string `tfschema:"time_created"`
 	TimeMaintenanceWindowEnd   string `tfschema:"time_maintenance_window_end"`
@@ -148,11 +147,6 @@ func (d DBNodesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"provisioning_state": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"software_storage_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -245,7 +239,6 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 							MaintenanceType:            string(pointer.From(properties.MaintenanceType)),
 							MemorySizeInGbs:            pointer.From(properties.MemorySizeInGbs),
 							Ocid:                       pointer.From(properties.Ocid),
-							ProvisioningState:          string(pointer.From(properties.ProvisioningState)),
 							SoftwareStorageSizeInGb:    pointer.From(properties.SoftwareStorageSizeInGb),
 							TimeCreated:                pointer.From(properties.TimeCreated),
 							TimeMaintenanceWindowEnd:   pointer.From(properties.TimeMaintenanceWindowEnd),
