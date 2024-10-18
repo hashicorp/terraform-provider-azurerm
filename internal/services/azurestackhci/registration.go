@@ -53,6 +53,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		StackHCIDeploymentSettingResource{},
 		StackHCILogicalNetworkResource{},
+		StackHCIMarketplaceGalleryImageResource{},
 		StackHCIStoragePathResource{},
 		StackHCIVirtualHardDiskResource{},
 	}
