@@ -1,30 +1,30 @@
-## 4.6.0 (Unreleased)
+## 4.6.0 (October 18, 2024)
 
 FEATURES:
 
-* **New Resource**: `azurerm_dev_center_attached_network` [GH-27638]
-* **New Resource**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
-* **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
-* **New Data Source**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
-* **New Data Source**: `azurerm_oracle_db_servers` [GH-27678]
-* **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
+* **New Resource**: `azurerm_dev_center_attached_network` ([#27638](https://github.com/hashicorp/terraform-provider-azurerm/issues/27638))
+* **New Resource**: `azurerm_oracle_cloud_vm_cluster` ([#27678](https://github.com/hashicorp/terraform-provider-azurerm/issues/27678))
+* **New Resource**: `azurerm_oracle_exadata_infrastructure` ([#27678](https://github.com/hashicorp/terraform-provider-azurerm/issues/27678))
+* **New Data Source**: `azurerm_oracle_cloud_vm_cluster` ([#27678](https://github.com/hashicorp/terraform-provider-azurerm/issues/27678))
+* **New Data Source**: `azurerm_oracle_db_servers` ([#27678](https://github.com/hashicorp/terraform-provider-azurerm/issues/27678))
+* **New Data Source**: `azurerm_oracle_exadata_infrastructure` ([#27678](https://github.com/hashicorp/terraform-provider-azurerm/issues/27678))
 
 ENHANCEMENTS:
 
-* `redisenterprise` - upgrade api version to `2024-06-01-preview`  [GH-27597]
-* `azurerm_app_configuration` - support for premium sku [GH-27674]
-* `azurerm_container_app` - support for the `max_inactive_revisions` property [GH-27598]
-* `azurerm_kubernetes_cluster` - remove lock on subnets [GH-27583]
-* `azurerm_nginx_deployment` - allow updates for `sku` [GH-27604]
-* `azurerm_fluid_relay_server` - support for the `customer_managed_key` property [GH-27581]
-* `azurerm_linux_virtual_machine` - support the `UBUNTU_PRO` value for the `license_type` property [GH-27534]
+* `redisenterprise` - upgrade api version to `2024-06-01-preview`  ([#27597](https://github.com/hashicorp/terraform-provider-azurerm/issues/27597))
+* `azurerm_app_configuration` - support for premium sku ([#27674](https://github.com/hashicorp/terraform-provider-azurerm/issues/27674))
+* `azurerm_container_app` - support for the `max_inactive_revisions` property ([#27598](https://github.com/hashicorp/terraform-provider-azurerm/issues/27598))
+* `azurerm_kubernetes_cluster` - remove lock on subnets ([#27583](https://github.com/hashicorp/terraform-provider-azurerm/issues/27583))
+* `azurerm_nginx_deployment` - allow updates for `sku` ([#27604](https://github.com/hashicorp/terraform-provider-azurerm/issues/27604))
+* `azurerm_fluid_relay_server` - support for the `customer_managed_key` property ([#27581](https://github.com/hashicorp/terraform-provider-azurerm/issues/27581))
+* `azurerm_linux_virtual_machine` - support the `UBUNTU_PRO` value for the `license_type` property ([#27534](https://github.com/hashicorp/terraform-provider-azurerm/issues/27534))
 
 
 BUGS:
 
-* `azurerm_api_management_api_diagnostic` - do not set `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
-* `azurerm_api_management` - prevent a panic [GH-27649]
-* `azurerm_mssql_database` - make `short_term_retention_policy.backup_interval_in_hours` computed [GH-27656]
+* `azurerm_api_management_api_diagnostic` - do not set `OperationNameFormat` when the `identifier` property is `azuremonitor` ([#27456](https://github.com/hashicorp/terraform-provider-azurerm/issues/27456))
+* `azurerm_api_management` - prevent a panic ([#27649](https://github.com/hashicorp/terraform-provider-azurerm/issues/27649))
+* `azurerm_mssql_database` - make `short_term_retention_policy.backup_interval_in_hours` computed ([#27656](https://github.com/hashicorp/terraform-provider-azurerm/issues/27656))
 
 ## 4.5.0 (October 10, 2024)
 
