@@ -24464,6 +24464,8 @@ type SitePatchResourceProperties struct {
 	// VirtualNetworkSubnetID - Azure Resource Manager ID of the Virtual network and subnet to be joined by Regional VNET Integration.
 	// This must be of the form /subscriptions/{subscriptionName}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}
 	VirtualNetworkSubnetID *string `json:"virtualNetworkSubnetId,omitempty"`
+	// PublicNetworkAccess - Property to allow or block all public traffic.
+	PublicNetworkAccess *string `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SitePatchResourceProperties.
@@ -24537,6 +24539,9 @@ func (spr SitePatchResourceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if spr.VirtualNetworkSubnetID != nil {
 		objectMap["virtualNetworkSubnetId"] = spr.VirtualNetworkSubnetID
+	}
+	if spr.PublicNetworkAccess != nil {
+		objectMap["publicNetworkAccess"] = spr.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
@@ -24732,6 +24737,8 @@ type SiteProperties struct {
 	// VirtualNetworkSubnetID - Azure Resource Manager ID of the Virtual network and subnet to be joined by Regional VNET Integration.
 	// This must be of the form /subscriptions/{subscriptionName}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}
 	VirtualNetworkSubnetID *string `json:"virtualNetworkSubnetId,omitempty"`
+	// PublicNetworkAccess - Property to allow or block all public traffic.
+	PublicNetworkAccess *string `json:"publicNetworkAccess,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SiteProperties.
@@ -24805,6 +24812,9 @@ func (s SiteProperties) MarshalJSON() ([]byte, error) {
 	}
 	if s.VirtualNetworkSubnetID != nil {
 		objectMap["virtualNetworkSubnetId"] = s.VirtualNetworkSubnetID
+	}
+	if s.PublicNetworkAccess != nil {
+		objectMap["publicNetworkAccess"] = s.PublicNetworkAccess
 	}
 	return json.Marshal(objectMap)
 }
