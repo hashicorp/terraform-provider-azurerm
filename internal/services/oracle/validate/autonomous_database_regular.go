@@ -58,11 +58,14 @@ func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, err
 	for _, r := range v {
 		if r == '"' {
 			hasDoubleQuote = true
-		} else if unicode.IsUpper(r) {
+		}
+		if unicode.IsUpper(r) {
 			hasUpper = true
-		} else if unicode.IsLower(r) {
+		}
+		if unicode.IsLower(r) {
 			hasLower = true
-		} else if unicode.IsNumber(r) {
+		}
+		if unicode.IsNumber(r) {
 			hasNumber = true
 		}
 	}

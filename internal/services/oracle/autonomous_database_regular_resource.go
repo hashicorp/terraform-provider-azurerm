@@ -391,12 +391,10 @@ func (AutonomousDatabaseRegularResource) IDValidationFunc() pluginsdk.SchemaVali
 
 func expandAdbsCustomerContacts(customerContactsList []string) []autonomousdatabases.CustomerContact {
 	var customerContacts []autonomousdatabases.CustomerContact
-	if customerContactsList != nil {
-		for _, customerContact := range customerContactsList {
-			customerContacts = append(customerContacts, autonomousdatabases.CustomerContact{
-				Email: customerContact,
-			})
-		}
+	for _, customerContact := range customerContactsList {
+		customerContacts = append(customerContacts, autonomousdatabases.CustomerContact{
+			Email: customerContact,
+		})
 	}
 	return customerContacts
 }

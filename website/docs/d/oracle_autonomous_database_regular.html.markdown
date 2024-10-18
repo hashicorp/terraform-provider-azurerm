@@ -1,5 +1,5 @@
 ---
-subcategory: "App Service"
+subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database"
 description: |-
