@@ -337,7 +337,9 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 			case autonomousdatabases.AutonomousDatabaseProperties:
 				var state AutonomousDatabaseRegularResourceModel
 				state.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
+				state.AutoScalingEnabled = pointer.From(adbsPropModel.IsAutoScalingEnabled)
 				state.BackupRetentionPeriodInDays = pointer.From(adbsPropModel.BackupRetentionPeriodInDays)
+				state.AutoScalingForStorageEnabled = pointer.From(adbsPropModel.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
 				state.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
 				state.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
@@ -346,11 +348,9 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.DbWorkload = string(pointer.From(adbsPropModel.DbWorkload))
 				state.DbVersion = pointer.From(adbsPropModel.DbVersion)
 				state.DisplayName = pointer.From(adbsPropModel.DisplayName)
-				state.AutoScalingEnabled = pointer.From(adbsPropModel.IsAutoScalingEnabled)
-				state.AutoScalingForStorageEnabled = pointer.From(adbsPropModel.IsAutoScalingForStorageEnabled)
+				state.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
 				state.Location = result.Model.Location
 				state.Name = pointer.ToString(result.Model.Name)
-				state.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
 				state.NcharacterSet = pointer.From(adbsPropModel.NcharacterSet)
 				state.ResourceGroupName = id.ResourceGroupName
 				state.SubnetId = pointer.From(adbsPropModel.SubnetId)
