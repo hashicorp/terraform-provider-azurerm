@@ -42,9 +42,9 @@ data "azurerm_oracle_gi_versions" "test" {
 }
 
 func (d GiVersionsDataSource) template() string {
-	return fmt.Sprint(`
+	return `
 
 data "azurerm_client_config" "current" {}
 
-`)
+`
 }
