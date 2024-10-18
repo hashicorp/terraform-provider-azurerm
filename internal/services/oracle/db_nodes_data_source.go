@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbnodes"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -54,8 +55,9 @@ func (d DBNodesDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"cloud_vm_cluster_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.CloudVMClusterName,
 		},
 	}
 }
