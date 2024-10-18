@@ -9,7 +9,7 @@ type CustomizedAcceleratorProperties struct {
 	Description       *string                                 `json:"description,omitempty"`
 	DisplayName       *string                                 `json:"displayName,omitempty"`
 	GitRepository     AcceleratorGitRepository                `json:"gitRepository"`
-	IconUrl           *string                                 `json:"iconUrl,omitempty"`
+	IconURL           *string                                 `json:"iconUrl,omitempty"`
 	Imports           *[]string                               `json:"imports,omitempty"`
 	ProvisioningState *CustomizedAcceleratorProvisioningState `json:"provisioningState,omitempty"`
 }

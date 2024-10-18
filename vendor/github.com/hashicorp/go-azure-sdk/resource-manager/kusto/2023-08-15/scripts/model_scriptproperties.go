@@ -8,6 +8,6 @@ type ScriptProperties struct {
 	ForceUpdateTag    *string            `json:"forceUpdateTag,omitempty"`
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
 	ScriptContent     *string            `json:"scriptContent,omitempty"`
-	ScriptUrl         *string            `json:"scriptUrl,omitempty"`
-	ScriptUrlSasToken *string            `json:"scriptUrlSasToken,omitempty"`
+	ScriptURL         *string            `json:"scriptUrl,omitempty"`
+	ScriptURLSasToken *string            `json:"scriptUrlSasToken,omitempty"`
 }

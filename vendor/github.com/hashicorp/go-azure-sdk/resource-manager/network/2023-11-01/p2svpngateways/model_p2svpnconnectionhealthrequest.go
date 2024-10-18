@@ -4,6 +4,6 @@ package p2svpngateways
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type P2SVpnConnectionHealthRequest struct {
-	OutputBlobSasUrl   *string   `json:"outputBlobSasUrl,omitempty"`
+	OutputBlobSasURL   *string   `json:"outputBlobSasUrl,omitempty"`
 	VpnUserNamesFilter *[]string `json:"vpnUserNamesFilter,omitempty"`
 }

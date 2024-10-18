@@ -121,9 +121,9 @@ func (id VirtualNetworkAddressId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticOracleDatabase", "Oracle.Database", "Oracle.Database"),
 		resourceids.StaticSegment("staticCloudVmClusters", "cloudVmClusters", "cloudVmClusters"),
-		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudvmclustername"),
+		resourceids.UserSpecifiedSegment("cloudVmClusterName", "cloudVmClusterName"),
 		resourceids.StaticSegment("staticVirtualNetworkAddresses", "virtualNetworkAddresses", "virtualNetworkAddresses"),
-		resourceids.UserSpecifiedSegment("virtualNetworkAddressName", "virtualnetworkaddressname"),
+		resourceids.UserSpecifiedSegment("virtualNetworkAddressName", "virtualNetworkAddressName"),
 	}
 }
 

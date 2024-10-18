@@ -1,12 +1,49 @@
-## 4.5.0 (Unreleased)
+## 4.6.0 (Unrelerased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_dev_center_attached_network` [GH-27638]
+* **New Resource**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
+* **New Resource**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
+* **New Data Source**: `azurerm_oracle_cloud_vm_cluster` [GH-27678]
+* **New Data Source**: `azurerm_oracle_db_servers` [GH-27678]
+* **New Data Source**: `azurerm_oracle_exadata_infrastructure` [GH-27678]
 
 ENHANCEMENTS:
 
-* **New Resource**: `azurerm_stack_hci_virtual_hard_disk` [GH-27474]
+* `redisenterprise` - upgrade api version to `2024-06-01-preview`  [GH-27597]
+* `azurerm_app_configuration` - support for premium sku [GH-27674]
+* `azurerm_container_app` - support for the `max_inactive_revisions` property [GH-27598]
+* `azurerm_kubernetes_cluster` - remove lock on subnets [GH-27583]
+* `azurerm_nginx_deployment` - allow updates for `sku` [GH-27604]
+* `azurerm_fluid_relay_server` - support for the `customer_managed_key` property [GH-27581]
+* `azurerm_linux_virtual_machine` - support the `UBUNTU_PRO` value for the `license_type` property [GH-27534]
+
+
+BUGS:
+
+* `azurerm_api_management_api_diagnostic` - do not set `OperationNameFormat` when the `identifier` property is `azuremonitor` [GH-27456]
+* `azurerm_api_management` - prevent a panic [GH-27649]
+* `azurerm_mssql_database` - make `short_term_retention_policy.backup_interval_in_hours` computed [GH-27656]
+
+## 4.5.0 (October 10, 2024)
+
+FEATURES:
+
+* **New Resource**: `azurerm_stack_hci_virtual_hard_disk` ([#27474](https://github.com/hashicorp/terraform-provider-azurerm/issues/27474))
+
+ENHANCEMENTS:
+
+* `azurerm_bastion_host` - support for the `Premium` SKU and `session_recording_enabled` property ([#27278](https://github.com/hashicorp/terraform-provider-azurerm/issues/27278))
+* `azurerm_log_analytics_cluster` - the `size_gb` property now supports all of 100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, and 50000 ([#27616](https://github.com/hashicorp/terraform-provider-azurerm/issues/27616))
+* `azurerm_mssql_elasticpool` - allow `PRMS` for the `family` property ([#27615](https://github.com/hashicorp/terraform-provider-azurerm/issues/27615))
+
 
 BUG FIXES:
 
-* `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale [GH-27505]
+* `azurerm_mssql_database` - now creates successfully when elastic pool is hyperscale ([#27505](https://github.com/hashicorp/terraform-provider-azurerm/issues/27505))
+* `azurerm_postgresql_flexible_server_configuration` - now locks to prevent conflicts when deploying multiple ([#27355](https://github.com/hashicorp/terraform-provider-azurerm/issues/27355))
+
 
 ## 4.4.0 (October 04, 2024)
 

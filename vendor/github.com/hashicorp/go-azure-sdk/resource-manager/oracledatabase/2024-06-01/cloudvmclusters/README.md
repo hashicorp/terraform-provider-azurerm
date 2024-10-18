@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 payload := cloudvmclusters.AddRemoveDbNode{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AddVMsThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 payload := cloudvmclusters.CloudVMCluster{
 	// ...
@@ -59,7 +59,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -71,7 +71,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 payload := cloudvmclusters.PrivateIPAddressesFilter{
 	// ...
@@ -142,7 +142,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 payload := cloudvmclusters.AddRemoveDbNode{
 	// ...
@@ -159,7 +159,7 @@ if err := client.RemoveVMsThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudvmclustername")
+id := cloudvmclusters.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
 payload := cloudvmclusters.CloudVMClusterUpdate{
 	// ...

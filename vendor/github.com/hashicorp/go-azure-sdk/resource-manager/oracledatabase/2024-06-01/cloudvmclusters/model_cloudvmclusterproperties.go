@@ -37,8 +37,8 @@ type CloudVMClusterProperties struct {
 	MemorySizeInGbs              *int64                          `json:"memorySizeInGbs,omitempty"`
 	NodeCount                    *int64                          `json:"nodeCount,omitempty"`
 	NsgCidrs                     *[]NsgCidr                      `json:"nsgCidrs,omitempty"`
-	NsgUrl                       *string                         `json:"nsgUrl,omitempty"`
-	OciUrl                       *string                         `json:"ociUrl,omitempty"`
+	NsgURL                       *string                         `json:"nsgUrl,omitempty"`
+	OciURL                       *string                         `json:"ociUrl,omitempty"`
 	Ocid                         *string                         `json:"ocid,omitempty"`
 	OcpuCount                    *float64                        `json:"ocpuCount,omitempty"`
 	ProvisioningState            *AzureResourceProvisioningState `json:"provisioningState,omitempty"`

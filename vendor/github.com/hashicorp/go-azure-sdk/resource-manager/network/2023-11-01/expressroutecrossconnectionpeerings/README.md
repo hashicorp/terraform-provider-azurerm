@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName", "peeringName")
+id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName", "peeringName")
 
 payload := expressroutecrossconnectionpeerings.ExpressRouteCrossConnectionPeering{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName", "peeringName")
+id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName", "peeringName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName", "peeringName")
+id := expressroutecrossconnectionpeerings.NewPeeringID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName", "peeringName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := expressroutecrossconnectionpeerings.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "crossConnectionName")
+id := expressroutecrossconnectionpeerings.NewExpressRouteCrossConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
