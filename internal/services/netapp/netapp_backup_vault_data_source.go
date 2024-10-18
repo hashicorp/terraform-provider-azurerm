@@ -6,10 +6,10 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backupvaults"
@@ -67,26 +67,23 @@ func (r NetAppBackupVaultDataSource) Read() sdk.ResourceFunc {
 
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			backupVaultID := backupvaults.NewBackupVaultID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
 			existing, err := client.Get(ctx, backupVaultID)
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s was not found", backupVaultID)
 				}
 				return fmt.Errorf("retrieving %s: %v", backupVaultID, err)
 			}
 
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", backupVaultID)
+			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 			}
-
-			state.Location = location.NormalizeNilable(pointer.To(model.Location))
-			state.Tags = pointer.From(model.Tags)
 
 			metadata.SetID(backupVaultID)
 

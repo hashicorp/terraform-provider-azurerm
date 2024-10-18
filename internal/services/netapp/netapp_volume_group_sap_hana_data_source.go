@@ -255,7 +255,6 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			metadata.SetID(id)
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(pointer.From(model.Location))
 				if props := model.Properties; props != nil {

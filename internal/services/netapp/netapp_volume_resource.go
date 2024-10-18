@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backupvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
@@ -333,7 +335,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"backup_policy_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 							Description:  "The ID of the backup policy to associate with this volume.",
 						},
 
@@ -347,7 +349,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						"backup_vault_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: backupvaults.ValidateBackupVaultID,
 							Description:  "The ID of the backup vault to associate with this volume.",
 						},
 					},
@@ -655,7 +657,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	shouldUpdate := false
 	update := volumes.VolumePatch{
 		Properties: &volumes.VolumePatchProperties{},
 	}
@@ -665,19 +666,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("snapshot_directory_visible") {
-		shouldUpdate = true
 		snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
 		update.Properties.SnapshotDirectoryVisible = pointer.To(snapshotDirectoryVisible)
 	}
 
 	if d.HasChange("storage_quota_in_gb") {
-		shouldUpdate = true
 		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
-		shouldUpdate = true
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
 		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
 		update.Properties.ExportPolicy = exportPolicyRule
@@ -692,7 +690,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
-		shouldUpdate = true
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
 		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 
@@ -709,7 +706,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
-		shouldUpdate = true
 		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
 		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
 
@@ -720,13 +716,11 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("throughput_in_mibps") {
-		shouldUpdate = true
 		throughputMibps := d.Get("throughput_in_mibps")
 		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		shouldUpdate = true
 		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
 		update.Properties.SmbNonBrowsable = &smbNonBrowsable
 		if d.Get("smb_non_browsable_enabled").(bool) {
@@ -736,7 +730,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		shouldUpdate = true
 		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
 		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
@@ -746,20 +739,17 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	if shouldUpdate {
-		if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
-		// Wait for volume to complete update
-		if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
-		}
+	// Wait for volume to complete update
+	if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+		return err
 	}
 
 	return resourceNetAppVolumeRead(d, meta)

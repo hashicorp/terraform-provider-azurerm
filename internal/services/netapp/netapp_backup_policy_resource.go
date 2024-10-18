@@ -6,7 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -162,10 +161,8 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			var shouldUpdate = false
 
 			update := backuppolicy.BackupPolicyPatch{
 				Properties: &backuppolicy.BackupPolicyProperties{},
@@ -174,37 +171,28 @@ func (r NetAppBackupPolicyResource) Update() sdk.ResourceFunc {
 			// Checking properties with changes
 			if metadata.ResourceData.HasChange("tags") {
 				update.Tags = pointer.To(state.Tags)
-				shouldUpdate = true
 			}
 
 			if metadata.ResourceData.HasChange("daily_backups_to_keep") {
 				update.Properties.DailyBackupsToKeep = pointer.To(state.DailyBackupsToKeep)
-				shouldUpdate = true
 			}
 
 			if metadata.ResourceData.HasChange("weekly_backups_to_keep") {
 				update.Properties.WeeklyBackupsToKeep = pointer.To(state.WeeklyBackupsToKeep)
-				shouldUpdate = true
 			}
 
 			if metadata.ResourceData.HasChange("monthly_backups_to_keep") {
 				update.Properties.MonthlyBackupsToKeep = pointer.To(state.MonthlyBackupsToKeep)
-				shouldUpdate = true
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
 				update.Properties.Enabled = pointer.To(state.Enabled)
-				shouldUpdate = true
 			}
 
-			if shouldUpdate {
-				metadata.Logger.Infof("Updating %s", id)
+			metadata.Logger.Infof("Updating %s", id)
 
-				if err := client.BackupPoliciesUpdateThenPoll(ctx, pointer.From(id), update); err != nil {
-					return fmt.Errorf("updating %s: %+v", id, err)
-				}
-
-				metadata.SetID(id)
+			if err := client.BackupPoliciesUpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -227,31 +215,29 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.BackupPoliciesGet(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			if model := existing.Model; model != nil {
-				state.Location = location.NormalizeNilable(pointer.To(model.Location))
-				state.Tags = pointer.From(model.Tags)
-				state.AccountName = id.NetAppAccountName
-				state.Name = id.BackupPolicyName
-				state.ResourceGroupName = id.ResourceGroupName
+			state.AccountName = id.NetAppAccountName
+			state.Name = id.BackupPolicyName
+			state.ResourceGroupName = id.ResourceGroupName
 
+			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 				state.DailyBackupsToKeep = pointer.From(model.Properties.DailyBackupsToKeep)
 				state.WeeklyBackupsToKeep = pointer.From(model.Properties.WeeklyBackupsToKeep)
 				state.MonthlyBackupsToKeep = pointer.From(model.Properties.MonthlyBackupsToKeep)
 				state.Enabled = pointer.From(model.Properties.Enabled)
 			}
-
-			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},
@@ -272,18 +258,18 @@ func (r NetAppBackupPolicyResource) Delete() sdk.ResourceFunc {
 
 			existing, err := client.BackupPoliciesGet(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
 			if err = client.BackupPoliciesDeleteThenPoll(ctx, pointer.From(id)); err != nil {
-				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			if err = waitForBackupPolicyDeletion(ctx, client, *id); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+			if err = waitForBackupPolicyDeletion(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil

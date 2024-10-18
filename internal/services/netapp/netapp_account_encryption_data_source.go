@@ -79,7 +79,7 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 
 			var state netAppModels.NetAppAccountEncryptionDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := netappaccounts.ParseNetAppAccountID(state.NetAppAccountID)
@@ -123,8 +123,6 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 					}
 				}
 			}
-
-			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},

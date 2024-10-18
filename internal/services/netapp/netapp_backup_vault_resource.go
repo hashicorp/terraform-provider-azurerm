@@ -6,7 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -125,7 +124,7 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -138,8 +137,6 @@ func (r NetAppBackupVaultResource) Update() sdk.ResourceFunc {
 				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
-
-				metadata.SetID(id)
 			}
 
 			return nil
@@ -162,26 +159,25 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppBackupVaultModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			if model := existing.Model; model != nil {
-				state.Location = location.NormalizeNilable(pointer.To(model.Location))
-				state.Tags = pointer.From(model.Tags)
-				state.AccountName = id.NetAppAccountName
-				state.Name = id.BackupVaultName
-				state.ResourceGroupName = id.ResourceGroupName
-			}
+			state.AccountName = id.NetAppAccountName
+			state.Name = id.BackupVaultName
+			state.ResourceGroupName = id.ResourceGroupName
 
-			metadata.SetID(id)
+			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+			}
 
 			return metadata.Encode(&state)
 		},

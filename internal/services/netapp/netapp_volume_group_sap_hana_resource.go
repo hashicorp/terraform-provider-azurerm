@@ -427,7 +427,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -545,7 +545,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
@@ -555,8 +555,6 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			model := netAppModels.NetAppVolumeGroupSapHanaModel{
 				Name:              id.VolumeGroupName,

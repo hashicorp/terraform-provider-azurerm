@@ -6,10 +6,10 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
@@ -87,30 +87,27 @@ func (r NetAppBackupPolicyDataSource) Read() sdk.ResourceFunc {
 
 			var state netAppModels.NetAppBackupPolicyModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			backupPolicyID := backuppolicy.NewBackupPolicyID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.AccountName, state.Name)
 
 			existing, err := client.BackupPoliciesGet(ctx, backupPolicyID)
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s was not found", backupPolicyID)
 				}
 				return fmt.Errorf("retrieving %s: %v", backupPolicyID, err)
 			}
 
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", backupPolicyID)
+			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				state.DailyBackupsToKeep = pointer.From(model.Properties.DailyBackupsToKeep)
+				state.WeeklyBackupsToKeep = pointer.From(model.Properties.WeeklyBackupsToKeep)
+				state.MonthlyBackupsToKeep = pointer.From(model.Properties.MonthlyBackupsToKeep)
+				state.Enabled = pointer.From(model.Properties.Enabled)
 			}
-
-			state.Location = location.NormalizeNilable(pointer.To(model.Location))
-			state.Tags = pointer.From(model.Tags)
-			state.DailyBackupsToKeep = pointer.From(model.Properties.DailyBackupsToKeep)
-			state.WeeklyBackupsToKeep = pointer.From(model.Properties.WeeklyBackupsToKeep)
-			state.MonthlyBackupsToKeep = pointer.From(model.Properties.MonthlyBackupsToKeep)
-			state.Enabled = pointer.From(model.Properties.Enabled)
 
 			metadata.SetID(backupPolicyID)
 

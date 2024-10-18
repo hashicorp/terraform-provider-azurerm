@@ -6,7 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -495,7 +494,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 	existing, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
-		if existing.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(existing.HttpResponse) {
 			return metadata.MarkAsGone(id)
 		}
 		return fmt.Errorf("retrieving %s: %v", id, err)

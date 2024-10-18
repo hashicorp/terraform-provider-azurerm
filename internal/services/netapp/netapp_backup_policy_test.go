@@ -6,15 +6,14 @@ package netapp_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppBackupPolicyResource struct{}
@@ -28,13 +27,10 @@ func (t NetAppBackupPolicyResource) Exists(ctx context.Context, clients *clients
 	resp, err := clients.NetApp.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 
 	if err != nil {
-		if resp.HttpResponse.StatusCode == http.StatusNotFound {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccNetAppBackupPolicy_basic(t *testing.T) {
@@ -44,6 +40,23 @@ func TestAccNetAppBackupPolicy_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("daily_backups_to_keep").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppBackupPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_backup_policy", "test")
+	r := NetAppBackupPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
@@ -87,6 +100,19 @@ func TestAccNetAppBackupPolicy_update(t *testing.T) {
 }
 
 func (r NetAppBackupPolicyResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_backup_policy" "test" {
+  name                    = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  account_name            = azurerm_netapp_account.test.name
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppBackupPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
