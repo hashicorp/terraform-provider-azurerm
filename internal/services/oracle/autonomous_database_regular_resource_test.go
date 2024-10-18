@@ -201,9 +201,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
   ncharacter_set                   = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
   vnet_id                          = azurerm_virtual_network.virtual_network.id
-  tags = {
-    test = "test1"
-  }
   lifecycle {
     ignore_changes = [
       admin_password
@@ -231,7 +228,7 @@ resource "azurerm_oracle_autonomous_database" "import" {
   mtls_connection_required         = azurerm_oracle_autonomous_database.test.mtls_connection_required
   data_storage_size_in_tbs         = azurerm_oracle_autonomous_database.test.data_storage_size_in_tbs
   db_workload                      = azurerm_oracle_autonomous_database.test.db_workload
-  admin_password                   = azurerm_oracle_autonomous_database.test.admin_password
+  admin_password                   = "TestPass#2024#"
   db_version                       = azurerm_oracle_autonomous_database.test.db_version
   character_set                    = azurerm_oracle_autonomous_database.test.character_set
   ncharacter_set                   = azurerm_oracle_autonomous_database.test.ncharacter_set
