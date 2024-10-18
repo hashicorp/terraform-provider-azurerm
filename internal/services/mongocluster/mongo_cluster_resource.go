@@ -65,7 +65,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			Required: true,
 			Type:     schema.TypeString,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-z\d]([-a-z\d]{3,40}[a-z\d])?$`),
+				regexp.MustCompile(`^[a-z\d]([-a-z\d]{1,38}[a-z\d])$`),
 				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
 			),
 		},
@@ -229,11 +229,11 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
 
-			if v, ok := metadata.ResourceData.GetOk("preview_features"); ok {
-				parameter.Properties.PreviewFeatures = expandPreviewFeatures(v.([]interface{}))
+			if len(state.PreviewFeatures) > 0 {
+				parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("shard_count"); ok {
+			if state.ShardCount != 0 {
 				parameter.Properties.Sharding = &mongoclusters.ShardingProperties{
 					ShardCount: pointer.To(state.ShardCount),
 				}
@@ -264,13 +264,13 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccessDisabled)
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("storage_size_in_gb"); ok {
+			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
 				}
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("tags"); ok {
+			if len(state.Tags) > 0 {
 				parameter.Tags = pointer.To(state.Tags)
 			}
 
@@ -495,7 +495,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`compute_tier` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("storage_size_in_gb"); !ok {
+				if state.StorageSizeInGb == 0 {
 					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
@@ -503,7 +503,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if _, ok := metadata.ResourceDiff.GetOk("shard_count"); !ok {
+				if state.ShardCount == 0 {
 					return fmt.Errorf("`shard_count` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
@@ -529,17 +529,27 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			if len(state.PreviewFeatures) > 0 {
+				existing := make(map[string]bool)
+				for _, str := range state.PreviewFeatures {
+					if existing[str] {
+						return fmt.Errorf("`PreviewFeatures` cannot contain duplicate values")
+					}
+					existing[str] = true
+				}
+			}
+
 			return nil
 		},
 	}
 }
 
-func expandPreviewFeatures(input []interface{}) *[]mongoclusters.PreviewFeature {
+func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
 	result := make([]mongoclusters.PreviewFeature, 0)
 
 	for _, v := range input {
 		if v != "" {
-			result = append(result, mongoclusters.PreviewFeature(v.(string)))
+			result = append(result, mongoclusters.PreviewFeature(v))
 		}
 	}
 
