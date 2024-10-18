@@ -28,6 +28,34 @@ resource "azurerm_dev_center" "example" {
   }
 }
 
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_dev_center_network_connection" "example" {
+  name                = "example-dcnc"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  subnet_id           = azurerm_subnet.example.id
+  domain_join_type    = "AzureADJoin"
+}
+
+resource "azurerm_dev_center_attached_network" "example" {
+  name                  = "example-dcet"
+  dev_center_id         = azurerm_dev_center.example.id
+  network_connection_id = azurerm_dev_center_network_connection.example.id
+}
+
 resource "azurerm_dev_center_project" "example" {
   name                = "example-dcp"
   resource_group_name = azurerm_resource_group.example.name
@@ -43,39 +71,14 @@ resource "azurerm_dev_center_dev_box_definition" "example" {
   sku_name           = "general_i_8c32gb256ssd_v2"
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_dev_center_network_connection" "example" {
-  name                = "example-dcnc"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  domain_join_type    = "AzureADJoin"
-  subnet_id           = azurerm_subnet.example.id
-}
-
 resource "azurerm_dev_center_project_pool" "example" {
-  name                        = "example-dcpl"
-  location                    = azurerm_resource_group.example.location
-  dev_center_project_id       = azurerm_dev_center_project.example.id
-  dev_box_definition_name     = azurerm_dev_center_dev_box_definition.example.name
-  local_administrator_enabled = false
-  network_connection_name     = azurerm_dev_center_network_connection.example.name
+  name                                    = "example-dcpl"
+  location                                = azurerm_resource_group.example.location
+  dev_center_project_id                   = azurerm_dev_center_project.example.id
+  dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.example.name
+  local_administrator_enabled             = true
+  network_connection_name                 = azurerm_dev_center_attached_network.example.name
+  stop_on_disconnect_grace_period_minutes = 60
 }
 ```
 
@@ -93,7 +96,7 @@ The following arguments are supported:
 
 * `local_administrator_enabled` - (Required) Specifies whether owners of Dev Boxes in the Dev Center Project Pool are added as local administrators on the Dev Box.
 
-* `network_connection_name` - (Required) The name of the Dev Center Network Connection in parent Project of the Dev Center Project Pool.
+* `network_connection_name` - (Required) The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.
 
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected.
 

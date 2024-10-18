@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = DevCenterProjectPoolResource{}
@@ -35,7 +36,7 @@ type DevCenterProjectPoolResourceModel struct {
 	DevBoxDefinitionName               string            `tfschema:"dev_box_definition_name"`
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
 	NetworkConnectionName              string            `tfschema:"network_connection_name"`
-	StopOnDisconnectGracePeriodMinutes int               `tfschema:"stop_on_disconnect_grace_period_minutes"`
+	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
 
@@ -74,7 +75,7 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"network_connection_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.DevCenterNetworkConnectionName,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
@@ -260,24 +261,26 @@ func (r DevCenterProjectPoolResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandDevCenterProjectPoolStopOnDisconnect(input int) *pools.StopOnDisconnectConfiguration {
+func expandDevCenterProjectPoolStopOnDisconnect(input int64) *pools.StopOnDisconnectConfiguration {
 	if input == 0 {
 		return nil
 	}
 
 	return &pools.StopOnDisconnectConfiguration{
-		GracePeriodMinutes: pointer.To(int64(input)),
+		GracePeriodMinutes: pointer.To(input),
 		Status:             pointer.To(pools.StopOnDisconnectEnableStatusEnabled),
 	}
 }
 
-func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectConfiguration) int {
-	var gracePeriodMinutes int
+func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectConfiguration) int64 {
+	var gracePeriodMinutes int64
 	if input == nil {
 		return gracePeriodMinutes
 	}
 
-	gracePeriodMinutes = int(pointer.From(input.GracePeriodMinutes))
+	if v := input.GracePeriodMinutes; v != nil {
+		gracePeriodMinutes = pointer.From(v)
+	}
 
 	return gracePeriodMinutes
 }

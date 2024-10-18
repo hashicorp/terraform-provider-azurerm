@@ -127,7 +127,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_center_project_id       = azurerm_dev_center_project.test.id
   dev_box_definition_name     = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled = false
-  network_connection_name     = azurerm_dev_center_network_connection.test.name
+  network_connection_name     = azurerm_dev_center_attached_network.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -161,7 +161,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled             = false
-  network_connection_name                 = azurerm_dev_center_network_connection.test.name
+  network_connection_name                 = azurerm_dev_center_attached_network.test.name
   stop_on_disconnect_grace_period_minutes = 2
 
   tags = {
@@ -187,12 +187,10 @@ resource "azurerm_dev_center_dev_box_definition" "test2" {
   sku_name           = "general_i_8c32gb256ssd_v2"
 }
 
-resource "azurerm_dev_center_network_connection" "test2" {
-  name                = "acctest-dcnc2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  domain_join_type    = "AzureADJoin"
-  subnet_id           = azurerm_subnet.test.id
+resource "azurerm_dev_center_attached_network" "test2" {
+  name                  = "acctest-dcan-%d"
+  dev_center_id         = azurerm_dev_center.test.id
+  network_connection_id = azurerm_dev_center_network_connection.test.id
 }
 
 resource "azurerm_dev_center_project_pool" "test" {
@@ -201,7 +199,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
   local_administrator_enabled             = true
-  network_connection_name                 = azurerm_dev_center_network_connection.test2.name
+  network_connection_name                 = azurerm_dev_center_attached_network.test2.name
   stop_on_disconnect_grace_period_minutes = 3
 
   tags = {
@@ -228,30 +226,11 @@ resource "azurerm_dev_center" "test" {
   }
 }
 
-resource "azurerm_dev_center_project" "test" {
-  name                = "acctest-dcp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  dev_center_id       = azurerm_dev_center.test.id
-}
-
-resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-  sku_name           = "general_i_8c32gb256ssd_v2"
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  lifecycle {
-    ignore_changes = [subnet]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -268,5 +247,26 @@ resource "azurerm_dev_center_network_connection" "test" {
   domain_join_type    = "AzureADJoin"
   subnet_id           = azurerm_subnet.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_dev_center_attached_network" "test" {
+  name                  = "acctest-dcan-%d"
+  dev_center_id         = azurerm_dev_center.test.id
+  network_connection_id = azurerm_dev_center_network_connection.test.id
+}
+
+resource "azurerm_dev_center_project" "test" {
+  name                = "acctest-dcp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dev_center_id       = azurerm_dev_center.test.id
+}
+
+resource "azurerm_dev_center_dev_box_definition" "test" {
+  name               = "acctest-dcet-%d"
+  location           = azurerm_resource_group.test.location
+  dev_center_id      = azurerm_dev_center.test.id
+  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
+  sku_name           = "general_i_8c32gb256ssd_v2"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
