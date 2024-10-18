@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstancelongtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
@@ -63,7 +65,7 @@ func (r MsSqlManagedDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -111,6 +113,66 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		atLeastOneOf := []string{
+			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+		}
+		resource["long_term_retention_policy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					"immutable_backups_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func (r MsSqlManagedDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
