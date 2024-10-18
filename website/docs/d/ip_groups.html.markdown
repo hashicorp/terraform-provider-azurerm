@@ -27,7 +27,7 @@ output "ids" {
 
 The following arguments are supported:
 
-* `name` - (Required) A substring to match some number of IP Groups.
+* `name` - (Optional) A substring to match some number of IP Groups. If no argument provided, all IP groups in the Resource Group are returned.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the IP Groups exist.
 

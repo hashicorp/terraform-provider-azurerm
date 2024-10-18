@@ -27,7 +27,7 @@ func dataSourceIpGroups() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -69,9 +69,17 @@ func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	if model := resp.Model; model != nil {
 		for _, group := range *model {
-			if group.Name != nil && strings.Contains(*group.Name, d.Get("name").(string)) {
-				names = append(names, *group.Name)
-				ids = append(ids, *group.Id)
+			if group.Name != nil {
+				// If d.Get("name") is defined, use it for filtering. Else include all groups
+				if d.Get("name") != nil {
+					if strings.Contains(*group.Name, d.Get("name").(string)) {
+						names = append(names, *group.Name)
+						ids = append(ids, *group.Id)
+					}
+				} else {
+					names = append(names, *group.Name)
+					ids = append(ids, *group.Id)
+				}
 			}
 		}
 	}
