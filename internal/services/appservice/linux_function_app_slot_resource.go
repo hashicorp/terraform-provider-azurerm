@@ -446,8 +446,10 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 				}
 
 			}
-			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
+
+			// Only send for ElasticPremium and Consumption plan
+			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
+			sendContentSettings := elasticOrConsumptionPlan && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
