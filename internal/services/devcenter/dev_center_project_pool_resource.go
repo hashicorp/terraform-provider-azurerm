@@ -79,8 +79,9 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(60, 480),
 		},
 
 		"tags": commonschema.Tags(),

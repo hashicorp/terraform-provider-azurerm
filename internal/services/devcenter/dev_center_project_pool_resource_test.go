@@ -160,9 +160,9 @@ resource "azurerm_dev_center_project_pool" "test" {
   location                                = azurerm_resource_group.test.location
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
-  local_administrator_enabled             = false
+  local_administrator_enabled             = true
   network_connection_name                 = azurerm_dev_center_attached_network.test.name
-  stop_on_disconnect_grace_period_minutes = 2
+  stop_on_disconnect_grace_period_minutes = 60
 
   tags = {
     Env = "Test"
@@ -198,9 +198,9 @@ resource "azurerm_dev_center_project_pool" "test" {
   location                                = azurerm_resource_group.test.location
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
-  local_administrator_enabled             = true
+  local_administrator_enabled             = false
   network_connection_name                 = azurerm_dev_center_attached_network.test2.name
-  stop_on_disconnect_grace_period_minutes = 3
+  stop_on_disconnect_grace_period_minutes = 70
 
   tags = {
     Env = "Test2"
