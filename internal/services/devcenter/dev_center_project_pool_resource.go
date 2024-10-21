@@ -264,7 +264,10 @@ func (r DevCenterProjectPoolResource) Delete() sdk.ResourceFunc {
 
 func expandDevCenterProjectPoolStopOnDisconnect(input int64) *pools.StopOnDisconnectConfiguration {
 	if input == 0 {
-		return nil
+		return &pools.StopOnDisconnectConfiguration{
+			GracePeriodMinutes: pointer.To(int64(0)),
+			Status:             pointer.To(pools.StopOnDisconnectEnableStatusDisabled),
+		}
 	}
 
 	return &pools.StopOnDisconnectConfiguration{
@@ -275,7 +278,7 @@ func expandDevCenterProjectPoolStopOnDisconnect(input int64) *pools.StopOnDiscon
 
 func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectConfiguration) int64 {
 	var gracePeriodMinutes int64
-	if input == nil {
+	if input == nil || (input != nil && pointer.From(input.Status) == pools.StopOnDisconnectEnableStatusDisabled) {
 		return gracePeriodMinutes
 	}
 
