@@ -6,7 +6,6 @@ package mongocluster_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -57,11 +56,6 @@ func TestAccMongoCluster_update(t *testing.T) {
 }
 
 func TestAccMongoCluster_previewFeature(t *testing.T) {
-	if os.Getenv("ARM_GEO_RESTORE_LOCATION") == "" {
-		t.Skip("Skipping as `ARM_GEO_RESTORE_LOCATION` is not specified")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
 
@@ -136,17 +130,17 @@ func (r MongoClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mongo_cluster" "test" {
-  name                          = "acctest-mc%d"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  administrator_username        = "adminTerraform"
-  administrator_password        = "QAZwsx123update"
-  shard_count                   = "1"
-  compute_tier                  = "M30"
-  high_availability_mode        = "ZoneRedundantPreferred"
-  public_network_access_enabled = false
-  storage_size_in_gb            = "64"
-  version                       = "7.0"
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "ZoneRedundantPreferred"
+  public_network_access  = "Disabled"
+  storage_size_in_gb     = "64"
+  version                = "7.0"
 
   tags = {
     environment = "test"
@@ -210,7 +204,7 @@ resource "azurerm_mongo_cluster" "geo_replica" {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
-`, r.previewFeature(data), data.RandomInteger, os.Getenv("ARM_GEO_RESTORE_LOCATION"))
+`, r.previewFeature(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData) string {

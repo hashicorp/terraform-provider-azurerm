@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2024-07-01/mongoclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,22 +27,22 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                       string            `tfschema:"name"`
-	ResourceGroupName          string            `tfschema:"resource_group_name"`
-	Location                   string            `tfschema:"location"`
-	AdministratorUserName      string            `tfschema:"administrator_username"`
-	AdministratorPassword      string            `tfschema:"administrator_password"`
-	CreateMode                 string            `tfschema:"create_mode"`
-	ShardCount                 int64             `tfschema:"shard_count"`
-	SourceLocation             string            `tfschema:"source_location"`
-	SourceServerId             string            `tfschema:"source_server_id"`
-	ComputeTier                string            `tfschema:"compute_tier"`
-	HighAvailabilityMode       string            `tfschema:"high_availability_mode"`
-	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
-	PreviewFeatures            []string          `tfschema:"preview_features"`
-	StorageSizeInGb            int64             `tfschema:"storage_size_in_gb"`
-	Tags                       map[string]string `tfschema:"tags"`
-	Version                    string            `tfschema:"version"`
+	Name                  string            `tfschema:"name"`
+	ResourceGroupName     string            `tfschema:"resource_group_name"`
+	Location              string            `tfschema:"location"`
+	AdministratorUserName string            `tfschema:"administrator_username"`
+	AdministratorPassword string            `tfschema:"administrator_password"`
+	CreateMode            string            `tfschema:"create_mode"`
+	ShardCount            int64             `tfschema:"shard_count"`
+	SourceLocation        string            `tfschema:"source_location"`
+	SourceServerId        string            `tfschema:"source_server_id"`
+	ComputeTier           string            `tfschema:"compute_tier"`
+	HighAvailabilityMode  string            `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string            `tfschema:"public_network_access"`
+	PreviewFeatures       []string          `tfschema:"preview_features"`
+	StorageSizeInGb       int64             `tfschema:"storage_size_in_gb"`
+	Tags                  map[string]string `tfschema:"tags"`
+	Version               string            `tfschema:"version"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -79,7 +78,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"administrator_username", "administrator_password"},
+			RequiredWith: []string{"administrator_password"},
 		},
 
 		"create_mode": {
@@ -125,7 +124,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: mongoclusters.ValidateMongoClusterID,
 		},
 
 		"administrator_password": {
@@ -133,7 +132,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"administrator_username", "administrator_password"},
+			RequiredWith: []string{"administrator_username"},
 		},
 
 		"compute_tier": {
@@ -160,10 +159,11 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			}, false),
 		},
 
-		"public_network_access_enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  true,
+		"public_network_access": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      string(mongoclusters.PublicNetworkAccessEnabled),
+			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"storage_size_in_gb": {
@@ -214,7 +214,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameter := mongoclusters.MongoCluster{
-				Location:   azure.NormalizeLocation(state.Location),
+				Location:   location.Normalize(state.Location),
 				Properties: &mongoclusters.MongoClusterProperties{},
 			}
 
@@ -229,9 +229,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
 
-			if len(state.PreviewFeatures) > 0 {
-				parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
-			}
+			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
 
 			if state.ShardCount != 0 {
 				parameter.Properties.Sharding = &mongoclusters.ShardingProperties{
@@ -258,11 +256,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if state.PublicNetworkAccessEnabled {
-				parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccessEnabled)
-			} else {
-				parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccessDisabled)
-			}
+			parameter.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
@@ -270,7 +264,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if len(state.Tags) > 0 {
+			if state.Tags != nil {
 				parameter.Tags = pointer.To(state.Tags)
 			}
 
@@ -303,7 +297,7 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Info("Decoding state...")
 			var state MongoClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -311,24 +305,27 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("reading %s for update: model was nil", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+			payload := existing.Model
 
 			metadata.Logger.Infof("updating %s", *id)
 
-			model.SystemData = nil
+			payload.SystemData = nil
 
-			// upgrades involving Free or M25(Burstable) cluster tier require first upgrading the cluster tier, after which other configurations can be updated.
+			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
-				model.Properties.Compute = &mongoclusters.ComputeProperties{
+				payload.Properties.Compute = &mongoclusters.ComputeProperties{
 					Tier: pointer.To(state.ComputeTier),
 				}
 				oldComputeTier, newComputeTier := metadata.ResourceData.GetChange("compute_tier")
 				if (oldComputeTier == "Free" || oldComputeTier == "M25") && newComputeTier != "Free" && newComputeTier != "M25" {
-					metadata.Logger.Infof("updating cluster tier for %s", *id)
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+					metadata.Logger.Infof("updating compute tier for %s", *id)
+					if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 				}
@@ -336,41 +333,37 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("updating other configurations for %s", *id)
 			if metadata.ResourceData.HasChange("administrator_password") {
-				model.Properties.Administrator = &mongoclusters.AdministratorProperties{
+				payload.Properties.Administrator = &mongoclusters.AdministratorProperties{
 					UserName: pointer.To(state.AdministratorUserName),
 					Password: pointer.To(state.AdministratorPassword),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("high_availability_mode") {
-				model.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
+				payload.Properties.HighAvailability = &mongoclusters.HighAvailabilityProperties{
 					TargetMode: pointer.To(mongoclusters.HighAvailabilityMode(state.HighAvailabilityMode)),
 				}
 			}
 
-			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				if state.PublicNetworkAccessEnabled {
-					model.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccessEnabled)
-				} else {
-					model.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccessDisabled)
-				}
+			if metadata.ResourceData.HasChange("public_network_access") {
+				payload.Properties.PublicNetworkAccess = pointer.To(mongoclusters.PublicNetworkAccess(state.PublicNetworkAccess))
 			}
 
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
-				model.Properties.Storage = &mongoclusters.StorageProperties{
+				payload.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = pointer.To(state.Tags)
+				payload.Tags = pointer.To(state.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("version") {
-				model.Properties.ServerVersion = pointer.To(state.Version)
+				payload.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -404,13 +397,13 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(&model.Location)
+				state.Location = location.Normalize(model.Location)
 
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
 					state.AdministratorPassword = metadata.ResourceData.Get("administrator_password").(string)
 
-					// API doesn't return the value of create_mode
+					// API doesn't return the value of create_mode, https://github.com/Azure/azure-rest-api-specs/issues/31266 has been filed to track it.
 					state.CreateMode = metadata.ResourceData.Get("create_mode").(string)
 
 					if v := props.Administrator; v != nil {
@@ -418,9 +411,15 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					}
 
 					if v := props.Replica; v != nil {
-						// API doesn't return the value of source_location
+						// API doesn't return the value of source_location, https://github.com/Azure/azure-rest-api-specs/issues/31266 has been filed to track it.
 						state.SourceLocation = metadata.ResourceData.Get("source_location").(string)
-						state.SourceServerId = pointer.From(v.SourceResourceId)
+						if v.SourceResourceId != nil {
+							id, err := mongoclusters.ParseMongoClusterID(pointer.From(v.SourceResourceId))
+							if err != nil {
+								return err
+							}
+							state.SourceServerId = id.ID()
+						}
 					}
 
 					if v := props.Sharding; v != nil {
@@ -433,7 +432,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					if v := props.HighAvailability; v != nil {
 						state.HighAvailabilityMode = string(pointer.From(v.TargetMode))
 					}
-					state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == mongoclusters.PublicNetworkAccessEnabled
+					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)
@@ -521,11 +520,11 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if state.ComputeTier == "Free" || state.ComputeTier == "M25" {
 				if state.HighAvailabilityMode == string(mongoclusters.HighAvailabilityModeZoneRedundantPreferred) {
-					return fmt.Errorf("high Availability is not available with the 'Free' or 'M25' Cluster Tier")
+					return fmt.Errorf("high Availability is not available with the `Free` or `M25` Compute Tier")
 				}
 
 				if state.ShardCount > 1 {
-					return fmt.Errorf("the value of `shard_count` cannot exceed 1 for the 'Free' or 'M25' Cluster Tier")
+					return fmt.Errorf("the value of `shard_count` cannot exceed 1 for the `Free` or `M25` Compute Tier")
 				}
 			}
 
@@ -533,7 +532,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				existing := make(map[string]bool)
 				for _, str := range state.PreviewFeatures {
 					if existing[str] {
-						return fmt.Errorf("`PreviewFeatures` cannot contain duplicate values")
+						return fmt.Errorf("`preview_features` contains the duplicate value %q", str)
 					}
 					existing[str] = true
 				}
@@ -545,6 +544,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
+	if len(input) == 0 {
+		return nil
+	}
+
 	result := make([]mongoclusters.PreviewFeature, 0)
 
 	for _, v := range input {

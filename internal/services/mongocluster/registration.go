@@ -19,12 +19,12 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "MongoCluster"
+	return "Mongo Cluster"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-	return []string{"MongoCluster"}
+	return []string{"Mongo Cluster"}
 }
 
 // DataSources returns a list of Data Sources supported by this Service
