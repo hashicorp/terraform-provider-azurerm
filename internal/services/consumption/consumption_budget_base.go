@@ -338,8 +338,10 @@ func (br consumptionBudgetBaseResource) deleteFunc() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+			if resp, err := client.Delete(ctx, *id); err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("deleting %s: %+v", *id, err)
+				}
 			}
 
 			return nil
