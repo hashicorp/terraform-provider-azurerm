@@ -712,7 +712,11 @@ func (ManagedApplicationResource) cancelExistingAgreement(publisher string, offe
 
 		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
 		if err != nil {
-			return err
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("retrieving %s: %s", idGet, err)
+				}
+			}
 		}
 
 		if model := existing.Model; model != nil {
