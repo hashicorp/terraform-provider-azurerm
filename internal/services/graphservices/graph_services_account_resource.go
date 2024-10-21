@@ -26,10 +26,6 @@ var (
 
 type AccountResource struct{}
 
-func (r AccountResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_graph_services_account"
-}
-
 func (r AccountResource) ModelObject() interface{} {
 	return &AccountResourceSchema{}
 }
@@ -47,7 +43,7 @@ func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r AccountResource) ResourceType() string {
-	return "azurerm_graph_account"
+	return "azurerm_graph_services_account"
 }
 
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {

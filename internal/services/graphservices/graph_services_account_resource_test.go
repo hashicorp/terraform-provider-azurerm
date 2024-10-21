@@ -120,18 +120,6 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r AccountTestResource) legacy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_graph_account" "test" {
-  name                = "acctesta-%[2]d"
-  application_id      = "%[3]s"
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
-}
-
 func (r AccountTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -183,10 +171,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-graph-%d"
   location = %q
-}
-
-resource "azuread_application" "test" {
-  display_name = "acctestsap%[1]d"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
