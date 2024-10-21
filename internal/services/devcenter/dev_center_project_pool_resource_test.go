@@ -188,7 +188,7 @@ resource "azurerm_dev_center_dev_box_definition" "test2" {
 }
 
 resource "azurerm_dev_center_attached_network" "test2" {
-  name                  = "acctest-dcan-%d"
+  name                  = "acctest-dcan2-%d"
   dev_center_id         = azurerm_dev_center.test.id
   network_connection_id = azurerm_dev_center_network_connection.test.id
 }
