@@ -92,6 +92,7 @@ func SiteConfigSchemaLinuxFunctionAppOnContainer() *pluginsdk.Schema {
 				"elastic_instance_minimum": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      10,
 					ValidateFunc: validation.IntBetween(10, 30),
 					Description:  "The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.",
 				},

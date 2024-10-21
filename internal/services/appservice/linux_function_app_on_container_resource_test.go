@@ -179,7 +179,7 @@ resource "azurerm_linux_function_app_on_container" "test" {
   site_config {
     application_insights_connection_string = azurerm_application_insights.test.connection_string
     app_scale_limit                        = 10
-    elastic_instance_minimum               = 30
+    elastic_instance_minimum               = 10
   }
 
   app_settings = {
