@@ -229,9 +229,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.CreateMode = pointer.To(mongoclusters.CreateMode(state.CreateMode))
 			}
 
-			if len(state.PreviewFeatures) > 0 {
-				parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
-			}
+			parameter.Properties.PreviewFeatures = expandPreviewFeatures(state.PreviewFeatures)
 
 			if state.ShardCount != 0 {
 				parameter.Properties.Sharding = &mongoclusters.ShardingProperties{
@@ -270,7 +268,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if len(state.Tags) > 0 {
+			if state.Tags != nil {
 				parameter.Tags = pointer.To(state.Tags)
 			}
 
@@ -545,6 +543,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func expandPreviewFeatures(input []string) *[]mongoclusters.PreviewFeature {
+	if len(input) == 0 {
+		return nil
+	}
+
 	result := make([]mongoclusters.PreviewFeature, 0)
 
 	for _, v := range input {
