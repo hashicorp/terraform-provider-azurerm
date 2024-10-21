@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "roleName")
+id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "accessProfileName")
 
 read, err := client.GetAccessProfile(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "commandId")
+id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "commandId")
 
 read, err := client.GetCommandResult(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewMeshRevisionProfileID("12345678-1234-9876-4563-123456789012", "location", "mode")
+id := managedclusters.NewMeshRevisionProfileID("12345678-1234-9876-4563-123456789012", "locationName", "meshRevisionProfileName")
 
 read, err := client.GetMeshRevisionProfile(ctx, id)
 if err != nil {
@@ -130,7 +130,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewMeshUpgradeProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "mode")
+id := managedclusters.NewMeshUpgradeProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "meshUpgradeProfileName")
 
 read, err := client.GetMeshUpgradeProfile(ctx, id)
 if err != nil {
@@ -244,7 +244,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.ListKubernetesVersions(ctx, id)
 if err != nil {
@@ -260,7 +260,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.ListMeshRevisionProfiles(ctx, id)` can be used to do batched pagination
 items, err := client.ListMeshRevisionProfilesComplete(ctx, id)

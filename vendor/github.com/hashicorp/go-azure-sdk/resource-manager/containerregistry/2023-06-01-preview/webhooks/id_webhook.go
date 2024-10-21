@@ -123,7 +123,7 @@ func (id WebHookId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
 		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticWebHooks", "webHooks", "webHooks"),
-		resourceids.UserSpecifiedSegment("webHookName", "webhookName"),
+		resourceids.UserSpecifiedSegment("webHookName", "webHookName"),
 	}
 }
 

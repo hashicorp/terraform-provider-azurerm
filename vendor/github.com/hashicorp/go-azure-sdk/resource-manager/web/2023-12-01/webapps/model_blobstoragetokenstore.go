@@ -4,5 +4,5 @@ package webapps
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BlobStorageTokenStore struct {
-	SasUrlSettingName *string `json:"sasUrlSettingName,omitempty"`
+	SasURLSettingName *string `json:"sasUrlSettingName,omitempty"`
 }

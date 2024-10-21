@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 payload := nodetype.NodeType{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 payload := nodetype.NodeTypeActionParameters{
 	// ...
@@ -70,7 +70,7 @@ if err := client.DeleteNodeThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := nodetype.NewManagedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
 // alternatively `client.ListByManagedClusters(ctx, id)` can be used to do batched pagination
 items, err := client.ListByManagedClustersComplete(ctx, id)
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 payload := nodetype.NodeTypeActionParameters{
 	// ...
@@ -120,7 +120,7 @@ if err := client.ReimageThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 payload := nodetype.NodeTypeActionParameters{
 	// ...
@@ -137,7 +137,7 @@ if err := client.RestartThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "nodeTypeName")
+id := nodetype.NewNodeTypeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "nodeTypeName")
 
 payload := nodetype.NodeTypeUpdateParameters{
 	// ...

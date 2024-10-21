@@ -263,7 +263,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 
 	return &loadtests.EncryptionProperties{
-		KeyUrl:   pointer.To(attr.KeyURL),
+		KeyURL:   pointer.To(attr.KeyURL),
 		Identity: encryptionIdentity,
 	}
 }
@@ -277,7 +277,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 		outputEncryption := make([]LoadTestEncryption, 0)
 		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
 		output.Encryption = append(outputEncryption, LoadTestEncryption{
-			KeyURL:   pointer.From(encryption.KeyUrl),
+			KeyURL:   pointer.From(encryption.KeyURL),
 			Identity: outputEncryptionIdentity,
 		})
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {

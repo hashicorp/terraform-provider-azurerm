@@ -115,7 +115,7 @@ func (id CloudId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticClouds", "clouds", "clouds"),
-		resourceids.UserSpecifiedSegment("cloudName", "cloudResourceName"),
+		resourceids.UserSpecifiedSegment("cloudName", "cloudName"),
 	}
 }
 

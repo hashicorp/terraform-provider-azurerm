@@ -177,7 +177,7 @@ func (r DataFlowResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf3%[2]d"
+  name            = "acctestdf%d"
   data_factory_id = azurerm_data_factory.test.id
   description     = "description for data flow"
   annotations     = ["anno1", "anno2"]
@@ -327,60 +327,6 @@ Filter1 sink(allowSchemaDrift: true,
 	partitionBy('roundRobin', 3)) ~> sink1
 EOT
 }
-
-resource "azurerm_data_factory_flowlet_data_flow" "test1" {
-  name            = "acctest1fdf%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-
-  source {
-    name = "source1"
-  }
-
-  sink {
-    name = "sink1"
-  }
-
-  script = <<EOT
-source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
-source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
-  skipDuplicateMapOutputs: true) ~> sink1
-EOT
-}
-
-resource "azurerm_data_factory_flowlet_data_flow" "test2" {
-  name            = "acctest2fdf%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-
-  source {
-    name = "source1"
-  }
-
-  sink {
-    name = "sink1"
-  }
-
-  script = <<EOT
-source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
-source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
-  skipDuplicateMapOutputs: true) ~> sink1
-EOT
-}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -447,5 +393,60 @@ resource "azurerm_data_factory_dataset_json" "test2" {
 
   encoding = "UTF-8"
 }
+
+resource "azurerm_data_factory_flowlet_data_flow" "test1" {
+  name            = "acctest1fdf%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "test2" {
+  name            = "acctest2fdf%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

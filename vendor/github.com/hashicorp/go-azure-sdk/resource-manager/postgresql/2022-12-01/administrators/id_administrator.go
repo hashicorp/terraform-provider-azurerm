@@ -121,7 +121,7 @@ func (id AdministratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticFlexibleServers", "flexibleServers", "flexibleServers"),
-		resourceids.UserSpecifiedSegment("flexibleServerName", "serverName"),
+		resourceids.UserSpecifiedSegment("flexibleServerName", "flexibleServerName"),
 		resourceids.StaticSegment("staticAdministrators", "administrators", "administrators"),
 		resourceids.UserSpecifiedSegment("objectId", "objectId"),
 	}
