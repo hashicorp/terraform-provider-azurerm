@@ -100,10 +100,10 @@ func (r NetAppBackupPolicyResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_netapp_backup_policy" "test" {
-  name                    = "acctest-NetAppBackupPolicy-%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  account_name            = azurerm_netapp_account.test.name
+  name                = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  account_name        = azurerm_netapp_account.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
