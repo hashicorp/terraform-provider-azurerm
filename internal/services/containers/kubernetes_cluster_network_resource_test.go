@@ -3020,6 +3020,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
+      backend_pool_type       = "NodeIP"
     }
   }
 }
