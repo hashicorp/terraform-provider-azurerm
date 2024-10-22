@@ -40,7 +40,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	AutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
 	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
-	NcharacterSet                string  `tfschema:"national_character_set"`
+	NationalCharacterSet         string  `tfschema:"national_character_set"`
 	SubnetId                     string  `tfschema:"subnet_id"`
 	VnetId                       string  `tfschema:"vnet_id"`
 
@@ -71,9 +71,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"backup_retention_period_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.BackupRetentionDays,
 		},
 
 		"character_set": {
@@ -83,8 +84,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"compute_count": {
-			Type:     pluginsdk.TypeFloat,
-			Required: true,
+			Type:         pluginsdk.TypeFloat,
+			Required:     true,
+			ValidateFunc: validate.AdbsComputeCount,
 		},
 
 		"compute_model": {
@@ -94,8 +96,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"data_storage_size_in_tbs": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validate.AdbsDataStorageSizeInTbs,
 		},
 
 		"db_version": {
@@ -105,9 +108,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"db_workload": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DbWorkloadType,
 		},
 
 		"display_name": {
@@ -230,7 +234,7 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 					IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
 					IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
 					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					NcharacterSet:                  pointer.To(model.NcharacterSet),
+					NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 					SubnetId:                       pointer.To(model.SubnetId),
 					VnetId:                         pointer.To(model.VnetId),
 				},
@@ -351,7 +355,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
 				state.Location = result.Model.Location
 				state.Name = pointer.ToString(result.Model.Name)
-				state.NcharacterSet = pointer.From(adbsPropModel.NcharacterSet)
+				state.NationalCharacterSet = pointer.From(adbsPropModel.NcharacterSet)
 				state.ResourceGroupName = id.ResourceGroupName
 				state.SubnetId = pointer.From(adbsPropModel.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)

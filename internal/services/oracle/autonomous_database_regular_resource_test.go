@@ -96,6 +96,7 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 provider "azurerm" {
@@ -120,7 +121,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
-  national_character_set                   = "AL16UTF16"
+  national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
   vnet_id                          = azurerm_virtual_network.virtual_network.id
   lifecycle {
@@ -135,6 +136,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 func (a AdbsRegularResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 provider "azurerm" {
@@ -159,7 +161,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
-  national_character_set                   = "AL16UTF16"
+  national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
   vnet_id                          = azurerm_virtual_network.virtual_network.id
   customer_contacts                = ["test@test.com"]
@@ -174,6 +176,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 
 %s
 
@@ -198,7 +201,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
-  national_character_set                   = "AL16UTF16"
+  national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
   vnet_id                          = azurerm_virtual_network.virtual_network.id
   lifecycle {
@@ -231,7 +234,7 @@ resource "azurerm_oracle_autonomous_database" "import" {
   admin_password                   = "TestPass#2024#"
   db_version                       = azurerm_oracle_autonomous_database.test.db_version
   character_set                    = azurerm_oracle_autonomous_database.test.character_set
-  national_character_set                   = azurerm_oracle_autonomous_database.test.national_character_set
+  national_character_set           = azurerm_oracle_autonomous_database.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
   vnet_id                          = azurerm_oracle_autonomous_database.test.vnet_id
   lifecycle {

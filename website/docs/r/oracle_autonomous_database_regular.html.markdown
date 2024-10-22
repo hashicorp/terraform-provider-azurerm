@@ -30,7 +30,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   auto_scaling_enabled             = "example"
   character_set                    = "example"
   compute_count                    = 1.23456
-  national_character_set                   = "example"
+  national_character_set           = "example"
   license_model                    = false
   db_version                       = "example"
 }
