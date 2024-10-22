@@ -185,57 +185,6 @@ resource "azurerm_stack_hci_network_interface" "import" {
 `, config)
 }
 
-func (r StackHCINetworkInterfaceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %[3]q
-  virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.11.7"]
-
-  subnet {
-    ip_allocation_method = "Static"
-    address_prefix       = "10.0.11.0/24"
-    ip_pool {
-      start = "10.0.11.0"
-      end   = "10.0.11.255"
-    }
-
-    route {
-      address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.11.1"
-    }
-  }
-}
-
-resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %[3]q
-  dns_servers         = ["10.0.11.8"]
-
-  ip_configuration {
-    private_ip_address = "10.0.11.%[4]d"
-    subnet_id          = azurerm_stack_hci_logical_network.test.id
-  }
-
-  lifecycle {
-    ignore_changes = [mac_address]
-  }
-}
-`, template, data.RandomString, os.Getenv(customLocationIdEnv), data.RandomInteger%100)
-}
-
 func (r StackHCINetworkInterfaceResource) updateNoTag(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
