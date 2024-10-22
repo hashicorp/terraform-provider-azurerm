@@ -100,6 +100,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 				}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 				Description:  "The version of DotNetCore to use.",
+				Deprecated:   "This property has been deprecated in favour of `dotnet_version`.",
 			},
 
 			"php_version": {
