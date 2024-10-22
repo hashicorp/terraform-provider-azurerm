@@ -91,7 +91,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
 
-* `ncharacter_set` - The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
+* `ncharacter_set` - The national character set for the autonomous database.  The default is `AL16UTF16`. Allowed values are: `AL16UTF16` or `UTF8`.
 
 * `next_long_term_backup_time_stamp` - The date and time when the next long-term backup would be created.
 
