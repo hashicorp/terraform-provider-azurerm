@@ -286,7 +286,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
 		if elasticPool.Model != nil {
@@ -1078,7 +1078,24 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
-			if strings.HasPrefix(skuName, "HS") {
+			elasticPoolSku := ""
+			if elasticPoolId != "" {
+				elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+				if err != nil {
+					return err
+				}
+
+				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
+				}
+
+				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
+					elasticPoolSku = elasticPool.Model.Sku.Name
+				}
+			}
+
+			if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 
