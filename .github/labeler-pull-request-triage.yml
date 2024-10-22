@@ -108,6 +108,11 @@ service/cdn:
   - any-glob-to-any-file:
     - internal/services/cdn/**/*
 
+service/codesigning:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/codesigning/**/*
+
 service/cognitive-services:
 - changed-files:
   - any-glob-to-any-file:
