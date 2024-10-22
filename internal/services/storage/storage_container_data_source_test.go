@@ -34,6 +34,37 @@ func TestAccDataSourceStorageContainer_basic(t *testing.T) {
 
 func (d StorageContainerDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+%s
+
+data "azurerm_storage_container" "test" {
+  name               = azurerm_storage_container.test.name
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, StorageContainerResource{}.complete(data))
+}
+
+func TestAccDataSourceStorageContainer_basicDeprecated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageContainerDataSource{}.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
+				check.That(data.ResourceName).Key("has_immutability_policy").HasValue("false"),
+				check.That(data.ResourceName).Key("default_encryption_scope").HasValue(fmt.Sprintf("acctestEScontainer%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("encryption_scope_override_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
+				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+			),
+		},
+	})
+}
+
+func (d StorageContainerDataSource) basicDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
