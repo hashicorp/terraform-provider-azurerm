@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `storage_container_id` - (Required) The ID of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
 
+~> **Note** `storage_container_id` should be in the same subscription as `azurerm_machine_learning_datastore_datalake_gen2` resource.
+
 ---
 * `tenant_id` - (Optional) The ID of the Tenant which the Service Principal belongs to.
 

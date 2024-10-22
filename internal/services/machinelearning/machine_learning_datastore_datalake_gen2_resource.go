@@ -142,6 +142,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
 			subscriptionId := metadata.Client.Account.SubscriptionId
+			storageClient := metadata.Client.Storage
 
 			var model MachineLearningDataStoreDataLakeGen2Model
 			if err := metadata.Decode(&model); err != nil {
@@ -168,6 +169,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 			containerId, err := commonids.ParseStorageContainerID(model.StorageContainerID)
 			if err != nil {
 				return err
+			}
+
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, containerId.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", containerId.StorageAccountName, containerId.ContainerName, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("unable to locate Storage Account %q", containerId.StorageAccountName)
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
@@ -220,6 +229,8 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Datastore
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			storageClient := metadata.Client.Storage
 
 			id, err := datastore.ParseDataStoreID(metadata.ResourceData.Id())
 			if err != nil {
@@ -233,6 +244,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			containerId, err := commonids.ParseStorageContainerID(state.StorageContainerID)
 			if err != nil {
 				return err
+			}
+
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, containerId.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", containerId.StorageAccountName, containerId.ContainerName, err)
+			}
+			if storageAccount == nil {
+				return fmt.Errorf("unable to locate Storage Account %q", containerId.StorageAccountName)
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
@@ -317,7 +336,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}
 			if storageAccount == nil {
-				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
+				return fmt.Errorf("unable to locate Storage Account %q", data.AccountName)
 			}
 			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
