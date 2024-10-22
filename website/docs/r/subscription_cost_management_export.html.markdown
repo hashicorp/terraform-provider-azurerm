@@ -40,6 +40,7 @@ resource "azurerm_subscription_cost_management_export" "example" {
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "2020-08-18T00:00:00Z"
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
+  file_format                  = "Csv"
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.example.resource_manager_id
@@ -72,6 +73,8 @@ The following arguments are supported:
 * `export_data_options` - (Required) A `export_data_options` block as defined below.
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
+
+* `file_format` - (Optional) Format for export. Valid values are `Csv` only. Default is `Csv`.
 
 ---
 
