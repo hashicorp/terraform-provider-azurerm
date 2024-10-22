@@ -50,7 +50,6 @@ func (c NetworkWatchersClient) CreateOrUpdate(ctx context.Context, id NetworkWat
 
 	var model NetworkWatcher
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

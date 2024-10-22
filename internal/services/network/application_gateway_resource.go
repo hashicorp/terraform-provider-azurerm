@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1546,7 +1546,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1723,7 +1723,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1982,7 +1982,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2163,7 +2163,7 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	client := meta.(*clients.Client).Network.ApplicationGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -3569,7 +3569,7 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 			conditions := make([]applicationgateways.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
 			responseConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
-			urlConfiguration := applicationgateways.ApplicationGatewayUrlConfiguration{}
+			urlConfiguration := applicationgateways.ApplicationGatewayURLConfiguration{}
 
 			rule := applicationgateways.ApplicationGatewayRewriteRule{
 				Name:         pointer.To(r["name"].(string)),
@@ -3841,7 +3841,7 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 		}
 
 		if targetUrl != "" {
-			output.Properties.TargetUrl = pointer.To(targetUrl)
+			output.Properties.TargetURL = pointer.To(targetUrl)
 		}
 
 		results = append(results, output)
@@ -3881,8 +3881,8 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 				}
 			}
 
-			if props.TargetUrl != nil {
-				output["target_url"] = *props.TargetUrl
+			if props.TargetURL != nil {
+				output["target_url"] = *props.TargetURL
 			}
 
 			if props.IncludePath != nil {
@@ -4238,9 +4238,9 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 	return results, nil
 }
 
-func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayUrlPathMap, error) {
+func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayURLPathMap, error) {
 	vs := d.Get("url_path_map").([]interface{})
-	results := make([]applicationgateways.ApplicationGatewayUrlPathMap, 0)
+	results := make([]applicationgateways.ApplicationGatewayURLPathMap, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -4317,9 +4317,9 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 			pathRules = append(pathRules, rule)
 		}
 
-		output := applicationgateways.ApplicationGatewayUrlPathMap{
+		output := applicationgateways.ApplicationGatewayURLPathMap{
 			Name: pointer.To(name),
-			Properties: &applicationgateways.ApplicationGatewayUrlPathMapPropertiesFormat{
+			Properties: &applicationgateways.ApplicationGatewayURLPathMapPropertiesFormat{
 				PathRules: &pathRules,
 			},
 		}
@@ -4374,7 +4374,7 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 	return &results, nil
 }
 
-func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayUrlPathMap) ([]interface{}, error) {
+func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
@@ -4668,7 +4668,7 @@ func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]appl
 
 		output := applicationgateways.ApplicationGatewayCustomError{
 			StatusCode:         pointer.To(applicationgateways.ApplicationGatewayCustomErrorStatusCode(statusCode)),
-			CustomErrorPageUrl: pointer.To(customErrorPageUrl),
+			CustomErrorPageURL: pointer.To(customErrorPageUrl),
 		}
 		results = append(results, output)
 	}
@@ -4687,8 +4687,8 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgate
 
 		output["status_code"] = v.StatusCode
 
-		if v.CustomErrorPageUrl != nil {
-			output["custom_error_page_url"] = *v.CustomErrorPageUrl
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
 		}
 
 		results = append(results, output)

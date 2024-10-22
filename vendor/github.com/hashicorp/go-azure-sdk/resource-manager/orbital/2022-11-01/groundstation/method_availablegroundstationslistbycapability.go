@@ -40,6 +40,7 @@ func (o AvailableGroundStationsListByCapabilityOperationOptions) ToHeaders() *cl
 
 func (o AvailableGroundStationsListByCapabilityOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

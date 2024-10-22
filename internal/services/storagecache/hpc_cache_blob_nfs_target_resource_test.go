@@ -283,15 +283,15 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "accteststorgacc%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_kind              = "StorageV2"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  nfsv3_enabled             = true
-  enable_https_traffic_only = false
+  name                       = "accteststorgacc%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  nfsv3_enabled              = true
+  https_traffic_only_enabled = false
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [azurerm_subnet.test.id]

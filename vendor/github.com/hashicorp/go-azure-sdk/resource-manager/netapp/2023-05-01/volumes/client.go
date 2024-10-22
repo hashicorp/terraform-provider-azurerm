@@ -15,7 +15,7 @@ type VolumesClient struct {
 }
 
 func NewVolumesClientWithBaseURI(sdkApi sdkEnv.Api) (*VolumesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "volumes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "volumes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VolumesClient: %+v", err)
 	}

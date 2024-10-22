@@ -40,6 +40,7 @@ func (o ServiceTagInformationListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ServiceTagInformationListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

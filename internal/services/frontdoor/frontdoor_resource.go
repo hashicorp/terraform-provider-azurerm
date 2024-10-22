@@ -670,7 +670,7 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.Fron
 				AcceptedProtocols:  expandFrontDoorAcceptedProtocols(acceptedProtocols),
 				PatternsToMatch:    &patternsToMatch,
 				EnabledState:       &enabled,
-				RouteConfiguration: &routingConfiguration,
+				RouteConfiguration: routingConfiguration,
 			},
 		}
 

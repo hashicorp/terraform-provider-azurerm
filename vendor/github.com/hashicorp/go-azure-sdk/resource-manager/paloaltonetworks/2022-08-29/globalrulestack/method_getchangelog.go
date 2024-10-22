@@ -46,7 +46,6 @@ func (c GlobalRulestackClient) GetChangeLog(ctx context.Context, id GlobalRulest
 
 	var model Changelog
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

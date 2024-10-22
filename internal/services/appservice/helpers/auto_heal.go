@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -78,9 +78,6 @@ func autoHealSettingSchemaWindows() *pluginsdk.Schema {
 
 				"action": autoHealActionSchemaWindows(),
 			},
-		},
-		RequiredWith: []string{
-			"site_config.0.auto_heal_enabled",
 		},
 	}
 }
@@ -218,7 +215,7 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -388,7 +385,7 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{

@@ -114,6 +114,7 @@ func All() ResourceProviders {
 		"Microsoft.BotService":              {},
 		"Microsoft.CognitiveServices":       {},
 		"Microsoft.CustomProviders":         {},
+		"Microsoft.Dashboard":               {},
 		"Microsoft.DesktopVirtualization":   {},
 		"Microsoft.GuestConfiguration":      {},
 		"Microsoft.HealthcareApis":          {},
@@ -122,6 +123,7 @@ func All() ResourceProviders {
 		"Microsoft.ManagedServices":         {},
 		"Microsoft.Maps":                    {},
 		"Microsoft.MixedReality":            {},
+		"Microsoft.Monitor":                 {},
 		"Microsoft.PolicyInsights":          {},
 		"Microsoft.RecoveryServices":        {},
 		"Microsoft.Search":                  {},
@@ -197,7 +199,6 @@ func Legacy() ResourceProviders {
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
 		"Microsoft.StreamAnalytics":         {},
-		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},
 		"microsoft.insights":                {},
 	}

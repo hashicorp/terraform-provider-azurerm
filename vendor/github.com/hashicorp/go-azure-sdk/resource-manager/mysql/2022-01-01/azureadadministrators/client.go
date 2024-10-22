@@ -15,7 +15,7 @@ type AzureADAdministratorsClient struct {
 }
 
 func NewAzureADAdministratorsClientWithBaseURI(sdkApi sdkEnv.Api) (*AzureADAdministratorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "azureadadministrators", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "azureadadministrators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AzureADAdministratorsClient: %+v", err)
 	}

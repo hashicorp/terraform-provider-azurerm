@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Database interface {
+	Database() BaseDatabaseImpl
 }
 
-// RawDatabaseImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ Database = BaseDatabaseImpl{}
+
+type BaseDatabaseImpl struct {
+	Id       *string `json:"id,omitempty"`
+	Kind     Kind    `json:"kind"`
+	Location *string `json:"location,omitempty"`
+	Name     *string `json:"name,omitempty"`
+	Type     *string `json:"type,omitempty"`
+}
+
+func (s BaseDatabaseImpl) Database() BaseDatabaseImpl {
+	return s
+}
+
+var _ Database = RawDatabaseImpl{}
+
+// RawDatabaseImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDatabaseImpl struct {
-	Type   string
-	Values map[string]interface{}
+	database BaseDatabaseImpl
+	Type     string
+	Values   map[string]interface{}
 }
 
-func unmarshalDatabaseImplementation(input []byte) (Database, error) {
+func (s RawDatabaseImpl) Database() BaseDatabaseImpl {
+	return s.database
+}
+
+func UnmarshalDatabaseImplementation(input []byte) (Database, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalDatabaseImplementation(input []byte) (Database, error) {
 		return nil, fmt.Errorf("unmarshaling Database into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ReadOnlyFollowing") {
@@ -52,10 +73,15 @@ func unmarshalDatabaseImplementation(input []byte) (Database, error) {
 		return out, nil
 	}
 
-	out := RawDatabaseImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDatabaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDatabaseImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDatabaseImpl{
+		database: parent,
+		Type:     value,
+		Values:   temp,
+	}, nil
 
 }

@@ -42,7 +42,7 @@ func ParsePrivateEndpointID(input string) (*PrivateEndpointId, error) {
 	}
 
 	id := PrivateEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePrivateEndpointIDInsensitively(input string) (*PrivateEndpointId, erro
 	}
 
 	id := PrivateEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PrivateEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticPrivateEndpoints", "privateEndpoints", "privateEndpoints"),
-		resourceids.UserSpecifiedSegment("privateEndpointName", "privateEndpointValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointName", "privateEndpointName"),
 	}
 }
 

@@ -168,7 +168,6 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
 
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
@@ -177,9 +176,11 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 				WorkspaceId: workspaceId.ID(),
 			}
 
-			if prop := rule.Properties; prop != nil {
-				state.Enabled = prop.Enabled
-				state.TemplateName = prop.AlertRuleTemplateName
+			if rule, ok := resp.Model.(alertrules.ThreatIntelligenceAlertRule); ok {
+				if prop := rule.Properties; prop != nil {
+					state.Enabled = prop.Enabled
+					state.TemplateName = prop.AlertRuleTemplateName
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -229,7 +230,8 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
+
+			rule := resp.Model.(alertrules.ThreatIntelligenceAlertRule)
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled

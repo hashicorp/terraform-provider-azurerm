@@ -207,7 +207,7 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
+func TestAccPrivateEndpoint_staticIpAddress(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 

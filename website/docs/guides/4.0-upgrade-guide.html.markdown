@@ -1,0 +1,1319 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 4.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 4.0 Upgrade Guide
+
+---
+
+# Azure Provider
+
+## Azure Provider Version v4.0
+
+Version 3.0 of the Azure Provider was in March 2022. Since then we've added support for nearly 340 Resources and 120 Data Sources, bringing the total supported features to 1101 Resources and 358 Data Sources at the time of writing this guide.
+
+### Considerations
+
+Version 4.0 of the Azure Provider is a major release and includes breaking changes which are outlined in this document.
+
+When upgrading to version 4.0 of the Azure Provider, we recommend upgrading to the latest version of Terraform Core ([which can be found here](https://www.terraform.io/downloads)).
+
+This guide will continue to receive updates as we incorporate feedback and continue to fix any issues.
+
+### Pinning your Provider Version
+
+We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute within the `required_providers` block, either to a specific version of the Azure Provider, like so:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=4.4.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+.. or to any 4.x release:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.x"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://www.terraform.io/language/providers/requirements#requiring-providers).
+
+---
+
+
+## What's available in Version 4.0 of the Azure Provider?
+
+Below is an overview of the changes coming 4.0. Each topic is covered in more detail further down.
+
+* [Improved Resource Provider Registration](#improved-resource-provider-registration)
+* [Provider Functions](#provider-functions)
+* [Additional Properties for Subnets in the Virtual Network Resource](#additional-properties-for-subnets-in-the-virtual-network-resource)
+* [Azure Kubernetes Service (AKS) migration to stable API](#aks-migration-to-stable-api)
+* [Removed Resources](#removed-resources)
+* [Removed Data Sources](#removed-data-sources)
+* [Breaking Changes in Resources](#behaviour-changes-and-removed-properties-in-resources)
+* [Breaking Changes in Data Sources](#behaviour-changes-and-removed-properties-in-data-sources)
+
+## Improved Resource Provider Registration
+
+Previously the Azure Provider had an all(*) or nothing approach to Azure Resource Provider (RP) registration, where the provider would either attempt to register a set of 68 RPs upon provider initialization, or RP registration could be skipped entirely by setting `skip_provider_registration = true` in the provider block.
+
+The inflexibility of this method has been a pain point and is also at odds with the recommendations from Microsoft, which is to only register RPs as needed.
+
+RP registration in 4.0 has been revamped to provide users with more control over which RPs to automatically register or whether to continue managing RP registration outside the provider.
+
+We've introduced two new feature flags in the provider block:
+
+* `resource_provider_registrations` - This has 5 possible modes which are detailed below, that determine the set of RPs to automatically register on the subscription.
+    * `core` - A minimal set of RPs that are deemed necessary for a subscription, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L33-L44)
+    * `extended` - An expanded set of RPs as suggested by the community, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
+    * `all` - A complete set of RPs that might be needed to utilize any functionality in the provider, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L47-L91)
+    * `none` - No resource providers should be automatically registered, this is equivalent to setting `skip_provider_registration = true`
+    * `legacy` - A set of automatically registered RPs from earlier versions of the provider, this is only provided for forwards compatibility and will be removed in a future major version release, the list of RPs in this set can be found [here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/resourceproviders/required.go#L120-L191)
+
+* `resource_providers_to_register` - A custom list of RPs to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property
+
+Below are examples of how the two properties can be used.
+
+Only register a minimal set of `core` RPs on the subscription
+```hcl
+provider "azurerm" {
+  resource_provider_registrations = "core"
+}
+```
+
+Register a set of specific RPs in addition to the `core` RPs on the subscription
+```hcl
+provider "azurerm" {
+  resource_provider_registrations = "core"
+
+  resource_providers_to_register = [
+    "Microsoft.ContainerService",
+    "Microsoft.KeyVault",
+  ]
+}
+```
+
+Only register a custom set of RPs defined under `resource_providers_to_register` on the subscription
+```hcl
+provider "azurerm" {
+  resource_provider_registrations = "none"
+
+  resource_providers_to_register = [
+    "Microsoft.ApiManagement",
+    "Microsoft.Compute",
+    "Microsoft.KeyVault",
+    "Microsoft.Network",
+    "Microsoft.Storage",
+  ]
+}
+```
+
+(*)all in this case refers to the arbitrary list of Resource Providers that was used for registration
+
+## Specifying Subscription ID is now Mandatory
+
+In version 4.0 of the Azure Provider, it's now required to specify the Azure Subscription ID when configuring a provider instance in your configuration. This can be done by specifying the `subscription_id` provider property, or by exporting the `ARM_SUBSCRIPTION_ID` environment variable. For example:
+
+Specify the subscription ID in the provider block
+```hcl
+provider "azurerm" {
+  subscription_id = "00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+}
+```
+
+Specify the subscription ID using an environment variable
+```shell
+# Bash etc.
+export ARM_SUBSCRIPTION_ID=00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+```powershell
+# PowerShell
+[System.Environment]::SetEnvironmentVariable('ARM_SUBSCRIPTION_ID', '00000000-xxxx-xxxx-xxxx-xxxxxxxxxxxx', [System.EnvironmentVariableTarget]::User)
+```
+
+This change will not impact users who use any authentication method other than Azure CLI, for example those authenticating as a service principal using the provider's native support, users authenticating using OIDC, or authenticating using managed identity.
+
+Users authenticating the provider using Azure CLI, however, may previously have elected to omit the subscription ID from their Terraform configuration and rely on the provider selecting the currently active subscription from Azure CLI. Whilst convenient, this behavior has historically led to a number of issues. In particular, when omitting the subscription ID, the provider cannot guarantee that a plan is executed against the correct subscription.
+
+By making it mandatory to specify the subscription ID for all authentication methods, this will also make it possible to implement a number of improvements to our authentication support in the future.
+
+## Provider Functions
+
+With the addition of Provider Functions in Terraform 1.8, we've added two Azure specific provider functions to give users the ability to correct the casing of their Resource IDs, or to access the individual components of it.
+
+`normalise_resource_id` - Takes an Azure Resource ID and attempts to normalise the case-sensitive system segments as required by the Azure Provider. User specified segments are not affected or corrected. 
+
+Below is an example of how the function can be used. The input is a resource ID with segments that are not camel-cased.
+```hcl
+output "test" {
+  value = provider::azurerm::normalise_resource_id("/Subscriptions/12345678-1234-9876-4563-123456789012/ResourceGroups/resGroup1/PROVIDERS/microsoft.apimanagement/service/service1/gateWays/gateway1/hostnameconfigurations/config1")
+}
+
+# Result: /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1
+```
+
+`parse_resource_id` - Takes an Azure Resource ID and splits it into its component parts.
+
+Below is an example of how the function can be used. Any resource ID can be provided as input and will be output as a map.
+## Example Usage
+
+```hcl
+locals {
+  parsed_id = provider::azurerm::parse_resource_id("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/gateways/gateway1/hostnameConfigurations/config1")
+}
+output "parsed" {
+  value = local.parsed_id
+}
+output "resource_name" {
+  value = local.parsed_id["resource_name"]
+}
+
+# Result:
+# Outputs:
+# 
+# parsed = {
+# "full_resource_type" = "Microsoft.ApiManagement/service/gateways/hostnameConfigurations"
+# "parent_resources" = tomap({
+# "gateways" = "gateway1"
+# "service" = "service1"
+# })
+# "resource_group_name" = "resGroup1"
+# "resource_name" = "config1"
+# "resource_provider" = "Microsoft.ApiManagement"
+# "resource_scope" = tostring(null)
+# "resource_type" = "hostnameConfigurations"
+# "subscription_id" = "12345678-1234-9876-4563-123456789012"
+# }
+# resource_name = "config1"
+```
+
+## Additional Properties for Subnets in the Virtual Network Resource
+
+The `subnet` block within the `azurerm_virtual_network_resource` has been updated to include the following new properties:
+
+* `default_outbound_access_enabled`
+* `delegation`
+* `private_endpoint_network_policies`
+* `private_link_service_network_policies_enabled`
+* `route_table_id`
+* `service_endpoints`
+* `service_endpoint_policy_ids`
+
+In addition to the new properties `address_prefix` has been replaced by `address_prefixes` to allow multiple CIDRs in both IPv4 and IPv6 notation.
+
+When upgrading to 4.0, users may receive a warning that the resource needs to be replaced, this should however just be an update in-place.
+
+## AKS migration to stable API
+
+AKS API versions fall into two categories: stable and preview. The stable APIs represent features and functionality that the AKS team has made Generally Available and customers can rely on to be supported, have a service-level agreement and are fully maintained. Although the preview APIs may contain the latest and greatest features and functionality, they will contain preview features which are available on a self-service, opt-in basis. These previews are provided "as is" and "as available" and with limited warranty, they're excluded from the service-level agreements and are only partially covered by customer support on a best-effort basis. As such, the AKS Service Team have communicated that these features **aren't meant for production use**. For more information see the following support articles:
+
+- [AKS support policies](https://learn.microsoft.com/en-us/azure/aks/support-policies)
+- [Azure Support FAQ](https://learn.microsoft.com/en-us/azure/aks/faq)
+
+In order to provide a more reliable experience when using the Azure Provider, Microsoft has requested that the AKS resource only use a stable API version. Starting in version 4.0 of the AzureRM provider, Microsoft and HashiCorp have agreed to switch to the AKS stable APIs. This means that some preview features that are exposed in 3.x will no longer be available in 4.x. The following properties will no longer be available in 4.x:
+
+### Custom CA Trust
+
+* The `custom_ca_trust_enabled` property has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+* The `custom_ca_trust_certificates_base64` property has been removed from the `azurerm_kubernetes_cluster` resource and data source.
+
+### VNet Integration
+
+* The `api_server_access_profile.vnet_integration_enabled` property has been removed from the `azurerm_kubernetes_cluster` resource.
+* The `api_server_access_profile.subnet_id` property has been removed from the `azurerm_kubernetes_cluster` resource.
+
+### Workload Runtime KataMshvVMIsolation
+
+* The `workload_runtime` property will no longer accept `KataMshvVMIsolation` as a valid value in the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+
+### Disk Driver Version
+
+* The `storage_profile.disk_driver_version` property has been removed from the `azurerm_kubernetes_cluster` resource and data source.
+
+### Message Of The Day
+
+* The `message_of_the_day` property has been removed from the `azurerm_kubernetes_cluster` and `azurerm_kubernetes_cluster_node_pool` resources.
+
+If you wish to use these or any other AKS preview features and accept the risk that comes with using preview features, the [AzAPI Provider](https://registry.terraform.io/providers/Azure/azapi/latest/docs) can be used to access these features. Please note that changes made by AzAPI to a resource managed by the Azure Provider can have unexpected behavioral outcomes in the resource, as well as Terraform configuration consequences, such as diffs or resources being marked for recreation.
+
+## Removed Resources
+
+### `azurerm_app_service_environment`
+
+This resource will be retired by Azure by 2024-08-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_cdn_frontdoor_route_disable_link_to_default_domain`
+
+This deprecated resource has been superseded by the `link_to_default_domain` property in the `azurerm_cdn_frontdoor_route` resource and has been removed from the Azure Provider.
+
+### `azurerm_cosmosdb_notebook_workspace`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_dashboard`
+
+This deprecated resource has been superseded by `azurerm_portal_dashboard` and has been removed from the Azure Provider.
+
+### `azurerm_databox_edge_order`
+
+Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_databricks_workspace_customer_managed_key`
+
+This deprecated resource has been removed in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource and has been removed from the Azure Provider.
+
+### `azurerm_data_factory_integration_runtime_managed`
+
+This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the Azure Provider.
+
+### `azurerm_disk_pool_iscsi_target_lun`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_disk_pool_iscsi_target`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_disk_pool_managed_disk_attachment`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_disk_pool`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_graph_account`
+
+This deprecated resource has been superseded by `azurerm_graph_services_account` and has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_access_policy`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_event_source_eventhub`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_event_source_iothub`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_gen2_environment`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_reference_data_set`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_iot_time_series_insights_standard_environment`
+
+This Azure Service will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_integration_service_environment`
+
+This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_lab_service_lab`
+
+This Azure Service is being retired on 2027-06-28, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_lab_service_plan`
+
+This Azure Service is being retired on 2027-06-28, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_lab_service_schedule`
+
+This Azure Service is being retired on 2027-06-28, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_lab_service_user`
+
+This Azure Service is being retired on 2027-06-28, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_logz_monitor`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_logz_sub_account`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_logz_sub_account_tag_rule`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_logz_tag_rule`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_mariadb_configuration`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the Azure Provider.
+
+### `azurerm_mariadb_database`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the Azure Provider.
+
+### `azurerm_mariadb_firewall_rule`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the Azure Provider.
+
+### `azurerm_mariadb_server`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure Provider.
+
+### `azurerm_mariadb_virtual_network_rule`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure Provider.
+
+### `azurerm_media_asset_filter`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_asset`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_content_key_policy`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_job`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_live_event`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_live_output`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_services_account_filter`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_services_account`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_streaming_endpoint`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_streaming_locator`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_streaming_policy`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_media_transform`
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### `azurerm_monitor_action_rule_action_group`
+
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_action_group` and has been removed from the Azure Provider.
+
+### `azurerm_monitor_action_rule_suppression`
+
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_suppression` and has been removed from the Azure Provider.
+
+### `azurerm_monitor_log_profile`
+
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_mysql_active_directory_administrator`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_active_directory_administrator` and has been removed from the Azure Provider.
+
+### `azurerm_mysql_configuration`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the Azure Provider.
+
+### `azurerm_mysql_database`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the Azure Provider.
+
+### `azurerm_mysql_firewall_rule`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the Azure Provider.
+
+### `azurerm_mysql_server_key`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by the `customer_managed_key` block in the `azurerm_mysql_flexible_server` resource and has been removed from the Azure Provider.
+
+### `azurerm_mysql_server`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure Provider.
+
+### `azurerm_mysql_virtual_network_rule`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure Provider.
+
+### `azurerm_network_packet_capture`
+
+This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
+
+### `azurerm_template_deployment`
+
+This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the Azure Provider.
+
+### `azurerm_security_center_server_vulnerability_assessment`
+
+This deprecated resource has been superseded by `azurerm_security_center_server_vulnerability_assessment_virtual_machine` and has been removed from the Azure Provider.
+
+### `azurerm_servicebus_namespace_network_rule_set`
+
+This deprecated resource has been superseded by the `network_rule_set` block in the `azurerm_servicebus_namespace` resource and has been removed from the Azure Provider.
+
+### `azurerm_sql_active_directory_administrator`
+
+This deprecated resource has been superseded by the `azuread_administrator` block in the `azurerm_mssql_server` resource and has been removed from the Azure Provider.
+
+### `azurerm_sql_database`
+
+This deprecated resource has been superseded by `azurerm_mssql_database` and has been removed from the Azure Provider.
+
+### `azurerm_sql_elasticpool_resource`
+
+This deprecated resource has been superseded by `azurerm_mssql_elasticpool` and has been removed from the Azure Provider.
+
+### `azurerm_sql_failover_group`
+
+This deprecated resource has been superseded by `azurerm_mssql_failover_group` and has been removed from the Azure Provider.
+
+### `azurerm_sql_firewall_rule`
+
+This deprecated resource has been superseded by `azurerm_mssql_firewall_rule` and has been removed from the Azure Provider.
+
+### `azurerm_sql_managed_database`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_database` and has been removed from the Azure Provider.
+
+### `azurerm_sql_managed_instance_active_directory_administrator`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_active_directory_administrator` and has been removed from the Azure Provider.
+
+### `azurerm_sql_managed_instance_failover_group`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_failover_group` and has been removed from the Azure Provider.
+
+### `azurerm_sql_managed_instance`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure Provider.
+
+### `azurerm_sql_server`
+
+This deprecated resource has been superseded by `azurerm_mssql_server` and has been removed from the Azure Provider.
+
+### `azurerm_sql_virtual_network_rule`
+
+This deprecated resource has been superseded by `azurerm_mssql_virtual_network_rule` and has been removed from the Azure Provider.
+
+### `azurerm_video_analyzer_edge_module`
+
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure Provider.
+
+### `azurerm_video_analyzer`
+
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure Provider.
+
+## Removed Data Sources
+
+### `azurerm_app_service_environment`
+
+This resource will be retired by Azure by 2024-08-31, as a result this deprecated data source has been removed from the Azure Provider.
+
+### `azurerm_hybrid_compute_machine`
+
+The deprecated data source has been superseded by `azurerm_arc_machine` and has been removed from the Azure Provider.
+
+### `azurerm_mariadb_server`
+
+The Azure Database for Maria DB will be retired on 2024-09-19 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure Provider.
+
+### `azurerm_monitor_log_profile`
+
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated data source has been removed from the Azure Provider.
+
+### `azurerm_mysql_server`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure Provider.
+
+### `azurerm_sql_database`
+
+The deprecated data source has been superseded by `azurerm_mssql_database` and has been removed from the Azure Provider.
+
+### `azurerm_sql_managed_instance`
+
+The deprecated data source has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure Provider.
+
+### `azurerm_sql_server`
+
+The deprecated data source has been superseded by `azurerm_mssql_server` and has been removed from the Azure Provider.
+
+## Behaviour changes and removed properties in Resources
+
+### `azurerm_analysis_services_server`
+
+* The deprecated `enable_power_bi_service` property has been removed in favour of the `power_bi_service_enabled` property.
+* The `querypool_connection_mode` property now defaults to `All`.
+
+### `azurerm_api_connection`
+
+* The `display_name` property now defaults to `Service Bus`.
+
+### `azurerm_api_management_api`
+
+* The deprecated `soap_pass_through` property has been removed in favour of the `api_type` property.
+
+### `azurerm_api_management_api_tag`
+
+* This resource will need to be recreated upon upgrading so that the tag revision can be included in the resource ID.
+
+### `azurerm_api_management`
+
+* The deprecated `policy` block has been removed in favour of the `azurerm_api_management_policy` resource.
+
+### `azurerm_api_management_diagnostic`
+
+* The `operation_name_format` property has had the default value `Name` removed.
+
+### `azurerm_application_gateway`
+
+* The `ssl_profile.ssl_policy.policy_name` property now has a default value of `AppGwSslPolicy20220101`.
+* The `ssl_profile.ssl_policy.min_protocol_version` property now has a default value of `TLSv1_2`.
+
+### `azurerm_application_insights`
+
+* The `daily_data_cap_in_gb` property now defaults to `100`.
+* The `daily_data_cap_notifications_disabled` property now defaults to `false`.
+
+### `azurerm_attestation_provider`
+
+* The deprecated `policy` block has been removed in favour of the `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64` and `sev_snp_policy_base64` properties.
+
+### `azurerm_automation_account`
+
+* The deprecated `encryption.key_source` property has been removed.
+
+### `azurerm_automation_software_update_configuration`
+
+* The deprecated `linux.classification_included` property has been removed in favour of the `linux.classifications_included` property.
+* The deprecated `windows.classification_included` property has been removed in favour of the `windows.classifications_included` property.
+* The deprecated `operating_system` property has been removed in favour of the `linux` or `windows` blocks.
+* The deprecated `error_meesage` property has been removed in favour of the `error_message` property.
+
+### `azurerm_bot_channel_web_chat`
+
+* The deprecated `site_names` property has been removed in favour of the `site` property.
+
+### `azurerm_bot_channels_registration`
+
+* The deprecated `isolated_network_enabled` property has been removed in favour of the `public_network_access_enabled` property.
+* The `icon_url` property now defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
+
+### `azurerm_bot_connection`
+
+* The deprecated `tags` property has been removed.
+
+### `azurem_cdn_endpoint`
+
+* The `origin_path` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `content_types_to_compress` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `probe_path` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_cdn_endpoint_custom_domain`
+
+* The deprecated `user_managed_https.key_vault_certificate_id` property has been removed in favour of the `user_managed_https.key_vault_secret_id` property.
+* The `user_managed_https.key_vault_secret_id` property is now Required.
+
+### `azurerm_cdn_frontdoor_origin`
+
+* The deprecated `health_probes_enabled` property has been removed in favour of the `enabled` property.
+* The `enabled` property now defaults to `true`.
+
+### `azurerm_cognitive_deployment`
+
+* The `scale` block is no longer supported by the service and has been removed and replaced with the `sku` block.
+
+### `azurerm_consumption_budget_management_group`
+
+* The deprecated `filter.not` block has been removed.
+
+### `azurerm_consumption_budget_resource_group`
+
+* The deprecated `filter.not` block has been removed.
+
+### `azurerm_consumption_budget_subscription`
+
+* The deprecated `filter.not` block has been removed.
+
+### `azurerm_container_app_job`
+
+* The deprecated `secrets` block has been removed in favour of the `secret` block.
+* The deprecated `registries` block has been removed in favour of the `registry` block.
+
+### `azurerm_container_app`
+
+* The deprecated `ingress.custom_domain` block is now only `Computed`. Custom Domains should be configured with the `azurerm_container_app_custom_domain` resource.
+
+### `azurerm_container_group`
+
+* The deprecated `network_profile_id` property has been removed in favour of the `subnet_ids` property.
+* The deprecated `container.gpu` block has been removed.
+* The deprecated `container.gpu_limit` block has been removed.
+* The `container.liveness_probe.http_get.scheme` property is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
+* The `container.readiness_probe.http_get.scheme` property is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
+
+### `azurerm_container_registry`
+
+* The deprecated `encryption.enabled` property has been removed. Encryption can be toggled on and off through the presence and absence of the `encryption` block in the configuration.
+* The deprecated `retention_policy` block has been removed in favour of the `retention_policy_in_days` property.
+* The deprecated `trust_policy` block has been removed in favour of the `trust_policy_enabled` property.
+* The deprecated `network_rule_set.virtual_network` block has been removed.
+
+### `azurerm_cosmosdb_account`
+
+* The deprecated `connection_strings` property has been removed in favour of the primary and secondary connection strings for sql, mongodb and readonly properties.
+* The deprecated `enable_multiple_write_locations` property has been removed in favour of the `multiple_write_locations_enabled` property.
+* The deprecated `enable_free_tier` property has been removed in favour of the `free_tier_enabled` property.
+* The deprecated `enable_automatic_failover` property has been removed in favour of the `automatic_failover_enabled` property.
+* The `minimal_tls_version` property now defaults to `Tls12`.
+* The `ip_range_filter` property is now a set that will only accept valid CIDR values.
+
+### `azurerm_cosmosdb_sql_container`
+
+* The deprecated `partition_key_path` property has been removed in favour of the `partition_key_paths` property.
+
+### `azurerm_data_factory_integration_runtime_azure`
+
+* The `cleanup_enabled` property now defaults to `true`.
+
+### `azurerm_data_protection_backup_policy_blob_storage`
+
+* The deprecated `retention_duration` property has been removed in favour of the `operational_default_retention_duration` property.
+
+### `azurerm_databricks_workspace`
+
+* The `custom_parameters.no_public_ip` property now defaults to `true`.
+* The `network_security_group_rules_required` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_dashboard_grafana`
+
+* The `grafana_major_version` property is now Required.
+
+### `azurerm_dev_test_lab`
+
+* The deprecated `storage_type` property has been removed.
+
+### `azurerm_digital_twins_time_series_database_connection`
+
+* The `kusto_table_name` property now defaults to `AdtPropertyEvents`.
+
+### `azurerm_elastic_cloud_elasticsearch`
+
+* The `logs` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_eventhub_namespace`
+
+* The deprecated `zone_redundant` property has been removed.
+* The `minimum_tls_version` property now defaults to `1.2`.
+
+### `azurerm_express_route_port`
+
+* The `billing_type` property now defaults to `MeteredData`.
+
+### `azurerm_firewall_policy`
+
+* The `sku` property now defaults to `Standard`.
+
+### `azurerm_function_app`
+
+* The `site.config.elastic_instance_minimum` property no longer accepts the value 0.
+
+### `azurerm_hdinsight_kafka_cluster`
+
+* The `roles.kafka_management_node.username` property is now Computed only.
+
+### `azurerm_image`
+
+* A new required `storage_type` property has been added to the `os_disk` and `data_disk` blocks.
+
+### `azurerm_iotcentral_application`
+
+* The `template` property now defaults to `iotc-pnp-preview@1.0.0`.
+
+### `azurerm_iothub`
+
+* The `event_hub_partition_count` property now defaults to `4`.
+* The `event_hub_retention_in_days` property now defaults to `1`.
+* The `fallback_route.enabled` property now defaults to `true`.
+* The `file_upload.sas_ttl` property now defaults to `PT1H`.
+* The `file_upload.default_ttl` property now defaults to `PT1H`.
+* The `file_upload.lock_duration` property now defaults to `PT1M`.
+
+### `azurerm_key_vault_managed_hardware_security_module_role_assignment`
+
+* The deprecated `vault_base_url` property has been removed in favour of the `managed_hsm_id` property.
+
+### `azurerm_kubernetes_cluster`
+
+* The deprecated `enable_pod_security_policy` property has been removed.
+* The deprecated `network_profile.ebpf_data_plane` property has been removed in favour of the `network_profile.network_data_plane` property.
+* The deprecated `api_server_authorized_ip_ranges` property has been removed in favour of the `api_server_access_profile.authorized_ip_ranges` property.
+* The deprecated `network_profile.docker_bridge_cidr` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.client_app_id` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.server_app_id` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.server_app_secret` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.managed` property has been removed.
+* The deprecated `workload_autoscaler_profile.vertical_pod_autoscaler_update_mode` property has been removed.
+* The deprecated `workload_autoscaler_profile.vertical_pod_autoscaler_controlled_values` property has been removed.
+* The deprecated `web_app_routing.dns_zone_id` property has been removed in favour of the `web_app_routing.dns_zone_ids` property.
+* The deprecated `public_network_access_enabled` property has been removed.
+* The deprecated `default_node_pool.node_taints` property has been removed.
+* The `automatic_channel_upgrade` property has been renamed to `automatic_upgrade_channel`.
+* The `node_os_channel_upgrade` property has been renamed to `node_os_upgrade_channel` and now defaults to `NodeImage`.
+* The `default_node_pool.enable_auto_scaling` property has been renamed to `default_node_pool.auto_scaling_enabled`.
+* The `default_node_pool.enable_node_public_ip` property has been renamed to `default_node_pool.node_public_ip_enabled`.
+* The `default_node_pool.enable_host_encryption` property has been renamed to `default_node_pool.host_encryption_enabled`.
+* The `default_node_pool.type` property no longer accepts the value `AvailabilitySet`.
+* The `image_cleaner_interval_hours` property now defaults to `0` and will only be set if `image_cleaner_enabled` has been set to `true`.
+* The `network_profile.load_balancer_profile.outbound_ip_prefix_ids` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `network_profile.load_balancer_profile.outbound_ip_address_ids` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `service_mesh_profile` block has had the required `revisions` property added.
+
+### `azurerm_kubernetes_fleet_manager`
+
+* The deprecated `hub_profile` block has been removed.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The `enable_auto_scaling` property has been renamed to `auto_scaling_enabled`.
+* The `enable_node_public_ip` property has been renamed to `node_public_ip_enabled`.
+* The `enable_host_encryption` property has been renamed to `host_encryption_enabled`.
+
+### `azurerm_kusto_cluster`
+
+* The deprecated `engine` property has been removed.
+
+### `azurerm_lb`
+
+* The `sku` property now defaults to `Standard`.
+
+### `azurerm_lb_nat_rule`
+
+* The `idle_timeout_in_minutes` property now defaults to `4`.
+
+### `azurerm_lb_rule`
+
+* The `idle_timeout_in_minutes` property now defaults to `4`.
+* The `load_distribution` property now defaults to `Default`.
+
+### `azurerm_linux_function_app`
+
+* The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* New `vnet_image_pull_enabled` property has been added, this property must be set to `true` if your App is running in an App Service Environment.
+
+### `azurerm_linux_function_app_slot`
+
+* New `vnet_image_pull_enabled` property has been added, this property must be set to `true` if your App is running in an App Service Environment.
+
+### `azurerm_linux_virtual_machine_scale_set`
+
+* The deprecated `gallery_applications` block has been removed in favour of the `gallery_application` block.
+* The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
+* The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
+* The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_linux_web_app`
+
+* The deprecated `site_config.auto_heal_setting.trigger.slow_request.path` property has been removed in favour of the `site_config.auto_heal_setting.trigger.slow_request_with_path` block.
+* The deprecated `site_config.application_stack.docker_image_tag` property has been removed.
+* The deprecated `site_config.application_stack.docker_image` property has been removed.
+* The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
+
+### `azurerm_linux_web_app_slot`
+
+* The deprecated `site_config.application_stack.docker_image_tag` property has been removed.
+* The deprecated `site_config.application_stack.docker_image` property has been removed.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
+
+### `azurerm_log_analytics_cluster`
+
+* The `size_gb` property now defaults to `100`.
+
+### `azurerm_log_analytics_workspace`
+
+* The `sku` property no longer supports the value `Free`.
+
+### `azurerm_logic_app_standard`
+
+* The `version` property now defaults to `~4`.
+
+### `azurerm_machine_learning_compute_cluster`
+
+* The `ssh_public_access_enabled` property now defaults to `false`.
+
+### `azurerm_machine_learning_compute_instance`
+
+* The deprecated `location` property has been removed.
+
+### `azurerm_machine_learning_datastore_datalake_gen2`
+
+* The `authority_url` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_machine_learning_workspace`
+
+* The deprecated `public_access_behind_virtual_network_enabled` property has been removed in favour of the `public_network_access_enabled` property.
+* The `public_network_access_enabled` property now defaults to `true`.
+
+### `azurerm_managed_application`
+
+* The deprecated `parameters` property has been removed in favour of the `parameter_values` property.
+
+### `azurerm_managed_disk`
+
+* The deprecated `encryption_settings.enabled` property has been removed, enabling and disabling encryption is controlled by the presence or absence of the `encryption_settings` block.
+
+### `azurerm_management_group_policy_remediation`
+
+* The deprecated `policy_definition_id` property has been removed in favour of the `policy_definition_reference_id` property.
+* The deprecated `resource_discovery_mode` property has been removed.
+
+### `azurerm_monitor_aad_diagnostic_setting`
+
+* The deprecated `log` block has been removed in favour of the `enabled_log` block.
+
+### `azurerm_monitor_action_group`
+
+* The deprecated `event_hub_receiver.event_hub_id` property has been removed in favour of the `event_hub_receiver.event_hub_name` and `event_hub_receiver.event_hub_namespace` properties.
+
+### `azurerm_monitor_activity_log_alert`
+
+* The `location` property is now Required.
+
+### `azurerm_monitor_data_collection_rule`
+
+* The `data_sources.syslog.streams` property is now Required.
+
+### `azurerm_monitor_diagnostic_setting`
+
+* The deprecated `enabled_log.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
+* The deprecated `metric.retention_policy` block has been removed in favour of the `azurerm_storage_management_policy` resource.
+* The deprecated `log` block has been removed in favour of the `enabled_log` block.
+
+### `azurerm_mssql_managed_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
+
+### `azurerm_mssql_database`
+
+* The `long_term_retention_policy.immutable_backups_enabled` property has been removed due to a breaking SDK upgrade.
+
+### `azurerm_netapp_pool`
+
+* The `qos_type` property now defaults to `Auto`.
+
+### `azurerm_netapp_snapshot_policy`
+
+* The `hourly_schedule` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `daily_schedule` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `weekly_schedule` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The `monthly_schedule` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_netapp_volume`
+
+* The `network_features` property now defaults to `Basic`.
+
+### `azurerm_network_connection_monitor`
+
+* The `output_workspace_resource_ids` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_network_interface`
+
+* The `dns_servers` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+* The deprecated `enable_accelerated_networking` property has been removed in favour of the `accelerated_networking_enabled` property.
+* The deprecated `enable_ip_forwarding` property has been removed in favour of the `ip_forwarding_enabled` property.
+
+### `azurerm_network_watcher_flow_log`
+
+* The `version` property now defaults to `1`.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `configuration` block has been removed in favour of the `azurerm_nginx_configuration` resource.
+* The `capacity` property no longer has a default value of 20. `sku`s that support scaling now require either `capacity` or `auto_scale_profiles`.
+
+### `azurerm_orchestrated_virtual_machine_scale_set`
+
+* The `extension_operations_enabled` property now defaults to `true`.
+
+### `azurerm_private_dns_resolver_inbound_endpoint`
+
+* The `ip_configurations` block can have a maximum of one item.
+
+### `azurerm_public_ip`
+
+* The `sku` property now defaults to `Standard`.
+
+### `azurerm_recovery_services_vault_resource_guard_association`
+
+* The deprecated `name` property has been removed.
+
+### `azurerm_redis_cache`
+
+* The deprecated `enable_non_ssl_port` property has been removed in favour of the `non_ssl_port_enabled` property.
+* The deprecated `redis_configuration.enable_authentication` property has been removed in favour of the `redis_configuration.authentication_enabled` property.
+* The `redis_configuraton.data_persistence_authentication_method` property no longer defaults to `SAS`.
+* The `family` property is now case-sensitive. You will need to update your configuration to match the casing expected by the API.
+* The `redis_version` property now defaults to `6`.
+
+### `azurerm_redis_enterprise_database`
+
+* The deprecated `resource_group_name` property has been removed.
+
+### `azurerm_resource_policy_remediation`
+
+* The deprecated `policy_definition_id` property has been removed in favour of the `policy_definition_reference_id` property.
+
+### `azurerm_resource_group_policy_remediation`
+
+* The deprecated `policy_definition_id` property has been removed in favour of the `policy_definition_reference_id` property.
+
+### `azurerm_route_table`
+
+* The deprecated `disable_bgp_route_propagation` property has been removed in favour of the `bgp_route_propagation_enabled` property.
+
+### `azurerm_site_recovery_protection_container_mapping`
+
+* The `authentication_type` property now defaults to `SystemAssignedIdentity`.
+
+### `azurerm_site_recovery_replicated_vm`
+
+* The deprecated `is_primary` property has been removed.
+
+### `azurerm_snapshot`
+
+* The deprecated `encryption_settings.enabled` property has been removed, enabling and disabling encryption is controlled by the presence or absence of the `encryption_settings` block.
+
+### `azurerm_spring_cloud_gateway_route_config`
+
+* The `protocol` property has become Required.
+
+### `azurerm_stream_analytics_job`
+
+* The `data_locale` property now defaults to `en-US`.
+
+### `azurerm_subnet`
+
+* The `actions` block has become a Set instead of a List, meaning that the order of these items no longer matters. If you're referencing these items within your Terraform Configuration, then this may require some code changes.
+* The deprecated `private_endpoint_network_policies_enabled` property has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated `enforce_private_link_endpoint_network_policies` property has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated `enforce_private_link_service_network_policies` property has been removed in favour of the `private_link_service_network_policies_enabled` property.
+* The `private_endpoint_network_policies` property now defaults to `Disabled`.
+* The `private_link_service_network_policies_enabled` property now defaults to `true`.
+
+### `azurerm_subscription_policy_remediation`
+
+* The deprecated `policy_definition_id` property has been removed in favour of the `policy_definition_reference_id` property.
+
+### `azurerm_site_recovery_replication_recovery_plan`
+
+* The deprecated `recovery_group` block has been removed in favour of the `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group` properties.
+
+### `azurerm_sentinel_alert_rule_ms_security_incident`
+
+* The `display_name_filter` block is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_sentinel_alert_rule_scheduled`
+
+* The deprecated `incident_configuration` block has been removed in favour of the `incident` block.
+* The deprecated `incident_configuration.create_incident` property has been removed in favour of the `incident.create_incident_enabled` property.
+* The deprecated `incident_configuration.group_by_entities` property has been removed in favour of the `incident.by_entities` property.
+* The deprecated `incident_configuration.group_by_alert_details` property has been removed in favour of the `incident.by_alert_details` property.
+* The deprecated `incident_configuration.group_by_custom_details` property has been removed in favour of the `incident.by_custom_details` property.
+
+### `azurerm_sentinel_automation_rule`
+
+* The deprecated `condition` property has been removed in favour of the `condition_json` property.
+
+### `azurerm_sentinel_data_connector_microsoft_threat_intelligence`
+
+* The deprecated `bing_safety_phishing_url_lookback_date` property has been removed.
+
+### `azurerm_sentinel_log_analytics_workspace_onboarding`
+
+* The deprecated `name` property has been removed in favour of the `workspace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `workspace_id` property.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+* The `auto_delete_on_idle` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `default_message_ttl` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `duplicate_detection_history_time_window` property now defaults to `PT10M`.
+* The `lock_duration` property now defaults to `PT1M`.
+* The `max_message_size_in_kilobytes` property now defaults to `256`.
+* The `max_size_in_megabytes` property now defaults to `5120`.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The `auto_delete_on_idle` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `default_message_ttl` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `lock_duration` property now defaults to `PT1M`.
+
+### `azurerm_servicebus_topic`
+
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+* The `auto_delete_on_idle` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `default_message_ttl` property now defaults to `P10675199DT2H48M5.4775807S`.
+* The `duplicate_detection_history_time_window` property now defaults to `P10M`.
+* The `max_message_size_in_kilobytes` property now defaults to `256`.
+* The `max_size_in_megabytes` property now defaults to `5120`.
+
+### `azurerm_servicebus_namespace`
+
+* The deprecated `zone_redundant` property has been removed.
+* The `minimum_tls_version` property now defaults to `1.2`.
+
+### `azurerm_signalr_service`
+
+* The deprecated `live_trace_enabled` property has been removed in favour of the `live_trace` property.
+* The `cors` property is no longer `Computed`. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_storage_account`
+
+* The deprecated `enable_https_traffic_only` property has been removed in favour of the `https_traffic_only_enabled` property.
+* The `large_file_share_enabled` property is no longer defaulted to `true` as that value varies based on the value of `account_kind`
+* The `cross_tenant_replication_enabled` property now defaults to `false`
+
+### `azurerm_storage_account_customer_managed_key`
+
+* The `key_vault_id` property no longer accepts Managed HSM keys, instead please use the `managed_hsm_key_id` property.
+
+### `azurerm_storage_share_directory`
+
+* The deprecated `share_name` property has been removed in favour of the `storage_share_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_share_id` property.
+
+### `azurerm_storage_table_entity`
+
+* The deprecated `table_name` property has been removed in favour of the `storage_table_id` property.
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_table_id` property.
+
+### `azurerm_synapse_sql_pool_vulnerability_assessment`
+
+* The `recurring_scans.email_subscription_admins_enabled` property now defaults to `true`.
+
+### `azurerm_synapse_workspace_vulnerability_assessment`
+
+* The `recurring_scans.email_subscription_admins_enabled` property now defaults to `true`.
+
+### `azurerm_synapse_workspace`
+
+* The deprecated `aad_admin` block has been removed in favour of the `azurerm_synapse_workspace_aad_admin` resource.
+* The deprecated `sql_aad_admin` block has been removed in favour of the `azurerm_synapse_workspace_sql_aad_admin` resource.
+
+### `azurerm_traffic_manager_azure_endpoint`
+
+* The `weight` property now defaults to `1`.
+* The `priority` property now defaults to `1`.
+
+### `azurerm_traffic_manager_external_endpoint`
+
+* The `weight` property now defaults to `1`.
+* The `priority` property now defaults to `1`.
+
+### `azurerm_traffic_manager_nested_endpoint`
+
+* The `weight` property now defaults to `1`.
+* The `priority` property now defaults to `1`.
+
+### `azurerm_traffic_manager_profile`
+
+* The `profile_status` property now defaults to `Enabled`.
+
+### `azurerm_virtual_network`
+
+* The `address_space` property has been changed from a list to a set. If you're referencing an element in this property then this will require code changes.
+
+### `azurerm_virtual_network_gateway_connection`
+
+* The `shared_key` property has become Required.
+
+### `azurerm_vpn_gateway`
+
+* The `routing_preference` property now defaults to `Microsoft Network`.
+
+### `azurerm_vpn_gateway_nat_rule`
+
+* The deprecated `external_address_space_mappings` property has been removed in favour of the `external_mapping` property.
+* The deprecated `internal_address_space_mappings` property has been removed in favour of the `internal_mapping` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `vpn_gateway_id` property.
+
+### `azurerm_web_application_firewall_policy`
+
+* The deprecated `managed_rules.managed_rule_set.rule_group_override.disabled_rules` property has been removed in favour of the `managed_rules.managed_rule_set.rule_group_override.rule` block.
+* The `managed_rules.managed_rule_set.rule_group_override.rule.enabled` property now defaults to `false`.
+
+### `azurerm_windows_function_app`
+
+* The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* New `vnet_image_pull_enabled` property has been added, this property must be set to `true` if your App is running in an App Service Environment.
+
+### `azurerm_windows_function_app`
+
+* New `vnet_image_pull_enabled` property has been added, this property must be set to `true` if your App is running in an App Service Environment.
+
+### `azurerm_windows_virtual_machine_scale_set`
+
+* The deprecated `gallery_applications` block has been removed in favour of the `gallery_application` block.
+* The deprecated `terminate_notification` block has been removed in favour of the `termination_notification` block.
+* The deprecated `scale_in_policy` property has been removed in favour of the `scale_in` block.
+* The `extension_operations_enabled` property now defaults to `true`.
+* The `scale_in` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
+
+### `azurerm_windows_web_app`
+
+* The deprecated `site_config.auto_heal_setting.trigger.slow_request.path` property has been removed in favour of the `site_config.auto_heal_setting.trigger.slow_request_with_path` block.
+* The deprecated `site_config.application_stack.docker_container_registry` property has been removed.
+* The `site_config.application_stack.docker_container_name` property has been removed.
+* The `site_config.application_stack.docker_container_tag` property has been removed.
+* The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
+
+### `azurerm_windows_web_app_slot`
+
+* The deprecated `site_config.auto_heal_setting.trigger.slow_request.path` property has been removed in favour of the `site_config.auto_heal_setting.trigger.slow_request_with_path` block.
+* The deprecated `site_config.application_stack.docker_container_registry` property has been removed.
+* The `site_config.application_stack.docker_container_name` property has been removed.
+* The `site_config.application_stack.docker_container_tag` property has been removed.
+* The properties `site_config.health_check_path` and `site_config.health_check_eviction_time_in_min` must be set together.
+* The property `auto_heal_enabled` has been removed and is now implied by the presence of the `auto_heal` block.
+
+## Behaviour changes and removed properties in Data Sources
+
+### `azurerm_cosmosdb_account`
+
+* The deprecated `connection_strings` property has been removed in favour of the primary and secondary connection strings for sql, mongodb and readonly properties.
+* The deprecated `enable_multiple_write_locations` property has been removed in favour of the `multiple_write_locations_enabled` property.
+* The deprecated `enable_free_tier` property has been removed in favour of the `free_tier_enabled` property.
+* The deprecated `enable_automatic_failover` property has been removed in favour of the `automatic_failover_enabled` property.
+
+### `azurerm_eventhub_namespace`
+
+* The deprecated `zone_redundant` property has been removed.
+
+### `azurerm_kubernetes_cluster`
+
+* The deprecated `agent_pool_profile.enable_auto_scaling` property has been removed in favour of the `agent_pool_profile.auto_scaling_enabled` property.
+* The deprecated `agent_pool_profile.enable_node_public_ip` property has been removed in favour of the `agent_pool_profile.node_public_ip_enabled` property.
+* The deprecated `agent_pool_profile.enable_host_encryption` property has been removed in favour of the `agent_pool_profile.host_encryption_enabled` property.
+* The deprecated `azure_active_directory_role_based_access_control.client_app_id` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.server_app_id` property has been removed.
+* The deprecated `azure_active_directory_role_based_access_control.managed` property has been removed.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The deprecated `enable_auto_scaling` property has been removed in favour of the `auto_scaling_enabled` property.
+* The deprecated `enable_node_public_ip` property has been removed in favour of the `node_public_ip_enabled` property.
+
+### `azurerm_linux_web_app`
+
+* The deprecated `site_config.application_stack.docker_image_tag` property has been removed.
+* The deprecated `site_config.application_stack.docker_image` property has been removed.
+
+### `azurerm_monitor_action_group`
+
+* The deprecated `event_hub_receiver.event_hub_id` property has been removed in favour of the `event_hub_receiver.event_hub_name` and `event_hub_receiver.event_hub_namespace` properties.
+
+### `azurerm_monitor_diagnostic_categories`
+
+* The deprecated `logs` property has been removed in favour of the `log_category_types` property.
+
+### `azurerm_network_interface`
+
+* The deprecated `enable_accelerated_networking` property has been removed in favour of the `accelerated_networking_enabled` property.
+* The deprecated `enable_ip_forwarding` property has been removed in favour of the `ip_forwarding_enabled` property.
+
+### `azurerm_storage_account`
+
+* The deprecated `enable_https_traffic_only` property has been removed in favour of the `https_traffic_only_enabled` property.
+
+### `azurerm_storage_table_entity`
+
+* The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
+
+### `azurerm_storage_table_entities`
+
+* The deprecated properties `storage_account_name` and `table_name` have been removed in favour of the `storage_table_id` property.
+
+### `azurerm_subnet`
+
+* The deprecated `private_endpoint_network_policies_enabled` property has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated `enforce_private_link_endpoint_network_policies` property has been removed in favour of the `private_endpoint_network_policies` property.
+* The deprecated `enforce_private_link_service_network_policies` property has been removed in favour of the `private_link_service_network_policies_enabled` property.
+
+### `azurerm_servicebus_namespace_authorization_rule`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `namespace_name` property has been removed in favour of the `topic_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `topic_id` property.
+* The deprecated `topic_name` property has been removed in favour of the `topic_id` property.
+
+### `azurerm_servicebus_topic`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
+
+### `azurerm_servicebus_namespace`
+
+* The deprecated `zone_redundant` property has been removed.
+
+### `azurerm_windows_web_app`
+
+* The `site_config.application_stack.docker_container_registry` property has been removed.
+* The `site_config.application_stack.docker_container_name` property has been removed.
+* The `site_config.application_stack.docker_container_tag` property has been removed.

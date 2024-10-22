@@ -19,11 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LogAnalyticsWorkspaceTableResource struct {
-}
+type LogAnalyticsWorkspaceTableResource struct{}
 
-var _ sdk.ResourceWithUpdate = LogAnalyticsWorkspaceTableResource{}
-var _ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
+)
 
 type LogAnalyticsWorkspaceTableResourceModel struct {
 	Name                 string `tfschema:"name"`
@@ -76,13 +77,13 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		"retention_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
+			ValidateFunc: validation.IntBetween(4, 730),
 		},
 
 		"total_retention_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.Any(validation.IntBetween(30, 4383), validation.IntInSlice([]int{7})),
+			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
 }
@@ -132,8 +133,12 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
 				updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+			}
+
+			if model.TotalRetentionInDays != 0 {
 				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
 				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
 			}
@@ -182,10 +187,10 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						if metadata.ResourceData.HasChange("retention_in_days") {
 							updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
 						}
+					}
 
-						if metadata.ResourceData.HasChange("total_retention_in_days") {
-							updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
-						}
+					if metadata.ResourceData.HasChange("total_retention_in_days") {
+						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
 					}
 
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
@@ -232,8 +237,8 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
-						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
+					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					state.Plan = string(pointer.From(props.Plan))
 				}
 			}

@@ -46,7 +46,6 @@ func (c ArcSettingsClient) GeneratePassword(ctx context.Context, id ArcSettingId
 
 	var model PasswordCredential
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

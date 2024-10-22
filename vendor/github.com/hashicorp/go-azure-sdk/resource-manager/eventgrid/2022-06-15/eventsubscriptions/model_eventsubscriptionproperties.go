@@ -40,10 +40,19 @@ func (o *EventSubscriptionProperties) SetExpirationTimeUtcAsTime(input time.Time
 var _ json.Unmarshaler = &EventSubscriptionProperties{}
 
 func (s *EventSubscriptionProperties) UnmarshalJSON(bytes []byte) error {
-	type alias EventSubscriptionProperties
-	var decoded alias
+	var decoded struct {
+		DeadLetterWithResourceIdentity *DeadLetterWithResourceIdentity     `json:"deadLetterWithResourceIdentity,omitempty"`
+		DeliveryWithResourceIdentity   *DeliveryWithResourceIdentity       `json:"deliveryWithResourceIdentity,omitempty"`
+		EventDeliverySchema            *EventDeliverySchema                `json:"eventDeliverySchema,omitempty"`
+		ExpirationTimeUtc              *string                             `json:"expirationTimeUtc,omitempty"`
+		Filter                         *EventSubscriptionFilter            `json:"filter,omitempty"`
+		Labels                         *[]string                           `json:"labels,omitempty"`
+		ProvisioningState              *EventSubscriptionProvisioningState `json:"provisioningState,omitempty"`
+		RetryPolicy                    *RetryPolicy                        `json:"retryPolicy,omitempty"`
+		Topic                          *string                             `json:"topic,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into EventSubscriptionProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DeadLetterWithResourceIdentity = decoded.DeadLetterWithResourceIdentity
@@ -62,7 +71,7 @@ func (s *EventSubscriptionProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["deadLetterDestination"]; ok {
-		impl, err := unmarshalDeadLetterDestinationImplementation(v)
+		impl, err := UnmarshalDeadLetterDestinationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DeadLetterDestination' for 'EventSubscriptionProperties': %+v", err)
 		}
@@ -70,11 +79,12 @@ func (s *EventSubscriptionProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["destination"]; ok {
-		impl, err := unmarshalEventSubscriptionDestinationImplementation(v)
+		impl, err := UnmarshalEventSubscriptionDestinationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Destination' for 'EventSubscriptionProperties': %+v", err)
 		}
 		s.Destination = impl
 	}
+
 	return nil
 }
