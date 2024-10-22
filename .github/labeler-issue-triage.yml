@@ -174,7 +174,7 @@ service/iot-hub:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iothub((.|\n)*)###'
 
 service/key-vault:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(key_vault\W+|key_vault_access_policy\W+|key_vault_certificate\W+|key_vault_certificate_contacts\W+|key_vault_certificate_data\W+|key_vault_certificate_issuer\W+|key_vault_certificates\W+|key_vault_encrypted_value\W+|key_vault_key\W+|key_vault_managed_storage_account\W+|key_vault_managed_storage_account_sas_token_definition\W+|key_vault_secret\W+|key_vault_secrets\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(key_vault\W+|key_vault_access_policy\W+|key_vault_certificate\W+|key_vault_certificate_contacts\W+|key_vault_certificate_data\W+|key_vault_certificate_issuer\W+|key_vault_certificates\W+|key_vault_encrypted_value\W+|key_vault_key\W+|key_vault_managed_storage_account\W+|key_vault_managed_storage_account_sas_token_definition\W+|key_vault_secret\W+|key_vault_secret_versions\W+|key_vault_secrets\W+)((.|\n)*)###'
 
 service/kusto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_kusto_((.|\n)*)###'
