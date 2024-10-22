@@ -109,6 +109,21 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_storageAccountDefender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountDefender(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccSecurityCenterSubscriptionPricing_cloudPostureExtension(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -238,6 +253,31 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) storageAccountDefender() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+
+  extension {
+    additional_extension_properties = {
+      "CapGBPerMonthPerStorageAccount" = "5000"
+    }
+    name = "OnUploadMalwareScanning"
+  }
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
 }
 `
 }
