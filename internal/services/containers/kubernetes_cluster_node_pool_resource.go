@@ -89,7 +89,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: containerValidate.KubernetesAgentPoolName,
 		},
 
@@ -112,7 +111,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"vm_size": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -141,14 +139,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"kubelet_config": schemaNodePoolKubeletConfigForceNew(),
+		"kubelet_config": schemaNodePoolKubeletConfig(),
 
-		"linux_os_config": schemaNodePoolLinuxOSConfigForceNew(),
+		"linux_os_config": schemaNodePoolLinuxOSConfig(),
 
 		"fips_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"gpu_instance": {
@@ -184,7 +181,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
-			ForceNew: true,
 		},
 
 		"mode": {
@@ -242,7 +238,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"os_disk_size_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
@@ -250,7 +245,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"os_disk_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  agentpools.OSDiskTypeManaged,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSDiskTypeEphemeral),
@@ -284,7 +278,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"pod_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -309,7 +302,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"snapshot_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: snapshots.ValidateSnapshotID,
 		},
 
@@ -331,9 +323,14 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"temporary_name_for_rotation": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: containerValidate.KubernetesAgentPoolName,
+		},
+
 		"ultra_ssd_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Default:  false,
 			Optional: true,
 		},
@@ -341,7 +338,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"vnet_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -389,7 +385,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"host_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 	}
 
@@ -825,11 +820,95 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.MinCount = nil
 	}
 
-	log.Printf("[DEBUG] Updating existing %s..", *id)
-	existing.Model.Properties = props
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
-	if err != nil {
-		return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
+	cycleNodePoolProperties := []string{
+		"fips_enabled",
+		"host_encryption_enabled",
+		"kubelet_config",
+		"linux_os_config",
+		"max_pods",
+		"name",
+		"os_disk_size_gb",
+		"os_disk_type",
+		"pod_subnet_id",
+		"snapshot_id",
+		"ultra_ssd_enabled",
+		"vm_size",
+		"vnet_subnet_id",
+		"zones",
+	}
+
+	// if the node pool name has changed, it means the initial attempt at resizing failed
+	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+	if d.HasChange("os_sku") {
+		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
+		oldOsSku := oldOsSkuRaw.(string)
+		newOsSku := newOsSkuRaw.(string)
+		if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+			cycleNodePool = true
+		}
+		if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+			cycleNodePool = true
+		}
+	}
+	if cycleNodePool {
+		log.Printf("[DEBUG] Cycling Node Pool..")
+		// to provide a seamless updating experience for the node pool we need to cycle it by provisioning a temporary one,
+		// tearing down the existing node pool and then bringing up the new one.
+
+		if v := d.Get("temporary_name_for_rotation").(string); v == "" {
+			return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
+		}
+
+		temporaryNodePoolName := d.Get("temporary_name_for_rotation").(string)
+		tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
+
+		tempExisting, err := client.Get(ctx, tempNodePoolId)
+		if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
+			return fmt.Errorf("checking for existing temporary %s: %+v", tempNodePoolId, err)
+		}
+
+		defaultExisting, err := client.Get(ctx, *id)
+		if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
+			return fmt.Errorf("checking for existing node pool %s: %+v", *id, err)
+		}
+
+		agentProfile := *defaultExisting.Model
+		tempAgentProfile := agentProfile
+		tempAgentProfile.Name = &temporaryNodePoolName
+		// if the temp node pool already exists due to a previous failure, don't bother spinning it up
+		if tempExisting.Model == nil {
+			if err := retrySystemNodePoolCreation(ctx, client, tempNodePoolId, tempAgentProfile); err != nil {
+				return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
+			}
+		}
+
+		// delete the old node pool if it exists
+		if defaultExisting.Model != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting old %s: %+v", *id, err)
+			}
+		}
+
+		// create the new node pool with the new data
+		if err := retrySystemNodePoolCreation(ctx, client, *id, agentProfile); err != nil {
+			log.Printf("[DEBUG] Creation of redefined node pool failed")
+			return fmt.Errorf("creating default %s: %+v", *id, err)
+		}
+
+		if err := client.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+			return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
+		}
+
+		log.Printf("[DEBUG] Cycled Node Pool..")
+	} else {
+
+		log.Printf("[DEBUG] Updating existing %s..", *id)
+		existing.Model.Properties = props
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		if err != nil {
+			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
+		}
 	}
 
 	d.Partial(false)
