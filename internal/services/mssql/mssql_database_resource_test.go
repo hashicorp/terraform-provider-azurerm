@@ -1019,14 +1019,14 @@ func TestAccMsSqlDatabase_elasticPoolHS(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.elasticPoolHSWithRentionPolicy(data),
+			Config: r.elasticPoolHSWithRetentionPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.elasticPoolHSWithRentionPolicyUpdated(data),
+			Config: r.elasticPoolHSWithRetentionPolicyUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2305,7 +2305,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) elasticPoolHSWithRentionPolicy(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) elasticPoolHSWithRetentionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2342,7 +2342,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) elasticPoolHSWithRentionPolicyUpdated(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) elasticPoolHSWithRetentionPolicyUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

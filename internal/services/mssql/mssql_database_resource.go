@@ -286,7 +286,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
 		if elasticPool.Model != nil {
@@ -1087,7 +1087,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 				if err != nil {
-					return fmt.Errorf("retrieving %s: %s", elasticId, err)
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
 				}
 
 				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
