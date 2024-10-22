@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
@@ -206,6 +207,7 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 
 func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
+	deletedClient := meta.(*clients.Client).LogAnalytics.DeletedClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,6 +223,23 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		id := commonids.NewSubscriptionID(subscriptionId)
+		deletedResp, err := deletedClient.List(ctx, id)
+		if err != nil {
+			return fmt.Errorf("checking for deleted Log Analytics Workspaces: %s", err)
+		}
+
+		if deletedModel := deletedResp.Model; deletedModel != nil && deletedModel.Value != nil {
+			for _, v := range *deletedModel.Value {
+				if v.Properties != nil && v.Properties.Sku != nil {
+					if pointer.From(v.Name) == name && strings.EqualFold(string(v.Properties.Sku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+						isLACluster = true
+						log.Printf("[INFO] Log Analytics Workspace %q: Soft-deleted resource is linked to Log Analytics Cluster", name)
+					}
+				}
 			}
 		}
 
