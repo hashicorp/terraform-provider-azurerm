@@ -60,6 +60,16 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_storage(t *testing.T) {
+	// These tests will change pricing tier of cloud posture
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"securityCenterSubscriptionPricing": {
+			"subplan":  testAccSecurityCenterSubscriptionPricing_storageAccountSubplan,
+			"defender": testAccSecurityCenterSubscriptionPricing_storageAccountDefender,
+		},
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -92,7 +102,7 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -109,7 +119,7 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_storageAccountDefender(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_storageAccountDefender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
