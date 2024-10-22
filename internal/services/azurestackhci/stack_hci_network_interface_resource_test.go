@@ -85,7 +85,7 @@ func TestAccStackHCINetworkInterface_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.dynamic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -158,6 +158,10 @@ resource "azurerm_stack_hci_network_interface" "test" {
   ip_configuration {
     subnet_id = azurerm_stack_hci_logical_network.test.id
   }
+
+  lifecycle {
+    ignore_changes = [mac_address]
+  }
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv))
 }
@@ -196,16 +200,19 @@ resource "azurerm_stack_hci_logical_network" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.0.7"]
+  dns_servers         = ["10.0.11.7"]
+
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.11.0/24"
-    vlan_id              = 123
+    ip_pool {
+      start = "10.0.11.0"
+      end   = "10.0.11.255"
+    }
 
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.0.1"
+      next_hop_ip_address = "10.0.11.1"
     }
   }
 }
@@ -215,12 +222,15 @@ resource "azurerm_stack_hci_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  dns_servers         = ["10.0.0.8"]
-  mac_address         = "02:ec:01:0c:00:07"
+  dns_servers         = ["10.0.11.8"]
 
   ip_configuration {
     private_ip_address = "10.0.11.%[4]d"
     subnet_id          = azurerm_stack_hci_logical_network.test.id
+  }
+
+  lifecycle {
+    ignore_changes = [mac_address]
   }
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv), data.RandomInteger%100)
@@ -240,16 +250,19 @@ resource "azurerm_stack_hci_logical_network" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.0.7"]
+  dns_servers         = ["10.0.12.7"]
+
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.12.0/24"
-    vlan_id              = 123
+    ip_pool {
+      start = "10.0.12.0"
+      end   = "10.0.12.255"
+    }
 
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.12.1"
     }
   }
 }
@@ -259,7 +272,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  dns_servers         = ["10.0.0.8"]
+  dns_servers         = ["10.0.12.8"]
   mac_address         = "02:ec:01:0c:00:08"
 
   ip_configuration {
@@ -285,16 +298,19 @@ resource "azurerm_stack_hci_logical_network" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.0.7"]
+  dns_servers         = ["10.0.12.7"]
+
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.12.0/24"
-    vlan_id              = 123
+    ip_pool {
+      start = "10.0.12.0"
+      end   = "10.0.12.255"
+    }
 
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.12.1"
     }
   }
 }
@@ -304,7 +320,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  dns_servers         = ["10.0.0.8"]
+  dns_servers         = ["10.0.12.8"]
   mac_address         = "02:ec:01:0c:00:08"
 
   ip_configuration {
@@ -334,16 +350,19 @@ resource "azurerm_stack_hci_logical_network" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.0.7"]
+  dns_servers         = ["10.0.12.7"]
+
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.12.0/24"
-    vlan_id              = 123
+    ip_pool {
+      start = "10.0.12.0"
+      end   = "10.0.12.255"
+    }
 
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.12.1"
     }
   }
 }
@@ -353,7 +372,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  dns_servers         = ["10.0.0.8"]
+  dns_servers         = ["10.0.12.8"]
   mac_address         = "02:ec:01:0c:00:08"
 
   ip_configuration {
@@ -384,16 +403,19 @@ resource "azurerm_stack_hci_logical_network" "test" {
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
-  dns_servers         = ["10.0.0.7"]
+  dns_servers         = ["10.0.13.7"]
+
   subnet {
     ip_allocation_method = "Static"
     address_prefix       = "10.0.13.0/24"
-    vlan_id              = 123
+    ip_pool {
+      start = "10.0.13.0"
+      end   = "10.0.13.255"
+    }
 
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
-      next_hop_ip_address = "10.0.20.1"
+      next_hop_ip_address = "10.0.13.1"
     }
   }
 }
@@ -403,7 +425,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  dns_servers         = ["10.0.0.8"]
+  dns_servers         = ["10.0.13.8"]
   mac_address         = "02:ec:01:0c:00:09"
 
   ip_configuration {

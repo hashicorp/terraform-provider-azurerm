@@ -48,7 +48,6 @@ resource "azurerm_stack_hci_network_interface" "example" {
   location            = azurerm_resource_group.example.location
   custom_location_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
   dns_servers         = ["10.0.0.8"]
-  mac_address         = "02:ec:01:0c:00:09"
 
   ip_configuration {
     private_ip_address = "10.0.0.2"
@@ -57,6 +56,10 @@ resource "azurerm_stack_hci_network_interface" "example" {
 
   tags = {
     foo = "bar"
+  }
+
+  lifecycle {
+    ignore_changes = [mac_address]
   }
 }
 ```
@@ -73,17 +76,19 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Network Interface should exist. Changing this forces a new resource to be created.
 
-* `ip_configuration` - (Required) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
+* `ip_configuration` - (Required) An `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `dns_servers` - (Optional) A list of IPv4 addresses of DNS servers available to VMs deployed in the Network Interface. Changing this forces a new resource to be created.
 
 * `mac_address` - (Optional) The MAC address of the Network Interface. Changing this forces a new resource to be created.
 
+-> **Note:** If `mac_address` is not specified, it will be assigned by the server. If you experience a diff you may need to add this to `ignore_changes`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Stack HCI Network Interface.
 
 ---
 
-A `ip_configuration` block supports the following:
+An `ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the Stack HCI Logical Network bound to the IP configuration. Changing this forces a new resource to be created.
 
@@ -99,7 +104,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `ip_configuration` block exports the following:
+An `ip_configuration` block exports the following:
 
 * `gateway` - The IPv4 address of the gateway for the Network Interface.
 
@@ -119,5 +124,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Azure Stack HCI Network Interfaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stack_hci_network_interface.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureStackHCI/logicalNetworks/ln1
+terraform import azurerm_stack_hci_network_interface.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureStackHCI/networkInterfaces/ni1
 ```

@@ -72,12 +72,7 @@ func (StackHCINetworkInterfaceResource) Arguments() map[string]*pluginsdk.Schema
 
 		"location": commonschema.Location(),
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: customlocations.ValidateCustomLocationID,
-		},
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
@@ -86,12 +81,7 @@ func (StackHCINetworkInterfaceResource) Arguments() map[string]*pluginsdk.Schema
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"subnet_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: logicalnetworks.ValidateLogicalNetworkID,
-					},
+					"subnet_id": commonschema.ResourceIDReferenceRequiredForceNew(&logicalnetworks.LogicalNetworkId{}),
 
 					"private_ip_address": {
 						Type:         pluginsdk.TypeString,
@@ -117,6 +107,7 @@ func (StackHCINetworkInterfaceResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv4Address,
@@ -187,7 +178,6 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
-			time.Sleep(2 * time.Minute)
 			metadata.SetID(id)
 
 			return nil
@@ -269,21 +259,13 @@ func (r StackHCINetworkInterfaceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			parameters := resp.Model
-			if parameters == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", *id)
-			}
+			parameters := networkinterfaces.NetworkInterfacesUpdateRequest{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = tags.Expand(model.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -346,6 +328,10 @@ func flattenStackHCINetworkInterfaceIPConfiguration(input *[]networkinterfaces.I
 		result := StackHCIIPConfigurationModel{}
 
 		if v.Properties != nil {
+			result.Gateway = pointer.From(v.Properties.Gateway)
+			result.PrefixLength = pointer.From(v.Properties.PrefixLength)
+			result.PrivateIPAddress = pointer.From(v.Properties.PrivateIPAddress)
+
 			var subnetId string
 			if v.Properties.Subnet != nil && v.Properties.Subnet.Id != nil {
 				parsedSubnetId, err := logicalnetworks.ParseLogicalNetworkIDInsensitively(*v.Properties.Subnet.Id)
@@ -355,10 +341,6 @@ func flattenStackHCINetworkInterfaceIPConfiguration(input *[]networkinterfaces.I
 
 				subnetId = parsedSubnetId.ID()
 			}
-
-			result.Gateway = pointer.From(v.Properties.Gateway)
-			result.PrefixLength = pointer.From(v.Properties.PrefixLength)
-			result.PrivateIPAddress = pointer.From(v.Properties.PrivateIPAddress)
 			result.SubnetID = subnetId
 
 			results = append(results, result)
