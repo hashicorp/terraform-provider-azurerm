@@ -40,7 +40,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
 
 The following arguments are supported:
 
-* `admin_password` - (Required) The password must be between 12 and 30 characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing.
+* `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing.
 
 * `backup_retention_period_in_days` - (Optional) (Updatable) Retention period, in days, for backups.
 
