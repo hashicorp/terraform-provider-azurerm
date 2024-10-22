@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. The name does not have to be unique.
 
-* `auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count. The default value is `TRUE`.
+* `auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count. The default value is `true`.
 
-* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `FALSE`.
+* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `false`.
 
 * `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections.
 
