@@ -1,3 +1,9 @@
+## 4.67.0 (Unrelerased)
+
+BUG FIXES:
+
+* `azurerm_mssql_database` - updating short term retention policy now works as expected [GH-27714]
+
 ## 4.6.0 (October 18, 2024)
 
 FEATURES:
