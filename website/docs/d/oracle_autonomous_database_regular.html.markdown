@@ -49,13 +49,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `character_set` - The character set for the autonomous database. 
 
-* `compute_count` - The compute amount (CPUs) available to the database. Minimum and maximum values depend on the compute model and whether the database is an Autonomous Database Serverless instance or an Autonomous Database on Dedicated Exadata Infrastructure.  For an Autonomous Database Serverless instance, the 'ECPU' compute model requires a minimum value of one, for databases in the elastic resource pool and minimum value of two, otherwise. Required when using the `computeModel` parameter. When using `cpuCoreCount` parameter, it is an error to specify computeCount to a non-null value. Providing `computeModel` and `computeCount` is the preferred method for both OCPU and ECPU.
+* `compute_count` - The compute amount (CPUs) available to the database.
 
 * `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
 
 * `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
 
-* `data_storage_size_in_tbs` - The quantity of data in the database, in terabytes.
+* `data_storage_size_in_tbs` - The maximum storage that can be allocated for the database, in terabytes.
 
 * `db_node_storage_size_in_gbs` - The DB node storage size in, in gigabytes.
 
@@ -91,7 +91,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
 
-* `ncharacter_set` - The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
+* `national_character_set` - The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
 * `next_long_term_backup_time_stamp` - The date and time when the next long-term backup would be created.
 
@@ -147,7 +147,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vnet_id` - The ID to an Azure Resource Manager vnet resource.
 
-* `whitelisted_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
+* `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
 
 ## Timeouts
 

@@ -30,7 +30,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   auto_scaling_enabled             = "example"
   character_set                    = "example"
   compute_count                    = 1.23456
-  ncharacter_set                   = "example"
+  national_character_set                   = "example"
   license_model                    = false
   db_version                       = "example"
 }
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `compute_model` - (Required) The compute model of the Autonomous Database. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. ECPU compute model is the recommended model and OCPU compute model is legacy.
 
-* `data_storage_size_in_tbs` - (Required) The quantity of data in the database, in terabytes.
+* `data_storage_size_in_tbs` - (Required) The maximum storage that can be allocated for the database, in terabytes.
 
 * `db_version` - (Required) A valid Oracle Database version for Autonomous Database.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Autonomous Databases.
 
-* `ncharacter_set` - (Required) The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
+* `national_character_set` - (Required) The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Databases should exist.
 

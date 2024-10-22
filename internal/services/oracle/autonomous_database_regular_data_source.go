@@ -47,7 +47,7 @@ type AutonomousDatabaseRegularDataModel struct {
 	MemoryAreaInGbs                         int64    `tfschema:"in_memory_area_in_gbs"`
 	MemoryPerOracleComputeUnitInGbs         int64    `tfschema:"memory_per_oracle_compute_unit_in_gbs"`
 	MtlsConnectionRequired                  bool     `tfschema:"mtls_connection_required"`
-	NcharacterSet                           string   `tfschema:"ncharacter_set"`
+	NcharacterSet                           string   `tfschema:"national_character_set"`
 	NextLongTermBackupTimeStamp             string   `tfschema:"next_long_term_backup_time_stamp"`
 	Ocid                                    string   `tfschema:"ocid"`
 	OciUrl                                  string   `tfschema:"oci_url"`
@@ -78,7 +78,7 @@ type AutonomousDatabaseRegularDataModel struct {
 	UsedDataStorageSizeInGbs                int64    `tfschema:"used_data_storage_size_in_gbs"`
 	UsedDataStorageSizeInTbs                int64    `tfschema:"used_data_storage_size_in_tbs"`
 	VnetId                                  string   `tfschema:"vnet_id"`
-	WhitelistedIPs                          []string `tfschema:"whitelisted_ips"`
+	AllowedIps                              []string `tfschema:"allowed_ips"`
 }
 
 func (d AutonomousDatabaseRegularDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -211,7 +211,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"ncharacter_set": {
+		"national_character_set": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -375,7 +375,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"whitelisted_ips": {
+		"allowed_ips": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -479,7 +479,7 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					state.UsedDataStorageSizeInGbs = pointer.From(adbsProps.UsedDataStorageSizeInGbs)
 					state.UsedDataStorageSizeInTbs = pointer.From(adbsProps.UsedDataStorageSizeInTbs)
 					state.VnetId = pointer.From(adbsProps.VnetId)
-					state.WhitelistedIPs = pointer.From(adbsProps.WhitelistedIPs)
+					state.AllowedIps = pointer.From(adbsProps.WhitelistedIPs)
 				}
 			}
 

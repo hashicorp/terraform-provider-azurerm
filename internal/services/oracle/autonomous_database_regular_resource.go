@@ -40,7 +40,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	AutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
 	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
-	NcharacterSet                string  `tfschema:"ncharacter_set"`
+	NcharacterSet                string  `tfschema:"national_character_set"`
 	SubnetId                     string  `tfschema:"subnet_id"`
 	VnetId                       string  `tfschema:"vnet_id"`
 
@@ -140,7 +140,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validate.LicenseType,
 		},
 
-		"ncharacter_set": {
+		"national_character_set": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
