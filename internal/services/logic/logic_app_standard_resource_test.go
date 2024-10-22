@@ -927,6 +927,30 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_siteConfig_publicNetworkAccessEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessEnabled_siteConfig(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessEnabled_siteConfig(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -936,7 +960,7 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 			Config: r.publicNetworkAccessEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -944,7 +968,7 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 			Config: r.publicNetworkAccessEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -2283,7 +2307,7 @@ resource "azurerm_logic_app_standard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LogicAppStandardResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+func (r LogicAppStandardResource) publicNetworkAccessEnabled_siteConfig(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2302,6 +2326,27 @@ resource "azurerm_logic_app_standard" "test" {
   site_config {
     public_network_access_enabled = %t
   }
+}
+`, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LogicAppStandardResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                          = "acctest-%d-func"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  app_service_plan_id           = azurerm_app_service_plan.test.id
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_account_access_key    = azurerm_storage_account.test.primary_access_key
+  public_network_access_enabled = %t
+
 }
 `, r.template(data), data.RandomInteger, enabled)
 }
