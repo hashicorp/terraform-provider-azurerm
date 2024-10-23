@@ -279,40 +279,28 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id)
 			}
 
-			hasUpdate := false
-			update := &autonomousdatabases.AutonomousDatabaseUpdate{}
-			properties := &autonomousdatabases.AutonomousDatabaseUpdateProperties{}
-			update.Properties = properties
+			update := &autonomousdatabases.AutonomousDatabaseUpdate{
+				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{}
+			}
 			if metadata.ResourceData.HasChange("tags") {
-				hasUpdate = true
 				update.Tags = pointer.To(model.Tags)
 			}
 			if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-				hasUpdate = true
 				update.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
 			}
 			if metadata.ResourceData.HasChange("compute_count") {
-				hasUpdate = true
 				update.Properties.ComputeCount = pointer.To(model.ComputeCount)
 			}
 			if metadata.ResourceData.HasChange("auto_scaling_enabled") {
-				hasUpdate = true
 				update.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
 			}
 			if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
-				hasUpdate = true
 				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
-			} else if metadata.ResourceData.HasChangesExcept("auto_scaling_enabled", "auto_scaling_for_storage_enabled",
-				"compute_count", "data_storage_size_in_tbs", "tags") {
-				return fmt.Errorf("only `auto_scaling_enabled`, `auto_scaling_for_storage_enabled`, `compute_count`, " +
-					"`data_storage_size_in_tbs`, and `tags` currently support updates")
 			}
 
-			if hasUpdate {
-				err = client.UpdateThenPoll(ctx, *id, *update)
-				if err != nil {
-					return fmt.Errorf("updating %s: %v", id, err)
-				}
+			err = client.UpdateThenPoll(ctx, *id, *update)
+			if err != nil {
+				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
 			return nil
