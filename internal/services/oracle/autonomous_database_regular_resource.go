@@ -278,9 +278,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id)
 			}
-			if existing.Model == nil && existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving as nil when updating for %v", *id)
-			}
 
 			hasUpdate := false
 			update := &autonomousdatabases.AutonomousDatabaseUpdate{}
