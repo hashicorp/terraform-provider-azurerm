@@ -443,23 +443,9 @@ func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicy
 }
 
 func flattenNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyNotificationSettings {
-	var notificationLevel string
-	var defaultRecipients bool
-	var additionalRecipients []string
-
-	if v := rule.NotificationLevel; v != nil {
-		notificationLevel = string(pointer.From(v))
-	}
-	if v := rule.IsDefaultRecipientsEnabled; v != nil {
-		defaultRecipients = pointer.From(v)
-	}
-	if v := rule.NotificationRecipients; v != nil {
-		additionalRecipients = make([]string, len(*v))
-		additionalRecipients = append(additionalRecipients, *v...)
-	}
 	return &RoleManagementPolicyNotificationSettings{
-		NotificationLevel:    notificationLevel,
-		DefaultRecipients:    defaultRecipients,
-		AdditionalRecipients: additionalRecipients,
+		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
+		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}
 }

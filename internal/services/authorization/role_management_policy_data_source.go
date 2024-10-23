@@ -514,26 +514,10 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 }
 
 func flattenNotificationDataSourceSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyDataSourceNotificationSettings {
-	var notificationLevel string
-	var defaultRecipients bool
-	var additionalRecipients []string
-
-	if v := rule.NotificationLevel; v != nil {
-		notificationLevel = string(pointer.From(v))
-	}
-	if v := rule.IsDefaultRecipientsEnabled; v != nil {
-		defaultRecipients = pointer.From(v)
-	}
-	if v := rule.NotificationRecipients; v != nil {
-		additionalRecipients = make([]string, len(*v))
-		for i, r := range *v {
-			additionalRecipients[i] = r
-		}
-	}
 	return &RoleManagementPolicyDataSourceNotificationSettings{
-		NotificationLevel:    notificationLevel,
-		DefaultRecipients:    defaultRecipients,
-		AdditionalRecipients: additionalRecipients,
+		NotificationLevel:    string(pointer.From(rule.NotificationLevel)),
+		DefaultRecipients:    pointer.From(rule.IsDefaultRecipientsEnabled),
+		AdditionalRecipients: pointer.From(rule.NotificationRecipients),
 	}
 }
 
