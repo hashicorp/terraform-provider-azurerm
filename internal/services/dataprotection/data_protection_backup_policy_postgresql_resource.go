@@ -176,7 +176,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if !features.FourPointOhBeta() {
+			if !features.FivePointOhBeta() {
 				retentionRules := diff.Get("retention_rule")
 				defaultRetentionDuration := diff.Get("default_retention_duration")
 				defaultRetentionRule := diff.Get("default_retention_rule")
@@ -200,20 +200,22 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		}),
 	}
 
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOhBeta() {
 		resource.Schema["default_retention_duration"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
-			Deprecated:   "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
-			ValidateFunc: validate.ISO8601Duration,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_retention_rule"},
+			Deprecated:    "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
+			ValidateFunc:  validate.ISO8601Duration,
 		}
 		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["duration"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
+			Computed:     true,
+			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
 			ValidateFunc: validate.ISO8601Duration,
 		}
 		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
@@ -259,7 +261,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
 										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
 										string(backuppolicies.DataStoreTypesArchiveStore),
 									}, false),
@@ -272,11 +274,12 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		}
 
 		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     true,
-			MaxItems:     1,
-			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			MaxItems:      1,
+			ConflictsWith: []string{"default_retention_duration"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"life_cycle": {
@@ -322,7 +325,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 												ForceNew: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
 													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
 													string(backuppolicies.DataStoreTypesArchiveStore),
 												}, false),
@@ -380,7 +383,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
 										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
 										string(backuppolicies.DataStoreTypesArchiveStore),
 									}, false),
@@ -442,7 +445,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 												ForceNew: true,
 												ValidateFunc: validation.StringInSlice([]string{
 													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
 													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
 													string(backuppolicies.DataStoreTypesArchiveStore),
 												}, false),
@@ -491,7 +494,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 
-	if v, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
+	if v, ok := d.GetOk("default_retention_duration"); ok && !features.FivePointOhBeta() {
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(v))
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	} else {
@@ -544,7 +547,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
 
-				if _, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
+				if _, ok := d.GetOk("default_retention_duration"); ok && !features.FivePointOhBeta() {
 					if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
 						return fmt.Errorf("setting `default_retention_duration`: %+v", err)
 					}
