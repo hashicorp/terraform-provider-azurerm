@@ -394,7 +394,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %v", *id, err)
+		return fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
