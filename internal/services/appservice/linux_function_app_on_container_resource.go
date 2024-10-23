@@ -275,25 +275,23 @@ func (r LinuxFunctionAppOnContainerResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(linuxFunctionAppOnContainer.KeyVaultReferenceIdentityID)
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id, siteEnvelope)
-			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			// the create api is a LRO with the polling status returned as 200 + object body, this is not regarded as a succeeded poll by current sdk
-			// issue: https://github.com/hashicorp/go-azure-sdk/issues/957
-			stateConf := &pluginsdk.StateChangeConf{
-				Delay:                     5 * time.Minute,
-				Pending:                   []string{"204"},
-				Target:                    []string{"200"},
-				Refresh:                   functionAcaStateRefreshFunc(ctx, client, id),
-				MinTimeout:                15 * time.Second,
-				ContinuousTargetOccurence: 10,
-				Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+				if strings.Contains(err.Error(), "expected either `provisioningState` or `status` to be returned from the LRO API but both were empty") {
+					stateConf := &pluginsdk.StateChangeConf{
+						Delay:                     5 * time.Minute,
+						Pending:                   []string{"204"},
+						Target:                    []string{"200"},
+						Refresh:                   functionAcaStateRefreshFunc(ctx, client, id),
+						MinTimeout:                15 * time.Second,
+						ContinuousTargetOccurence: 10,
+						Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
+					}
+					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+						return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+					}
+				} else {
+					return fmt.Errorf("waiting creating %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -456,21 +454,23 @@ func (r LinuxFunctionAppOnContainerResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, model); err != nil {
-				return fmt.Errorf("updating Linux %s: %+v", id, err)
-			}
-
-			stateConf := &pluginsdk.StateChangeConf{
-				Delay:      5 * time.Minute,
-				Pending:    []string{"204"},
-				Target:     []string{"200"},
-				Refresh:    functionAcaStateRefreshFunc(ctx, client, *id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+				if strings.Contains(err.Error(), "expected either `provisioningState` or `status` to be returned from the LRO API but both were empty") {
+					stateConf := &pluginsdk.StateChangeConf{
+						Delay:                     5 * time.Minute,
+						Pending:                   []string{"204"},
+						Target:                    []string{"200"},
+						Refresh:                   functionAcaStateRefreshFunc(ctx, client, *id),
+						MinTimeout:                15 * time.Second,
+						ContinuousTargetOccurence: 10,
+						Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate),
+					}
+					if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+						return fmt.Errorf("waiting for update of %s: %+v", id, err)
+					}
+				} else {
+					return fmt.Errorf("waiting for update of %s: %+v", id, err)
+				}
 			}
 
 			if _, err := client.UpdateConfiguration(ctx, *id, webapps.SiteConfigResource{Properties: model.Properties.SiteConfig}); err != nil {
@@ -540,5 +540,4 @@ func functionAcaStateRefreshFunc(ctx context.Context, client *webapps.WebAppsCli
 		}
 		return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 	}
-
 }
