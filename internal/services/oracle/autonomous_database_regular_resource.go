@@ -283,7 +283,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id)
+				return fmt.Errorf("retrieving %+v", *id)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
