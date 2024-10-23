@@ -10,8 +10,9 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RestoreParametersBase struct {
-	RestoreSource         *string `json:"restoreSource,omitempty"`
-	RestoreTimestampInUtc *string `json:"restoreTimestampInUtc,omitempty"`
+	RestoreSource          *string `json:"restoreSource,omitempty"`
+	RestoreTimestampInUtc  *string `json:"restoreTimestampInUtc,omitempty"`
+	RestoreWithTtlDisabled *bool   `json:"restoreWithTtlDisabled,omitempty"`
 }
 
 func (o *RestoreParametersBase) GetRestoreTimestampInUtcAsTime() (*time.Time, error) {
