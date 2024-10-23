@@ -62,9 +62,9 @@ A `long_term_retention_policy` block exports the following:
 
 A `point_in_time_restore` block exports the following:
 
-* `restore_point_in_time` - The point in time for the restore from source_database_id.
+* `restore_point_in_time` - The point in time for the restore from `source_database_id`.
 
-* `source_database_id` - The source database id that will be used to restore from.
+* `source_database_id` - The source database ID that is used to restore from.
 
 ## Timeouts
 

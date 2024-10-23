@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	// nolint: staticcheck
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -57,7 +55,7 @@ func (d MsSqlManagedDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedInstanceID,
+			ValidateFunc: commonids.ValidateSqlManagedInstanceID,
 		},
 	}
 }
@@ -77,25 +75,21 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
 					"weekly_retention": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 					"monthly_retention": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 					"yearly_retention": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 
-					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
 					"week_of_year": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -108,7 +102,6 @@ func (d MsSqlManagedDatabaseDataSource) Attributes() map[string]*pluginsdk.Schem
 				},
 			},
 		},
-		// "long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
 		"short_term_retention_days": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -146,15 +139,15 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v)", err)
 			}
 
-			managedInstanceId, err := parse.ManagedInstanceID(state.ManagedInstanceId)
+			managedInstanceId, err := commonids.ParseSqlManagedInstanceID(state.ManagedInstanceId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewManagedDatabaseID(subscriptionId, managedInstanceId.ResourceGroup, managedInstanceId.Name, state.Name)
+			id := commonids.NewSqlManagedInstanceDatabaseID(subscriptionId, managedInstanceId.ResourceGroup, managedInstanceId.Name, state.Name)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
