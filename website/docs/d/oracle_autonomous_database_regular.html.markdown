@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database"
 description: |-
-  Gets information about an existing Autonomous Databases.
+  Gets information about an existing Autonomous Database.
 ---
 
 # Data Source: azurerm_oracle_autonomous_database
 
-Use this data source to access information about an existing Autonomous Databases.
+Use this data source to access information about an existing Autonomous Database.
 
 ## Example Usage
 
@@ -27,15 +27,15 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Autonomous Databases.
+* `name` - (Required) The name of this Autonomous Database.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Databases exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Autonomous Databases.
+* `id` - The ID of the Autonomous Database.
 
 * `actual_used_data_storage_size_in_tbs` - The current amount of storage in use for user and system data, in terabytes (TB).
 
@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `local_adg_auto_failover_max_data_loss_limit` - Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard
 
-* `location` - The Azure Region where the Autonomous Databases exists.
+* `location` - The Azure Region where the Autonomous Database exists.
 
 * `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
 
@@ -117,7 +117,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `supported_regions_to_clone_to` - The list of regions that support the creation of an Autonomous Database clone or an Autonomous Data Guard standby database.
 
-* `tags` - A mapping of tags assigned to the Autonomous Databases.
+* `tags` - A mapping of tags assigned to the Autonomous Database.
 
 * `time_created` - The date and time the Autonomous Database was created.
 
@@ -153,4 +153,4 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Databases.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.

@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database"
 description: |-
-  Manages a Autonomous Databases.
+  Manages an Autonomous Database.
 ---
 
 # azurerm_oracle_autonomous_database
 
-Manages a Autonomous Databases.
+Manages an Autonomous Database.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   compute_model                    = "example"
   data_storage_size_in_gbs         = 42
   auto_scaling_for_storage_enabled = false
-  virtual_network_id                          = "example"
+  virtual_network_id               = "example"
   admin_password                   = "example"
   auto_scaling_enabled             = "example"
   character_set                    = "example"
@@ -40,11 +40,11 @@ resource "azurerm_oracle_autonomous_database" "example" {
 
 The following arguments are supported:
  
-* `name` - (Required) The name which should be used for this Autonomous Databases.
+* `name` - (Required) The name which should be used for this Autonomous Database.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Databases should exist.
+* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database should exist.
 
-* `location` - (Required) The Azure Region where the Autonomous Databases should exist. Changing this forces a new Autonomous Databases to be created.
+* `location` - (Required) The Azure Region where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
 
 * `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing.
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Databases.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Database.
 
 ## Attributes Reference
 
@@ -98,10 +98,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Autonomous Databases.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Databases.
-* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Databases.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Databases.
+* `create` - (Defaults to 2 hours) Used when creating the Autonomous Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.
+* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Database.
 
 ## Import
 

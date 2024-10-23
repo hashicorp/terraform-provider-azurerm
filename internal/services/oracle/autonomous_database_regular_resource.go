@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -76,7 +77,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.BackupRetentionDays,
+			ValidateFunc: validation.IntBetween(1, 60),
 		},
 
 		"character_set": {
@@ -89,7 +90,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"compute_count": {
 			Type:         pluginsdk.TypeFloat,
 			Required:     true,
-			ValidateFunc: validate.AdbsComputeCount,
+			ValidateFunc: validation.FloatBetween(2.0, 512.0),
 		},
 
 		"compute_model": {
@@ -102,7 +103,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ValidateFunc: validate.AdbsDataStorageSizeInTbs,
+			ValidateFunc: validation.IntBetween(1, 384),
 		},
 
 		"db_version": {
@@ -113,10 +114,13 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"db_workload": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.DbWorkloadType,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabases.WorkloadTypeDW),
+				string(autonomousdatabases.WorkloadTypeOLTP),
+			}, false),
 		},
 
 		"display_name": {
@@ -143,10 +147,13 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"license_model": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.LicenseType,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabases.LicenseModelLicenseIncluded),
+				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
+			}, false),
 		},
 
 		"national_character_set": {
@@ -224,7 +231,7 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 
 			param := autonomousdatabases.AutonomousDatabase{
 				Name:     pointer.To(model.Name),
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseProperties{
 					AdminPassword:                  pointer.To(model.AdminPassword),
@@ -266,7 +273,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			var model AutonomousDatabaseRegularResourceModel
@@ -329,7 +336,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
@@ -338,41 +345,38 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(result.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
+			state := AutonomousDatabaseRegularResourceModel{
+				Name:              id.AutonomousDatabaseName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
-			prop := result.Model.Properties
-			switch adbsPropModel := prop.(type) {
-			case autonomousdatabases.AutonomousDatabaseProperties:
-				var state AutonomousDatabaseRegularResourceModel
-				state.AdminPassword = pointer.From(adbsPropModel.AdminPassword)
-				state.AutoScalingEnabled = pointer.From(adbsPropModel.IsAutoScalingEnabled)
-				state.BackupRetentionPeriodInDays = pointer.From(adbsPropModel.BackupRetentionPeriodInDays)
-				state.AutoScalingForStorageEnabled = pointer.From(adbsPropModel.IsAutoScalingForStorageEnabled)
-				state.CharacterSet = pointer.From(adbsPropModel.CharacterSet)
-				state.ComputeCount = pointer.From(adbsPropModel.ComputeCount)
-				state.ComputeModel = string(pointer.From(adbsPropModel.ComputeModel))
-				state.CustomerContacts = flattenAdbsCustomerContacts(adbsPropModel.CustomerContacts)
-				state.DataStorageSizeInTbs = pointer.From(adbsPropModel.DataStorageSizeInTbs)
-				state.DbWorkload = string(pointer.From(adbsPropModel.DbWorkload))
-				state.DbVersion = pointer.From(adbsPropModel.DbVersion)
-				state.DisplayName = pointer.From(adbsPropModel.DisplayName)
-				state.LicenseModel = string(pointer.From(adbsPropModel.LicenseModel))
-				state.Location = result.Model.Location
+			if model := result.Model; model != nil {
+				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseProperties)
+				if !ok {
+					return fmt.Errorf("%s was not of type `Regular`", id)
+				}
+				state.AdminPassword = pointer.From(props.AdminPassword)
+				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
+				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+				state.CharacterSet = pointer.From(props.CharacterSet)
+				state.ComputeCount = pointer.From(props.ComputeCount)
+				state.ComputeModel = string(pointer.From(props.ComputeModel))
+				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DbWorkload = string(pointer.From(props.DbWorkload))
+				state.DbVersion = pointer.From(props.DbVersion)
+				state.DisplayName = pointer.From(props.DisplayName)
+				state.LicenseModel = string(pointer.From(props.LicenseModel))
 				state.Name = pointer.ToString(result.Model.Name)
-				state.NationalCharacterSet = pointer.From(adbsPropModel.NcharacterSet)
-				state.ResourceGroupName = id.ResourceGroupName
-				state.SubnetId = pointer.From(adbsPropModel.SubnetId)
+				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
+				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
-				state.VnetId = pointer.From(adbsPropModel.VnetId)
-
-				return metadata.Encode(&state)
-			default:
-				return fmt.Errorf("unexpected Autonomous Database type, must be of type Regular")
+				state.VnetId = pointer.From(props.VnetId)
 			}
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -385,7 +389,7 @@ func (AutonomousDatabaseRegularResource) Delete() sdk.ResourceFunc {
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {

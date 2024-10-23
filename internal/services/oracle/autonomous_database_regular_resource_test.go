@@ -122,8 +122,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -162,8 +162,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
   customer_contacts                = ["test@test.com"]
   lifecycle {
     ignore_changes = [
@@ -202,8 +202,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -236,7 +236,7 @@ resource "azurerm_oracle_autonomous_database" "import" {
   character_set                    = azurerm_oracle_autonomous_database.test.character_set
   national_character_set           = azurerm_oracle_autonomous_database.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
-  virtual_network_id                          = azurerm_oracle_autonomous_database.test.virtual_network_id
+  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -256,17 +256,17 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_virtual_network" "virtual_network" {
-  name                = "OFakeacctest%[1]d_vnet"
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest%[1]d_vnet"
   address_space       = ["10.0.0.0/16"]
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_subnet" "virtual_network_subnet" {
-  name                 = "OFakeacctest%[1]d"
+resource "azurerm_subnet" "test" {
+  name                 = "eacctest%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.virtual_network.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
