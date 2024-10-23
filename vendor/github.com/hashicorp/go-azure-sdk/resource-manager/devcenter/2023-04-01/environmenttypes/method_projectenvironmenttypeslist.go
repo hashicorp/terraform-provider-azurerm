@@ -39,6 +39,7 @@ func (o ProjectEnvironmentTypesListOperationOptions) ToHeaders() *client.Headers
 
 func (o ProjectEnvironmentTypesListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

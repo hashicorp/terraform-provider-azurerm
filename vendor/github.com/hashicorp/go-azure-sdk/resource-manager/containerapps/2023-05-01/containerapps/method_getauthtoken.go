@@ -46,7 +46,6 @@ func (c ContainerAppsClient) GetAuthToken(ctx context.Context, id ContainerAppId
 
 	var model ContainerAppAuthToken
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -68,7 +68,6 @@ resource "azurerm_netapp_volume" "example" {
   volume_path                = "my-unique-file-path"
   service_level              = "Premium"
   subnet_id                  = azurerm_subnet.example.id
-  network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
   security_style             = "unix"
   storage_quota_in_gb        = 100
@@ -156,6 +155,8 @@ The following arguments are supported:
 * `smb_access_based_enumeration_enabled` - (Optional) Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share. For instance, if a user doesn't have access to read a file or folder in a share with access-based enumeration enabled, then the file or folder doesn't show up in directory listings. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=security%20for%20administrators.-,Access%2Dbased%20enumeration,in%20an%20Azure%20NetApp%20Files%20SMB%20volume.%20Only%20contosoadmin%20has%20access.,-In%20the%20below)
 
 * `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
+
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

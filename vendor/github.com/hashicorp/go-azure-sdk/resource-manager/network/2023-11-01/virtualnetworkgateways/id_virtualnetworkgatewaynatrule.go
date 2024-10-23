@@ -44,7 +44,7 @@ func ParseVirtualNetworkGatewayNatRuleID(input string) (*VirtualNetworkGatewayNa
 	}
 
 	id := VirtualNetworkGatewayNatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVirtualNetworkGatewayNatRuleIDInsensitively(input string) (*VirtualNet
 	}
 
 	id := VirtualNetworkGatewayNatRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VirtualNetworkGatewayNatRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualNetworkGateways", "virtualNetworkGateways", "virtualNetworkGateways"),
-		resourceids.UserSpecifiedSegment("virtualNetworkGatewayName", "virtualNetworkGatewayValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkGatewayName", "virtualNetworkGatewayName"),
 		resourceids.StaticSegment("staticNatRules", "natRules", "natRules"),
-		resourceids.UserSpecifiedSegment("natRuleName", "natRuleValue"),
+		resourceids.UserSpecifiedSegment("natRuleName", "natRuleName"),
 	}
 }
 

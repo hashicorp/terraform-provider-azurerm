@@ -46,7 +46,7 @@ func ParseRoleInstanceNetworkInterfaceID(input string) (*RoleInstanceNetworkInte
 	}
 
 	id := RoleInstanceNetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseRoleInstanceNetworkInterfaceIDInsensitively(input string) (*RoleInstan
 	}
 
 	id := RoleInstanceNetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id RoleInstanceNetworkInterfaceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticCloudServices", "cloudServices", "cloudServices"),
-		resourceids.UserSpecifiedSegment("cloudServiceName", "cloudServiceValue"),
+		resourceids.UserSpecifiedSegment("cloudServiceName", "cloudServiceName"),
 		resourceids.StaticSegment("staticRoleInstances", "roleInstances", "roleInstances"),
-		resourceids.UserSpecifiedSegment("roleInstanceName", "roleInstanceValue"),
+		resourceids.UserSpecifiedSegment("roleInstanceName", "roleInstanceName"),
 		resourceids.StaticSegment("staticNetworkInterfaces", "networkInterfaces", "networkInterfaces"),
-		resourceids.UserSpecifiedSegment("networkInterfaceName", "networkInterfaceValue"),
+		resourceids.UserSpecifiedSegment("networkInterfaceName", "networkInterfaceName"),
 	}
 }
 

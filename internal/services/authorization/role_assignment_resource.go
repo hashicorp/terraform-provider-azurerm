@@ -62,10 +62,12 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					// Elevated access for a global admin is needed to assign roles in this scope:
+					// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
 					// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
-					// It seems only user account is allowed to be elevated access.
+					validation.StringMatch(regexp.MustCompile("/"), "Root scope (/) is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
+					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
+					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.BillingBenefits"), "BillingBenefits scope is invalid"),
 
 					billingValidate.EnrollmentID,
 					commonids.ValidateManagementGroupID,

@@ -45,7 +45,6 @@ func (c JobDefinitionsClient) Get(ctx context.Context, id JobDefinitionId) (resu
 
 	var model JobDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

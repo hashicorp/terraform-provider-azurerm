@@ -119,7 +119,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		proximityPlacementGroupId := utils.NormalizeNilableString(&item.ProximityPlacementGroupId)
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -137,7 +136,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				ProximityPlacementGroup:  &proximityPlacementGroupId,
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Replication: dataProtectionReplication.Replication,
@@ -145,6 +143,10 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				},
 			},
 			Tags: &item.Tags,
+		}
+
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)

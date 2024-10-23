@@ -45,7 +45,6 @@ func (c ExpressRouteLinksClient) Get(ctx context.Context, id LinkId) (result Get
 
 	var model ExpressRouteLink
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c ManagedCassandrasClient) CassandraClustersStatus(ctx context.Context, id
 
 	var model CassandraClusterPublicStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

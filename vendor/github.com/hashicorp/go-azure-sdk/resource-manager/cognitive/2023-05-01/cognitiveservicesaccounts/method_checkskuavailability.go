@@ -50,7 +50,6 @@ func (c CognitiveServicesAccountsClient) CheckSkuAvailability(ctx context.Contex
 
 	var model SkuAvailabilityListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

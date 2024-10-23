@@ -51,7 +51,6 @@ func (c IotDpsResourceClient) CheckProvisioningServiceNameAvailability(ctx conte
 
 	var model NameAvailabilityInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

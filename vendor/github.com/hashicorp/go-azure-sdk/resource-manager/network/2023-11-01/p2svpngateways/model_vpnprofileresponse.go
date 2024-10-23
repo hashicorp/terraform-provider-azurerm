@@ -4,5 +4,5 @@ package p2svpngateways
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VpnProfileResponse struct {
-	ProfileUrl *string `json:"profileUrl,omitempty"`
+	ProfileURL *string `json:"profileUrl,omitempty"`
 }

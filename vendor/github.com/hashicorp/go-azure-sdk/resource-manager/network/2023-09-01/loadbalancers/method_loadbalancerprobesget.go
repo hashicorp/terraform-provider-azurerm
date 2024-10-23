@@ -45,7 +45,6 @@ func (c LoadBalancersClient) LoadBalancerProbesGet(ctx context.Context, id Probe
 
 	var model Probe
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

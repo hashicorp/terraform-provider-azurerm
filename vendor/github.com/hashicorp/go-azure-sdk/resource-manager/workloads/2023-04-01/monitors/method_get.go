@@ -45,7 +45,6 @@ func (c MonitorsClient) Get(ctx context.Context, id MonitorId) (result GetOperat
 
 	var model Monitor
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

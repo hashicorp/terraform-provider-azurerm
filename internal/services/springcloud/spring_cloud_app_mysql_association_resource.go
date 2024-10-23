@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
+	flexibleServers "github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -66,10 +67,13 @@ func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
 			},
 
 			"mysql_server_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: servers.ValidateServerID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					servers.ValidateServerID,
+					flexibleServers.ValidateFlexibleServerID,
+				),
 			},
 
 			"database_name": {

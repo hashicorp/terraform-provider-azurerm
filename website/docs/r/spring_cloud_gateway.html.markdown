@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
+* `environment_variables` - (Optional) Specifies the environment variables of the Spring Cloud Gateway as a map of key-value pairs.
 
 * `https_only` - (Optional) is only https is allowed?
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `local_response_cache_per_route` - (Optional) A `local_response_cache_per_route` block as defined below. Only one of `local_response_cache_per_instance` or `local_response_cache_per_route` can be specified.
 
-* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
+* `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs.
 
 * `sso` - (Optional) A `sso` block as defined below.
 

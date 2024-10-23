@@ -15,7 +15,7 @@ type VipSwapClient struct {
 }
 
 func NewVipSwapClientWithBaseURI(sdkApi sdkEnv.Api) (*VipSwapClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vipswap", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vipswap", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VipSwapClient: %+v", err)
 	}

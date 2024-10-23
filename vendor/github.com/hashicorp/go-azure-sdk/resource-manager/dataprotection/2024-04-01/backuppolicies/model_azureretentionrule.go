@@ -15,7 +15,16 @@ type AzureRetentionRule struct {
 	Lifecycles []SourceLifeCycle `json:"lifecycles"`
 
 	// Fields inherited from BasePolicyRule
-	Name string `json:"name"`
+
+	Name       string `json:"name"`
+	ObjectType string `json:"objectType"`
+}
+
+func (s AzureRetentionRule) BasePolicyRule() BaseBasePolicyRuleImpl {
+	return BaseBasePolicyRuleImpl{
+		Name:       s.Name,
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = AzureRetentionRule{}
@@ -29,9 +38,10 @@ func (s AzureRetentionRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureRetentionRule: %+v", err)
 	}
+
 	decoded["objectType"] = "AzureRetentionRule"
 
 	encoded, err = json.Marshal(decoded)

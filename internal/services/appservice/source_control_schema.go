@@ -5,7 +5,7 @@ package appservice
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -151,7 +151,7 @@ func expandGithubActionConfig(input []GithubActionConfiguration, usesLinux bool)
 	if len(ghActionConfig.ContainerConfig) != 0 {
 		containerConfig := ghActionConfig.ContainerConfig[0]
 		output.ContainerConfiguration = &webapps.GitHubActionContainerConfiguration{
-			ServerUrl: pointer.To(containerConfig.RegistryURL),
+			ServerURL: pointer.To(containerConfig.RegistryURL),
 			ImageName: pointer.To(containerConfig.ImageName),
 			Username:  pointer.To(containerConfig.RegistryUsername),
 			Password:  pointer.To(containerConfig.RegistryPassword),
@@ -192,7 +192,7 @@ func flattenGitHubActionConfiguration(input *webapps.GitHubActionConfiguration) 
 		ghContainerConfig := []GitHubActionContainerConfig{{
 			RegistryPassword: pointer.From(containerConfig.Password),
 			RegistryUsername: pointer.From(containerConfig.Username),
-			RegistryURL:      pointer.From(containerConfig.ServerUrl),
+			RegistryURL:      pointer.From(containerConfig.ServerURL),
 			ImageName:        pointer.From(containerConfig.ImageName),
 		}}
 		ghConfig.ContainerConfig = ghContainerConfig

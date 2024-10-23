@@ -21,10 +21,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,7 +41,7 @@ import (
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -155,9 +155,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			"target_edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"unmanaged_disk": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				ForceNew: true,
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				ForceNew:   true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_uri": {
@@ -191,10 +193,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"managed_disk": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				ForceNew: true,
-				Set:      resourceSiteRecoveryReplicatedVMDiskHash,
+				Type:       pluginsdk.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				ForceNew:   true,
+				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
@@ -250,10 +254,11 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 
 						"target_disk_encryption": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem:     diskEncryptionResource(),
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							MaxItems:   1,
+							Elem:       diskEncryptionResource(),
 						},
 					},
 				},
@@ -283,124 +288,23 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
-			"network_interface": {
-				Type:     pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+			"target_virtual_machine_size": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Elem:     networkInterfaceResource(),
+				// O+C if not specified, this gets set to the vm_size of the virtual machine
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"network_interface": {
+				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem:       networkInterfaceResource(),
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["network_interface"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Computed:   true,
-			Optional:   true,
-			Elem:       networkInterfaceResource(),
-		}
-		resource.Schema["unmanaged_disk"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			ForceNew:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"disk_uri": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"staging_storage_account_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
-					},
-
-					"target_storage_account_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateStorageAccountID,
-					},
-				},
-			},
-		}
-		resource.Schema["managed_disk"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			ForceNew:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Set:        resourceSiteRecoveryReplicatedVMDiskHash,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"disk_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"staging_storage_account_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateStorageAccountID,
-					},
-
-					"target_resource_group_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateResourceGroupID,
-					},
-
-					"target_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(disks.DiskStorageAccountTypesStandardLRS),
-							string(disks.DiskStorageAccountTypesPremiumLRS),
-							string(disks.DiskStorageAccountTypesStandardSSDLRS),
-							string(disks.DiskStorageAccountTypesUltraSSDLRS),
-						}, false),
-					},
-
-					"target_replica_disk_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(disks.DiskStorageAccountTypesStandardLRS),
-							string(disks.DiskStorageAccountTypesPremiumLRS),
-							string(disks.DiskStorageAccountTypesStandardSSDLRS),
-							string(disks.DiskStorageAccountTypesUltraSSDLRS),
-						}, false),
-					},
-
-					"target_disk_encryption_set_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: commonids.ValidateDiskEncryptionSetID,
-					},
-
-					"target_disk_encryption": {
-						Type:       pluginsdk.TypeList,
-						Optional:   true,
-						MaxItems:   1,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem:       diskEncryptionResource(),
-					},
-				},
-			},
-		}
-	}
-	return resource
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
@@ -472,55 +376,13 @@ func networkInterfaceResource() *pluginsdk.Resource {
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"disk_encryption_key": {
-					Type:       pluginsdk.TypeList,
-					Required:   true,
-					MaxItems:   1,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"secret_url": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
-							},
-
-							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
-						},
-					},
-				},
-
-				"key_encryption_key": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					MaxItems:   1,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"key_url": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
-							},
-
-							"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
-						},
-					},
-				},
-			},
-		}
-	}
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"disk_encryption_key": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:       pluginsdk.TypeList,
+				Required:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"secret_url": {
@@ -536,9 +398,10 @@ func diskEncryptionResource() *pluginsdk.Resource {
 			},
 
 			"key_encryption_key": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_url": {
@@ -783,12 +646,13 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			SelectedTfoAzureNetworkId:      &testNetworkId,
 			VMNics:                         &vmNics,
 			RecoveryAvailabilitySetId:      targetAvailabilitySetID,
+			RecoveryAzureVMSize:            pointer.To(d.Get("target_virtual_machine_size").(string)),
 			ProviderSpecificDetails: replicationprotecteditems.A2AUpdateReplicationProtectedItemInput{
 				ManagedDiskUpdateDetails:           &managedDisks,
-				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
-				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
-				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+				RecoveryProximityPlacementGroupId:  pointer.To(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   pointer.To(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: pointer.To(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   pointer.To(d.Get("target_virtual_machine_scale_set_id").(string)),
 			},
 		},
 	}
@@ -967,6 +831,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 			}
 			d.Set("target_virtual_machine_scale_set_id", vmssId)
 
+			d.Set("target_virtual_machine_size", pointer.From(a2aDetails.RecoveryAzureVMSize))
 			d.Set("target_zone", a2aDetails.RecoveryAvailabilityZone)
 			d.Set("target_edge_zone", flattenEdgeZone(a2aDetails.RecoveryExtendedLocation))
 			d.Set("multi_vm_group_name", a2aDetails.MultiVMGroupName)
@@ -1098,8 +963,8 @@ func resourceSiteRecoveryReplicatedItemDelete(d *pluginsdk.ResourceData, meta in
 		Properties: replicationprotecteditems.DisableProtectionInputProperties{
 			DisableProtectionReason: &disableProtectionReason,
 			// It's a workaround for https://github.com/hashicorp/pandora/issues/1864
-			ReplicationProviderInput: &siterecovery.DisableProtectionProviderSpecificInput{
-				InstanceType: siterecovery.InstanceTypeDisableProtectionProviderSpecificInput,
+			ReplicationProviderInput: replicationprotecteditems.BaseDisableProtectionProviderSpecificInputImpl{
+				InstanceType: string(siterecovery.InstanceTypeDisableProtectionProviderSpecificInput),
 			},
 		},
 	}

@@ -72,6 +72,9 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 	// This is a virtual resource so the last segment is hardcoded
 	id := parse.NewVirtualNetworkDnsServersID(vnetId.SubscriptionId, vnetId.ResourceGroupName, vnetId.VirtualNetworkName, "default")
 
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
 	vnet, err := client.Get(ctx, *vnetId, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(vnet.HttpResponse) {
@@ -79,9 +82,6 @@ func resourceVirtualNetworkDnsServersCreate(d *pluginsdk.ResourceData, meta inte
 		}
 		return fmt.Errorf("retrieving %s: %+v", vnetId, err)
 	}
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	if vnet.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", vnetId)
@@ -164,6 +164,9 @@ func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta inte
 	// This is a virtual resource so the last segment is hardcoded
 	id := parse.NewVirtualNetworkDnsServersID(vnetId.SubscriptionId, vnetId.ResourceGroupName, vnetId.VirtualNetworkName, "default")
 
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
 	vnet, err := client.Get(ctx, *vnetId, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(vnet.HttpResponse) {
@@ -171,9 +174,6 @@ func resourceVirtualNetworkDnsServersUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 		return fmt.Errorf("retrieving %s: %+v", vnetId, err)
 	}
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	if vnet.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", vnetId)
@@ -221,6 +221,9 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+
 	vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName)
 
 	vnet, err := client.Get(ctx, vnetId, virtualnetworks.DefaultGetOperationOptions())
@@ -231,9 +234,6 @@ func resourceVirtualNetworkDnsServersDelete(d *pluginsdk.ResourceData, meta inte
 		}
 		return fmt.Errorf("retrieving %s: %+v", vnetId, err)
 	}
-
-	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
 	if vnet.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", vnetId)

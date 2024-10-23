@@ -88,7 +88,7 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 		}
 	}
 
-	if !planIsEmpty(plan) && !step.ExpectNonEmptyPlan {
+	if !planIsEmpty(plan, wd.GetHelper().TerraformVersion()) && !step.ExpectNonEmptyPlan {
 		var stdout string
 		err = runProviderCommand(ctx, t, func() error {
 			var err error
