@@ -278,13 +278,9 @@ func expandDevCenterProjectPoolStopOnDisconnect(input int64) *pools.StopOnDiscon
 
 func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectConfiguration) int64 {
 	var gracePeriodMinutes int64
-	if input == nil || (input != nil && pointer.From(input.Status) == pools.StopOnDisconnectEnableStatusDisabled) {
+	if input == nil || pointer.From(input.Status) == pools.StopOnDisconnectEnableStatusDisabled {
 		return gracePeriodMinutes
 	}
 
-	if v := input.GracePeriodMinutes; v != nil {
-		gracePeriodMinutes = pointer.From(v)
-	}
-
-	return gracePeriodMinutes
+	return pointer.From(input.GracePeriodMinutes)
 }
