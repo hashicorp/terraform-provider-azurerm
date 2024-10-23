@@ -123,7 +123,7 @@ func (id VirtualNetworkPeeringId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
 		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticVirtualNetworkPeerings", "virtualNetworkPeerings", "virtualNetworkPeerings"),
-		resourceids.UserSpecifiedSegment("virtualNetworkPeeringName", "peeringName"),
+		resourceids.UserSpecifiedSegment("virtualNetworkPeeringName", "virtualNetworkPeeringName"),
 	}
 }
 

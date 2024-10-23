@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "location", "configStoreName")
+id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationName", "deletedConfigurationStoreName")
 
 read, err := client.ConfigurationStoresGetDeleted(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "location", "configStoreName")
+id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationName", "deletedConfigurationStoreName")
 
 if err := client.ConfigurationStoresPurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error

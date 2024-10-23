@@ -123,7 +123,7 @@ func (id StorageInsightConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
 		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticStorageInsightConfigs", "storageInsightConfigs", "storageInsightConfigs"),
-		resourceids.UserSpecifiedSegment("storageInsightConfigName", "storageInsightName"),
+		resourceids.UserSpecifiedSegment("storageInsightConfigName", "storageInsightConfigName"),
 	}
 }
 

@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := webcategories.NewAzureWebCategoryID("12345678-1234-9876-4563-123456789012", "name")
+id := webcategories.NewAzureWebCategoryID("12345678-1234-9876-4563-123456789012", "azureWebCategoryName")
 
 read, err := client.Get(ctx, id, webcategories.DefaultGetOperationOptions())
 if err != nil {

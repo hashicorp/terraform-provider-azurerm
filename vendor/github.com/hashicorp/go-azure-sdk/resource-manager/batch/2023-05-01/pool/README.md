@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 payload := pool.Pool{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -57,7 +57,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 read, err := client.DisableAutoScale(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -89,7 +89,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := pool.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+id := pool.NewBatchAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName")
 
 // alternatively `client.ListByBatchAccount(ctx, id, pool.DefaultListByBatchAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByBatchAccountComplete(ctx, id, pool.DefaultListByBatchAccountOperationOptions())
@@ -106,7 +106,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 read, err := client.StopResize(ctx, id)
 if err != nil {
@@ -122,7 +122,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "poolName")
+id := pool.NewPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "batchAccountName", "poolName")
 
 payload := pool.Pool{
 	// ...

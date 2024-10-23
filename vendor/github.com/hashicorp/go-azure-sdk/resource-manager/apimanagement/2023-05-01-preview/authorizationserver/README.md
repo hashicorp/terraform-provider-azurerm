@@ -21,7 +21,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 payload := authorizationserver.AuthorizationServerContract{
 	// ...
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 read, err := client.Delete(ctx, id, authorizationserver.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -71,7 +71,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -117,7 +117,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authsid")
+id := authorizationserver.NewAuthorizationServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "authorizationServerName")
 
 payload := authorizationserver.AuthorizationServerUpdateContract{
 	// ...

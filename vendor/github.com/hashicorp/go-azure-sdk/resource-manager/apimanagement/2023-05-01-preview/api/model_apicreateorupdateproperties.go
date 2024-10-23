@@ -26,7 +26,7 @@ type ApiCreateOrUpdateProperties struct {
 	SourceApiId                      *string                                  `json:"sourceApiId,omitempty"`
 	SubscriptionKeyParameterNames    *SubscriptionKeyParameterNamesContract   `json:"subscriptionKeyParameterNames,omitempty"`
 	SubscriptionRequired             *bool                                    `json:"subscriptionRequired,omitempty"`
-	TermsOfServiceUrl                *string                                  `json:"termsOfServiceUrl,omitempty"`
+	TermsOfServiceURL                *string                                  `json:"termsOfServiceUrl,omitempty"`
 	TranslateRequiredQueryParameters *TranslateRequiredQueryParametersConduct `json:"translateRequiredQueryParameters,omitempty"`
 	Type                             *ApiType                                 `json:"type,omitempty"`
 	Value                            *string                                  `json:"value,omitempty"`

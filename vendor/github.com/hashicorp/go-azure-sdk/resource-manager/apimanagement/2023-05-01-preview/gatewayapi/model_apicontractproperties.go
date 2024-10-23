@@ -24,6 +24,6 @@ type ApiContractProperties struct {
 	SourceApiId                   *string                                `json:"sourceApiId,omitempty"`
 	SubscriptionKeyParameterNames *SubscriptionKeyParameterNamesContract `json:"subscriptionKeyParameterNames,omitempty"`
 	SubscriptionRequired          *bool                                  `json:"subscriptionRequired,omitempty"`
-	TermsOfServiceUrl             *string                                `json:"termsOfServiceUrl,omitempty"`
+	TermsOfServiceURL             *string                                `json:"termsOfServiceUrl,omitempty"`
 	Type                          *ApiType                               `json:"type,omitempty"`
 }

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := availabledelegations.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := availabledelegations.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.AvailableDelegationsList(ctx, id)` can be used to do batched pagination
 items, err := client.AvailableDelegationsListComplete(ctx, id)
@@ -41,7 +41,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := availabledelegations.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := availabledelegations.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 // alternatively `client.AvailableResourceGroupDelegationsList(ctx, id)` can be used to do batched pagination
 items, err := client.AvailableResourceGroupDelegationsListComplete(ctx, id)

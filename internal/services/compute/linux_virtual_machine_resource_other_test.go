@@ -387,7 +387,7 @@ func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 			Config: r.otherLicenseType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("license_type").HasValue("SLES_BYOS"),
+				check.That(data.ResourceName).Key("license_type").HasValue("UBUNTU_PRO"),
 			),
 		},
 		data.ImportStep(),
@@ -1990,7 +1990,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  license_type        = "SLES_BYOS"
+  license_type        = "UBUNTU_PRO"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

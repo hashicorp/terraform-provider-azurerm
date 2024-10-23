@@ -21,7 +21,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 payload := openidconnectprovider.OpenidConnectProviderContract{
 	// ...
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 read, err := client.Delete(ctx, id, openidconnectprovider.DefaultDeleteOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -71,7 +71,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {
@@ -117,7 +117,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "opid")
+id := openidconnectprovider.NewOpenidConnectProviderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "openidConnectProviderName")
 
 payload := openidconnectprovider.OpenidConnectProviderUpdateContract{
 	// ...

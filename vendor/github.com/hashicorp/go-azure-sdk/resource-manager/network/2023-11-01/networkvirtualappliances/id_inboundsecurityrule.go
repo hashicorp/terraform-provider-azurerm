@@ -123,7 +123,7 @@ func (id InboundSecurityRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNetworkVirtualAppliances", "networkVirtualAppliances", "networkVirtualAppliances"),
 		resourceids.UserSpecifiedSegment("networkVirtualApplianceName", "networkVirtualApplianceName"),
 		resourceids.StaticSegment("staticInboundSecurityRules", "inboundSecurityRules", "inboundSecurityRules"),
-		resourceids.UserSpecifiedSegment("inboundSecurityRuleName", "ruleCollectionName"),
+		resourceids.UserSpecifiedSegment("inboundSecurityRuleName", "inboundSecurityRuleName"),
 	}
 }
 

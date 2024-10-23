@@ -115,7 +115,7 @@ func (id VirtualNetworkTapId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualNetworkTaps", "virtualNetworkTaps", "virtualNetworkTaps"),
-		resourceids.UserSpecifiedSegment("virtualNetworkTapName", "tapName"),
+		resourceids.UserSpecifiedSegment("virtualNetworkTapName", "virtualNetworkTapName"),
 	}
 }
 
