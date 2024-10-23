@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `azurerm_mssql_database` - updating short term retention policy now works as expected [GH-27714]
 
+FEATURES:
+
+* `cosmosdb` - upgrade api version to `2024-08-15` [GH-27659]
+
 ## 4.6.0 (October 18, 2024)
 
 FEATURES:
