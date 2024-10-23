@@ -24,11 +24,9 @@ data "azurerm_mssql_managed_database" "example" {
 
 The following arguments are supported:
 
-* `managed_instance_name` - (Required) The name of the Managed Database.
-
 * `name` - (Required) The name of this Azure SQL Azure Managed Database.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Azure SQL Azure Managed Instance exists.
+* `managed_instance_id` - (Required) The SQL Managed Instance ID.
 
 ## Attributes Reference
 
@@ -38,11 +36,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `long_term_retention_policy` - A `long_term_retention_policy` block as defined below.
 
-* `managed_instance_id` -  The SQL Managed Instance ID.
+* `resource_group_name` - The name of the Resource Group where the Azure SQL Azure Managed Instance exists.
+
+* `managed_instance_name` - The name of the Managed Instance.
 
 * `point_in_time_restore` - A `point_in_time_restore` block as defined below.
 
-* `short_term_retention_days` -  The backup retention period in days. This is how many days Point-in-Time Restore will be supported..
+* `short_term_retention_days` -  The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
 ---
 
