@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlManagedDatabaseDataSourceModel struct {
@@ -144,10 +144,10 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := commonids.NewSqlManagedInstanceDatabaseID(subscriptionId, managedInstanceId.ResourceGroup, managedInstanceId.Name, state.Name)
-			resp, err := client.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+			id := commonids.NewSqlManagedInstanceDatabaseID(subscriptionId, managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, state.Name)
+			resp, err := client.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(resp.Response.Response) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -155,19 +155,19 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 
 			model := MsSqlManagedDatabaseDataSourceModel{
 				Name:                id.DatabaseName,
-				ManagedInstanceName: managedInstanceId.Name,
-				ResourceGroupName:   id.ResourceGroup,
+				ManagedInstanceName: managedInstanceId.ManagedInstanceName,
+				ResourceGroupName:   id.ResourceGroupName,
 				ManagedInstanceId:   managedInstanceId.ID(),
 			}
 
-			ltrResp, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+			ltrResp, err := longTermRetentionClient.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", id, err)
 			}
 
 			model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(ltrResp)
 
-			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName, id.DatabaseName)
+			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
 			if err != nil {
 				return fmt.Errorf("retrieving Short Term Retention Policy for  %s: %v", id, err)
 			}
