@@ -40,7 +40,7 @@ func TestAdbsRegularResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -54,7 +54,7 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -68,14 +68,14 @@ func TestAdbsRegularResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -95,7 +95,6 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -124,18 +123,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
-  lifecycle {
-    ignore_changes = [
-      admin_password
-    ]
-  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -165,18 +158,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
   customer_contacts                = ["test@test.com"]
-  lifecycle {
-    ignore_changes = [
-      admin_password
-    ]
-  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 
 %s
 
@@ -204,11 +191,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
-  lifecycle {
-    ignore_changes = [
-      admin_password
-    ]
-  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -231,17 +213,12 @@ resource "azurerm_oracle_autonomous_database" "import" {
   mtls_connection_required         = azurerm_oracle_autonomous_database.test.mtls_connection_required
   data_storage_size_in_tbs         = azurerm_oracle_autonomous_database.test.data_storage_size_in_tbs
   db_workload                      = azurerm_oracle_autonomous_database.test.db_workload
-  admin_password                   = "TestPass#2024#"
+  admin_password                   = azurerm_oracle_autonomous_database.test.admin_password
   db_version                       = azurerm_oracle_autonomous_database.test.db_version
   character_set                    = azurerm_oracle_autonomous_database.test.character_set
   national_character_set           = azurerm_oracle_autonomous_database.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
   virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
-  lifecycle {
-    ignore_changes = [
-      admin_password
-    ]
-  }
 }
 `, a.basic(data))
 }
@@ -281,7 +258,6 @@ resource "azurerm_subnet" "test" {
     }
   }
 }
-
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

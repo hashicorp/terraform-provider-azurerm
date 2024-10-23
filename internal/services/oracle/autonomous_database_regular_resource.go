@@ -345,7 +345,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				if !ok {
 					return fmt.Errorf("%s was not of type `Regular`", id)
 				}
-				state.AdminPassword = pointer.From(props.AdminPassword)
+				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
