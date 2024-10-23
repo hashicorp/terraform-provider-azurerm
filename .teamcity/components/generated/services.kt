@@ -125,6 +125,7 @@ var services = mapOf(
         "systemcentervirtualmachinemanager" to "System Center Virtual Machine Manager",
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
+        "videoindexer" to "VideoIndexer",
         "voiceservices" to "Voice Services",
         "web" to "Web",
         "workloads" to "Workloads"
