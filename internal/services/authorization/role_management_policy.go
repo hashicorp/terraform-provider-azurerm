@@ -455,9 +455,7 @@ func flattenNotificationSettings(rule rolemanagementpolicies.RoleManagementPolic
 	}
 	if v := rule.NotificationRecipients; v != nil {
 		additionalRecipients = make([]string, len(*v))
-		for i, r := range *v {
-			additionalRecipients[i] = r
-		}
+		additionalRecipients = append(additionalRecipients, *v...)
 	}
 	return &RoleManagementPolicyNotificationSettings{
 		NotificationLevel:    notificationLevel,
