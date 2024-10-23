@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
@@ -148,6 +149,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},

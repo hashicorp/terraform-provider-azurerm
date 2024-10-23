@@ -124,6 +124,7 @@ var services = mapOf(
         "synapse" to "Synapse",
         "systemcentervirtualmachinemanager" to "System Center Virtual Machine Manager",
         "trafficmanager" to "Traffic Manager",
+        "codesigning" to "Trusted Signing",
         "vmware" to "VMware",
         "voiceservices" to "Voice Services",
         "web" to "Web",

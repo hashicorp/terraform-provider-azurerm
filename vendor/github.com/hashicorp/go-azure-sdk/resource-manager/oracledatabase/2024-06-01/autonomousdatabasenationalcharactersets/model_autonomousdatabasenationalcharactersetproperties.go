@@ -4,5 +4,5 @@ package autonomousdatabasenationalcharactersets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AutonomousDatabaseNationalCharacterSetProperties struct {
-	CharacterSet *string `json:"characterSet,omitempty"`
+	CharacterSet string `json:"characterSet"`
 }

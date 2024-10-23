@@ -4,5 +4,5 @@ package systemversions
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SystemVersionProperties struct {
-	SystemVersion *string `json:"systemVersion,omitempty"`
+	SystemVersion string `json:"systemVersion"`
 }
