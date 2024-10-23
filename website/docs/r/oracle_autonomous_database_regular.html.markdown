@@ -25,7 +25,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   compute_model                    = "example"
   data_storage_size_in_gbs         = 42
   auto_scaling_for_storage_enabled = false
-  vnet_id                          = "example"
+  virtual_network_id                          = "example"
   admin_password                   = "example"
   auto_scaling_enabled             = "example"
   character_set                    = "example"
@@ -39,6 +39,12 @@ resource "azurerm_oracle_autonomous_database" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
+ 
+* `name` - (Required) The name which should be used for this Autonomous Databases.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Databases should exist.
+
+* `location` - (Required) The Azure Region where the Autonomous Databases should exist. Changing this forces a new Autonomous Databases to be created.
 
 * `admin_password` - (Required) The password must be between `12` and `30 `characters long, and must contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing.
 
@@ -70,21 +76,15 @@ The following arguments are supported:
 
 * `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Bring your own license (BYOL) allows you to apply your current on-premises Oracle software licenses to equivalent, highly automated Oracle services in the cloud. License Included allows you to subscribe to new Oracle Database software licenses and the Oracle Database service. Note that when provisioning an [Autonomous Database on dedicated Exadata infrastructure](https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html), this attribute must be null. It is already set at the Autonomous Exadata Infrastructure level. When provisioning an [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) database, if a value is not specified, the system defaults the value to `BRING_YOUR_OWN_LICENSE`. Bring your own license (BYOL) also allows you to select the DB edition using the optional parameter.
 
-* `location` - (Required) The Azure Region where the Autonomous Databases should exist. Changing this forces a new Autonomous Databases to be created.
-
-* `name` - (Required) The name which should be used for this Autonomous Databases.
-
 * `national_character_set` - (Required) The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Databases should exist.
 
 * `subnet_id` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with.
 
-* `vnet_id` - (Required) The ID of the vnet associated with the cloud VM cluster.
+* `virtual_network_id` - (Required) The ID of the vnet associated with the cloud VM cluster.
 
 ---
 
-* `customer_contacts` - (Optional) Specifies a list of TODO.
+* `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Autonomous Databases.
 
@@ -92,13 +92,13 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Autonomous Databases.
+* `id` - The ID of the Autonomous Database.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hour) Used when creating the Autonomous Databases.
+* `create` - (Defaults to 2 hours) Used when creating the Autonomous Databases.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Databases.
 * `update` - (Defaults to 30 minutes) Used when updating the Autonomous Databases.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Databases.

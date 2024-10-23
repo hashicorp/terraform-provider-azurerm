@@ -123,7 +123,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  vnet_id                          = azurerm_virtual_network.virtual_network.id
+  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -163,7 +163,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  vnet_id                          = azurerm_virtual_network.virtual_network.id
+  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
   customer_contacts                = ["test@test.com"]
   lifecycle {
     ignore_changes = [
@@ -203,7 +203,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.virtual_network_subnet.id
-  vnet_id                          = azurerm_virtual_network.virtual_network.id
+  virtual_network_id                          = azurerm_virtual_network.virtual_network.id
   lifecycle {
     ignore_changes = [
       admin_password
@@ -236,7 +236,7 @@ resource "azurerm_oracle_autonomous_database" "import" {
   character_set                    = azurerm_oracle_autonomous_database.test.character_set
   national_character_set           = azurerm_oracle_autonomous_database.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
-  vnet_id                          = azurerm_oracle_autonomous_database.test.vnet_id
+  virtual_network_id                          = azurerm_oracle_autonomous_database.test.virtual_network_id
   lifecycle {
     ignore_changes = [
       admin_password

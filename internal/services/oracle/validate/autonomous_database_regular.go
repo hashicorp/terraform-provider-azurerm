@@ -185,3 +185,19 @@ func DbWorkloadType(i interface{}, k string) (warnings []string, errors []error)
 
 	return
 }
+
+func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if v != string(autonomousdatabases.ComputeModelECPU) && v != string(autonomousdatabases.ComputeModelOCPU) {
+		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
+			string(autonomousdatabases.ComputeModelECPU), string(autonomousdatabases.ComputeModelOCPU)))
+		return
+	}
+
+	return
+}

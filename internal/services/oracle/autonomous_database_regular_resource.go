@@ -9,11 +9,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = AutonomousDatabaseRegularResource{}
@@ -42,7 +44,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
 	NationalCharacterSet         string  `tfschema:"national_character_set"`
 	SubnetId                     string  `tfschema:"subnet_id"`
-	VnetId                       string  `tfschema:"vnet_id"`
+	VnetId                       string  `tfschema:"virtual_network_id"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -78,9 +80,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"character_set": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"compute_count": {
@@ -90,9 +93,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AdbsComputeModel,
 		},
 
 		"data_storage_size_in_tbs": {
@@ -102,9 +106,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"db_version": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"db_workload": {
@@ -145,21 +150,24 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"national_character_set": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"subnet_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"vnet_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+		"virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
 		// Optional

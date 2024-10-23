@@ -77,7 +77,7 @@ type AutonomousDatabaseRegularDataModel struct {
 	TimeReclamationOfFreeAutonomousDatabase string   `tfschema:"time_reclamation_of_free_autonomous_database"`
 	UsedDataStorageSizeInGbs                int64    `tfschema:"used_data_storage_size_in_gbs"`
 	UsedDataStorageSizeInTbs                int64    `tfschema:"used_data_storage_size_in_tbs"`
-	VnetId                                  string   `tfschema:"vnet_id"`
+	VnetId                                  string   `tfschema:"virtual_network_id"`
 	AllowedIps                              []string `tfschema:"allowed_ips"`
 }
 
@@ -370,7 +370,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"vnet_id": {
+		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

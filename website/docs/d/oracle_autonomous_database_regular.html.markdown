@@ -145,7 +145,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `used_data_storage_size_in_tbs` - The amount of storage that has been used, in terabytes.
 
-* `vnet_id` - The ID to an Azure Resource Manager vnet resource.
+* `virtual_network_id` - The ID to an Azure Resource Manager vnet resource.
 
 * `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
 
