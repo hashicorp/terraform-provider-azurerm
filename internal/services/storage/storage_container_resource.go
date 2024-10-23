@@ -271,13 +271,13 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
