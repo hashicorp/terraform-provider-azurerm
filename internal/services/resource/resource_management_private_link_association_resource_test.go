@@ -53,9 +53,7 @@ func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport(data)
-		}),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
