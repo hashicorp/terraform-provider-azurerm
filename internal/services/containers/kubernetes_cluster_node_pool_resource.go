@@ -89,6 +89,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: containerValidate.KubernetesAgentPoolName,
 		},
 
@@ -369,7 +370,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -826,7 +827,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"kubelet_config",
 		"linux_os_config",
 		"max_pods",
-		"name",
 		"os_disk_size_gb",
 		"os_disk_type",
 		"pod_subnet_id",

@@ -337,14 +337,14 @@ func TestAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 		{
 			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 	})
 }
 
@@ -774,14 +774,14 @@ func TestAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
 	})
 }
 
@@ -1737,10 +1737,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "%s"
-  node_count            = 1
+  name                        = "internal"
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.test.id
+  vm_size                     = "%s"
+  node_count                  = 1
+  temporary_name_for_rotation = "temporal"
 }
 `, r.templateConfig(data), sku)
 }
@@ -2505,11 +2506,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  ultra_ssd_enabled     = %t
-  zones                 = ["1", "2", "3"]
+  name                        = "internal"
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.test.id
+  vm_size                     = "Standard_D2s_v3"
+  temporary_name_for_rotation = "temporal"
+  ultra_ssd_enabled           = %t
+  zones                       = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
 }
