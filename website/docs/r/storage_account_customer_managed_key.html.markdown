@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 
-~> Note: When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property.
+~> Note: When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property. But if the Key Vault is in a different subscription from the Storage Account, use `key_vault_uri` instead; otherwise, using `key_vault_id` will cause drift.
 
 * `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 
