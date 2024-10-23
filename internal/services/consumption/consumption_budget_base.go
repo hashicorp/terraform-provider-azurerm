@@ -151,7 +151,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 1000),
 					},
-					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/16240
 					"threshold_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
