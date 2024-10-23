@@ -5,6 +5,7 @@ package redis
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -338,7 +339,7 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		d.Set("subnet_id", subnetId)
 
-		redisConfiguration, err := flattenRedisConfiguration(props.RedisConfiguration)
+		redisConfiguration, err := flattenDataSourceRedisConfiguration(props.RedisConfiguration)
 		if err != nil {
 			return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 		}
@@ -366,4 +367,112 @@ func dataSourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	return nil
+}
+
+func flattenDataSourceRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
+	outputs := make(map[string]interface{})
+
+	if input.AadEnabled != nil {
+		a, err := strconv.ParseBool(*input.AadEnabled)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `aad-enabled` %q: %+v", *input.AadEnabled, err)
+		}
+		outputs["active_directory_authentication_enabled"] = a
+	}
+
+	if input.Maxclients != nil {
+		i, err := strconv.Atoi(*input.Maxclients)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `maxclients` %q: %+v", *input.Maxclients, err)
+		}
+		outputs["maxclients"] = i
+	}
+	if input.MaxmemoryDelta != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryDelta)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `maxmemory-delta` %q: %+v", *input.MaxmemoryDelta, err)
+		}
+		outputs["maxmemory_delta"] = i
+	}
+	if input.MaxmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxmemoryReserved)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `maxmemory-reserved` %q: %+v", *input.MaxmemoryReserved, err)
+		}
+		outputs["maxmemory_reserved"] = i
+	}
+	if input.MaxmemoryPolicy != nil {
+		outputs["maxmemory_policy"] = *input.MaxmemoryPolicy
+	}
+
+	if input.PreferredDataPersistenceAuthMethod != nil {
+		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
+	}
+
+	if input.MaxfragmentationmemoryReserved != nil {
+		i, err := strconv.Atoi(*input.MaxfragmentationmemoryReserved)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `maxfragmentationmemory-reserved` %q: %+v", *input.MaxfragmentationmemoryReserved, err)
+		}
+		outputs["maxfragmentationmemory_reserved"] = i
+	}
+
+	// delta, reserved, enabled, frequency,, count,
+	if input.RdbBackupEnabled != nil {
+		b, err := strconv.ParseBool(*input.RdbBackupEnabled)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `rdb-backup-enabled` %q: %+v", *input.RdbBackupEnabled, err)
+		}
+		outputs["rdb_backup_enabled"] = b
+	}
+	if input.RdbBackupFrequency != nil {
+		i, err := strconv.Atoi(*input.RdbBackupFrequency)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `rdb-backup-frequency` %q: %+v", *input.RdbBackupFrequency, err)
+		}
+		outputs["rdb_backup_frequency"] = i
+	}
+	if input.RdbBackupMaxSnapshotCount != nil {
+		i, err := strconv.Atoi(*input.RdbBackupMaxSnapshotCount)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `rdb-backup-max-snapshot-count` %q: %+v", *input.RdbBackupMaxSnapshotCount, err)
+		}
+		outputs["rdb_backup_max_snapshot_count"] = i
+	}
+	if input.RdbStorageConnectionString != nil {
+		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+	}
+	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
+
+	if v := input.AofBackupEnabled; v != nil {
+		b, err := strconv.ParseBool(*v)
+		if err != nil {
+			return nil, fmt.Errorf("parsing `aof-backup-enabled` %q: %+v", *v, err)
+		}
+		outputs["aof_backup_enabled"] = b
+	}
+	if input.AofStorageConnectionString0 != nil {
+		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+	}
+	if input.AofStorageConnectionString1 != nil {
+		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+	}
+
+	// `authnotrequired` is not set for instances launched outside a VNET
+	outputs["authentication_enabled"] = true
+	if v := input.Authnotrequired; v != nil {
+		outputs["authentication_enabled"] = isAuthRequiredAsBool(*v)
+	}
+
+	if !features.FourPointOhBeta() {
+		// `authnotrequired` is not set for instances launched outside a VNET
+		outputs["enable_authentication"] = true
+		if v := input.Authnotrequired; v != nil {
+			outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+		}
+	}
+
+	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
+
+	return []interface{}{outputs}, nil
 }
