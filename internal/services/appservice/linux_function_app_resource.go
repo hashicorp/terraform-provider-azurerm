@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
+	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppResource struct{}
