@@ -21,15 +21,95 @@ import (
 )
 
 func dataSourceStorageShare() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceStorageShareRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: storageShareDataSourceSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
+			},
+
+			"metadata": MetaDataComputedSchema(),
+
+			"acl": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"access_policy": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"start": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"expiry": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"permissions": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"quota": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+		},
 	}
+
+	if !features.FivePointOhBeta() {
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+		}
+
+		r.Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+			ValidateFunc: commonids.ValidateStorageAccountID,
+		}
+
+		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+		}
+	}
+
+	return r
 }
 
 func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -128,88 +208,4 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	return nil
-}
-
-func storageShareDataSourceSchema() map[string]*pluginsdk.Schema {
-	r := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
-		"metadata": MetaDataComputedSchema(),
-
-		"acl": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"access_policy": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"start": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"expiry": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-								"permissions": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"quota": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-	}
-
-	if !features.FivePointOhBeta() {
-		r["storage_account_name"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-		}
-
-		r["storage_account_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		}
-
-		r["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
-		}
-	}
-
-	return r
 }

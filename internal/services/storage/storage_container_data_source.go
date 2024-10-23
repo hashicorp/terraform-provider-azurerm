@@ -20,15 +20,83 @@ import (
 )
 
 func dataSourceStorageContainer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceStorageContainerRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: storageContainerDataSourceSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
+			},
+
+			"container_access_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"default_encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"metadata": MetaDataComputedSchema(),
+
+			"has_immutability_policy": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"has_legal_hold": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+		},
 	}
+
+	if !features.FivePointOhBeta() {
+		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+		}
+
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+		}
+
+		r.Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+		}
+	}
+
+	return r
 }
 
 func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -137,76 +205,4 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	return nil
-}
-
-func storageContainerDataSourceSchema() map[string]*pluginsdk.Schema {
-	r := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
-		"container_access_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"default_encryption_scope": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"encryption_scope_override_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"metadata": MetaDataComputedSchema(),
-
-		"has_immutability_policy": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"has_legal_hold": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-	}
-
-	if !features.FivePointOhBeta() {
-		r["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
-		}
-
-		r["storage_account_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-		}
-
-		r["storage_account_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-		}
-	}
-
-	return r
 }

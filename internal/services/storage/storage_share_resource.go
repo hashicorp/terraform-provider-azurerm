@@ -32,7 +32,7 @@ import (
 )
 
 func resourceStorageShare() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceStorageShareCreate,
 		Read:   resourceStorageShareRead,
 		Update: resourceStorageShareUpdate,
@@ -60,8 +60,127 @@ func resourceStorageShare() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: storageShareSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageShareName,
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
+			},
+
+			"quota": {
+				Type:         pluginsdk.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 102400),
+			},
+
+			"metadata": MetaDataComputedSchema(),
+
+			"enabled_protocol": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(shares.SMB),
+					string(shares.NFS),
+				}, false),
+				Default: string(shares.SMB),
+			},
+
+			"acl": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 64),
+						},
+						"access_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"start": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsRFC3339Time,
+									},
+									"expiry": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsRFC3339Time,
+									},
+									"permissions": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"access_tier": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						string(shares.PremiumAccessTier),
+						string(shares.HotAccessTier),
+						string(shares.CoolAccessTier),
+						string(shares.TransactionOptimizedAccessTier),
+					}, false),
+			},
+		},
 	}
+
+	if !features.FivePointOhBeta() {
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+			Deprecated: "This property has been deprecated and will be replaced by 'storage_account_id' in version 5.0 of the provider.",
+		}
+
+		r.Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ExactlyOneOf: []string{
+				"storage_account_name",
+				"storage_account_id",
+			},
+		}
+
+		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the 'id' property.",
+		}
+	}
+
+	return r
 }
 
 func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -611,127 +730,4 @@ func flattenStorageShareACLs(input []fileshares.SignedIdentifier) []interface{} 
 	}
 
 	return result
-}
-
-func storageShareSchema() map[string]*pluginsdk.Schema {
-	r := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageShareName,
-		},
-
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
-		"quota": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntBetween(1, 102400),
-		},
-
-		"metadata": MetaDataComputedSchema(),
-
-		"enabled_protocol": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(shares.SMB),
-				string(shares.NFS),
-			}, false),
-			Default: string(shares.SMB),
-		},
-
-		"acl": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringLenBetween(1, 64),
-					},
-					"access_policy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"start": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.IsRFC3339Time,
-								},
-								"expiry": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.IsRFC3339Time,
-								},
-								"permissions": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"access_tier": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{
-					string(shares.PremiumAccessTier),
-					string(shares.HotAccessTier),
-					string(shares.CoolAccessTier),
-					string(shares.TransactionOptimizedAccessTier),
-				}, false),
-		},
-	}
-
-	if !features.FivePointOhBeta() {
-		r["storage_account_name"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-			Deprecated: "This property has been deprecated and will be replaced by 'storage_account_id' in version 5.0 of the provider.",
-		}
-
-		r["storage_account_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ExactlyOneOf: []string{
-				"storage_account_name",
-				"storage_account_id",
-			},
-		}
-
-		r["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the 'id' property.",
-		}
-	}
-
-	return r
 }

@@ -38,7 +38,7 @@ var containerAccessTypeConversionMap = map[string]string{
 }
 
 func resourceStorageContainer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceStorageContainerCreate,
 		Read:   resourceStorageContainerRead,
 		Delete: resourceStorageContainerDelete,
@@ -70,8 +70,90 @@ func resourceStorageContainer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: storageContainerSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageContainerName,
+			},
+
+			"storage_account_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateStorageAccountID,
+			},
+
+			"container_access_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "private",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containers.Blob),
+					string(containers.Container),
+					"private",
+				}, false),
+			},
+
+			"default_encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // needed because a dummy value is returned when unspecified
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
+				ForceNew:     true,
+				RequiredWith: []string{"default_encryption_scope"},
+			},
+
+			"metadata": MetaDataComputedSchema(),
+
+			"has_immutability_policy": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"has_legal_hold": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+		},
 	}
+
+	if !features.FivePointOhBeta() {
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageAccountName,
+			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
+			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
+		}
+
+		r.Schema["storage_account_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateStorageAccountID,
+			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
+		}
+
+		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+		}
+	}
+
+	return r
 }
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -459,90 +541,4 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
-}
-
-func storageContainerSchema() map[string]*pluginsdk.Schema {
-	r := map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageContainerName,
-		},
-
-		"storage_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-		},
-
-		"container_access_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "private",
-			ValidateFunc: validation.StringInSlice([]string{
-				string(containers.Blob),
-				string(containers.Container),
-				"private",
-			}, false),
-		},
-
-		"default_encryption_scope": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true, // needed because a dummy value is returned when unspecified
-			ForceNew:     true,
-			ValidateFunc: validate.StorageEncryptionScopeName,
-		},
-
-		"encryption_scope_override_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
-			ForceNew:     true,
-			RequiredWith: []string{"default_encryption_scope"},
-		},
-
-		"metadata": MetaDataComputedSchema(),
-
-		"has_immutability_policy": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"has_legal_hold": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-	}
-
-	if !features.FivePointOhBeta() {
-		r["storage_account_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountName,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-			Deprecated:   "the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider.",
-		}
-
-		r["storage_account_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateStorageAccountID,
-			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
-		}
-
-		r["resource_manager_id"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
-		}
-	}
-
-	return r
 }
