@@ -358,6 +358,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.Location = result.Model.Location
 				state.Name = pointer.ToString(result.Model.Name)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
