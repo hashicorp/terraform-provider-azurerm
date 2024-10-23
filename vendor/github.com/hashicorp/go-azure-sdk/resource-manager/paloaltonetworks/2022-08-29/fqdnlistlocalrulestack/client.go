@@ -15,7 +15,7 @@ type FqdnListLocalRulestackClient struct {
 }
 
 func NewFqdnListLocalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*FqdnListLocalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fqdnlistlocalrulestack", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fqdnlistlocalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FqdnListLocalRulestackClient: %+v", err)
 	}

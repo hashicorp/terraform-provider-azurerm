@@ -14,6 +14,14 @@ type HybridConnectionEventSubscriptionDestination struct {
 	Properties *HybridConnectionEventSubscriptionDestinationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from EventSubscriptionDestination
+
+	EndpointType EndpointType `json:"endpointType"`
+}
+
+func (s HybridConnectionEventSubscriptionDestination) EventSubscriptionDestination() BaseEventSubscriptionDestinationImpl {
+	return BaseEventSubscriptionDestinationImpl{
+		EndpointType: s.EndpointType,
+	}
 }
 
 var _ json.Marshaler = HybridConnectionEventSubscriptionDestination{}
@@ -27,9 +35,10 @@ func (s HybridConnectionEventSubscriptionDestination) MarshalJSON() ([]byte, err
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HybridConnectionEventSubscriptionDestination: %+v", err)
 	}
+
 	decoded["endpointType"] = "HybridConnection"
 
 	encoded, err = json.Marshal(decoded)

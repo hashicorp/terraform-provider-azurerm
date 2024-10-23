@@ -15,7 +15,7 @@ type TagRulesClient struct {
 }
 
 func NewTagRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*TagRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tagrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tagrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TagRulesClient: %+v", err)
 	}

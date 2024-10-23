@@ -45,7 +45,6 @@ func (c ApplicationGatewaysClient) GetSslPredefinedPolicy(ctx context.Context, i
 
 	var model ApplicationGatewaySslPredefinedPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

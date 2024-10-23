@@ -49,7 +49,6 @@ func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId
 
 	var model ElasticMonitorResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

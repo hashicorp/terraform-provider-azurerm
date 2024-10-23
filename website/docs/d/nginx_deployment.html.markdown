@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `nginx_version` - NGINX version of the Deployment.
 
-* `sku` - The NGINX Deployment SKU. Possible values include `standard_Monthly`.
+* `sku` - The NGINX Deployment SKU.
 
 * `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
 

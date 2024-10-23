@@ -37,6 +37,7 @@ func (o GetBgpPeerStatusOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetBgpPeerStatusOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

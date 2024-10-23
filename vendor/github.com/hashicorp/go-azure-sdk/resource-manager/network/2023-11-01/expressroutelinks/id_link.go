@@ -44,7 +44,7 @@ func ParseLinkID(input string) (*LinkId, error) {
 	}
 
 	id := LinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLinkIDInsensitively(input string) (*LinkId, error) {
 	}
 
 	id := LinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticExpressRoutePorts", "expressRoutePorts", "expressRoutePorts"),
-		resourceids.UserSpecifiedSegment("expressRoutePortName", "expressRoutePortValue"),
+		resourceids.UserSpecifiedSegment("expressRoutePortName", "expressRoutePortName"),
 		resourceids.StaticSegment("staticLinks", "links", "links"),
-		resourceids.UserSpecifiedSegment("linkName", "linkValue"),
+		resourceids.UserSpecifiedSegment("linkName", "linkName"),
 	}
 }
 

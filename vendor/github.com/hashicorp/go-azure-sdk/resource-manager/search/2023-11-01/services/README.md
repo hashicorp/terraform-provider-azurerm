@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services` Documentation
 
-The `services` SDK allows for interaction with the Azure Resource Manager Service `search` (API Version `2023-11-01`).
+The `services` SDK allows for interaction with Azure Resource Manager `search` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 payload := services.SearchService{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, services.DefaultCreate
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 read, err := client.Delete(ctx, id, services.DefaultDeleteOperationOptions())
 if err != nil {
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 read, err := client.Get(ctx, id, services.DefaultGetOperationOptions())
 if err != nil {
@@ -129,7 +129,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceValue")
+id := services.NewSearchServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "searchServiceName")
 
 payload := services.SearchServiceUpdate{
 	// ...

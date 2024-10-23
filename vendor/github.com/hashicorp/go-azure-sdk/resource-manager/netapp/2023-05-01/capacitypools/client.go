@@ -15,7 +15,7 @@ type CapacityPoolsClient struct {
 }
 
 func NewCapacityPoolsClientWithBaseURI(sdkApi sdkEnv.Api) (*CapacityPoolsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "capacitypools", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "capacitypools", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CapacityPoolsClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type ConnectivityConfigurationsClient struct {
 }
 
 func NewConnectivityConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*ConnectivityConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "connectivityconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "connectivityconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConnectivityConfigurationsClient: %+v", err)
 	}

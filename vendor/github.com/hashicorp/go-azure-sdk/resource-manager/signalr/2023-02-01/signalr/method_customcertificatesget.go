@@ -45,7 +45,6 @@ func (c SignalRClient) CustomCertificatesGet(ctx context.Context, id CustomCerti
 
 	var model CustomCertificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

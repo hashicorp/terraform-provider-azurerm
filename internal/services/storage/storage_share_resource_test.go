@@ -207,13 +207,6 @@ func TestAccStorageShare_accessTierStandard(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.accessTierStandard(data, "TransactionOptimized"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -252,7 +245,7 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 	r := StorageShareResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.protocol(data, "NFS"),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -44,7 +44,7 @@ func ParseApplicationID(input string) (*ApplicationId, error) {
 	}
 
 	id := ApplicationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApplicationIDInsensitively(input string) (*ApplicationId, error) {
 	}
 
 	id := ApplicationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApplicationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticApplicationGroups", "applicationGroups", "applicationGroups"),
-		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupValue"),
+		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupName"),
 		resourceids.StaticSegment("staticApplications", "applications", "applications"),
-		resourceids.UserSpecifiedSegment("applicationName", "applicationValue"),
+		resourceids.UserSpecifiedSegment("applicationName", "applicationName"),
 	}
 }
 

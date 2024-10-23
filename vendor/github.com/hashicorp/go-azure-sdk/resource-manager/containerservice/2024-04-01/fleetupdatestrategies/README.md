@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies` Documentation
 
-The `fleetupdatestrategies` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-04-01`).
+The `fleetupdatestrategies` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateStrategyValue")
+id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateStrategyName")
 
 payload := fleetupdatestrategies.FleetUpdateStrategy{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleetupdatestrategies.
 
 ```go
 ctx := context.TODO()
-id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateStrategyValue")
+id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateStrategyName")
 
 if err := client.DeleteThenPoll(ctx, id, fleetupdatestrategies.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, fleetupdatestrategies.DefaultDeleteOper
 
 ```go
 ctx := context.TODO()
-id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateStrategyValue")
+id := fleetupdatestrategies.NewUpdateStrategyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateStrategyName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := fleetupdatestrategies.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue")
+id := fleetupdatestrategies.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName")
 
 // alternatively `client.ListByFleet(ctx, id)` can be used to do batched pagination
 items, err := client.ListByFleetComplete(ctx, id)

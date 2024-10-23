@@ -4,5 +4,5 @@ package virtualnetworkgatewayconnections
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VpnPacketCaptureStopParameters struct {
-	SasUrl *string `json:"sasUrl,omitempty"`
+	SasURL *string `json:"sasUrl,omitempty"`
 }

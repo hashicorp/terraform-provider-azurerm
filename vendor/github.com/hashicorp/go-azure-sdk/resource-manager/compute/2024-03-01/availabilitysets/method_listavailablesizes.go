@@ -47,7 +47,6 @@ func (c AvailabilitySetsClient) ListAvailableSizes(ctx context.Context, id commo
 
 	var model VirtualMachineSizeListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type VirtualApplianceSkusClient struct {
 }
 
 func NewVirtualApplianceSkusClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualApplianceSkusClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualapplianceskus", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualapplianceskus", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualApplianceSkusClient: %+v", err)
 	}

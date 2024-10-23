@@ -157,18 +157,9 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
-										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
-									),
-								},
-
 								"address_prefix": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
@@ -181,6 +172,16 @@ func (StackHCILogicalNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IsIPv4Address,
+								},
+
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,78}[a-zA-Z0-9]$`),
+										"name must be between 2 and 80 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+									),
 								},
 							},
 						},
@@ -446,13 +447,18 @@ func expandStackHCILogicalNetworkRouteTable(input []StackHCIRouteModel) *logical
 
 	routes := make([]logicalnetworks.Route, 0)
 	for _, v := range input {
-		routes = append(routes, logicalnetworks.Route{
-			Name: pointer.To(v.Name),
+		route := logicalnetworks.Route{
 			Properties: &logicalnetworks.RoutePropertiesFormat{
 				AddressPrefix:    pointer.To(v.AddressPrefix),
 				NextHopIPAddress: pointer.To(v.NextHopIpAddress),
 			},
-		})
+		}
+
+		if v.Name != "" {
+			route.Name = pointer.To(v.Name)
+		}
+
+		routes = append(routes, route)
 	}
 
 	return &logicalnetworks.RouteTable{
@@ -472,6 +478,7 @@ func flattenStackHCILogicalNetworkRouteTable(input *logicalnetworks.RouteTable) 
 		route := StackHCIRouteModel{
 			Name: pointer.From(v.Name),
 		}
+
 		if v.Properties != nil {
 			route.AddressPrefix = pointer.From(v.Properties.AddressPrefix)
 			route.NextHopIpAddress = pointer.From(v.Properties.NextHopIPAddress)

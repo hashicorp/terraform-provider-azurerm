@@ -15,7 +15,7 @@ type ServiceEndpointPoliciesClient struct {
 }
 
 func NewServiceEndpointPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ServiceEndpointPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serviceendpointpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serviceendpointpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServiceEndpointPoliciesClient: %+v", err)
 	}

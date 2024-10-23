@@ -91,8 +91,9 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+=[a-zA-Z0-9!_-]+|^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+`),
+						regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\)))(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\))))*$`),
 						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
 					),
 				},

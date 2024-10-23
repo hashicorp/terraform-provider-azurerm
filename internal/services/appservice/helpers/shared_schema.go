@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -401,7 +401,7 @@ func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be
 type AuthSettings struct {
 	Enabled                     bool                    `tfschema:"enabled"`
 	AdditionalLoginParameters   map[string]string       `tfschema:"additional_login_parameters"`
-	AllowedExternalRedirectUrls []string                `tfschema:"allowed_external_redirect_urls"`
+	AllowedExternalRedirectURLs []string                `tfschema:"allowed_external_redirect_urls"`
 	DefaultProvider             string                  `tfschema:"default_provider"`
 	Issuer                      string                  `tfschema:"issuer"`
 	RuntimeVersion              string                  `tfschema:"runtime_version"`
@@ -1229,7 +1229,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 		props.AdditionalLoginParams = &additionalLoginParams
 	}
 
-	props.AllowedExternalRedirectUrls = &v.AllowedExternalRedirectUrls
+	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
 	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
 
@@ -1338,10 +1338,10 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 	}
 
 	var allowedRedirectUrls []string
-	if props.AllowedExternalRedirectUrls != nil {
-		allowedRedirectUrls = *props.AllowedExternalRedirectUrls
+	if props.AllowedExternalRedirectURLs != nil {
+		allowedRedirectUrls = *props.AllowedExternalRedirectURLs
 	}
-	result.AllowedExternalRedirectUrls = allowedRedirectUrls
+	result.AllowedExternalRedirectURLs = allowedRedirectUrls
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer

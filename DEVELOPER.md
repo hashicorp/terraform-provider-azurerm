@@ -1,7 +1,7 @@
 ## Developer Requirements
 
 * [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.21.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.22.x (to build the provider plugin)
 
 ## Contributor Guides
 
@@ -83,7 +83,7 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_SUBSCRIPTION_ID`
 - `ARM_TENANT_ID`
 - `ARM_ENVIRONMENT`
-- `ARM_METADATA_HOST`
+- `ARM_METADATA_HOSTNAME`
 - `ARM_TEST_LOCATION`
 - `ARM_TEST_LOCATION_ALT`
 - `ARM_TEST_LOCATION_ALT2`

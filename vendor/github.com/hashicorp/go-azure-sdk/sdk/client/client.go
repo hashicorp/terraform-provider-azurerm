@@ -692,14 +692,28 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	r.RetryWaitMin = 1 * time.Second
 	r.RetryWaitMax = 61 * time.Second
 
+	// The default backoff results into the following formula T(n):
+	// ("t" repr. total time in sec, "n" repr. total retry count):
+	// - t = 2**(n+1) - 1 				(0<=n<6)
+	// - t = (1+2+4+8+16+32) + 61*(n-6) (n>6)
+	// This results into the following N(t) (by guaranteeing T(n) <= t):
+	// - n = floor(log(t+1)) - 1 		(0<=t<=63)
+	// - n = (t - 63)/61 + 6 			(t > 63)
+	var safeRetryNumber = func(t time.Duration) int {
+		sec := t.Seconds()
+		if sec <= 63 {
+			return int(math.Floor(math.Log2(sec+1))) - 1
+		}
+		return (int(sec)-63)/61 + 6
+	}
+
 	// Default RetryMax of 16 takes approx 10 minutes to iterate
 	r.RetryMax = 16
 
-	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	// In case the context has deadline defined, adjust the retry count to a value
+	// that the total time spent for retrying is right before the deadline exceeded.
 	if deadline, ok := ctx.Deadline(); ok {
-		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
-			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
-		}
+		r.RetryMax = safeRetryNumber(deadline.Sub(time.Now()))
 	}
 
 	tlsConfig := tls.Config{

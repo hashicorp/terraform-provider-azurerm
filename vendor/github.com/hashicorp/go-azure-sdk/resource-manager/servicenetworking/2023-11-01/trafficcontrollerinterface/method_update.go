@@ -49,7 +49,6 @@ func (c TrafficControllerInterfaceClient) Update(ctx context.Context, id Traffic
 
 	var model TrafficController
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
