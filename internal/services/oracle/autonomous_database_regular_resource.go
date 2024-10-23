@@ -285,9 +285,12 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id)
 			}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
 			update := &autonomousdatabases.AutonomousDatabaseUpdate{
-				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{}
+				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
 			}
 			if metadata.ResourceData.HasChange("tags") {
 				update.Tags = pointer.To(model.Tags)
