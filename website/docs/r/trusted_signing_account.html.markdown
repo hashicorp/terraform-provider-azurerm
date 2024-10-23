@@ -37,17 +37,12 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Trusted Signing should exist. Changing this forces a new Trusted Signing to be created.
 
-* `sku` - (Required) One `sku` blocks as defined below.
+* `sku_name` - (Required) The sku name of this Trusted Signing Account. Possible values are `Basic` and `Premium`.
 
 ---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Trusted Signing.
 
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The sku name of this Trusted Signing Account.
 
 ## Attributes Reference
 

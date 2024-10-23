@@ -24,7 +24,7 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.CodeSigning.V20240930previewClient.CodeSigningAccounts.Get(ctx, *id)
+	resp, err := client.CodeSigning.Client.CodeSigningAccounts.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving TrustedSigningAccount %s: %+v", id, err)
 	}
@@ -63,6 +63,13 @@ func TestAccTrustedSigningAccount_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -88,9 +95,7 @@ resource "azurerm_trusted_signing_account" "test" {
   name                = "acctest-%[2]s"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 `, a.template(data), data.RandomString, data.Locations.Primary)
 }
@@ -100,13 +105,10 @@ func (a TrustedSigningAccountResource) complete(data acceptance.TestData) string
 %s
 
 resource "azurerm_trusted_signing_account" "test" {
-
   name                = "acctest-%[2]s"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  sku {
-    name = "Premium"
-  }
+  sku_name            = "Premium"
   tags = {
     key = "example"
   }

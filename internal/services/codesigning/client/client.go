@@ -10,7 +10,7 @@ import (
 )
 
 type Client struct {
-	V20240930previewClient codesigning_v2024_09_30_preview.Client
+	Client codesigning_v2024_09_30_preview.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -22,6 +22,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		V20240930previewClient: *V20240930previewClient,
+		Client: *V20240930previewClient,
 	}, nil
 }

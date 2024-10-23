@@ -23,12 +23,8 @@ type TruestedSigningAccountModel struct {
 	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	AccountUri        string            `tfschema:"account_uri"`
-	Sku               []Sku             `tfschema:"sku"`
+	SkuName           string            `tfschema:"sku_name"`
 	Tags              map[string]string `tfschema:"tags"`
-}
-
-type Sku struct {
-	Name string `tfschema:"name"`
 }
 
 type TrustedSigningAccountResource struct{}
@@ -54,21 +50,12 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"sku": {
-			Type:     pluginsdk.TypeList,
+		"sku_name": {
+			Type:     pluginsdk.TypeString,
 			Required: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice(
-							codesigningaccounts.PossibleValuesForSkuName(),
-							false),
-					},
-				},
-			},
+			ValidateFunc: validation.StringInSlice(
+				codesigningaccounts.PossibleValuesForSkuName(),
+				false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -96,7 +83,7 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.CodeSigning.V20240930previewClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
 			var model TruestedSigningAccountModel
 			if err := meta.Decode(&model); err != nil {
@@ -117,20 +104,14 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 			req.Name = &model.Name
 			req.Location = model.Location
 			req.Properties = pointer.To(codesigningaccounts.CodeSigningAccountProperties{})
-			if len(model.Sku) > 0 {
-				ele := model.Sku[0]
-				req.Properties.Sku = pointer.To(codesigningaccounts.AccountSku{})
-				req.Properties.Sku.Name = codesigningaccounts.SkuName(ele.Name)
-			}
+			req.Properties.Sku = pointer.To(codesigningaccounts.AccountSku{
+				Name: codesigningaccounts.SkuName(model.SkuName),
+			})
 			req.Tags = &model.Tags
 
-			future, err := client.Create(ctx, id, req)
+			err = client.CreateThenPoll(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
-			}
-
-			if err := future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %v", id, err)
 			}
 
 			meta.SetID(id)
@@ -148,7 +129,7 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.CodeSigning.V20240930previewClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				return err
@@ -172,9 +153,7 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 				output.AccountUri = pointer.From(itemProp.AccountUri)
 				if ptrSku := itemProp.Sku; ptrSku != nil {
 					itemSku := *ptrSku
-					var accountSku Sku
-					accountSku.Name = string(itemSku.Name)
-					output.Sku = append(output.Sku, accountSku)
+					output.SkuName = string(itemSku.Name)
 				}
 			}
 
@@ -187,32 +166,29 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.CodeSigning.V20240930previewClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-
 			var model TruestedSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %s: %+v", id, err)
 			}
 
 			var upd codesigningaccounts.CodeSigningAccountPatch
-
-			if meta.ResourceData.HasChange("sku") {
-				upd.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{})
-				if len(model.Sku) > 0 {
-					ele := model.Sku[0]
-					upd.Properties.Sku = pointer.To(codesigningaccounts.AccountSkuPatch{})
-					upd.Properties.Sku.Name = pointer.To(codesigningaccounts.SkuName(ele.Name))
-				}
+			if meta.ResourceData.HasChange("sku_name") {
+				upd.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
+					Sku: pointer.To(codesigningaccounts.AccountSkuPatch{
+						Name: pointer.To(codesigningaccounts.SkuName(model.SkuName)),
+					}),
+				})
 			}
 			if meta.ResourceData.HasChange("tags") {
 				upd.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err = client.Update(ctx, *id, upd); err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
@@ -231,7 +207,7 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 			}
 
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.CodeSigning.V20240930previewClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
