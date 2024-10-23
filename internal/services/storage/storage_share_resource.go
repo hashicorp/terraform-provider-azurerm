@@ -39,11 +39,16 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Delete: resourceStorageShareDelete,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if strings.HasPrefix(id, "/subscriptions") {
-				_, err := fileshares.ParseShareID(id)
+			if !features.FivePointOhBeta() {
+				if strings.HasPrefix(id, "/subscriptions") {
+					_, err := fileshares.ParseShareID(id)
+					return err
+				}
+				_, err := shares.ParseShareID(id, storageDomainSuffix)
 				return err
 			}
-			_, err := shares.ParseShareID(id, storageDomainSuffix)
+
+			_, err := fileshares.ParseShareID(id)
 			return err
 		}),
 
@@ -160,7 +165,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 				"storage_account_name",
 				"storage_account_id",
 			},
-			Deprecated: "This property has been deprecated and will be replaced by 'storage_account_id' in version 5.0 of the provider.",
+			Deprecated: "This property has been deprecated and will be replaced by `storage_account_id` in version 5.0 of the provider.",
 		}
 
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
@@ -176,7 +181,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
-			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the 'id' property.",
+			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the `id` property.",
 		}
 	}
 
@@ -184,13 +189,13 @@ func resourceStorageShare() *pluginsdk.Resource {
 }
 
 func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if !features.FivePointOhBeta() {
+		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			shareName := d.Get("name").(string)
 			quota := d.Get("quota").(int)
@@ -313,13 +318,13 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -393,9 +398,9 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
+	d.Set("name", id.ShareName)
 
 	if model := existing.Model; model != nil {
-		d.Set("name", id.ShareName)
 		if props := model.Properties; props != nil {
 			d.Set("quota", props.ShareQuota)
 			// Resource Manager treats nil and "SMB" as the same and we may not get a full response here
@@ -410,9 +415,11 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	d.Set("resource_manager_id", id.ID())
+	if !features.FivePointOhBeta() {
+		d.Set("resource_manager_id", id.ID())
+	}
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, id.StorageAccountName)
+	account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.StorageAccountName, id.ShareName, err)
 	}
@@ -427,7 +434,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	// Parse the file endpoint as a data plane account ID
-	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
@@ -530,43 +537,32 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	existing, err := sharesClient.Get(ctx, *id, fileshares.DefaultGetOperationOptions())
-	if err != nil {
-		return fmt.Errorf("retrieving %q: %v", *id, err)
-	}
-
-	model := existing.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: model is nil", id)
-	}
-
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("retrieving %s: properties is nil", id)
+	update := fileshares.FileShare{
+		Properties: &fileshares.FileShareProperties{},
 	}
 
 	if d.HasChange("quota") {
 		quota := d.Get("quota").(int)
-		props.ShareQuota = pointer.To(int64(quota))
+		update.Properties.ShareQuota = pointer.To(int64(quota))
 	}
 
 	if d.HasChange("metadata") {
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		metaData := ExpandMetaData(metaDataRaw)
 
-		props.Metadata = pointer.To(metaData)
+		update.Properties.Metadata = pointer.To(metaData)
 	}
 
 	if d.HasChange("acl") {
-		props.SignedIdentifiers = expandStorageShareACLs(d.Get("acl").(*pluginsdk.Set).List())
+		update.Properties.SignedIdentifiers = expandStorageShareACLs(d.Get("acl").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("access_tier") {
 		tier := shares.AccessTier(d.Get("access_tier").(string))
-		props.AccessTier = pointer.To(fileshares.ShareAccessTier(tier))
+		update.Properties.AccessTier = pointer.To(fileshares.ShareAccessTier(tier))
 	}
 
-	if _, err = sharesClient.Update(ctx, *id, fileshares.FileShare{Properties: props}); err != nil {
+	if _, err = sharesClient.Update(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
@@ -580,21 +576,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() {
-		if strings.HasPrefix(d.Id(), "/subscriptions/") {
-			id, err := fileshares.ParseShareID(d.Id())
-			if err != nil {
-				return err
-			}
-			if resp, err := fileSharesClient.Delete(ctx, *id, fileshares.DefaultDeleteOperationOptions()); err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("deleting %q: %v", id, err)
-				}
-			}
-
-			return nil
-		}
-
+	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -631,13 +613,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if resp, err := fileSharesClient.Delete(ctx, *id, fileshares.DefaultDeleteOperationOptions()); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %q: %v", id, err)
-		}
-	}
-
-	if resp, err := fileSharesClient.Get(ctx, *id, fileshares.DefaultGetOperationOptions()); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %q: %v", id, err)
+			return fmt.Errorf("deleting %s: %v", id, err)
 		}
 	}
 

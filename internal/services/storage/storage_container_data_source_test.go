@@ -9,11 +9,12 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type StorageContainerDataSource struct{}
 
-func TestAccDataSourceStorageContainer_basic(t *testing.T) {
+func TestAccStorageContainerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -44,7 +45,11 @@ data "azurerm_storage_container" "test" {
 `, StorageContainerResource{}.complete(data))
 }
 
-func TestAccDataSourceStorageContainer_basicDeprecated(t *testing.T) {
+func TestAccStorageContainerDataSource_basicDeprecated(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

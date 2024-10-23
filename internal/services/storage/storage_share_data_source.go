@@ -105,7 +105,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
 		}
 	}
 
@@ -113,7 +113,6 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 }
 
 func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	sharesClient := meta.(*clients.Client).Storage.ResourceManager.FileShares
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -122,6 +121,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	shareName := d.Get("name").(string)
 
 	if !features.FivePointOhBeta() {
+		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 			if err != nil {

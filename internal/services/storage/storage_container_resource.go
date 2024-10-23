@@ -130,7 +130,6 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.StorageAccountName,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
@@ -140,7 +139,6 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateStorageAccountID,
 			ExactlyOneOf: []string{"storage_account_id", "storage_account_name"},
@@ -149,7 +147,7 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
 		}
 	}
 
@@ -157,7 +155,6 @@ func resourceStorageContainer() *pluginsdk.Resource {
 }
 
 func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -170,6 +167,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
 	if !features.FivePointOhBeta() {
+		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 			if err != nil {
@@ -336,46 +334,36 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	existing, err := containerClient.Get(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %q: %v", *id, err)
-	}
 
-	model := existing.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: model is nil", id)
-	}
-
-	props := model.Properties
-	if props == nil {
-		return fmt.Errorf("retrieving %s: properties is nil", id)
+	update := blobcontainers.BlobContainer{
+		Properties: &blobcontainers.ContainerProperties{},
 	}
 
 	if d.HasChange("container_access_type") {
 		accessLevelRaw := d.Get("container_access_type").(string)
-		props.PublicAccess = pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw]))
+		update.Properties.PublicAccess = pointer.To(blobcontainers.PublicAccess(containerAccessTypeConversionMap[accessLevelRaw]))
 	}
 
 	if d.HasChange("metadata") {
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
-		props.Metadata = pointer.To(ExpandMetaData(metaDataRaw))
+		update.Properties.Metadata = pointer.To(ExpandMetaData(metaDataRaw))
 	}
 
-	if _, err := containerClient.Update(ctx, *id, blobcontainers.BlobContainer{Properties: props}); err != nil {
-		return fmt.Errorf("updating %q: %v", id, err)
+	if _, err := containerClient.Update(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
 	return resourceStorageContainerRead(d, meta)
 }
 
 func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -439,15 +427,12 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %q: %v", *id, err)
+		return fmt.Errorf("retrieving %s: %v", *id, err)
 	}
 
 	if model := existing.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("name", id.ContainerName)
-			if !features.FivePointOhBeta() {
-				d.Set("storage_account_name", id.StorageAccountName)
-			}
 			d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
 			d.Set("container_access_type", containerAccessTypeConversionMap[string(pointer.From(props.PublicAccess))])
 			d.Set("default_encryption_scope", props.DefaultEncryptionScope)
@@ -456,7 +441,9 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 			d.Set("has_legal_hold", props.HasLegalHold)
-			d.Set("resource_manager_id", id.ID())
+			if !features.FivePointOhBeta() {
+				d.Set("resource_manager_id", id.ID())
+			}
 		}
 	}
 
@@ -464,27 +451,13 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	containerClient := meta.(*clients.Client).Storage.ResourceManager.BlobContainers
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() {
-		if strings.HasPrefix(d.Id(), "/subscriptions/") {
-			id, err := commonids.ParseStorageContainerID(d.Id())
-			if err != nil {
-				return err
-			}
-
-			// Delete returns immediately, however, the container takes some time to delete meaning `ForceNew` situations can fail with a 409 Conflict as the container name is in use.
-			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/30456
-			if _, err = containerClient.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %q: %v", d.Id(), err)
-			}
-
-			return nil
-		}
+	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+		storageClient := meta.(*clients.Client).Storage
 
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -517,7 +490,7 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if _, err := containerClient.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %q: %v", d.Id(), err)
+		return fmt.Errorf("deleting %s: %v", d.Id(), err)
 	}
 
 	return nil

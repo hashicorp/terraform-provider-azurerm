@@ -552,43 +552,44 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 }
 
 func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if strings.HasPrefix(state.ID, "/subscriptions") {
-		id, err := fileshares.ParseShareID(state.ID)
+	if !features.FivePointOhBeta() && !strings.HasPrefix(state.ID, "/subscriptions") {
+		id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
 		}
-		existing, err := client.Storage.ResourceManager.FileShares.Get(ctx, *id, fileshares.DefaultGetOperationOptions())
+
+		account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+			return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
+		}
+		if account == nil {
+			return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
 		}
 
-		return pointer.To(existing.Model != nil), nil
+		sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+		if err != nil {
+			return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
+		}
+
+		props, err := sharesClient.Get(ctx, id.ShareName)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
+		}
+
+		return pointer.To(props != nil), nil
 	}
 
-	id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
+	id, err := fileshares.ParseShareID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
+	existing, err := client.Storage.ResourceManager.FileShares.Get(ctx, *id, fileshares.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
-	}
-	if account == nil {
-		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
-	}
+	return pointer.To(existing.Model != nil), nil
 
-	props, err := sharesClient.Get(ctx, id.ShareName)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
-	}
-
-	return pointer.To(props != nil), nil
 }
 
 // Destroy is deprecated for this resource. From 5.0 this will no longer use the Data Plane client.
@@ -907,7 +908,6 @@ resource "azurerm_storage_share" "import" {
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -916,7 +916,7 @@ resource "azurerm_storage_share" "import" {
   storage_account_id = azurerm_storage_share.test.storage_account_id
   quota              = azurerm_storage_share.test.quota
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r StorageShareResource) updateQuotaDeprecated(data acceptance.TestData) string {

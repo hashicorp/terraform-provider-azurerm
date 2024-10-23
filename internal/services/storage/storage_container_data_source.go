@@ -72,7 +72,7 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of id and will be removed in version 5.0 of the Provider.",
+			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
 		}
 
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
