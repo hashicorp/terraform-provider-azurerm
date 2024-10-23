@@ -380,7 +380,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"node_public_ip_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"host_encryption_enabled": {
@@ -827,6 +826,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"kubelet_config",
 		"linux_os_config",
 		"max_pods",
+		"node_public_ip_enabled",
 		"os_disk_size_gb",
 		"os_disk_type",
 		"pod_subnet_id",

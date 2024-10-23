@@ -14,6 +14,8 @@ Manages a Node Pool within a Kubernetes Cluster
 
 ~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
+-> **Note:** Changing certain properties is done by cycling the node pool. When cycling it, it doesn’t perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `fips_enabled`, `host_encryption_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `node_public_ip_enabled`, `os_disk_size_gb`, `os_disk_type`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vm_size`, `vnet_subnet_id`, `zones`.
+
 ## Example Usage
 
 This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/kubernetes)
@@ -66,19 +68,19 @@ The following arguments are supported:
 
 ~> **NOTE:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
 
-* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this forces a new resource to be created.
+* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ---
 
-* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
+* `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
 
-* `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
+* `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
+* `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -86,11 +88,11 @@ The following arguments are supported:
 
 * `host_group_id` - (Optional) The fully qualified resource ID of the Dedicated Host Group to provision virtual machines from. Changing this forces a new resource to be created.
 
-* `kubelet_config` - (Optional) A `kubelet_config` block as defined below. Changing this forces a new resource to be created.
+* `kubelet_config` - (Optional) A `kubelet_config` block as defined below. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this forces a new resource to be created.
+* `linux_os_config` - (Optional) A `linux_os_config` block as defined below. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this forces a new resource to be created.
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **Note:** FIPS support is in Public Preview - more information and details on how to opt into the Preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-multiple-node-pools#add-a-fips-enabled-node-pool-preview).
 
@@ -98,7 +100,7 @@ The following arguments are supported:
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
 
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
@@ -114,15 +116,15 @@ The following arguments are supported:
 
 -> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
 
-* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
+* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this property requires specifying `temporary_name_for_rotation`.
 
-* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
+* `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise it forces a new resource to be created.
 
-* `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
+* `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
 * `priority` - (Optional) The Priority for Virtual Machines within the Virtual Machine Scale Set that powers this Node Pool. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 
@@ -134,7 +136,7 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
 
-* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this forces a new resource to be created.
+* `snapshot_id` - (Optional) The ID of the Snapshot which should be used to create this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -142,11 +144,11 @@ The following arguments are supported:
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
-* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. Changing this property requires specifying `temporary_name_for_rotation`.
 
 * `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
 
-* `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this forces a new resource to be created.
+* `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ~> **NOTE:** A route table must be configured on this Subnet.
 
@@ -178,25 +180,25 @@ If `auto_scaling_enabled` is set to `false`, then the following fields can also 
 
 A `kubelet_config` block supports the following:
 
-* `allowed_unsafe_sysctls` - (Optional) Specifies the allow list of unsafe sysctls command or patterns (ending in `*`). Changing this forces a new resource to be created.
+* `allowed_unsafe_sysctls` - (Optional) Specifies the allow list of unsafe sysctls command or patterns (ending in `*`). 
 
-* `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2. Changing this forces a new resource to be created.
+* `container_log_max_line` - (Optional) Specifies the maximum number of container log files that can be present for a container. must be at least 2. 
 
-* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated. Changing this forces a new resource to be created.
+* `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated. 
 
-* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? Changing this forces a new resource to be created.
+* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? 
 
-* `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value. Changing this forces a new resource to be created.
+* `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value. 
 
-* `cpu_manager_policy` - (Optional) Specifies the CPU Manager policy to use. Possible values are `none` and `static`, Changing this forces a new resource to be created.
+* `cpu_manager_policy` - (Optional) Specifies the CPU Manager policy to use. Possible values are `none` and `static`, 
 
-* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage above which image garbage collection is always run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_high_threshold` - (Optional) Specifies the percent of disk usage above which image garbage collection is always run. Must be between `0` and `100`. 
 
-* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. Changing this forces a new resource to be created.
+* `image_gc_low_threshold` - (Optional) Specifies the percent of disk usage lower than which image garbage collection is never run. Must be between `0` and `100`. 
 
-* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. Changing this forces a new resource to be created.
+* `pod_max_pid` - (Optional) Specifies the maximum number of processes per pod. 
 
-* `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`. Changing this forces a new resource to be created.
+* `topology_manager_policy` - (Optional) Specifies the Topology Manager policy to use. Possible values are `none`, `best-effort`, `restricted` or `single-numa-node`. 
 
 ---
 
