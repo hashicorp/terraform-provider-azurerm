@@ -276,7 +276,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving exists when updating: +%v", *id)
+				return fmt.Errorf("retrieving %s: %+v", *id)
 			}
 			if existing.Model == nil && existing.Model.Properties == nil {
 				return fmt.Errorf("retrieving as nil when updating for %v", *id)
