@@ -20,15 +20,15 @@ import (
 
 type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_basicDeprecatedInV4(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+func TestAccDataProtectionBackupPolicyPostgreSQL_basicDeprecatedInV5(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDeprecatedInV4(data),
+			Config: r.basicDeprecatedInV5(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -59,20 +59,20 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImportDeprecatedInV4(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImportDeprecatedInV5(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicDeprecatedInV4(data),
+			Config: r.basicDeprecatedInV5(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImportDeprecatedInV4),
+		data.RequiresImportErrorStep(r.requiresImportDeprecatedInV5),
 	})
 }
 
@@ -90,15 +90,15 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSQL_completeDeprecatedInV4(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("this test requires 3.0 mode")
+func TestAccDataProtectionBackupPolicyPostgreSQL_completeDeprecatedInV5(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("this test requires 4.0 mode")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeDeprecatedInV4(data),
+			Config: r.completeDeprecatedInV5(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -180,7 +180,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) basicDeprecatedInV4(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) basicDeprecatedInV5(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -218,8 +218,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImportDeprecatedInV4(data acceptance.TestData) string {
-	config := r.basicDeprecatedInV4(data)
+func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImportDeprecatedInV5(data acceptance.TestData) string {
+	config := r.basicDeprecatedInV5(data)
 	return fmt.Sprintf(`
 %s
 
@@ -256,7 +256,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLResource) completeDeprecatedInV4(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgreSQLResource) completeDeprecatedInV5(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

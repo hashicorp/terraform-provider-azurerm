@@ -148,6 +148,11 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
 * The deprecated `example_property_with_no_replacement` property has been removed.
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
+
+### `azurerm_data_protection_backup_policy_postgresql`
+
+* The deprecated `default_retention_duration` property has been removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property.
+* The deprecated `retention_rule.#.duration` property has been removed in favour of the `retention_rule.#.life_cycle.#.duration` property.
 ```
 
 ### `azurerm_api_management`
