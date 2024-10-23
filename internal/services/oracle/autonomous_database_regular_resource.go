@@ -281,12 +281,9 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			_, err = client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %+v", *id)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			update := &autonomousdatabases.AutonomousDatabaseUpdate{

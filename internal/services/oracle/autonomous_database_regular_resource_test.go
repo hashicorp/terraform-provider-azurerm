@@ -96,6 +96,7 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 provider "azurerm" {
@@ -103,8 +104,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
-  name = "OFake%[2]d"
-
+  name                             = "OFake%[2]d"
   display_name                     = "OFake%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
