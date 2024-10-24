@@ -121,7 +121,7 @@ func (id NatRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnGateways", "vpnGateways", "vpnGateways"),
-		resourceids.UserSpecifiedSegment("vpnGatewayName", "gatewayName"),
+		resourceids.UserSpecifiedSegment("vpnGatewayName", "vpnGatewayName"),
 		resourceids.StaticSegment("staticNatRules", "natRules", "natRules"),
 		resourceids.UserSpecifiedSegment("natRuleName", "natRuleName"),
 	}

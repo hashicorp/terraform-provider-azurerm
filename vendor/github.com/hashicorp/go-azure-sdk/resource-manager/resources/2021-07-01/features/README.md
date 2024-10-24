@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerName", "featureName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := features.NewProviders2ID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace")
+id := features.NewProviders2ID("12345678-1234-9876-4563-123456789012", "providerName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -75,7 +75,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerName", "featureName")
 
 read, err := client.Register(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "resourceProviderNamespace", "featureName")
+id := features.NewFeatureID("12345678-1234-9876-4563-123456789012", "providerName", "featureName")
 
 read, err := client.Unregister(ctx, id)
 if err != nil {

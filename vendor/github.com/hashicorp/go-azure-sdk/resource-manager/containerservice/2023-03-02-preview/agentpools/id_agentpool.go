@@ -121,7 +121,7 @@ func (id AgentPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "resourceName"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterName"),
 		resourceids.StaticSegment("staticAgentPools", "agentPools", "agentPools"),
 		resourceids.UserSpecifiedSegment("agentPoolName", "agentPoolName"),
 	}

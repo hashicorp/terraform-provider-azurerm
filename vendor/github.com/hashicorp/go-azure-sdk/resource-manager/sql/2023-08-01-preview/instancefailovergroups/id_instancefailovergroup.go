@@ -123,7 +123,7 @@ func (id InstanceFailoverGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
 		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticInstanceFailoverGroups", "instanceFailoverGroups", "instanceFailoverGroups"),
-		resourceids.UserSpecifiedSegment("instanceFailoverGroupName", "failoverGroupName"),
+		resourceids.UserSpecifiedSegment("instanceFailoverGroupName", "instanceFailoverGroupName"),
 	}
 }
 
