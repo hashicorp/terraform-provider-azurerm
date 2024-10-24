@@ -3143,24 +3143,30 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `kube_config`: %+v", err)
 		}
 
+		var maintenanceWindow interface{}
 		maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		configResp, _ := maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
-			d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfigurationDefault(configurationBody.Properties))
+			maintenanceWindow = flattenKubernetesClusterMaintenanceConfigurationDefault(configurationBody.Properties)
 		}
+		d.Set("maintenance_window", maintenanceWindow)
 
+		var maintenanceWindowAutoUpgrade interface{}
 		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		configResp, _ = maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			d.Set("maintenance_window_auto_upgrade", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow))
+			maintenanceWindowAutoUpgrade = flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
 		}
+		d.Set("maintenance_window_auto_upgrade", maintenanceWindowAutoUpgrade)
 
+		var maintenanceWindowNodeOS interface{}
 		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		configResp, _ = maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			d.Set("maintenance_window_node_os", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow))
+			maintenanceWindowNodeOS = flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
 		}
+		d.Set("maintenance_window_node_os", maintenanceWindowNodeOS)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
