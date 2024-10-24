@@ -810,8 +810,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webcategor
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors
-github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors
+github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxcertificate
 github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration
