@@ -2223,7 +2223,6 @@ resource "azurerm_container_app" "test" {
         initial_delay           = 5
         timeout                 = 2
         failure_count_threshold = 3
-        success_count_threshold = 1
       }
 
       startup_probe {
@@ -2232,7 +2231,6 @@ resource "azurerm_container_app" "test" {
         initial_delay           = 5
         timeout                 = 5
         failure_count_threshold = 1
-        success_count_threshold = 1
       }
 
       volume_mounts {
