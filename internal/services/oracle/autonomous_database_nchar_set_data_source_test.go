@@ -3,7 +3,6 @@
 package oracle_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -27,7 +26,7 @@ func TestAdbsNCharSetsDataSource_basic(t *testing.T) {
 }
 
 func (d AdbsNCharSetsDataSource) basic() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -35,5 +34,5 @@ provider "azurerm" {
 data "azurerm_oracle_adbs_national_character_sets" "test" {
   location = "eastus"
 }
-`)
+`
 }
