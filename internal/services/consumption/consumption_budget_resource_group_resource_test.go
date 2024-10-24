@@ -111,18 +111,6 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
-			TestResource: r,
-		}),
-	})
-}
-
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
@@ -436,17 +424,4 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
-}
-
-func (t ConsumptionBudgetResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := budgets.ParseScopedBudgetID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = client.Consumption.BudgetsClient.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
 }
