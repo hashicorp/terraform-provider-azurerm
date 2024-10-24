@@ -219,8 +219,7 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
-					if element.Properties != nil {
-						properties := element.Properties
+					if props := element.Properties; props != nil {
 						dbNode := DBNodeDataModel{
 							AdditionalDetails:          pointer.From(properties.AdditionalDetails),
 							BackupIPId:                 pointer.From(properties.BackupIPId),
