@@ -366,7 +366,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 	}
 
 	if credential := sql.Credential; credential != nil {
-		d.Set("credential_name", pointer.From(sql.Credential.ReferenceName))
+		d.Set("credential_name", pointer.From(credential.ReferenceName))
 	}
 
 	return nil
