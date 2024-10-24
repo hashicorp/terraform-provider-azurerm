@@ -3,7 +3,6 @@
 package oracle_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -27,7 +26,7 @@ func TestDbSystemShapesDataSource_basic(t *testing.T) {
 }
 
 func (d DbSystemShapesDataSource) basic() string {
-	return fmt.Sprint(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -35,5 +34,5 @@ provider "azurerm" {
 data "azurerm_oracle_db_system_shapes" "test" {
   location = "eastus"
 }
-`)
+`
 }
