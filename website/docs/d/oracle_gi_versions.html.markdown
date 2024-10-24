@@ -34,7 +34,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `versions` - A list of valid Oracle Grid Infrastructure (GI) software versions.
+* `versions` - A list of valid GI software versions.
 
 ## Timeouts
 
