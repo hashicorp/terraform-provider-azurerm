@@ -183,8 +183,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
-					if element.Properties != nil {
-						properties := element.Properties
+					if props := element.Properties; props != nil {
 						state.DbSystemShapes = append(state.DbSystemShapes, DbSystemShapeModel{
 							AvailableCoreCount:                 pointer.From(properties.AvailableCoreCount),
 							AvailableCoreCountPerNode:          pointer.From(properties.AvailableCoreCountPerNode),
