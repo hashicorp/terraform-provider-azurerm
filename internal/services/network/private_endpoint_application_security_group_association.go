@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
