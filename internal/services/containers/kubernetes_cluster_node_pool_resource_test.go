@@ -6,7 +6,6 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -117,21 +116,6 @@ func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.availabilitySetConfig(data),
-			ExpectError: regexp.MustCompile("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet"),
-		},
 	})
 }
 
@@ -1266,47 +1250,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = %d
 }
 `, r.templateConfig(data), min, max)
-}
-
-func (KubernetesClusterNodePoolResource) availabilitySetConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    type       = "AvailabilitySet"
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterNodePoolResource) kubeletAndLinuxOSConfig(data acceptance.TestData) string {
