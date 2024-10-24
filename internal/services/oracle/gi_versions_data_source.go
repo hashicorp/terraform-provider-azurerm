@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/giversions"
@@ -79,7 +78,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
-						state.Versions = append(state.Versions, pointer.From(props.Version))
+						state.Versions = append(state.Versions, props.Version)
 					}
 				}
 			}
