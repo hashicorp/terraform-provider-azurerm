@@ -60,6 +60,15 @@ func TestAccSecurityCenterSubscriptionPricing_cloudPosture(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterSubscriptionPricing_storage(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"securityCenterSubscriptionPricing": {
+			"subplan":  testAccSecurityCenterSubscriptionPricing_storageAccountSubplan,
+			"defender": testAccSecurityCenterSubscriptionPricing_storageAccountDefender,
+		},
+	})
+}
+
 func TestAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
@@ -92,7 +101,7 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -103,6 +112,21 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
 				check.That(data.ResourceName).Key("subplan").HasValue("PerStorageAccount"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccSecurityCenterSubscriptionPricing_storageAccountDefender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
+	r := SecurityCenterSubscriptionPricingResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountDefender(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -238,6 +262,31 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   tier          = "Standard"
   resource_type = "StorageAccounts"
   subplan       = "PerStorageAccount"
+}
+`
+}
+
+func (SecurityCenterSubscriptionPricingResource) storageAccountDefender() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+
+  extension {
+    additional_extension_properties = {
+      "CapGBPerMonthPerStorageAccount" = "5000"
+    }
+    name = "OnUploadMalwareScanning"
+  }
+
+  extension {
+    name = "SensitiveDataDiscovery"
+  }
 }
 `
 }
