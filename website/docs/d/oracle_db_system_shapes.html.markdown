@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_db_system_shapes"
 description: |-
-  Provides the list of Db System Shapes.
+  Provides the list of DB System Shapes.
 ---
 
 # Data Source: azurerm_oracle_db_system_shapes
 
-This data source provides the list of Db System Shapes in Oracle Cloud Infrastructure Database service.
+This data source provides the list of DB System Shapes in Oracle Cloud Infrastructure Database service.
 
 Gets a list of the shapes that can be used to launch a new DB system. The shape determines resources to allocate to the DB system - CPU cores and memory for VM shapes; CPU cores, memory and storage for non-VM (or bare metal) shapes.
 ## Example Usage
@@ -49,9 +49,9 @@ A `db_system_shapes` block exports the following:
 
 * `available_data_storage_per_server_in_tbs` - The maximum data storage available per storage server for this shape. Only applicable to ExaCC Elastic shapes.
 
-* `available_db_node_per_node_in_gbs` - The maximum Db Node storage available per database node for this shape. Only applicable to ExaCC Elastic shapes.
+* `available_db_node_per_node_in_gbs` - The maximum DB Node storage available per database node for this shape. Only applicable to ExaCC Elastic shapes.
 
-* `available_db_node_storage_in_gbs` - The maximum Db Node storage that can be enabled for this shape.
+* `available_db_node_storage_in_gbs` - The maximum DB Node storage that can be enabled for this shape.
 
 * `available_memory_in_gbs` - The maximum memory that can be enabled for this shape.
 
@@ -67,7 +67,7 @@ A `db_system_shapes` block exports the following:
 
 * `minimum_data_storage_in_tbs` - The minimum data storage that need be allocated for this shape.
 
-* `minimum_db_node_storage_per_node_in_gbs` - The minimum Db Node storage that need be allocated per node for this shape.
+* `minimum_db_node_storage_per_node_in_gbs` - The minimum DB Node storage that need be allocated per node for this shape.
 
 * `minimum_memory_per_node_in_gbs` - The minimum memory that need be allocated per node for this shape.
 
@@ -85,4 +85,4 @@ A `db_system_shapes` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Oracle.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Shapes.
