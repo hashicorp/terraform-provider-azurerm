@@ -161,8 +161,8 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					}
 
 					// Model.Properties.Members is a tuple => [source_server_id, replication_server_name]
-					sourceServerName := (*resp.Model.Properties.Members)[0]
-					replicaServerName := (*resp.Model.Properties.Members)[1]
+					sourceServerName := (*props.Members)[0]
+					replicaServerName := (*props.Members)[1]
 
 					sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
 
@@ -173,12 +173,14 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 					state.SourceServerId = sourceServerId
 
-					replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
-					if err != nil {
-						return err
-					}
+					if replicaServer != nil {
+						replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
+						if err != nil {
+							return err
+						}
 
-					state.ReplicaServerId = replicaId.ID()
+						state.ReplicaServerId = replicaId.ID()
+					}
 				}
 			}
 
@@ -259,10 +261,9 @@ func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *serve
 	}
 
 	// loop to find the replica server associated with this flexible endpoint
-	for i := 0; i < len(postgresServers.Items); i++ {
-		postgresServer := postgresServers.Items[i]
-		if postgresServer.Properties.SourceServerResourceId != nil && *postgresServer.Properties.SourceServerResourceId == sourceServerId {
-			return &postgresServer, nil
+	for _, server := range postgresServers.Items {
+		if server.Properties != nil && pointer.From(server.Properties.SourceServerResourceId) == sourceServerId {
+			return &server, nil
 		}
 	}
 

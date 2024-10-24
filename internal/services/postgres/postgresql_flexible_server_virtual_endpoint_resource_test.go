@@ -60,7 +60,7 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_update(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlFlexibleServerVirtualEndpoint_cross_region(t *testing.T) {
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
 
