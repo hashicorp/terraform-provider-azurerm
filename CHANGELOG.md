@@ -2,7 +2,12 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_oracle_adbs_character_sets` [GH-27698]
+* **New Data Source**: `azurerm_oracle_adbs_national_character_sets` [GH-27698]
 * **New Data Source**: `azurerm_oracle_autonomous_database` [GH-27696]
+* **New Data Source**: `azurerm_oracle_db_nodes` [GH-27698]
+* **New Data Source**: `azurerm_oracle_db_system_shapes` [GH-27698]
+* **New Data Source**: `azurerm_oracle_gi_versions` [GH-27698]
 * **New Resource**: `azurerm_dev_center_project_pool` [GH-27706]
 * **New Resource**: `azurerm_oracle_autonomous_database` [GH-27696]
 * **New Resource**: `azurerm_video_indexer_account` [GH-27632]
