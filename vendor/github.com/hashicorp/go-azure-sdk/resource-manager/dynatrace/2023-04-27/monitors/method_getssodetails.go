@@ -50,7 +50,6 @@ func (c MonitorsClient) GetSSODetails(ctx context.Context, id MonitorId, input S
 
 	var model SSODetailsResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

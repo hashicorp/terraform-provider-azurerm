@@ -7,6 +7,6 @@ type SSODetailsResponse struct {
 	AadDomains      *[]string  `json:"aadDomains,omitempty"`
 	AdminUsers      *[]string  `json:"adminUsers,omitempty"`
 	IsSsoEnabled    *SSOStatus `json:"isSsoEnabled,omitempty"`
-	MetadataUrl     *string    `json:"metadataUrl,omitempty"`
-	SingleSignOnUrl *string    `json:"singleSignOnUrl,omitempty"`
+	MetadataURL     *string    `json:"metadataUrl,omitempty"`
+	SingleSignOnURL *string    `json:"singleSignOnUrl,omitempty"`
 }

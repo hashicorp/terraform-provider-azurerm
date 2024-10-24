@@ -46,7 +46,6 @@ func (c MonitorsClient) GetMetricStatus(ctx context.Context, id MonitorId) (resu
 
 	var model MetricsStatusResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

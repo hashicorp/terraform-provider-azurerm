@@ -51,7 +51,6 @@ func (c MonitorsClient) GetMarketplaceSaaSResourceDetails(ctx context.Context, i
 
 	var model MarketplaceSaaSResourceDetailsResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
