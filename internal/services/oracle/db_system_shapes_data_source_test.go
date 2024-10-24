@@ -28,9 +28,6 @@ func TestDbSystemShapesDataSource_basic(t *testing.T) {
 
 func (d DbSystemShapesDataSource) basic() string {
 	return fmt.Sprintf(`
-
-%s
-
 provider "azurerm" {
   features {}
 }
@@ -38,13 +35,5 @@ provider "azurerm" {
 data "azurerm_oracle_db_system_shapes" "test" {
   location = "eastus"
 }
-`, d.template())
-}
-
-func (d DbSystemShapesDataSource) template() string {
-	return `
-
-data "azurerm_client_config" "current" {}
-
-`
+`)
 }
