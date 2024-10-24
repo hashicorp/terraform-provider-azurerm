@@ -44,7 +44,7 @@ func ParseScopeConnectionID(input string) (*ScopeConnectionId, error) {
 	}
 
 	id := ScopeConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseScopeConnectionIDInsensitively(input string) (*ScopeConnectionId, erro
 	}
 
 	id := ScopeConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ScopeConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticNetworkManagers", "networkManagers", "networkManagers"),
-		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerValue"),
+		resourceids.UserSpecifiedSegment("networkManagerName", "networkManagerName"),
 		resourceids.StaticSegment("staticScopeConnections", "scopeConnections", "scopeConnections"),
-		resourceids.UserSpecifiedSegment("scopeConnectionName", "scopeConnectionValue"),
+		resourceids.UserSpecifiedSegment("scopeConnectionName", "scopeConnectionName"),
 	}
 }
 

@@ -35,6 +35,7 @@ func (o StopOperationOptions) ToHeaders() *client.Headers {
 
 func (o StopOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

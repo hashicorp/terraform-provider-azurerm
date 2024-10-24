@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -700,6 +700,10 @@ func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"})
+}
+
+func TestAccCosmosDBAccount_capabilities_EnableNoSQLVectorSearch(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLVectorSearch"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
@@ -4640,7 +4644,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   is_virtual_network_filter_enabled = true
-  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24"]
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
 
   virtual_network_rule {
     id                                   = azurerm_subnet.subnet1.id

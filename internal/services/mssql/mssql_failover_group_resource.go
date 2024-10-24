@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -127,8 +129,8 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(sql.ReadWriteEndpointFailoverPolicyAutomatic),
-							string(sql.ReadWriteEndpointFailoverPolicyManual),
+							string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic),
+							string(failovergroups.ReadWriteEndpointFailoverPolicyManual),
 						}, false),
 					},
 					"grace_minutes": {
@@ -157,11 +159,11 @@ func (r MsSqlFailoverGroupResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
-				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) && rwPolicy[0].GraceMinutes < 60 {
-					return fmt.Errorf("`grace_minutes` should be %d or greater when `mode` is %q", 60, sql.ReadWriteEndpointFailoverPolicyAutomatic)
+				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) && rwPolicy[0].GraceMinutes < 60 {
+					return fmt.Errorf("`grace_minutes` should be %d or greater when `mode` is %q", 60, failovergroups.ReadWriteEndpointFailoverPolicyAutomatic)
 				}
-				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyManual) && rwPolicy[0].GraceMinutes > 0 {
-					return fmt.Errorf("`grace_minutes` should not be specified when `mode` is %q", sql.ReadWriteEndpointFailoverPolicyManual)
+				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyManual) && rwPolicy[0].GraceMinutes > 0 {
+					return fmt.Errorf("`grace_minutes` should not be specified when `mode` is %q", failovergroups.ReadWriteEndpointFailoverPolicyManual)
 				}
 			}
 
@@ -192,50 +194,46 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", serverId, err)
 			}
 
-			id := parse.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
+			id := failovergroups.NewFailoverGroupID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
+			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if model.ReadonlyEndpointFailurePolicyEnabled {
-				readOnlyFailoverPolicy = sql.ReadOnlyEndpointFailoverPolicyEnabled
+				readOnlyFailoverPolicy = failovergroups.ReadOnlyEndpointFailoverPolicyEnabled
 			}
 
-			properties := sql.FailoverGroup{
-				FailoverGroupProperties: &sql.FailoverGroupProperties{
+			properties := failovergroups.FailoverGroup{
+				Properties: &failovergroups.FailoverGroupProperties{
 					Databases: &model.Databases,
-					ReadOnlyEndpoint: &sql.FailoverGroupReadOnlyEndpoint{
-						FailoverPolicy: readOnlyFailoverPolicy,
+					ReadOnlyEndpoint: &failovergroups.FailoverGroupReadOnlyEndpoint{
+						FailoverPolicy: &readOnlyFailoverPolicy,
 					},
-					ReadWriteEndpoint: &sql.FailoverGroupReadWriteEndpoint{},
+					ReadWriteEndpoint: failovergroups.FailoverGroupReadWriteEndpoint{},
 					PartnerServers:    r.expandPartnerServers(model.PartnerServers),
 				},
-				Tags: tags.FromTypedObject(model.Tags),
+				Tags: pointer.To(model.Tags),
 			}
 
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
-				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
-				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
+				properties.Properties.ReadWriteEndpoint.FailoverPolicy = failovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
+				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
+					properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int64(rwPolicy[0].GraceMinutes)
 				}
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
+			err = client.CreateOrUpdateThenPoll(ctx, id, properties)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -250,7 +248,7 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.FailoverGroupsClient
 
-			id, err := parse.FailoverGroupID(metadata.ResourceData.Id())
+			id, err := failovergroups.ParseFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -263,37 +261,33 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("updating %s", id)
 
-			readOnlyFailoverPolicy := sql.ReadOnlyEndpointFailoverPolicyDisabled
+			readOnlyFailoverPolicy := failovergroups.ReadOnlyEndpointFailoverPolicyDisabled
 			if state.ReadonlyEndpointFailurePolicyEnabled {
-				readOnlyFailoverPolicy = sql.ReadOnlyEndpointFailoverPolicyEnabled
+				readOnlyFailoverPolicy = failovergroups.ReadOnlyEndpointFailoverPolicyEnabled
 			}
 
-			properties := sql.FailoverGroup{
-				FailoverGroupProperties: &sql.FailoverGroupProperties{
+			properties := failovergroups.FailoverGroup{
+				Properties: &failovergroups.FailoverGroupProperties{
 					Databases: &state.Databases,
-					ReadOnlyEndpoint: &sql.FailoverGroupReadOnlyEndpoint{
-						FailoverPolicy: readOnlyFailoverPolicy,
+					ReadOnlyEndpoint: &failovergroups.FailoverGroupReadOnlyEndpoint{
+						FailoverPolicy: &readOnlyFailoverPolicy,
 					},
-					ReadWriteEndpoint: &sql.FailoverGroupReadWriteEndpoint{
-						FailoverPolicy: sql.ReadWriteEndpointFailoverPolicy(state.ReadWriteEndpointFailurePolicy[0].Mode),
+					ReadWriteEndpoint: failovergroups.FailoverGroupReadWriteEndpoint{
+						FailoverPolicy: failovergroups.ReadWriteEndpointFailoverPolicy(state.ReadWriteEndpointFailurePolicy[0].Mode),
 					},
 					PartnerServers: r.expandPartnerServers(state.PartnerServers),
 				},
-				Tags: tags.FromTypedObject(state.Tags),
+				Tags: pointer.To(state.Tags),
 			}
 
-			if state.ReadWriteEndpointFailurePolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-				properties.FailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes))
+			if state.ReadWriteEndpointFailurePolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
+				properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = pointer.To(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes)
 			}
 
 			// client.Update doesn't support changing the PartnerServers
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, properties)
+			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
 			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -309,46 +303,47 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.MSSQL.FailoverGroupsClient
 
-			id, err := parse.FailoverGroupID(metadata.ResourceData.Id())
+			id, err := failovergroups.ParseFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			serverId := parse.NewServerID(subscriptionId, id.ResourceGroup, id.ServerName)
+			serverId := parse.NewServerID(subscriptionId, id.ResourceGroupName, id.ServerName)
 
 			model := MsSqlFailoverGroupModel{
-				Name:     id.Name,
+				Name:     id.FailoverGroupName,
 				ServerId: serverId.ID(),
-				Tags:     tags.ToTypedObject(existing.Tags),
 			}
 
-			if props := existing.FailoverGroupProperties; props != nil {
-				if props.Databases != nil {
-					model.Databases = *props.Databases
-				}
+			if existing.Model != nil {
 
-				model.PartnerServers = r.flattenPartnerServers(props.PartnerServers)
+				model.Tags = pointer.From(existing.Model.Tags)
 
-				if props.ReadOnlyEndpoint != nil && props.ReadOnlyEndpoint.FailoverPolicy == sql.ReadOnlyEndpointFailoverPolicyEnabled {
-					model.ReadonlyEndpointFailurePolicyEnabled = true
-				}
+				if props := existing.Model.Properties; props != nil {
+					if props.Databases != nil {
+						model.Databases = *props.Databases
+					}
 
-				if endpoint := props.ReadWriteEndpoint; endpoint != nil {
+					model.PartnerServers = r.flattenPartnerServers(props.PartnerServers)
+
+					if props.ReadOnlyEndpoint != nil && pointer.From(props.ReadOnlyEndpoint.FailoverPolicy) == failovergroups.ReadOnlyEndpointFailoverPolicyEnabled {
+						model.ReadonlyEndpointFailurePolicyEnabled = true
+					}
+
 					model.ReadWriteEndpointFailurePolicy = []ReadWriteEndpointFailurePolicyModel{{
-						Mode: string(endpoint.FailoverPolicy),
+						Mode: string(props.ReadWriteEndpoint.FailoverPolicy),
 					}}
 
-					if endpoint.FailoverWithDataLossGracePeriodMinutes != nil {
-						model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = int64(*endpoint.FailoverWithDataLossGracePeriodMinutes)
-					}
+					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
+
 				}
 			}
 
@@ -363,25 +358,21 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.FailoverGroupsClient
 
-			id, err := parse.FailoverGroupID(metadata.ResourceData.Id())
+			id, err := failovergroups.ParseFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name); err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+			if existing, err := client.Get(ctx, *id); err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -389,37 +380,36 @@ func (r MsSqlFailoverGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r MsSqlFailoverGroupResource) flattenPartnerServers(input *[]sql.PartnerInfo) []PartnerServerModel {
+func (r MsSqlFailoverGroupResource) flattenPartnerServers(input []failovergroups.PartnerInfo) []PartnerServerModel {
 	output := make([]PartnerServerModel, 0)
 	if input == nil {
 		return output
 	}
 
-	for _, partner := range *input {
+	for _, partner := range input {
 		model := PartnerServerModel{
 			Location: location.NormalizeNilable(partner.Location),
-			Role:     string(partner.ReplicationRole),
+			Role:     string(pointer.From(partner.ReplicationRole)),
+			ID:       partner.Id,
 		}
-		if partner.ID != nil {
-			model.ID = *partner.ID
-		}
+
 		output = append(output, model)
 	}
 
 	return output
 }
 
-func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) *[]sql.PartnerInfo {
-	var partnerServers []sql.PartnerInfo
+func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) []failovergroups.PartnerInfo {
+	var partnerServers []failovergroups.PartnerInfo
 	if input == nil {
-		return &partnerServers
+		return partnerServers
 	}
 
 	for _, v := range input {
-		partnerServers = append(partnerServers, sql.PartnerInfo{
-			ID: utils.String(v.ID),
+		partnerServers = append(partnerServers, failovergroups.PartnerInfo{
+			Id: v.ID,
 		})
 	}
 
-	return &partnerServers
+	return partnerServers
 }

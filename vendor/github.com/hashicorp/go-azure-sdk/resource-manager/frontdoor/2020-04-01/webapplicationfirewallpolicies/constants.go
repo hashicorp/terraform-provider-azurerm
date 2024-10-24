@@ -1,6 +1,8 @@
 package webapplicationfirewallpolicies
 
-import "strings"
+import (
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -403,9 +405,9 @@ const (
 	TransformTypeLowercase   TransformType = "Lowercase"
 	TransformTypeRemoveNulls TransformType = "RemoveNulls"
 	TransformTypeTrim        TransformType = "Trim"
+	TransformTypeURLDecode   TransformType = "UrlDecode"
+	TransformTypeURLEncode   TransformType = "UrlEncode"
 	TransformTypeUppercase   TransformType = "Uppercase"
-	TransformTypeUrlDecode   TransformType = "UrlDecode"
-	TransformTypeUrlEncode   TransformType = "UrlEncode"
 )
 
 func PossibleValuesForTransformType() []string {
@@ -413,9 +415,9 @@ func PossibleValuesForTransformType() []string {
 		string(TransformTypeLowercase),
 		string(TransformTypeRemoveNulls),
 		string(TransformTypeTrim),
+		string(TransformTypeURLDecode),
+		string(TransformTypeURLEncode),
 		string(TransformTypeUppercase),
-		string(TransformTypeUrlDecode),
-		string(TransformTypeUrlEncode),
 	}
 }
 
@@ -424,9 +426,9 @@ func parseTransformType(input string) (*TransformType, error) {
 		"lowercase":   TransformTypeLowercase,
 		"removenulls": TransformTypeRemoveNulls,
 		"trim":        TransformTypeTrim,
+		"urldecode":   TransformTypeURLDecode,
+		"urlencode":   TransformTypeURLEncode,
 		"uppercase":   TransformTypeUppercase,
-		"urldecode":   TransformTypeUrlDecode,
-		"urlencode":   TransformTypeUrlEncode,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

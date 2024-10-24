@@ -49,7 +49,6 @@ func (c EndpointsClient) CreateOrUpdate(ctx context.Context, id EndpointId, inpu
 
 	var model Endpoint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

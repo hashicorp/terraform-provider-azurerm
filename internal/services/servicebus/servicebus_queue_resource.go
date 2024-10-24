@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -48,7 +47,7 @@ func resourceServiceBusQueue() *pluginsdk.Resource {
 }
 
 func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -65,9 +64,10 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"auto_delete_on_idle": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "P10675199DT2H48M5.4775807S", // Never
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C this gets a default except when using basic sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
@@ -78,9 +78,10 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_message_ttl": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "P10675199DT2H48M5.4775807S", // Unbounded
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C this gets a default of "P10675199DT2H48M5.4775807S" (Unbounded) and "P14D" in Basic sku and can be updated without issues
+			Computed:     true,
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
@@ -181,84 +182,6 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["auto_delete_on_idle"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
-		}
-
-		schema["default_message_ttl"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
-		}
-
-		schema["duplicate_detection_history_time_window"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ISO8601Duration,
-		}
-
-		schema["enable_batched_operations"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Default:       true,
-			ConflictsWith: []string{"batched_operations_enabled"},
-			Deprecated:    "The property `enable_batched_operations` has been superseded by `batched_operations_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		schema["enable_express"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Default:       false,
-			ConflictsWith: []string{"express_enabled"},
-			Deprecated:    "The property `enable_express` has been superseded by `express_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		schema["enable_partitioning"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			ForceNew:      true,
-			Default:       false,
-			ConflictsWith: []string{"partitioning_enabled"},
-			Deprecated:    "The property `enable_partitioning` has been superseded by `partitioning_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		schema["batched_operations_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_batched_operations"},
-		}
-
-		schema["express_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_express"},
-		}
-
-		schema["partitioning_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"enable_partitioning"},
-		}
-
-		schema["lock_duration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-		}
-	}
-
-	return schema
 }
 
 func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -323,35 +246,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["autoDeleteOnIdle"] = autoDeleteOnIdle
 	duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string)
 
-	enableExpress := false
-	enablePartitioning := false
-	enableBatchedOperations := true
-	if v := d.GetRawConfig().AsValueMap()["express_enabled"]; !v.IsNull() {
-		enableExpress = d.Get("express_enabled").(bool)
-	}
-
-	if v := d.GetRawConfig().AsValueMap()["partitioning_enabled"]; !v.IsNull() {
-		enablePartitioning = d.Get("partitioning_enabled").(bool)
-	}
-
-	if v := d.GetRawConfig().AsValueMap()["batched_operations_enabled"]; !v.IsNull() {
-		enableBatchedOperations = d.Get("batched_operations_enabled").(bool)
-	}
-
-	if !features.FourPointOhBeta() {
-
-		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
-			enableExpress = d.Get("enable_express").(bool)
-		}
-
-		if v := d.GetRawConfig().AsValueMap()["enable_partitioning"]; !v.IsNull() {
-			enablePartitioning = d.Get("enable_partitioning").(bool)
-		}
-
-		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
-			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
-		}
-	}
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 
 	userConfig["enableExpress"] = enableExpress
 	userConfig["enablePartitioning"] = enablePartitioning
@@ -495,12 +392,6 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
-
-			if !features.FourPointOhBeta() {
-				d.Set("enable_batched_operations", props.EnableBatchedOperations)
-				d.Set("enable_express", props.EnableExpress)
-				d.Set("enable_partitioning", props.EnablePartitioning)
-			}
 
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 			d.Set("express_enabled", props.EnableExpress)

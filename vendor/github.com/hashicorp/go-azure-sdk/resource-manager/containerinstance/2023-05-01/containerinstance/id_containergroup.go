@@ -42,7 +42,7 @@ func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
 	}
 
 	id := ContainerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseContainerGroupIDInsensitively(input string) (*ContainerGroupId, error)
 	}
 
 	id := ContainerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ContainerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerInstance", "Microsoft.ContainerInstance", "Microsoft.ContainerInstance"),
 		resourceids.StaticSegment("staticContainerGroups", "containerGroups", "containerGroups"),
-		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupValue"),
+		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupName"),
 	}
 }
 

@@ -145,7 +145,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 			// per the create func
 			singleSignOnEnabled := props.SingleSignOnState != nil && *props.SingleSignOnState == singlesignon.SingleSignOnStatesEnable
 			d.Set("single_sign_on_enabled", singleSignOnEnabled)
-			d.Set("login_url", props.SingleSignOnUrl)
+			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 		}
 	}

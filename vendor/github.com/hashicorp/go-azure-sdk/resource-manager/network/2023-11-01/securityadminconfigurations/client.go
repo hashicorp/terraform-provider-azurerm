@@ -15,7 +15,7 @@ type SecurityAdminConfigurationsClient struct {
 }
 
 func NewSecurityAdminConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*SecurityAdminConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "securityadminconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "securityadminconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SecurityAdminConfigurationsClient: %+v", err)
 	}

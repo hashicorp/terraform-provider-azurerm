@@ -46,7 +46,6 @@ func (c DomainsClient) ListSharedAccessKeys(ctx context.Context, id DomainId) (r
 
 	var model DomainSharedAccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

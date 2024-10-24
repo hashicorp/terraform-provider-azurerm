@@ -15,7 +15,7 @@ type EventHubsClustersClient struct {
 }
 
 func NewEventHubsClustersClientWithBaseURI(sdkApi sdkEnv.Api) (*EventHubsClustersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "eventhubsclusters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "eventhubsclusters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EventHubsClustersClient: %+v", err)
 	}

@@ -45,7 +45,6 @@ func (c DataCollectionEndpointsClient) Get(ctx context.Context, id DataCollectio
 
 	var model DataCollectionEndpointResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

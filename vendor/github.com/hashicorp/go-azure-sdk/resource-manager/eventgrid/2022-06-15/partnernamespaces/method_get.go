@@ -45,7 +45,6 @@ func (c PartnerNamespacesClient) Get(ctx context.Context, id PartnerNamespaceId)
 
 	var model PartnerNamespace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

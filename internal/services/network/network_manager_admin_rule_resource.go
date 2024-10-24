@@ -259,7 +259,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 
@@ -342,7 +342,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var rule adminrules.AdminRule
-			if adminRule, ok := (*existing.Model).(adminrules.AdminRule); ok {
+			if adminRule, ok := existing.Model.(adminrules.AdminRule); ok {
 				rule = adminRule
 			}
 

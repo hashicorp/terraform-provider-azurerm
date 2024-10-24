@@ -4,6 +4,7 @@
 package utils
 
 // NormalizeNilableFloat normalizes a nilable float64 into a float64 value
+// Deprecated: please use the `From` function in the `pointer` package
 func NormalizeNilableFloat(input *float64) float64 {
 	if input == nil {
 		return 0
@@ -13,6 +14,7 @@ func NormalizeNilableFloat(input *float64) float64 {
 }
 
 // NormalizeNilableFloat32 normalizes a nilable float32 into a float32 value
+// Deprecated: please use the `From` function in the `pointer` package
 func NormalizeNilableFloat32(input *float32) float32 {
 	if input == nil {
 		return 0

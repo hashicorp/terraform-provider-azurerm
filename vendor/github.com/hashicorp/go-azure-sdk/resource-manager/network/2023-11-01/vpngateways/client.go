@@ -15,7 +15,7 @@ type VpnGatewaysClient struct {
 }
 
 func NewVpnGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*VpnGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vpngateways", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vpngateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VpnGatewaysClient: %+v", err)
 	}

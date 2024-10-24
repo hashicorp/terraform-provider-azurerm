@@ -13,7 +13,16 @@ var _ AdvancedFilter = IsNullOrUndefinedAdvancedFilter{}
 type IsNullOrUndefinedAdvancedFilter struct {
 
 	// Fields inherited from AdvancedFilter
-	Key *string `json:"key,omitempty"`
+
+	Key          *string                    `json:"key,omitempty"`
+	OperatorType AdvancedFilterOperatorType `json:"operatorType"`
+}
+
+func (s IsNullOrUndefinedAdvancedFilter) AdvancedFilter() BaseAdvancedFilterImpl {
+	return BaseAdvancedFilterImpl{
+		Key:          s.Key,
+		OperatorType: s.OperatorType,
+	}
 }
 
 var _ json.Marshaler = IsNullOrUndefinedAdvancedFilter{}
@@ -27,9 +36,10 @@ func (s IsNullOrUndefinedAdvancedFilter) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling IsNullOrUndefinedAdvancedFilter: %+v", err)
 	}
+
 	decoded["operatorType"] = "IsNullOrUndefined"
 
 	encoded, err = json.Marshal(decoded)

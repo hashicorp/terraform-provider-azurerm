@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -23,7 +23,6 @@ type SiteConfigLinux struct {
 	ApiManagementConfigId         string                  `tfschema:"api_management_api_id"`
 	ApiDefinition                 string                  `tfschema:"api_definition_url"`
 	AppCommandLine                string                  `tfschema:"app_command_line"`
-	AutoHeal                      bool                    `tfschema:"auto_heal_enabled"`
 	AutoHealSettings              []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR         bool                    `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI          string                  `tfschema:"container_registry_managed_identity_client_id"`
@@ -87,14 +86,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"application_stack": linuxApplicationStackSchema(),
-
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					RequiredWith: []string{
-						"site_config.0.auto_heal_setting",
-					},
-				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
 
@@ -321,11 +312,6 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 
 				"application_stack": linuxApplicationStackSchemaComputed(),
 
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
 				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
 
 				"container_registry_use_managed_identity": {
@@ -490,9 +476,6 @@ func autoHealSettingSchemaLinux() *pluginsdk.Schema {
 				"action": autoHealActionSchemaLinux(),
 			},
 		},
-		RequiredWith: []string{
-			"site_config.0.auto_heal_enabled",
-		},
 	}
 }
 
@@ -586,7 +569,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -753,7 +736,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -892,7 +875,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
@@ -1009,6 +992,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	}
 
 	if len(s.AutoHealSettings) == 1 {
+		expanded.AutoHealEnabled = pointer.To(true)
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -1020,7 +1004,6 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
@@ -1175,6 +1158,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealEnabled = pointer.To(false)
+		if len(s.AutoHealSettings) != 0 {
+			expanded.AutoHealEnabled = pointer.To(true)
+		}
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -1185,7 +1172,6 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
-		s.AutoHeal = pointer.From(appSiteConfig.AutoHealEnabled)
 		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
 		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)

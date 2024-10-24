@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type InputSchemaMapping interface {
+	InputSchemaMapping() BaseInputSchemaMappingImpl
 }
 
-// RawInputSchemaMappingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ InputSchemaMapping = BaseInputSchemaMappingImpl{}
+
+type BaseInputSchemaMappingImpl struct {
+	InputSchemaMappingType InputSchemaMappingType `json:"inputSchemaMappingType"`
+}
+
+func (s BaseInputSchemaMappingImpl) InputSchemaMapping() BaseInputSchemaMappingImpl {
+	return s
+}
+
+var _ InputSchemaMapping = RawInputSchemaMappingImpl{}
+
+// RawInputSchemaMappingImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawInputSchemaMappingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	inputSchemaMapping BaseInputSchemaMappingImpl
+	Type               string
+	Values             map[string]interface{}
 }
 
-func unmarshalInputSchemaMappingImplementation(input []byte) (InputSchemaMapping, error) {
+func (s RawInputSchemaMappingImpl) InputSchemaMapping() BaseInputSchemaMappingImpl {
+	return s.inputSchemaMapping
+}
+
+func UnmarshalInputSchemaMappingImplementation(input []byte) (InputSchemaMapping, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalInputSchemaMappingImplementation(input []byte) (InputSchemaMapping
 		return nil, fmt.Errorf("unmarshaling InputSchemaMapping into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["inputSchemaMappingType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["inputSchemaMappingType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Json") {
@@ -44,10 +61,15 @@ func unmarshalInputSchemaMappingImplementation(input []byte) (InputSchemaMapping
 		return out, nil
 	}
 
-	out := RawInputSchemaMappingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseInputSchemaMappingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseInputSchemaMappingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawInputSchemaMappingImpl{
+		inputSchemaMapping: parent,
+		Type:               value,
+		Values:             temp,
+	}, nil
 
 }

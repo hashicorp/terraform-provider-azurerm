@@ -15,7 +15,7 @@ type CognitiveServicesAccountsClient struct {
 }
 
 func NewCognitiveServicesAccountsClientWithBaseURI(sdkApi sdkEnv.Api) (*CognitiveServicesAccountsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cognitiveservicesaccounts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cognitiveservicesaccounts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CognitiveServicesAccountsClient: %+v", err)
 	}

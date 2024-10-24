@@ -45,7 +45,6 @@ func (c WebPubSubClient) HubsGet(ctx context.Context, id HubId) (result HubsGetO
 
 	var model WebPubSubHub
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

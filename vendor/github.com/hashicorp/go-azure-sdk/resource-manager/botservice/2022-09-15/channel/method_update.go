@@ -51,7 +51,6 @@ func (c ChannelClient) Update(ctx context.Context, id commonids.BotServiceChanne
 
 	var model BotChannel
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
