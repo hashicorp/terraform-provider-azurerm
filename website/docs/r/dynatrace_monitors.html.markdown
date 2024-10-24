@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `identity` - (Required) The kind of managed identity assigned to this resource.  A `identity` block as defined below.
 
-* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active`, `Suspended`.
+* `marketplace_subscription` - (Required) Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state. Possible values are `Active` and `Suspended`.
 
 * `plan` - (Required) Billing plan information. A `plan` block as defined below. Changing this forces a new resource to be created.
 
@@ -79,13 +79,13 @@ A `identity` block supports the following:
 
 A `plan` block supports the following:
 
-* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY`, `WEEKLY`.
+* `billing_cycle` - (Optional) Different billing cycles. Possible values are `MONTHLY` and `WEEKLY`.
 
 * `effective_date` - (Required) Date when plan was applied.
 
 * `plan` - (Required) Plan id as published by Dynatrace.
 
-* `usage_type` - (Optional) Different usage type. Possible values are `PAYG`, `COMMITTED`.
+* `usage_type` - (Optional) Different usage type. Possible values are `PAYG` and `COMMITTED`.
 
 ---
 
