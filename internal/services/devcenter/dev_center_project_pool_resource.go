@@ -35,7 +35,7 @@ type DevCenterProjectPoolResourceModel struct {
 	DevCenterProjectId                 string            `tfschema:"dev_center_project_id"`
 	DevBoxDefinitionName               string            `tfschema:"dev_box_definition_name"`
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
-	NetworkConnectionName              string            `tfschema:"network_connection_name"`
+	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -72,7 +72,7 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"network_connection_name": {
+		"dev_center_attached_network_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -125,7 +125,7 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &pools.PoolProperties{
 					DevBoxDefinitionName:  pointer.To(model.DevBoxDefinitionName),
-					NetworkConnectionName: pointer.To(model.NetworkConnectionName),
+					NetworkConnectionName: pointer.To(model.DevCenterAttachedNetworkName),
 					LicenseType:           pointer.To(pools.LicenseTypeWindowsClient),
 					StopOnDisconnect:      expandDevCenterProjectPoolStopOnDisconnect(model.StopOnDisconnectGracePeriodMinutes),
 				},
@@ -179,7 +179,7 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DevBoxDefinitionName = pointer.From(props.DevBoxDefinitionName)
 					state.LocalAdministratorEnabled = pointer.From(props.LocalAdministrator) == pools.LocalAdminStatusEnabled
-					state.NetworkConnectionName = pointer.From(props.NetworkConnectionName)
+					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnect(props.StopOnDisconnect)
 				}
 			}
@@ -221,8 +221,8 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("network_connection_name") {
-				parameters.Properties.NetworkConnectionName = pointer.To(model.NetworkConnectionName)
+			if metadata.ResourceData.HasChange("dev_center_attached_network_name") {
+				parameters.Properties.NetworkConnectionName = pointer.To(model.DevCenterAttachedNetworkName)
 			}
 
 			if metadata.ResourceData.HasChange("stop_on_disconnect_grace_period_minutes") {

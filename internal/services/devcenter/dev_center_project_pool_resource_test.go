@@ -122,12 +122,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_project_pool" "test" {
-  name                        = "acctest-dcpl-%d"
-  location                    = azurerm_resource_group.test.location
-  dev_center_project_id       = azurerm_dev_center_project.test.id
-  dev_box_definition_name     = azurerm_dev_center_dev_box_definition.test.name
-  local_administrator_enabled = false
-  network_connection_name     = azurerm_dev_center_attached_network.test.name
+  name                             = "acctest-dcpl-%d"
+  location                         = azurerm_resource_group.test.location
+  dev_center_project_id            = azurerm_dev_center_project.test.id
+  dev_box_definition_name          = azurerm_dev_center_dev_box_definition.test.name
+  local_administrator_enabled      = false
+  dev_center_attached_network_name = azurerm_dev_center_attached_network.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -137,12 +137,12 @@ func (r DevCenterProjectPoolTestResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_dev_center_project_pool" "import" {
-  name                        = azurerm_dev_center_project_pool.test.name
-  location                    = azurerm_dev_center_project_pool.test.location
-  dev_center_project_id       = azurerm_dev_center_project_pool.test.dev_center_project_id
-  dev_box_definition_name     = azurerm_dev_center_project_pool.test.dev_box_definition_name
-  local_administrator_enabled = azurerm_dev_center_project_pool.test.local_administrator_enabled
-  network_connection_name     = azurerm_dev_center_project_pool.test.network_connection_name
+  name                             = azurerm_dev_center_project_pool.test.name
+  location                         = azurerm_dev_center_project_pool.test.location
+  dev_center_project_id            = azurerm_dev_center_project_pool.test.dev_center_project_id
+  dev_box_definition_name          = azurerm_dev_center_project_pool.test.dev_box_definition_name
+  local_administrator_enabled      = azurerm_dev_center_project_pool.test.local_administrator_enabled
+  dev_center_attached_network_name = azurerm_dev_center_project_pool.test.dev_center_attached_network_name
 }
 `, r.basic(data))
 }
@@ -161,7 +161,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled             = true
-  network_connection_name                 = azurerm_dev_center_attached_network.test.name
+  dev_center_attached_network_name        = azurerm_dev_center_attached_network.test.name
   stop_on_disconnect_grace_period_minutes = 60
 
   tags = {
@@ -185,7 +185,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_center_project_id                   = azurerm_dev_center_project.test.id
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
   local_administrator_enabled             = false
-  network_connection_name                 = azurerm_dev_center_attached_network.test2.name
+  dev_center_attached_network_name        = azurerm_dev_center_attached_network.test2.name
   stop_on_disconnect_grace_period_minutes = 80
 
   tags = {
