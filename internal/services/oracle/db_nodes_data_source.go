@@ -51,12 +51,10 @@ type DBNodeDataModel struct {
 
 func (d DBNodesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-		"cloud_vm_cluster_name": {
+		"cloud_vm_cluster_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
+			ValidateFunc: cloudvmclusters.ValidateCloudVMClusterID,
 		},
 	}
 }
