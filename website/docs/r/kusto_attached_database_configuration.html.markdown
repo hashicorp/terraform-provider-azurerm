@@ -59,7 +59,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.follower_cluster.name
-  cluster_resource_id = azurerm_kusto_cluster.followed_cluster.id
+  cluster_id          = azurerm_kusto_cluster.followed_cluster.id
   database_name       = azurerm_kusto_database.example.name
 
   sharing {
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster for which the configuration will be created. Changing this forces a new resource to be created.
 
-* `cluster_resource_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
+* `cluster_id` - (Required) The resource id of the cluster where the databases you would like to attach reside. Changing this forces a new resource to be created.
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
@@ -115,7 +115,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Kusto Attached Database Configuration ID.
 
-* `attached_database_names` - The list of databases from the `cluster_resource_id` which are currently attached to the cluster.
+* `attached_database_names` - The list of databases from the `cluster_id` which are currently attached to the cluster.
 
 ## Timeouts
 
