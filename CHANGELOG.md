@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* Dependencies - update `go-azure-sdk` to `v0.20241021.1074254` [GH-27713]
 * `newrelic` - upgrade api version to `2024-03-01`  [GH-27135]
 * `cosmosdb` - upgrade api version to `2024-08-15` [GH-27659]
 
