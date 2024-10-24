@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1605,6 +1605,10 @@ provider "azurerm" {
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
     }
   }
 }
