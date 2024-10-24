@@ -11,6 +11,7 @@ description: |-
 This data source provides the list of DB System Shapes in Oracle Cloud Infrastructure Database service.
 
 Gets a list of the shapes that can be used to launch a new DB system. The shape determines resources to allocate to the DB system - CPU cores and memory for VM shapes; CPU cores, memory and storage for non-VM (or bare metal) shapes.
+
 ## Example Usage
 
 ```hcl
