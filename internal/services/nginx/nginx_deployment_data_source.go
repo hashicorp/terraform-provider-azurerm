@@ -19,24 +19,26 @@ import (
 )
 
 type DeploymentDataSourceModel struct {
-	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
-	Name                   string                                     `tfschema:"name"`
-	NginxVersion           string                                     `tfschema:"nginx_version"`
-	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
-	Location               string                                     `tfschema:"location"`
-	Capacity               int64                                      `tfschema:"capacity"`
-	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
-	Email                  string                                     `tfschema:"email"`
-	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
-	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
-	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
-	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
-	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
-	Tags                   map[string]string                          `tfschema:"tags"`
+	ResourceGroupName              string                                     `tfschema:"resource_group_name"`
+	Name                           string                                     `tfschema:"name"`
+	NginxVersion                   string                                     `tfschema:"nginx_version"`
+	Identity                       []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Sku                            string                                     `tfschema:"sku"`
+	ManagedResourceGroup           string                                     `tfschema:"managed_resource_group"`
+	Location                       string                                     `tfschema:"location"`
+	Capacity                       int64                                      `tfschema:"capacity"`
+	AutoScaleProfile               []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
+	DiagnoseSupportEnabled         bool                                       `tfschema:"diagnose_support_enabled"`
+	Email                          string                                     `tfschema:"email"`
+	IpAddress                      string                                     `tfschema:"ip_address"`
+	LoggingStorageAccount          []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
+	FrontendPublic                 []FrontendPublic                           `tfschema:"frontend_public"`
+	FrontendPrivate                []FrontendPrivate                          `tfschema:"frontend_private"`
+	NetworkInterface               []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel                 string                                     `tfschema:"automatic_upgrade_channel"`
+	WebApplicationFirewallSettings []WebApplicationFirewallSettings           `tfschema:"web_application_firewall_settings"`
+	WebApplicationFirewallStatus   []WebApplicationFirewallStatus             `tfschema:"web_application_firewall_status"`
+	Tags                           map[string]string                          `tfschema:"tags"`
 }
 
 type DeploymentDataSource struct{}
@@ -194,7 +196,71 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"web_application_firewall_settings": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"activation_state": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"web_application_firewall_status": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"attack_signatures_package": webApplicationFirewallPackageComputed(),
+					"bot_signatures_package":    webApplicationFirewallPackageComputed(),
+					"threat_campaigns_package":  webApplicationFirewallPackageComputed(),
+					"component_versions":        webApplicationFirewallComponentVersionsComputed(),
+				},
+			},
+		},
+
 		"tags": commonschema.TagsDataSource(),
+	}
+}
+
+func webApplicationFirewallPackageComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"revision_datetime": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func webApplicationFirewallComponentVersionsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"waf_engine_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"waf_nginx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
 	}
 }
 
@@ -313,6 +379,53 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					if props.AutoUpgradeProfile != nil {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
+
+					if props.NginxAppProtect != nil {
+						if props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState != nil {
+							output.WebApplicationFirewallSettings = []WebApplicationFirewallSettings{
+								{
+									string(*props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState),
+								},
+							}
+						}
+						if props.NginxAppProtect.WebApplicationFirewallStatus != nil {
+							wafStatus := WebApplicationFirewallStatus{}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage != nil {
+								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage != nil {
+								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage != nil {
+								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.RevisionDatetime,
+										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.Version,
+									},
+								}
+							}
+							if props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions != nil {
+								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
+									{
+										WafEngineVersion: props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafEngineVersion,
+										WafNginxVersion:  props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafNginxVersion,
+									},
+								}
+							}
+							output.WebApplicationFirewallStatus = []WebApplicationFirewallStatus{wafStatus}
+						}
+					}
+
 				}
 			}
 
