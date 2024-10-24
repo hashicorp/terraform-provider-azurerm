@@ -66,35 +66,29 @@ func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new stri
 	return true
 }
 
-func expandDataFactoryParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
-	output := make(map[string]*datafactory.ParameterSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.ParameterSpecification{
-			Type:         datafactory.ParameterTypeString,
-			DefaultValue: v.(string),
+func expandDataFactoryParameters(input []interface{}) map[string]*datafactory.ParameterSpecification {
+	parameters := make(map[string]*datafactory.ParameterSpecification)
+	for _, v := range input {
+		val := v.(map[string]interface{})
+		parameters[val["name"].(string)] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterType(val["type"].(string)),
+			DefaultValue: val["default_value"],
 		}
 	}
-
-	return output
+	return parameters
 }
 
-func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
+func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) []interface{} {
+	parameters := make([]interface{}, 0, len(input))
 	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
-			}
-
-			output[k] = val
+		param := map[string]interface{}{
+			"name":          k,
+			"type":          string(v.Type),
+			"default_value": v.DefaultValue,
 		}
+		parameters = append(parameters, param)
 	}
-
-	return output
+	return parameters
 }
 
 func flattenDataFactoryAnnotations(input *[]interface{}) []string {
@@ -113,35 +107,35 @@ func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	return annotations
 }
 
-func expandDataFactoryVariables(input map[string]interface{}) map[string]*datafactory.VariableSpecification {
-	output := make(map[string]*datafactory.VariableSpecification)
-
-	for k, v := range input {
-		output[k] = &datafactory.VariableSpecification{
-			Type:         datafactory.VariableTypeString,
-			DefaultValue: v.(string),
+func expandDataFactoryVariables(input []interface{}) map[string]*datafactory.VariableSpecification {
+	variables := make(map[string]*datafactory.VariableSpecification)
+	for _, v := range input {
+		val := v.(map[string]interface{})
+		variables[val["name"].(string)] = &datafactory.VariableSpecification{
+			Type:         datafactory.VariableType(val["type"].(string)),
+			DefaultValue: val["default_value"],
 		}
 	}
-
-	return output
+	return variables
 }
 
-func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) map[string]interface{} {
-	output := make(map[string]interface{})
-
+func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) []interface{} {
+	variables := make([]interface{}, 0, len(input))
 	for k, v := range input {
-		if v != nil {
-			// we only support string parameters at this time
-			val, ok := v.DefaultValue.(string)
-			if !ok {
-				log.Printf("[DEBUG] Skipping variable %q since it's not a string", k)
-			}
-
-			output[k] = val
+		// convert value to string if it is bool
+		// this is needed because the API returns the default value as a bool
+		if _, ok := v.DefaultValue.(bool); ok {
+			v.DefaultValue = fmt.Sprintf("%v", v.DefaultValue)
 		}
-	}
 
-	return output
+		variable := map[string]interface{}{
+			"name":          k,
+			"type":          string(v.Type),
+			"default_value": v.DefaultValue,
+		}
+		variables = append(variables, variable)
+	}
+	return variables
 }
 
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset

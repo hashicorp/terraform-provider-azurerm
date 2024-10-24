@@ -36,8 +36,10 @@ resource "azurerm_data_factory_pipeline" "example" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "example"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "variableName"
+    type          = "String"
+    default_value = "variableDefaultValue"
   }
   activities_json = <<JSON
 [
@@ -74,11 +76,31 @@ The following arguments are supported:
 
 * `moniter_metrics_after_duration` - (Optional) The TimeSpan value after which an Azure Monitoring Metric is fired.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
+* `parameters` - (Optional) One or more `parameters` blocks as defined below.
 
-* `variables` - (Optional) A map of variables to associate with the Data Factory Pipeline.
+* `variables` - (Optional) One or more `variables` blocks as defined below.
 
 * `activities_json` - (Optional) A JSON object that contains the activities that will be associated with the Data Factory Pipeline.
+
+---
+
+A `parameters` block supports the following:
+
+* `name` - (Required) The name of the parameter.
+
+* `default_value` - (Required) The default value for the parameter.
+
+* `type` - (Optional) The type of the parameter. Valid values are `String`, `Int`, `Float`, `Bool`, `Array`, `Object`, and `SecureString`. Defaults to `String`.
+
+---
+
+A `variables` block supports the following:
+
+* `name` - (Required) The name of the variable.
+
+* `default_value` - (Required) The default value for the variable.
+
+* `type` - (Optional) The type of the variable. Valid values are `String` and `Array`. Defaults to `String`.
 
 ## Attributes Reference
 
