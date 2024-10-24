@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,25 +173,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 				},
 			},
 
-			"credential": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"reference_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"type": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -280,9 +266,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		azureSQLDatabaseLinkedService.Annotations = &annotations
 	}
 
-	if v, ok := d.GetOk("credential"); ok {
-		credential := v.([]interface{})
-		azureSQLDatabaseLinkedService.Credential = expandAzureCredentialReference(credential)
+	if credentialName := d.Get("credential_name").(string); credentialName != "" {
+		azureSQLDatabaseLinkedService.Credential = &datafactory.CredentialReference{
+			ReferenceName: pointer.To(credentialName),
+		}
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -379,7 +366,7 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 	}
 
 	if credential := sql.Credential; credential != nil {
-		d.Set("credential", flattenAzureCredentialReference(credential))
+		d.Set("credential_name", pointer.From(sql.Credential.ReferenceName))
 	}
 
 	return nil

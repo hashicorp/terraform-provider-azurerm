@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
-* `credential` - (Optional) A `credential` block as defined below. Use this argument to authenticate against the linked resource using a User-assigned Managed Identity.
+* `credential_name` - (Optional) The name of a User-assigned Managed Identity. Use this argument to authenticate against the linked resource using a User-assigned Managed Identity.
 
 ---
 
@@ -83,13 +83,6 @@ A `key_vault_password` block supports the following:
 
 * `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server password.
 
----
-
-A `credential` block supports the following:
-
-* `reference_name` - (Required) Name of the User-assigned Managed Identity.
-
-* `type` - (Required) Sets the credential type. The only valid value is `CredentialReference`.
 ---
 
 ## Attributes Reference

@@ -124,8 +124,7 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_Credential(t *testing.T) {
 			Config: r.credential(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("credential.0.reference_name").HasValue(fmt.Sprintf("test%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("credential.0.type").HasValue("CredentialReference"),
+				check.That(data.ResourceName).Key("credential_name").HasValue(fmt.Sprintf("test%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep("connection_string"),
@@ -413,10 +412,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
   data_factory_id   = azurerm_data_factory.test.id
   connection_string = "data source=serverhostname;initial catalog=master;user id=testUser;Password=test;integrated security=False;encrypt=True;connection timeout=30"
 
-  credential {
-   reference_name = azurerm_data_factory_credential_user_managed_identity.test.name
-   type           = "CredentialReference"
-  }
+  credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
