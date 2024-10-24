@@ -628,7 +628,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"occurrence": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, -1}),
+									ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, -1}), // -1 is last week and 5 is invalid
 								},
 
 								"day": {
