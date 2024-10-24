@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_oracle_autonomous_database` [GH-27696]
+* **New Resource**: `azurerm_dev_center_project_pool` [GH-27706]
 * **New Resource**: `azurerm_oracle_autonomous_database` [GH-27696]
 * **New Resource**: `azurerm_video_indexer_account` [GH-27632]
 
@@ -11,10 +12,15 @@ ENHANCEMENTS:
 * Dependencies - update `go-azure-sdk` to `v0.20241021.1074254` [GH-27713]
 * `newrelic` - upgrade api version to `2024-03-01`  [GH-27135]
 * `cosmosdb` - upgrade api version to `2024-08-15` [GH-27659]
+* `azurerm_consumption_budget_management_group` - the property `notification.threshold_type` can now be updated [GH-27511]
+* `azurerm_consumption_budget_resource_group` - the property `notification.threshold_type` can now be updated [GH-27511]
+* `azurerm_container_app` - add support for the `template.container.readiness_probe.initial_delay` and `template.container.startup_probe.initial_delay` properties [GH-27551]
+* `azurerm_mssql_managed_instance` - the `storage_account_type` property can now be updated [GH-27737]
 
 BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - correct validation to not allow `5` and allow `-1` [GH-25574]
+* `azurerm_cosmosdb_sql_container` - fix recreation logic for `partition_key_version` [GH-27692]
 * `azurerm_mssql_database` - updating short term retention policy now works as expected [GH-27714]
 
 ## 4.6.0 (October 18, 2024)

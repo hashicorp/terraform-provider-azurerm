@@ -98,7 +98,6 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			"partition_key_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 2),
 			},
 
@@ -150,6 +149,11 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 			// The analytical_storage_ttl cannot be changed back once enabled on an existing container. -> we need ForceNew
 			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
 				return (old.(int) == -1 || old.(int) > 0) && new.(int) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ interface{}) bool {
+				// The behavior of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
+				return !(old.(int) == 0 && new.(int) == 1)
 			}),
 		),
 	}
