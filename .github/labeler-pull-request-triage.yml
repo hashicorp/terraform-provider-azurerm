@@ -555,6 +555,11 @@ service/traffic-manager:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
 
+service/video-indexer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/videoindexer/**/*
+
 service/virtual-desktops:
 - changed-files:
   - any-glob-to-any-file:
