@@ -111,6 +111,10 @@ resource "azurerm_nginx_configuration" "test" {
     content      = local.protected_content
     virtual_path = "/opt/.htpasswd"
   }
+
+  lifecycle {
+    ignore_changes = [protected_file]
+  }
 }
 `, a.template(data))
 }
@@ -193,6 +197,10 @@ resource "azurerm_nginx_configuration" "test" {
   protected_file {
     content      = local.protected_content
     virtual_path = "/opt/.htpasswd"
+  }
+
+  lifecycle {
+    ignore_changes = [protected_file]
   }
 }
 `, a.template(data))
