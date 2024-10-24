@@ -31,17 +31,17 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
     access_policy {
       permissions = "rwdl"
-      start       = "2019-07-02T09:38:21.0000000Z"
-      expiry      = "2019-07-02T10:38:21.0000000Z"
+      start       = "2019-07-02T09:38:21Z"
+      expiry      = "2019-07-02T10:38:21Z"
     }
   }
 }
@@ -53,7 +53,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+ 
+* `storage_account_id` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API. 
 
 * `access_tier` - (Optional) The access tier of the File Share. Possible values are `Hot`, `Cool` and `TransactionOptimized`, `Premium`.
 
@@ -89,9 +93,9 @@ A `access_policy` block supports the following:
 
 ~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above.
 
-* `start` - (Optional) The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `start` - (Optional) The time at which this Access Policy should be valid from. When using `storage_account_id` this should be in RFC3339 format. If using the deprecated `storage_account_name` property, this uses the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 
-* `expiry` - (Optional) The time at which this Access Policy should be valid until, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `expiry` - (Optional) The time at which this Access Policy should be valid untilWhen using `storage_account_id` this should be in RFC3339 format. If using the deprecated `storage_account_name` property, this uses the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 
 ## Attributes Reference
 
@@ -114,8 +118,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Shares can be imported using the `resource id`, e.g.
+Storage Shares can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_storage_share.exampleShare https://account1.file.core.windows.net/share1
+terraform import azurerm_storage_share.exampleShare /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myAccount/fileServices/default/shares/exampleShare
 ```

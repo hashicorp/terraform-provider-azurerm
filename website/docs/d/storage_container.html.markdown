@@ -13,9 +13,14 @@ Use this data source to access information about an existing Storage Container.
 ## Example Usage
 
 ```hcl
+data "azurerm_storage_account" "example" {
+  name                = "exampleaccount"
+  resource_group_name = "examples"
+}
+
 data "azurerm_storage_container" "example" {
-  name                 = "example-container-name"
-  storage_account_name = "example-storage-account-name"
+  name               = "example-container-name"
+  storage_account_id = data.azurerm_storage_account.example.id
 }
 ```
 
@@ -25,7 +30,11 @@ The following arguments are supported:
 
 * `name` - The name of the Container.
 
-* `storage_account_name` - The name of the Storage Account where the Container exists.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Container exists. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Container exists. This property will become Required in version 5.0 of the Provider.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 ## Attributes Reference
 
@@ -41,7 +50,7 @@ The following arguments are supported:
 
 * `metadata`  - A mapping of MetaData for this Container.
 
-* `resource_manager_id` - The Resource Manager ID of this Storage Container.
+* `id` - The Resource Manager ID of this Storage Container.
 
 ## Timeouts
 
