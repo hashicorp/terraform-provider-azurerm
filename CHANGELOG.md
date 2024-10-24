@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_oracle_autonomous_database` [GH-27696]
+* **New Resource**: `azurerm_oracle_autonomous_database` [GH-27696]
 * **New Resource**: `azurerm_video_indexer_account` [GH-27632]
 
 ENHANCEMENTS:
