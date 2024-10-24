@@ -1018,6 +1018,20 @@ func TestAccMsSqlDatabase_elasticPoolHS(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.elasticPoolHSWithRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.elasticPoolHSWithRetentionPolicyUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -2287,6 +2301,80 @@ resource "azurerm_mssql_database" "test" {
   server_id       = azurerm_mssql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
   sku_name        = "ElasticPool"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) elasticPoolHSWithRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+
+  sku {
+    name     = "HS_Gen5"
+    tier     = "Hyperscale"
+    family   = "Gen5"
+    capacity = 4
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  server_id       = azurerm_mssql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+
+  short_term_retention_policy {
+    retention_days = 10
+  }
+
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) elasticPoolHSWithRetentionPolicyUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+
+  sku {
+    name     = "HS_Gen5"
+    tier     = "Hyperscale"
+    family   = "Gen5"
+    capacity = 4
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  server_id       = azurerm_mssql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+
+  short_term_retention_policy {
+    retention_days = 12
+  }
+
 }
 `, r.template(data), data.RandomInteger)
 }
