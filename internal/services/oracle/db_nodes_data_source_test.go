@@ -31,8 +31,7 @@ func (d DBNodesDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_oracle_db_nodes" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  cloud_vm_cluster_name = azurerm_oracle_cloud_vm_cluster.test.name
+  cloud_vm_cluster_id = azurerm_resource_group.test.id
 }
 `, CloudVmClusterResource{}.basic(data))
 }
