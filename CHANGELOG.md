@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `cosmosdb` - upgrade api version to `2024-08-15` [GH-27659]
 * `azurerm_consumption_budget_management_group` - the property `notification.threshold_type` can now be updated [GH-27511]
 * `azurerm_consumption_budget_resource_group` - the property `notification.threshold_type` can now be updated [GH-27511]
+* `azurerm_container_app` - add support for the `template.container.readiness_probe.initial_delay` and `template.container.startup_probe.initial_delay` properties [GH-27551]
 * `azurerm_mssql_managed_instance` - the `storage_account_type` property can now be updated [GH-27737]
 
 BUG FIXES:
