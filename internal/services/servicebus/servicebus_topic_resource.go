@@ -270,6 +270,23 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", id.NamespaceName, id.ResourceGroupName, err)
 	}
 
+	isPremiumNamespacePartitioned := true
+	var sku namespaces.SkuName
+	if nsModel := resp.Model; nsModel != nil {
+		sku = nsModel.Sku.Name
+		if props := nsModel.Properties; props != nil && props.PremiumMessagingPartitions != nil && *props.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
+		}
+	}
+
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+		}
+	}
+
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
 	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
 		if model := resp.Model; model != nil {
