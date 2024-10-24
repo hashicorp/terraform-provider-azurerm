@@ -51,6 +51,12 @@ type ChaosStudioExperimentResourceSchema struct {
 type SelectorSchema struct {
 	Name      string   `tfschema:"name"`
 	TargetIds []string `tfschema:"chaos_studio_target_ids"`
+	Filter    *FilterSchema `tfschema:"filter"`
+}
+
+type FilterSchema struct {
+	Type       string            `tfschema:"type"`
+	Parameters map[string]string `tfschema:"parameters"`
 }
 
 type StepSchema struct {
@@ -107,6 +113,27 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 							ValidateFunc: commonids.ValidateChaosStudioTargetID,
 						},
 					},
+					"filter": {
+						Optional: true,
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"type": {
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"parameters": {
+									Optional: true,
+									Type:     pluginsdk.TypeMap,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -114,12 +141,12 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 			Required: true,
 			Type:     pluginsdk.TypeList,
 			MinItems: 1,
-			Elem: &pluginsdk.Resource{
+				Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Required:     true,
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch": {
 						Required: true,
@@ -398,10 +425,17 @@ func expandSelectors(input []SelectorSchema) (*[]experiments.Selector, error) {
 				Id:   targetId.ID(),
 				Type: experiments.TargetReferenceTypeChaosTarget,
 			})
+			}
+		var filter *experiments.Filter
+		if v.Filter != nil {
+			filter = &experiments.Filter{
+				Type: v.Filter.Type,
+				Parameters: v.Filter.Parameters,
+			}
 		}
 		output = append(output, experiments.ListSelector{
 			Targets: targetsOutput,
-			Filter:  nil,
+			Filter:  filter,
 			Id:      v.Name,
 		})
 	}
@@ -496,9 +530,17 @@ func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
 		for _, t := range ls.Targets {
 			targetIds = append(targetIds, t.Id)
 		}
+		var filter *FilterSchema
+		if ls.Filter != nil {
+			filter = &FilterSchema{
+				Type: ls.Filter.Type,
+				Parameters: ls.Filter.Parameters,
+			}
+		}
 		output = append(output, SelectorSchema{
 			Name:      ls.Id,
 			TargetIds: targetIds,
+			Filter:    filter,
 		})
 	}
 
