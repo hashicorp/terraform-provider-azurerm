@@ -377,6 +377,7 @@ resource "azurerm_firewall_policy" "test" {
   }
   intrusion_detection {
     mode = "Alert"
+    profile = "Basic"
     signature_overrides {
       state = "Alert"
       id    = "1"

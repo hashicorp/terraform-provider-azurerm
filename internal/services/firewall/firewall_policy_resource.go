@@ -339,7 +339,8 @@ func expandFirewallPolicyIntrusionDetection(input []interface{}) *firewallpolici
 	}
 
 	return &firewallpolicies.FirewallPolicyIntrusionDetection{
-		Mode: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string))),
+		Mode:    pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionStateType(raw["mode"].(string))),
+		Profile: pointer.To(firewallpolicies.FirewallPolicyIntrusionDetectionProfileType(raw["profile"].(string))),
 		Configuration: &firewallpolicies.FirewallPolicyIntrusionDetectionConfiguration{
 			SignatureOverrides:    &signatureOverrides,
 			PrivateRanges:         &privateRanges,

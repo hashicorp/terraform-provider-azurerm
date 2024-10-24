@@ -99,6 +99,8 @@ A `intrusion_detection` block supports the following:
 
 * `mode` - (Optional) In which mode you want to run intrusion detection: `Off`, `Alert` or `Deny`.
 
+* `profile` - (Optional) Intrusion detection profile name: `Basic`, `Standard` or `Advanced`.
+
 * `signature_overrides` - (Optional) One or more `signature_overrides` blocks as defined below.
 
 * `traffic_bypass` - (Optional) One or more `traffic_bypass` blocks as defined below.
