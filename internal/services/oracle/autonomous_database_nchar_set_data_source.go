@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasecharactersets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasenationalcharactersets"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -59,14 +58,14 @@ func (d AdbsNCharSetsDataSource) ResourceType() string {
 }
 
 func (d AdbsNCharSetsDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return autonomousdatabasecharactersets.ValidateAutonomousDatabaseCharacterSetID
+	return autonomousdatabasenationalcharactersets.ValidateAutonomousDatabaseNationalCharacterSetID
 }
 
 func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseCharacterSets
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseNationalCharacterSets
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			state := AdbsNCharSetsModel{
@@ -76,7 +75,7 @@ func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := autonomousdatabasecharactersets.NewLocationID(subscriptionId, state.Location)
+			id := autonomousdatabasenationalcharactersets.NewLocationID(subscriptionId, state.Location)
 
 			resp, err := client.ListByLocation(ctx, id)
 			if err != nil {
@@ -91,7 +90,7 @@ func (d AdbsNCharSetsDataSource) Read() sdk.ResourceFunc {
 					if element.Properties != nil {
 						properties := element.Properties
 						state.AdbsCharSets = append(state.AdbsCharSets, AdbsNCharSetModel{
-							CharacterSet: pointer.From(properties.CharacterSet),
+							CharacterSet: properties.CharacterSet,
 						})
 					}
 				}
