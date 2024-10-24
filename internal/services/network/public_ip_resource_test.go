@@ -752,6 +752,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Static"
   sku                     = "Basic"
   domain_name_label       = "acctest-%d"
+  domain_name_label_scope = "TenantReuse"
   idle_timeout_in_minutes = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
