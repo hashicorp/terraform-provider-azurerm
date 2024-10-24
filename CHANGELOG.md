@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_automation_software_update_configuration` - correct validation to not allow `5` and allow `-1` [GH-25574]
+* `azurerm_cosmosdb_sql_container` - fix recreation logic for `partition_key_version` [GH-27692]
 * `azurerm_mssql_database` - updating short term retention policy now works as expected [GH-27714]
 
 ## 4.6.0 (October 18, 2024)
