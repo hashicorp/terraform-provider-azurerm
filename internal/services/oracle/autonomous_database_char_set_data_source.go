@@ -88,10 +88,9 @@ func (d AdbsCharSetsDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
-					if element.Properties != nil {
-						properties := element.Properties
+					if props := element.Properties; props != nil {
 						state.AdbsCharSets = append(state.AdbsCharSets, AdbsCharSetModel{
-							CharacterSet: pointer.From(properties.CharacterSet),
+							CharacterSet: pointer.From(props.CharacterSet),
 						})
 					}
 				}
