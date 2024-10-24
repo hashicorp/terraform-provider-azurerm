@@ -19,8 +19,8 @@ data "azurerm_oracle_gi_versions" "example" {
   location = "West Europe"
 }
 
-output "id" {
-  value = data.azurerm_oracle_gi_versions.example.id
+output "example" {
+  value = data.azurerm_oracle_gi_versions.example
 }
 ```
 

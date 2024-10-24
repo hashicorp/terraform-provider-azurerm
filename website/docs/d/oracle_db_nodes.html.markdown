@@ -17,8 +17,8 @@ data "azurerm_oracle_db_nodes" "example" {
   cloud_vm_cluster_id = "existing"
 }
 
-output "id" {
-  value = data.azurerm_oracle_db_nodes.example.id
+output "example" {
+  value = data.azurerm_oracle_db_nodes.example
 }
 ```
 

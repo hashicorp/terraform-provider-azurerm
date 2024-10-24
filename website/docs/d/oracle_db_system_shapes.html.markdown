@@ -19,8 +19,8 @@ data "azurerm_oracle_db_system_shapes" "example" {
   location = "West Europe"
 }
 
-output "id" {
-  value = data.azurerm_oracle_db_system_shapes.example.id
+output "example" {
+  value = data.azurerm_oracle_db_system_shapes.example
 }
 ```
 

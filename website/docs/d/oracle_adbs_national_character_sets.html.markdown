@@ -17,8 +17,8 @@ data "azurerm_oracle_adbs_character_sets" "example" {
   location = "West Europe"
 }
 
-output "id" {
-  value = data.azurerm_oracle_adbs_national_character_sets.example.id
+output "example" {
+  value = data.azurerm_oracle_adbs_national_character_sets.example
 }
 ```
 
