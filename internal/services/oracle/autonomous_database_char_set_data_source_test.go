@@ -27,7 +27,7 @@ func TestAdbsCharSetsDataSource_basic(t *testing.T) {
 }
 
 func (d AdbsCharSetsDataSource) basic() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 provider "azurerm" {
   features {}
 }

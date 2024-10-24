@@ -27,7 +27,7 @@ func TestDbSystemShapesDataSource_basic(t *testing.T) {
 }
 
 func (d DbSystemShapesDataSource) basic() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 provider "azurerm" {
   features {}
 }

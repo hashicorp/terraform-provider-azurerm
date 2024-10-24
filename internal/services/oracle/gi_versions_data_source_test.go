@@ -27,7 +27,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 }
 
 func (d GiVersionsDataSource) basic() string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 provider "azurerm" {
   features {}
 }
