@@ -419,6 +419,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("resource_manager_id", id.ID())
 	}
 
+	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
 	account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.StorageAccountName, id.ShareName, err)
@@ -439,7 +440,6 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
-	// TODO Giovanni Deprecation - Port the storage data plane ID helper(s) from Giovanni to go-azure-sdk so we can remove this
 	d.Set("url", shares.NewShareID(*accountId, id.ShareName).ID())
 
 	return nil
