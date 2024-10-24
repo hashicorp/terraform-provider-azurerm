@@ -33,13 +33,13 @@ type DbSystemShapeModel struct {
 	AvailableMemoryInGbs               int64   `tfschema:"available_memory_in_gbs"`
 	AvailableMemoryPerNodeInGbs        int64   `tfschema:"available_memory_per_node_in_gbs"`
 	CoreCountIncrement                 int64   `tfschema:"core_count_increment"`
-	MaxStorageCount                    int64   `tfschema:"max_storage_count"`
+	MaxStorageCount                    int64   `tfschema:"maximum_storage_count"`
 	MaximumNodeCount                   int64   `tfschema:"maximum_node_count"`
-	MinCoreCountPerNode                int64   `tfschema:"min_core_count_per_node"`
-	MinDataStorageInTbs                int64   `tfschema:"min_data_storage_in_tbs"`
-	MinDbNodeStoragePerNodeInGbs       int64   `tfschema:"min_db_node_storage_per_node_in_gbs"`
-	MinMemoryPerNodeInGbs              int64   `tfschema:"min_memory_per_node_in_gbs"`
-	MinStorageCount                    int64   `tfschema:"min_storage_count"`
+	MinCoreCountPerNode                int64   `tfschema:"minimum_core_count_per_node"`
+	MinDataStorageInTbs                int64   `tfschema:"minimum_data_storage_in_tbs"`
+	MinDbNodeStoragePerNodeInGbs       int64   `tfschema:"minimum_db_node_storage_per_node_in_gbs"`
+	MinMemoryPerNodeInGbs              int64   `tfschema:"minimum_memory_per_node_in_gbs"`
+	MinStorageCount                    int64   `tfschema:"minimum_storage_count"`
 	MinimumCoreCount                   int64   `tfschema:"minimum_core_count"`
 	MinimumNodeCount                   int64   `tfschema:"minimum_node_count"`
 	RuntimeMinimumCoreCount            int64   `tfschema:"runtime_minimum_core_count"`
@@ -95,7 +95,7 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"max_storage_count": {
+					"maximum_storage_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
@@ -103,23 +103,23 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"min_core_count_per_node": {
+					"minimum_core_count_per_node": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"min_data_storage_in_tbs": {
+					"minimum_data_storage_in_tbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"min_db_node_storage_per_node_in_gbs": {
+					"minimum_db_node_storage_per_node_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"min_memory_per_node_in_gbs": {
+					"minimum_memory_per_node_in_gbs": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"min_storage_count": {
+					"minimum_storage_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
@@ -185,26 +185,26 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						state.DbSystemShapes = append(state.DbSystemShapes, DbSystemShapeModel{
-							AvailableCoreCount:                 pointer.From(properties.AvailableCoreCount),
-							AvailableCoreCountPerNode:          pointer.From(properties.AvailableCoreCountPerNode),
-							AvailableDataStorageInTbs:          pointer.From(properties.AvailableDataStorageInTbs),
-							AvailableDataStoragePerServerInTbs: pointer.From(properties.AvailableDataStoragePerServerInTbs),
-							AvailableDbNodePerNodeInGbs:        pointer.From(properties.AvailableDbNodePerNodeInGbs),
-							AvailableDbNodeStorageInGbs:        pointer.From(properties.AvailableDbNodeStorageInGbs),
-							AvailableMemoryInGbs:               pointer.From(properties.AvailableMemoryInGbs),
-							AvailableMemoryPerNodeInGbs:        pointer.From(properties.AvailableMemoryPerNodeInGbs),
-							CoreCountIncrement:                 pointer.From(properties.CoreCountIncrement),
-							MaxStorageCount:                    pointer.From(properties.MaxStorageCount),
-							MaximumNodeCount:                   pointer.From(properties.MaximumNodeCount),
-							MinCoreCountPerNode:                pointer.From(properties.MinCoreCountPerNode),
-							MinDataStorageInTbs:                pointer.From(properties.MinDataStorageInTbs),
-							MinDbNodeStoragePerNodeInGbs:       pointer.From(properties.MinDbNodeStoragePerNodeInGbs),
-							MinMemoryPerNodeInGbs:              pointer.From(properties.MinMemoryPerNodeInGbs),
-							MinStorageCount:                    pointer.From(properties.MinStorageCount),
-							MinimumCoreCount:                   pointer.From(properties.MinimumCoreCount),
-							MinimumNodeCount:                   pointer.From(properties.MinimumNodeCount),
-							RuntimeMinimumCoreCount:            pointer.From(properties.RuntimeMinimumCoreCount),
-							ShapeFamily:                        pointer.From(properties.ShapeFamily),
+							AvailableCoreCount:                 props.AvailableCoreCount,
+							AvailableCoreCountPerNode:          pointer.From(props.AvailableCoreCountPerNode),
+							AvailableDataStorageInTbs:          pointer.From(props.AvailableDataStorageInTbs),
+							AvailableDataStoragePerServerInTbs: pointer.From(props.AvailableDataStoragePerServerInTbs),
+							AvailableDbNodePerNodeInGbs:        pointer.From(props.AvailableDbNodePerNodeInGbs),
+							AvailableDbNodeStorageInGbs:        pointer.From(props.AvailableDbNodeStorageInGbs),
+							AvailableMemoryInGbs:               pointer.From(props.AvailableMemoryInGbs),
+							AvailableMemoryPerNodeInGbs:        pointer.From(props.AvailableMemoryPerNodeInGbs),
+							CoreCountIncrement:                 pointer.From(props.CoreCountIncrement),
+							MaxStorageCount:                    pointer.From(props.MaxStorageCount),
+							MaximumNodeCount:                   pointer.From(props.MaximumNodeCount),
+							MinCoreCountPerNode:                pointer.From(props.MinCoreCountPerNode),
+							MinDataStorageInTbs:                pointer.From(props.MinDataStorageInTbs),
+							MinDbNodeStoragePerNodeInGbs:       pointer.From(props.MinDbNodeStoragePerNodeInGbs),
+							MinMemoryPerNodeInGbs:              pointer.From(props.MinMemoryPerNodeInGbs),
+							MinStorageCount:                    pointer.From(props.MinStorageCount),
+							MinimumCoreCount:                   pointer.From(props.MinimumCoreCount),
+							MinimumNodeCount:                   pointer.From(props.MinimumNodeCount),
+							RuntimeMinimumCoreCount:            pointer.From(props.RuntimeMinimumCoreCount),
+							ShapeFamily:                        pointer.From(props.ShapeFamily),
 						})
 					}
 				}

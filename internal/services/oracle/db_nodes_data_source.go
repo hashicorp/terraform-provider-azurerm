@@ -9,10 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbnodes"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -21,7 +19,7 @@ type DBNodesDataSource struct{}
 
 type DBNodesDataModel struct {
 	CloudVmClusterId string            `tfschema:"cloud_vm_cluster_id"`
-	DBNodes            []DBNodeDataModel `tfschema:"db_nodes"`
+	DBNodes          []DBNodeDataModel `tfschema:"db_nodes"`
 }
 
 type DBNodeDataModel struct {
@@ -207,7 +205,11 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := dbnodes.NewCloudVMClusterID(subscriptionId, state.ResourceGroupName, state.CloudVmClusterName)
+			parsedCloudVmClusterId, err := cloudvmclusters.ParseCloudVMClusterID(state.CloudVmClusterId)
+			if err != nil {
+				return fmt.Errorf("decoding id: %+v", err)
+			}
+			id := dbnodes.NewCloudVMClusterID(subscriptionId, parsedCloudVmClusterId.ResourceGroupName, parsedCloudVmClusterId.CloudVmClusterName)
 
 			resp, err := client.ListByCloudVMCluster(ctx, id)
 			if err != nil {
@@ -228,20 +230,20 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 							CpuCoreCount:               pointer.From(properties.CpuCoreCount),
 							DbNodeStorageSizeInGbs:     pointer.From(properties.DbNodeStorageSizeInGbs),
 							DbServerId:                 pointer.From(properties.DbServerId),
-							DbSystemId:                 pointer.From(properties.DbSystemId),
+							DbSystemId:                 properties.DbSystemId,
 							FaultDomain:                pointer.From(properties.FaultDomain),
 							HostIPId:                   pointer.From(properties.HostIPId),
 							Hostname:                   pointer.From(properties.Hostname),
 							LifecycleDetails:           pointer.From(properties.LifecycleDetails),
-							LifecycleState:             string(pointer.From(properties.LifecycleState)),
+							LifecycleState:             string(properties.LifecycleState),
 							MaintenanceType:            string(pointer.From(properties.MaintenanceType)),
 							MemorySizeInGbs:            pointer.From(properties.MemorySizeInGbs),
-							Ocid:                       pointer.From(properties.Ocid),
+							Ocid:                       properties.Ocid,
 							SoftwareStorageSizeInGb:    pointer.From(properties.SoftwareStorageSizeInGb),
-							TimeCreated:                pointer.From(properties.TimeCreated),
+							TimeCreated:                properties.TimeCreated,
 							TimeMaintenanceWindowEnd:   pointer.From(properties.TimeMaintenanceWindowEnd),
 							TimeMaintenanceWindowStart: pointer.From(properties.TimeMaintenanceWindowStart),
-							VnicId:                     pointer.From(properties.VnicId),
+							VnicId:                     properties.VnicId,
 							Vnic2Id:                    pointer.From(properties.Vnic2Id),
 						}
 						state.DBNodes = append(state.DBNodes, dbNode)

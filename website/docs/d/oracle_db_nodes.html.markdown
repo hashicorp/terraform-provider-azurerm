@@ -3,7 +3,7 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_db_nodes"
 description: |-
-  This data source provides the list of Db Nodes.
+  This data source provides the list of DB Nodes.
 ---
 
 # Data Source: azurerm_oracle_db_nodes
@@ -49,11 +49,11 @@ A `db_nodes` block exports the following:
 
 * `backup_vnic2id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the second backup VNIC.
 
-* `cpu_core_count` - The number of CPU cores enabled on the Db node.
+* `cpu_core_count` - The number of CPU cores enabled on the DB node.
 
-* `db_node_storage_size_in_gbs` - The allocated local node storage in GBs on the Db node.
+* `db_node_storage_size_in_gbs` - The allocated local node storage in GBs on the DB node.
 
-* `db_server_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exacc Db server associated with the database node.
+* `db_server_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exacc DB server associated with the database node.
 
 * `db_system_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the DB system.
 
@@ -69,7 +69,7 @@ A `db_nodes` block exports the following:
 
 * `maintenance_type` - The type of database node maintenance.
 
-* `memory_size_in_gbs` - The allocated memory in GBs on the Db Node.
+* `memory_size_in_gbs` - The allocated memory in GBs on the DB Node.
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DB node.
 

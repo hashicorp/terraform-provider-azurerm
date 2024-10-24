@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasecharactersets"
@@ -90,7 +89,7 @@ func (d AdbsCharSetsDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						state.AdbsCharSets = append(state.AdbsCharSets, AdbsCharSetModel{
-							CharacterSet: pointer.From(props.CharacterSet),
+							CharacterSet: props.CharacterSet,
 						})
 					}
 				}
