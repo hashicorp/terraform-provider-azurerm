@@ -28,9 +28,6 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 
 func (d GiVersionsDataSource) basic() string {
 	return fmt.Sprintf(`
-
-%s
-
 provider "azurerm" {
   features {}
 }
@@ -38,13 +35,5 @@ provider "azurerm" {
 data "azurerm_oracle_gi_versions" "test" {
   location = "eastus"
 }
-`, d.template())
-}
-
-func (d GiVersionsDataSource) template() string {
-	return `
-
-data "azurerm_client_config" "current" {}
-
-`
+`)
 }

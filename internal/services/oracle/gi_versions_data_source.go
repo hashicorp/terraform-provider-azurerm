@@ -78,8 +78,8 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				for _, element := range *model {
-					if element.Properties != nil {
-						state.Versions = append(state.Versions, pointer.From(element.Properties.Version))
+					if props := element.Properties; props != nil {
+						state.Versions = append(state.Versions, pointer.From(props.Version))
 					}
 				}
 			}
