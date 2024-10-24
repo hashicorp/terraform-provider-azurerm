@@ -136,6 +136,21 @@ func TestAccChaosStudioExperiment_multipleSelectors(t *testing.T) {
 	})
 }
 
+func TestAccChaosStudioExperiment_withFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
+	r := ChaosStudioExperimentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ChaosStudioExperimentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := experiments.ParseExperimentID(state.ID)
 	if err != nil {
@@ -380,6 +395,53 @@ resource "azurerm_chaos_studio_experiment" "test" {
   }
 }
 `, r.templateVM(data), r.templateAKS())
+}
+
+func (r ChaosStudioExperimentTestResource) withFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_chaos_studio_experiment" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestcse-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  selectors {
+    name                    = "Selector1"
+    chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
+    filter {
+      type = "Simple"
+      parameters = {
+        zones = "1"
+      }
+    }
+  }
+
+  steps {
+    name = "acctestcse-${var.random_string}"
+    branch {
+      name = "acctestcse-${var.random_string}"
+      actions {
+        urn           = azurerm_chaos_studio_capability.test.urn
+        selector_name = "Selector1"
+        parameters = {
+          abruptShutdown = "false"
+        }
+        action_type = "continuous"
+        duration    = "PT10M"
+      }
+    }
+  }
+}
+`, r.templateVM(data))
 }
 
 func (r ChaosStudioExperimentTestResource) templateVM(data acceptance.TestData) string {
