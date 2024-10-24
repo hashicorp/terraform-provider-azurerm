@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_automation_software_update_configuration` - correct validation to not allow `5` and allow `-1` [GH-25574]
 * `azurerm_cosmosdb_sql_container` - fix recreation logic for `partition_key_version` [GH-27692]
 * `azurerm_mssql_database` - updating short term retention policy now works as expected [GH-27714]
+* `azurerm_network_watcher_flow_log` - fix issue where `tags` were not being updated [GH-27389]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - retrieve and parse `replica_server_id` for cross-region scenarios as well as remove custom poller for the delete operation [GH-27509]
 
 ## 4.6.0 (October 18, 2024)
