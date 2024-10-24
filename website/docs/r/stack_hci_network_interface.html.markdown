@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Stack HCI Network Interface should exist. Changing this forces a new resource to be created.
 
-* `custom_location_id` - (Required) The ID of Custom Location where the Azure Stack HCI Network Interface should exist. Changing this forces a new resource to be created.
+* `custom_location_id` - (Required) The ID of the Custom Location where the Azure Stack HCI Network Interface should exist. Changing this forces a new resource to be created.
 
 * `ip_configuration` - (Required) An `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -100,7 +100,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The resource ID of the Azure Stack HCI Network Interface.
 
-* `ip_configuration` - A `ip_configuration` as defined below.
+* `ip_configuration` - An `ip_configuration` as defined below.
 
 ---
 

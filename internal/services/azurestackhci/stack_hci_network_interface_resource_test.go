@@ -16,7 +16,7 @@ import (
 
 type StackHCINetworkInterfaceResource struct{}
 
-func TestAccStackHCINetworkInterface_dynamic(t *testing.T) {
+func TestAccStackHCINetworkInterface_basic(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
@@ -26,7 +26,7 @@ func TestAccStackHCINetworkInterface_dynamic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dynamic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,7 +85,7 @@ func TestAccStackHCINetworkInterface_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dynamic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,7 +128,7 @@ func (r StackHCINetworkInterfaceResource) Exists(ctx context.Context, client *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StackHCINetworkInterfaceResource) dynamic(data acceptance.TestData) string {
+func (r StackHCINetworkInterfaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -167,7 +167,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
 }
 
 func (r StackHCINetworkInterfaceResource) requiresImport(data acceptance.TestData) string {
-	config := r.dynamic(data)
+	config := r.basic(data)
 
 	return fmt.Sprintf(`
 %s
