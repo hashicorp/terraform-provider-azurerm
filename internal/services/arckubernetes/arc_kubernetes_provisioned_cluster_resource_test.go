@@ -317,7 +317,6 @@ resource "azurerm_stack_hci_logical_network" "test" {
       end   = "192.168.1.190"
     }
     route {
-      name                = "test-route"
       address_prefix      = "0.0.0.0/0"
       next_hop_ip_address = "192.168.1.1"
     }
