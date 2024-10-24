@@ -53,7 +53,7 @@ A `db_nodes` block exports the following:
 
 * `db_node_storage_size_in_gbs` - The allocated local node storage in GBs on the DB node.
 
-* `db_server_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Exacc DB server associated with the database node.
+* `db_server_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the ExaCC DB server associated with the database node.
 
 * `db_system_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the DB system.
 

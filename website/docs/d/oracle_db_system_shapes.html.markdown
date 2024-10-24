@@ -33,8 +33,6 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Oracle.
-
 * `db_system_shapes` - A `db_system_shapes` block as defined below.
 
 ---
