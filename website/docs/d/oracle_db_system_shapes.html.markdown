@@ -45,7 +45,7 @@ A `db_system_shapes` block exports the following:
 
 * `available_core_count_per_node` - The maximum number of CPU cores per database node that can be enabled for this shape. Only applicable to the flex Exadata shape, ExaCC Elastic shapes and VM Flex shapes.
 
-* `available_data_storage_in_tbs` - The maximum DATA storage that can be enabled for this shape.
+* `available_data_storage_in_tbs` - The maximum data storage that can be enabled for this shape.
 
 * `available_data_storage_per_server_in_tbs` - The maximum data storage available per storage server for this shape. Only applicable to ExaCC Elastic shapes.
 

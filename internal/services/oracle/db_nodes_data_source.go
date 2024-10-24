@@ -20,9 +20,8 @@ import (
 type DBNodesDataSource struct{}
 
 type DBNodesDataModel struct {
-	CloudVmClusterName string            `tfschema:"cloud_vm_cluster_name"`
+	CloudVmClusterId string            `tfschema:"cloud_vm_cluster_id"`
 	DBNodes            []DBNodeDataModel `tfschema:"db_nodes"`
-	ResourceGroupName  string            `tfschema:"resource_group_name"`
 }
 
 type DBNodeDataModel struct {
@@ -52,12 +51,10 @@ type DBNodeDataModel struct {
 
 func (d DBNodesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-		"cloud_vm_cluster_name": {
+		"cloud_vm_cluster_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.CloudVMClusterName,
+			ValidateFunc: cloudvmclusters.ValidateCloudVMClusterID,
 		},
 	}
 }
