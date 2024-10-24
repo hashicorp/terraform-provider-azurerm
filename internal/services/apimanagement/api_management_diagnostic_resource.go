@@ -116,7 +116,7 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatURL),
+					string(diagnostic.OperationNameFormatUrl),
 				}, false),
 			},
 		},

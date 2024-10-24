@@ -119,7 +119,7 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Default:  string(apidiagnostic.OperationNameFormatName),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apidiagnostic.OperationNameFormatName),
-					string(apidiagnostic.OperationNameFormatURL),
+					string(apidiagnostic.OperationNameFormatUrl),
 				}, false),
 			},
 		},
