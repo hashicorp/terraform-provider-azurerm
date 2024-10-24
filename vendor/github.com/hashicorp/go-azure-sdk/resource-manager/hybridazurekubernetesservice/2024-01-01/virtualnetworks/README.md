@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/virtualnetworks` Documentation
 
-The `virtualnetworks` SDK allows for interaction with the Azure Resource Manager Service `hybridazurekubernetesservice` (API Version `2024-01-01`).
+The `virtualnetworks` SDK allows for interaction with Azure Resource Manager `hybridazurekubernetesservice` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 payload := virtualnetworks.VirtualNetwork{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -88,7 +88,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 read, err := client.Retrieve(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := virtualnetworks.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 payload := virtualnetworks.VirtualNetworksPatch{
 	// ...

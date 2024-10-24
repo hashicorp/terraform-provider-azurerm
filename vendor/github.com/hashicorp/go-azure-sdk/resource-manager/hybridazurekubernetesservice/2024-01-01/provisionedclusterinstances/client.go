@@ -15,7 +15,7 @@ type ProvisionedClusterInstancesClient struct {
 }
 
 func NewProvisionedClusterInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*ProvisionedClusterInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "provisionedclusterinstances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "provisionedclusterinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProvisionedClusterInstancesClient: %+v", err)
 	}

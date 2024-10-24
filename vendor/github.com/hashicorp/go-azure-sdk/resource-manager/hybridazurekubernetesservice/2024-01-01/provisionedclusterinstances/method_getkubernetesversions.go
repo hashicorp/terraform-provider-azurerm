@@ -47,7 +47,6 @@ func (c ProvisionedClusterInstancesClient) GetKubernetesVersions(ctx context.Con
 
 	var model KubernetesVersionProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

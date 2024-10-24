@@ -52,7 +52,6 @@ func (c ProvisionedClusterInstancesClient) HybridIdentityMetadataPut(ctx context
 
 	var model HybridIdentityMetadata
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

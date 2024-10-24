@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridazurekubernetesservice/2024-01-01/provisionedclusterinstances` Documentation
 
-The `provisionedclusterinstances` SDK allows for interaction with the Azure Resource Manager Service `hybridazurekubernetesservice` (API Version `2024-01-01`).
+The `provisionedclusterinstances` SDK allows for interaction with Azure Resource Manager `hybridazurekubernetesservice` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolValue")
+id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolName")
 
 payload := provisionedclusterinstances.AgentPool{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AgentPoolCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolValue")
+id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolName")
 
 if err := client.AgentPoolDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.AgentPoolDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolValue")
+id := provisionedclusterinstances.NewScopedAgentPoolID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "agentPoolName")
 
 read, err := client.AgentPoolGet(ctx, id)
 if err != nil {

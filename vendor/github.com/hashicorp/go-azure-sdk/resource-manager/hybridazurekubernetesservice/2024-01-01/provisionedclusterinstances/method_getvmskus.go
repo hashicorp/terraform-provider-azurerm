@@ -47,7 +47,6 @@ func (c ProvisionedClusterInstancesClient) GetVMSkus(ctx context.Context, id com
 
 	var model VMSkuProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

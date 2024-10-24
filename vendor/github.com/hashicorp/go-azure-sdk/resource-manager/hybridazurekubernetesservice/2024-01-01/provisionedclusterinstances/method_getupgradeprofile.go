@@ -47,7 +47,6 @@ func (c ProvisionedClusterInstancesClient) GetUpgradeProfile(ctx context.Context
 
 	var model ProvisionedClusterUpgradeProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

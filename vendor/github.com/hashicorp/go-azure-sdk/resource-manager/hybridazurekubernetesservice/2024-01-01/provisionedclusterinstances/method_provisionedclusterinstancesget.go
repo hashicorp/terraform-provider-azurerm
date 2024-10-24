@@ -47,7 +47,6 @@ func (c ProvisionedClusterInstancesClient) ProvisionedClusterInstancesGet(ctx co
 
 	var model ProvisionedCluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
