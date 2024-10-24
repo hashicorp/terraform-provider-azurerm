@@ -243,11 +243,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  infrastructure_subnet_id   = azurerm_subnet.control.id
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  logs_destination         = "azure-monitor"
+  infrastructure_subnet_id = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
@@ -263,6 +263,21 @@ resource "azurerm_container_app_environment" "test" {
   tags = {
     Foo    = "Bar"
     secret = "sauce"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -303,10 +318,9 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   workload_profile {
     name                  = "Consumption"
@@ -328,6 +342,7 @@ resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   infrastructure_subnet_id   = azurerm_subnet.control.id
 
@@ -359,11 +374,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  infrastructure_subnet_id   = azurerm_subnet.control.id
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
@@ -410,7 +424,6 @@ resource "azurerm_container_app_environment" "test" {
   name                           = "acctest-CAEnv%[2]d"
   resource_group_name            = azurerm_resource_group.test.name
   location                       = azurerm_resource_group.test.location
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
   infrastructure_subnet_id       = azurerm_subnet.control.id
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
