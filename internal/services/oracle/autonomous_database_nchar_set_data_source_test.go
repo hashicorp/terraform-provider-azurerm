@@ -28,9 +28,6 @@ func TestAdbsNCharSetsDataSource_basic(t *testing.T) {
 
 func (d AdbsNCharSetsDataSource) basic() string {
 	return fmt.Sprintf(`
-
-%s
-
 provider "azurerm" {
   features {}
 }
@@ -38,13 +35,5 @@ provider "azurerm" {
 data "azurerm_oracle_adbs_national_character_sets" "test" {
   location = "eastus"
 }
-`, d.template())
-}
-
-func (d AdbsNCharSetsDataSource) template() string {
-	return `
-
-data "azurerm_client_config" "current" {}
-
-`
+`)
 }
