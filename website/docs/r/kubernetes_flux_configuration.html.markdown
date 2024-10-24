@@ -54,6 +54,16 @@ resource "azurerm_kubernetes_flux_configuration" "example" {
 
   kustomizations {
     name = "kustomization-1"
+
+    post_build {
+      substitute = {
+        example_var = "substitute_with_this"
+      }
+      substitute_from {
+        kind = "ConfigMap"
+        name = "example-configmap"
+      }
+    }
   }
 
   depends_on = [
@@ -103,6 +113,10 @@ A `kustomizations` block supports the following:
 * `garbage_collection_enabled` - (Optional) Whether garbage collections of Kubernetes objects created by this kustomization is enabled. Defaults to `false`.
 
 * `depends_on` - (Optional) Specifies other kustomizations that this kustomization depends on. This kustomization will not reconcile until all dependencies have completed their reconciliation.
+
+* `post_build` - (Optional) A `post_build` block as defined below.
+
+* `wait` - (Optional) Enable/disable health check for all Kubernetes objects created by this Kustomization.
 
 ---
 
@@ -191,6 +205,22 @@ A `git_repository` block supports the following:
 * `sync_interval_in_seconds` - (Optional) Specifies the interval at which to re-reconcile the cluster git repository source with the remote. Defaults to `600`.
 
 * `timeout_in_seconds` - (Optional) Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote. Defaults to `600`.
+
+---
+
+A `post_build` block supports the following:
+* `substitute` - (Optional) Specifies the key/value pairs holding the variables to be substituted in this Kustomization.
+
+* `substitute_from` - (Optional) A `substitute_from` block as defined below.
+
+---
+
+A `substitute_from` block supports the following:
+* `kind` - (Required) Define whether it is ConfigMap or Secret that holds the variables to be used in substitution.
+
+* `name` - (Required) Name of the ConfigMap/Secret that holds the variables to be used in substitution.
+
+* `optional` - (Optional) Set to True to proceed without ConfigMap/Secret, if it is not present. Defaults to `True`.
 
 ## Attributes Reference
 
