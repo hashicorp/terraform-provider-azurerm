@@ -1805,7 +1805,7 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
 				},
 
 				"interval_seconds": {
@@ -1897,7 +1897,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2088,7 +2088,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      1,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2178,7 +2178,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2367,7 +2367,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 60),
-					Description:  "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2453,7 +2453,7 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of seconds elapsed after the container has started before liveness or readiness probes are initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
 				},
 
 				"interval_seconds": {
