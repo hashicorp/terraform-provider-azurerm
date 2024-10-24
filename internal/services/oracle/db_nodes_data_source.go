@@ -20,9 +20,8 @@ import (
 type DBNodesDataSource struct{}
 
 type DBNodesDataModel struct {
-	CloudVmClusterName string            `tfschema:"cloud_vm_cluster_name"`
+	CloudVmClusterId string            `tfschema:"cloud_vm_cluster_id"`
 	DBNodes            []DBNodeDataModel `tfschema:"db_nodes"`
-	ResourceGroupName  string            `tfschema:"resource_group_name"`
 }
 
 type DBNodeDataModel struct {
