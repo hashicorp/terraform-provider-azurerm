@@ -188,10 +188,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -266,10 +266,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -287,10 +287,10 @@ resource "azurerm_kubernetes_cluster" "test2" {
   dns_prefix          = "acctestaks2%[2]d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 2
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 2
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }

@@ -96,8 +96,18 @@ func (id RoleAssignmentId) AzureResourceID() string {
 		return fmt.Sprintf(fmtString, id.Name)
 	}
 
-	fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
+	if id.SubscriptionID != "" {
+		fmtString := "/subscriptions/%s/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.SubscriptionID, id.Name)
+	}
+
+	if id.ResourceProvider != "" {
+		fmtString := "/providers/%s/providers/Microsoft.Authorization/roleAssignments/%s"
+		return fmt.Sprintf(fmtString, id.ResourceProvider, id.Name)
+	}
+
+	fmtString := "/providers/Microsoft.Authorization/roleAssignments/%s"
+	return fmt.Sprintf(fmtString, id.Name)
 }
 
 func (id RoleAssignmentId) ID() string {
@@ -179,6 +189,22 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		}
 		roleAssignmentId.Name = idParts[1]
 		roleAssignmentId.ManagementGroup = strings.TrimPrefix(idParts[0], "/providers/Microsoft.Management/managementGroups/")
+	case strings.HasPrefix(input, "/providers/") && !strings.HasPrefix(input, "/providers/Microsoft.Authorization/roleAssignments"):
+		idParts := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+		if len(idParts) != 2 {
+			return nil, fmt.Errorf("could not parse Role Assignment ID %q for Resource Provider", input)
+		}
+		if idParts[1] == "" {
+			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+		}
+		roleAssignmentId.Name = idParts[1]
+		roleAssignmentId.ResourceProvider = strings.TrimPrefix(idParts[0], "/providers/")
+	case strings.HasPrefix(input, "/providers/Microsoft.Authorization/roleAssignments"):
+		name := strings.TrimPrefix(input, "/providers/Microsoft.Authorization/roleAssignments/")
+		if name == "" {
+			return nil, fmt.Errorf("ID was missing a value for the roleAssignments element")
+		}
+		roleAssignmentId.Name = name
 	default:
 		return nil, fmt.Errorf("could not parse Role Assignment ID %q", input)
 	}

@@ -97,10 +97,10 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if existing.Model != nil {
-			if alertSyncSettings, ok := (*existing.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
 				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
 			}
-			if dataExportSettings, ok := (*existing.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
 				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
 			}
 		}
@@ -135,10 +135,10 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if resp.Model != nil {
-		if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
+		if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
 			d.Set("enabled", alertSyncSettings.Properties.Enabled)
 		}
-		if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
+		if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
 			d.Set("enabled", dataExportSettings.Properties.Enabled)
 		}
 	}

@@ -50,7 +50,6 @@ func (c VirtualNetworksClient) UpdateTags(ctx context.Context, id commonids.Virt
 
 	var model VirtualNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

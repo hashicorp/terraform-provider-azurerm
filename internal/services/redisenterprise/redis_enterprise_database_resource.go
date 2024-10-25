@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-07-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -341,7 +341,6 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
 

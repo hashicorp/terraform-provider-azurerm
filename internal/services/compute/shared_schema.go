@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -313,7 +313,7 @@ func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup
 
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachines.VaultCertificate{
-				CertificateUrl: pointer.To(url),
+				CertificateURL: pointer.To(url),
 			})
 		}
 
@@ -342,7 +342,7 @@ func expandLinuxSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.Vaul
 
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachinescalesets.VaultCertificate{
-				CertificateUrl: pointer.To(url),
+				CertificateURL: pointer.To(url),
 			})
 		}
 
@@ -374,12 +374,12 @@ func flattenLinuxSecrets(input *[]virtualmachines.VaultSecretGroup) []interface{
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				if c.CertificateUrl == nil {
+				if c.CertificateURL == nil {
 					continue
 				}
 
 				certificates = append(certificates, map[string]interface{}{
-					"url": *c.CertificateUrl,
+					"url": *c.CertificateURL,
 				})
 			}
 		}
@@ -410,12 +410,12 @@ func flattenLinuxSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup) 
 
 		if v.VaultCertificates != nil {
 			for _, c := range *v.VaultCertificates {
-				if c.CertificateUrl == nil {
+				if c.CertificateURL == nil {
 					continue
 				}
 
 				certificates = append(certificates, map[string]interface{}{
-					"url": *c.CertificateUrl,
+					"url": *c.CertificateURL,
 				})
 			}
 		}
@@ -818,7 +818,7 @@ func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguratio
 
 		certificateUrl := raw["certificate_url"].(string)
 		if certificateUrl != "" {
-			listener.CertificateUrl = pointer.To(certificateUrl)
+			listener.CertificateURL = pointer.To(certificateUrl)
 		}
 
 		listeners = append(listeners, listener)
@@ -841,7 +841,7 @@ func expandWinRMListenerVMSS(input []interface{}) *virtualmachinescalesets.WinRM
 
 		certificateUrl := raw["certificate_url"].(string)
 		if certificateUrl != "" {
-			listener.CertificateUrl = pointer.To(certificateUrl)
+			listener.CertificateURL = pointer.To(certificateUrl)
 		}
 
 		listeners = append(listeners, listener)
@@ -861,8 +861,8 @@ func flattenWinRMListener(input *virtualmachines.WinRMConfiguration) []interface
 
 	for _, v := range *input.Listeners {
 		certificateUrl := ""
-		if v.CertificateUrl != nil {
-			certificateUrl = *v.CertificateUrl
+		if v.CertificateURL != nil {
+			certificateUrl = *v.CertificateURL
 		}
 
 		output = append(output, map[string]interface{}{
@@ -883,8 +883,8 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 
 	for _, v := range *input.Listeners {
 		certificateUrl := ""
-		if v.CertificateUrl != nil {
-			certificateUrl = *v.CertificateUrl
+		if v.CertificateURL != nil {
+			certificateUrl = *v.CertificateURL
 		}
 
 		output = append(output, map[string]interface{}{
@@ -944,7 +944,7 @@ func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGro
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachines.VaultCertificate{
 				CertificateStore: pointer.To(store),
-				CertificateUrl:   pointer.To(url),
+				CertificateURL:   pointer.To(url),
 			})
 		}
 
@@ -975,7 +975,7 @@ func expandWindowsSecretsVMSS(input []interface{}) *[]virtualmachinescalesets.Va
 			url := certificateV["url"].(string)
 			certificates = append(certificates, virtualmachinescalesets.VaultCertificate{
 				CertificateStore: pointer.To(store),
-				CertificateUrl:   pointer.To(url),
+				CertificateURL:   pointer.To(url),
 			})
 		}
 
@@ -1013,8 +1013,8 @@ func flattenWindowsSecrets(input *[]virtualmachines.VaultSecretGroup) []interfac
 				}
 
 				url := ""
-				if c.CertificateUrl != nil {
-					url = *c.CertificateUrl
+				if c.CertificateURL != nil {
+					url = *c.CertificateURL
 				}
 
 				certificates = append(certificates, map[string]interface{}{
@@ -1056,8 +1056,8 @@ func flattenWindowsSecretsVMSS(input *[]virtualmachinescalesets.VaultSecretGroup
 				}
 
 				url := ""
-				if c.CertificateUrl != nil {
-					url = *c.CertificateUrl
+				if c.CertificateURL != nil {
+					url = *c.CertificateURL
 				}
 
 				certificates = append(certificates, map[string]interface{}{

@@ -46,7 +46,6 @@ func (c ExpressRouteCircuitStatsClient) ExpressRouteCircuitsGetStats(ctx context
 
 	var model ExpressRouteCircuitStats
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

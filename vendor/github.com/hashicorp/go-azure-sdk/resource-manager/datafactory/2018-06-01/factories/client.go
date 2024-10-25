@@ -15,7 +15,7 @@ type FactoriesClient struct {
 }
 
 func NewFactoriesClientWithBaseURI(sdkApi sdkEnv.Api) (*FactoriesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "factories", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "factories", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FactoriesClient: %+v", err)
 	}

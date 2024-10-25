@@ -45,7 +45,6 @@ func (c SnapshotPolicyClient) SnapshotPoliciesGet(ctx context.Context, id Snapsh
 
 	var model SnapshotPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -77,8 +77,10 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			},
 
 			"shared_key": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C the API generates a key for the user if not supplied
+				Computed:  true,
 				Sensitive: true,
 			},
 
@@ -334,7 +336,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.IntAtLeast(1024),
+							ValidateFunc: validation.IntBetween(0, 2147483647),
 						},
 
 						"sa_lifetime": {
@@ -623,7 +625,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("ingress_nat_rule_ids") {
-		payload.Properties.EgressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("ingress_nat_rule_ids").(*pluginsdk.Set).List())
+		payload.Properties.IngressNatRules = expandVirtualNetworkGatewayConnectionNatRuleIds(d.Get("ingress_nat_rule_ids").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("local_network_gateway_id") {

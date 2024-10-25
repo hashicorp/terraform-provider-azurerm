@@ -15,7 +15,7 @@ type NodeTypeClient struct {
 }
 
 func NewNodeTypeClientWithBaseURI(sdkApi sdkEnv.Api) (*NodeTypeClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "nodetype", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "nodetype", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NodeTypeClient: %+v", err)
 	}

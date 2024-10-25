@@ -15,7 +15,7 @@ type ExpressRouteCircuitRoutesTableSummaryClient struct {
 }
 
 func NewExpressRouteCircuitRoutesTableSummaryClientWithBaseURI(sdkApi sdkEnv.Api) (*ExpressRouteCircuitRoutesTableSummaryClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "expressroutecircuitroutestablesummary", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "expressroutecircuitroutestablesummary", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ExpressRouteCircuitRoutesTableSummaryClient: %+v", err)
 	}

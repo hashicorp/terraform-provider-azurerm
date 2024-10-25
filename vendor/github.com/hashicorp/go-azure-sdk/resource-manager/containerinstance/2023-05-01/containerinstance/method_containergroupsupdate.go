@@ -49,7 +49,6 @@ func (c ContainerInstanceClient) ContainerGroupsUpdate(ctx context.Context, id C
 
 	var model ContainerGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

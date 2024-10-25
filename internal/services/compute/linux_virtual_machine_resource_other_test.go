@@ -387,7 +387,7 @@ func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 			Config: r.otherLicenseType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("license_type").HasValue("SLES_BYOS"),
+				check.That(data.ResourceName).Key("license_type").HasValue("UBUNTU_PRO"),
 			),
 		},
 		data.ImportStep(),
@@ -1629,10 +1629,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -1989,7 +1990,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  license_type        = "SLES_BYOS"
+  license_type        = "UBUNTU_PRO"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

@@ -36,6 +36,7 @@ func (o UpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o UpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -78,7 +79,6 @@ func (c TenantAccessClient) Update(ctx context.Context, id AccessId, input Acces
 
 	var model AccessInformationContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

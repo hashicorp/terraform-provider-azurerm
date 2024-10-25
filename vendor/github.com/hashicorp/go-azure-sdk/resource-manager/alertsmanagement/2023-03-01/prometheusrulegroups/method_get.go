@@ -45,7 +45,6 @@ func (c PrometheusRuleGroupsClient) Get(ctx context.Context, id PrometheusRuleGr
 
 	var model PrometheusRuleGroupResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

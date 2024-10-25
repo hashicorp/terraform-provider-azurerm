@@ -150,8 +150,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformLowercase),
 												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformRemoveNulls),
 												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformTrim),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformUrlDecode),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformUrlEncode),
+												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLDecode),
+												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLEncode),
 											}, false),
 										},
 									},
@@ -390,6 +390,12 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Default:      100,
 						},
 
+						"request_body_enforcement": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"max_request_body_size_in_kb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -402,6 +408,13 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Optional:     true,
 							Default:      128,
 							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"js_challenge_cookie_expiration_in_minutes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(5, 1440),
 						},
 
 						"log_scrubbing": {
@@ -713,17 +726,20 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	}
 	mode := v["mode"].(string)
 	requestBodyCheck := v["request_body_check"].(bool)
+	requestBodyEnforcement := v["request_body_enforcement"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
-		State:                       pointer.To(enabled),
-		Mode:                        pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
-		RequestBodyCheck:            pointer.To(requestBodyCheck),
-		MaxRequestBodySizeInKb:      pointer.To(int64(maxRequestBodySizeInKb)),
-		FileUploadLimitInMb:         pointer.To(int64(fileUploadLimitInMb)),
-		LogScrubbing:                expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
-		RequestBodyInspectLimitInKB: pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		State:                             pointer.To(enabled),
+		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		RequestBodyCheck:                  pointer.To(requestBodyCheck),
+		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
+		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:               pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                      expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB:       pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
 	}
 
 	return &result
@@ -1071,10 +1087,12 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(pointer.From(input.Mode))
 	result["request_body_check"] = input.RequestBodyCheck
+	result["request_body_enforcement"] = input.RequestBodyEnforcement
 	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
 	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
+	result["js_challenge_cookie_expiration_in_minutes"] = pointer.From(input.JsChallengeCookieExpirationInMins)
 
 	return []interface{}{result}
 }

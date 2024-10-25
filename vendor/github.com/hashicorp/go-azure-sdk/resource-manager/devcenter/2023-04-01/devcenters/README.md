@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devcenters` Documentation
 
-The `devcenters` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `devcenters` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 payload := devcenters.DevCenter{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := devcenters.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 payload := devcenters.DevCenterUpdate{
 	// ...

@@ -42,7 +42,7 @@ func ParseDevCenterID(input string) (*DevCenterId, error) {
 	}
 
 	id := DevCenterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDevCenterIDInsensitively(input string) (*DevCenterId, error) {
 	}
 
 	id := DevCenterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DevCenterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevCenter", "Microsoft.DevCenter", "Microsoft.DevCenter"),
 		resourceids.StaticSegment("staticDevCenters", "devCenters", "devCenters"),
-		resourceids.UserSpecifiedSegment("devCenterName", "devCenterValue"),
+		resourceids.UserSpecifiedSegment("devCenterName", "devCenterName"),
 	}
 }
 

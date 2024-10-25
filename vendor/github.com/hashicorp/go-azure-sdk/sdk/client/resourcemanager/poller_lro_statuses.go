@@ -25,6 +25,9 @@ var longRunningOperationCustomStatuses = map[status]pollers.PollingStatus{
 	// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
 	"AuthorizeReplication": pollers.PollingStatusInProgress,
 
+	// VMWare @ 2022-05-01 returns `Building` rather than `InProgress` during creation
+	"Building": pollers.PollingStatusInProgress,
+
 	// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
 	"BreakReplication": pollers.PollingStatusInProgress,
 
@@ -103,4 +106,7 @@ var longRunningOperationCustomStatuses = map[status]pollers.PollingStatus{
 
 	// StorageSync@2020-03-01 returns `validateInput` rather than `InProgress` during creation/update (https://github.com/hashicorp/go-azure-sdk/issues/565)
 	"validateInput": pollers.PollingStatusInProgress,
+
+	// EventGrid @ 2022-06-15 returns `AwaitingManualAction` while waiting for manual validation of a webhook (https://github.com/hashicorp/terraform-provider-azurerm/issues/25689)
+	"AwaitingManualAction": pollers.PollingStatusInProgress,
 }
