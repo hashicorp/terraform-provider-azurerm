@@ -283,7 +283,7 @@ resource "azurerm_eventgrid_namespace" "test" {
     }
   }
 
-    identity {
+  identity {
     type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
@@ -439,7 +439,7 @@ resource "azurerm_eventgrid_namespace" "test" {
     }
   }
 
-    identity {
+  identity {
     type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
