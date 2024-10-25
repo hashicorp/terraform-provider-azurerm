@@ -23,7 +23,7 @@ var _ sdk.ResourceWithUpdate = WorkspaceNetworkOutboundRuleFqdn{}
 type machineLearningWorkspaceOutboundRuleFqdnModel struct {
 	Name        string `tfschema:"name"`
 	WorkspaceId string `tfschema:"workspace_id"`
-	Destination string `tfschema:"destination"`
+	Destination string `tfschema:"destination_fqdn"`
 }
 
 type WorkspaceNetworkOutboundRuleFqdn struct{}
@@ -58,7 +58,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Arguments() map[string]*pluginsdk.Sche
 			ValidateFunc: managednetwork.ValidateWorkspaceID,
 		},
 
-		"destination": {
+		"destination_fqdn": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -147,7 +147,7 @@ func (r WorkspaceNetworkOutboundRuleFqdn) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			if metadata.ResourceData.HasChange("destination") {
+			if metadata.ResourceData.HasChange("destination_fqdn") {
 				payload.Properties = managednetwork.FqdnOutboundRule{
 					Destination: &model.Destination,
 				}

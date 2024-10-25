@@ -28,7 +28,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_basic(t *testing.T) 
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("destination").Exists(),
+				check.That(data.ResourceName).Key("destination_fqdn").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_update(t *testing.T)
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("destination").Exists(),
+				check.That(data.ResourceName).Key("destination_fqdn").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -52,7 +52,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_update(t *testing.T)
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("destination").HasValue("destinationupdate"),
+				check.That(data.ResourceName).Key("destination_fqdn").HasValue("destinationupdate"),
 			),
 		},
 		data.ImportStep(),
@@ -68,7 +68,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_requiresImport(t *te
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("destination").Exists(),
+				check.That(data.ResourceName).Key("destination_fqdn").Exists(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -177,9 +177,9 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" {
-  name         = "acctest-MLW-outboundrule-%[3]s"
-  workspace_id = azurerm_machine_learning_workspace.test.id
-  destination  = "destination"
+  name             = "acctest-MLW-outboundrule-%[3]s"
+  workspace_id     = azurerm_machine_learning_workspace.test.id
+  destination_fqdn = "destination"
 }
 `, template, data.RandomInteger, data.RandomString)
 }
@@ -219,9 +219,9 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "test" {
-  name         = "acctest-MLW-outboundrule-%[3]s"
-  workspace_id = azurerm_machine_learning_workspace.test.id
-  destination  = "destinationupdate"
+  name             = "acctest-MLW-outboundrule-%[3]s"
+  workspace_id     = azurerm_machine_learning_workspace.test.id
+  destination_fqdn = "destinationupdate"
 }
 `, template, data.RandomInteger, data.RandomString)
 }
@@ -232,9 +232,9 @@ func (r WorkspaceNetworkOutboundRuleFqdnResource) requiresImport(data acceptance
 %s
 
 resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "import" {
-  name         = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.name
-  workspace_id = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.workspace_id
-  destination  = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.destination
+  name             = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.name
+  workspace_id     = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.workspace_id
+  destination_fqdn = azurerm_machine_learning_workspace_network_outbound_rule_fqdn.test.destination_fqdn
 }
 `, template)
 }

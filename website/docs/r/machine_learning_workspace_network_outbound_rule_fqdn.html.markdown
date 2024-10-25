@@ -65,9 +65,9 @@ resource "azurerm_machine_learning_workspace" "example" {
 }
 
 resource "azurerm_machine_learning_workspace_network_outbound_rule_fqdn" "example" {
-  name         = "example-outboundrule"
-  workspace_id = azurerm_machine_learning_workspace.example.id
-  destination  = "destination"
+  name             = "example-outboundrule"
+  workspace_id     = azurerm_machine_learning_workspace.example.id
+  destination_fqdn = "example.com"
 }
 ```
 
@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) Specifies the ID of the Machine Learning Workspace. Changing this forces a new resource to be created.
 
-* `destination` - (Required) Specifies the fully qualified domain name to allow for outbound traffic.
+* `destination_fqdn` - (Required) Specifies the fully qualified domain name to allow for outbound traffic.
 
 
 ## Attributes Reference
