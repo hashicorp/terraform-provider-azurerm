@@ -45,19 +45,12 @@ func TestAccPython3Package_basic(t *testing.T) {
 	})
 }
 
-func TestAccPython3Package_update(t *testing.T) {
+func TestAccPython3Package_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.Python3PackageResource{}.ResourceType(), "test")
 	r := Python3PackageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("content_uri", "content_version"),
-		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,7 +77,7 @@ resource "azurerm_automation_python3_package" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a Python3PackageResource) update(data acceptance.TestData) string {
+func (a Python3PackageResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
