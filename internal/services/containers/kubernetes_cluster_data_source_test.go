@@ -678,6 +678,42 @@ func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
 	})
 }
 
+func TestFlattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(t *testing.T) {
+    input := &containerservice.ManagedClusterPropertiesWorkloadAutoscalerProfile{
+        KedaEnabled:                to.BoolPtr(true),
+        VerticalPodAutoscalerEnabled: to.BoolPtr(false),
+    }
+
+    expected := []interface{}{
+        map[string]interface{}{
+            "keda_enabled":                      true,
+            "vertical_pod_autoscaler_enabled":   false,
+        },
+    }
+
+    output := flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(input)
+    assert.Equal(t, expected, output)
+}
+
+func TestFlattenKubernetesClusterDataSourceWorkloadAutoscalerProfile_WorkflowIdentityEnabled(t *testing.T) {
+    input := &containerservice.ManagedClusterPropertiesWorkloadAutoscalerProfile{
+        WorkflowIdentityEnabled: to.BoolPtr(true),
+    }
+
+    expected := []interface{}{
+        map[string]interface{}{
+            "workflow_identity_enabled": true,
+        },
+    }
+
+    output := flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(input)
+    assert.Equal(t, expected, output)
+}
+
+func to.BoolPtr(value bool) *bool {
+    return &value
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -714,6 +714,28 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"workload_autoscaler_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						keda_enabled: {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						vertical_pod_autoscaler_enabled : {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"workload_autoscaler_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -971,6 +993,16 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
+		}
+
+		workloadAutoscalerProfile := flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(props.WorkloadAutoscalerProfile)
+		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
+			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+		}
+
+		workloadAutoscalerEnabled := false
+		if props.WorkloadIdentity != nil {
+			workloadAutoscalerEnabled = *props.WorkloadIdentity
 		}
 
 		d.Set("tags", tags.Flatten(model.Tags))
@@ -1558,6 +1590,19 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(input *managedclusters.ManagedClusterPropertiesWorkloadAutoscalerProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	if input == nil {
+		return []interface{}{values}
+	}
+
+	values[keda_enabled] = input.KedaEnabled
+	values[vertical_pod_autoscaler_enabled] = input.VerticalPodAutoscalerEnabled
 
 	return []interface{}{values}
 }
