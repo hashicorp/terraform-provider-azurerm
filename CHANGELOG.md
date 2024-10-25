@@ -1,3 +1,8 @@
+## 4.8.0 (Unreleased)
+
+BUG FIXES:
+* `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
+
 ## 4.7.0 (October 24, 2024)
 
 FEATURES:
