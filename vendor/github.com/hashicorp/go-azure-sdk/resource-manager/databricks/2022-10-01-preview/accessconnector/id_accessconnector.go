@@ -115,7 +115,7 @@ func (id AccessConnectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("staticAccessConnectors", "accessConnectors", "accessConnectors"),
-		resourceids.UserSpecifiedSegment("accessConnectorName", "connectorName"),
+		resourceids.UserSpecifiedSegment("accessConnectorName", "accessConnectorName"),
 	}
 }
 

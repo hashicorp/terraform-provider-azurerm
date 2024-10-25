@@ -115,7 +115,7 @@ func (id SpatialAnchorsAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMixedReality", "Microsoft.MixedReality", "Microsoft.MixedReality"),
 		resourceids.StaticSegment("staticSpatialAnchorsAccounts", "spatialAnchorsAccounts", "spatialAnchorsAccounts"),
-		resourceids.UserSpecifiedSegment("spatialAnchorsAccountName", "accountName"),
+		resourceids.UserSpecifiedSegment("spatialAnchorsAccountName", "spatialAnchorsAccountName"),
 	}
 }
 

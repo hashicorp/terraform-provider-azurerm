@@ -5,5 +5,5 @@ package backupinstances
 
 type IdentityDetails struct {
 	UseSystemAssignedIdentity  *bool   `json:"useSystemAssignedIdentity,omitempty"`
-	UserAssignedIdentityArmUrl *string `json:"userAssignedIdentityArmUrl,omitempty"`
+	UserAssignedIdentityArmURL *string `json:"userAssignedIdentityArmUrl,omitempty"`
 }

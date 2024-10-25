@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "componentName")
+id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "daprComponentName")
 
 payload := daprcomponents.DaprComponent{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "componentName")
+id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "daprComponentName")
 
 read, err := client.ConnectedEnvironmentsDaprComponentsDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "componentName")
+id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "daprComponentName")
 
 read, err := client.ConnectedEnvironmentsDaprComponentsGet(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "componentName")
+id := daprcomponents.NewConnectedEnvironmentDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedEnvironmentName", "daprComponentName")
 
 read, err := client.ConnectedEnvironmentsDaprComponentsListSecrets(ctx, id)
 if err != nil {
@@ -110,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "componentName")
+id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "daprComponentName")
 
 payload := daprcomponents.DaprComponent{
 	// ...
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "componentName")
+id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "daprComponentName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -147,7 +147,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "componentName")
+id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "daprComponentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -163,7 +163,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName")
+id := daprcomponents.NewManagedEnvironmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -180,7 +180,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "environmentName", "componentName")
+id := daprcomponents.NewDaprComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedEnvironmentName", "daprComponentName")
 
 read, err := client.ListSecrets(ctx, id)
 if err != nil {

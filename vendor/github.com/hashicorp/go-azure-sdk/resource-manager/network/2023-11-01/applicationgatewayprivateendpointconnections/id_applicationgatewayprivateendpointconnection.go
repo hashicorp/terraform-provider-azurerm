@@ -123,7 +123,7 @@ func (id ApplicationGatewayPrivateEndpointConnectionId) Segments() []resourceids
 		resourceids.StaticSegment("staticApplicationGateways", "applicationGateways", "applicationGateways"),
 		resourceids.UserSpecifiedSegment("applicationGatewayName", "applicationGatewayName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "connectionName"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

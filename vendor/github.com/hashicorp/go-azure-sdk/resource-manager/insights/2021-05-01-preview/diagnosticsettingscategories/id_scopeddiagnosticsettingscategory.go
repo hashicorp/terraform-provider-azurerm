@@ -106,7 +106,7 @@ func (id ScopedDiagnosticSettingsCategoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDiagnosticSettingsCategories", "diagnosticSettingsCategories", "diagnosticSettingsCategories"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "name"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "diagnosticSettingsCategoryName"),
 	}
 }
 

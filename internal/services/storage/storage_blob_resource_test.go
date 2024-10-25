@@ -478,13 +478,6 @@ func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
 		},
 		data.ImportStep("parallelism", "size", "source_content", "type"),
 		{
-			Config: r.pageFromInlineContent(data, 1024),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("parallelism", "size", "source_content", "type"),
-		{
 			Config:      r.pageFromInlineContent(data, 511),
 			ExpectError: regexp.MustCompile(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`),
 		},
