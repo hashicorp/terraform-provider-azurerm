@@ -210,6 +210,11 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
+			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
+			// TODO: remove this once the Bug's been fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/3037
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
