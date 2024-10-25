@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/tenantaccess"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -94,6 +94,10 @@ func resourceApiManagementService() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+			}),
+
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
+				return (strings.Contains(old.(string), "V2") && !strings.Contains(new.(string), "V2")) || (strings.Contains(new.(string), "V2") && !strings.Contains(old.(string), "V2"))
 			}),
 		),
 	}
@@ -904,10 +908,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 		signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -917,10 +921,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signUpSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 		signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -1150,10 +1154,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_in") {
 		signInSettingsRaw := d.Get("sign_in").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signInSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 			signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -1165,10 +1169,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_up") {
 		signUpSettingsRaw := d.Get("sign_up").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || sku.Name == apimanagementservice.SkuTypeBasicVTwo || sku.Name == apimanagementservice.SkuTypeStandardVTwo) && len(signUpSettingsRaw) > 0 {
+			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`, `BasicV2` or `StandardV2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && sku.Name != apimanagementservice.SkuTypeBasicVTwo && sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 			signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -1287,11 +1291,11 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("publisher_email", model.Properties.PublisherEmail)
 		d.Set("publisher_name", model.Properties.PublisherName)
 		d.Set("notification_sender_email", pointer.From(model.Properties.NotificationSenderEmail))
-		d.Set("gateway_url", pointer.From(model.Properties.GatewayURL))
-		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalURL))
-		d.Set("portal_url", pointer.From(model.Properties.PortalURL))
-		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalURL))
-		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiURL))
+		d.Set("gateway_url", pointer.From(model.Properties.GatewayUrl))
+		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalUrl))
+		d.Set("portal_url", pointer.From(model.Properties.PortalUrl))
+		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalUrl))
+		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiUrl))
 		d.Set("scm_url", pointer.From(model.Properties.ScmURL))
 		d.Set("public_ip_addresses", pointer.From(model.Properties.PublicIPAddresses))
 		d.Set("public_ip_address_id", pointer.From(model.Properties.PublicIPAddressId))
@@ -1351,7 +1355,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
+		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && model.Sku.Name != apimanagementservice.SkuTypeBasicVTwo && model.Sku.Name != apimanagementservice.SkuTypeStandardVTwo {
 			signInSettingServiceId := signinsettings.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings, err := signInClient.Get(ctx, signInSettingServiceId)
 			if err != nil {
@@ -1739,7 +1743,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagementservice.Addit
 
 		results = append(results, map[string]interface{}{
 			"capacity":                      int32(prop.Sku.Capacity),
-			"gateway_regional_url":          pointer.From(prop.GatewayRegionalURL),
+			"gateway_regional_url":          pointer.From(prop.GatewayRegionalUrl),
 			"location":                      location.NormalizeNilable(pointer.To(prop.Location)),
 			"private_ip_addresses":          pointer.From(prop.PrivateIPAddresses),
 			"public_ip_address_id":          pointer.From(prop.PublicIPAddressId),
