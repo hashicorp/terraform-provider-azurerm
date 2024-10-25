@@ -17,6 +17,9 @@ service/aadb2c:
 service/advisor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_((.|\n)*)###'
 
+service/ai-services:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_ai_services((.|\n)*)###'
+
 service/analysis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
 
@@ -66,7 +69,7 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
 
 service/communication:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service)((.|\n)*)###'
