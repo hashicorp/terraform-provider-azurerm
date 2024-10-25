@@ -376,6 +376,14 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"resource_group_name": commonschema.ResourceGroupNameOptional(),
+
+						// `Computed: true` is required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause difference and block the existing users
+						"subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IsUUID,
+						},
 					},
 				},
 			},
@@ -1269,14 +1277,21 @@ func expandIoTHubEndpoints(d *pluginsdk.ResourceData, subscriptionId string) (*d
 	eventHubProperties := make([]devices.RoutingEventHubProperties, 0)
 	storageContainerProperties := make([]devices.RoutingStorageContainerProperties, 0)
 
-	for _, endpointRaw := range routeEndpointList {
+	for k, endpointRaw := range routeEndpointList {
 		endpoint := endpointRaw.(map[string]interface{})
 
 		t := endpoint["type"]
 		name := endpoint["name"].(string)
 		resourceGroup := endpoint["resource_group_name"].(string)
 		authenticationType := devices.AuthenticationType(endpoint["authentication_type"].(string))
-		subscriptionID := subscriptionId
+
+		subscriptionID := endpoint["subscription_id"].(string)
+		// To align with the previous TF behavior, `subscription_id` needs to be set with the provider's subscription Id when is isn't specified in the tf config, otherwise TF behavior is different than before and it may block the existing users
+		// From the business perspective, the raw config handling is only deant for the case that the user has an EventHub whose Endpoint's subscription is not the provider's one. Then the user wants to reset it to the provider's one by unset the subscription_id
+		// From the TF code perspective, given `Computed: true` is enabled, TF would always get the value from the last apply when this property isn't set in the tf config. So `d.GetRawConfig()` is required to determine if it's set in the tf config
+		if v := d.GetRawConfig().AsValueMap()["endpoint"].AsValueSlice()[k].AsValueMap()["subscription_id"]; v.IsNull() {
+			subscriptionID = subscriptionId
+		}
 
 		var identity *devices.ManagedIdentity
 		var endpointUri *string
@@ -1595,6 +1610,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
+				output["subscription_id"] = pointer.From(container.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1642,6 +1658,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
+				output["subscription_id"] = pointer.From(queue.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1689,6 +1706,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
+				output["subscription_id"] = pointer.From(topic.SubscriptionID)
 
 				results = append(results, output)
 			}
@@ -1736,6 +1754,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 
 				output["type"] = "AzureIotHub.EventHub"
+				output["subscription_id"] = pointer.From(eventHub.SubscriptionID)
 
 				results = append(results, output)
 			}
