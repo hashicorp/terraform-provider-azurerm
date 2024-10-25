@@ -261,8 +261,8 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err := containerClient.Create(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %q: %v", id, err)
+	if _, err = containerClient.Create(ctx, id, payload); err != nil {
+		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
 	d.SetId(id.ID())
