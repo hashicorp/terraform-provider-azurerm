@@ -820,6 +820,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.MinCount = nil
 	}
 
+	// evaluate if the nodepool needs to be cycled
 	cycleNodePoolProperties := []string{
 		"fips_enabled",
 		"host_encryption_enabled",
@@ -851,6 +852,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 			cycleNodePool = true
 		}
 	}
+
+	// updating the properties values
+	existing.Model.Properties = props
+
 	if cycleNodePool {
 		log.Printf("[DEBUG] Cycling Node Pool..")
 		// to provide a seamless updating experience for the node pool we need to cycle it by provisioning a temporary one,
@@ -865,33 +870,28 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		tempExisting, err := client.Get(ctx, tempNodePoolId)
 		if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
-			return fmt.Errorf("checking for existing temporary %s: %+v", tempNodePoolId, err)
+			return fmt.Errorf("checking for existing temporary node pool %s: %+v", tempNodePoolId, err)
 		}
 
-		defaultExisting, err := client.Get(ctx, *id)
-		if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
-			return fmt.Errorf("checking for existing node pool %s: %+v", *id, err)
-		}
-
-		agentProfile := *defaultExisting.Model
-		tempAgentProfile := agentProfile
+		tempAgentProfile := *existing.Model
 		tempAgentProfile.Name = &temporaryNodePoolName
-		// if the temp node pool already exists due to a previous failure, don't bother spinning it up
+		// if the temp node pool already exists due to a previous failure, don't bother spinning it up.
+		// the temporary nodepool is created with the new values
 		if tempExisting.Model == nil {
-			if err := retrySystemNodePoolCreation(ctx, client, tempNodePoolId, tempAgentProfile); err != nil {
+			if err := retryNodePoolCreation(ctx, client, tempNodePoolId, tempAgentProfile); err != nil {
 				return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 			}
 		}
 
 		// delete the old node pool if it exists
-		if defaultExisting.Model != nil {
+		if existing.Model != nil {
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting old %s: %+v", *id, err)
 			}
 		}
 
 		// create the new node pool with the new data
-		if err := retrySystemNodePoolCreation(ctx, client, *id, agentProfile); err != nil {
+		if err := retryNodePoolCreation(ctx, client, *id, *existing.Model); err != nil {
 			log.Printf("[DEBUG] Creation of redefined node pool failed")
 			return fmt.Errorf("creating default %s: %+v", *id, err)
 		}
@@ -904,7 +904,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	} else {
 
 		log.Printf("[DEBUG] Updating existing %s..", *id)
-		existing.Model.Properties = props
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
