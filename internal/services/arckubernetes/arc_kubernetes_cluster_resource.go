@@ -69,7 +69,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"aad_profile": {
+			"azure_active_directory": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
 				MaxItems:     1,
@@ -113,14 +113,10 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"azure_hybrid_benefit": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(arckubernetes.AzureHybridBenefitNotApplicable),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(arckubernetes.AzureHybridBenefitTrue),
-					string(arckubernetes.AzureHybridBenefitFalse),
-					string(arckubernetes.AzureHybridBenefitNotApplicable),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(arckubernetes.AzureHybridBenefitNotApplicable),
+				ValidateFunc: validation.StringInSlice(arckubernetes.PossibleValuesForAzureHybridBenefit(), false),
 			},
 
 			"kind": {
@@ -128,9 +124,7 @@ func resourceArcKubernetesCluster() *pluginsdk.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"agent_public_key_certificate"},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(arckubernetes.ConnectedClusterKindProvisionedCluster),
-				}, false),
+				ValidateFunc:  validation.StringInSlice(arckubernetes.PossibleValuesForConnectedClusterKind(), false),
 			},
 
 			"agent_version": {
@@ -223,7 +217,7 @@ func resourceArcKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interfac
 		props.Properties.AzureHybridBenefit = pointer.To(arckubernetes.AzureHybridBenefit(hybridBenefitVal))
 	}
 
-	if aadProfileVal := d.Get("aad_profile").([]interface{}); len(aadProfileVal) != 0 {
+	if aadProfileVal := d.Get("azure_active_directory").([]interface{}); len(aadProfileVal) != 0 {
 		props.Properties.AadProfile = expandArcKubernetesClusterAadProfile(aadProfileVal)
 	}
 
@@ -269,7 +263,7 @@ func resourceArcKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("kind", string(pointer.From(model.Kind)))
 		d.Set("location", location.Normalize(model.Location))
 		props := model.Properties
-		d.Set("aad_profile", flattenArcKubernetesClusterAadProfile(props.AadProfile))
+		d.Set("azure_active_directory", flattenArcKubernetesClusterAadProfile(props.AadProfile))
 		d.Set("azure_hybrid_benefit", string(pointer.From(props.AzureHybridBenefit)))
 		d.Set("agent_public_key_certificate", props.AgentPublicKeyCertificate)
 		d.Set("agent_version", props.AgentVersion)
@@ -311,13 +305,16 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	resp, err := client.ConnectedClusterGet(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
 	payload := resp.Model
 
-	if d.HasChange("aad_profile") {
-		payload.Properties.AadProfile = expandArcKubernetesClusterAadProfile(d.Get("aad_profile").([]interface{}))
+	if d.HasChange("azure_active_directory") {
+		payload.Properties.AadProfile = expandArcKubernetesClusterAadProfile(d.Get("azure_active_directory").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -347,7 +344,7 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if err := client.ConnectedClusterCreateThenPoll(ctx, *id, *payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceArcKubernetesClusterRead(d, meta)

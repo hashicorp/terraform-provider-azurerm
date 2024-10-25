@@ -60,7 +60,7 @@ resource "azurerm_arc_kubernetes_cluster" "example" {
   location            = azurerm_resource_group.example.location
   kind                = "ProvisionedCluster"
 
-  aad_profile {
+  azure_active_directory {
     azure_rbac_enabled     = true
     admin_group_object_ids = [azuread_group.example.id]
     tenant_id              = data.azurerm_client_config.current.tenant_id
@@ -84,9 +84,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Arc Kubernetes Cluster should exist. Changing this forces a new Arc Kubernetes Cluster to be created.
 
-* `aad_profile` - (Optional) An `aad_profile` block as specified below.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as specified below.
 
-~> **NOTE** `aad_profile` can only be specified if `kind` is `ProvisionedCluster`.
+~> **NOTE** `azure_active_directory` can only be specified if `kind` is `ProvisionedCluster`.
 
 * `arc_agent_auto_upgrade_enabled` - (Optional) Whether the Arc agents will be upgraded automatically to the latest version. Defaults to `true`.
 
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 ---
 
-An `aad_profile` block supports the following:
+An `azure_active_directory` block supports the following:
 
 * `azure_rbac_enabled` - (Optional) Whether to enable Microsoft Entra authentication with Kubernetes RBAC. Defaults to `false`.
 

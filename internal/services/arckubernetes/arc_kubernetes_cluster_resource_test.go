@@ -566,7 +566,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   kind                = "ProvisionedCluster"
 
-  aad_profile {
+  azure_active_directory {
     azure_rbac_enabled = false
   }
 
@@ -598,7 +598,7 @@ resource "azurerm_arc_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   kind                = "ProvisionedCluster"
 
-  aad_profile {
+  azure_active_directory {
     azure_rbac_enabled     = true
     admin_group_object_ids = [azuread_group.test.id]
     tenant_id              = data.azurerm_client_config.current.tenant_id
