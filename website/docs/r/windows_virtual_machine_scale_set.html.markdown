@@ -205,6 +205,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
+* `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
+
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
@@ -546,6 +548,12 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined above.
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+
+---
+
+A `os_image_notification` block supports the following:
+
+* `timeout` - (Optional) Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded. The only possible value is `PT15M`. Defaults to `PT15M`.
 
 ---
 
