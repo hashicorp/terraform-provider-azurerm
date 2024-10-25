@@ -189,6 +189,7 @@ resource "azurerm_eventgrid_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -247,6 +248,14 @@ resource "azurerm_eventgrid_topic" "test" {
   input_schema        = "CloudEventSchemaV1_0"
 }
 
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+
 resource "azurerm_eventgrid_namespace" "test" {
   name                = "acctest-egn-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -255,7 +264,7 @@ resource "azurerm_eventgrid_namespace" "test" {
   capacity              = 2
   public_network_access = "Disabled"
   sku                   = "Standard"
-  zone_redundant        = false
+  zone_redundant        = true
 
   topic_spaces_configuration {
     alternative_authentication_name_source          = ["ClientCertificateEmail", "ClientCertificateSubject"]
@@ -269,10 +278,18 @@ resource "azurerm_eventgrid_namespace" "test" {
     }
 
     static_routing_enrichment {
-      key   = "hello"
+      key   = "hello2"
       value = "world"
     }
   }
+
+    identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -389,6 +406,12 @@ resource "azurerm_eventgrid_topic" "test" {
   input_schema        = "CloudEventSchemaV1_0"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_eventgrid_namespace" "test" {
   name                = "acctest-egn-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -406,14 +429,21 @@ resource "azurerm_eventgrid_namespace" "test" {
     route_topic_id                                  = azurerm_eventgrid_topic.test.id
 
     dynamic_routing_enrichment {
-      key   = "hello2"
+      key   = "hello3"
       value = "$${client.authenticationName}"
     }
 
     static_routing_enrichment {
-      key   = "hello2"
+      key   = "hello4"
       value = "world2"
     }
+  }
+
+    identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

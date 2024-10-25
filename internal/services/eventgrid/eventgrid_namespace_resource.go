@@ -451,6 +451,7 @@ func expandTopicSpacesConfiguration(input []TopicSpacesConfigurationModel) *name
 	}
 
 	topicSpacesConfig = namespaces.TopicSpacesConfiguration{
+		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
 			AlternativeAuthenticationNameSources: expandAlternativeAuthenticationNameSources(input[0].AlternativeAuthenticationNameSources),
 		},
@@ -474,6 +475,7 @@ func expandTopicSpacesConfigurationUpdate(input []TopicSpacesConfigurationModel)
 	}
 
 	topicSpacesConfig = namespaces.UpdateTopicSpacesConfigurationInfo{
+		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
 			AlternativeAuthenticationNameSources: expandAlternativeAuthenticationNameSources(input[0].AlternativeAuthenticationNameSources),
 		},
