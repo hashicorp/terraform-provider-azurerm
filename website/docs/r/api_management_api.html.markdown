@@ -36,11 +36,6 @@ resource "azurerm_api_management_api" "example" {
   display_name        = "Example API"
   path                = "example"
   protocols           = ["https"]
-
-  import {
-    content_format = "swagger-link-json"
-    content_value  = "http://conferenceapi.azurewebsites.net/?format=json"
-  }
 }
 ```
 
