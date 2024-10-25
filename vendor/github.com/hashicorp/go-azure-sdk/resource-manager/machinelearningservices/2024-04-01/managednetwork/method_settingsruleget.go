@@ -45,7 +45,6 @@ func (c ManagedNetworkClient) SettingsRuleGet(ctx context.Context, id OutboundRu
 
 	var model OutboundRuleBasicResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

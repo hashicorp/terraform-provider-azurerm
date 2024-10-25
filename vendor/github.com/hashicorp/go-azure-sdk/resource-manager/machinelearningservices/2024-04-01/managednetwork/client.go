@@ -15,7 +15,7 @@ type ManagedNetworkClient struct {
 }
 
 func NewManagedNetworkClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedNetworkClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managednetwork", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managednetwork", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedNetworkClient: %+v", err)
 	}
