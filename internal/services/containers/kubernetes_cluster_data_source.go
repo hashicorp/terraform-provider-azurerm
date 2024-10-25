@@ -723,7 +723,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
-						vertical_pod_autoscaler_enabled : {
+						vertical_pod_autoscaler_enabled: {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
