@@ -129,11 +129,18 @@ To go through these in turn:
 * `IDValidationFunc` returns a function which validates the Resource ID provided during `terraform import` to ensure it matches what we expect for this Resource.
 
 ```go
+type ResourceGroupExampleResourceModel struct {
+    Name     string            `tfschema:"name"`
+    Location string            `tfschema:"location"`
+    Tags     map[string]string `tfschema:"tags"`
+}
+
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		
 		"location": commonschema.Location(),
@@ -147,7 +154,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return nil
+	return &ResourceGroupExampleResourceModel
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
@@ -179,7 +186,12 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			// and then create a Resource ID for this Resource Group
 			// using the Subscription ID & name 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := resources.NewResourceGroupID(subscriptionId, metadata.ResourceData.Get("name").(string))
+
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+			id := resources.NewResourceGroupID(subscriptionId, config.Name)
 			
 			// then we want to check for the presence of an existing resource with the resource's ID
 			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
@@ -194,8 +206,8 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			
 			// create the Resource Group
 			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Location: pointer.To(location.Normalize(config.Location)),
+				Tags:     pointer.To(config.Tags),
 			}
 			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -229,7 +241,11 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			
+
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
 			// update the Resource Group
 			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
 			// API and then conditionally updating it when fields in the config have been updated, which
@@ -258,8 +274,8 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
 			// enter the update function if `tags` has been updated.
 			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Location: pointer.To(location.Normalize(config.Location)),
+				Tags:     pointer.To(config.Tags),
 			}
 			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -309,11 +325,13 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 				// or raise a bug report if there's something we should handle
                 return fmt.Errorf("retrieving %s: %+v", id, err)
             }
-			
-			// at this point we can set information about this Resource Group into the State
-			// identifier fields such as the name, resource group name to name a few need to be sourced
-			// from the Resource ID instead of the API response
-			metadata.ResourceData.Set("name", id.ResourceGroupName)
+
+            // at this point we can set information about this Resource Group into the State
+            // identifier fields such as the name, resource group name to name a few need to be sourced
+            // from the Resource ID instead of the API response
+			state := ResourceGroupExampleResourceModel{
+				Name: id.ResourceGroupName,
+            }
 			
 			// the SDK will return a Model as well as a nested Properties object for the resource
 			// for readability and consistency we assign the Model to a variable and nil check as shown below.
@@ -321,8 +339,8 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
 			// crashing.
 			if model := resp.Model; model != nil {
-                            // the Location and Tags fields are a little different - and we have a couple of normalization
-                            // functions for these.
+                            // the Location field is a little different - and we have a normalization
+                            // function for this.
                             
                             // whilst this may seem like a weird thing to call out in an example, because these two fields
                             // are present on the majority of resources, we hope it explains why they're a little different
@@ -331,19 +349,13 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
                             // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
                             // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
                             // for users
-                            metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
-							
+                            state.Location = location.NormalizeNilable(model.Location)
+							state.Tags = pointer.From(model.Tags)
                             if props := model.Properties; props != nil {
                                 // if there are properties to set into state do that here
                             }
-                            
-                            // (as above) Tags are a little different, so we have a dedicated helper function
-                            // to flatten these consistently across the Provider
-							if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
-                                return fmt.Errorf("setting `tags`: %+v", err)
-                            }
                         }       
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -416,11 +428,18 @@ var _ sdk.Resource = ResourceGroupExampleResource{}
 
 type ResourceGroupExampleResource struct{}
 
+type ResourceGroupExampleResourceModel struct {
+	Name     string            `tfschema:"name"`
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
+}
+
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"location": commonschema.Location(),
@@ -434,7 +453,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return nil
+	return &ResourceGroupExampleResourceModel
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
@@ -447,8 +466,12 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			
-			id := resources.NewResourceGroupID(subscriptionId, metadata.ResourceData.Get("name").(string))
+
+			var config ResourceGroupExampleResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			id := resources.NewResourceGroupID(subscriptionId, config.Name)
 			
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -459,8 +482,8 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			}
 			
 			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Location: pointer.To(location.Normalize(config.Location)),
+				Tags:     pointer.To(config.Tags),
 			}
 			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -482,10 +505,15 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			
+
+			var config ResourceGroupExampleResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
 			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Location: pointer.To(location.Normalize(config.Location)),
+				Tags:     pointer.To(config.Tags),
 			}
 			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -516,16 +544,18 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			}
 
 
-			metadata.ResourceData.Set("name", id.ResourceGroupName)
+			state := ResourceGroupExampleResourceModel{
+				Name: id.ResourceGroupName,
+			}
 			
 			if model := resp.Model; model != nil {
-			    metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
+				state.Location = location.NormalizeNilable(model.Location)
+				state.Tags = pointer.From(model.Tags)
                 if props := model.Properties; props != nil {
 					// if there are properties to set into state do that here
                 }
-				return tags.FlattenAndSet(metadata.ResourceData, resp.Tags)
             }
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
