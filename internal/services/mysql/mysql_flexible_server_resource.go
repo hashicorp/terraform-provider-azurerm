@@ -263,6 +263,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(360, 48000),
 						},
 
+						"log_on_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -790,9 +796,15 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoIoScaling = servers.EnableStatusEnumEnabled
 	}
 
+	logOnDisk := servers.EnableStatusEnumDisabled
+	if v := input["log_on_disk_enabled"].(bool); v {
+		logOnDisk = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
 		AutoGrow:      &autoGrow,
 		AutoIoScaling: &autoIoScaling,
+		LogOnDisk:     pointer.To(logOnDisk),
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -822,10 +834,11 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":            size,
-			"iops":               iops,
-			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
-			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"size_gb":             size,
+			"iops":                iops,
+			"auto_grow_enabled":   *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled":  *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"log_on_disk_enabled": pointer.From(storage.LogOnDisk) == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

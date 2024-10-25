@@ -627,8 +627,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb = 20
-    iops    = 360
+    size_gb             = 20
+    iops                = 360
+    log_on_disk_enabled = true
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
@@ -712,10 +713,11 @@ resource "azurerm_mysql_flexible_server" "test" {
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb            = 32
-    iops               = 400
-    auto_grow_enabled  = false
-    io_scaling_enabled = false
+    size_gb             = 32
+    iops                = 400
+    auto_grow_enabled   = false
+    io_scaling_enabled  = false
+    log_on_disk_enabled = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
