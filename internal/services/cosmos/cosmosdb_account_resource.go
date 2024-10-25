@@ -478,15 +478,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"mongo_server_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cosmosdb.ServerVersionThreePointTwo),
-					string(cosmosdb.ServerVersionThreePointSix),
-					string(cosmosdb.ServerVersionFourPointZero),
-					string(cosmosdb.ServerVersionFourPointTwo),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForServerVersion(), false),
 			},
 
 			"multiple_write_locations_enabled": {
