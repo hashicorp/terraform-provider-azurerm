@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,7 +90,7 @@ func testAccNetworkManagerAdminRule_update(t *testing.T) {
 }
 
 func (r ManagerAdminRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := adminrules.ParseRuleID(state.ID)
+	id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
