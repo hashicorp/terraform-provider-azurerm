@@ -98,7 +98,8 @@ The following arguments are supported:
 
 * `azure_hybrid_benefit` - (Optional) Indicates whether Azure Hybrid Benefit is opted in. Possible values are `True`, `False` and `NotApplicable`. Defaults to `NotApplicable`.
 
-* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. The only possible value is `ProvisionedCluster`.
+* `kind` - (Optional) The kind of the Arc Kubernetes Cluster based on host infrastructure. The only possible value is `ProvisionedCluster`. Changing this forces a new Arc Kubernetes Cluster to be created.
+
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Cluster.
 
