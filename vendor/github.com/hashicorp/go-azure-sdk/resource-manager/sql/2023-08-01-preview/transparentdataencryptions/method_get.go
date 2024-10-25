@@ -47,7 +47,6 @@ func (c TransparentDataEncryptionsClient) Get(ctx context.Context, id commonids.
 
 	var model LogicalDatabaseTransparentDataEncryption
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

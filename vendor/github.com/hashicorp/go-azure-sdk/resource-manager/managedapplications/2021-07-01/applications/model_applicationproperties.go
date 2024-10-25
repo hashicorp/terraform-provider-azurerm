@@ -17,6 +17,6 @@ type ApplicationProperties struct {
 	Parameters              *interface{}                         `json:"parameters,omitempty"`
 	ProvisioningState       *ProvisioningState                   `json:"provisioningState,omitempty"`
 	PublisherTenantId       *string                              `json:"publisherTenantId,omitempty"`
-	SupportUrls             *ApplicationPackageSupportUrls       `json:"supportUrls,omitempty"`
+	SupportURLs             *ApplicationPackageSupportURLs       `json:"supportUrls,omitempty"`
 	UpdatedBy               *ApplicationClientDetails            `json:"updatedBy,omitempty"`
 }

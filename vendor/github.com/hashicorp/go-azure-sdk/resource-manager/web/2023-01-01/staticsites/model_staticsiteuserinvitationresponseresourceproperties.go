@@ -11,7 +11,7 @@ import (
 
 type StaticSiteUserInvitationResponseResourceProperties struct {
 	ExpiresOn     *string `json:"expiresOn,omitempty"`
-	InvitationUrl *string `json:"invitationUrl,omitempty"`
+	InvitationURL *string `json:"invitationUrl,omitempty"`
 }
 
 func (o *StaticSiteUserInvitationResponseResourceProperties) GetExpiresOnAsTime() (*time.Time, error) {

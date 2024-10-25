@@ -15,7 +15,7 @@ type ForwardingRulesClient struct {
 }
 
 func NewForwardingRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*ForwardingRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "forwardingrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "forwardingrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ForwardingRulesClient: %+v", err)
 	}

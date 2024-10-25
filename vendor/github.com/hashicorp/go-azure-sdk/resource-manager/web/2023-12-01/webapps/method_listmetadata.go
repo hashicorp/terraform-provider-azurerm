@@ -47,7 +47,6 @@ func (c WebAppsClient) ListMetadata(ctx context.Context, id commonids.AppService
 
 	var model StringDictionary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

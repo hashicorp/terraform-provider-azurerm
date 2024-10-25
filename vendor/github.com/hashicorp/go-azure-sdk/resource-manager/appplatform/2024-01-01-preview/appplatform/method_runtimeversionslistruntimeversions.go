@@ -45,7 +45,6 @@ func (c AppPlatformClient) RuntimeVersionsListRuntimeVersions(ctx context.Contex
 
 	var model AvailableRuntimeVersions
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

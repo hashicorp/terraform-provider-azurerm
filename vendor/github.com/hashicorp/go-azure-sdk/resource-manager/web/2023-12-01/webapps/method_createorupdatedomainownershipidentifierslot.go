@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdateDomainOwnershipIdentifierSlot(ctx context.C
 
 	var model Identifier
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

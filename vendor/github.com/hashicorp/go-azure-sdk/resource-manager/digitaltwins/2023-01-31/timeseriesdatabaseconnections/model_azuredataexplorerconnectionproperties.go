@@ -24,8 +24,18 @@ type AzureDataExplorerConnectionProperties struct {
 	RecordPropertyAndItemRemovals           *bool   `json:"recordPropertyAndItemRemovals,omitempty"`
 
 	// Fields inherited from TimeSeriesDatabaseConnectionProperties
+
+	ConnectionType    ConnectionType                     `json:"connectionType"`
 	Identity          *ManagedIdentityReference          `json:"identity,omitempty"`
 	ProvisioningState *TimeSeriesDatabaseConnectionState `json:"provisioningState,omitempty"`
+}
+
+func (s AzureDataExplorerConnectionProperties) TimeSeriesDatabaseConnectionProperties() BaseTimeSeriesDatabaseConnectionPropertiesImpl {
+	return BaseTimeSeriesDatabaseConnectionPropertiesImpl{
+		ConnectionType:    s.ConnectionType,
+		Identity:          s.Identity,
+		ProvisioningState: s.ProvisioningState,
+	}
 }
 
 var _ json.Marshaler = AzureDataExplorerConnectionProperties{}
@@ -39,9 +49,10 @@ func (s AzureDataExplorerConnectionProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureDataExplorerConnectionProperties: %+v", err)
 	}
+
 	decoded["connectionType"] = "AzureDataExplorer"
 
 	encoded, err = json.Marshal(decoded)

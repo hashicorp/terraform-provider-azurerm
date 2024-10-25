@@ -15,7 +15,7 @@ type StreamingJobsClient struct {
 }
 
 func NewStreamingJobsClientWithBaseURI(sdkApi sdkEnv.Api) (*StreamingJobsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "streamingjobs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "streamingjobs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StreamingJobsClient: %+v", err)
 	}

@@ -51,7 +51,6 @@ func (c FirewallPoliciesClient) FirewallPolicyDraftsCreateOrUpdate(ctx context.C
 
 	var model FirewallPolicyDraft
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

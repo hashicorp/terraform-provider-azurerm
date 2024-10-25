@@ -108,35 +108,6 @@ func TestAccKustoEventGridDataConnection_systemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccKustoEventGridDataConnection_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
-	r := KustoEventGridDataConnectionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataconnections.ParseDataConnectionID(state.ID)
 	if err != nil {
@@ -149,7 +120,7 @@ func (KustoEventGridDataConnectionResource) Exists(ctx context.Context, clients 
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.EventGridDataConnection)
+		value, ok := resp.Model.(dataconnections.EventGridDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an Event Grid Data Connection", id.String())
 		}

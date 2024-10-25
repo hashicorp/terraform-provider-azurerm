@@ -49,7 +49,6 @@ func (c BlueprintClient) CreateOrUpdate(ctx context.Context, id ScopedBlueprintI
 
 	var model Blueprint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type VirtualNetworkTapClient struct {
 }
 
 func NewVirtualNetworkTapClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualNetworkTapClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualnetworktap", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualnetworktap", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualNetworkTapClient: %+v", err)
 	}

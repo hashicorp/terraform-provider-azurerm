@@ -42,7 +42,7 @@ func ParseDdosProtectionPlanID(input string) (*DdosProtectionPlanId, error) {
 	}
 
 	id := DdosProtectionPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDdosProtectionPlanIDInsensitively(input string) (*DdosProtectionPlanId
 	}
 
 	id := DdosProtectionPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DdosProtectionPlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDdosProtectionPlans", "ddosProtectionPlans", "ddosProtectionPlans"),
-		resourceids.UserSpecifiedSegment("ddosProtectionPlanName", "ddosProtectionPlanValue"),
+		resourceids.UserSpecifiedSegment("ddosProtectionPlanName", "ddosProtectionPlanName"),
 	}
 }
 

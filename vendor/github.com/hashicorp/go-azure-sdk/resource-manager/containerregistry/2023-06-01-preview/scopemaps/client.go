@@ -15,7 +15,7 @@ type ScopeMapsClient struct {
 }
 
 func NewScopeMapsClientWithBaseURI(sdkApi sdkEnv.Api) (*ScopeMapsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scopemaps", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scopemaps", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScopeMapsClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type SAPDiskConfigurationsClient struct {
 }
 
 func NewSAPDiskConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPDiskConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapdiskconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapdiskconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPDiskConfigurationsClient: %+v", err)
 	}

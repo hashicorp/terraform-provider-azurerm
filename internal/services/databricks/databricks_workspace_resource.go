@@ -801,8 +801,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		var workspaceUrl string
-		if model.Properties.WorkspaceUrl != nil {
-			workspaceUrl = *model.Properties.WorkspaceUrl
+		if model.Properties.WorkspaceURL != nil {
+			workspaceUrl = *model.Properties.WorkspaceURL
 		}
 		d.Set("workspace_url", workspaceUrl)
 

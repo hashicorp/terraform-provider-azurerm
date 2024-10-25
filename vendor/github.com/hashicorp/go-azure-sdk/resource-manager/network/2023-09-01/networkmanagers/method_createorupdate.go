@@ -50,7 +50,6 @@ func (c NetworkManagersClient) CreateOrUpdate(ctx context.Context, id NetworkMan
 
 	var model NetworkManager
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

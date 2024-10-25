@@ -128,6 +128,7 @@ func resourceStorageBlob() *pluginsdk.Resource {
 			"source_content": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				ForceNew:      true,
 				ConflictsWith: []string{"source", "source_uri"},
 			},
 

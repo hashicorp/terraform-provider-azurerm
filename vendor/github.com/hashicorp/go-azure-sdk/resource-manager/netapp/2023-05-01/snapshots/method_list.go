@@ -46,7 +46,6 @@ func (c SnapshotsClient) List(ctx context.Context, id VolumeId) (result ListOper
 
 	var model SnapshotsList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

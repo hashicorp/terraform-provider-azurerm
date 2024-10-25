@@ -15,7 +15,7 @@ type P2sVpnGatewaysClient struct {
 }
 
 func NewP2sVpnGatewaysClientWithBaseURI(sdkApi sdkEnv.Api) (*P2sVpnGatewaysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "p2svpngateways", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "p2svpngateways", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating P2sVpnGatewaysClient: %+v", err)
 	}

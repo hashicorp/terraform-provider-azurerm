@@ -42,7 +42,7 @@ func ParseLocalNetworkGatewayID(input string) (*LocalNetworkGatewayId, error) {
 	}
 
 	id := LocalNetworkGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseLocalNetworkGatewayIDInsensitively(input string) (*LocalNetworkGateway
 	}
 
 	id := LocalNetworkGatewayId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id LocalNetworkGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticLocalNetworkGateways", "localNetworkGateways", "localNetworkGateways"),
-		resourceids.UserSpecifiedSegment("localNetworkGatewayName", "localNetworkGatewayValue"),
+		resourceids.UserSpecifiedSegment("localNetworkGatewayName", "localNetworkGatewayName"),
 	}
 }
 

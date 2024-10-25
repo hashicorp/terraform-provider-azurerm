@@ -15,7 +15,7 @@ type ServerDevOpsAuditClient struct {
 }
 
 func NewServerDevOpsAuditClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerDevOpsAuditClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverdevopsaudit", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverdevopsaudit", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerDevOpsAuditClient: %+v", err)
 	}

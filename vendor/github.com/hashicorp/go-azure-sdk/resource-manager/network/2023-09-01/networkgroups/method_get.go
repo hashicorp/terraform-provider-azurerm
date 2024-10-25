@@ -45,7 +45,6 @@ func (c NetworkGroupsClient) Get(ctx context.Context, id NetworkGroupId) (result
 
 	var model NetworkGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

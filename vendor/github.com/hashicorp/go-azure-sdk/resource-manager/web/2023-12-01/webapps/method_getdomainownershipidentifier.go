@@ -18,7 +18,7 @@ type GetDomainOwnershipIdentifierOperationResponse struct {
 }
 
 // GetDomainOwnershipIdentifier ...
-func (c WebAppsClient) GetDomainOwnershipIdentifier(ctx context.Context, id DomainOwnershipIdentifierId) (result GetDomainOwnershipIdentifierOperationResponse, err error) {
+func (c WebAppsClient) GetDomainOwnershipIdentifier(ctx context.Context, id SiteDomainOwnershipIdentifierId) (result GetDomainOwnershipIdentifierOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -45,7 +45,6 @@ func (c WebAppsClient) GetDomainOwnershipIdentifier(ctx context.Context, id Doma
 
 	var model Identifier
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
