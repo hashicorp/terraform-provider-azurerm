@@ -1,5 +1,9 @@
 ## 4.8.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
+
 BUG FIXES:
 * `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
 
