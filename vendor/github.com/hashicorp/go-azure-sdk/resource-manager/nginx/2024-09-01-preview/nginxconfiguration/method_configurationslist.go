@@ -15,12 +15,12 @@ import (
 type ConfigurationsListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]NginxConfiguration
+	Model        *[]NginxConfigurationResponse
 }
 
 type ConfigurationsListCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []NginxConfiguration
+	Items              []NginxConfigurationResponse
 }
 
 type ConfigurationsListCustomPager struct {
@@ -63,7 +63,7 @@ func (c NginxConfigurationClient) ConfigurationsList(ctx context.Context, id Ngi
 	}
 
 	var values struct {
-		Values *[]NginxConfiguration `json:"value"`
+		Values *[]NginxConfigurationResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -76,12 +76,12 @@ func (c NginxConfigurationClient) ConfigurationsList(ctx context.Context, id Ngi
 
 // ConfigurationsListComplete retrieves all the results into a single object
 func (c NginxConfigurationClient) ConfigurationsListComplete(ctx context.Context, id NginxDeploymentId) (ConfigurationsListCompleteResult, error) {
-	return c.ConfigurationsListCompleteMatchingPredicate(ctx, id, NginxConfigurationOperationPredicate{})
+	return c.ConfigurationsListCompleteMatchingPredicate(ctx, id, NginxConfigurationResponseOperationPredicate{})
 }
 
 // ConfigurationsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c NginxConfigurationClient) ConfigurationsListCompleteMatchingPredicate(ctx context.Context, id NginxDeploymentId, predicate NginxConfigurationOperationPredicate) (result ConfigurationsListCompleteResult, err error) {
-	items := make([]NginxConfiguration, 0)
+func (c NginxConfigurationClient) ConfigurationsListCompleteMatchingPredicate(ctx context.Context, id NginxDeploymentId, predicate NginxConfigurationResponseOperationPredicate) (result ConfigurationsListCompleteResult, err error) {
+	items := make([]NginxConfigurationResponse, 0)
 
 	resp, err := c.ConfigurationsList(ctx, id)
 	if err != nil {

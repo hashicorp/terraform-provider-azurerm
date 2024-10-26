@@ -14,7 +14,7 @@ import (
 type ConfigurationsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *NginxConfiguration
+	Model        *NginxConfigurationResponse
 }
 
 // ConfigurationsGet ...
@@ -43,7 +43,7 @@ func (c NginxConfigurationClient) ConfigurationsGet(ctx context.Context, id Conf
 		return
 	}
 
-	var model NginxConfiguration
+	var model NginxConfigurationResponse
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

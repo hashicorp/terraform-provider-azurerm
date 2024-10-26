@@ -853,11 +853,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/az
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors
 github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules
-github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview
-github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxcertificate
-github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration
-github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfigurationanalysis
-github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxapikey
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxcertificate
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxconfigurationanalysis
+github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxdeployment
 github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs
 github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries

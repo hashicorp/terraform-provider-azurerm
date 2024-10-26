@@ -18,11 +18,11 @@ type ConfigurationsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *NginxConfiguration
+	Model        *NginxConfigurationResponse
 }
 
 // ConfigurationsCreateOrUpdate ...
-func (c NginxConfigurationClient) ConfigurationsCreateOrUpdate(ctx context.Context, id ConfigurationId, input NginxConfiguration) (result ConfigurationsCreateOrUpdateOperationResponse, err error) {
+func (c NginxConfigurationClient) ConfigurationsCreateOrUpdate(ctx context.Context, id ConfigurationId, input NginxConfigurationRequest) (result ConfigurationsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c NginxConfigurationClient) ConfigurationsCreateOrUpdate(ctx context.Conte
 }
 
 // ConfigurationsCreateOrUpdateThenPoll performs ConfigurationsCreateOrUpdate then polls until it's completed
-func (c NginxConfigurationClient) ConfigurationsCreateOrUpdateThenPoll(ctx context.Context, id ConfigurationId, input NginxConfiguration) error {
+func (c NginxConfigurationClient) ConfigurationsCreateOrUpdateThenPoll(ctx context.Context, id ConfigurationId, input NginxConfigurationRequest) error {
 	result, err := c.ConfigurationsCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ConfigurationsCreateOrUpdate: %+v", err)

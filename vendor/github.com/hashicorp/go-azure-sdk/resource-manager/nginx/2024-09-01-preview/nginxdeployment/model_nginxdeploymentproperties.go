@@ -5,10 +5,10 @@ package nginxdeployment
 
 type NginxDeploymentProperties struct {
 	AutoUpgradeProfile       *AutoUpgradeProfile                       `json:"autoUpgradeProfile,omitempty"`
+	DataplaneApiEndpoint     *string                                   `json:"dataplaneApiEndpoint,omitempty"`
 	EnableDiagnosticsSupport *bool                                     `json:"enableDiagnosticsSupport,omitempty"`
 	IPAddress                *string                                   `json:"ipAddress,omitempty"`
 	Logging                  *NginxLogging                             `json:"logging,omitempty"`
-	ManagedResourceGroup     *string                                   `json:"managedResourceGroup,omitempty"`
 	NetworkProfile           *NginxNetworkProfile                      `json:"networkProfile,omitempty"`
 	NginxAppProtect          *NginxDeploymentPropertiesNginxAppProtect `json:"nginxAppProtect,omitempty"`
 	NginxVersion             *string                                   `json:"nginxVersion,omitempty"`

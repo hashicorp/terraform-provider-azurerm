@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxconfiguration` Documentation
 
-The `nginxconfiguration` SDK allows for interaction with Azure Resource Manager `nginx` (API Version `2024-06-01-preview`).
+The `nginxconfiguration` SDK allows for interaction with Azure Resource Manager `nginx` (API Version `2024-09-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxconfiguration"
 ```
 
 
@@ -26,7 +26,7 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentName", "configurationName")
 
-payload := nginxconfiguration.NginxConfiguration{
+payload := nginxconfiguration.NginxConfigurationRequest{
 	// ...
 }
 
