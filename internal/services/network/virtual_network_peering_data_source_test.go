@@ -79,15 +79,13 @@ resource "azurerm_virtual_network_peering" "test-2" {
 }
 
 data "azurerm_virtual_network_peering" "test-1" {
-  name                 = "acctestpeer1to2"
-  virtual_network_name = azurerm_virtual_network.test-1.name
-  resource_group_name  = azurerm_resource_group.test.name
+  name               = "acctestpeer1to2"
+  virtual_network_id = azurerm_virtual_network.test-1.id
 }
 
 data "azurerm_virtual_network_peering" "test-2" {
-  name                 = "acctestpeer2to1"
-  virtual_network_name = azurerm_virtual_network.test-2.name
-  resource_group_name  = azurerm_resource_group.test.name
+  name               = "acctestpeer2to1"
+  virtual_network_id = azurerm_virtual_network.test-2.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
