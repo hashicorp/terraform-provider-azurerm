@@ -145,11 +145,11 @@ func (r ManagedPrivateEndpointResource) requiresImport(data acceptance.TestData)
 			%s
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "import" {
-  grafana_name                 = azurerm_dashboard_grafana_managed_private_endpoint.test.grafana_name
-  resource_group_name          = azurerm_dashboard_grafana_managed_private_endpoint.test.resource_group_name
-  name                         = azurerm_dashboard_grafana_managed_private_endpoint.test.name
-  location                     = azurerm_dashboard_grafana_managed_private_endpoint.test.location
-  private_link_resource_id     = azurerm_dashboard_grafana_managed_private_endpoint.test.private_link_resource_id
+  grafana_name             = azurerm_dashboard_grafana_managed_private_endpoint.test.grafana_name
+  resource_group_name      = azurerm_dashboard_grafana_managed_private_endpoint.test.resource_group_name
+  name                     = azurerm_dashboard_grafana_managed_private_endpoint.test.name
+  location                 = azurerm_dashboard_grafana_managed_private_endpoint.test.location
+  private_link_resource_id = azurerm_dashboard_grafana_managed_private_endpoint.test.private_link_resource_id
 }
 `, config)
 
@@ -172,7 +172,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   tags = {
     key = "value"
   }
-  
+
   request_message = "please approve"
 }
 `, template, data.RandomIntOfLength(8))
@@ -195,7 +195,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   tags = {
     key2 = "value2"
   }
-  
+
   request_message = "please approve"
 }
 `, template, data.RandomIntOfLength(8))
