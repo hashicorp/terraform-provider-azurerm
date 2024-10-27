@@ -44,10 +44,13 @@ func (r ManagedPrivateEndpointResource) IDValidationFunc() pluginsdk.SchemaValid
 func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: ManagedPrivateEndpointName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`\A([a-zA-Z]{1}[a-zA-Z0-9\-]{1,19}[a-zA-Z0-9]{1})\z`),
+				`Name length can only consist of alphanumeric characters or dashes, and must be between 2 and 20 characters long. It must begin with a letter and end with a letter or digit.`,
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -259,14 +262,4 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func ManagedPrivateEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`\A([a-zA-Z]{1}[a-zA-Z0-9\-]{1,19}[a-zA-Z0-9]{1})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name (%q) can only consist of alphanumeric characters or dashes, and must be between 2 and 20 characters long. It must begin with a letter and end with a letter or digit", input))
-	}
-
-	return warnings, errors
 }
