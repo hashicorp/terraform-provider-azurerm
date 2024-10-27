@@ -3,6 +3,7 @@ package dashboard
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -19,7 +20,8 @@ type ManagedPrivateEndpointResource struct{}
 type ManagedPrivateEndpointModel struct {
 	Name                      string            `tfschema:"name"`
 	Location                  string            `tfschema:"location"`
-	ManagedGrafanaId          string            `tfschema:"managed_grafana_id"`
+	ResourceGroup             string            `tfschema:"resource_group_name"`
+	GrafanaName               string            `tfschema:"grafana_name"`
 	PrivateLinkResourceId     string            `tfschema:"private_link_resource_id"`
 	PrivateLinkResourceRegion string            `tfschema:"private_link_resource_region"`
 	Tags                      map[string]string `tfschema:"tags"`
@@ -45,18 +47,20 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: ManagedPrivateEndpointName,
 		},
+
+		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 
-		"managed_grafana_id": {
+		"grafana_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: managedprivateendpoints.ValidateGrafanaID,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"private_link_resource_id": {
@@ -106,13 +110,8 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			grafanaId, err := managedprivateendpoints.ParseGrafanaID(model.ManagedGrafanaId)
 
-			if err != nil {
-				return fmt.Errorf("invalid grafana id %s: %+v", model.ManagedGrafanaId, err)
-			}
-
-			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
+			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, model.ResourceGroup, model.GrafanaName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -169,8 +168,10 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagedPrivateEndpointModel{
-				Name:     id.ManagedPrivateEndpointName,
-				Location: model.Location,
+				Name:          id.ManagedPrivateEndpointName,
+				Location:      model.Location,
+				GrafanaName:   id.GrafanaName,
+				ResourceGroup: id.ResourceGroupName,
 			}
 
 			if props := model.Properties; props != nil {
@@ -185,6 +186,14 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				if props.PrivateLinkResourceRegion != nil {
 					state.PrivateLinkResourceRegion = *props.PrivateLinkResourceRegion
 				}
+
+				if props.RequestMessage != nil {
+					state.RequestMessage = *props.RequestMessage
+				}
+			}
+
+			if model.Tags != nil {
+				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)
@@ -252,11 +261,12 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 	}
 }
 
-// func (r ManagedPrivateEndpointResource) StateUpgraders() sdk.StateUpgradeData {
-// 	return sdk.StateUpgradeData{
-// 		SchemaVersion: 1,
-// 		Upgraders: map[int]pluginsdk.StateUpgrade{
-// 			0: migration.StreamAnalyticsManagedPrivateEndpointV0ToV1{},
-// 		},
-// 	}
-// }
+func ManagedPrivateEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
+	input := v.(string)
+
+	if !regexp.MustCompile(`\A([a-zA-Z]{1}[a-zA-Z0-9\-]{1,19}[a-zA-Z0-9]{1})\z`).MatchString(input) {
+		errors = append(errors, fmt.Errorf("name (%q) can only consist of alphanumeric characters or dashes, and must be between 2 and 20 characters long. It must begin with a letter and end with a letter or digit", input))
+	}
+
+	return warnings, errors
+}
