@@ -124,6 +124,12 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			requestMessage := model.RequestMessage
+			if requestMessage == "" {
+				// provide a default connection message if one isn't provided
+				requestMessage = "Connection requested by Terraform from " + model.Name
+			}
+
 			props := managedprivateendpoints.ManagedPrivateEndpointModel{
 				Location: model.Location,
 				Name:     &model.Name,
@@ -131,7 +137,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 					GroupIds:                  &model.GroupIds,
 					PrivateLinkResourceId:     &model.PrivateLinkResourceId,
 					PrivateLinkResourceRegion: &model.PrivateLinkResourceRegion,
-					RequestMessage:            &model.RequestMessage,
+					RequestMessage:            &requestMessage,
 				},
 				Tags: &model.Tags,
 			}
