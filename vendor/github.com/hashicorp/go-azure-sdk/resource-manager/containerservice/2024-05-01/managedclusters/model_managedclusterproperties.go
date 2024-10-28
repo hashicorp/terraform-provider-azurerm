@@ -45,4 +45,5 @@ type ManagedClusterProperties struct {
 	UpgradeSettings           *ClusterUpgradeSettings                    `json:"upgradeSettings,omitempty"`
 	WindowsProfile            *ManagedClusterWindowsProfile              `json:"windowsProfile,omitempty"`
 	WorkloadAutoScalerProfile *ManagedClusterWorkloadAutoScalerProfile   `json:"workloadAutoScalerProfile,omitempty"`
+	WorkloadIdentityEnabled   *bool                                      `json:"workloadIdentityEnabled,omitempty"`
 }

@@ -719,11 +719,11 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						keda_enabled: {
+						"keda_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
-						vertical_pod_autoscaler_enabled: {
+						"vertical_pod_autoscaler_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -731,7 +731,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"workload_autoscaler_enabled": {
+			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -978,6 +978,18 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
+
+			if err := d.Set("workload_autoscaler_profile", props.WorkloadAutoScalerProfile); err != nil {
+				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+			}
+
+			// if err = d.set("workload_autoscaler_profile_keda", props.WorkloadAutoScalerProfile); err != nil {
+			// 	return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
+			// }
+
+			if err := d.Set("workload_identity_enabled", props.WorkloadIdentityEnabled); err != nil {
+				return fmt.Errorf("setting `workload_identity_enabled`: %+v", err)
+			}
 		}
 
 		identity, err := flattenClusterDataSourceIdentity(model.Identity)
@@ -993,16 +1005,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("kube_config_raw", kubeConfigRaw)
 		if err := d.Set("kube_config", kubeConfig); err != nil {
 			return fmt.Errorf("setting `kube_config`: %+v", err)
-		}
-
-		workloadAutoscalerProfile := flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(props.WorkloadAutoscalerProfile)
-		if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
-			return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
-		}
-
-		workloadAutoscalerEnabled := false
-		if props.WorkloadIdentity != nil {
-			workloadAutoscalerEnabled = *props.WorkloadIdentity
 		}
 
 		d.Set("tags", tags.Flatten(model.Tags))
@@ -1594,15 +1596,15 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceWorkloadAutoscalerProfile(input *managedclusters.ManagedClusterPropertiesWorkloadAutoscalerProfile) []interface{} {
-	values := make(map[string]interface{})
+// func flattenKubernetesClusterDataSourceWorkloadAutoScalerProfile(input *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []interface{} {
+// 	values := make(map[string]interface{})
 
-	if input == nil {
-		return []interface{}{values}
-	}
+// 	if input == nil {
+// 		return []interface{}{values}
+// 	}
 
-	values[keda_enabled] = input.KedaEnabled
-	values[vertical_pod_autoscaler_enabled] = input.VerticalPodAutoscalerEnabled
+// 	values["keda_enabled"] = input.KedaEnabled
+// 	values["vertical_pod_autoscaler_enabled"] = input.VerticalPodAutoscalerEnabled
 
-	return []interface{}{values}
-}
+// 	return []interface{}{values}
+// }
