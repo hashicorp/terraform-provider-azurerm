@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
+* `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
 
 BUG FIXES:
 * `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
