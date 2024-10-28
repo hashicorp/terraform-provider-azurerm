@@ -87,6 +87,22 @@ func TestExpandKeyVaultOrManagedHSMKeyKey(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "success with versionless key vault id",
+			args: args{
+				d:                 buildKeyVaultData("key_vault_key_id", "https://test.keyvault.azure.net/keys/test-key-versionless"),
+				keyVaultFieldName: "key_vault_key_id",
+				hasVersion:        customermanagedkeys.VersionTypeVersionless,
+			},
+			want: &customermanagedkeys.KeyVaultOrManagedHSMKey{
+				KeyVaultKeyId: &parse.NestedItemId{
+					KeyVaultBaseUrl: "https://test.keyvault.azure.net/",
+					NestedItemType:  "keys",
+					Name:            "test-key-versionless",
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "success with managed_hsm_key_id",
 			args: args{
 				d:            buildHSMData("managed_hsm_key_id", "https://test.managedhsm.azure.net/keys/test-key-name"),

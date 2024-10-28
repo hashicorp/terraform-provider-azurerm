@@ -1408,7 +1408,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if v := props.KeyVaultKeyUri; v != nil {
 			envs := meta.(*clients.Client).Account.Environment
-			if key, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(*v, envs.KeyVault, envs.ManagedHSM); err != nil {
+			if key, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(*v, envs.ManagedHSM); err != nil {
 				return fmt.Errorf("flatten key vault uri: %+v", err)
 			} else if key.IsSet() {
 				if key.KeyVaultKeyId != nil {

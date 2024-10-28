@@ -167,8 +167,7 @@ func ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d interface{}, requireVersi
 }
 
 // FlattenKeyVaultOrManagedHSMID uses `KeyVaultOrManagedHSMKey.SetState()` to save the state, which this function is designed not to do.
-func FlattenKeyVaultOrManagedHSMID(id string, keyVaultEnv, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
-	_ = keyVaultEnv
+func FlattenKeyVaultOrManagedHSMID(id string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
 	if id == "" {
 		return nil, nil
 	}
