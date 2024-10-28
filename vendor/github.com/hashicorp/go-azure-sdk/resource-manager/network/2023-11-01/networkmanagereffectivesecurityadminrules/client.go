@@ -15,7 +15,7 @@ type NetworkManagerEffectiveSecurityAdminRulesClient struct {
 }
 
 func NewNetworkManagerEffectiveSecurityAdminRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkManagerEffectiveSecurityAdminRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkmanagereffectivesecurityadminrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkmanagereffectivesecurityadminrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkManagerEffectiveSecurityAdminRulesClient: %+v", err)
 	}

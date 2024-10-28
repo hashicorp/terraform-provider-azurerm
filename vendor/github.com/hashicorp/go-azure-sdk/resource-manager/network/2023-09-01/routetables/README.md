@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables` Documentation
 
-The `routetables` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-09-01`).
+The `routetables` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableValue")
+id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableName")
 
 payload := routetables.RouteTable{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableValue")
+id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableValue")
+id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableName")
 
 read, err := client.Get(ctx, id, routetables.DefaultGetOperationOptions())
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableValue")
+id := routetables.NewRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "routeTableName")
 
 payload := routetables.TagsObject{
 	// ...

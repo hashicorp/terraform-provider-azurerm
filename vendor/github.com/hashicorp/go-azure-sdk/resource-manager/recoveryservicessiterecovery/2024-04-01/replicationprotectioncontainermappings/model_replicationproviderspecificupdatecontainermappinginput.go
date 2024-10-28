@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ReplicationProviderSpecificUpdateContainerMappingInput interface {
+	ReplicationProviderSpecificUpdateContainerMappingInput() BaseReplicationProviderSpecificUpdateContainerMappingInputImpl
 }
 
-// RawReplicationProviderSpecificUpdateContainerMappingInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ReplicationProviderSpecificUpdateContainerMappingInput = BaseReplicationProviderSpecificUpdateContainerMappingInputImpl{}
+
+type BaseReplicationProviderSpecificUpdateContainerMappingInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseReplicationProviderSpecificUpdateContainerMappingInputImpl) ReplicationProviderSpecificUpdateContainerMappingInput() BaseReplicationProviderSpecificUpdateContainerMappingInputImpl {
+	return s
+}
+
+var _ ReplicationProviderSpecificUpdateContainerMappingInput = RawReplicationProviderSpecificUpdateContainerMappingInputImpl{}
+
+// RawReplicationProviderSpecificUpdateContainerMappingInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawReplicationProviderSpecificUpdateContainerMappingInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	replicationProviderSpecificUpdateContainerMappingInput BaseReplicationProviderSpecificUpdateContainerMappingInputImpl
+	Type                                                   string
+	Values                                                 map[string]interface{}
 }
 
-func unmarshalReplicationProviderSpecificUpdateContainerMappingInputImplementation(input []byte) (ReplicationProviderSpecificUpdateContainerMappingInput, error) {
+func (s RawReplicationProviderSpecificUpdateContainerMappingInputImpl) ReplicationProviderSpecificUpdateContainerMappingInput() BaseReplicationProviderSpecificUpdateContainerMappingInputImpl {
+	return s.replicationProviderSpecificUpdateContainerMappingInput
+}
+
+func UnmarshalReplicationProviderSpecificUpdateContainerMappingInputImplementation(input []byte) (ReplicationProviderSpecificUpdateContainerMappingInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalReplicationProviderSpecificUpdateContainerMappingInputImplementati
 		return nil, fmt.Errorf("unmarshaling ReplicationProviderSpecificUpdateContainerMappingInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -52,10 +69,15 @@ func unmarshalReplicationProviderSpecificUpdateContainerMappingInputImplementati
 		return out, nil
 	}
 
-	out := RawReplicationProviderSpecificUpdateContainerMappingInputImpl{
+	var parent BaseReplicationProviderSpecificUpdateContainerMappingInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseReplicationProviderSpecificUpdateContainerMappingInputImpl: %+v", err)
+	}
+
+	return RawReplicationProviderSpecificUpdateContainerMappingInputImpl{
+		replicationProviderSpecificUpdateContainerMappingInput: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

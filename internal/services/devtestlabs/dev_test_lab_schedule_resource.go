@@ -428,7 +428,7 @@ func expandDevTestScheduleNotificationSettings(d *pluginsdk.ResourceData) *sched
 	notificationStatus := schedules.EnableStatus(notificationSettingsConfig["status"].(string))
 
 	return &schedules.NotificationSettings{
-		WebhookUrl:    &webhookUrl,
+		WebhookURL:    &webhookUrl,
 		TimeInMinutes: &timeInMinutes,
 		Status:        &notificationStatus,
 	}
@@ -441,8 +441,8 @@ func flattenAzureRmDevTestLabScheduleNotificationSettings(notificationSettings *
 
 	result := make(map[string]interface{})
 
-	if notificationSettings.WebhookUrl != nil {
-		result["webhook_url"] = *notificationSettings.WebhookUrl
+	if notificationSettings.WebhookURL != nil {
+		result["webhook_url"] = *notificationSettings.WebhookURL
 	}
 
 	if notificationSettings.TimeInMinutes != nil {

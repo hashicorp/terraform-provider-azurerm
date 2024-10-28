@@ -15,7 +15,7 @@ type VirtualRoutersClient struct {
 }
 
 func NewVirtualRoutersClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualRoutersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualrouters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualrouters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualRoutersClient: %+v", err)
 	}

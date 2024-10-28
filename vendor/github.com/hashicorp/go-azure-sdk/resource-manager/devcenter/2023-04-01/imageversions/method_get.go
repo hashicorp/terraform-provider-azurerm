@@ -45,7 +45,6 @@ func (c ImageVersionsClient) Get(ctx context.Context, id VersionId) (result GetO
 
 	var model ImageVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

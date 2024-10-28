@@ -15,7 +15,7 @@ type BastionShareableLinkClient struct {
 }
 
 func NewBastionShareableLinkClientWithBaseURI(sdkApi sdkEnv.Api) (*BastionShareableLinkClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "bastionshareablelink", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "bastionshareablelink", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BastionShareableLinkClient: %+v", err)
 	}

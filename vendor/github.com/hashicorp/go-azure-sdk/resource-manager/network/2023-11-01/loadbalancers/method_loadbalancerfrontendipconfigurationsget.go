@@ -45,7 +45,6 @@ func (c LoadBalancersClient) LoadBalancerFrontendIPConfigurationsGet(ctx context
 
 	var model FrontendIPConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

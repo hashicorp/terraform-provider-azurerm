@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/checknameavailability` Documentation
 
-The `checknameavailability` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `checknameavailability` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

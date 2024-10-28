@@ -15,7 +15,7 @@ type CatalogsClient struct {
 }
 
 func NewCatalogsClientWithBaseURI(sdkApi sdkEnv.Api) (*CatalogsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "catalogs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "catalogs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CatalogsClient: %+v", err)
 	}

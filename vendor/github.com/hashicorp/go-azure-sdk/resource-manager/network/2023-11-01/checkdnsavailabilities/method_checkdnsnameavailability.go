@@ -34,6 +34,7 @@ func (o CheckDnsNameAvailabilityOperationOptions) ToHeaders() *client.Headers {
 
 func (o CheckDnsNameAvailabilityOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c CheckDnsAvailabilitiesClient) CheckDnsNameAvailability(ctx context.Conte
 
 	var model DnsNameAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

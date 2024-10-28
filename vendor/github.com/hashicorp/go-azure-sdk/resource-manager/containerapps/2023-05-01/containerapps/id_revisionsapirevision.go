@@ -44,7 +44,7 @@ func ParseRevisionsApiRevisionID(input string) (*RevisionsApiRevisionId, error) 
 	}
 
 	id := RevisionsApiRevisionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRevisionsApiRevisionIDInsensitively(input string) (*RevisionsApiRevisi
 	}
 
 	id := RevisionsApiRevisionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,11 +121,11 @@ func (id RevisionsApiRevisionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticContainerApps", "containerApps", "containerApps"),
-		resourceids.UserSpecifiedSegment("containerAppName", "containerAppValue"),
+		resourceids.UserSpecifiedSegment("containerAppName", "containerAppName"),
 		resourceids.StaticSegment("staticDetectorProperties", "detectorProperties", "detectorProperties"),
 		resourceids.StaticSegment("staticRevisionsApi", "revisionsApi", "revisionsApi"),
 		resourceids.StaticSegment("staticRevisions", "revisions", "revisions"),
-		resourceids.UserSpecifiedSegment("revisionName", "revisionValue"),
+		resourceids.UserSpecifiedSegment("revisionName", "revisionName"),
 	}
 }
 

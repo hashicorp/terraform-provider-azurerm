@@ -45,7 +45,6 @@ func (c PipelineRunsClient) Get(ctx context.Context, id PipelineRunId) (result G
 
 	var model PipelineRun
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

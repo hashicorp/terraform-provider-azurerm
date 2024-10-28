@@ -35,6 +35,7 @@ func (o VirtualNetworksCheckIPAddressAvailabilityOperationOptions) ToHeaders() *
 
 func (o VirtualNetworksCheckIPAddressAvailabilityOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c VirtualNetworksClient) VirtualNetworksCheckIPAddressAvailability(ctx con
 
 	var model IPAddressAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

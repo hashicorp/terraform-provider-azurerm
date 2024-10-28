@@ -21,8 +21,18 @@ type NatRule struct {
 	TranslatedPort       *string                              `json:"translatedPort,omitempty"`
 
 	// Fields inherited from FirewallPolicyRule
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
+
+	Description *string                `json:"description,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	RuleType    FirewallPolicyRuleType `json:"ruleType"`
+}
+
+func (s NatRule) FirewallPolicyRule() BaseFirewallPolicyRuleImpl {
+	return BaseFirewallPolicyRuleImpl{
+		Description: s.Description,
+		Name:        s.Name,
+		RuleType:    s.RuleType,
+	}
 }
 
 var _ json.Marshaler = NatRule{}
@@ -36,9 +46,10 @@ func (s NatRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling NatRule: %+v", err)
 	}
+
 	decoded["ruleType"] = "NatRule"
 
 	encoded, err = json.Marshal(decoded)

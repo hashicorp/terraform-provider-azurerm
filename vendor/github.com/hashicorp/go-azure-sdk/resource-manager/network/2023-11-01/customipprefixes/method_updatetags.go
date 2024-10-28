@@ -49,7 +49,6 @@ func (c CustomIPPrefixesClient) UpdateTags(ctx context.Context, id CustomIPPrefi
 
 	var model CustomIPPrefix
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

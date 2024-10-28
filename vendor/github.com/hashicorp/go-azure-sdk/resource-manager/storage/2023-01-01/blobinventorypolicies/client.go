@@ -15,7 +15,7 @@ type BlobInventoryPoliciesClient struct {
 }
 
 func NewBlobInventoryPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*BlobInventoryPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blobinventorypolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "blobinventorypolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlobInventoryPoliciesClient: %+v", err)
 	}

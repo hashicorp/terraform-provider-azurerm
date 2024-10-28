@@ -284,7 +284,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptional(),
 
 			"tags": commonschema.Tags(),
 
@@ -304,22 +304,46 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
 
-		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-			skuName, hasSkuName := diff.GetOk("sku_name")
-			_, hasSkuProfile := diff.GetOk("sku_profile")
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
 
-			if hasSkuProfile {
-				if !hasSkuName || skuName != SkuNameMix {
-					return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
-				}
-			} else {
-				if hasSkuName && skuName == SkuNameMix {
-					return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
-				}
-			}
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
 
-			return nil
-		},
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				skuName, hasSkuName := diff.GetOk("sku_name")
+				_, hasSkuProfile := diff.GetOk("sku_profile")
+
+				if hasSkuProfile {
+					if !hasSkuName || skuName != SkuNameMix {
+						return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
+					}
+				} else {
+					if hasSkuName && skuName == SkuNameMix {
+						return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
@@ -1130,6 +1154,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = pointer.To(d.Get("extensions_time_budget").(string))
 		}
+	}
+
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	// Only two fields that can change in legacy mode

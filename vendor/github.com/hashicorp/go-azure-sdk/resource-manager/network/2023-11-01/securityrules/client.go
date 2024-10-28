@@ -15,7 +15,7 @@ type SecurityRulesClient struct {
 }
 
 func NewSecurityRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*SecurityRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "securityrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "securityrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SecurityRulesClient: %+v", err)
 	}

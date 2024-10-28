@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -700,6 +700,10 @@ func TestAccCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 
 func TestAccCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableServerless"})
+}
+
+func TestAccCosmosDBAccount_capabilities_EnableNoSQLVectorSearch(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLVectorSearch"})
 }
 
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {

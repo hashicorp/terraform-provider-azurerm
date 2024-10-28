@@ -44,7 +44,7 @@ func ParseChannelID(input string) (*ChannelId, error) {
 	}
 
 	id := ChannelId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseChannelIDInsensitively(input string) (*ChannelId, error) {
 	}
 
 	id := ChannelId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ChannelId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerNamespaces", "partnerNamespaces", "partnerNamespaces"),
-		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceValue"),
+		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceName"),
 		resourceids.StaticSegment("staticChannels", "channels", "channels"),
-		resourceids.UserSpecifiedSegment("channelName", "channelValue"),
+		resourceids.UserSpecifiedSegment("channelName", "channelName"),
 	}
 }
 

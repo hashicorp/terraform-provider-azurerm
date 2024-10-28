@@ -15,7 +15,7 @@ type SchemaClient struct {
 }
 
 func NewSchemaClientWithBaseURI(sdkApi sdkEnv.Api) (*SchemaClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "schema", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "schema", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SchemaClient: %+v", err)
 	}

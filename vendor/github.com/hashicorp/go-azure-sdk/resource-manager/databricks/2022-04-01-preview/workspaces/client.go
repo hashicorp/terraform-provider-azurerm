@@ -15,7 +15,7 @@ type WorkspacesClient struct {
 }
 
 func NewWorkspacesClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkspacesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workspaces", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "workspaces", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkspacesClient: %+v", err)
 	}

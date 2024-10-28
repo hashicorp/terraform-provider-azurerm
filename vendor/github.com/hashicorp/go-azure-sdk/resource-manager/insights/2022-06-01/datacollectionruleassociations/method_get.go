@@ -45,7 +45,6 @@ func (c DataCollectionRuleAssociationsClient) Get(ctx context.Context, id Scoped
 
 	var model DataCollectionRuleAssociationProxyOnlyResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

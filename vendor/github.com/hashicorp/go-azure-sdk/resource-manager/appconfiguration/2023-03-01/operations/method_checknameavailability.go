@@ -51,7 +51,6 @@ func (c OperationsClient) CheckNameAvailability(ctx context.Context, id commonid
 
 	var model NameAvailabilityStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
