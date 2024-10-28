@@ -28,9 +28,9 @@ resource "azurerm_container_registry" "example" {
 }
 
 resource "azurerm_container_registry_credential_set" "example" {
-  name                       = "exampleCredentialSet"
-  container_registry_id      = "azurerm_container_registry.example.id"
-  login_server               = "docker.io"
+  name                  = "exampleCredentialSet"
+  container_registry_id = "azurerm_container_registry.example.id"
+  login_server          = "docker.io"
   authentication_credentials {
     username_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-name"
     password_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-password"
