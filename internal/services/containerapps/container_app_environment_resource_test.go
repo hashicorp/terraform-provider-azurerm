@@ -325,7 +325,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_log_analytics_workspace" "second" {
-  name                = "acctestLAW-second-%[1]d"
+  name                = "acctestLAW-second-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
