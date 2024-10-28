@@ -230,8 +230,6 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 					// If the data source exposes additional properties that live within the Properties
 					// model of the response they would be set into state here. 
 				}
-                // (as above) Tags are a little different, so we have a dedicated helper function
-                // to flatten these consistently across the Provider 
 			}   
 			return metadata.Encode(&state)
 		},
