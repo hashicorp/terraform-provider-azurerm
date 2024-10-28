@@ -8,11 +8,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -39,19 +41,21 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 			Required: true,
 			ForceNew: true,
 		},
-		"auth_credentials": {
+		"authentication_credentials": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
-					"username_secret_identifier": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+					"username_secret_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 					},
-					"password_secret_identifier": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+					"password_secret_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 					},
 				},
 			},
@@ -61,46 +65,21 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 
 func (ContainerRegistryCredentialSetResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"identity": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*schema.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"tenant_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-					"principal_id": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
+		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 	}
 }
 
-type Identity struct {
-	Type        string `tfschema:"type"`
-	TenantId    string `tfschema:"tenant_id"`
-	PrincipalId string `tfschema:"principal_id"`
-}
-
-type AuthCredential struct {
-	UsernameSecretIdentifier string `tfschema:"username_secret_identifier"`
-	PasswordSecretIdentifier string `tfschema:"password_secret_identifier"`
+type AuthenticationCredential struct {
+	UsernameSecretId string `tfschema:"username_secret_id"`
+	PasswordSecretId string `tfschema:"password_secret_id"`
 }
 
 type ContainerRegistryCredentialSetModel struct {
-	Name                string           `tfschema:"name"`
-	ContainerRegistryId string           `tfschema:"container_registry_id"`
-	LoginServer         string           `tfschema:"login_server"`
-	AuthCredentials     []AuthCredential `tfschema:"auth_credentials"`
-	Identity            []Identity       `tfschema:"identity"`
+	Name                     string                                     `tfschema:"name"`
+	ContainerRegistryId      string                                     `tfschema:"container_registry_id"`
+	LoginServer              string                                     `tfschema:"login_server"`
+	AuthenticationCredential []AuthenticationCredential                 `tfschema:"authentication_credentials"`
+	Identity                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 func (ContainerRegistryCredentialSetResource) ModelObject() interface{} {
@@ -125,7 +104,7 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Container Registry Credential Set creation.")
 
-			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
+			registryId, err := registries.ParseRegistryID(config.ContainerRegistryId)
 			if err != nil {
 				return err
 			}
@@ -133,7 +112,7 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 			id := credentialsets.NewCredentialSetID(subscriptionId,
 				registryId.ResourceGroupName,
 				registryId.RegistryName,
-				metadata.ResourceData.Get("name").(string),
+				config.Name,
 			)
 
 			existing, err := client.Get(ctx, id)
@@ -145,10 +124,10 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 			}
 
 			param := credentialsets.CredentialSet{
-				Name: &id.CredentialSetName,
+				Name: pointer.To(id.CredentialSetName),
 				Properties: &credentialsets.CredentialSetProperties{
 					LoginServer:     pointer.To(config.LoginServer),
-					AuthCredentials: expandAuthCredentials(config.AuthCredentials),
+					AuthCredentials: expandAuthCredentials(config.AuthenticationCredential),
 				},
 				Identity: &identity.SystemAndUserAssignedMap{
 					Type: identity.TypeSystemAssigned,
@@ -175,39 +154,24 @@ func (r ContainerRegistryCredentialSetResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", id)
-			}
+			param := credentialsets.CredentialSetUpdateParameters{}
 
 			var model ContainerRegistryCredentialSetModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			if metadata.ResourceData.HasChange("login_server") {
-				existing.Model.Properties.LoginServer = pointer.To(model.LoginServer)
-			}
-			if metadata.ResourceData.HasChange("auth_credentials") {
-				existing.Model.Properties.AuthCredentials = expandAuthCredentials(model.AuthCredentials)
+			properties := credentialsets.CredentialSetUpdateProperties{}
+
+			if metadata.ResourceData.HasChange("authentication_credentials") {
+				properties.AuthCredentials = expandAuthCredentials(model.AuthenticationCredential)
 			}
 
-			param := credentialsets.CredentialSetUpdateParameters{
-				Identity: expandIdentity(model.Identity),
-				Properties: &credentialsets.CredentialSetUpdateProperties{
-					AuthCredentials: existing.Model.Properties.AuthCredentials,
-				},
-			}
+			param.Properties = &properties
+
 			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
-
 			return nil
 		},
 	}
@@ -242,16 +206,17 @@ func (ContainerRegistryCredentialSetResource) Read() sdk.ResourceFunc {
 			config.ContainerRegistryId = registryId.ID()
 
 			if model := resp.Model; model != nil {
-				config.Identity = flattenIdentity(model.Identity)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				config.Identity = pointer.From(flattenedIdentity)
 				if props := model.Properties; props != nil {
 					config.LoginServer = pointer.From(props.LoginServer)
-					config.AuthCredentials = flattenAuthCredentials(props.AuthCredentials)
+					config.AuthenticationCredential = flattenAuthCredentials(props.AuthCredentials)
 				}
 			}
-			if err := metadata.Encode(&config); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
-			return nil
+			return metadata.Encode(&config)
 		},
 	}
 }
@@ -278,54 +243,31 @@ func (ContainerRegistryCredentialSetResource) IDValidationFunc() pluginsdk.Schem
 	return credentialsets.ValidateCredentialSetID
 }
 
-func expandAuthCredentials(input []AuthCredential) *[]credentialsets.AuthCredential {
+func expandAuthCredentials(input []AuthenticationCredential) *[]credentialsets.AuthCredential {
+	output := make([]credentialsets.AuthCredential, 0)
 	if len(input) == 0 {
-		return nil
+		return &output
 	}
-	output := make([]credentialsets.AuthCredential, 0, len(input))
 	for _, v := range input {
 		output = append(output, credentialsets.AuthCredential{
 			Name:                     pointer.To(credentialsets.CredentialNameCredentialOne),
-			UsernameSecretIdentifier: pointer.To(v.UsernameSecretIdentifier),
-			PasswordSecretIdentifier: pointer.To(v.PasswordSecretIdentifier),
+			UsernameSecretIdentifier: pointer.To(v.UsernameSecretId),
+			PasswordSecretIdentifier: pointer.To(v.PasswordSecretId),
 		})
 	}
 	return &output
 }
 
-func flattenAuthCredentials(input *[]credentialsets.AuthCredential) []AuthCredential {
+func flattenAuthCredentials(input *[]credentialsets.AuthCredential) []AuthenticationCredential {
+	output := make([]AuthenticationCredential, 0)
 	if input == nil {
-		return nil
+		return output
 	}
-	output := make([]AuthCredential, len(*input))
-	for i, v := range *input {
-		output[i] = AuthCredential{
-			UsernameSecretIdentifier: pointer.From(v.UsernameSecretIdentifier),
-			PasswordSecretIdentifier: pointer.From(v.PasswordSecretIdentifier),
-		}
+	for _, v := range *input {
+		output = append(output, AuthenticationCredential{
+			UsernameSecretId: pointer.From(v.UsernameSecretIdentifier),
+			PasswordSecretId: pointer.From(v.PasswordSecretIdentifier),
+		})
 	}
 	return output
-}
-
-func flattenIdentity(input *identity.SystemAndUserAssignedMap) []Identity {
-	if input == nil {
-		return nil
-	}
-	output := make([]Identity, 1)
-	output[0] = Identity{
-		Type:        string(input.Type),
-		TenantId:    input.TenantId,
-		PrincipalId: input.PrincipalId,
-	}
-	return output
-}
-
-func expandIdentity(input []Identity) *identity.SystemAndUserAssignedMap {
-	if len(input) == 0 {
-		return nil
-	}
-	output := identity.SystemAndUserAssignedMap{
-		Type: identity.TypeSystemAssigned,
-	}
-	return &output
 }

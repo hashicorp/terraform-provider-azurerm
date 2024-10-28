@@ -109,9 +109,9 @@ resource "azurerm_container_registry_credential_set" "test" {
   name                  = "testacc-acr-credential-set-%d"
   container_registry_id = azurerm_container_registry.test.id
   login_server          = "docker.io"
-  auth_credentials {
-    username_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name"
-    password_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
+  authentication_credentials {
+    username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name"
+    password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -125,9 +125,9 @@ resource "azurerm_container_registry_credential_set" "import" {
   name                  = azurerm_container_registry_credential_set.test.name
   container_registry_id = azurerm_container_registry_credential_set.test.container_registry_id
   login_server          = azurerm_container_registry_credential_set.test.login_server
-  auth_credentials {
-    username_secret_identifier = azurerm_container_registry_credential_set.test.auth_credentials[0].username_secret_identifier
-    password_secret_identifier = azurerm_container_registry_credential_set.test.auth_credentials[0].password_secret_identifier
+  authentication_credentials {
+    username_secret_id = azurerm_container_registry_credential_set.test.authentication_credentials[0].username_secret_id
+    password_secret_id = azurerm_container_registry_credential_set.test.authentication_credentials[0].password_secret_id
   }
 }
 `, r.basic(data))
@@ -155,9 +155,9 @@ resource "azurerm_container_registry_credential_set" "test" {
   name                  = "testacc-acr-credential-set-%d"
   container_registry_id = azurerm_container_registry.test.id
   login_server          = "docker.io"
-  auth_credentials {
-    username_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name-changed"
-    password_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
+  authentication_credentials {
+    username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name-changed"
+    password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

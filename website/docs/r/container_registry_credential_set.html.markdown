@@ -31,8 +31,10 @@ resource "azurerm_container_registry_credential_set" "example" {
   name                       = "exampleCredentialSet"
   container_registry_id      = "azurerm_container_registry.example.id"
   login_server               = "docker.io"
-  username_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/example-user-name"
-  password_secret_identifier = "https://example-keyvault.vault.azure.net/secrets/example-user-password"
+  authentication_credentials {
+    username_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-name"
+    password_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-password"
+  }
 }
 ```
 
@@ -76,11 +78,13 @@ resource "azurerm_container_registry" "example" {
 }
 
 resource "azurerm_container_registry_credential_set" "example" {
-  name                       = "exampleCredentialSet"
-  container_registry_id      = "azurerm_container_registry.example.id"
-  login_server               = "docker.io"
-  username_secret_identifier = azurerm_key_vault_secret.example_user.resource_versionless_id
-  password_secret_identifier = azurerm_key_vault_secret.example_password.resource_versionless_id
+  name                  = "exampleCredentialSet"
+  container_registry_id = "azurerm_container_registry.example.id"
+  login_server          = "docker.io"
+  authentication_credentials {
+    username_secret_id = azurerm_key_vault_secret.example_user.resource_versionless_id
+    password_secret_id = azurerm_key_vault_secret.example_password.resource_versionless_id
+  }
 }
 
 resource "azurerm_key_vault_access_policy" "read_secrets" {
@@ -101,15 +105,17 @@ The following arguments are supported:
 
 * `login_server` - (Required) The login server for the Credential Set. Changing this forces a new Container Registry Credential Set to be created.
 
-* `auth_credentials` - (Required) A `auth_credentials` block as defined below.
+* `authentication_credentials` - (Required) A `authentication_credentials` block as defined below.
 
 ---
 
-A `auth_credentials` block supports the following:
+A `authentication_credentials` block supports the following:
 
-* `username_secret_identifier` - (Required) The URI of the secret containing the user's name in a Key Vault.
+* `username_secret_id` - (Required) The URI of the secret containing the username in a Key Vault.
 
-* `password_secret_identifier` - (Required) The URI of the secret containing the user's password in a Key Vault.
+* `password_secret_id` - (Required) The URI of the secret containing the password in a Key Vault.
+
+~> NOTE: Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
 
 ## Attributes Reference
@@ -129,6 +135,11 @@ A `identity` block exports the following:
 * `tenant_id` - The tenant ID of the Identity.
 
 * `type` - The type of the Identity.
+
+* `identity_ids` - A list of User Managed Identity IDs.
+
+~> **Note:** Currently only SystemAssigned Identities are supported.
+
 
 ## Timeouts
 
