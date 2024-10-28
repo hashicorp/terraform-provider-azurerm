@@ -324,7 +324,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_log_analytics_workspace" "text-second" {
+resource "azurerm_log_analytics_workspace" "second" {
   name                = "acctestLAW-second-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -336,7 +336,7 @@ resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.text-second.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.second.id
   infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
