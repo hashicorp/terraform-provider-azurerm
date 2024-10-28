@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxdeployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,7 +25,7 @@ type DeploymentDataSourceModel struct {
 	NginxVersion           string                                     `tfschema:"nginx_version"`
 	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
+	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group,removedInNextMajorVersion"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
@@ -56,7 +57,7 @@ func (m DeploymentDataSource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	dataSource := map[string]*pluginsdk.Schema{
 		"nginx_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -65,11 +66,6 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"sku": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"managed_resource_group": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -196,6 +192,15 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.TagsDataSource(),
 	}
+
+	if !features.FivePointOhBeta() {
+		dataSource["managed_resource_group"] = &pluginsdk.Schema{
+			Deprecated: "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+		}
+	}
+	return dataSource
 }
 
 func (m DeploymentDataSource) ModelObject() interface{} {
@@ -245,7 +250,6 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 				output.Identity = *flattenedIdentity
 				if props := model.Properties; props != nil {
 					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.ManagedResourceGroup = pointer.ToString(props.ManagedResourceGroup)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
