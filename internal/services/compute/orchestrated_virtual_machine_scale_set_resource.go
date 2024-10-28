@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -33,6 +34,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+const (
+	SkuNameMix = "Mix"
 )
 
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -298,6 +303,23 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
+
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+			skuName, hasSkuName := diff.GetOk("sku_name")
+			_, hasSkuProfile := diff.GetOk("sku_profile")
+
+			if hasSkuProfile {
+				if !hasSkuName || skuName != SkuNameMix {
+					return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
+				}
+			} else {
+				if hasSkuName && skuName == SkuNameMix {
+					return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -381,10 +403,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	if v, ok := d.GetOk("sku_profile"); ok {
-		if props.Sku == nil || pointer.From(props.Sku.Name) != "Mix" {
-			return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
-		}
-
 		props.Properties.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(v.([]interface{}))
 	}
 
@@ -1451,7 +1469,7 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*virtualmachinescalesets.Sku, error) {
 	skuParts := strings.Split(input, "_")
 
-	if (input != "Mix" && len(skuParts) < 2) || strings.Contains(input, "__") || strings.Contains(input, " ") {
+	if (input != SkuNameMix && len(skuParts) < 2) || strings.Contains(input, "__") || strings.Contains(input, " ") {
 		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly", input)
 	}
 
@@ -1460,7 +1478,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 		Capacity: utils.Int64(int64(capacity)),
 	}
 
-	if input != "Mix" {
+	if input != SkuNameMix {
 		sku.Tier = pointer.To("Standard")
 	}
 
@@ -1470,7 +1488,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets.Sku) (*string, error) {
 	var skuName string
 	if input != nil && input.Name != nil {
-		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == "Mix" {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == SkuNameMix {
 			skuName = *input.Name
 		} else {
 			skuName = fmt.Sprintf("Standard_%s", *input.Name)
