@@ -106,7 +106,7 @@ func (VirtualNetworkPeeringDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			virtualNetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(state.VirtualNetworkId)
+			virtualNetworkId, err := commonids.ParseVirtualNetworkID(state.VirtualNetworkId)
 			if err != nil {
 				return err
 			}
