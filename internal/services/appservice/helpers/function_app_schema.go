@@ -166,6 +166,8 @@ func FlexFunctionAppDeploymentSchema() *pluginsdk.Schema {
 			"storage_account_access_key",
 			"storage_uses_managed_identity",
 			"storage_key_vault_secret_id",
+			"functions_extension_version",
+			"builtin_logging_enabled",
 		},
 	}
 }

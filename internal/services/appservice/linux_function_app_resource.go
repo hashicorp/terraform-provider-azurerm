@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strconv"
 	"strings"
 	"time"
@@ -193,9 +194,17 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"backup": helpers.BackupSchema(),
 
 		"builtin_logging_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     true,
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Default:       true,
+			ConflictsWith: []string{"flex_function_app_deployment"},
+			DiffSuppressFunc: func(_, old, new string, rd *schema.ResourceData) bool {
+				flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
+				if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 {
+					return true
+				}
+				return false
+			},
 			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
 		},
 
@@ -249,9 +258,17 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"functions_extension_version": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Default:     "~4",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Default:       "~4",
+			ConflictsWith: []string{"flex_function_app_deployment"},
+			DiffSuppressFunc: func(_, old, new string, rd *pluginsdk.ResourceData) bool {
+				flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
+				if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 {
+					return true
+				}
+				return false
+			},
 			Description: "The runtime version associated with the Function App.",
 		},
 
@@ -1378,11 +1395,25 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-
+			}
+			if rd.HasChange("builtin_logging_enabled") {
+				_, newValue := rd.GetChange("builtin_logging_enabled")
+				flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
+				if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 && newValue.(bool) {
+					newValue = false
+				}
 			}
 			return nil
 		},
 	}
+}
+
+func flexFunctionAppFunctionVersionDiffSuppressFunc(_, _, _ string, rd *pluginsdk.ResourceData) bool {
+	flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
+	if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 {
+		return true
+	}
+	return false
 }
 
 func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData, isFlexFunctionApp bool) {
@@ -1449,7 +1480,9 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 			}
 
 		case "AzureWebJobsDashboard":
-			m.BuiltinLogging = true
+			if !isFlexFunctionApp {
+				m.BuiltinLogging = true
+			}
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
@@ -1462,8 +1495,9 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 			}
 
 		case "AzureWebJobsDashboard__accountName":
-			m.BuiltinLogging = true
-
+			if !isFlexFunctionApp {
+				m.BuiltinLogging = true
+			}
 		case "WEBSITE_VNET_ROUTE_ALL":
 		// Filter out - handled by site_config setting `vnet_route_all_enabled`
 

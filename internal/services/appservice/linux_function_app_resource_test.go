@@ -4330,7 +4330,7 @@ func (LinuxFunctionAppResource) template(data acceptance.TestData, planSku strin
 	}
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
+  name     = "rg-sfi-acctestRG-LFA-%d"
   location = "%s"
 }
 
