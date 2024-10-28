@@ -718,8 +718,39 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
 	}
 
+	if d.HasChange("fips_enabled") {
+		props.EnableFIPS = utils.Bool(d.Get("fips_enabled").(bool))
+	}
+
+	if d.HasChange("host_encryption_enabled") {
+		props.EnableEncryptionAtHost = utils.Bool(d.Get("host_encryption_enabled").(bool))
+	}
+
+	if d.HasChange("kubelet_config") {
+		if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
+			props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
+		}
+	}
+
+	if d.HasChange("linux_os_config") {
+		if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
+			if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
+				return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+			}
+			linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
+			if err != nil {
+				return err
+			}
+			props.LinuxOSConfig = linuxOSConfig
+		}
+	}
+
 	if d.HasChange("max_count") || enableAutoScaling {
 		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
+	}
+
+	if d.HasChange("max_pods") {
+		props.MaxPods = utils.Int64(int64(d.Get("max_pods").(int)))
 	}
 
 	if d.HasChange("mode") {
@@ -733,6 +764,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_count") {
 		props.Count = utils.Int64(int64(d.Get("node_count").(int)))
+	}
+
+	if d.HasChange("node_public_ip_enabled") {
+		props.EnableNodePublicIP = utils.Bool(d.Get("node_public_ip_enabled").(bool))
 	}
 
 	if d.HasChange("node_public_ip_prefix_id") {
@@ -763,8 +798,24 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Tags = tags.Expand(t)
 	}
 
+	if d.HasChange("os_disk_type") {
+		props.OsDiskType = pointer.To(agentpools.OSDiskType(d.Get("os_disk_type").(string)))
+	}
+
+	if d.HasChange("os_disk_size_gb") {
+		props.OsDiskSizeGB = utils.Int64(int64(d.Get("os_disk_size_gb").(int)))
+	}
+
 	if d.HasChange("os_sku") {
 		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
+	}
+
+	if d.HasChange("pod_subnet_id") {
+		props.PodSubnetID = utils.String(d.Get("pod_subnet_id").(string))
+	}
+
+	if d.HasChange("ultra_ssd_enabled") {
+		props.EnableUltraSSD = utils.Bool(d.Get("ultra_ssd_enabled").(bool))
 	}
 
 	if d.HasChange("upgrade_settings") {
@@ -776,6 +827,30 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		mode := agentpools.ScaleDownMode(d.Get("scale_down_mode").(string))
 		props.ScaleDownMode = &mode
 	}
+
+	if d.HasChange("snapshot_id") {
+		props.CreationData = &agentpools.CreationData{
+			SourceResourceId: utils.String(d.Get("snapshot_id").(string)),
+		}
+	}
+
+	if d.HasChange("vm_size") {
+		props.VMSize = utils.String(d.Get("vm_size").(string))
+	}
+
+	if d.HasChange("vnet_subnet_id") {
+		var subnetID *commonids.SubnetId
+		if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
+			subnetID, err = commonids.ParseSubnetID(subnetIDValue.(string))
+			if err != nil {
+				return err
+			}
+			if subnetID != nil {
+				props.VnetSubnetID = utils.String(subnetID.ID())
+			}
+		}
+	}
+
 	if d.HasChange("workload_runtime") {
 		runtime := agentpools.WorkloadRuntime(d.Get("workload_runtime").(string))
 		props.WorkloadRuntime = &runtime
@@ -791,6 +866,13 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+	}
+
+	if d.HasChange("zones") {
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		if len(zones) > 0 {
+			props.AvailabilityZones = &zones
+		}
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -853,9 +935,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	// updating the properties values
-	existing.Model.Properties = props
-
 	if cycleNodePool {
 		log.Printf("[DEBUG] Cycling Node Pool..")
 		// to provide a seamless updating experience for the node pool we need to cycle it by provisioning a temporary one,
@@ -875,6 +954,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		tempAgentProfile := *existing.Model
 		tempAgentProfile.Name = &temporaryNodePoolName
+
 		// if the temp node pool already exists due to a previous failure, don't bother spinning it up.
 		// the temporary nodepool is created with the new values
 		if tempExisting.Model == nil {
