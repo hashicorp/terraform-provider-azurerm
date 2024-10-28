@@ -1396,24 +1396,9 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
-			if rd.HasChange("builtin_logging_enabled") {
-				_, newValue := rd.GetChange("builtin_logging_enabled")
-				flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
-				if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 && newValue.(bool) {
-					newValue = false
-				}
-			}
 			return nil
 		},
 	}
-}
-
-func flexFunctionAppFunctionVersionDiffSuppressFunc(_, _, _ string, rd *pluginsdk.ResourceData) bool {
-	flexFuncSettings, isFlexSettingSet := rd.GetOk("flex_function_app_deployment")
-	if isFlexSettingSet && len(flexFuncSettings.([]interface{})) > 0 {
-		return true
-	}
-	return false
 }
 
 func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData, isFlexFunctionApp bool) {
