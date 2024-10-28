@@ -576,7 +576,10 @@ service/workloads:
     - internal/services/workloads/**/*
 
 Bug:
-  - '-\s\[X\]\sBug\sFix'
+  - '- \[ ?X ?\] Bug Fix'
 
 Enhancement:
-  - '-\s\[X\]\sEnhancement'
+  - '- \[ ?X ?\] Enhancement'
+
+breaking-change:
+  - '- \[ ?X ?\] Breaking Change'
