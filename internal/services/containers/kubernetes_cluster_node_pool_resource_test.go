@@ -1699,23 +1699,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data), numberOfAgents)
 }
 
-func (r KubernetesClusterNodePoolResource) manualScaleVMSkuConfig(data acceptance.TestData, sku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "%s"
-  node_count            = 1
-}
-`, r.templateConfig(data), sku)
-}
-
 func (r KubernetesClusterNodePoolResource) modeSystemConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
