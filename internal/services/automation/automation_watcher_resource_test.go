@@ -36,7 +36,6 @@ func TestAccWatcher_basic(t *testing.T) {
 }
 
 func TestAccWatcher_update(t *testing.T) {
-	t.Skip("Watcher Must be stopped before updating, so Skip this test")
 	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
 	r := WatcherResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -115,7 +114,7 @@ resource "azurerm_automation_watcher" "test" {
   }
 
   script_parameters = {
-    param_foo = "arg_bar"
+    foo = "bar"
   }
 
   etag                           = "etag example"
