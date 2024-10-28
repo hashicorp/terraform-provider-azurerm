@@ -241,11 +241,11 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
-            var config ResourceGroupExampleResourceModel
-            if err := metadata.Decode(&config); err != nil {
-                return fmt.Errorf("decoding: %+v", err)
-            }
+			
+			var config ResourceGroupExampleResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 			// update the Resource Group
 			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
 			// API and then conditionally updating it when fields in the config have been updated, which
@@ -302,36 +302,36 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 		
 		// the Func returns a function which looks up the state of the Resource Group and sets it into the state
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
-
-			// parse the Resource Group ID from the `id` field
-            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+			client := metadata.Client.Resource.GroupsClient
+			
+			// parse the Resource Group ID from the `id` field 
+			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 			
-			// then retrieve the Resource Group by its ID
-            resp, err := client.Get(ctx, *id)
-            if err != nil {
+			// then retrieve the Resource Group by its ID 
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
 				// since this is a Resource (e.g. we created it/it was imported into the state)
-				// it previously existed - so we must mark this as "gone" for Terraform
-                if response.WasNotFound(resp.HttpResponse) {
-                    return metadata.MarkAsGone(id)
-                }
+				// it previously existed - so we must mark this as "gone" for Terraform 
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
 				
-                // otherwise it's a genuine error (auth/api error etc) so raise it
+				// otherwise it's a genuine error (auth/api error etc) so raise it
 				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle
-                return fmt.Errorf("retrieving %s: %+v", id, err)
-            }
-
-            // at this point we can set information about this Resource Group into the State
-            // identifier fields such as the name, resource group name to name a few need to be sourced
-            // from the Resource ID instead of the API response
+				// or raise a bug report if there's something we should handle 
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			
+			// at this point we can set information about this Resource Group into the State 
+			// identifier fields such as the name, resource group name to name a few need to be sourced 
+			// from the Resource ID instead of the API response
 			state := ResourceGroupExampleResourceModel{
 				Name: id.ResourceGroupName,
-            }
+			}
 			
 			// the SDK will return a Model as well as a nested Properties object for the resource
 			// for readability and consistency we assign the Model to a variable and nil check as shown below.
@@ -339,22 +339,22 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
 			// crashing.
 			if model := resp.Model; model != nil {
-                            // the Location field is a little different - and we have a normalization
-                            // function for this.
+				// the Location field is a little different - and we have a normalization
+				// function for this.
                             
-                            // whilst this may seem like a weird thing to call out in an example, because these two fields
-                            // are present on the majority of resources, we hope it explains why they're a little different
+				// whilst this may seem like a weird thing to call out in an example, because these two fields
+				// are present on the majority of resources, we hope it explains why they're a little different
                             
-                            // in this case the Location can be returned in various different forms, for example
-                            // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
-                            // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
-                            // for users
-                            state.Location = location.NormalizeNilable(model.Location)
-							state.Tags = pointer.From(model.Tags)
-                            if props := model.Properties; props != nil {
-                                // if there are properties to set into state do that here
-                            }
-                        }       
+				// in this case the Location can be returned in various different forms, for example
+				// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
+				// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
+				// for users
+				state.Location = location.NormalizeNilable(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					// if there are properties to set into state do that here
+				}
+			}       
 			return metadata.Encode(&state)
 		},
 	}
@@ -387,7 +387,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
 			// method in the SDK
 			if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-            }
+			}
 			return nil
 		},
 	}

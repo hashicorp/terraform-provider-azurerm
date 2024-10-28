@@ -134,7 +134,7 @@ func (ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-            ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -175,41 +175,41 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 
 		// the Func returns a function which retrieves the current state of the Resource Group into the state 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+			client := metadata.Client.Resource.GroupsClient
             
 			// retrieve the Name for this Resource Group from the Terraform Config
 			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name
-            subscriptionId := metadata.Client.Account.SubscriptionId
+			// using the Subscription ID & name 
+			subscriptionId := metadata.Client.Account.SubscriptionId
 			
 			// declare a variable called state which we use to decode and encode values into
 			// this simultaneously gets values that have been set in the config for us
 			// and also allows us to set values into state
 			var state ResourceGroupExampleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
-                return fmt.Errorf("decoding: %+v", err)
-            }   
-
-            id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
+				return fmt.Errorf("decoding: %+v", err)
+			}   
 			
-			// then retrieve the Resource Group by it's ID
-            resp, err := client.Get(ctx, id)
-            if err != nil {
+			id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
+			
+			// then retrieve the Resource Group by it's ID 
+			resp, err := client.Get(ctx, id)
+			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
-				// since this is a Data Source we must return an error if it's Not Found
-                if response.WasNotFound(resp.HttpResponse) {
-                    return fmt.Errorf("%s was not found", id)
-                }
+				// since this is a Data Source we must return an error if it's Not Found 
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
 				
-                // otherwise it's a genuine error (auth/api error etc) so raise it
+				// otherwise it's a genuine error (auth/api error etc) so raise it
 				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle
-                return fmt.Errorf("retrieving %s: %+v", id, err)
-            }
+				// or raise a bug report if there's something we should handle 
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
 			
 			// now we know the Resource Group exists, set the Resource ID for this Data Source
-			// this means that Terraform will track this as existing
-            metadata.SetID(id)
+			// this means that Terraform will track this as existing 
+			metadata.SetID(id)
 			
 			// at this point we can set information about this Resource Group into the State
 			// whilst traditionally we would do this via `metadata.ResourceData.Set("foo", "somevalue")
@@ -228,11 +228,11 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				props := model.Properties; props != nil {
 					// If the data source exposes additional properties that live within the Properties
-					// model of the response they would be set into state here.
-                }
+					// model of the response they would be set into state here. 
+				}
                 // (as above) Tags are a little different, so we have a dedicated helper function
-                // to flatten these consistently across the Provider
-            }   
+                // to flatten these consistently across the Provider 
+			}   
 			return metadata.Encode(&state)
 		},
 	}
