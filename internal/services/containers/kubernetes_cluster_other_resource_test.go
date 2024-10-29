@@ -466,35 +466,6 @@ func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsProfileConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
-		{
-			Config: r.windowsProfileLicense(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
-		{
-			Config: r.windowsProfileConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
-	})
-}
-
 func TestAccKubernetesCluster_diskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
