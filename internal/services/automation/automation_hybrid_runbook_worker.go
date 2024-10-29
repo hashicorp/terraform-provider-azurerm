@@ -159,6 +159,9 @@ func (m HybridRunbookWorkerResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Automation.HybridRunbookWorker
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 			if result.Model == nil {
