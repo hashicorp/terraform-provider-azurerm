@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
+* `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
 * `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
 
 BUG FIXES:
