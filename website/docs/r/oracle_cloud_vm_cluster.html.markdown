@@ -121,11 +121,17 @@ The following arguments are supported:
 
 * `db_node_storage_size_in_gbs` - (Optional) The local node storage to be allocated in GBs.
 
+* `domain` - (Optional) The domain name for the cloud VM cluster.
+
 * `local_backup_enabled` - (Optional)  If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If `false`, database backup on local Exadata storage is not available in the Cloud VM Cluster.
 
 * `sparse_diskgroup_enabled` - (Optional) If true, the sparse disk group is configured for the Cloud VM Cluster. If `false`, the sparse disk group is not created.
 
 * `memory_size_in_gbs` - (Optional) The memory to be allocated in GBs.
+
+* `scan_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port is 1521.
+
+* `scan_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Cloud VM Cluster.
 
