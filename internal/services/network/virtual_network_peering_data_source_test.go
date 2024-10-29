@@ -86,6 +86,5 @@ data "azurerm_virtual_network_peering" "test-1" {
 data "azurerm_virtual_network_peering" "test-2" {
   name               = azurerm_virtual_network_peering.test-2.name
   virtual_network_id = azurerm_virtual_network.test-2.id
-}
-`, data.RandomInteger, data.Locations.Primary)
+}`, data.RandomInteger, data.Locations.Primary)
 }
