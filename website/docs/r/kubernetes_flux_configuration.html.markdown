@@ -218,7 +218,7 @@ A `post_build` block supports the following:
 A `substitute_from` block supports the following:
 * `kind` - (Required) Define whether it is ConfigMap or Secret that holds the variables to be used in substitution.
 
-* `name` - (Required) Name of the ConfigMap/Secret that holds the variables to be used in substitution.
+* `name` - (Required) Specifies the name of the ConfigMap/Secret that holds the variables to be used in substitution.
 
 * `optional` - (Optional) Set to True to proceed without ConfigMap/Secret, if it is not present. Defaults to `True`.
 
