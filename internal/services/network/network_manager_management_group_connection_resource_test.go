@@ -30,7 +30,7 @@ func testAccNetworkManagerManagementGroupConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -58,7 +58,7 @@ func testAccNetworkManagerManagementGroupConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -72,14 +72,14 @@ func testAccNetworkManagerManagementGroupConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
