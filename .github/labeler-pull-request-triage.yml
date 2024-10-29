@@ -575,10 +575,10 @@ service/workloads:
   - any-glob-to-any-file:
     - internal/services/workloads/**/*
 
-Bug:
+bug:
   - '- \[ ?X ?\] Bug Fix'
 
-Enhancement:
+enhancement:
   - '- \[ ?X ?\] Enhancement'
 
 breaking-change:
