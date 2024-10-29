@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * `mysql` - upgrade api version to `2023-12-30` [GH-27767]
 * `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` [GH-27763]
+* `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-27794]
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
 * `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
 * `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties [GH-27588]
