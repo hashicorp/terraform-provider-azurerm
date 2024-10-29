@@ -644,5 +644,5 @@ resource "azurerm_linux_web_app" "test" {
     ]
   }
 }
-`, data.RandomInteger, "eastus", data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
