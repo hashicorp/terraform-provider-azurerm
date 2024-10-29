@@ -256,8 +256,8 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		}
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
-			if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
-				if pointer.From(featureSetting.CrossRegionRestoreSettings.State) == backupvaults.CrossRegionRestoreStateEnabled {
+			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
+				if pointer.From(crossRegionRestore.State) == backupvaults.CrossRegionRestoreStateEnabled {
 					crossRegionStoreEnabled = true
 				}
 			}
