@@ -230,7 +230,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -252,7 +252,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
+			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
@@ -260,7 +260,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
+			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
@@ -362,7 +362,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 				param.Properties.ScanListenerPortTcpSsl = pointer.To(model.ScanListenerPortTcpSsl)
 			}
 			if model.TimeZone != "" {
-				param.Properties.ClusterName = pointer.To(model.TimeZone)
+				param.Properties.TimeZone = pointer.To(model.TimeZone)
 			}
 			if model.DataStoragePercentage != 0 {
 				param.Properties.DataStoragePercentage = pointer.To(model.DataStoragePercentage)
