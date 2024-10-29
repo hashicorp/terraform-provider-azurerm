@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
 * `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties [GH-27588]
 * `azurerm_load_test` - `description` can now be updated [GH-27800]
+* `azurerm_oracle_cloud_vm_cluster` - export the `ocid` property [GH-27785]
 * `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
 
 BUG FIXES:
