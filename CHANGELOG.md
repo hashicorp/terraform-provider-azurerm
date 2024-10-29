@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_automation_hybrid_runbook_worker_group` - correctly mark resource as gone if it's absent when reading it [GH-27797]
 * `azurerm_automation_hybrid_runbook_worker` - correctly mark resource as gone if it's absent when reading it [GH-27797]
 * `azurerm_automation_python3_package` - correctly mark resource as gone if it's absent when reading it [GH-27797]
+* `azurerm_data_protection_backup_vault` - prevent panic when checking value of `cross_region_restore_enabled` [GH-27762]
 * `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
 
 ## 4.7.0 (October 24, 2024)
