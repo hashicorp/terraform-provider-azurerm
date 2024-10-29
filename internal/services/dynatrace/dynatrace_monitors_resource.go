@@ -87,6 +87,8 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/31284
+					// This should be an enum.
 					"billing_cycle": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -102,6 +104,8 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
+					// Issue: https://github.com/Azure/azure-rest-api-specs/issues/31284
+					// This should be an enum.
 					"usage_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -196,13 +200,12 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			marketplaceSubscriptionServiceStatus := monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)
 			monitoringStatus := monitors.MonitoringStatusEnabled
 			if !model.MonitoringStatus {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus: pointer.To(marketplaceSubscriptionServiceStatus),
+				MarketplaceSubscriptionStatus: pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
 				MonitoringStatus:              pointer.To(monitoringStatus),
 				PlanData:                      ExpandDynatracePlanData(model.PlanData),
 				UserInfo:                      ExpandDynatraceUserInfo(model.UserInfo),
@@ -249,13 +252,13 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
+
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				identityProps, err := flattenDynatraceIdentity(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening identity: %+v", err)
 				}
-				userInfo := metadata.ResourceData.Get("user").([]interface{})
 				monitoringStatus := true
 				if *props.MonitoringStatus == monitors.MonitoringStatusDisabled {
 					monitoringStatus = false
@@ -269,7 +272,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
-					UserInfo:                      FlattenDynatraceUserInfo(userInfo),
+					UserInfo:                      FlattenDynatraceUserInfo(metadata.ResourceData.Get("user").([]interface{})),
 				}
 
 				if model.Tags != nil {
