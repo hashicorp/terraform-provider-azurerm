@@ -304,9 +304,6 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 }
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
-	// The `extension` might fail to be enabled, if an empty array returned here, it will be overridden by the plan value per the following code:
-	// https://github.com/hashicorp/terraform-plugin-sdk/blob/64f092232c4b5e1316f2ff6e62d4fc7705980191/helper/schema/grpc_provider.go#L1181
-	// TODO: considering separate the extension to another resource.
 	outputList := make([]interface{}, 0)
 
 	if inputList == nil {
