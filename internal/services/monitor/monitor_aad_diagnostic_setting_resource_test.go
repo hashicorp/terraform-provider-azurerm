@@ -292,52 +292,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -375,52 +347,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -437,7 +381,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
 
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
 }
 `, r.eventhub(data))
@@ -467,52 +410,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -543,52 +458,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -619,24 +506,12 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 2
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -667,10 +542,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -701,18 +572,12 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = false
-      days    = 3
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

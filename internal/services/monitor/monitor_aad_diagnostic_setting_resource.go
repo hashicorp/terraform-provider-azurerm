@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -98,7 +99,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 
 						"retention_policy": {
 							Type:     pluginsdk.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -121,6 +122,31 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Deprecated: "Azure does not support retention for new Azure Active Directory Diagnostic Settings",
+			MaxItems:   1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+						Default:      0,
+					},
+				},
+			},
+		}
 	}
 
 	return resource
