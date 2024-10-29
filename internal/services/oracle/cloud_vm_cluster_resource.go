@@ -230,13 +230,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"ocid": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-		},
-
 		"sparse_diskgroup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -258,6 +251,11 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"hostname_actual": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
