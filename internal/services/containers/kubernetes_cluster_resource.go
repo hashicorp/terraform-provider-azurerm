@@ -180,6 +180,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"daemonset_eviction_for_empty_nodes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"daemonset_eviction_for_occupied_nodes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"expander": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -191,85 +204,106 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.ExpanderRandom),
 							}, false),
 						},
+
+						"ignore_daemonsets_utilization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"max_graceful_termination_sec": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"max_node_provisioning_time": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "15m",
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"max_unready_nodes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
 						"max_unready_percentage": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
 							Default:      45,
 							ValidateFunc: validation.FloatBetween(0, 100),
 						},
+
 						"new_pod_scale_up_delay": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scan_interval": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_add": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_delete": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_failure": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_unneeded": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_unready": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_utilization_threshold": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"empty_bulk_delete_max": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"skip_nodes_with_local_storage": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+
 						"skip_nodes_with_system_pods": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -3595,10 +3629,19 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 		balanceSimilarNodeGroups = strings.EqualFold(*profile.BalanceSimilarNodeGroups, "true")
 	}
 
+	daemonsetEvictionForEmptyNodes := pointer.From(profile.DaemonsetEvictionForEmptyNodes)
+
+	daemonsetEvictionForOccupiedNodes := true
+	if profile.DaemonsetEvictionForOccupiedNodes != nil {
+		daemonsetEvictionForOccupiedNodes = pointer.From(profile.DaemonsetEvictionForOccupiedNodes)
+	}
+
 	expander := ""
 	if profile.Expander != nil {
 		expander = string(*profile.Expander)
 	}
+
+	ignoreDaemonsetsUtilization := pointer.From(profile.IgnoreDaemonsetsUtilization)
 
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
@@ -3685,23 +3728,26 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 
 	return []interface{}{
 		map[string]interface{}{
-			"balance_similar_node_groups":      balanceSimilarNodeGroups,
-			"expander":                         expander,
-			"max_graceful_termination_sec":     maxGracefulTerminationSec,
-			"max_node_provisioning_time":       maxNodeProvisionTime,
-			"max_unready_nodes":                maxUnreadyNodes,
-			"max_unready_percentage":           maxUnreadyPercentage,
-			"new_pod_scale_up_delay":           newPodScaleUpDelay,
-			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
-			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
-			"scale_down_delay_after_failure":   scaleDownDelayAfterFailure,
-			"scale_down_unneeded":              scaleDownUnneededTime,
-			"scale_down_unready":               scaleDownUnreadyTime,
-			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
-			"empty_bulk_delete_max":            emptyBulkDeleteMax,
-			"scan_interval":                    scanInterval,
-			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
-			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
+			"balance_similar_node_groups":                   balanceSimilarNodeGroups,
+			"daemonset_eviction_for_empty_nodes_enabled":    daemonsetEvictionForEmptyNodes,
+			"daemonset_eviction_for_occupied_nodes_enabled": daemonsetEvictionForOccupiedNodes,
+			"expander":                              expander,
+			"ignore_daemonsets_utilization_enabled": ignoreDaemonsetsUtilization,
+			"max_graceful_termination_sec":          maxGracefulTerminationSec,
+			"max_node_provisioning_time":            maxNodeProvisionTime,
+			"max_unready_nodes":                     maxUnreadyNodes,
+			"max_unready_percentage":                maxUnreadyPercentage,
+			"new_pod_scale_up_delay":                newPodScaleUpDelay,
+			"scale_down_delay_after_add":            scaleDownDelayAfterAdd,
+			"scale_down_delay_after_delete":         scaleDownDelayAfterDelete,
+			"scale_down_delay_after_failure":        scaleDownDelayAfterFailure,
+			"scale_down_unneeded":                   scaleDownUnneededTime,
+			"scale_down_unready":                    scaleDownUnreadyTime,
+			"scale_down_utilization_threshold":      scaleDownUtilizationThreshold,
+			"empty_bulk_delete_max":                 emptyBulkDeleteMax,
+			"scan_interval":                         scanInterval,
+			"skip_nodes_with_local_storage":         skipNodesWithLocalStorage,
+			"skip_nodes_with_system_pods":           skipNodesWithSystemPods,
 		},
 	}, nil
 }
@@ -3714,7 +3760,10 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	daemonsetEvictionForEmptyNodes := config["daemonset_eviction_for_empty_nodes_enabled"].(bool)
+	daemonsetEvictionForOccupiedNodes := config["daemonset_eviction_for_occupied_nodes_enabled"].(bool)
 	expander := config["expander"].(string)
+	ignoreDaemonsetsUtilization := config["ignore_daemonsets_utilization_enabled"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
 	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
@@ -3732,23 +3781,26 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &managedclusters.ManagedClusterPropertiesAutoScalerProfile{
-		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
-		Expander:                      pointer.To(managedclusters.Expander(expander)),
-		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
-		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
-		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
-		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
-		OkTotalUnreadyCount:           utils.String(maxUnreadyNodes),
-		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
-		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
-		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
-		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
-		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
-		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
-		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
-		ScanInterval:                  utils.String(scanInterval),
-		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
-		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
+		BalanceSimilarNodeGroups:          utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		DaemonsetEvictionForEmptyNodes:    pointer.To(daemonsetEvictionForEmptyNodes),
+		DaemonsetEvictionForOccupiedNodes: pointer.To(daemonsetEvictionForOccupiedNodes),
+		Expander:                          pointer.To(managedclusters.Expander(expander)),
+		IgnoreDaemonsetsUtilization:       pointer.To(ignoreDaemonsetsUtilization),
+		MaxGracefulTerminationSec:         utils.String(maxGracefulTerminationSec),
+		MaxNodeProvisionTime:              utils.String(maxNodeProvisionTime),
+		MaxTotalUnreadyPercentage:         utils.String(maxUnreadyPercentage),
+		NewPodScaleUpDelay:                utils.String(newPodScaleUpDelay),
+		OkTotalUnreadyCount:               utils.String(maxUnreadyNodes),
+		ScaleDownDelayAfterAdd:            utils.String(scaleDownDelayAfterAdd),
+		ScaleDownDelayAfterDelete:         utils.String(scaleDownDelayAfterDelete),
+		ScaleDownDelayAfterFailure:        utils.String(scaleDownDelayAfterFailure),
+		ScaleDownUnneededTime:             utils.String(scaleDownUnneededTime),
+		ScaleDownUnreadyTime:              utils.String(scaleDownUnreadyTime),
+		ScaleDownUtilizationThreshold:     utils.String(scaleDownUtilizationThreshold),
+		MaxEmptyBulkDelete:                utils.String(emptyBulkDeleteMax),
+		ScanInterval:                      utils.String(scanInterval),
+		SkipNodesWithLocalStorage:         utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
+		SkipNodesWithSystemPods:           utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
 }
 
