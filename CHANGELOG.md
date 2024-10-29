@@ -1,5 +1,9 @@
 ## 4.8.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
+
 ENHANCEMENTS:
 
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
