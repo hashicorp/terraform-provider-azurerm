@@ -209,6 +209,26 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
+	}
+
+	// https://github.com/Azure/azure-rest-api-specs/issues/30249
+	log.Printf("[DEBUG] Waiting for Azure Active Directory Diagnostic Setting %q to become ready", id.DiagnosticSettingName)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   monitorAADDiagnosticSettingRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Azure Active Directory Diagnostic Setting %q to become ready: %s", id.DiagnosticSettingName, err)
+	}
+
 	d.SetId(id.ID())
 
 	return resourceMonitorAADDiagnosticSettingRead(d, meta)
@@ -475,4 +495,18 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 		PollInterval: 15 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}, nil
+}
+
+func monitorAADDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnosticsettings.DiagnosticSettingsClient, targetResourceId diagnosticsettings.DiagnosticSettingId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, targetResourceId)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("issuing read request in monitorDiagnosticSettingRefreshFunc: %s", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
