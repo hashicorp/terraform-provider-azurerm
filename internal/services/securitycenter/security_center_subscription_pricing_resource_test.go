@@ -106,6 +106,14 @@ func TestAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.storageAccountSubplanV2(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("subplan").HasValue("DefenderForStorageV2"),
+			),
+		},
 	})
 }
 
@@ -226,6 +234,20 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "%s"
 }
 `, tier, resource_type)
+}
+
+func (SecurityCenterSubscriptionPricingResource) storageAccountSubplanV2() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+}
+`
 }
 
 func (SecurityCenterSubscriptionPricingResource) storageAccountSubplan() string {
