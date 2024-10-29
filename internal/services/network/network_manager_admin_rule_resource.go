@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -48,7 +48,7 @@ func (r ManagerAdminRuleResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return adminrules.ValidateRuleID
+	return adminrules.ValidateSecurityAdminConfigurationRuleCollectionRuleID
 }
 
 func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -64,7 +64,7 @@ func (r ManagerAdminRuleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: adminrules.ValidateRuleCollectionID,
+			ValidateFunc: adminrules.ValidateSecurityAdminConfigurationRuleCollectionID,
 		},
 
 		"action": {
@@ -191,12 +191,12 @@ func (r ManagerAdminRuleResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Network.AdminRules
-			ruleCollectionId, err := adminrules.ParseRuleCollectionID(model.NetworkRuleCollectionId)
+			ruleCollectionId, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionID(model.NetworkRuleCollectionId)
 			if err != nil {
 				return err
 			}
 
-			id := adminrules.NewRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroupName,
+			id := adminrules.NewSecurityAdminConfigurationRuleCollectionRuleID(ruleCollectionId.SubscriptionId, ruleCollectionId.ResourceGroupName,
 				ruleCollectionId.NetworkManagerName, ruleCollectionId.SecurityAdminConfigurationName, ruleCollectionId.RuleCollectionName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -240,7 +240,7 @@ func (r ManagerAdminRuleResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -324,7 +324,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -355,7 +355,7 @@ func (r ManagerAdminRuleResource) Read() sdk.ResourceFunc {
 			state := ManagerAdminRuleModel{
 				Action: properties.Access,
 				Name:   id.RuleName,
-				NetworkRuleCollectionId: adminrules.NewRuleCollectionID(id.SubscriptionId, id.ResourceGroupName,
+				NetworkRuleCollectionId: adminrules.NewSecurityAdminConfigurationRuleCollectionID(id.SubscriptionId, id.ResourceGroupName,
 					id.NetworkManagerName, id.SecurityAdminConfigurationName, id.RuleCollectionName).ID(),
 				Destinations: flattenAddressPrefixItemModel(properties.Destinations),
 				Direction:    properties.Direction,
@@ -387,7 +387,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRules
 
-			id, err := adminrules.ParseRuleID(metadata.ResourceData.Id())
+			id, err := adminrules.ParseSecurityAdminConfigurationRuleCollectionRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
