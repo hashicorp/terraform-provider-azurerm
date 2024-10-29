@@ -1072,12 +1072,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Default:      0,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
+
 									"idle_timeout_in_minutes": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      30,
 										ValidateFunc: validation.IntBetween(4, 100),
 									},
+
 									"managed_outbound_ip_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
@@ -1085,6 +1087,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+
 									"managed_outbound_ipv6_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
@@ -1092,6 +1095,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+
 									"outbound_ip_prefix_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1101,6 +1105,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
+
 									"outbound_ip_address_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1110,12 +1115,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
+
 									"effective_outbound_ips": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
+									},
+
+									"backend_pool_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+											string(managedclusters.BackendPoolTypeNodeIP),
+										}, false),
 									},
 								},
 							},
@@ -2037,6 +2053,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
 				allocatedOutboundPorts := d.Get(key).(int)
 				loadBalancerProfile.AllocatedOutboundPorts = utils.Int64(int64(allocatedOutboundPorts))
+			}
+
+			if key := "network_profile.0.load_balancer_profile.0.backend_pool_type"; d.HasChange(key) {
+				backendPoolType := d.Get(key).(string)
+				loadBalancerProfile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
 			}
 
 			existing.Model.Properties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
@@ -3230,6 +3251,10 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 		profile.OutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
+	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
+		profile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+	}
+
 	return profile
 }
 
@@ -3389,6 +3414,10 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 			if pip := oip.PublicIPPrefixes; pip != nil {
 				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(pip)
 			}
+		}
+
+		if v := lbp.BackendPoolType; v != nil {
+			lb["backend_pool_type"] = v
 		}
 
 		lb["effective_outbound_ips"] = resourceReferencesToIds(profile.LoadBalancerProfile.EffectiveOutboundIPs)
