@@ -626,6 +626,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows
 github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflowtriggers
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/datastore
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes
+github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/managednetwork
 github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations
