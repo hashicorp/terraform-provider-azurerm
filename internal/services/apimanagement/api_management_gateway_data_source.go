@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/gateway"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,7 +77,7 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
+	id := gateway.NewServiceGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
@@ -89,7 +89,7 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if resp.Model != nil {
-		_, err = gateway.ParseGatewayID(*resp.Model.Id)
+		_, err = gateway.ParseServiceGatewayID(*resp.Model.Id)
 		if err != nil {
 			return fmt.Errorf("parsing Gateway ID %q", *resp.Model.Id)
 		}
