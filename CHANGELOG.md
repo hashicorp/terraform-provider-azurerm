@@ -6,12 +6,14 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `mysql` - upgrade api version to `2023-12-30` [GH-27767]
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
 * `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
 * `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties [GH-27588]
 * `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
 
 BUG FIXES:
+
 * `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
 
 ## 4.7.0 (October 24, 2024)
