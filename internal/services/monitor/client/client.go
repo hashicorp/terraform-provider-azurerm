@@ -172,7 +172,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Subscription Diagnostic Settings client: %+v", err)
 	}
-	o.Configure(ScheduledQueryRulesV2Client.Client, o.Authorizers.ResourceManager)
+	o.Configure(SubscriptionDiagnosticSettingsClient.Client, o.Authorizers.ResourceManager)
 
 	WorkspacesClient, err := azuremonitorworkspaces.NewAzureMonitorWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
