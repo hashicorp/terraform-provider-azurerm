@@ -184,7 +184,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	// after turning on the bundle, we have now the extensions list
-	// When `subplan` changed, there might be `extension` enabled by default on the service side, it also requires an addtional update.
+	// When `subplan` changed, there might be `extension` enabled by default on the service side, it also requires an additional update.
 	// E.g: change `subplan` from `OnUploadMalwareScanning` to `PerStorageAccount`,`OnUploadMalwareScanning` extension will be enabled by default.
 	if d.IsNewResource() || isCurrentlyInFree || d.HasChange("subplan") {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
