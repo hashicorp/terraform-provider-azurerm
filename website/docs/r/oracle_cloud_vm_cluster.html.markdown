@@ -149,6 +149,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
 
+* `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Cloud VM Cluster.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
