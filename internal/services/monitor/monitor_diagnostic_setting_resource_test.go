@@ -6,10 +6,16 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -143,7 +149,8 @@ func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.activityLog(data),
+			PreConfig: deleteExistingAcctestDiagnosticSettingForSubscription(t, data.Subscriptions.Primary),
+			Config:    r.activityLog(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -287,6 +294,38 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 	}
 
 	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+}
+
+func deleteExistingAcctestDiagnosticSettingForSubscription(t *testing.T, subscriptionId string) func() {
+	return func() {
+		clientManager, err := testclient.Build()
+		if err != nil {
+			t.Fatalf("building client: %+v", err)
+		}
+
+		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(30*time.Minute))
+		defer cancel()
+
+		client := clientManager.Monitor.DiagnosticSettingsClient
+		resp, err := client.List(ctx, commonids.NewScopeID(subscriptionId))
+		if err != nil {
+			t.Fatalf("list Diagnostic Setting: %+v", err)
+		}
+
+		re := regexp.MustCompile("acctest-DS-[0-9]+")
+		if resp.Model != nil && resp.Model.Value != nil {
+			for _, v := range *resp.Model.Value {
+				if v.Name != nil && re.MatchString(*v.Name) {
+					resp, err := client.Delete(ctx, diagnosticsettings.NewScopedDiagnosticSettingID(subscriptionId, *v.Name))
+					if err != nil {
+						if !response.WasNotFound(resp.HttpResponse) {
+							t.Fatalf("deleting Diagnostic Setting %s: %+v", *v.Name, err)
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
