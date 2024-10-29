@@ -312,7 +312,7 @@ func deleteExistingAcctestDiagnosticSettingForSubscription(t *testing.T, subscri
 			t.Fatalf("list Diagnostic Setting: %+v", err)
 		}
 
-		re := regexp.MustCompile("acctest-DS-[0-9]+")
+		re := regexp.MustCompile("acctest-DS-[0-9]{18}")
 		if resp.Model != nil && resp.Model.Value != nil {
 			for _, v := range *resp.Model.Value {
 				if v.Name != nil && re.MatchString(*v.Name) {
