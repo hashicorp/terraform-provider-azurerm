@@ -1243,7 +1243,7 @@ func TestAccCosmosDBAccount_mongoVersion50(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicMongoDBVersion(data, cosmosdb.DefaultConsistencyLevelSession, "5.0"),
+			Config: r.basicMongoDBVersion(data, cosmosdb.DefaultConsistencyLevelStrong, "5.0"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
