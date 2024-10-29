@@ -184,14 +184,14 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	// after turning on the bundle, we have now the extensions list
-	if d.IsNewResource() || isCurrentlyInFree {
+	// When `subplan` changed, there might be `extension` enabled by default on the service side, it also requires an addtional update.
+	// E.g: change `subplan` from `OnUploadMalwareScanning` to `PerStorageAccount`,`OnUploadMalwareScanning` extension will be enabled by default.
+	if d.IsNewResource() || isCurrentlyInFree || d.HasChange("subplan") {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		pricing.Properties.Extensions = extensions
 		_, updateErr := client.Update(ctx, id, pricing)
-		if err != nil {
-			if updateErr != nil {
-				return fmt.Errorf("setting %s: %+v", id, updateErr)
-			}
+		if updateErr != nil {
+			return fmt.Errorf("setting %s: %+v", id, updateErr)
 		}
 	}
 
@@ -225,7 +225,8 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			err = d.Set("extension", flattenExtensions(properties.Extensions))
+			extension := flattenExtensions(properties.Extensions)
+			err = d.Set("extension", extension)
 			if err != nil {
 				return fmt.Errorf("setting `extension`: %+v", err)
 			}
@@ -279,7 +280,9 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 		}
 		extensionStatuses[input["name"].(string)] = true
 		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			extensionProperties[input["name"].(string)] = &vAdditional
+			if len(vAdditional.(map[string]interface{})) > 0 {
+				extensionProperties[input["name"].(string)] = &vAdditional
+			}
 		}
 	}
 
@@ -301,6 +304,9 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 }
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
+	// The `extension` might fail to be enabled, if an empty array returned here, it will be overridden by the plan value per the following code:
+	// https://github.com/hashicorp/terraform-plugin-sdk/blob/64f092232c4b5e1316f2ff6e62d4fc7705980191/helper/schema/grpc_provider.go#L1181
+	// TODO: considering separate the extension to another resource.
 	outputList := make([]interface{}, 0)
 
 	if inputList == nil {
