@@ -67,7 +67,6 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -184,6 +183,9 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 				schema.ResourceGroupName = id.ResourceGroupName
 				if err := r.mapLoadTestResourceToLoadTestResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
+				}
+				if property := model.Properties; property != nil {
+					schema.Description = pointer.From(property.Description)
 				}
 			}
 
@@ -344,6 +346,10 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
+
+	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
+		Description: pointer.To(input.Description),
+	}
 	return nil
 }
 
