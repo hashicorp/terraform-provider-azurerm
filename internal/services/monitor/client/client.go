@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	diagnosticSettingClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	diagnosticCategoryClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/subscriptiondiagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations"
@@ -54,6 +55,7 @@ type Client struct {
 	PrivateLinkScopedResourcesClient     *privatelinkscopedresources.PrivateLinkScopedResourcesClient
 	ScheduledQueryRulesClient            *scheduledqueryrules2018.ScheduledQueryRulesClient
 	ScheduledQueryRulesV2Client          *scheduledqueryrules.ScheduledQueryRulesClient
+	SubscriptionDiagnosticSettingsClient *subscriptiondiagnosticsettings.SubscriptionDiagnosticSettingsClient
 	WorkspacesClient                     *azuremonitorworkspaces.AzureMonitorWorkspacesClient
 }
 
@@ -166,6 +168,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(ScheduledQueryRulesV2Client.Client, o.Authorizers.ResourceManager)
 
+	SubscriptionDiagnosticSettingsClient, err := subscriptiondiagnosticsettings.NewSubscriptionDiagnosticSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Subscription Diagnostic Settings client: %+v", err)
+	}
+	o.Configure(ScheduledQueryRulesV2Client.Client, o.Authorizers.ResourceManager)
+
 	WorkspacesClient, err := azuremonitorworkspaces.NewAzureMonitorWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Workspaces client: %+v", err)
@@ -191,6 +199,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		PrivateLinkScopedResourcesClient:     PrivateLinkScopedResourcesClient,
 		ScheduledQueryRulesClient:            ScheduledQueryRulesClient,
 		ScheduledQueryRulesV2Client:          ScheduledQueryRulesV2Client,
+		SubscriptionDiagnosticSettingsClient: SubscriptionDiagnosticSettingsClient,
 		WorkspacesClient:                     WorkspacesClient,
 	}, nil
 }

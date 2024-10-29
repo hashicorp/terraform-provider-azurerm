@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/subscriptiondiagnosticsettings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -306,8 +306,8 @@ func deleteExistingAcctestDiagnosticSettingForSubscription(t *testing.T, subscri
 		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(30*time.Minute))
 		defer cancel()
 
-		client := clientManager.Monitor.DiagnosticSettingsClient
-		resp, err := client.List(ctx, commonids.NewScopeID(subscriptionId))
+		client := clientManager.Monitor.SubscriptionDiagnosticSettingsClient
+		resp, err := client.List(ctx, commonids.NewSubscriptionID(subscriptionId))
 		if err != nil {
 			t.Fatalf("list Diagnostic Setting: %+v", err)
 		}
@@ -316,7 +316,7 @@ func deleteExistingAcctestDiagnosticSettingForSubscription(t *testing.T, subscri
 		if resp.Model != nil && resp.Model.Value != nil {
 			for _, v := range *resp.Model.Value {
 				if v.Name != nil && re.MatchString(*v.Name) {
-					resp, err := client.Delete(ctx, diagnosticsettings.NewScopedDiagnosticSettingID(subscriptionId, *v.Name))
+					resp, err := client.Delete(ctx, subscriptiondiagnosticsettings.NewDiagnosticSettingID(subscriptionId, *v.Name))
 					if err != nil {
 						if !response.WasNotFound(resp.HttpResponse) {
 							t.Fatalf("deleting Diagnostic Setting %s: %+v", *v.Name, err)
