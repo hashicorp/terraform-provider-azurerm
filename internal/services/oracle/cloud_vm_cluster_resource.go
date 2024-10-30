@@ -253,7 +253,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(0),
+			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
 		"scan_listener_port_tcp_ssl": {
@@ -261,7 +261,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IntAtLeast(0),
+			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
 		"time_zone": {
@@ -355,10 +355,10 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			if model.Domain != "" {
 				param.Properties.Domain = pointer.To(model.Domain)
 			}
-			if model.ScanListenerPortTcp >= 0 {
+			if model.ScanListenerPortTcp >= 1024 && model.ScanListenerPortTcp <= 8999 {
 				param.Properties.ScanListenerPortTcp = pointer.To(model.ScanListenerPortTcp)
 			}
-			if model.ScanListenerPortTcpSsl >= 0 {
+			if model.ScanListenerPortTcpSsl >= 1024 && model.ScanListenerPortTcpSsl <= 8999 {
 				param.Properties.ScanListenerPortTcpSsl = pointer.To(model.ScanListenerPortTcpSsl)
 			}
 			if model.TimeZone != "" {
