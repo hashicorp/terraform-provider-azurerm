@@ -43,8 +43,7 @@ The following arguments are supported:
 
 * `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
-* `name` - (Optional) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
-**Note:** The `name` is deprecated and will be removed in v5.0 version of the provider. The Fusion Alert Rule is enabled by default with the name `BuiltInFusion`, more details could be found [here](https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections).
+* `name` - (Optional) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created. Defaults to `BuiltInFusion`
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 

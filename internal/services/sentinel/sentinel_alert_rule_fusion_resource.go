@@ -17,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const SentinelAlertRuleFusionName = "BuiltInFusion"
+
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleFusionCreate,
@@ -126,7 +128,7 @@ func resourceSentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			Default:      "BuiltInFusion",
+			Default:      SentinelAlertRuleFusionName,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 	}
@@ -139,7 +141,10 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	name := SentinelAlertRuleFusionName
+	if !features.FivePointOhBeta() {
+		name = d.Get("name").(string)
+	}
 
 	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
