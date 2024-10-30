@@ -93,8 +93,6 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Cloud VM Cluster without suffix.
 
-* `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
-
 * `license_model` - (Required) The Oracle license model that applies to the Cloud VM Cluster, either `BringYourOwnLicense` or `LicenseIncluded`.
 
 * `location` - (Required) The Azure Region where the Cloud VM Cluster should exist.
@@ -148,6 +146,10 @@ A `data_collection_options` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Cloud VM Cluster.
+
+* `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
+
+* `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Cloud VM Cluster.
 
 ## Timeouts
 

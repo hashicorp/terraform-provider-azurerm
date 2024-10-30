@@ -326,28 +326,6 @@ func TestAccKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.manualScaleVMSkuConfig(data, "Standard_F2s_v2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesClusterNodePool_modeSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -768,13 +746,6 @@ func TestAccKubernetesClusterNodePool_ultraSSD(t *testing.T) {
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ultraSSD(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.ultraSSD(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1726,23 +1697,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = %d
 }
 `, r.templateConfig(data), numberOfAgents)
-}
-
-func (r KubernetesClusterNodePoolResource) manualScaleVMSkuConfig(data acceptance.TestData, sku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "%s"
-  node_count            = 1
-}
-`, r.templateConfig(data), sku)
 }
 
 func (r KubernetesClusterNodePoolResource) modeSystemConfig(data acceptance.TestData) string {

@@ -1,3 +1,34 @@
+## 4.8.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
+* **New Resource**: `azurerm_stack_hci_extension` [GH-26929]
+* **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` [GH-27532]
+
+ENHANCEMENTS:
+
+* `mysql` - upgrade api version to `2023-12-30` [GH-27767]
+* `network` - upgrade api version to `2024-03-01 ` [GH-27746]
+* `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` [GH-27763]
+* `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-27794]
+* `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
+* `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
+* `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties [GH-27588]
+* `azurerm_load_test` - `description` can now be updated [GH-27800]
+* `azurerm_oracle_cloud_vm_cluster` - export the `ocid` property [GH-27785]
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for `sku_profile` block [GH-27599]
+* `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
+
+BUG FIXES:
+
+* `azurerm_automation_hybrid_runbook_worker_group` - correctly mark resource as gone if it's absent when reading it [GH-27797]
+* `azurerm_automation_hybrid_runbook_worker` - correctly mark resource as gone if it's absent when reading it [GH-27797]
+* `azurerm_automation_python3_package` - correctly mark resource as gone if it's absent when reading it [GH-27797]
+* `azurerm_data_protection_backup_vault` - prevent panic when checking value of `cross_region_restore_enabled` [GH-27762]
+* `azurerm_role_management_policy` - fix panic when unmarshalling the policy into a specific type [GH-27731]
+* `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
+
 ## 4.7.0 (October 24, 2024)
 
 FEATURES:
