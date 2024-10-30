@@ -202,6 +202,8 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 		payload.Properties.Description = nil
 		payload.Properties.DisplayName = nil
 		payload.Properties.LastModifiedUtc = nil
+		payload.Properties.Severity = nil
+		payload.Properties.Tactics = nil
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
