@@ -148,7 +148,7 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 }
 
 func (ResourceGroupExampleDataSource) ModelObject() interface{} {
-	return &ResourceGroupExampleDataSourceModel
+	return &ResourceGroupExampleDataSourceModel{}
 }
 
 func (ResourceGroupExampleDataSource) ResourceType() string {
