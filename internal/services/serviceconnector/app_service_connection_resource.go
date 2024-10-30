@@ -354,6 +354,9 @@ func (r AppServiceConnectorResource) Update() sdk.ResourceFunc {
 			linkerProps := existing.Model.Properties
 			d := metadata.ResourceData
 
+			linkerProps.TargetService = servicelinker.AzureResource{
+				Id: pointer.To(state.TargetResourceId),
+			}
 			if d.HasChange("client_type") {
 				linkerProps.ClientType = pointer.To(servicelinker.ClientType(state.ClientType))
 			}
