@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,8 +20,8 @@ import (
 type MonitorAADDiagnosticSettingResource struct{}
 
 // NOTE: this is a combined test rather than separate split out tests due to
-// Azure only being happy about provisioning five per subscription at once and
-// there are existing resource in the test subscription hard to clear.
+// Azure only being happy about provisioning five per Azure Active Directory at once and
+// there are existing resource in the test tenant hard to clear.
 // (which our test suite can't easily workaround)
 func TestAccMonitorAADDiagnosticSetting(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
@@ -128,6 +129,42 @@ func testAccMonitorAADDiagnosticSetting_updateToEnabledLog(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
+	if !features.FivePointOhBeta() {
+		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.storageAccount(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.multiEnabledLog(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				// the retention block is removed in 5.0 so we can skip this step
+				Config: r.retentionDisabled(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.storageAccount(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+
+		return
+	}
+
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data),
@@ -138,13 +175,6 @@ func testAccMonitorAADDiagnosticSetting_updateToEnabledLog(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.multiEnabledLog(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.retentionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -243,52 +273,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -326,52 +328,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -388,7 +362,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "import" {
 
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
 }
 `, r.eventhub(data))
@@ -418,52 +391,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -494,52 +439,24 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "RiskyUsers"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "UserRiskEvents"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "B2CRequestLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -570,24 +487,12 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 2
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
@@ -618,10 +523,6 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))

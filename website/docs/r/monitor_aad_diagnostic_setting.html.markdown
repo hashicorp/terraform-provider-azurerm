@@ -97,6 +97,8 @@ A `enabled_log` block supports the following:
 
 * `retention_policy` - (Required) A `retention_policy` block as defined below.
 
+-> **NOTE:** Azure does not support retention for new Azure Active Directory Diagnostic Settings. The `retention_policy` block is deprecated and will be removed in 5.0 version of the provider.
+
 ---
 
 A `retention_policy` block supports the following:
