@@ -1511,7 +1511,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("updating Queue Properties: %+v", err)
 			}
 
-			if err = d.Set("queue_properties", queueProperties); err != nil {
+			if err = d.Set("queue_properties", val); err != nil {
 				return fmt.Errorf("setting `queue_properties`: %+v", err)
 			}
 		}
@@ -1532,7 +1532,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("updating `static_website`: %+v", err)
 			}
 
-			if err = d.Set("static_website", staticWebsiteProps); err != nil {
+			if err = d.Set("static_website", val); err != nil {
 				return fmt.Errorf("setting `static_website`: %+v", err)
 			}
 		}
