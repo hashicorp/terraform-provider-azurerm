@@ -415,10 +415,12 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 		if !features.FivePointOhBeta() {
 			policies := make([]interface{}, 0)
 			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-				policies = append(policies, map[string]interface{}{
-					"days":    int(inputPolicy.Days),
-					"enabled": inputPolicy.Enabled,
-				})
+				if inputPolicy.Days != 0 || inputPolicy.Enabled {
+					policies = append(policies, map[string]interface{}{
+						"days":    int(inputPolicy.Days),
+						"enabled": inputPolicy.Enabled,
+					})
+				}
 			}
 
 			result["retention_policy"] = policies
