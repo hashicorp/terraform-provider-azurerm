@@ -553,11 +553,9 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
   enabled_log {
     category = "AuditLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "SignInLogs"
-    retention_policy {}
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
