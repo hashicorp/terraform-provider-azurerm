@@ -197,6 +197,13 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
 	}
 
+	// The `Description` is read-only but not specified on the Swagger, tracked on: https://github.com/Azure/azure-rest-api-specs/issues/31330
+	if payload.Properties != nil {
+		payload.Properties.Description = nil
+		payload.Properties.DisplayName = nil
+		payload.Properties.LastModifiedUtc = nil
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
