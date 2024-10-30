@@ -262,7 +262,8 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
 	extensionStatuses := map[string]bool{}
-	extensionProperties := make(map[string]interface{})
+	// map[extensionName]AdditionalExtensionProperties
+	extensionProperties := make(map[string]map[string]interface{})
 	var outputList []pricings_v2023_01_01.Extension
 
 	if extensionsStatusFromBackend != nil {
@@ -283,8 +284,10 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 		}
 		extensionStatuses[input["name"].(string)] = true
 		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			if len(vAdditional.(map[string]interface{})) > 0 {
-				extensionProperties[input["name"].(string)] = &vAdditional
+			if v, ok := vAdditional.(map[string]interface{}); ok {
+				if len(v) > 0 {
+					extensionProperties[input["name"].(string)] = v
+				}
 			}
 		}
 	}
@@ -296,9 +299,13 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue
 		}
 		output := pricings_v2023_01_01.Extension{
-			Name:                          extensionName,
-			IsEnabled:                     isEnabled,
-			AdditionalExtensionProperties: pointer.To(extensionProperties),
+			Name:      extensionName,
+			IsEnabled: isEnabled,
+		}
+		// The service will return HTTP 500 if the payload contians extensionProperties and `IsEnabled==false`
+		// `AdditionalProperties of Extension 'xxx' can't be updated while the extension is disabled (IsEnabled = False)`
+		if addtional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
+			output.AdditionalExtensionProperties = pointer.To(addtional)
 		}
 		outputList = append(outputList, output)
 	}
