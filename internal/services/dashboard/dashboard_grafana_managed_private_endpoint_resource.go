@@ -20,8 +20,7 @@ type ManagedPrivateEndpointResource struct{}
 type ManagedPrivateEndpointModel struct {
 	Name                      string            `tfschema:"name"`
 	Location                  string            `tfschema:"location"`
-	ResourceGroup             string            `tfschema:"resource_group_name"`
-	GrafanaName               string            `tfschema:"grafana_name"`
+	GrafanaId             string            `tfschema:"grafana_id"`
 	PrivateLinkResourceId     string            `tfschema:"private_link_resource_id"`
 	PrivateLinkResourceRegion string            `tfschema:"private_link_resource_region"`
 	Tags                      map[string]string `tfschema:"tags"`
@@ -53,17 +52,16 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			),
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 
-		"grafana_name": {
+		"grafana_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: grafanaresource.ValidateGrafanaID,
 		},
 
 		"private_link_resource_id": {
@@ -125,7 +123,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			props := managedprivateendpoints.ManagedPrivateEndpointModel{
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Name:     &model.Name,
 				Properties: &managedprivateendpoints.ManagedPrivateEndpointModelProperties{
 					GroupIds:                  &model.GroupIds,
@@ -165,38 +163,22 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := ManagedPrivateEndpointModel{
 				Name:          id.ManagedPrivateEndpointName,
 				Location:      model.Location,
 				GrafanaName:   id.GrafanaName,
 				ResourceGroup: id.ResourceGroupName,
 			}
-
-			if props := model.Properties; props != nil {
-				if props.GroupIds != nil {
-					state.GroupIds = *props.GroupIds
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+				
+				if props := model.Properties; props != nil {
+					state.GroupIds = pointer.From(props.GroupIds)
+					state.PrivateLinkResourceId = pointer.From(props.PrivateLinkResourceId)
+					state.PrivateLinkResourceRegion = pointer.From(props.PrivateLinkResourceRegion)
+					state.RequestMessage = pointer.From(props.RequestMessage)
 				}
-
-				if props.PrivateLinkResourceId != nil {
-					state.PrivateLinkResourceId = *props.PrivateLinkResourceId
-				}
-
-				if props.PrivateLinkResourceRegion != nil {
-					state.PrivateLinkResourceRegion = *props.PrivateLinkResourceRegion
-				}
-
-				if props.RequestMessage != nil {
-					state.RequestMessage = *props.RequestMessage
-				}
-			}
-
-			if model.Tags != nil {
-				state.Tags = *model.Tags
 			}
 
 			return metadata.Encode(&state)
@@ -246,10 +228,10 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Model
-			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
+			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags

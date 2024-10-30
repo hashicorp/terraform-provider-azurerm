@@ -88,12 +88,9 @@ func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, clients *cli
 	client := clients.Dashboard.ManagedPrivateEndpointsClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedPrivateEndpointResource) template(data acceptance.TestData) string {
