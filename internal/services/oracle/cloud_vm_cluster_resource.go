@@ -228,11 +228,10 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
 		},
 
 		"local_backup_enabled": {
@@ -273,11 +272,10 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
 		},
 
 		"tags": commonschema.Tags(),
