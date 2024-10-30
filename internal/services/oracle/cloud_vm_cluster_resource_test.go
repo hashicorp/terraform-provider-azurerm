@@ -134,7 +134,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs = 120
   db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
-  domain                      = "ociofakeacctes.ociofakeacctes.oraclevcn.com"
+  domain                      = "ociofakeacctes.com"
   gi_version                  = "23.0.0.0"
   local_backup_enabled        = true
   sparse_diskgroup_enabled    = true
@@ -149,6 +149,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
     test = "testTag1"
   }
   time_zone          = "UTC"
+  zone_id            = "ocid1.dns-zone.oc1.iad.aaaaaaaac7lyw74bnybmlek7nrsd5h3v5kjfv3aiw62menpuuwoder7yhmpa"
   virtual_network_id = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }

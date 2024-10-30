@@ -60,6 +60,7 @@ type CloudVmClusterResourceModel struct {
 	ScanListenerPortTcp      int64                        `tfschema:"scan_listener_port_tcp"`
 	ScanListenerPortTcpSsl   int64                        `tfschema:"scan_listener_port_tcp_ssl"`
 	TimeZone                 string                       `tfschema:"time_zone"`
+	ZoneId                   string                       `tfschema:"zone_id"`
 }
 
 func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -271,6 +272,14 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"zone_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -363,6 +372,9 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			}
 			if model.TimeZone != "" {
 				param.Properties.TimeZone = pointer.To(model.TimeZone)
+			}
+			if model.ZoneId != "" {
+				param.Properties.ZoneId = pointer.To(model.ZoneId)
 			}
 			if model.DataStoragePercentage != 0 {
 				param.Properties.DataStoragePercentage = pointer.To(model.DataStoragePercentage)
@@ -486,6 +498,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.ScanListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.ScanListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
 					state.TimeZone = pointer.From(props.TimeZone)
+					state.ZoneId = pointer.From(props.ZoneId)
 				}
 			}
 

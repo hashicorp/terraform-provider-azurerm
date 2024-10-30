@@ -137,6 +137,8 @@ The following arguments are supported:
 
 * `time_zone` - (Optional) The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm).
 
+* `zone_id` - (Optional) The OCID of the zone the cloud VM cluster is associated with.
+
 ---
 
 A `data_collection_options` block supports the following:
