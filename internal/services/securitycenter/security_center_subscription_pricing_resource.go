@@ -302,10 +302,10 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			Name:      extensionName,
 			IsEnabled: isEnabled,
 		}
-		// The service will return HTTP 500 if the payload contians extensionProperties and `IsEnabled==false`
+		// The service will return HTTP 500 if the payload contains extensionProperties and `IsEnabled==false`
 		// `AdditionalProperties of Extension 'xxx' can't be updated while the extension is disabled (IsEnabled = False)`
-		if addtional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
-			output.AdditionalExtensionProperties = pointer.To(addtional)
+		if additional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
+			output.AdditionalExtensionProperties = pointer.To(additional)
 		}
 		outputList = append(outputList, output)
 	}
