@@ -121,7 +121,6 @@ data "azurerm_sentinel_alert_rule_template" "test" {
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "BuiltInFusion"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
 }
@@ -138,7 +137,6 @@ data "azurerm_sentinel_alert_rule_template" "test" {
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "BuiltInFusion"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
@@ -156,7 +154,6 @@ data "azurerm_sentinel_alert_rule_template" "test" {
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "BuiltInFusion"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   source {

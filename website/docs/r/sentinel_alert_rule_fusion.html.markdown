@@ -30,7 +30,6 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "example" {
-  name                       = "BuiltInFusion"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
 }
@@ -40,12 +39,12 @@ resource "azurerm_sentinel_alert_rule_fusion" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
-**Note:** The Fusion Alert Rule is enabled by default with the name `BuiltInFusion`, more details could be found [here](https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections).
-
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel Fusion Alert Rule belongs to. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
 * `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+
+* `name` - (Optional) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
+**Note:** The `name` is deprecated and will be removed in v5.0 version of the provider. The Fusion Alert Rule is enabled by default with the name `BuiltInFusion`, more details could be found [here](https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections).
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 

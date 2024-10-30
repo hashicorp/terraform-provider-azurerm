@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -35,83 +36,80 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		Schema: resourceSentinelAlertRuleFusionSchema(),
+	}
+}
 
-			"log_analytics_workspace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: alertrules.ValidateWorkspaceID,
-			},
+func resourceSentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"log_analytics_workspace_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: alertrules.ValidateWorkspaceID,
+		},
 
-			"alert_rule_template_guid": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
+		"alert_rule_template_guid": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
 
-			"enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
-			"source": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
-				// but overwriting this/reverting to the default can be done without issue so this can remain
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-						"sub_type": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
-									"severities_allowed": {
-										Type:     pluginsdk.TypeSet,
-										Required: true,
-										MinItems: 1,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice(
-												[]string{
-													string(alertrules.AlertSeverityHigh),
-													string(alertrules.AlertSeverityMedium),
-													string(alertrules.AlertSeverityLow),
-													string(alertrules.AlertSeverityInformational),
-												},
-												false,
-											),
-										},
+		"source": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+			// but overwriting this/reverting to the default can be done without issue so this can remain
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+					"sub_type": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  true,
+								},
+								"severities_allowed": {
+									Type:     pluginsdk.TypeSet,
+									Required: true,
+									MinItems: 1,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(
+											[]string{
+												string(alertrules.AlertSeverityHigh),
+												string(alertrules.AlertSeverityMedium),
+												string(alertrules.AlertSeverityLow),
+												string(alertrules.AlertSeverityInformational),
+											},
+											false,
+										),
 									},
 								},
 							},
@@ -121,6 +119,19 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		schema["name"] = &pluginsdk.Schema{
+			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "BuiltInFusion",
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	}
+
+	return schema
 }
 
 func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
