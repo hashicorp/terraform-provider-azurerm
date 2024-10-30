@@ -421,12 +421,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Once compliance security profile has been enabled, it cannot be disabled
+			// Once compliance security profile has been enabled, disabling it will force a workspace replacement
 			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
 
-			// Once a compliance standard is enabled, it cannot be disabled
+			// Once a compliance standard is enabled, disabling it will force a workspace replacement
 			pluginsdk.ForceNewIfChange("enhanced_security_compliance.0.compliance_security_profile_standards", func(ctx context.Context, old, new, meta interface{}) bool {
 				removedStandards := old.(*pluginsdk.Set).Difference(new.(*pluginsdk.Set))
 				return removedStandards.Len() > 0
@@ -908,10 +908,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		// only save enhanced security compliance to state if the terraform config contains the block, in order to prevent false drift
-		if _, ok := d.GetOk("enhanced_security_compliance"); ok {
-			d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
-		}
+		d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
 
 		var encryptDiskEncryptionSetId string
 		if model.Properties.DiskEncryptionSetId != nil {
@@ -1209,7 +1206,7 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 	var config map[string]interface{}
 
 	if len(input) == 0 || input[0] == nil {
-		config = make(map[string]interface{})
+		return nil
 	} else {
 		config = input[0].(map[string]interface{})
 	}
