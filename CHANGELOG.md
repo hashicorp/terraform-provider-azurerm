@@ -1,3 +1,13 @@
+## 3.117.0 (November 6, 2024)
+
+FEATURES:
+* **New Resource:** `azurerm_storage_account_queue_properties`
+* **New Resource:** `azurerm_storage_account_static_website`
+* New Provider Feature - storage `data_plane_available` feature flag
+
+ENHANCEMENTS:
+* `azurerm_storage_account` - can now be created and managed if Data Plane endpoints are blocked by a firewall 
+
 ## 3.116.0 (August 16, 2024)
 
 DEPRECATIONS:
