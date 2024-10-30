@@ -18,9 +18,9 @@ import (
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSentinelAlertRuleFusionCreateUpdate,
+		Create: resourceSentinelAlertRuleFusionCreate,
 		Read:   resourceSentinelAlertRuleFusionRead,
-		Update: resourceSentinelAlertRuleFusionCreateUpdate,
+		Update: resourceSentinelAlertRuleFusionUpdate,
 		Delete: resourceSentinelAlertRuleFusionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -123,9 +123,9 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 	}
 }
 
-func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -146,25 +146,60 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("retrieving %q: %+v", id, err)
-		}
-
-		if resp.Model == nil {
-			return fmt.Errorf("retrieving %q: model was nil", id)
-		}
-		if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
-		}
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceSentinelAlertRuleFusionRead(d, meta)
+}
+
+func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Sentinel.AlertRulesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := alertrules.ParseAlertRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %q: %+v", id, err)
+	}
+
+	if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
+		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
+	}
+
+	payload := resp.Model.(alertrules.FusionAlertRule)
+
+	if d.HasChange("alert_rule_template_guid") {
+		if payload.Properties == nil {
+			payload.Properties = &alertrules.FusionAlertRuleProperties{}
+		}
+		payload.Properties.AlertRuleTemplateName = d.Get("alert_rule_template_guid").(string)
+	}
+
+	if d.HasChange("enabled") {
+		if payload.Properties == nil {
+			payload.Properties = &alertrules.FusionAlertRuleProperties{}
+		}
+		payload.Properties.Enabled = d.Get("enabled").(bool)
+	}
+
+	if d.HasChange("source") {
+		if payload.Properties == nil {
+			payload.Properties = &alertrules.FusionAlertRuleProperties{}
+		}
+		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
+	}
 
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
