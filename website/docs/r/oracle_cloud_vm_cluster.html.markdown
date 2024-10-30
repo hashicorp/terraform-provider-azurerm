@@ -129,9 +129,9 @@ The following arguments are supported:
 
 * `memory_size_in_gbs` - (Optional) The memory to be allocated in GBs.
 
-* `scan_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port is 1521.
+* `scan_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port to 1521.
 
-* `scan_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
+* `scan_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port to 2484.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Cloud VM Cluster.
 

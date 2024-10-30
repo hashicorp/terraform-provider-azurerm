@@ -251,7 +251,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"scan_listener_port_tcp": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      1521,
 			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
@@ -259,7 +259,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"scan_listener_port_tcp_ssl": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			Computed:     true,
+			Default:      2484,
 			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
