@@ -1116,7 +1116,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
+				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					if _, ok := d.GetOk("queue_properties"); ok {
 						return fmt.Errorf("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
