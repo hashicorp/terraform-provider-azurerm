@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
 * **New Resource**: `azurerm_stack_hci_extension` [GH-26929]
 * **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` [GH-27532]
+* **New Resource**: `azurerm_trusted_signing_account` [GH-27720]
 
 ENHANCEMENTS:
 
