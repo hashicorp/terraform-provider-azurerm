@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `db_node_storage_size_in_gbs` - (Optional) The local node storage to be allocated in GBs.
 
-* `domain` - (Optional) The domain name for the cloud VM cluster.
+* `domain` - (Optional) The name of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name.
 
 * `local_backup_enabled` - (Optional)  If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If `false`, database backup on local Exadata storage is not available in the Cloud VM Cluster.
 
@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `time_zone` - (Optional) The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm).
 
-* `zone_id` - (Optional) The OCID of the zone the cloud VM cluster is associated with.
+* `zone_id` - (Optional) The OCID of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name.
 
 ---
 
