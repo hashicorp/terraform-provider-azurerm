@@ -46,7 +46,6 @@ func (c NotificationRecipientUserClient) CreateOrUpdate(ctx context.Context, id 
 
 	var model RecipientUserContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -19,6 +19,14 @@ type RecoveryPlanA2ADetails struct {
 	RecoveryZone             *string          `json:"recoveryZone,omitempty"`
 
 	// Fields inherited from RecoveryPlanProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanA2ADetails) RecoveryPlanProviderSpecificDetails() BaseRecoveryPlanProviderSpecificDetailsImpl {
+	return BaseRecoveryPlanProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanA2ADetails{}
@@ -32,9 +40,10 @@ func (s RecoveryPlanA2ADetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanA2ADetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

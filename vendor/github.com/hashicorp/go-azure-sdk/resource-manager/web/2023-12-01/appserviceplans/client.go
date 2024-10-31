@@ -15,7 +15,7 @@ type AppServicePlansClient struct {
 }
 
 func NewAppServicePlansClientWithBaseURI(sdkApi sdkEnv.Api) (*AppServicePlansClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "appserviceplans", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "appserviceplans", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AppServicePlansClient: %+v", err)
 	}

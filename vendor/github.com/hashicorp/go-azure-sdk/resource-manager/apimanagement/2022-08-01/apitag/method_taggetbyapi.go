@@ -45,7 +45,6 @@ func (c ApiTagClient) TagGetByApi(ctx context.Context, id ApiTagId) (result TagG
 
 	var model TagContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

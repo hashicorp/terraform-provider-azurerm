@@ -15,7 +15,7 @@ type WebHooksClient struct {
 }
 
 func NewWebHooksClientWithBaseURI(sdkApi sdkEnv.Api) (*WebHooksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webhooks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webhooks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebHooksClient: %+v", err)
 	}

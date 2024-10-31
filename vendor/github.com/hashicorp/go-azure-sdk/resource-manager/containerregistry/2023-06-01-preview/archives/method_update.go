@@ -49,7 +49,6 @@ func (c ArchivesClient) Update(ctx context.Context, id ArchiveId, input ArchiveU
 
 	var model Archive
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

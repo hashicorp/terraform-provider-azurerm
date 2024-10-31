@@ -9,7 +9,7 @@ import (
 
 type AdditionalLocation struct {
 	DisableGateway              *bool                             `json:"disableGateway,omitempty"`
-	GatewayRegionalUrl          *string                           `json:"gatewayRegionalUrl,omitempty"`
+	GatewayRegionalURL          *string                           `json:"gatewayRegionalUrl,omitempty"`
 	Location                    string                            `json:"location"`
 	NatGatewayState             *NatGatewayState                  `json:"natGatewayState,omitempty"`
 	OutboundPublicIPAddresses   *[]string                         `json:"outboundPublicIPAddresses,omitempty"`

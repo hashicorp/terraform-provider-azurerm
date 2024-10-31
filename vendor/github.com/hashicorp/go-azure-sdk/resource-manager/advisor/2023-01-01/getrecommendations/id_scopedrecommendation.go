@@ -40,7 +40,7 @@ func ParseScopedRecommendationID(input string) (*ScopedRecommendationId, error) 
 	}
 
 	id := ScopedRecommendationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedRecommendationIDInsensitively(input string) (*ScopedRecommendati
 	}
 
 	id := ScopedRecommendationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedRecommendationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAdvisor", "Microsoft.Advisor", "Microsoft.Advisor"),
 		resourceids.StaticSegment("staticRecommendations", "recommendations", "recommendations"),
-		resourceids.UserSpecifiedSegment("recommendationId", "recommendationIdValue"),
+		resourceids.UserSpecifiedSegment("recommendationId", "recommendationId"),
 	}
 }
 

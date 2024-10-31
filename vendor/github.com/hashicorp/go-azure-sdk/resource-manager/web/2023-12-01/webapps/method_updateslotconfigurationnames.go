@@ -51,7 +51,6 @@ func (c WebAppsClient) UpdateSlotConfigurationNames(ctx context.Context, id comm
 
 	var model SlotConfigNamesResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

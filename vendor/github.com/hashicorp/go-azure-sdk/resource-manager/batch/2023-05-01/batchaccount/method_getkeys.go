@@ -46,7 +46,6 @@ func (c BatchAccountClient) GetKeys(ctx context.Context, id BatchAccountId) (res
 
 	var model BatchAccountKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

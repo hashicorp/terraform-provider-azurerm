@@ -45,7 +45,6 @@ func (c WebAppsClient) GetVnetConnectionGatewaySlot(ctx context.Context, id Slot
 
 	var model VnetGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

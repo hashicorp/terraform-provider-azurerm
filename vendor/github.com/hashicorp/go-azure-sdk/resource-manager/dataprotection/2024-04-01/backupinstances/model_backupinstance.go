@@ -27,10 +27,22 @@ type BackupInstance struct {
 var _ json.Unmarshaler = &BackupInstance{}
 
 func (s *BackupInstance) UnmarshalJSON(bytes []byte) error {
-	type alias BackupInstance
-	var decoded alias
+	var decoded struct {
+		CurrentProtectionState         *CurrentProtectionState  `json:"currentProtectionState,omitempty"`
+		DataSourceInfo                 Datasource               `json:"dataSourceInfo"`
+		DataSourceSetInfo              *DatasourceSet           `json:"dataSourceSetInfo,omitempty"`
+		FriendlyName                   *string                  `json:"friendlyName,omitempty"`
+		IdentityDetails                *IdentityDetails         `json:"identityDetails,omitempty"`
+		ObjectType                     string                   `json:"objectType"`
+		PolicyInfo                     PolicyInfo               `json:"policyInfo"`
+		ProtectionErrorDetails         *UserFacingError         `json:"protectionErrorDetails,omitempty"`
+		ProtectionStatus               *ProtectionStatusDetails `json:"protectionStatus,omitempty"`
+		ProvisioningState              *string                  `json:"provisioningState,omitempty"`
+		ResourceGuardOperationRequests *[]string                `json:"resourceGuardOperationRequests,omitempty"`
+		ValidationType                 *ValidationType          `json:"validationType,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into BackupInstance: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.CurrentProtectionState = decoded.CurrentProtectionState
@@ -52,11 +64,12 @@ func (s *BackupInstance) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["datasourceAuthCredentials"]; ok {
-		impl, err := unmarshalAuthCredentialsImplementation(v)
+		impl, err := UnmarshalAuthCredentialsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DatasourceAuthCredentials' for 'BackupInstance': %+v", err)
 		}
 		s.DatasourceAuthCredentials = impl
 	}
+
 	return nil
 }

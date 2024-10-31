@@ -128,13 +128,13 @@ func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *client
 		return utils.Bool(false), nil
 	}
 
-	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil {
 			return utils.Bool(false), nil
 		}
 		return utils.Bool(alertSyncSettings.Properties.Enabled), nil
 	}
-	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil {
 			return utils.Bool(false), nil
 		}
@@ -170,12 +170,12 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 		return utils.Bool(false), nil
 	}
 
-	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil || !alertSyncSettings.Properties.Enabled {
 			return utils.Bool(false), nil
 		}
 	}
-	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil || !dataExportSettings.Properties.Enabled {
 			return utils.Bool(false), nil
 		}

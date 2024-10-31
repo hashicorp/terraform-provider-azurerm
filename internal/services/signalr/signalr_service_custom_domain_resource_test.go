@@ -37,7 +37,7 @@ func TestAccSignalrServiceCustomDomainResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_domain", "test")
 	r := SignalrServiceCustomDomainResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -89,7 +89,7 @@ resource "azurerm_signalr_service" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "tftestzone.com"
+  name                = "wpstftestzone.com"
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [
     azurerm_signalr_service.test,
@@ -157,7 +157,7 @@ resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
   key_vault_id = azurerm_key_vault.test.id
   certificate {
-    contents = filebase64("testdata/tftestzonecom.pfx")
+    contents = filebase64("testdata/custom-domain-cert-signalr.pfx")
     password = ""
   }
 }

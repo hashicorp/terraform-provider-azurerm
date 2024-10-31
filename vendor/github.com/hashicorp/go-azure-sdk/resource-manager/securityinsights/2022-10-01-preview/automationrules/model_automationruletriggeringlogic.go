@@ -34,10 +34,14 @@ func (o *AutomationRuleTriggeringLogic) SetExpirationTimeUtcAsTime(input time.Ti
 var _ json.Unmarshaler = &AutomationRuleTriggeringLogic{}
 
 func (s *AutomationRuleTriggeringLogic) UnmarshalJSON(bytes []byte) error {
-	type alias AutomationRuleTriggeringLogic
-	var decoded alias
+	var decoded struct {
+		ExpirationTimeUtc *string      `json:"expirationTimeUtc,omitempty"`
+		IsEnabled         bool         `json:"isEnabled"`
+		TriggersOn        TriggersOn   `json:"triggersOn"`
+		TriggersWhen      TriggersWhen `json:"triggersWhen"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AutomationRuleTriggeringLogic: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ExpirationTimeUtc = decoded.ExpirationTimeUtc
@@ -58,7 +62,7 @@ func (s *AutomationRuleTriggeringLogic) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]AutomationRuleCondition, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalAutomationRuleConditionImplementation(val)
+			impl, err := UnmarshalAutomationRuleConditionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Conditions' for 'AutomationRuleTriggeringLogic': %+v", i, err)
 			}
@@ -66,5 +70,6 @@ func (s *AutomationRuleTriggeringLogic) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Conditions = &output
 	}
+
 	return nil
 }

@@ -16,6 +16,14 @@ type InMageRcmFabricCreationInput struct {
 	VMwareSiteId        string                `json:"vmwareSiteId"`
 
 	// Fields inherited from FabricSpecificCreationInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmFabricCreationInput) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
+	return BaseFabricSpecificCreationInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmFabricCreationInput{}
@@ -29,9 +37,10 @@ func (s InMageRcmFabricCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmFabricCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)
