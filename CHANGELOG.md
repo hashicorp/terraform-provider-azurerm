@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 * `mysql` - upgrade api version to `2023-12-30` [GH-27767]
 * `network` - upgrade api version to `2024-03-01 ` [GH-27746]
+* `azurerm_cosmosdb_account`: support for CMK through `managed_hsm_key_id` property [GH-26521]
 * `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` [GH-27763]
 * `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-27794]
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
