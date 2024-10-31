@@ -79,6 +79,10 @@ The following arguments are supported:
 
 ~> **Note:** Please create a predefined share if you are restricting your storage account to a virtual network by setting `WEBSITE_CONTENTOVERVNET` to 1 in app_setting.
 
+~> **Note:** For runtime related settings, please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
+
+~> **Note:** By default, Terraform does not assign a value to `WEBSITE_RUN_FROM_PACKAGE`. This allows you to publish an unzipped code package using tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local). Alternatively, you can publish a zipped package by setting `WEBSITE_RUN_FROM_PACKAGE=1` and specifying `zip_deploy_file` with your zipped file. You may also set `WEBSITE_RUN_FROM_PACKAGE=URL`, ensuring the URL ends with .zip. Regardless of the option you choose, ensure that your zipped package has the correct structure. For more information, refer to the [Azure documentation](https://learn.microsoft.com/azure/azure-functions/run-functions-from-deployment-package).
+
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
