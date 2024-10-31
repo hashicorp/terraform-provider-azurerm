@@ -87,7 +87,7 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 
 			var model TruestedSigningAccountModel
 			if err := meta.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			subscriptionID := meta.Client.Account.SubscriptionId
@@ -100,14 +100,16 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 				return meta.ResourceRequiresImport(m.ResourceType(), id)
 			}
 
-			req := codesigningaccounts.CodeSigningAccount{}
-			req.Name = &model.Name
-			req.Location = model.Location
-			req.Properties = pointer.To(codesigningaccounts.CodeSigningAccountProperties{})
-			req.Properties.Sku = pointer.To(codesigningaccounts.AccountSku{
-				Name: codesigningaccounts.SkuName(model.SkuName),
-			})
-			req.Tags = &model.Tags
+			req := codesigningaccounts.CodeSigningAccount{
+				Name:     &model.Name,
+				Location: model.Location,
+				Tags:     &model.Tags,
+				Properties: &codesigningaccounts.CodeSigningAccountProperties{
+					Sku: &codesigningaccounts.AccountSku{
+						Name: codesigningaccounts.SkuName(model.SkuName),
+					},
+				},
+			}
 
 			err = client.CreateThenPoll(ctx, id, req)
 			if err != nil {
@@ -124,36 +126,38 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
+
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", id, err)
 			}
 
-			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			result, err := client.Get(ctx, *id)
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if result.Model == nil {
 				return fmt.Errorf("retrieving %s got nil model", id)
 			}
-			var output TruestedSigningAccountModel
-			output.Name = id.CodeSigningAccountName
-			output.ResourceGroupName = id.ResourceGroupName
 
-			if result.Model == nil {
-				return fmt.Errorf("Get response nil Model")
+			output := TruestedSigningAccountModel{
+				Name:              id.CodeSigningAccountName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
-			model := result.Model
-			output.Location = model.Location
-			output.Tags = pointer.From(model.Tags)
-			if ptrProp := model.Properties; ptrProp != nil {
-				itemProp := *ptrProp
-				output.AccountUri = pointer.From(itemProp.AccountUri)
-				if ptrSku := itemProp.Sku; ptrSku != nil {
-					itemSku := *ptrSku
-					output.SkuName = string(itemSku.Name)
+
+			if result.Model != nil {
+				model := *result.Model
+				output.Location = model.Location
+				output.Tags = pointer.From(model.Tags)
+
+				if model.Properties != nil {
+					prop := *model.Properties
+					output.AccountUri = pointer.From(prop.AccountUri)
+					if sku := prop.Sku; sku != nil {
+						output.SkuName = string(sku.Name)
+					}
 				}
 			}
 
@@ -173,22 +177,22 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 			}
 			var model TruestedSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %s: %+v", id, err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var upd codesigningaccounts.CodeSigningAccountPatch
+			var patch codesigningaccounts.CodeSigningAccountPatch
 			if meta.ResourceData.HasChange("sku_name") {
-				upd.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
+				patch.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
 					Sku: pointer.To(codesigningaccounts.AccountSkuPatch{
 						Name: pointer.To(codesigningaccounts.SkuName(model.SkuName)),
 					}),
 				})
 			}
 			if meta.ResourceData.HasChange("tags") {
-				upd.Tags = pointer.To(model.Tags)
+				patch.Tags = pointer.To(model.Tags)
 			}
 
-			if err = client.UpdateThenPoll(ctx, *id, upd); err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, patch); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
@@ -201,13 +205,14 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			meta.Logger.Infof("deleting %s", id)
-			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
+
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}

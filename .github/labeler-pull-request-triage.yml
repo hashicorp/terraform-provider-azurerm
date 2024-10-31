@@ -108,11 +108,6 @@ service/cdn:
   - any-glob-to-any-file:
     - internal/services/cdn/**/*
 
-service/codesigning:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/codesigning/**/*
-
 service/cognitive-services:
 - changed-files:
   - any-glob-to-any-file:
@@ -559,6 +554,11 @@ service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
+
+service/trustedsigning:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/codesigning/**/*
 
 service/video-indexer:
 - changed-files:

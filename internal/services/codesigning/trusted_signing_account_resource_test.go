@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TrustedSigningAccountResource struct{}
@@ -26,9 +26,9 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 	}
 	resp, err := client.CodeSigning.Client.CodeSigningAccounts.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving TrustedSigningAccount %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccTrustedSigningAccount_basic(t *testing.T) {

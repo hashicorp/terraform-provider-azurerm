@@ -65,9 +65,6 @@ service/bots:
 service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
-service/codesigning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_trusted_signing_account((.|\n)*)###'
-
 service/cognitive-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
@@ -334,6 +331,9 @@ service/systemcentervirtualmachinemanager:
 
 service/traffic-manager:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_traffic_manager_((.|\n)*)###'
+
+service/trustedsigning:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_trusted_signing_account((.|\n)*)###'
 
 service/video-indexer:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_video_indexer_account((.|\n)*)###'
