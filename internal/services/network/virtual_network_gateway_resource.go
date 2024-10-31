@@ -135,6 +135,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			// Each type gateway requires exact number of `ip_configuration`, and overwriting an existing one is not allowed.
+			ForceNew: true,
 			MaxItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
