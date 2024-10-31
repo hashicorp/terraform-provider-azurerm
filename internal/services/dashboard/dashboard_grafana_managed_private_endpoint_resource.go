@@ -6,8 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,12 +23,19 @@ type ManagedPrivateEndpointResource struct{}
 type ManagedPrivateEndpointModel struct {
 	Name                      string            `tfschema:"name"`
 	Location                  string            `tfschema:"location"`
-	GrafanaId             string            `tfschema:"grafana_id"`
+	GrafanaId                 string            `tfschema:"grafana_id"`
 	PrivateLinkResourceId     string            `tfschema:"private_link_resource_id"`
 	PrivateLinkResourceRegion string            `tfschema:"private_link_resource_region"`
 	Tags                      map[string]string `tfschema:"tags"`
 	GroupIds                  []string          `tfschema:"group_ids"`
 	RequestMessage            string            `tfschema:"request_message"`
+}
+
+type ManagedPrivateEndpointId struct {
+	SubscriptionId             string
+	ResourceGroupName          string
+	GrafanaName                string
+	ManagedPrivateEndpointName string
 }
 
 func (r ManagedPrivateEndpointResource) ModelObject() interface{} {
@@ -51,7 +61,6 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 				`Name length can only consist of alphanumeric characters or dashes, and must be between 2 and 20 characters long. It must begin with a letter and end with a letter or digit.`,
 			),
 		},
-
 
 		"location": commonschema.Location(),
 
@@ -111,8 +120,8 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, model.ResourceGroup, model.GrafanaName, model.Name)
+			grafanaId, err := grafanaresource.ParseGrafanaID(model.GrafanaId)
+			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -163,16 +172,20 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			state := ManagedPrivateEndpointModel{
-				Name:          id.ManagedPrivateEndpointName,
-				Location:      model.Location,
-				GrafanaName:   id.GrafanaName,
-				ResourceGroup: id.ResourceGroupName,
+			grafanaId, err := GetGrafanaIdFromManagedPrivateEndpointId(id.ID())
+			if err != nil {
+				return err
 			}
+
+			state := ManagedPrivateEndpointModel{
+				Name:      id.ManagedPrivateEndpointName,
+				GrafanaId: grafanaId.ID(),
+			}
+
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				
+
 				if props := model.Properties; props != nil {
 					state.GroupIds = pointer.From(props.GroupIds)
 					state.PrivateLinkResourceId = pointer.From(props.PrivateLinkResourceId)
@@ -231,7 +244,7 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
-			payload := resp.Model
+			properties := resp.Model
 
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
@@ -244,4 +257,18 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+// GetGrafanaIdFromManagedPrivateEndpointId parses 'input' into a GrafanaId
+func GetGrafanaIdFromManagedPrivateEndpointId(input string) (*grafanaresource.GrafanaId, error) {
+
+	mpe_id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(input)
+
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	id := grafanaresource.NewGrafanaID(mpe_id.SubscriptionId, mpe_id.ResourceGroupName, mpe_id.GrafanaName)
+
+	return &id, nil
 }

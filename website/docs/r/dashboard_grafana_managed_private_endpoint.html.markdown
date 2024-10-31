@@ -40,8 +40,7 @@ resource "azurerm_dashboard_grafana" "example" {
 }
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
-  grafana_name                 = azurerm_dashboard_grafana.example.name
-  resource_group_name          = azurerm_dashboard_grafana.example.resource_group_name
+  grafana_id                   = azurerm_dashboard_grafana.example.id
   name                         = "example-mpe"
   location                     = azurerm_dashboard_grafana.example.location
   private_link_resource_id     = azurerm_monitor_workspace.example.id
@@ -54,15 +53,13 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
 
 The following arguments are supported:
 
-- `grafana_name` - (Required) The name of the associated managed Grafana. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
+- `grafana_id` - (Required) The id of the associated managed Grafana. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 - `location` - (Required) The Azure Region where the Dashboard Grafana Managed Private Endpoint should exist. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 - `name` - (Required) The name which should be used for this Dashboard Grafana Managed Private Endpoint. Must be between 2 and 20 alphanumeric characters or dashes, must begin with letter and end with a letter or number. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 - `private_link_resource_id` - (Required) The ID of the resource to which this Dashboard Grafana Managed Private Endpoint will connect. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
-
-- `resource_group_name` - (Required) The name of the Resource Group where the Dashboard Grafana Managed Private Endpoint should exist. This _must_ be the same as the Resource Group in which the associated Dashboard Managed Grafana exists. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 ---
 

@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedPrivateEndpointResource struct{}
@@ -125,8 +124,7 @@ func (r ManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
-  grafana_name                 = azurerm_dashboard_grafana.test.name
-  resource_group_name          = azurerm_resource_group.test.name
+  grafana_id                   = azurerm_dashboard_grafana.test.id
   name                         = "acctest-mpe-%d"
   location                     = azurerm_dashboard_grafana.test.location
   private_link_resource_id     = azurerm_monitor_workspace.test.id
@@ -142,8 +140,7 @@ func (r ManagedPrivateEndpointResource) requiresImport(data acceptance.TestData)
 			%s
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "import" {
-  grafana_name             = azurerm_dashboard_grafana_managed_private_endpoint.test.grafana_name
-  resource_group_name      = azurerm_dashboard_grafana_managed_private_endpoint.test.resource_group_name
+  grafana_id               = azurerm_dashboard_grafana_managed_private_endpoint.test.grafana_id
   name                     = azurerm_dashboard_grafana_managed_private_endpoint.test.name
   location                 = azurerm_dashboard_grafana_managed_private_endpoint.test.location
   private_link_resource_id = azurerm_dashboard_grafana_managed_private_endpoint.test.private_link_resource_id
@@ -158,8 +155,7 @@ func (r ManagedPrivateEndpointResource) complete(data acceptance.TestData) strin
 			%s
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
-  grafana_name                 = azurerm_dashboard_grafana.test.name
-  resource_group_name          = azurerm_resource_group.test.name
+  grafana_id                   = azurerm_dashboard_grafana.test.id
   name                         = "acctest-mpe-%d"
   location                     = azurerm_dashboard_grafana.test.location
   private_link_resource_id     = azurerm_monitor_workspace.test.id
@@ -181,8 +177,7 @@ func (r ManagedPrivateEndpointResource) update(data acceptance.TestData) string 
 			%s
 
 resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
-  grafana_name                 = azurerm_dashboard_grafana.test.name
-  resource_group_name          = azurerm_resource_group.test.name
+  grafana_id                   = azurerm_dashboard_grafana.test.id
   name                         = "acctest-mpe-%d"
   location                     = azurerm_dashboard_grafana.test.location
   private_link_resource_id     = azurerm_monitor_workspace.test.id
