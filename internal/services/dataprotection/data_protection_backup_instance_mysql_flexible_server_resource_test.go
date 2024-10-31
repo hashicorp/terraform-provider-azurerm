@@ -97,7 +97,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "8.0.21"
   sku_name               = "B_Standard_B1s"
-  zone                   = "2"
+  zone                   = "1"
 }
 
 resource "azurerm_data_protection_backup_vault" "test" {
