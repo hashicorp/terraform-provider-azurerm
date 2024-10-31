@@ -43,8 +43,6 @@ The following arguments are supported:
 
 * `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
-* `name` - (Optional) The name which should be used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created. Defaults to `BuiltInFusion`
-
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
 * `source` - (Optional) One or more `source` blocks as defined below.
