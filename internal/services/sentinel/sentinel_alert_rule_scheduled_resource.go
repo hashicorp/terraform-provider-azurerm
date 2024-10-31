@@ -308,7 +308,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"entity_type": {
@@ -526,20 +526,11 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Properties.CustomDetails = utils.ExpandPtrMapStringString(v.(map[string]interface{}))
 	}
 
-	entityMappingCount := 0
-	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
 		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
-		entityMappingCount = len(*param.Properties.EntityMappings)
 	}
 	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
 		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
-		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
-	}
-
-	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
-	if entityMappingCount+sentinelEntityMappingCount > 5 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
 	}
 
 	if !d.IsNewResource() {

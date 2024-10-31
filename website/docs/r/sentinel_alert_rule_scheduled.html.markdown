@@ -95,8 +95,6 @@ The following arguments are supported:
 
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
--> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
-
 * `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `ImpairProcessControl`, `InhibitResponseFunction`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation`, `PreAttack`, `Reconnaissance` and `ResourceDevelopment`.
 
 * `techniques` - (Optional) A list of techniques of attacks by which to classify the rule.
