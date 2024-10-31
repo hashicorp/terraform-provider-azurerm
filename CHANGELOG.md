@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_virtual_network_peering` [GH-27530]
 * **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
 * **New Resource**: `azurerm_stack_hci_extension` [GH-26929]
 * **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` [GH-27532]
