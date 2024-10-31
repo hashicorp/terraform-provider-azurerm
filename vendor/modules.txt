@@ -315,6 +315,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabi
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targettypes
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
+github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices

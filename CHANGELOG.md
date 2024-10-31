@@ -2,14 +2,17 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_virtual_network_peering` [GH-27530]
 * **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
 * **New Resource**: `azurerm_stack_hci_extension` [GH-26929]
 * **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` [GH-27532]
+* **New Resource**: `azurerm_trusted_signing_account` [GH-27720]
 
 ENHANCEMENTS:
 
 * `mysql` - upgrade api version to `2023-12-30` [GH-27767]
 * `network` - upgrade api version to `2024-03-01 ` [GH-27746]
+* `azurerm_cosmosdb_account`: support for CMK through `managed_hsm_key_id` property [GH-26521]
 * `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` [GH-27763]
 * `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-27794]
 * `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
@@ -27,8 +30,9 @@ BUG FIXES:
 * `azurerm_automation_hybrid_runbook_worker` - correctly mark resource as gone if it's absent when reading it [GH-27797]
 * `azurerm_automation_python3_package` - correctly mark resource as gone if it's absent when reading it [GH-27797]
 * `azurerm_data_protection_backup_vault` - prevent panic when checking value of `cross_region_restore_enabled` [GH-27762]
-* `azurerm_synapse_workspace_aad_admin` - will no correctly delete when using `azurerm_synapse_workspace_aad_admin` with `azurerm_synapse_workspace` [GH-27606]
 * `azurerm_role_management_policy` - fix panic when unmarshalling the policy into a specific type [GH-27731]
+* `azurerm_security_center_subscription_pricing` - correctly type assert the `additional_extension_properties` property when building the payload [GH-27721]
+* `azurerm_synapse_workspace_aad_admin` - will no correctly delete when using `azurerm_synapse_workspace_aad_admin` with `azurerm_synapse_workspace` [GH-27606]
 * `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
 
 ## 4.7.0 (October 24, 2024)
