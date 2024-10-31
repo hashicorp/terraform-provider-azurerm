@@ -152,7 +152,6 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 	}
 
 	output += `
-
 bug:
   - '- \[ ?X ?\] Bug Fix'
 
