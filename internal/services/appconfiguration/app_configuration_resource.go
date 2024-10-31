@@ -52,6 +52,14 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// sku cannot be downgraded
+			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "premium" || new == "free"
+			}),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -106,6 +114,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
 					"standard",
+					"premium",
 				}, false),
 			},
 

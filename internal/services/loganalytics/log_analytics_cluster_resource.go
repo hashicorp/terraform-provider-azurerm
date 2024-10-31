@@ -216,29 +216,20 @@ func (r LogAnalyticsClusterResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: +%v", *id, err)
-			}
+			payload := clusters.ClusterPatch{}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
-			}
-
-			if props := model.Properties; props == nil {
-				return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("size_gb") && model.Sku != nil && model.Sku.Capacity != nil {
-				model.Sku.Capacity = pointer.To(clusters.Capacity(config.SizeGB))
+			if metadata.ResourceData.HasChange("size_gb") {
+				payload.Sku = &clusters.ClusterSku{
+					Capacity: pointer.To(clusters.Capacity(config.SizeGB)),
+					Name:     pointer.To(clusters.ClusterSkuNameEnumCapacityReservation),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = pointer.To(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			if err = client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

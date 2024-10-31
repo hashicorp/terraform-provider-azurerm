@@ -90,7 +90,7 @@ var services = mapOf(
         "newrelic" to "New Relic",
         "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
-        "oracledatabase" to "Oracle Database",
+        "oracle" to "Oracle",
         "orbital" to "Orbital",
         "paloalto" to "Palo Alto",
         "policy" to "Policy",
@@ -125,6 +125,7 @@ var services = mapOf(
         "systemcentervirtualmachinemanager" to "System Center Virtual Machine Manager",
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
+        "videoindexer" to "VideoIndexer",
         "voiceservices" to "Voice Services",
         "web" to "Web",
         "workloads" to "Workloads"

@@ -232,7 +232,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  StorageAccountTypeGRS,
 			ValidateFunc: validation.StringInSlice([]string{
 				StorageAccountTypeGRS,
@@ -408,14 +407,15 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				Identity: r.expandIdentity(state.Identity),
 				Location: location.Normalize(state.Location),
 				Properties: &managedinstances.ManagedInstanceProperties{
-					DnsZonePartner:            pointer.To(state.DnsZonePartnerId),
-					LicenseType:               pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
-					MinimalTlsVersion:         pointer.To(state.MinimumTlsVersion),
-					ProxyOverride:             pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
-					PublicDataEndpointEnabled: pointer.To(state.PublicDataEndpointEnabled),
-					StorageSizeInGB:           pointer.To(state.StorageSizeInGb),
-					VCores:                    pointer.To(state.VCores),
-					ZoneRedundant:             pointer.To(state.ZoneRedundantEnabled),
+					DnsZonePartner:                   pointer.To(state.DnsZonePartnerId),
+					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
+					MinimalTlsVersion:                pointer.To(state.MinimumTlsVersion),
+					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
+					PublicDataEndpointEnabled:        pointer.To(state.PublicDataEndpointEnabled),
+					StorageSizeInGB:                  pointer.To(state.StorageSizeInGb),
+					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType)),
+					VCores:                           pointer.To(state.VCores),
+					ZoneRedundant:                    pointer.To(state.ZoneRedundantEnabled),
 				},
 				Tags: pointer.To(state.Tags),
 			}
