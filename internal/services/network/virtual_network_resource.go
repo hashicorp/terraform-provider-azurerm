@@ -273,6 +273,13 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"private_endpoint_vnet_policies": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(virtualnetworks.PrivateEndpointVNetPoliciesDisabled),
+			ValidateFunc: validation.StringInSlice(virtualnetworks.PossibleValuesForPrivateEndpointVNetPolicies(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 
@@ -429,6 +436,7 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props := model.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
+			d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
 
 			if space := props.AddressSpace; space != nil {
 				if !features.FourPointOhBeta() {
@@ -553,6 +561,10 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		locks.MultipleByName(routeTables, routeTableResourceName)
 		defer locks.UnlockMultipleByName(routeTables, routeTableResourceName)
+	}
+
+	if d.HasChange("private_endpoint_vnet_policies") {
+		payload.Properties.PrivateEndpointVNetPolicies = pointer.To(virtualnetworks.PrivateEndpointVNetPolicies(d.Get("private_endpoint_vnet_policies").(string)))
 	}
 
 	if d.HasChange("tags") {
@@ -836,7 +848,8 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 		DhcpOptions: &virtualnetworks.DhcpOptions{
 			DnsServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		Subnets: &subnets,
+		PrivateEndpointVNetPolicies: pointer.To(virtualnetworks.PrivateEndpointVNetPolicies(d.Get("private_endpoint_vnet_policies").(string))),
+		Subnets:                     &subnets,
 	}
 
 	if !features.FourPointOhBeta() {
