@@ -112,7 +112,7 @@ A `notification` block supports the following:
 
 * `contact_emails` - (Required) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
