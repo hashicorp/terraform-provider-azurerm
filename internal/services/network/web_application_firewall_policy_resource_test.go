@@ -543,7 +543,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       operator           = "Contains"
       negation_condition = false
       match_values       = ["windows"]
-      transforms         = ["Lowercase"]
+      transforms         = ["Uppercase"]
     }
 
     action = "Block"
