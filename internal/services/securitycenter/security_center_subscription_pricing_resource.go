@@ -290,10 +290,16 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue
 		}
 		output := pricings_v2023_01_01.Extension{
-			Name:                          extensionName,
-			IsEnabled:                     isEnabled,
-			AdditionalExtensionProperties: pointer.To(extensionProperties),
+			Name:      extensionName,
+			IsEnabled: isEnabled,
 		}
+
+		if vAdditional, ok := extensionProperties[extensionName]; ok {
+			props, _ := vAdditional.(*interface{})
+			p := (*props).(map[string]interface{})
+			output.AdditionalExtensionProperties = pointer.To(p)
+		}
+
 		outputList = append(outputList, output)
 	}
 
