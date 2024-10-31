@@ -138,10 +138,6 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if result.Model == nil {
-				return fmt.Errorf("retrieving %s got nil model", id)
-			}
-
 			output := TruestedSigningAccountModel{
 				Name:              id.CodeSigningAccountName,
 				ResourceGroupName: id.ResourceGroupName,
@@ -173,7 +169,7 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", meta.ResourceData.Id(), err)
 			}
 			var model TruestedSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
@@ -206,9 +202,10 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
+
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", meta.ResourceData.Id(), err)
 			}
 
 			meta.Logger.Infof("deleting %s", id)
