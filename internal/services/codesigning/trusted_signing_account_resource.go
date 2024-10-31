@@ -103,7 +103,7 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 
 			req := codesigningaccounts.CodeSigningAccount{
 				Name:     &model.Name,
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Tags:     &model.Tags,
 				Properties: &codesigningaccounts.CodeSigningAccountProperties{
 					Sku: &codesigningaccounts.AccountSku{
