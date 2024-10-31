@@ -30,6 +30,11 @@ const (
 	FluxGitSemverRange  string = "semver"
 )
 
+const (
+	SubstituteFromKindConfigMap string = "ConfigMap"
+	SubstituteFromKindSecret    string = "Secret"
+)
+
 type KubernetesFluxConfigurationModel struct {
 	Name                            string                         `tfschema:"name"`
 	ClusterID                       string                         `tfschema:"cluster_id"`
@@ -252,9 +257,12 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"kind": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													SubstituteFromKindConfigMap,
+													SubstituteFromKindSecret,
+												}, false),
 											},
 											"name": {
 												Type:         pluginsdk.TypeString,
@@ -264,7 +272,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 											"optional": {
 												Type:     pluginsdk.TypeBool,
 												Optional: true,
-												Default:  true,
+												Default:  false,
 											},
 										},
 									},
@@ -275,7 +283,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"wait": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
+						Default:  true,
 					},
 				},
 			},
