@@ -286,7 +286,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
 		if elasticPool.Model != nil {
@@ -598,33 +598,35 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return nil
 	}
 
-	securityAlertPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
+	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
+	if longTermRetentionPolicyProps != nil {
+		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKUs do not support LRP currently
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
+			longTermRetentionPolicyPayload.Properties = longTermRetentionPolicyProps
 		}
 
-		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 		}
 	}
 
-	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if shortTermSecurityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
+	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
+	if shortTermRetentionPolicyProps != nil {
+		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
+			shortTermRetentionPolicyPayload.Properties = shortTermRetentionPolicyProps
 		}
 
 		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
-			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		} else if shortTermRetentionPolicyProps.DiffBackupIntervalInHours == nil || pointer.From(shortTermRetentionPolicyProps.DiffBackupIntervalInHours) == 0 {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHoursOneTwo)
 		}
 
-		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -1076,7 +1078,24 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
-			if strings.HasPrefix(skuName, "HS") {
+			elasticPoolSku := ""
+			if elasticPoolId != "" {
+				elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+				if err != nil {
+					return err
+				}
+
+				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
+				}
+
+				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
+					elasticPoolSku = elasticPool.Model.Sku.Name
+				}
+			}
+
+			if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 

@@ -76,7 +76,7 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleAnomalyDuplicate_withCustomObservation(t *testing.T) {
+func TestAccSentinelAlertRuleAnomalyDuplicate_thresholdWithCustomObservation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
 	r := SentinelAlertRuleAnomalyDuplicateResource{}
 
@@ -88,6 +88,13 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_withCustomObservation(t *testing.T
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleAnomalyDuplicate_multiSelectWithCustomObservation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
+	r := SentinelAlertRuleAnomalyDuplicateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithMultiSelectObservation(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -95,6 +102,13 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_withCustomObservation(t *testing.T
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleAnomalyDuplicate_singleSelectWithCustomObservation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
+	r := SentinelAlertRuleAnomalyDuplicateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithSingleSelectObservation(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -102,6 +116,13 @@ func TestAccSentinelAlertRuleAnomalyDuplicate_withCustomObservation(t *testing.T
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleAnomalyDuplicate_prioritizeExcludeWithCustomObservation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_anomaly_duplicate", "test")
+	r := SentinelAlertRuleAnomalyDuplicateResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithPrioritizeExcludeObservation(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -118,7 +139,7 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basic(data acceptance.TestData)
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "Potential data staging"
+  display_name               = "Anomalous Azure operations"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
@@ -162,19 +183,29 @@ func (SentinelAlertRuleAnomalyDuplicateResource) basicWithSingleSelectObservatio
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "Unusual web traffic detected with IP in URL path"
+  display_name               = "Anomalous W3CIIS logs activity"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate Unusual web traffic detected with IP in URL path"
+  display_name               = "acctest duplicate Anomalous W3CIIS logs activity"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
 
   single_select_observation {
-    name  = "Device vendor"
-    value = "Zscaler"
+    name  = "Number of reasons for anomalous activity"
+    value = "1"
+  }
+
+  single_select_observation {
+    name  = "Display anomalies for a specific top reason"
+    value = "None"
+  }
+
+  single_select_observation {
+    name  = "Display anomalies for public, private, or all IPs"
+    value = "Public IPs"
   }
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
@@ -203,30 +234,26 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }
+
 func (SentinelAlertRuleAnomalyDuplicateResource) basicWithPrioritizeExcludeObservation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "Anomalous web request activity"
+  display_name               = "Potential domain generation algorithm (DGA) on next-level DNS Domains"
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "test" {
-  display_name               = "acctest duplicate Anomalous web request activity"
+  display_name               = "acctest Potential domain generation algorithm (DGA) on next-level DNS Domains"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   built_in_rule_id           = data.azurerm_sentinel_alert_rule_anomaly.test.id
   enabled                    = true
   mode                       = "Flighting"
 
   prioritized_exclude_observation {
-    name       = "Prioritize script suffixes of the URI stems"
-    prioritize = ".asp, .aspx, .armx, .asax, .ashz"
-  }
-
-  prioritized_exclude_observation {
-    name    = "Exclude noisy URI stems"
-    exclude = "test.com"
+    name    = "Domain suffixes"
+    exclude = ".lan, .home, .test"
   }
 
 }

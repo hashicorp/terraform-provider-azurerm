@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -847,42 +847,42 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 	return &backup
 }
 
-func expandFlexibleServerSku(name string) (*servers.Sku, error) {
+func expandFlexibleServerSku(name string) (*servers.MySQLServerSku, error) {
 	if name == "" {
 		return nil, nil
 	}
 	parts := strings.SplitAfterN(name, "_", 2)
 
-	var tier servers.SkuTier
+	var tier servers.ServerSkuTier
 	switch strings.TrimSuffix(parts[0], "_") {
 	case "B":
-		tier = servers.SkuTierBurstable
+		tier = servers.ServerSkuTierBurstable
 	case "GP":
-		tier = servers.SkuTierGeneralPurpose
+		tier = servers.ServerSkuTierGeneralPurpose
 	case "MO":
-		tier = servers.SkuTierMemoryOptimized
+		tier = servers.ServerSkuTierMemoryOptimized
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", name, parts[0])
 	}
 
-	return &servers.Sku{
+	return &servers.MySQLServerSku{
 		Name: parts[1],
 		Tier: tier,
 	}, nil
 }
 
-func flattenFlexibleServerSku(sku *servers.Sku) (string, error) {
+func flattenFlexibleServerSku(sku *servers.MySQLServerSku) (string, error) {
 	if sku == nil || sku.Name == "" || sku.Tier == "" {
 		return "", nil
 	}
 
 	var tier string
 	switch sku.Tier {
-	case servers.SkuTierBurstable:
+	case servers.ServerSkuTierBurstable:
 		tier = "B"
-	case servers.SkuTierGeneralPurpose:
+	case servers.ServerSkuTierGeneralPurpose:
 		tier = "GP"
-	case servers.SkuTierMemoryOptimized:
+	case servers.ServerSkuTierMemoryOptimized:
 		tier = "MO"
 	default:
 		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)
@@ -1028,14 +1028,14 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	return []interface{}{item}, nil
 }
 
-func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
+func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIdentity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
 	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
-	out := servers.Identity{
+	out := servers.MySQLServerIdentity{
 		Type: &identityType,
 	}
 	if expanded.Type == identity.TypeUserAssigned {
@@ -1049,7 +1049,7 @@ func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error
 	return &out, nil
 }
 
-func flattenFlexibleServerIdentity(input *servers.Identity) (*[]interface{}, error) {
+func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]interface{}, error) {
 	var transform *identity.UserAssignedMap
 
 	if input != nil {

@@ -9,5 +9,5 @@ type AutonomousDbVersionProperties struct {
 	IsDefaultForPaid  *bool         `json:"isDefaultForPaid,omitempty"`
 	IsFreeTierEnabled *bool         `json:"isFreeTierEnabled,omitempty"`
 	IsPaidEnabled     *bool         `json:"isPaidEnabled,omitempty"`
-	Version           *string       `json:"version,omitempty"`
+	Version           string        `json:"version"`
 }
