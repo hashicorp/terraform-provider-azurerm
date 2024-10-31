@@ -121,6 +121,9 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			grafanaId, err := grafanaresource.ParseGrafanaID(model.GrafanaId)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", model.GrafanaId, err)
+			}
 			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
 			existing, err := client.Get(ctx, id)
