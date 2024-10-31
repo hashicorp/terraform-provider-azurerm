@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type TruestedSigningAccountModel struct {
+type TrustedSigningAccountModel struct {
 	Name              string            `tfschema:"name"`
 	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -72,7 +73,7 @@ func (m TrustedSigningAccountResource) Attributes() map[string]*pluginsdk.Schema
 }
 
 func (m TrustedSigningAccountResource) ModelObject() interface{} {
-	return &TruestedSigningAccountModel{}
+	return &TrustedSigningAccountModel{}
 }
 
 func (m TrustedSigningAccountResource) ResourceType() string {
@@ -85,7 +86,7 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
-			var model TruestedSigningAccountModel
+			var model TrustedSigningAccountModel
 			if err := meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -130,7 +131,7 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", id, err)
+				return err
 			}
 
 			result, err := client.Get(ctx, *id)
@@ -138,18 +139,16 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			output := TruestedSigningAccountModel{
+			output := TrustedSigningAccountModel{
 				Name:              id.CodeSigningAccountName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			if result.Model != nil {
-				model := *result.Model
-				output.Location = model.Location
+			if model := result.Model; model != nil {
+				output.Location = location.Normalize(model.Location)
 				output.Tags = pointer.From(model.Tags)
 
-				if model.Properties != nil {
-					prop := *model.Properties
+				if prop := model.Properties; prop != nil {
 					output.AccountUri = pointer.From(prop.AccountUri)
 					if sku := prop.Sku; sku != nil {
 						output.SkuName = string(sku.Name)
@@ -169,9 +168,9 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", meta.ResourceData.Id(), err)
+				return err
 			}
-			var model TruestedSigningAccountModel
+			var model TrustedSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -205,7 +204,7 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q as an Trusted Signing Account ID: %+v", meta.ResourceData.Id(), err)
+				return err
 			}
 
 			meta.Logger.Infof("deleting %s", id)
