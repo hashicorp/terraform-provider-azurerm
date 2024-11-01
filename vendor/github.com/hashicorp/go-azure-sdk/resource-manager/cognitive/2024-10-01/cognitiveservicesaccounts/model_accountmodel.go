@@ -18,8 +18,10 @@ type AccountModel struct {
 	LifecycleStatus      *ModelLifecycleStatus  `json:"lifecycleStatus,omitempty"`
 	MaxCapacity          *int64                 `json:"maxCapacity,omitempty"`
 	Name                 *string                `json:"name,omitempty"`
+	Publisher            *string                `json:"publisher,omitempty"`
 	Skus                 *[]ModelSku            `json:"skus,omitempty"`
 	Source               *string                `json:"source,omitempty"`
+	SourceAccount        *string                `json:"sourceAccount,omitempty"`
 	SystemData           *systemdata.SystemData `json:"systemData,omitempty"`
 	Version              *string                `json:"version,omitempty"`
 }

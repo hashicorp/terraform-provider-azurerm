@@ -46,7 +46,9 @@ type AccountModelOperationPredicate struct {
 	IsDefaultVersion *bool
 	MaxCapacity      *int64
 	Name             *string
+	Publisher        *string
 	Source           *string
+	SourceAccount    *string
 	Version          *string
 }
 
@@ -68,7 +70,15 @@ func (p AccountModelOperationPredicate) Matches(input AccountModel) bool {
 		return false
 	}
 
+	if p.Publisher != nil && (input.Publisher == nil || *p.Publisher != *input.Publisher) {
+		return false
+	}
+
 	if p.Source != nil && (input.Source == nil || *p.Source != *input.Source) {
+		return false
+	}
+
+	if p.SourceAccount != nil && (input.SourceAccount == nil || *p.SourceAccount != *input.SourceAccount) {
 		return false
 	}
 

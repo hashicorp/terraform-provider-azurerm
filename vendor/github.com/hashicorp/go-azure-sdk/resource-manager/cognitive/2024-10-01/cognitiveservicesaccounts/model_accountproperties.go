@@ -6,6 +6,7 @@ package cognitiveservicesaccounts
 type AccountProperties struct {
 	AbusePenalty                  *AbusePenalty                `json:"abusePenalty,omitempty"`
 	AllowedFqdnList               *[]string                    `json:"allowedFqdnList,omitempty"`
+	AmlWorkspace                  *UserOwnedAmlWorkspace       `json:"amlWorkspace,omitempty"`
 	ApiProperties                 *ApiProperties               `json:"apiProperties,omitempty"`
 	CallRateLimit                 *CallRateLimit               `json:"callRateLimit,omitempty"`
 	Capabilities                  *[]SkuCapability             `json:"capabilities,omitempty"`
@@ -27,6 +28,7 @@ type AccountProperties struct {
 	ProvisioningState             *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublicNetworkAccess           *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`
 	QuotaLimit                    *QuotaLimit                  `json:"quotaLimit,omitempty"`
+	RaiMonitorConfig              *RaiMonitorConfig            `json:"raiMonitorConfig,omitempty"`
 	Restore                       *bool                        `json:"restore,omitempty"`
 	RestrictOutboundNetworkAccess *bool                        `json:"restrictOutboundNetworkAccess,omitempty"`
 	ScheduledPurgeDate            *string                      `json:"scheduledPurgeDate,omitempty"`
