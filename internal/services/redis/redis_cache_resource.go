@@ -961,16 +961,24 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	// AAD/Entra support
-	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
-	if valExists {
-		entraEnabled := v.(bool)
-		output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+	redisConfig := d.GetRawConfig().AsValueMap()["redis_configuration"]
+	if !redisConfig.IsNull() {
+		configs := redisConfig.AsValueSlice()
+		if len(configs) > 0 {
+			aadAuth := configs[0].AsValueMap()["active_directory_authentication_enabled"]
+			if !aadAuth.IsNull() {
+				entraEnabled := false
+				if aadAuth.True() {
+					entraEnabled = true
+				}
+				output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+			}
+		}
 	}
 
 	// RDB Backup
 	// nolint : staticcheck
-	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
 
