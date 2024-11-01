@@ -241,10 +241,12 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
+
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
+
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
 			if immutability := securitySetting.ImmutabilitySettings; immutability != nil {
 				if immutability.State != nil {
@@ -256,6 +258,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
+
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
@@ -264,7 +267,6 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				}
 			}
 		}
-
 		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
