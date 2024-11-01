@@ -144,6 +144,8 @@ A `assign_to_user` block supports the following:
 
 A `ssh` block supports the following:
 
+* `enabled` - (Optional) Specifies whether SSH is enabled on this Machine Learning Compute Instance. Defaults to `true`.
+
 * `public_key` - (Required) Specifies the SSH rsa public key file as a string. Use "ssh-keygen -t rsa -b 2048" to generate your SSH key pairs.
 
 ## Attributes Reference

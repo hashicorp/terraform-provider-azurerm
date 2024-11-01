@@ -228,14 +228,18 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
   node_public_ip_enabled        = false
+  subnet_resource_id            = azurerm_subnet.test.id
+  description                   = "this is desc"
+
   ssh {
+    enabled    = true
     public_key = var.ssh_key
   }
-  subnet_resource_id = azurerm_subnet.test.id
-  description        = "this is desc"
+
   tags = {
     Label1 = "Value1"
   }
+
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_private_endpoint.test

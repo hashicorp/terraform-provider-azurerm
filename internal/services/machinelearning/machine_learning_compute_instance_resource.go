@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
@@ -22,15 +21,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
-	resource := pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceComputeInstanceCreate,
 		Read:   resourceComputeInstanceRead,
 		Delete: resourceComputeInstanceDelete,
@@ -123,9 +120,15 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"public_key": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"username": {
@@ -158,20 +161,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["location"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			Deprecated:       "The `azurerm_machine_learning_compute_instance` must be deployed to the same location as the associated `azurerm_machine_learning_workspace` resource, as the `location` fields must be the same the `location` field no longer has any effect and will be removed in version 4.0 of the AzureRM Provider",
-			ValidateFunc:     location.EnhancedValidate,
-			StateFunc:        location.StateFunc,
-			DiffSuppressFunc: location.DiffSuppressFunc,
-		}
-	}
-
-	return &resource
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -241,14 +230,14 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: In 4.0 the 'location' field will be deprecated...
 	props := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
+			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
@@ -324,19 +313,21 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("description", props.Description)
 
-	if props.Properties != nil {
-		d.Set("virtual_machine_size", props.Properties.VMSize)
-		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
-		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
-		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+	if propsProps := props.Properties; propsProps != nil {
+		d.Set("virtual_machine_size", propsProps.VMSize)
+		d.Set("authorization_type", string(pointer.From(propsProps.ComputeInstanceAuthorizationType)))
+		d.Set("ssh", flattenComputeSSHSetting(propsProps.SshSettings))
+		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(propsProps.PersonalComputeInstanceSettings))
 
-		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+		if propsProps.Subnet != nil {
+			d.Set("subnet_resource_id", propsProps.Subnet.Id)
 		}
 
 		enableNodePublicIP := true
-		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
-			enableNodePublicIP = false
+		if endpoints := propsProps.ConnectivityEndpoints; endpoints != nil {
+			if endpoints.PublicIPAddress == nil {
+				enableNodePublicIP = false
+			}
 		}
 
 		d.Set("node_public_ip_enabled", enableNodePublicIP)
@@ -387,9 +378,15 @@ func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.Compu
 		}
 	}
 	value := input[0].(map[string]interface{})
+
+	enabled := machinelearningcomputes.SshPublicAccessDisabled
+	if value["enabled"].(bool) {
+		enabled = machinelearningcomputes.SshPublicAccessEnabled
+	}
+
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
-		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
-		AdminPublicKey:  utils.String(value["public_key"].(string)),
+		SshPublicAccess: pointer.To(enabled),
+		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 
@@ -406,12 +403,18 @@ func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcompu
 }
 
 func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) interface{} {
-	if settings == nil || strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessDisabled)) {
+	if settings == nil {
 		return []interface{}{}
+	}
+
+	enabled := false
+	if settings.SshPublicAccess != nil {
+		enabled = strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessEnabled))
 	}
 
 	return []interface{}{
 		map[string]interface{}{
+			"enabled":    enabled,
 			"public_key": settings.AdminPublicKey,
 			"username":   settings.AdminUserName,
 			"port":       settings.SshPort,
