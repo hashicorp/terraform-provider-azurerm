@@ -55,12 +55,12 @@ type CloudVmClusterResourceModel struct {
 	DataStoragePercentage    int64                        `tfschema:"data_storage_percentage"`
 	IsLocalBackupEnabled     bool                         `tfschema:"local_backup_enabled"`
 	IsSparseDiskgroupEnabled bool                         `tfschema:"sparse_diskgroup_enabled"`
+	Ocid                     string                       `tfschema:"ocid"`
 	TimeZone                 string                       `tfschema:"time_zone"`
 }
 
 func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// Azure
 		"location": commonschema.Location(),
 
 		"name": {
@@ -254,6 +254,11 @@ func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"ocid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -438,6 +443,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DataCollectionOptions = FlattenDataCollectionOptions(props.DataCollectionOptions)
 					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
+					state.Ocid = pointer.From(props.Ocid)
 					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
 					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
 					state.TimeZone = pointer.From(props.TimeZone)
@@ -492,20 +498,4 @@ func removeHostnameSuffix(hostnameActual string) string {
 	} else {
 		return hostnameActual
 	}
-}
-
-// DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
-// therefore when computing the diff if the new Hostname is a prefix of the old then we will ignore the diff.
-// Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.
-// Since testHostname is a prefix of testHostname-abc, then computed diff is zero.
-func DbSystemHostnameDiffSuppress(_ string, old string, new string, _ *schema.ResourceData) bool {
-	return EqualSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
-}
-
-func NewIsPrefixOfOldDiffSuppress(old string, new string) bool {
-	return strings.HasPrefix(strings.ToLower(old), strings.ToLower(new))
-}
-
-func EqualSuppressDiff(old string, new string) bool {
-	return old == new
 }

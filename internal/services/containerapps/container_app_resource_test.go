@@ -2199,6 +2199,7 @@ resource "azurerm_container_app" "test" {
         transport               = "HTTP"
         port                    = 5000
         path                    = "/uptime"
+        initial_delay           = 5
         timeout                 = 2
         failure_count_threshold = 1
         success_count_threshold = 1
@@ -2227,6 +2228,7 @@ resource "azurerm_container_app" "test" {
       startup_probe {
         transport               = "TCP"
         port                    = 5000
+        initial_delay           = 5
         timeout                 = 5
         failure_count_threshold = 1
       }

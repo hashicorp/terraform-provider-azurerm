@@ -272,6 +272,28 @@ func TestAccMsSqlManagedInstance_withServicePrincipal(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_backupRedundancyUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageType(data, "GRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.storageType(data, "GZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func (r MsSqlManagedInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlManagedInstanceID(state.ID)
 	if err != nil {
