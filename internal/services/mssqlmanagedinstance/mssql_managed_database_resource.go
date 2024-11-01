@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,6 +32,7 @@ type MsSqlManagedDatabaseModel struct {
 	LongTermRetentionPolicy []LongTermRetentionPolicy `tfschema:"long_term_retention_policy"`
 	ShortTermRetentionDays  int64                     `tfschema:"short_term_retention_days"`
 	PointInTimeRestore      []PointInTimeRestore      `tfschema:"point_in_time_restore"`
+	Tags                    map[string]string         `tfschema:"tags"`
 }
 
 type LongTermRetentionPolicy struct {
@@ -110,6 +112,8 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"tags": tags.Schema(),
 	}
 }
 
@@ -157,6 +161,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 			parameters := manageddatabases.ManagedDatabase{
 				Location:   managedInstance.Model.Location,
 				Properties: &manageddatabases.ManagedDatabaseProperties{},
+				Tags:       &model.Tags,
 			}
 
 			if len(model.PointInTimeRestore) > 0 {
@@ -164,8 +169,7 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				parameters.Properties.CreateMode = pointer.To(manageddatabases.ManagedDatabaseCreateModePointInTimeRestore)
 				parameters.Properties.RestorePointInTime = &restorePointInTime.RestorePointInTime
 
-				_, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId)
-				if err == nil {
+				if _, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId); err == nil {
 					parameters.Properties.RestorableDroppedDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
 				} else {
 					parameters.Properties.SourceDatabaseId = pointer.To(restorePointInTime.SourceDatabaseId)
@@ -215,6 +219,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
 			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
 			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
@@ -232,6 +237,17 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 				managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, model.Name)
 
 			d := metadata.ResourceData
+
+			if d.HasChange("tags") {
+				parameters := manageddatabases.ManagedDatabase{
+					Tags: &model.Tags,
+				}
+
+				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+			}
 
 			if d.HasChange("long_term_retention_policy") {
 				longTermRetentionProps := expandLongTermRetentionPolicy(model.LongTermRetentionPolicy)
@@ -317,6 +333,10 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 			d := metadata.ResourceData
 			if v, ok := d.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
+			}
+
+			if model.Tags != nil {
+				state.Tags = model.Tags
 			}
 
 			return metadata.Encode(&model)
