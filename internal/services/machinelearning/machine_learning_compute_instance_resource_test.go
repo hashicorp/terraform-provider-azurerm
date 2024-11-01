@@ -209,12 +209,14 @@ resource "azurerm_private_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id
+
   private_service_connection {
     name                           = "test-mlworkspace-%d"
     private_connection_resource_id = azurerm_machine_learning_workspace.test.id
     subresource_names              = ["amlworkspace"]
     is_manual_connection           = false
   }
+
   private_dns_zone_group {
     name                 = "test"
     private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
