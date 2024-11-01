@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +26,7 @@ import (
 )
 
 func resourceDataProtectionBackupVault() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceDataProtectionBackupVaultCreateUpdate,
 		Read:   resourceDataProtectionBackupVaultRead,
 		Update: resourceDataProtectionBackupVaultCreateUpdate,
@@ -76,7 +75,16 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"datastore_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(backupvaults.StorageSettingStoreTypesArchiveStore),
+					string(backupvaults.StorageSettingStoreTypesOperationalStore),
+					string(backupvaults.StorageSettingStoreTypesVaultStore),
+				}, false),
+			},
 
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
@@ -91,6 +99,15 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Default:      backupvaults.SoftDeleteStateOn,
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
 			},
+
+			"immutability": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.ImmutabilityStateDisabled,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
+			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
@@ -116,33 +133,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	// Confirmed with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
-	if !features.FourPointOhBeta() {
-		resource.Schema["datastore_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(backupvaults.StorageSettingStoreTypesArchiveStore),
-				"SnapshotStore",
-				string(backupvaults.StorageSettingStoreTypesOperationalStore),
-				string(backupvaults.StorageSettingStoreTypesVaultStore),
-			}, false),
-		}
-	} else {
-		resource.Schema["datastore_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(backupvaults.StorageSettingStoreTypesArchiveStore),
-				string(backupvaults.StorageSettingStoreTypesOperationalStore),
-				string(backupvaults.StorageSettingStoreTypesVaultStore),
-			}, false),
-		}
-	}
-	return resource
 }
 
 func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -188,6 +178,9 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			SecuritySettings: &backupvaults.SecuritySettings{
 				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
 					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
+				},
+				ImmutabilitySettings: &backupvaults.ImmutabilitySettings{
+					State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
 				},
 			},
 		},
@@ -250,6 +243,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		}
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
+				d.Set("immutability", string(pointer.From(securitySetting.ImmutabilitySettings.State)))
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
