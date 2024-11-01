@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Analytics Input. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 ---
 
 A `serialization` block supports the following:
