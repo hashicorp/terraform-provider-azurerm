@@ -154,7 +154,7 @@ func (r MsSqlManagedDatabase) complete(data acceptance.TestData) string {
 resource "azurerm_mssql_managed_database" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   name                = "acctest-%[2]d"
-  tags 			      = { Environment = "Testing" } 
+  tags                = { Environment = "Testing" }
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }
