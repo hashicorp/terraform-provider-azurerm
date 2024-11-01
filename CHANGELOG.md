@@ -1,40 +1,40 @@
-## 4.8.0 (Unreleased)
+## 4.8.0 (October 31, 2024)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_virtual_network_peering` [GH-27530]
-* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` [GH-27384]
-* **New Resource**: `azurerm_stack_hci_extension` [GH-26929]
-* **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` [GH-27532]
-* **New Resource**: `azurerm_trusted_signing_account` [GH-27720]
+* **New Data Source**: `azurerm_virtual_network_peering` ([#27530](https://github.com/hashicorp/terraform-provider-azurerm/issues/27530))
+* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_fqdn` ([#27384](https://github.com/hashicorp/terraform-provider-azurerm/issues/27384))
+* **New Resource**: `azurerm_stack_hci_extension` ([#26929](https://github.com/hashicorp/terraform-provider-azurerm/issues/26929))
+* **New Resource**: `azurerm_stack_hci_marketplace_gallery_image` ([#27532](https://github.com/hashicorp/terraform-provider-azurerm/issues/27532))
+* **New Resource**: `azurerm_trusted_signing_account` ([#27720](https://github.com/hashicorp/terraform-provider-azurerm/issues/27720))
 
 ENHANCEMENTS:
 
-* `mysql` - upgrade api version to `2023-12-30` [GH-27767]
-* `network` - upgrade api version to `2024-03-01 ` [GH-27746]
-* `azurerm_cosmosdb_account`: support for CMK through `managed_hsm_key_id` property [GH-26521]
-* `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` [GH-27763]
-* `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource [GH-27794]
-* `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property [GH-27629]
-* `azurerm_key_vault_key` - `expiration_date` only recreates the resource when it is removed from the config file [GH-27813]
-* `azurerm_kubernetes_cluster` - fix issue where`maintenance_window_auto_upgrade`/`maintenance_window_auto_upgrade`/`maintenance_window_node_os ` might not be read into state [GH-26915]
-* `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property [GH-27596]
-* `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties [GH-27588]
-* `azurerm_load_test` - `description` can now be updated [GH-27800]
-* `azurerm_oracle_cloud_vm_cluster` - export the `ocid` property [GH-27785]
-* `azurerm_orchestrated_virtual_machine_scale_set` - add support for `sku_profile` block [GH-27599]
-* `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` [GH-27774]
+* `mysql` - upgrade api version to `2023-12-30` ([#27767](https://github.com/hashicorp/terraform-provider-azurerm/issues/27767))
+* `network` - upgrade api version to `2024-03-01 ` ([#27746](https://github.com/hashicorp/terraform-provider-azurerm/issues/27746))
+* `azurerm_cosmosdb_account`: support for CMK through `managed_hsm_key_id` property ([#26521](https://github.com/hashicorp/terraform-provider-azurerm/issues/26521))
+* `azurerm_cosmosdb_account` - support further versions for `mongo_server_version` ([#27763](https://github.com/hashicorp/terraform-provider-azurerm/issues/27763))
+* `azurerm_container_app_environment` - changing the `log_analytics_workspace_id` property no longer creates a new resource ([#27794](https://github.com/hashicorp/terraform-provider-azurerm/issues/27794))
+* `azurerm_data_factory_linked_service_azure_sql_database` - add support for the `credential_name` property ([#27629](https://github.com/hashicorp/terraform-provider-azurerm/issues/27629))
+* `azurerm_key_vault_key` - `expiration_date` only recreates the resource when it is removed from the config file ([#27813](https://github.com/hashicorp/terraform-provider-azurerm/issues/27813))
+* `azurerm_kubernetes_cluster` - fix issue where`maintenance_window_auto_upgrade`/`maintenance_window_auto_upgrade`/`maintenance_window_node_os ` might not be read into state ([#26915](https://github.com/hashicorp/terraform-provider-azurerm/issues/26915))
+* `azurerm_kubernetes_cluster` - support for the `backend_pool_type` property ([#27596](https://github.com/hashicorp/terraform-provider-azurerm/issues/27596))
+* `azurerm_kubernetes_cluster` - support for the `daemonset_eviction_for_empty_nodes_enabled`, `daemonset_eviction_for_occupied_nodes_enabled`, and `ignore_daemonsets_utilization_enabled` properties ([#27588](https://github.com/hashicorp/terraform-provider-azurerm/issues/27588))
+* `azurerm_load_test` - `description` can now be updated ([#27800](https://github.com/hashicorp/terraform-provider-azurerm/issues/27800))
+* `azurerm_oracle_cloud_vm_cluster` - export the `ocid` property ([#27785](https://github.com/hashicorp/terraform-provider-azurerm/issues/27785))
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for `sku_profile` block ([#27599](https://github.com/hashicorp/terraform-provider-azurerm/issues/27599))
+* `azurerm_web_application_firewall_policy` - add support for `policy_settings.0.file_upload_enforcement` ([#27774](https://github.com/hashicorp/terraform-provider-azurerm/issues/27774))
 
 BUG FIXES:
 
-* `azurerm_automation_hybrid_runbook_worker_group` - correctly mark resource as gone if it's absent when reading it [GH-27797]
-* `azurerm_automation_hybrid_runbook_worker` - correctly mark resource as gone if it's absent when reading it [GH-27797]
-* `azurerm_automation_python3_package` - correctly mark resource as gone if it's absent when reading it [GH-27797]
-* `azurerm_data_protection_backup_vault` - prevent panic when checking value of `cross_region_restore_enabled` [GH-27762]
-* `azurerm_role_management_policy` - fix panic when unmarshalling the policy into a specific type [GH-27731]
-* `azurerm_security_center_subscription_pricing` - correctly type assert the `additional_extension_properties` property when building the payload [GH-27721]
-* `azurerm_synapse_workspace_aad_admin` - will no correctly delete when using `azurerm_synapse_workspace_aad_admin` with `azurerm_synapse_workspace` [GH-27606]
-* `azurerm_windows_function_app_slot` - fixed panic in state migration [GH-27700]
+* `azurerm_automation_hybrid_runbook_worker_group` - correctly mark resource as gone if it's absent when reading it ([#27797](https://github.com/hashicorp/terraform-provider-azurerm/issues/27797))
+* `azurerm_automation_hybrid_runbook_worker` - correctly mark resource as gone if it's absent when reading it ([#27797](https://github.com/hashicorp/terraform-provider-azurerm/issues/27797))
+* `azurerm_automation_python3_package` - correctly mark resource as gone if it's absent when reading it ([#27797](https://github.com/hashicorp/terraform-provider-azurerm/issues/27797))
+* `azurerm_data_protection_backup_vault` - prevent panic when checking value of `cross_region_restore_enabled` ([#27762](https://github.com/hashicorp/terraform-provider-azurerm/issues/27762))
+* `azurerm_role_management_policy` - fix panic when unmarshalling the policy into a specific type ([#27731](https://github.com/hashicorp/terraform-provider-azurerm/issues/27731))
+* `azurerm_security_center_subscription_pricing` - correctly type assert the `additional_extension_properties` property when building the payload ([#27721](https://github.com/hashicorp/terraform-provider-azurerm/issues/27721))
+* `azurerm_synapse_workspace_aad_admin` - will no correctly delete when using `azurerm_synapse_workspace_aad_admin` with `azurerm_synapse_workspace` ([#27606](https://github.com/hashicorp/terraform-provider-azurerm/issues/27606))
+* `azurerm_windows_function_app_slot` - fixed panic in state migration ([#27700](https://github.com/hashicorp/terraform-provider-azurerm/issues/27700))
 
 ## 4.7.0 (October 24, 2024)
 
