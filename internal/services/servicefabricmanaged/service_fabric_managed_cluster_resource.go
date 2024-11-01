@@ -651,8 +651,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	if t := cluster.Tags; t != nil {
 		modelTags := make(map[string]interface{})
 		for tag, value := range *t {
-			// This tag is being added outside of Terraform. We'll ignore it when setting tags into state
-			// but if it becomes an issue, we can add it as its own attribute
+			// This tag is temporary and will be removed at a later date.
+			// More info can be found here https://azure.microsoft.com/en-us/updates/default-outbound-access-for-vms-in-azure-will-be-retired-transition-to-a-new-method-of-internet-access/
+			// In the meantime, we'll ignore it when setting tags into state
 			if !strings.Contains(tag, "SFRP.DisableDefaultOutboundAccess") {
 				modelTags[tag] = value
 			}
