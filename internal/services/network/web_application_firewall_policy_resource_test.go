@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -543,7 +543,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       operator           = "Contains"
       negation_condition = false
       match_values       = ["windows"]
-      transforms         = ["Lowercase"]
+      transforms         = ["Uppercase"]
     }
 
     action = "Block"
