@@ -100,10 +100,11 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
 			},
 
+			// NOTE O+C: we do not want to disable immutability if a user has enabled it via the portal or other methods.
 			"immutability": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      backupvaults.ImmutabilityStateDisabled,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
@@ -179,13 +180,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
 					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
 				},
-				ImmutabilitySettings: &backupvaults.ImmutabilitySettings{
-					State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
-				},
 			},
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
+	}
+
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "immutability") {
+		parameters.Properties.SecuritySettings.ImmutabilitySettings = &backupvaults.ImmutabilitySettings{
+			State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
+		}
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
@@ -242,8 +246,12 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
+			if immutability := securitySetting.ImmutabilitySettings; immutability != nil {
+				if immutability.State != nil {
+					d.Set("immutability", string(pointer.From(immutability.State)))
+				}
+			}
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
-				d.Set("immutability", string(pointer.From(securitySetting.ImmutabilitySettings.State)))
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
