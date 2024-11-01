@@ -329,7 +329,7 @@ func (r MsSqlManagedDatabaseResource) Read() sdk.ResourceFunc {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
 			}
 
-			state.Tags = model.Tags
+			model.Tags = pointer.From(result.Model.Tags)
 
 			return metadata.Encode(&model)
 		},
