@@ -183,7 +183,7 @@ func (r ContainerRegistryTokenPasswordResource) Read() sdk.ResourceFunc {
 			tokenId := tokens.NewTokenID(id.SubscriptionId, id.ResourceGroup, id.RegistryName, id.TokenName)
 
 			pwds, notFound, err := r.readPassword(ctx, client, tokenId)
-			if notFound {
+			if notFound || (pwds != nil && len(pwds) == 0) {
 				return metadata.MarkAsGone(id)
 			}
 			if err != nil {
