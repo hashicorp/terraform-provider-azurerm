@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -144,15 +144,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformHtmlEntityDecode),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformLowercase),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformRemoveNulls),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformTrim),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLDecode),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallTransform(), false),
 										},
 									},
 								},
@@ -394,6 +387,22 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+
+						"file_upload_enforcement": {
+							Type: pluginsdk.TypeBool,
+							/*
+								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
+									managed_rules {
+										managed_rule_set {
+										  type    = "OWASP"
+										  version = "3.2"
+										}
+									  }
+							*/
+							Optional: true,
+							// We'll remove computed in 5.0 so we don't break existing configurations
+							Computed: !features.FivePointOhBeta(),
 						},
 
 						"max_request_body_size_in_kb": {
@@ -727,12 +736,14 @@ func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *weba
 	mode := v["mode"].(string)
 	requestBodyCheck := v["request_body_check"].(bool)
 	requestBodyEnforcement := v["request_body_enforcement"].(bool)
+	fileUploadEnforcement := v["file_upload_enforcement"].(bool)
 	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
 	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := webapplicationfirewallpolicies.PolicySettings{
 		State:                             pointer.To(enabled),
 		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		FileUploadEnforcement:             pointer.To(fileUploadEnforcement),
 		RequestBodyCheck:                  pointer.To(requestBodyCheck),
 		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
 		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
@@ -1088,6 +1099,7 @@ func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfire
 	result["mode"] = string(pointer.From(input.Mode))
 	result["request_body_check"] = input.RequestBodyCheck
 	result["request_body_enforcement"] = input.RequestBodyEnforcement
+	result["file_upload_enforcement"] = input.FileUploadEnforcement
 	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
 	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
 	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)

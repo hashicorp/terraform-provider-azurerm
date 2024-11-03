@@ -66,7 +66,6 @@ func TestAccRelayHybridConnection_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 				check.That(data.ResourceName).Key("user_metadata").HasValue("metadataupdated"),
 			),
 		},

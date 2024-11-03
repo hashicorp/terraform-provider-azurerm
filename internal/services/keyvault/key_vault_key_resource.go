@@ -265,21 +265,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					return false // If old or new values are not strings, don't force new
 				}
 
-				// Parse old and new expiration dates
-				oldDate, err1 := time.Parse(time.RFC3339, oldDateStr)
-				newDate, err2 := time.Parse(time.RFC3339, newDateStr)
-				if err1 != nil || err2 != nil {
-					return false // If there are parsing errors, don't force new
+				// There isn't a way to remove the expiration date from a key so we'll recreate the resource when it's removed from config
+				if oldDateStr != "" && newDateStr == "" {
+					return true
 				}
 
-				// Compare old and new expiration dates
-				if newDate.After(oldDate) {
-					// If the new expiration date is further in the future, allow update
-					return false
-				}
-
-				// If the new expiration date is not further, force recreation
-				return true
+				return false
 			}),
 		),
 	}

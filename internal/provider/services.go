@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
@@ -91,7 +92,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy"
@@ -125,6 +126,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web"
@@ -150,6 +152,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
@@ -191,7 +194,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		networkfunction.Registration{},
 		newrelic.Registration{},
 		nginx.Registration{},
-		oracledatabase.Registration{},
+		oracle.Registration{},
 		orbital.Registration{},
 		paloalto.Registration{},
 		policy.Registration{},
@@ -215,6 +218,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		streamanalytics.Registration{},
 		subscription.Registration{},
 		systemcentervirtualmachinemanager.Registration{},
+		videoindexer.Registration{},
 		vmware.Registration{},
 		voiceservices.Registration{},
 		web.Registration{},

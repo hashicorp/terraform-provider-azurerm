@@ -4,5 +4,5 @@ package giversions
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GiVersionProperties struct {
-	Version *string `json:"version,omitempty"`
+	Version string `json:"version"`
 }

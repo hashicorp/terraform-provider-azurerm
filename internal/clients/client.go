@@ -44,6 +44,7 @@ import (
 	blueprints "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
 	bot "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	cdn "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
+	codesigning "github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/client"
 	cognitiveServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 	communication "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	compute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
@@ -107,7 +108,7 @@ import (
 	newrelic "github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/client"
 	nginx "github.com/hashicorp/terraform-provider-azurerm/internal/services/nginx/client"
 	notificationhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/client"
-	oracledatabase "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracledatabase/client"
+	oracle "github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/client"
 	orbital "github.com/hashicorp/terraform-provider-azurerm/internal/services/orbital/client"
 	paloalto "github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/client"
 	policy "github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/client"
@@ -141,6 +142,7 @@ import (
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
 	systemCenterVirtualMachineManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
+	videoindexer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoindexer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
@@ -176,6 +178,7 @@ type Client struct {
 	Blueprints                        *blueprints.Client
 	Bot                               *bot.Client
 	Cdn                               *cdn.Client
+	CodeSigning                       *codesigning.Client
 	Cognitive                         *cognitiveServices.Client
 	Communication                     *communication.Client
 	Compute                           *compute.Client
@@ -239,7 +242,7 @@ type Client struct {
 	NewRelic                          *newrelic.Client
 	Nginx                             *nginx_2024_06_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
-	OracleDatabase                    *oracledatabase.Client
+	Oracle                            *oracle.Client
 	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
 	Policy                            *policy.Client
@@ -272,6 +275,7 @@ type Client struct {
 	Synapse                           *synapse.Client
 	SystemCenterVirtualMachineManager *systemcentervirtualmachinemanager_2023_10_07.Client
 	TrafficManager                    *trafficManager.Client
+	VideoIndexer                      *videoindexer.Client
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
@@ -352,6 +356,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Bot: %+v", err)
 	}
 	client.Cdn = cdn.NewClient(o)
+	if client.CodeSigning, err = codesigning.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Code Signing: %+v", err)
+	}
 	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Cognitive: %+v", err)
 	}
@@ -539,7 +546,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.NotificationHubs, err = notificationhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for NotificationHubs: %+v", err)
 	}
-	if client.OracleDatabase, err = oracledatabase.NewClient(o); err != nil {
+	if client.Oracle, err = oracle.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for OracleDatabase: %+v", err)
 	}
 	if client.Orbital, err = orbital.NewClient(o); err != nil {
@@ -637,6 +644,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
 	}
+
+	if client.VideoIndexer, err = videoindexer.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Video Indexer: %+v", err)
+	}
+
 	if client.Vmware, err = vmware.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for VMWare: %+v", err)
 	}

@@ -51,8 +51,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		StackHCIExtensionResource{},
 		StackHCIDeploymentSettingResource{},
 		StackHCILogicalNetworkResource{},
+		StackHCIMarketplaceGalleryImageResource{},
 		StackHCIStoragePathResource{},
 		StackHCIVirtualHardDiskResource{},
 	}
