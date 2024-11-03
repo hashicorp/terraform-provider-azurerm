@@ -220,7 +220,7 @@ A `substitute_from` block supports the following:
 
 * `name` - (Required) Specifies the name of the ConfigMap/Secret that holds the variables to be used in substitution.
 
-* `optional` - (Optional) Set to True to proceed without ConfigMap/Secret, if it is not present. Defaults to `True`.
+* `optional` - (Optional) Whether to proceed without ConfigMap/Secret if it is not present. Defaults to `false`.
 
 ## Attributes Reference
 
