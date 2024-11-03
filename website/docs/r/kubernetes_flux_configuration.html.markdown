@@ -116,7 +116,7 @@ A `kustomizations` block supports the following:
 
 * `post_build` - (Optional) A `post_build` block as defined below.
 
-* `wait` - (Optional) Enable/disable health check for all Kubernetes objects created by this Kustomization.
+* `wait` - (Optional) Whether to enable health check for all Kubernetes objects created by this Kustomization. Defaults to `true`.
 
 ---
 
