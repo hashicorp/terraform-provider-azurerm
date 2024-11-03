@@ -252,21 +252,21 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
+						//ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.LocalAuthReference,
-						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
+						//ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
 					"managed_identity": {
-						Type:         pluginsdk.TypeList,
-						Optional:     true,
-						MaxItems:     1,
-						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						//ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {
@@ -283,14 +283,14 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Optional:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
-						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
+						//ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
 					"service_principal": {
-						Type:         pluginsdk.TypeList,
-						Optional:     true,
-						MaxItems:     1,
-						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						//ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"client_id": {

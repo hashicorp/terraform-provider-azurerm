@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/astro"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage"
@@ -141,6 +142,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		appservice.Registration{},
 		arckubernetes.Registration{},
 		arcresourcebridge.Registration{},
+		astro.Registration{},
 		authorization.Registration{},
 		automanage.Registration{},
 		automation.Registration{},

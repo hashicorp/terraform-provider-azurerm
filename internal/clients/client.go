@@ -34,6 +34,7 @@ import (
 	appService "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/client"
 	arckubernetes "github.com/hashicorp/terraform-provider-azurerm/internal/services/arckubernetes/client"
 	arcResourceBridge "github.com/hashicorp/terraform-provider-azurerm/internal/services/arcresourcebridge/client"
+	astro "github.com/hashicorp/terraform-provider-azurerm/internal/services/astro/client"
 	attestation "github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/client"
 	authorization "github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/client"
 	automanage "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/client"
@@ -165,6 +166,7 @@ type Client struct {
 	AppService                        *appService.Client
 	ArcKubernetes                     *arckubernetes.Client
 	ArcResourceBridge                 *arcResourceBridge.Client
+	Astro                             *astro.Client
 	Attestation                       *attestation.Client
 	Authorization                     *authorization.Client
 	Automanage                        *automanage.Client
@@ -321,6 +323,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.ArcResourceBridge, err = arcResourceBridge.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Arc Resource Bridge: %+v", err)
+	}
+	if client.Astro, err = astro.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Astro: %+v", err)
 	}
 	if client.Attestation, err = attestation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Attestation: %+v", err)
