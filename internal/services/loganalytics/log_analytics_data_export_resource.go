@@ -4,6 +4,7 @@
 package loganalytics
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -164,6 +165,26 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
+	}
+
+	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/31399
+	log.Printf("[DEBUG] Waiting for Log Analytics Workspace Data Export %q to become ready", id.ID())
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   dataExportRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Log Analytics Workspace Data Export %q to become ready: %+v", id.ID(), err)
+	}
+
 	d.SetId(id.ID())
 	return resourceOperationalinsightsDataExportRead(d, meta)
 }
@@ -254,4 +275,18 @@ func flattenDataExportDestination(input *dataexport.Destination) (string, error)
 	}
 
 	return resourceID, nil
+}
+
+func dataExportRefreshFunc(ctx context.Context, client *dataexport.DataExportClient, id dataexport.DataExportId) pluginsdk.StateRefreshFunc {
+	return func() (result interface{}, state string, err error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }
