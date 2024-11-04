@@ -29,7 +29,10 @@ func testAccNetworkManagerScopeConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// https://learn.microsoft.com/azure/virtual-network-manager/concept-network-manager-scope#cross-tenant-scope
+		// connection_state shows if the cross-tenant connection is established.
+		// Since we test in a single tenant, we can skip this validation.
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -57,7 +60,7 @@ func testAccNetworkManagerScopeConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
@@ -71,14 +74,14 @@ func testAccNetworkManagerScopeConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("connection_state"),
 	})
 }
 
