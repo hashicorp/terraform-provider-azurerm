@@ -2298,7 +2298,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			queueProps, err := queueClient.GetServiceProperties(ctx)
 			if err != nil {
-				// Queue properties is a data plan only service, so we tolerate connection errors here in case of firewalls
+				// Queue properties is a data plane only service, so we tolerate connection errors here in case of firewalls
 				// and other connectivity issues that are not guaranteed.
 				if !connectionError(err) {
 					return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
