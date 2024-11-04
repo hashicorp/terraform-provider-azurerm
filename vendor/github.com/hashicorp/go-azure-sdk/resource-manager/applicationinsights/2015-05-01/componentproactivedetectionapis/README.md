@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := componentproactivedetectionapis.NewProactiveDetectionConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "configurationId")
+id := componentproactivedetectionapis.NewProactiveDetectionConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "configurationId")
 
 read, err := client.ProactiveDetectionConfigurationsGet(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentproactivedetectionapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentproactivedetectionapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.ProactiveDetectionConfigurationsList(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentproactivedetectionapis.NewProactiveDetectionConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "configurationId")
+id := componentproactivedetectionapis.NewProactiveDetectionConfigID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "configurationId")
 
 payload := componentproactivedetectionapis.ApplicationInsightsComponentProactiveDetectionConfiguration{
 	// ...

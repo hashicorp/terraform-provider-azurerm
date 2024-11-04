@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -215,18 +214,6 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		arguments["grafana_major_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "9",
-			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
-			}, false),
-		}
 	}
 
 	return arguments

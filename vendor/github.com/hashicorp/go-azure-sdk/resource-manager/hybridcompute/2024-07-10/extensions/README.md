@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := extensions.NewVersionID("12345678-1234-9876-4563-123456789012", "location", "publisher", "extensionType", "version")
+id := extensions.NewVersionID("12345678-1234-9876-4563-123456789012", "locationName", "publisherName", "extensionTypeName", "versionName")
 
 read, err := client.ExtensionMetadataGet(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewExtensionTypeID("12345678-1234-9876-4563-123456789012", "location", "publisher", "extensionType")
+id := extensions.NewExtensionTypeID("12345678-1234-9876-4563-123456789012", "locationName", "publisherName", "extensionTypeName")
 
 read, err := client.ExtensionMetadataList(ctx, id)
 if err != nil {

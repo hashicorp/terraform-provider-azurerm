@@ -115,7 +115,7 @@ func (id FrontDoorWebApplicationFirewallPolicyId) Segments() []resourceids.Segme
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFrontDoorWebApplicationFirewallPolicies", "frontDoorWebApplicationFirewallPolicies", "frontDoorWebApplicationFirewallPolicies"),
-		resourceids.UserSpecifiedSegment("frontDoorWebApplicationFirewallPolicyName", "policyName"),
+		resourceids.UserSpecifiedSegment("frontDoorWebApplicationFirewallPolicyName", "frontDoorWebApplicationFirewallPolicyName"),
 	}
 }
 

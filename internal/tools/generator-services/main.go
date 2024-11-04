@@ -66,15 +66,15 @@ dependencies:
     - vendor/**/*
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - website/**/*
 tooling:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/tools/**/*
 state-migration:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/services/**/migration/**/*
 `
 
@@ -150,6 +150,17 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 		out = append(out, "")
 		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
 	}
+
+	output += `
+bug:
+  - '- \[ ?X ?\] Bug Fix'
+
+enhancement:
+  - '- \[ ?X ?\] Enhancement'
+
+breaking-change:
+  - '- \[ ?X ?\] Breaking Change'
+`
 
 	return writeToFile(outputFileName, output)
 }

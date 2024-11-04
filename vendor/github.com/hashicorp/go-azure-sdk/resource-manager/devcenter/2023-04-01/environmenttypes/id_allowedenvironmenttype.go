@@ -123,7 +123,7 @@ func (id AllowedEnvironmentTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProjects", "projects", "projects"),
 		resourceids.UserSpecifiedSegment("projectName", "projectName"),
 		resourceids.StaticSegment("staticAllowedEnvironmentTypes", "allowedEnvironmentTypes", "allowedEnvironmentTypes"),
-		resourceids.UserSpecifiedSegment("allowedEnvironmentTypeName", "environmentTypeName"),
+		resourceids.UserSpecifiedSegment("allowedEnvironmentTypeName", "allowedEnvironmentTypeName"),
 	}
 }
 

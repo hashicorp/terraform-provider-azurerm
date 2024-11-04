@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
@@ -945,24 +944,6 @@ func TestAccKubernetesCluster_networkPluginModeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipping since `ebpf_data_plane` has been removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.ebpfDataPlane(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -970,42 +951,6 @@ func TestAccKubernetesCluster_networkDataPlane(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.networkDataPlane(data, "cilium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_apiServerInManagedSubnet(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping this test in 4.0 beta as it is not supported")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.apiServerInManagedSubnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesCluster_apiServerInBYOSubnet(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping this test in 4.0 beta as it is not supported")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.apiServerInBYOSubnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1073,153 +1018,6 @@ func TestAccKubernetesCluster_clusterPoolNetworkProfileUpdate(t *testing.T) {
 	})
 }
 
-func (KubernetesClusterResource) apiServerInBYOSubnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/8"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/16"]
-
-  delegation {
-    name = "aks-delegation"
-
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.ContainerService/managedClusters"
-    }
-  }
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "acctestsubnet1%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.2.0.0/16"]
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestRG-aks-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_subnet.test.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  api_server_access_profile {
-    vnet_integration_enabled = true
-    subnet_id                = azurerm_subnet.test.id
-  }
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test1.id
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
-
-  network_profile {
-    network_plugin = "azure"
-  }
-
-  depends_on = [
-    azurerm_role_assignment.test,
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesClusterResource) apiServerInManagedSubnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  api_server_access_profile {
-    vnet_integration_enabled = true
-  }
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  default_node_pool {
-    name       = "default"
-    node_count = 2
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1281,75 +1079,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.0.0/24", "fd00:db8:deca:deed::/64"]
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[1]d"
-
-  linux_profile {
-    admin_username = "acctestuser%[1]d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin = "kubenet"
-    dns_service_ip = "10.10.0.10"
-    service_cidr   = "10.10.0.0/16"
-  }
-
-  service_mesh_profile {
-    mode                             = "Istio"
-    internal_ingress_gateway_enabled = %[3]t
-    external_ingress_gateway_enabled = %[4]t
-  }
-
-}
-`, data.RandomInteger, data.Locations.Primary, internalIngressEnabled, externalIngressEnabled)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1412,7 +1141,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-20"]
+    revisions                        = ["asm-1-22"]
   }
 
 }
@@ -3020,6 +2749,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
+      backend_pool_type       = "NodeIP"
     }
   }
 }
@@ -3165,7 +2895,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -4153,60 +3883,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
-}
-
-func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestRG-vnet-%[2]d"
-  address_space       = ["10.0.0.0/8"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestRG-subnet-%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.10.0.0/16"]
-
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name           = "default"
-    node_count     = 1
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  network_profile {
-    pod_cidr       = "192.168.0.0/16"
-    network_plugin = "azure"
-
-    network_data_plane  = "cilium"
-    network_plugin_mode = "overlay"
-  }
-}
-	`, data.Locations.Primary, data.RandomInteger)
-
 }
 
 func (KubernetesClusterResource) networkDataPlane(data acceptance.TestData, networkDataPlane string) string {
