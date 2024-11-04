@@ -6,7 +6,7 @@ description: |-
   Manages the Queue Properties of an Azure Storage Account.
 ---
 
-# azurerm_storage_account
+# azurerm_storage_account_queue_properties
 
 Manages the Queue Properties of an Azure Storage Account.
 
@@ -137,7 +137,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Accounts can be imported using the `resource id`, e.g.
+Storage Account Queue Properties can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_account_queue_properties.queueprops /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount

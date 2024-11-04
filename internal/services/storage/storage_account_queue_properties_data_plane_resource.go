@@ -266,7 +266,7 @@ func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 			storageClient := metadata.Client.Storage
 			var model AccountQueuePropertiesModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			accountID, err := commonids.ParseStorageAccountID(model.StorageAccountId)
@@ -280,7 +280,7 @@ func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *accountID, err)
 			}
 			if account.Model == nil {
-				return fmt.Errorf("account %s has no model", *accountID)
+				return fmt.Errorf("retrieving %s: `model` was nil", *accountID)
 			}
 
 			if account.Model.Sku == nil || account.Model.Sku.Tier == nil || string(account.Model.Sku.Name) == "" {
@@ -527,13 +527,13 @@ func (s AccountQueuePropertiesResource) Update() sdk.ResourceFunc {
 
 			props, err := client.GetServiceProperties(ctx)
 			if err != nil {
-				return fmt.Errorf("retrieving %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			var model AccountQueuePropertiesModel
 
 			if err = metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("cors_rule") {
