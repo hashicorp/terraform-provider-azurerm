@@ -93,8 +93,6 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Cloud VM Cluster without suffix.
 
-* `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
-
 * `license_model` - (Required) The Oracle license model that applies to the Cloud VM Cluster, either `BringYourOwnLicense` or `LicenseIncluded`.
 
 * `location` - (Required) The Azure Region where the Cloud VM Cluster should exist.
@@ -123,15 +121,23 @@ The following arguments are supported:
 
 * `db_node_storage_size_in_gbs` - (Optional) The local node storage to be allocated in GBs.
 
+* `domain` - (Optional) The name of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name.
+
 * `local_backup_enabled` - (Optional)  If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If `false`, database backup on local Exadata storage is not available in the Cloud VM Cluster.
 
 * `sparse_diskgroup_enabled` - (Optional) If true, the sparse disk group is configured for the Cloud VM Cluster. If `false`, the sparse disk group is not created.
 
 * `memory_size_in_gbs` - (Optional) The memory to be allocated in GBs.
 
+* `scan_listener_port_tcp` - (Optional) The TCP Single Client Access Name (SCAN) port. The default port to 1521.
+
+* `scan_listener_port_tcp_ssl` - (Optional) The TCPS Single Client Access Name (SCAN) port. The default port to 2484.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Cloud VM Cluster.
 
 * `time_zone` - (Optional) The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm).
+
+* `zone_id` - (Optional) The OCID of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name.
 
 ---
 
@@ -148,6 +154,10 @@ A `data_collection_options` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Cloud VM Cluster.
+
+* `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
+
+* `ocid` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the Cloud VM Cluster.
 
 ## Timeouts
 
