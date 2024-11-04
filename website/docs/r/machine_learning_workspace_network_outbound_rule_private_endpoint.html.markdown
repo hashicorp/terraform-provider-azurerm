@@ -1,9 +1,9 @@
-_---
+---
 subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint"
 description: |-
-Manages an Azure Machine Learning Workspace Private Endpoint Network Outbound Rule .
+  Manages an Azure Machine Learning Workspace Private Endpoint Network Outbound Rule .
 ---
 
 # azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint

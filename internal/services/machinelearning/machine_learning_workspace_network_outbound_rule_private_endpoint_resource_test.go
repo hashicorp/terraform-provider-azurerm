@@ -110,7 +110,7 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_requiresI
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		//data.RequiresImportErrorStep(r.requiresImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -137,13 +137,8 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) template(data acceptanc
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "rg-sfi-ml-%[1]d"
+  name     = "acctestRG-ml-%[1]d"
   location = "%[2]s"
-lifecycle { // TODO test
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_application_insights" "test" {
@@ -234,7 +229,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
   service_resource_id = azurerm_storage_account.test2.id
   sub_resource_target = "blob"
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(6))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) internetOutbound(data acceptance.TestData) string {
