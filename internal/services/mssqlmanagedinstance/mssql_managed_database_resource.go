@@ -217,6 +217,7 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedDatabasesClient
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 			longTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesLongTermRetentionPoliciesClient
 			shortTermRetentionClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesShortTermRetentionPoliciesClient
 
@@ -236,8 +237,14 @@ func (r MsSqlManagedDatabaseResource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChange("tags") {
+				managedInstance, err := instancesClient.Get(ctx, *managedInstanceId, managedinstances.GetOperationOptions{})
+				if err != nil || managedInstance.Model == nil || managedInstance.Model.Location == "" {
+					return fmt.Errorf("checking for existence and region of Managed Instance for %s: %+v", id, err)
+				}
+
 				parameters := manageddatabases.ManagedDatabase{
-					Tags: pointer.To(model.Tags),
+					Location: managedInstance.Model.Location,
+					Tags:     pointer.To(model.Tags),
 				}
 
 				err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
