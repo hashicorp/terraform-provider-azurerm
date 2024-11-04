@@ -2864,27 +2864,27 @@ func (DatabricksWorkspaceResource) enhancedSecurityCompliance(data acceptance.Te
 	}
 
 	return fmt.Sprintf(`
-  provider "azurerm" {
-    features {}
-  }
-  
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-databricks-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_databricks_workspace" "test" {
-    name                = "acctestDBW-%d"
-    resource_group_name = azurerm_resource_group.test.name
-    location            = azurerm_resource_group.test.location
-    sku                 = "%s"
+provider "azurerm" {
+  features {}
+}
 
-    enhanced_security_compliance {
-      automatic_cluster_update_enabled      = %t
-      compliance_security_profile_enabled   = %t
-      compliance_security_profile_standards = [%s]
-      enhanced_security_monitoring_enabled  = %t
-    }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  enhanced_security_compliance {
+    automatic_cluster_update_enabled      = %t
+    compliance_security_profile_enabled   = %t
+    compliance_security_profile_standards = [%s]
+    enhanced_security_monitoring_enabled  = %t
   }
+}
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
 }
