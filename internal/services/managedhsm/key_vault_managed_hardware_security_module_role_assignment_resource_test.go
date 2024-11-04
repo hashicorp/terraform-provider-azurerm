@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,44 +42,6 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole(t *te
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customRole(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyBuiltInRole(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("This test isn't applicable in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacyBuiltInRole(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("This test isn't applicable in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacyCustomRole(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

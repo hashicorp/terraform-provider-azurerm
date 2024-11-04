@@ -40,28 +40,6 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(t *testing
 	})
 }
 
-func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_definition", "test")
-	r := KeyVaultMHSMRoleDefinitionResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.legacyUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := client.Account.Environment.ManagedHSM.DomainSuffix()
