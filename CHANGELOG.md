@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
+* `azurerm_subnet` - `default_outbound_access_enabled` can now be updated [GH-27858]
 
 ## 4.8.0 (October 31, 2024)
 
