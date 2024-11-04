@@ -19,11 +19,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_trusted_signing_account" "example" {
-  resource_group_name = "example"
+  name                = "example-account"
+  resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
-  sku {
-    name = "Basic"
-  }
+  sku_name            = "Basic"
 }
 ```
 
