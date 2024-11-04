@@ -122,7 +122,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			grafanaId, err := grafanaresource.ParseGrafanaID(model.GrafanaId)
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", model.GrafanaId, err)
+				return err
 			}
 			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
@@ -172,14 +172,10 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			grafanaId, err := GetGrafanaIdFromManagedPrivateEndpointId(id.ID())
-			if err != nil {
-				return err
-			}
-
+			grafanaId := grafanaresource.NewGrafanaID(id.SubscriptionId, id.ResourceGroupName, id.GrafanaName)
 			state := ManagedPrivateEndpointModel{
 				Name:      id.ManagedPrivateEndpointName,
 				GrafanaId: grafanaId.ID(),
@@ -230,12 +226,13 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 
 			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
+
 			if err != nil {
 				return err
 			}
 
-			var model ManagedPrivateEndpointModel
-			if err := metadata.Decode(&model); err != nil {
+			var mpe ManagedPrivateEndpointModel
+			if err := metadata.Decode(&mpe); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -244,34 +241,20 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			model := resp.Model
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
-			properties := resp.Model
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				model.Tags = &mpe.Tags
 			}
 
-			if err := client.CreateThenPoll(ctx, *id, *properties); err != nil {
+			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
 		},
 	}
-}
-
-// GetGrafanaIdFromManagedPrivateEndpointId parses 'input' into a GrafanaId
-func GetGrafanaIdFromManagedPrivateEndpointId(input string) (*grafanaresource.GrafanaId, error) {
-
-	mpe_id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(input)
-
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q: %+v", input, err)
-	}
-
-	id := grafanaresource.NewGrafanaID(mpe_id.SubscriptionId, mpe_id.ResourceGroupName, mpe_id.GrafanaName)
-
-	return &id, nil
 }
