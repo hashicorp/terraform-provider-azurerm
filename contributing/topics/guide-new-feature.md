@@ -59,6 +59,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
                     Default:     true,
                 },
             },
+        },
         ...
     }
 }
@@ -72,9 +73,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
             if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
                 featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
             }
-		}
-	}
-	...
+        }
+    }
+    ...
 }
 ```
 
@@ -108,8 +109,8 @@ func TestExpandFeatures(t *testing.T) {
                         map[string]interface{}{
     	                    "purge_soft_delete_on_destroy": true,
     	                },
-                     },   
-    				...
+    	            },   
+     	            ...
     	        },
             },
             Expected: features.UserFeatures{
@@ -146,68 +147,68 @@ func TestExpandFeatures(t *testing.T) {
 
 
 func TestExpandFeaturesKeyVault(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge Soft Delete On Destroy",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge Soft Delete On Destroy Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"key_vault": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				KeyVault: features.KeyVaultFeatures{
-					PurgeSoftDeleteOnDestroy: false,
-				},
-			},
-		},
-	}
+    testData := []struct {
+        Name     string
+        Input    []interface{}
+        EnvVars  map[string]interface{}
+        Expected features.UserFeatures
+    }{
+        {
+            Name: "Empty Block",
+            Input: []interface{}{
+                map[string]interface{}{
+                    "key_vault": []interface{}{},
+                },
+            },
+            Expected: features.UserFeatures{
+                KeyVault: features.KeyVaultFeatures{
+                    PurgeSoftDeleteOnDestroy: true,
+                },
+            },
+        },
+        {
+            Name: "Purge Soft Delete On Destroy",
+            Input: []interface{}{
+                map[string]interface{}{
+                    "key_vault": []interface{}{
+                        map[string]interface{}{
+                            "purge_soft_delete_on_destroy": true,
+                        },
+                    },
+                },
+            },
+            Expected: features.UserFeatures{
+                KeyVault: features.KeyVaultFeatures{
+                    PurgeSoftDeleteOnDestroy: true,
+                },
+            },
+        },
+        {
+            Name: "Purge Soft Delete On Destroy Disabled",
+            Input: []interface{}{
+                map[string]interface{}{
+                    "key_vault": []interface{}{
+                        map[string]interface{}{
+                            "purge_soft_delete_on_destroy": false,
+                        },
+                    },
+                },
+            },
+            Expected: features.UserFeatures{
+                KeyVault: features.KeyVaultFeatures{
+                    PurgeSoftDeleteOnDestroy: false,
+                },
+            },
+        },
+    }
 
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.KeyVault, testCase.Expected.KeyVault) {
-			t.Fatalf("Expected %+v but got %+v", result.KeyVault, testCase.Expected.KeyVault)
-		}
-	}
+    for _, testCase := range testData {
+        t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+        result := expandFeatures(testCase.Input)
+        if !reflect.DeepEqual(result.KeyVault, testCase.Expected.KeyVault) {
+            t.Fatalf("Expected %+v but got %+v", result.KeyVault, testCase.Expected.KeyVault)
+        }
+    }
 }
 ```
 ### Updating `internal/provider/framework`
@@ -335,8 +336,8 @@ func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
         	// create it regularly
         	Config: r.softDeleteRecoveryDisabled(data),
         	Check: acceptance.ComposeTestCheckFunc(
-        	 	check.That(data.ResourceName).ExistsInAzure(r),
-        		check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
+             	check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
         	),
         },
         data.ImportStep(),
@@ -354,14 +355,14 @@ func TestAccKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
 
 func (KeyVaultResource) softDeleteRecoveryDisabled(data acceptance.TestData) string {
     return fmt.Sprintf(`
-        provider "azurerm" {
-          features {
-            key_vault {
-              recover_soft_deleted_key_vaults = false
-            }
-          }
-        }
-        ...
+provider "azurerm" {
+  features {
+    key_vault {
+      recover_soft_deleted_key_vaults = false
+    }
+  }
+}
+...
 `)
 }
 ```
