@@ -45,14 +45,3 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test"
 }
 `, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }
-
-func (KeyVaultManagedHardwareSecurityModuleRoleDefinitionDataSource) legacy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
-  name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
-}
-`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
-}
