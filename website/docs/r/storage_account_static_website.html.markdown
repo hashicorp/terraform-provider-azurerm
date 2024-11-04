@@ -1,14 +1,14 @@
 ---
 subcategory: "Storage"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_storage_account_queue_properties"
+page_title: "Azure Resource Manager: azurerm_storage_account_static_website"
 description: |-
-  Manages the Queue Properties of an Azure Storage Account.
+  Manages the Static Website of an Azure Storage Account.
 ---
 
-# azurerm_storage_account
+# azurerm_storage_account_static_website
 
-Manages the Queue Properties of an Azure Storage Account.
+Manages the Static Website of an Azure Storage Account.
 
 ## Example Usage
 
@@ -41,7 +41,7 @@ resource "azurerm_storage_account_static_website" "test" {
 
 The following arguments are supported:
 
-* `storage_account_id` - (Required) The ID of the Storage Account to set Queue Properties on. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) The ID of the Storage Account to set Static Website  on. Changing this forces a new resource to be created.
 
 * `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
@@ -52,14 +52,14 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Storage Account Queue Properties.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Queue Properties.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Queue Properties.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Queue Properties.
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Account Static Website .
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Static Website .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Static Website .
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Static Website .
 
 ## Import
 
-Storage Accounts can be imported using the `resource id`, e.g.
+Storage Account Static Websites can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_storage_account_static_website.mysite /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount

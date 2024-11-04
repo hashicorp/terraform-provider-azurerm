@@ -1631,7 +1631,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// Replacing the `return resourceStorageAccountRead(d, meta)` here with setting the configuration values directly to
-	// state allow us to skip a one read operation since this pattern is a code convenience/deduplication choice, and
+	// state allows us to skip one read operation since this pattern is a code convenience/deduplication choice, and
 	// not strictly necessary, which saves some time on creation given we may have multiple data plane timeouts to
 	// consider.
 

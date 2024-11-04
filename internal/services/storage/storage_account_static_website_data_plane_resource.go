@@ -72,7 +72,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			storageClient := metadata.Client.Storage
 			var model AccountStaticWebsiteResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			accountID, err := commonids.ParseStorageAccountID(model.StorageAccountId)
@@ -86,7 +86,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *accountID, err)
 			}
 			if account.Model == nil {
-				return fmt.Errorf("account %s has no model", *accountID)
+				return fmt.Errorf("retrieving %s: `model` was nil", *accountID)
 			}
 
 			if account.Model.Sku == nil || account.Model.Sku.Tier == nil || string(account.Model.Sku.Name) == "" {
@@ -129,7 +129,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = client.SetServiceProperties(ctx, accountID.StorageAccountName, properties); err != nil {
-				return fmt.Errorf("creating `static_website`: %+v", err)
+				return fmt.Errorf("creating static website for %s: %+v", accountID, err)
 			}
 
 			metadata.SetID(accountID)
@@ -208,7 +208,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err = client.SetServiceProperties(ctx, id.StorageAccountName, properties); err != nil {
-				return fmt.Errorf("deleting `static_website`: %+v", err)
+				return fmt.Errorf("deleting static website for %s: %+v", id, err)
 			}
 
 			return nil
@@ -223,7 +223,7 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 			storageClient := metadata.Client.Storage
 			var model AccountStaticWebsiteResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := commonids.ParseStorageAccountID(metadata.ResourceData.Id())
@@ -259,7 +259,7 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err = client.SetServiceProperties(ctx, id.StorageAccountName, properties); err != nil {
-				return fmt.Errorf("creating `static_website`: %+v", err)
+				return fmt.Errorf("updating static website for %s: %+v", *id, err)
 			}
 
 			return nil
