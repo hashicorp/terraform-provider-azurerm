@@ -1,3 +1,9 @@
+## 4.9.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
+
 ## 4.8.0 (October 31, 2024)
 
 FEATURES:
