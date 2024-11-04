@@ -65,8 +65,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 }
 
 func expandFeatures(input []interface{}) features.UserFeatures {
-	...
-	if raw, ok := val["key_vault"]; ok {
+    ...
+    if raw, ok := val["key_vault"]; ok {
         items := raw.([]interface{})
         if len(items) > 0 && items[0] != nil {
             keyVaultRaw := items[0].(map[string]interface{})
