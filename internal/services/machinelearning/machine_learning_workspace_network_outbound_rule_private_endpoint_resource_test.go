@@ -126,7 +126,7 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) Exists(ctx context.Cont
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Machine Learning Workspace Outbound Rule FQDN %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving Machine Learning Workspace Outbound Rule Private Endpoint %q: %+v", state.ID, err)
 	}
 
 	return pointer.To(resp.Model.Properties != nil), nil
