@@ -1630,49 +1630,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// Replacing the `return resourceStorageAccountRead(d, meta)` here with setting the configuration values directly to
-	// state allows us to skip one read operation since this pattern is a code convenience/deduplication choice, and
-	// not strictly necessary, which saves some time on creation given we may have multiple data plane timeouts to
-	// consider.
-
-	d.Set("name", id.StorageAccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("account_kind", accountKind)
-	d.Set("account_tier", accountTier)
-	d.Set("account_replication_type", replicationType)
-	d.Set("edge_zone", d.Get("edge_zone"))
-	d.Set("location", d.Get("location"))
-	d.Set("access_tier", accessTier)
-	d.Set("allowed_copy_scope", d.Get("allowed_copy_scope"))
-	d.Set("cross_tenant_replication_enabled", d.Get("cross_tenant_replication_enabled"))
-	d.Set("https_traffic_only_enabled", d.Get("https_traffic_only_enabled"))
-	if !features.FourPointOhBeta() {
-		d.Set("enable_https_traffic_only", d.Get("enable_https_traffic_only"))
-	}
-	d.Set("is_hns_enabled", isHnsEnabled)
-	d.Set("nfsv3_enabled", nfsV3Enabled)
-	d.Set("routing", d.Get("routing"))
-	d.Set("sftp_enabled", d.Get("sftp_enabled"))
-	d.Set("allow_nested_items_to_be_public", d.Get("allow_nested_items_to_be_public"))
-	d.Set("default_to_oauth_authentication", d.Get("default_to_oauth_authentication"))
-	d.Set("dns_endpoint_type", d.Get("dns_endpoint_type"))
-	d.Set("local_user_enabled", d.Get("local_user_enabled"))
-	d.Set("large_file_share_enabled", d.Get("large_file_share_enabled"))
-	d.Set("min_tls_version", d.Get("min_tls_version"))
-	d.Set("public_network_access_enabled", d.Get("public_network_access_enabled"))
-	d.Set("shared_access_key_enabled", d.Get("shared_access_key_enabled"))
-	d.Set("custom_domain", d.Get("custom_domain"))
-	d.Set("immutability_policy", d.Get("immutability_policy"))
-	d.Set("network_rules", d.Get("network_rules"))
-	d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-	d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-	d.Set("table_encryption_key_type", tableEncryptionKeyType)
-	d.Set("customer_managed_key", d.Get("customer_managed_key"))
-	d.Set("sas_policy", d.Get("sas_policy"))
-	d.Set("identity", d.Get("identity"))
-	d.Set("tags", d.Get("tags"))
-
-	return nil
+	return resourceStorageAccountRead(d, meta)
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
