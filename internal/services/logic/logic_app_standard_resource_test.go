@@ -9,12 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogicAppStandardResource struct{}
@@ -35,7 +36,7 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential"),
 	})
 }
 
@@ -946,25 +947,17 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 }
 
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogicAppStandardID(state.ID)
+	id, err := commonids.ParseLogicAppId(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// The SDK defines 404 as an "ok" status code..
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
