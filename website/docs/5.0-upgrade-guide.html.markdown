@@ -57,6 +57,20 @@ Please follow the format in the example below for listing breaking changes in re
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
 
+### `azurerm_storage_account`
+
+* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource. 
+* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource. 
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+ 
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
 ## Breaking Changes in Data Sources
 
@@ -68,3 +82,13 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
 * The deprecated `example_property_with_no_replacement` property has been removed.
 ```
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+* 
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.

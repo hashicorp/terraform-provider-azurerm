@@ -52,6 +52,7 @@ type Features struct {
 	VirtualMachineScaleSet   types.List `tfsdk:"virtual_machine_scale_set"`
 	ResourceGroup            types.List `tfsdk:"resource_group"`
 	ManagedDisk              types.List `tfsdk:"managed_disk"`
+	Storage                  types.List `tfsdk:"storage"`
 	Subscription             types.List `tfsdk:"subscription"`
 	PostgresqlFlexibleServer types.List `tfsdk:"postgresql_flexible_server"`
 	MachineLearning          types.List `tfsdk:"machine_learning"`
@@ -73,6 +74,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"virtual_machine_scale_set":  types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(VirtualMachineScaleSetAttributes)),
 	"resource_group":             types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ResourceGroupAttributes)),
 	"managed_disk":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes)),
+	"storage":                    types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(StorageAttributes)),
 	"subscription":               types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(SubscriptionAttributes)),
 	"postgresql_flexible_server": types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(PostgresqlFlexibleServerAttributes)),
 	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
@@ -202,6 +204,14 @@ type ManagedDisk struct {
 
 var ManagedDiskAttributes = map[string]attr.Type{
 	"expand_without_downtime": types.BoolType,
+}
+
+type Storage struct {
+	DataPlaneAvailable types.Bool `tfsdk:"data_plane_available"`
+}
+
+var StorageAttributes = map[string]attr.Type{
+	"data_plane_available": types.BoolType,
 }
 
 type Subscription struct {
