@@ -151,17 +151,6 @@ func (githubLabelsGenerator) run(outputFileName string, _ map[string]struct{}) e
 		output += fmt.Sprintf("\n%s", strings.Join(out, "\n"))
 	}
 
-	output += `
-bug:
-  - '- \[ ?X ?\] Bug Fix'
-
-enhancement:
-  - '- \[ ?X ?\] Enhancement'
-
-breaking-change:
-  - '- \[ ?X ?\] Breaking Change'
-`
-
 	return writeToFile(outputFileName, output)
 }
 
