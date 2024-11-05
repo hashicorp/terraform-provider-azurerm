@@ -152,7 +152,7 @@ provider "azurerm" {
 %s
 
 data "azurerm_subscription" "test" {
-  subscription_id = %s
+  subscription_id = "%s"
 }
 
 resource "azurerm_new_relic_monitored_subscription" "test" {
@@ -187,7 +187,7 @@ provider "azurerm" {
 %s
 
 data "azurerm_subscription" "test" {
-  subscription_id = %s
+  subscription_id = "%s"
 }
 
 resource "azurerm_new_relic_monitored_subscription" "test" {
@@ -251,6 +251,10 @@ resource "azurerm_new_relic_monitor" "test" {
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
