@@ -1,0 +1,9 @@
+# This file is not generated since it is static labels that does not rely on any Go code.
+bug:
+  - '- \[ ?X ?\] Bug Fix'
+
+enhancement:
+ - '- \[ ?X ?\] Enhancement'
+
+breaking-change:
+ - '- \[ ?X ?\] Breaking Change'
