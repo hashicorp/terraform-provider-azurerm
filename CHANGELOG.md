@@ -6,7 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Dependencies - update `go-azure-sdk` to `v0.20241104.1140654` [GH-27896]
+* dependencies - update `go-azure-sdk` to `v0.20241104.1140654` [GH-27896]
+* dependencies - update `go-azure-helpers` to `v0.71.0` [GH-27897]
 * `azurerm_public_ip_prefix` - add support for the `sku_tier` property [GH-27882]
 *  `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
 * `storage` - allow `azurerm_storage_account` to be used in Data Plane restrictive environments [GH-27818]
@@ -68,7 +69,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Dependencies - update `go-azure-sdk` to `v0.20241021.1074254` ([#27713](https://github.com/hashicorp/terraform-provider-azurerm/issues/27713))
+* dependencies - update `go-azure-sdk` to `v0.20241021.1074254` ([#27713](https://github.com/hashicorp/terraform-provider-azurerm/issues/27713))
 * `newrelic` - upgrade api version to `2024-03-01`  ([#27135](https://github.com/hashicorp/terraform-provider-azurerm/issues/27135))
 * `cosmosdb` - upgrade api version to `2024-08-15` ([#27659](https://github.com/hashicorp/terraform-provider-azurerm/issues/27659))
 * `azurerm_application_gateway` - support for the new `Basic` SKU value ([#27440](https://github.com/hashicorp/terraform-provider-azurerm/issues/27440))
