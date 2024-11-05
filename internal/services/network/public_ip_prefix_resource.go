@@ -64,14 +64,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(publicipprefixes.PublicIPPrefixSkuTierRegional),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipprefixes.PublicIPPrefixSkuTierGlobal),
-					string(publicipprefixes.PublicIPPrefixSkuTierRegional),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuTier(), false),
 			},
 
 			"prefix_length": {
