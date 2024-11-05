@@ -7,15 +7,15 @@ dependencies:
     - vendor/**/*
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - website/**/*
 tooling:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/tools/**/*
 state-migration:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/services/**/migration/**/*
 service/aadb2c:
 - changed-files:
@@ -554,6 +554,16 @@ service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
+
+service/trustedsigning:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/codesigning/**/*
+
+service/video-indexer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/videoindexer/**/*
 
 service/virtual-desktops:
 - changed-files:
