@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies - update `go-azure-helpers` to `v0.71.0` [GH-27897]
 * `azurerm_public_ip_prefix` - add support for the `sku_tier` property [GH-27882]
 *  `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
+*  `azurerm_public_ip` - support for the d`omain_name_label_scope` property [GH-27748]
 * `storage` - allow `azurerm_storage_account` to be used in Data Plane restrictive environments [GH-27818]
 * `azurerm_subnet` - `default_outbound_access_enabled` can now be updated [GH-27858]
 * `azurerm_storage_container` - support for the `storage_account_id` property [GH-27733]
