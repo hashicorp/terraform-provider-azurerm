@@ -32,7 +32,7 @@ type DeploymentDataSourceModel struct {
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
+	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
@@ -115,24 +115,6 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"logging_storage_account": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"container_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
-			},
-		},
-
 		"frontend_public": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -199,6 +181,25 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 		}
+
+		dataSource["logging_storage_account"] = &pluginsdk.Schema{
+			Deprecated: "The `logging_storage_account` block has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"container_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		}
 	}
 	return dataSource
 }
@@ -253,12 +254,14 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
-					if props.Logging != nil && props.Logging.StorageAccount != nil {
-						output.LoggingStorageAccount = []LoggingStorageAccount{
-							{
-								Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-								ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
-							},
+					if !features.FivePointOhBeta() {
+						if props.Logging != nil && props.Logging.StorageAccount != nil {
+							output.LoggingStorageAccount = []LoggingStorageAccount{
+								{
+									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+								},
+							}
 						}
 					}
 

@@ -107,8 +107,6 @@ The following arguments are supported:
 
 * `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new NGINX Deployment to be created.
 
-* `logging_storage_account` - (Optional) One or more `logging_storage_account` blocks as defined below.
-
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
@@ -140,14 +138,6 @@ A `frontend_private` block supports the following:
 A `frontend_public` block supports the following:
 
 * `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
-
----
-
-A `logging_storage_account` block supports the following:
-
-* `container_name` - (Optional) Specify the container name in the Storage Account for logging.
-
-* `name` - (Optional) The name of the StorageAccount for NGINX Logging.
 
 ---
 
