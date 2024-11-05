@@ -33,6 +33,7 @@ func TestAccBastionHostDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("ip_configuration.0.name").Exists(),
 				check.That(data.ResourceName).Key("ip_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
+				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 	})
