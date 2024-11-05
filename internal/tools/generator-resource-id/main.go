@@ -206,7 +206,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 
 		// the RP shouldn't be transformed
 		if key == "providers" {
-			r := regexp.MustCompile(`^Microsoft.[A-Z][A-Za-z]+$`)
+			r := regexp.MustCompile(`^[A-Z][A-Za-z]+.[A-Z][A-Za-z]+$`)
 			if !r.MatchString(value) {
 				return nil, fmt.Errorf("the resource provider in the id must begin with upper case got: %s", value)
 			}
