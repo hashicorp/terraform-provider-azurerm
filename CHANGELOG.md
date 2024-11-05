@@ -1,5 +1,9 @@
 ## 4.9.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_dashboard_grafana_managed_private_endpoint` [GH-27781]
+
 ENHANCEMENTS:
 
 * `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
