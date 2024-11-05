@@ -6,7 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
+* Dependencies - update `go-azure-sdk` to `v0.20241104.1140654` [GH-27896]
+*  `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
 * `storage` - allow `azurerm_storage_account` to be used in Data Plane restrictive environments [GH-27818]
 * `azurerm_subnet` - `default_outbound_access_enabled` can now be updated [GH-27858]
 * `azurerm_storage_container` - support for the `storage_account_id` property [GH-27733]
