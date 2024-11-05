@@ -380,45 +380,45 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
 
-					if props.NginxAppProtect != nil {
-						if props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState != nil {
+					if nap := props.NginxAppProtect; nap != nil {
+						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
 							output.WebApplicationFirewallSettings = []WebApplicationFirewallSettings{
 								{
-									string(*props.NginxAppProtect.WebApplicationFirewallSettings.ActivationState),
+									string(*state),
 								},
 							}
 						}
-						if props.NginxAppProtect.WebApplicationFirewallStatus != nil {
+						if status := nap.WebApplicationFirewallStatus; status != nil {
 							wafStatus := WebApplicationFirewallStatus{}
-							if props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage != nil {
+							if attackSignature := status.AttackSignaturesPackage; attackSignature != nil {
 								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
 									{
-										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.RevisionDatetime,
-										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.AttackSignaturesPackage.Version,
+										RevisionDatetime: attackSignature.RevisionDatetime,
+										Version:          attackSignature.Version,
 									},
 								}
 							}
-							if props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage != nil {
+							if botSignature := status.BotSignaturesPackage; botSignature != nil {
 								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
 									{
-										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.RevisionDatetime,
-										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.BotSignaturesPackage.Version,
+										RevisionDatetime: botSignature.RevisionDatetime,
+										Version:          botSignature.Version,
 									},
 								}
 							}
-							if props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage != nil {
+							if threatCampaign := status.ThreatCampaignsPackage; threatCampaign != nil {
 								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
 									{
-										RevisionDatetime: props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.RevisionDatetime,
-										Version:          props.NginxAppProtect.WebApplicationFirewallStatus.ThreatCampaignsPackage.Version,
+										RevisionDatetime: threatCampaign.RevisionDatetime,
+										Version:          threatCampaign.Version,
 									},
 								}
 							}
-							if props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions != nil {
+							if componentVersions := status.ComponentVersions; componentVersions != nil {
 								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
 									{
-										WafEngineVersion: props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafEngineVersion,
-										WafNginxVersion:  props.NginxAppProtect.WebApplicationFirewallStatus.ComponentVersions.WafNginxVersion,
+										WafEngineVersion: componentVersions.WafEngineVersion,
+										WafNginxVersion:  componentVersions.WafNginxVersion,
 									},
 								}
 							}
