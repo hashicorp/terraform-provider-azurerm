@@ -315,6 +315,8 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("updating %s", *id)
 
+			// Set SystemData to nil as the API returns `The property '#/systemData' of type null did not match the following type: object in schema 25debcc2-6915-5536-9566-a2ecd765b755"}}` error.
+			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
