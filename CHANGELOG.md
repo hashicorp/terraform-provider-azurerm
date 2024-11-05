@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource**: `azurerm_dashboard_grafana_managed_private_endpoint` [GH-27781]
+* **New Resource**: `azurerm_data_protection_backup_instance_mysql_flexible_server` [GH-27464]
 
 ENHANCEMENTS:
 
