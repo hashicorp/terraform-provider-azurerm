@@ -1,17 +1,16 @@
-## 3.117.0 (November 6, 2024)
+## 3.117.0 (November 7, 2024)
 
-SPECIAL NOTES: This 3.x release is a special, one-off, back-port of functionality for `azurerm_storage_account` to enable users to deploy this resource in environments which block / are restrictive of Data Plane access, thus preventing the resource being created and/or managed.
-This functionality is back-ported from the `v4.9.0` release. Users migrating from this release to the 4.x line, should upgrade directly to `v4.9.0` or later, as these features are not compatible with earlier releases of 4.x.
+SPECIAL NOTES: This 3.x release is a special, one-off, back-port of functionality for `azurerm_storage_account` to enable users to deploy this resource in environments which block / are restrictive of Data Plane access, thus preventing the resource being created and/or managed.  This functionality is back-ported from the `v4.9.0` release. Users migrating from this release to the 4.x line, should upgrade directly to `v4.9.0` or later, as these features are not compatible with earlier releases of 4.x.
 
 FEATURES:
 
-* **New Resource:** `azurerm_storage_account_queue_properties` [GH-27819]
-* **New Resource:** `azurerm_storage_account_static_website`  [GH-27819]
-* New Provider Feature - storage `data_plane_available` feature flag [GH-27819]
+* **New Resource:** `azurerm_storage_account_queue_properties` ([#27819](https://github.com/hashicorp/terraform-provider-azurerm/pull/27819))
+* **New Resource:** `azurerm_storage_account_static_website`  ([#27819](https://github.com/hashicorp/terraform-provider-azurerm/pull/27819))
+* New Provider Feature - storage `data_plane_available` feature flag ([#27819](https://github.com/hashicorp/terraform-provider-azurerm/pull/27819))
 
 ENHANCEMENTS:
 
-* `azurerm_storage_account` - can now be created and managed if Data Plane endpoints are blocked by a firewall [GH-27819] 
+* `azurerm_storage_account` - can now be created and managed if Data Plane endpoints are blocked by a firewall ([#27819](https://github.com/hashicorp/terraform-provider-azurerm/pull/27819)) 
 
 ## 3.116.0 (August 16, 2024)
 
