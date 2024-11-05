@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,6 +28,9 @@ type longRunningOperationPoller struct {
 	initialRetryDuration time.Duration
 	originalUrl          *url.URL
 	pollingUrl           *url.URL
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func pollingUriForLongRunningOperation(resp *client.Response) string {
@@ -39,8 +43,9 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 
 func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:               client,
-		initialRetryDuration: 10 * time.Second,
+		client:                client,
+		initialRetryDuration:  10 * time.Second,
+		maxDroppedConnections: 3,
 	}
 
 	pollingUrl := pollingUriForLongRunningOperation(resp)
@@ -107,8 +112,19 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				result.Status = pollers.PollingStatusUnknown
+				return result, nil
+			}
+		}
+
 		return nil, err
 	}
+
+	p.droppedConnectionCount = 0
 
 	if result.HttpResponse != nil {
 		var respBody []byte
