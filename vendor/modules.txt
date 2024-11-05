@@ -1365,6 +1365,7 @@ github.com/hashicorp/yamux
 # github.com/jackofallops/kermit v0.20241010.1180132
 ## explicit; go 1.22
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
+github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation
 github.com/jackofallops/kermit/sdk/web/2022-09-01/web
 github.com/jackofallops/kermit/version
 # github.com/kr/pretty v0.3.0
@@ -1425,7 +1426,6 @@ github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
-github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory
