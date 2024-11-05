@@ -6,7 +6,6 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -263,8 +262,6 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 
 					if properties.PrivateEndpointConnections != nil {
 						state.PrivateEndpointConnections = flattenPrivateEndpointConnections(properties.PrivateEndpointConnections)
-						log.Printf("[DEBUG] Reading Resource - parsing %q", metadata.ResourceData.Id())
-
 					}
 				}
 			}
@@ -314,12 +311,3 @@ func flattenPrivateEndpointConnections(input *[]azuremonitorworkspaces.PrivateEn
 
 	return result
 }
-
-// resource "azurerm_monitor_workspace_private_endpoint_connection_approval" {
-// workspace_id = azurerm_monitor_workspace.example.id
-// group_ids = ["prometheus or whatever"]
-// service_kind = "grafana"
-// service_name = azurerm_dashboard_grafana_managed_private_endpoint.example.name
-// service_resource_group_name = azurerm_dashboard_grafana.example.resource_group_name
-// approval_message = "approved by terraform"
-// }

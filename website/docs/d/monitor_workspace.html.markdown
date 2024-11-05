@@ -47,6 +47,18 @@ output "query_endpoint" {
 
 - `tags` - A mapping of tags that are assigned to the Workspace.
 
+- `private_endpoint_connections` - A list of `private_endpoint_connections` blocks as described below.
+
+---
+
+a `private_endpoint_connections` block exports the following:
+
+- `name` - The name of the private endpoint connection.
+- `id` - The ID of the private endpoint connection.
+- `group_ids` - A list of group ID's (sometimes called subresource names) that this private endpoint connection allws access to.
+
+-> **NOTE:** The Azure API does not provide a way to uniquely identify a private endpoint connection based on an ID alone. The `id` exported by the `private_endpoint_connection` block does not correspond to the `id` of the private endpoint created by the connecting resource (e.g., an `azurerm_dashboard_grafana_managed_private_endpoint`), and there is no such property available. In order to identify the private endpoint connection, both `id` and `group_ids` will be required.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
