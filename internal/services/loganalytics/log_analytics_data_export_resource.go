@@ -171,7 +171,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/31399
-	log.Printf("[DEBUG] Waiting for Log Analytics Workspace Data Export %q to become ready", id.ID())
+	log.Printf("[DEBUG] Waiting for Log Analytics Workspace Data Export Rule %q to become ready", id.ID())
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Exists"},
@@ -182,7 +182,7 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Workspace Data Export %q to become ready: %+v", id.ID(), err)
+		return fmt.Errorf("waiting for Log Analytics Workspace Data Export Rule %q to become ready: %+v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
