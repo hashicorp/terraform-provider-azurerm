@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +21,7 @@ import (
 const SentinelAlertRuleFusionName = "BuiltInFusion"
 
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleFusionCreate,
 		Read:   resourceSentinelAlertRuleFusionRead,
 		Update: resourceSentinelAlertRuleFusionUpdate,
@@ -38,80 +39,76 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceSentinelAlertRuleFusionSchema(),
-	}
-}
+		Schema: map[string]*pluginsdk.Schema{
+			"log_analytics_workspace_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: alertrules.ValidateWorkspaceID,
+			},
 
-func resourceSentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
-		"log_analytics_workspace_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: alertrules.ValidateWorkspaceID,
-		},
+			"alert_rule_template_guid": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
 
-		"alert_rule_template_guid": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
-		},
+			"enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"source": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
-			// but overwriting this/reverting to the default can be done without issue so this can remain
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-					"sub_type": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  true,
-								},
-								"severities_allowed": {
-									Type:     pluginsdk.TypeSet,
-									Required: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice(
-											[]string{
-												string(alertrules.AlertSeverityHigh),
-												string(alertrules.AlertSeverityMedium),
-												string(alertrules.AlertSeverityLow),
-												string(alertrules.AlertSeverityInformational),
-											},
-											false,
-										),
+			"source": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+				// but overwriting this/reverting to the default can be done without issue so this can remain
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"sub_type": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+									"severities_allowed": {
+										Type:     pluginsdk.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													string(alertrules.AlertSeverityHigh),
+													string(alertrules.AlertSeverityMedium),
+													string(alertrules.AlertSeverityLow),
+													string(alertrules.AlertSeverityInformational),
+												},
+												false,
+											),
+										},
 									},
 								},
 							},
@@ -123,7 +120,7 @@ func resourceSentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOhBeta() {
-		schema["name"] = &pluginsdk.Schema{
+		resource.Schema["name"] = &pluginsdk.Schema{
 			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -132,8 +129,7 @@ func resourceSentinelAlertRuleFusionSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 	}
-
-	return schema
+	return resource
 }
 
 func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -163,7 +159,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
-		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -186,44 +182,40 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
-	payload := resp.Model.(alertrules.FusionAlertRule)
+	payload, ok := resp.Model.(alertrules.FusionAlertRule)
+	if !ok {
+		return fmt.Errorf("retrieving %s: expected an alert rule of type `Fusion`, got %q", id, pointer.From(resp.Model.AlertRule().Type))
+	}
+
+	if payload.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
 
 	if d.HasChange("alert_rule_template_guid") {
-		if payload.Properties == nil {
-			payload.Properties = &alertrules.FusionAlertRuleProperties{}
-		}
 		payload.Properties.AlertRuleTemplateName = d.Get("alert_rule_template_guid").(string)
 	}
 
 	if d.HasChange("enabled") {
-		if payload.Properties == nil {
-			payload.Properties = &alertrules.FusionAlertRuleProperties{}
-		}
 		payload.Properties.Enabled = d.Get("enabled").(bool)
 	}
 
 	if d.HasChange("source") {
-		if payload.Properties == nil {
-			payload.Properties = &alertrules.FusionAlertRuleProperties{}
-		}
 		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
 	}
 
 	// The `Description` is read-only but not specified on the Swagger, tracked on: https://github.com/Azure/azure-rest-api-specs/issues/31330
-	if payload.Properties != nil {
-		payload.Properties.Description = nil
-		payload.Properties.DisplayName = nil
-		payload.Properties.LastModifiedUtc = nil
-		payload.Properties.Severity = nil
-		payload.Properties.Tactics = nil
-	}
+	payload.Properties.Description = nil
+	payload.Properties.DisplayName = nil
+	payload.Properties.LastModifiedUtc = nil
+	payload.Properties.Severity = nil
+	payload.Properties.Tactics = nil
 
 	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
-		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceSentinelAlertRuleFusionRead(d, meta)
@@ -247,20 +239,22 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+
+	if !features.FivePointOhBeta() {
+		d.Set("name", id.RuleId)
+	}
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if model := resp.Model; model != nil {
 		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
+			return fmt.Errorf("asserting alert rule of %s: %+v", id, err)
 		}
 
 		if rule, ok := model.(alertrules.FusionAlertRule); ok {
-			d.Set("name", id.RuleId)
-
-			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-			d.Set("log_analytics_workspace_id", workspaceId.ID())
-
 			if prop := rule.Properties; prop != nil {
 				d.Set("enabled", prop.Enabled)
 				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
