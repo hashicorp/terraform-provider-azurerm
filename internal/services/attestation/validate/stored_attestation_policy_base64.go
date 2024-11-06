@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation"
+	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 func ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy(value interface{}, key string) (warnings []string, errors []error) {

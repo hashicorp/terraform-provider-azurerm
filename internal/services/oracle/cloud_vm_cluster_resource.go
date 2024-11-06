@@ -53,14 +53,18 @@ type CloudVmClusterResourceModel struct {
 	ClusterName              string                       `tfschema:"cluster_name"`
 	DataCollectionOptions    []DataCollectionOptionsModel `tfschema:"data_collection_options"`
 	DataStoragePercentage    int64                        `tfschema:"data_storage_percentage"`
+	Domain                   string                       `tfschema:"domain"`
 	IsLocalBackupEnabled     bool                         `tfschema:"local_backup_enabled"`
 	IsSparseDiskgroupEnabled bool                         `tfschema:"sparse_diskgroup_enabled"`
+	Ocid                     string                       `tfschema:"ocid"`
+	ScanListenerPortTcp      int64                        `tfschema:"scan_listener_port_tcp"`
+	ScanListenerPortTcpSsl   int64                        `tfschema:"scan_listener_port_tcp_ssl"`
 	TimeZone                 string                       `tfschema:"time_zone"`
+	ZoneId                   string                       `tfschema:"zone_id"`
 }
 
 func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		// Azure
 		"location": commonschema.Location(),
 
 		"name": {
@@ -223,6 +227,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DataStoragePercentage,
 		},
 
+		"domain": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
 		"local_backup_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -237,7 +248,30 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
+		"scan_listener_port_tcp": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      1521,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(1024, 8999),
+		},
+
+		"scan_listener_port_tcp_ssl": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      2484,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(1024, 8999),
+		},
+
 		"time_zone": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+		},
+
+		"zone_id": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
@@ -251,6 +285,11 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"hostname_actual": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"ocid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -320,8 +359,20 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 					IsIncidentLogsEnabled:      pointer.To(model.DataCollectionOptions[0].IsIncidentLogsEnabled),
 				}
 			}
+			if model.Domain != "" {
+				param.Properties.Domain = pointer.To(model.Domain)
+			}
+			if model.ScanListenerPortTcp >= 1024 && model.ScanListenerPortTcp <= 8999 {
+				param.Properties.ScanListenerPortTcp = pointer.To(model.ScanListenerPortTcp)
+			}
+			if model.ScanListenerPortTcpSsl >= 1024 && model.ScanListenerPortTcpSsl <= 8999 {
+				param.Properties.ScanListenerPortTcpSsl = pointer.To(model.ScanListenerPortTcpSsl)
+			}
 			if model.TimeZone != "" {
-				param.Properties.ClusterName = pointer.To(model.TimeZone)
+				param.Properties.TimeZone = pointer.To(model.TimeZone)
+			}
+			if model.ZoneId != "" {
+				param.Properties.ZoneId = pointer.To(model.ZoneId)
 			}
 			if model.DataStoragePercentage != 0 {
 				param.Properties.DataStoragePercentage = pointer.To(model.DataStoragePercentage)
@@ -438,9 +489,14 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.DataCollectionOptions = FlattenDataCollectionOptions(props.DataCollectionOptions)
 					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
+					state.Domain = pointer.From(props.Domain)
+					state.Ocid = pointer.From(props.Ocid)
 					state.IsLocalBackupEnabled = pointer.From(props.IsLocalBackupEnabled)
 					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
+					state.ScanListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
+					state.ScanListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
 					state.TimeZone = pointer.From(props.TimeZone)
+					state.ZoneId = pointer.From(props.ZoneId)
 				}
 			}
 
@@ -492,20 +548,4 @@ func removeHostnameSuffix(hostnameActual string) string {
 	} else {
 		return hostnameActual
 	}
-}
-
-// DbSystemHostnameDiffSuppress When submitting a request to DBaaS a suffix will be added to the Hostname,
-// therefore when computing the diff if the new Hostname is a prefix of the old then we will ignore the diff.
-// Example: Initial plan -> testHostname, final result after DBaaS -> testHostname-abc.
-// Since testHostname is a prefix of testHostname-abc, then computed diff is zero.
-func DbSystemHostnameDiffSuppress(_ string, old string, new string, _ *schema.ResourceData) bool {
-	return EqualSuppressDiff(old, new) || NewIsPrefixOfOldDiffSuppress(old, new)
-}
-
-func NewIsPrefixOfOldDiffSuppress(old string, new string) bool {
-	return strings.HasPrefix(strings.ToLower(old), strings.ToLower(new))
-}
-
-func EqualSuppressDiff(old string, new string) bool {
-	return old == new
 }

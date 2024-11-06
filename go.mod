@@ -16,9 +16,9 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.70.1
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241009.1142232
-	github.com/hashicorp/go-azure-sdk/sdk v0.20241009.1142232
+	github.com/hashicorp/go-azure-helpers v0.71.0
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241104.1140654
+	github.com/hashicorp/go-azure-sdk/sdk v0.20241104.1140654
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3

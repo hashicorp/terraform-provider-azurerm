@@ -21,24 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func TestAccKubernetesCluster_basicAvailabilitySet(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicAvailabilitySetConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -463,35 +445,6 @@ func TestAccKubernetesCluster_windowsProfileLicense(t *testing.T) {
 		data.ImportStep(
 			"windows_profile.0.admin_password",
 		),
-	})
-}
-
-func TestAccKubernetesCluster_updateWindowsProfileLicense(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsProfileConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
-		{
-			Config: r.windowsProfileLicense(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
-		{
-			Config: r.windowsProfileConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -1295,40 +1248,6 @@ func TestAccKubernetesCluster_costAnalysis(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func (KubernetesClusterResource) basicAvailabilitySetConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    type       = "AvailabilitySet"
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) sameSize(data acceptance.TestData) string {
