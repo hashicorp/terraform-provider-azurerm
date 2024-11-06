@@ -216,11 +216,21 @@ func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("create_ui_definition") {
-		payload.Properties.CreateUiDefinition = pointer.To(d.Get("create_ui_definition"))
+		// handle API error: The 'MainTemplate, CreateUiDefinition' properties should be empty if package zip file uri is provided.
+		if v, ok := d.GetOk("create_ui_definition"); ok {
+			payload.Properties.CreateUiDefinition = pointer.To(v)
+		} else {
+			payload.Properties.CreateUiDefinition = nil
+		}
 	}
 
 	if d.HasChange("main_template") {
-		payload.Properties.MainTemplate = pointer.To(d.Get("main_template"))
+		// handle API error: The 'MainTemplate, CreateUiDefinition' properties should be empty if package zip file uri is provided.
+		if v, ok := d.GetOk("main_template"); ok {
+			payload.Properties.MainTemplate = pointer.To(v)
+		} else {
+			payload.Properties.MainTemplate = nil
+		}
 	}
 
 	if d.HasChange("package_file_uri") {
