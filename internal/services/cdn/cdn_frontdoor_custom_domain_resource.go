@@ -41,94 +41,105 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorCustomDomainName,
-			},
-
-			// NOTE: I need this fake field because I need the profile name during the create operation
-			"cdn_frontdoor_profile_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorProfileID,
-			},
-
-			"dns_zone_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: dnsValidate.ValidateDnsZoneID,
-			},
-
-			"host_name": {
-				Type:     pluginsdk.TypeString,
-				ForceNew: true,
-				Required: true,
-			},
-
-			"tls": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-
-						"certificate_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cdn.AfdCertificateTypeManagedCertificate),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.AfdCertificateTypeCustomerCertificate),
-								string(cdn.AfdCertificateTypeManagedCertificate),
-							}, false),
-						},
-
-						"minimum_tls_version": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cdn.AfdMinimumTLSVersionTLS12),
-							ValidateFunc: validation.StringInSlice(func() []string {
-								if !features.FivePointOhBeta() {
-									return []string{
-										string(cdn.AfdMinimumTLSVersionTLS10),
-										string(cdn.AfdMinimumTLSVersionTLS12),
-									}
-								}
-								return []string{
-									string(cdn.AfdMinimumTLSVersionTLS12),
-								}
-							}(), false),
-						},
-
-						// NOTE: If the secret is managed by FrontDoor this will cause a perpetual diff,
-						// so this has to be an optional computed field.
-						"cdn_frontdoor_secret_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.FrontDoorSecretID,
-						},
-					},
-				},
-			},
-
-			"expiration_date": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"validation_token": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-		},
+		Schema: resourceCdnFrontDoorCustomDomainSchema(),
 	}
 
 	return resource
+}
+
+func resourceCdnFrontDoorCustomDomainSchema() map[string]*pluginsdk.Schema {
+	result := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FrontDoorCustomDomainName,
+		},
+
+		// NOTE: I need this fake field because I need the profile name during the create operation
+		"cdn_frontdoor_profile_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FrontDoorProfileID,
+		},
+
+		"dns_zone_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: dnsValidate.ValidateDnsZoneID,
+		},
+
+		"host_name": {
+			Type:     pluginsdk.TypeString,
+			ForceNew: true,
+			Required: true,
+		},
+
+		"tls": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+
+					"certificate_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(cdn.AfdCertificateTypeManagedCertificate),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(cdn.AfdCertificateTypeCustomerCertificate),
+							string(cdn.AfdCertificateTypeManagedCertificate),
+						}, false),
+					},
+
+					"minimum_tls_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(cdn.AfdMinimumTLSVersionTLS12),
+						}, false),
+					},
+
+					// NOTE: If the secret is managed by FrontDoor this will cause a perpetual diff,
+					// so this has to be an optional computed field.
+					"cdn_frontdoor_secret_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validate.FrontDoorSecretID,
+					},
+				},
+			},
+		},
+
+		"expiration_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"validation_token": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
+
+	if !features.FivePointOhBeta() {
+		tlsElem := result["tls"].Elem.(*pluginsdk.Resource)
+		tlsElem.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(cdn.AfdMinimumTLSVersionTLS12),
+				string(cdn.AfdMinimumTLSVersionTLS10),
+			}, false),
+		}
+		result["tls"].Elem = tlsElem
+	}
+
+	return result
 }
 
 func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
