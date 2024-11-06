@@ -177,10 +177,6 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
 			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
 			if err != nil {
 				return err
