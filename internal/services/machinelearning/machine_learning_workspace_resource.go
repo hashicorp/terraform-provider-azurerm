@@ -569,7 +569,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("friendly_name", props.FriendlyName)
 			d.Set("high_business_impact", props.HbiWorkspace)
 			d.Set("image_build_compute_name", props.ImageBuildCompute)
-			d.Set("discovery_url", props.DiscoveryUrl)
+			d.Set("discovery_url", props.DiscoveryURL)
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)

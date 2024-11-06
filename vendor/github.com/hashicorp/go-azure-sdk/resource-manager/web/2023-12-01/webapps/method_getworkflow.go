@@ -45,7 +45,6 @@ func (c WebAppsClient) GetWorkflow(ctx context.Context, id WorkflowId) (result G
 
 	var model WorkflowEnvelope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

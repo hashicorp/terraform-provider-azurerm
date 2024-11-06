@@ -44,7 +44,7 @@ func ParsePipelineRunID(input string) (*PipelineRunId, error) {
 	}
 
 	id := PipelineRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePipelineRunIDInsensitively(input string) (*PipelineRunId, error) {
 	}
 
 	id := PipelineRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PipelineRunId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticPipelineRuns", "pipelineRuns", "pipelineRuns"),
-		resourceids.UserSpecifiedSegment("pipelineRunName", "pipelineRunValue"),
+		resourceids.UserSpecifiedSegment("pipelineRunName", "pipelineRunName"),
 	}
 }
 

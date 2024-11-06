@@ -34,6 +34,7 @@ func (o RestartSlotOperationOptions) ToHeaders() *client.Headers {
 
 func (o RestartSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

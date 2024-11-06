@@ -40,6 +40,7 @@ func (o ListRegionalBySubscriptionForTopicTypeOperationOptions) ToHeaders() *cli
 
 func (o ListRegionalBySubscriptionForTopicTypeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

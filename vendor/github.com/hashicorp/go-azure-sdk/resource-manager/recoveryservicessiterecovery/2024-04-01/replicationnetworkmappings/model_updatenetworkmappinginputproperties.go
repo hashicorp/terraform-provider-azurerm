@@ -17,10 +17,12 @@ type UpdateNetworkMappingInputProperties struct {
 var _ json.Unmarshaler = &UpdateNetworkMappingInputProperties{}
 
 func (s *UpdateNetworkMappingInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias UpdateNetworkMappingInputProperties
-	var decoded alias
+	var decoded struct {
+		RecoveryFabricName *string `json:"recoveryFabricName,omitempty"`
+		RecoveryNetworkId  *string `json:"recoveryNetworkId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into UpdateNetworkMappingInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.RecoveryFabricName = decoded.RecoveryFabricName
@@ -32,11 +34,12 @@ func (s *UpdateNetworkMappingInputProperties) UnmarshalJSON(bytes []byte) error 
 	}
 
 	if v, ok := temp["fabricSpecificDetails"]; ok {
-		impl, err := unmarshalFabricSpecificUpdateNetworkMappingInputImplementation(v)
+		impl, err := UnmarshalFabricSpecificUpdateNetworkMappingInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'FabricSpecificDetails' for 'UpdateNetworkMappingInputProperties': %+v", err)
 		}
 		s.FabricSpecificDetails = impl
 	}
+
 	return nil
 }

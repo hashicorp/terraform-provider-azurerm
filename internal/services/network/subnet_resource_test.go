@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -127,20 +127,25 @@ func TestAccSubnet_disappears(t *testing.T) {
 }
 
 func TestAccSubnet_defaultOutbound(t *testing.T) {
-	dataInternal := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
-	dataPublic := acceptance.BuildTestData(t, "azurerm_subnet", "public")
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
 	r := SubnetResource{}
 
-	dataInternal.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultOutbound(dataInternal),
+			Config: r.defaultOutbound(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(dataInternal.ResourceName).ExistsInAzure(r),
-				check.That(dataInternal.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
-				check.That(dataPublic.ResourceName).ExistsInAzure(r),
-				check.That(dataPublic.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.defaultOutbound(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -839,7 +844,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
-func (r SubnetResource) defaultOutbound(data acceptance.TestData) string {
+func (r SubnetResource) defaultOutbound(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_subnet" "internal" {
@@ -847,16 +852,9 @@ resource "azurerm_subnet" "internal" {
   resource_group_name             = azurerm_resource_group.test.name
   virtual_network_name            = azurerm_virtual_network.test.name
   address_prefixes                = ["10.0.2.0/24"]
-  default_outbound_access_enabled = false
+  default_outbound_access_enabled = %t
 }
-resource "azurerm_subnet" "public" {
-  name                            = "public"
-  resource_group_name             = azurerm_resource_group.test.name
-  virtual_network_name            = azurerm_virtual_network.test.name
-  address_prefixes                = ["10.0.3.0/24"]
-  default_outbound_access_enabled = true
-}
-`, r.template(data))
+`, r.template(data), enabled)
 }
 
 func (r SubnetResource) delegationUpdated(data acceptance.TestData) string {

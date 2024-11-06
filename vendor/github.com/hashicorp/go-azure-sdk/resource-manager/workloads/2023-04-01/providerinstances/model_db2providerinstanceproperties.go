@@ -22,6 +22,14 @@ type DB2ProviderInstanceProperties struct {
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s DB2ProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = DB2ProviderInstanceProperties{}
@@ -35,9 +43,10 @@ func (s DB2ProviderInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DB2ProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "Db2"
 
 	encoded, err = json.Marshal(decoded)

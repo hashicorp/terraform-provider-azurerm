@@ -45,7 +45,6 @@ func (c WebAppsClient) GetSlot(ctx context.Context, id SlotId) (result GetSlotOp
 
 	var model Site
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type ActivityLogAlertsAPIsClient struct {
 }
 
 func NewActivityLogAlertsAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ActivityLogAlertsAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "activitylogalertsapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "activitylogalertsapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ActivityLogAlertsAPIsClient: %+v", err)
 	}

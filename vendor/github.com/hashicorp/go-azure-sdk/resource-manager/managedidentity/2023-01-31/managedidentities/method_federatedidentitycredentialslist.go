@@ -40,6 +40,7 @@ func (o FederatedIdentityCredentialsListOperationOptions) ToHeaders() *client.He
 
 func (o FederatedIdentityCredentialsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

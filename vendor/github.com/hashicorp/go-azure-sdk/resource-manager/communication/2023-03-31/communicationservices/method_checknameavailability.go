@@ -51,7 +51,6 @@ func (c CommunicationServicesClient) CheckNameAvailability(ctx context.Context, 
 
 	var model CheckNameAvailabilityResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

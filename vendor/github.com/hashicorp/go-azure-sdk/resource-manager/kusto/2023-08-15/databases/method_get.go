@@ -16,7 +16,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Database
+	Model        Database
 }
 
 // Get ...
@@ -49,11 +49,11 @@ func (c DatabasesClient) Get(ctx context.Context, id commonids.KustoDatabaseId) 
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDatabaseImplementation(respObj)
+	model, err := UnmarshalDatabaseImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

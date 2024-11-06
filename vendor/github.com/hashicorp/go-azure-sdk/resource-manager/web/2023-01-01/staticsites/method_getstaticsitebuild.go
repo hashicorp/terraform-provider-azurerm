@@ -45,7 +45,6 @@ func (c StaticSitesClient) GetStaticSiteBuild(ctx context.Context, id BuildId) (
 
 	var model StaticSiteBuildARMResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

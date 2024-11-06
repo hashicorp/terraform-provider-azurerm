@@ -46,7 +46,6 @@ func (c WebAppsClient) ListSitePushSettingsSlot(ctx context.Context, id SlotId) 
 
 	var model PushSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

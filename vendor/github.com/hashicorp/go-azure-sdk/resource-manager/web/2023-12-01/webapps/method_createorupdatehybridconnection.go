@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdateHybridConnection(ctx context.Context, id Re
 
 	var model HybridConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

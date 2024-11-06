@@ -44,7 +44,7 @@ func ParseLoggerID(input string) (*LoggerId, error) {
 	}
 
 	id := LoggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseLoggerIDInsensitively(input string) (*LoggerId, error) {
 	}
 
 	id := LoggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id LoggerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticLoggers", "loggers", "loggers"),
-		resourceids.UserSpecifiedSegment("loggerId", "loggerIdValue"),
+		resourceids.UserSpecifiedSegment("loggerId", "loggerId"),
 	}
 }
 

@@ -14,8 +14,18 @@ type ServicePrincipalCredential struct {
 	TypeProperties ServicePrincipalCredentialTypeProperties `json:"typeProperties"`
 
 	// Fields inherited from Credential
+
 	Annotations *[]interface{} `json:"annotations,omitempty"`
 	Description *string        `json:"description,omitempty"`
+	Type        string         `json:"type"`
+}
+
+func (s ServicePrincipalCredential) Credential() BaseCredentialImpl {
+	return BaseCredentialImpl{
+		Annotations: s.Annotations,
+		Description: s.Description,
+		Type:        s.Type,
+	}
 }
 
 var _ json.Marshaler = ServicePrincipalCredential{}
@@ -29,9 +39,10 @@ func (s ServicePrincipalCredential) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServicePrincipalCredential: %+v", err)
 	}
+
 	decoded["type"] = "ServicePrincipal"
 
 	encoded, err = json.Marshal(decoded)

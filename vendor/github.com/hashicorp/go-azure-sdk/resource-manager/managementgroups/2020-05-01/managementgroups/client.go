@@ -15,7 +15,7 @@ type ManagementGroupsClient struct {
 }
 
 func NewManagementGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagementGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managementgroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managementgroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagementGroupsClient: %+v", err)
 	}

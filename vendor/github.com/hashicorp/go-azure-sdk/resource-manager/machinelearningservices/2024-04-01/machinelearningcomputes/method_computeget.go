@@ -45,7 +45,6 @@ func (c MachineLearningComputesClient) ComputeGet(ctx context.Context, id Comput
 
 	var model ComputeResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
