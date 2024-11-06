@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -327,20 +328,13 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id)
+	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, id)
 	if err != nil {
 		return fmt.Errorf("listing publishing credentials for %s: %+v", id, err)
 	}
 
-	if err = siteCredFuture.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting to list the publishing credentials for %s: %+v", id, err)
-	}
-
-	if model := siteCredFuture.Model; model != nil {
-		siteCred := flattenLogicAppStandardDataSourceSiteCredential(model.Properties)
-		if err = d.Set("site_credential", siteCred); err != nil {
-			return err
-		}
+	if err = d.Set("site_credential", flattenLogicAppStandardSiteCredential(siteCredentials)); err != nil {
+		return err
 	}
 
 	return nil
@@ -419,19 +413,4 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	results = append(results, result)
 	return results
-}
-
-func flattenLogicAppStandardDataSourceSiteCredential(input *webapps.UserProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] UserProperties is nil")
-		return results
-	}
-
-	result["username"] = input.PublishingUserName
-	result["password"] = pointer.From(input.PublishingPassword)
-
-	return append(results, result)
 }
