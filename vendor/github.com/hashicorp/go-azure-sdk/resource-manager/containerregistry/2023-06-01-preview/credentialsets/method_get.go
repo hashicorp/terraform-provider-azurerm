@@ -45,7 +45,6 @@ func (c CredentialSetsClient) Get(ctx context.Context, id CredentialSetId) (resu
 
 	var model CredentialSet
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

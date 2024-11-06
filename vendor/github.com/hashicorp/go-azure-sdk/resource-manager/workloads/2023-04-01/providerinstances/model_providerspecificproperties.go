@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProviderSpecificProperties interface {
+	ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl
 }
 
-// RawProviderSpecificPropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ProviderSpecificProperties = BaseProviderSpecificPropertiesImpl{}
+
+type BaseProviderSpecificPropertiesImpl struct {
+	ProviderType string `json:"providerType"`
+}
+
+func (s BaseProviderSpecificPropertiesImpl) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return s
+}
+
+var _ ProviderSpecificProperties = RawProviderSpecificPropertiesImpl{}
+
+// RawProviderSpecificPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawProviderSpecificPropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	providerSpecificProperties BaseProviderSpecificPropertiesImpl
+	Type                       string
+	Values                     map[string]interface{}
 }
 
-func unmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSpecificProperties, error) {
+func (s RawProviderSpecificPropertiesImpl) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return s.providerSpecificProperties
+}
+
+func UnmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSpecificProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSp
 		return nil, fmt.Errorf("unmarshaling ProviderSpecificProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["providerType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["providerType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Db2") {
@@ -84,10 +101,15 @@ func unmarshalProviderSpecificPropertiesImplementation(input []byte) (ProviderSp
 		return out, nil
 	}
 
-	out := RawProviderSpecificPropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseProviderSpecificPropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseProviderSpecificPropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawProviderSpecificPropertiesImpl{
+		providerSpecificProperties: parent,
+		Type:                       value,
+		Values:                     temp,
+	}, nil
 
 }

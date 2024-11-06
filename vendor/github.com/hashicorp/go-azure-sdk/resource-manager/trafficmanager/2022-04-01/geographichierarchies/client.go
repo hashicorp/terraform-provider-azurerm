@@ -15,7 +15,7 @@ type GeographicHierarchiesClient struct {
 }
 
 func NewGeographicHierarchiesClientWithBaseURI(sdkApi sdkEnv.Api) (*GeographicHierarchiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "geographichierarchies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "geographichierarchies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GeographicHierarchiesClient: %+v", err)
 	}

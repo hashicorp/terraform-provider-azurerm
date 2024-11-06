@@ -36,6 +36,7 @@ func (o RegenerateOperationOptions) ToHeaders() *client.Headers {
 
 func (o RegenerateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c AdminKeysClient) Regenerate(ctx context.Context, id KeyKindId, options R
 
 	var model AdminKeyResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

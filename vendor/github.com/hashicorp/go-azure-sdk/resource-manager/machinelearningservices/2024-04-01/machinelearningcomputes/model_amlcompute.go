@@ -17,7 +17,9 @@ type AmlCompute struct {
 	Properties *AmlComputeProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
+
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`
+	ComputeType        ComputeType        `json:"computeType"`
 	CreatedOn          *string            `json:"createdOn,omitempty"`
 	Description        *string            `json:"description,omitempty"`
 	DisableLocalAuth   *bool              `json:"disableLocalAuth,omitempty"`
@@ -26,6 +28,21 @@ type AmlCompute struct {
 	ProvisioningErrors *[]ErrorResponse   `json:"provisioningErrors,omitempty"`
 	ProvisioningState  *ProvisioningState `json:"provisioningState,omitempty"`
 	ResourceId         *string            `json:"resourceId,omitempty"`
+}
+
+func (s AmlCompute) Compute() BaseComputeImpl {
+	return BaseComputeImpl{
+		ComputeLocation:    s.ComputeLocation,
+		ComputeType:        s.ComputeType,
+		CreatedOn:          s.CreatedOn,
+		Description:        s.Description,
+		DisableLocalAuth:   s.DisableLocalAuth,
+		IsAttachedCompute:  s.IsAttachedCompute,
+		ModifiedOn:         s.ModifiedOn,
+		ProvisioningErrors: s.ProvisioningErrors,
+		ProvisioningState:  s.ProvisioningState,
+		ResourceId:         s.ResourceId,
+	}
 }
 
 func (o *AmlCompute) GetCreatedOnAsTime() (*time.Time, error) {
@@ -63,9 +80,10 @@ func (s AmlCompute) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AmlCompute: %+v", err)
 	}
+
 	decoded["computeType"] = "AmlCompute"
 
 	encoded, err = json.Marshal(decoded)

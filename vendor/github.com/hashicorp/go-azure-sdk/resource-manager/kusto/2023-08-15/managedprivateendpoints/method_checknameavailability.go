@@ -51,7 +51,6 @@ func (c ManagedPrivateEndpointsClient) CheckNameAvailability(ctx context.Context
 
 	var model CheckNameResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

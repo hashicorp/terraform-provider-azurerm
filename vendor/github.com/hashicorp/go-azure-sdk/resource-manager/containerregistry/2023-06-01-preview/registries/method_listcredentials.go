@@ -46,7 +46,6 @@ func (c RegistriesClient) ListCredentials(ctx context.Context, id RegistryId) (r
 
 	var model RegistryListCredentialsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

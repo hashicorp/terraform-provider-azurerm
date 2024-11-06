@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -195,7 +195,7 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 				}
 
 				if appSourceControl.RepoURL != "" {
-					sourceControl.Properties.RepoUrl = pointer.To(appSourceControl.RepoURL)
+					sourceControl.Properties.RepoURL = pointer.To(appSourceControl.RepoURL)
 				}
 
 				if appSourceControl.Branch != "" {
@@ -255,7 +255,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				state = SourceControlModel{
 					AppID:                     id.ID(),
 					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
-					RepoURL:                   pointer.From(props.RepoUrl),
+					RepoURL:                   pointer.From(props.RepoURL),
 					Branch:                    pointer.From(props.Branch),
 					ManualIntegration:         pointer.From(props.IsManualIntegration),
 					UseMercurial:              pointer.From(props.IsMercurial),

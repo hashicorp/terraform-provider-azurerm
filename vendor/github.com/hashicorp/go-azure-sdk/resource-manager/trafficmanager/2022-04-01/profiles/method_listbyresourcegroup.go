@@ -47,7 +47,6 @@ func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 
 	var model ProfileListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

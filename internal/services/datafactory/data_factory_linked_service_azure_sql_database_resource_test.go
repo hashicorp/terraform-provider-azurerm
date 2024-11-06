@@ -115,6 +115,22 @@ func TestAccDataFactoryLinkedServiceAzureSQLDatabase_ConnectionStringKeyVaultRef
 	})
 }
 
+func TestAccDataFactoryLinkedServiceAzureSQLDatabase_Credential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_sql_database", "test")
+	r := LinkedServiceAzureSQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.credential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("credential_name").HasValue(fmt.Sprintf("test%d", data.RandomInteger)),
+			),
+		},
+		data.ImportStep("connection_string"),
+	})
+}
+
 func (t LinkedServiceAzureSQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.LinkedServiceID(state.ID)
 	if err != nil {
@@ -352,6 +368,51 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "password"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceAzureSQLDatabaseResource) credential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "test%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_data_factory_credential_user_managed_identity" "test" {
+  name            = azurerm_user_assigned_identity.test.name
+  description     = "Test ADF SQL DB UMI"
+  data_factory_id = azurerm_data_factory.test.id
+  identity_id     = azurerm_user_assigned_identity.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_sql_database" "test" {
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "data source=serverhostname;initial catalog=master;user id=testUser;Password=test;integrated security=False;encrypt=True;connection timeout=30"
+
+  credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

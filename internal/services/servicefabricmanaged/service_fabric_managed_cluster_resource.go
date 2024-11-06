@@ -651,7 +651,12 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	if t := cluster.Tags; t != nil {
 		modelTags := make(map[string]interface{})
 		for tag, value := range *t {
-			modelTags[tag] = value
+			// This tag is temporary and will be removed at a later date.
+			// More info can be found here https://azure.microsoft.com/en-us/updates/default-outbound-access-for-vms-in-azure-will-be-retired-transition-to-a-new-method-of-internet-access/
+			// In the meantime, we'll ignore it when setting tags into state
+			if !strings.Contains(tag, "SFRP.DisableDefaultOutboundAccess") {
+				modelTags[tag] = value
+			}
 		}
 		model.Tags = modelTags
 	}
@@ -720,7 +725,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 			for idx, cert := range sec.VaultCertificates {
 				certs[idx] = VaultCertificates{
 					Store: cert.CertificateStore,
-					Url:   cert.CertificateUrl,
+					Url:   cert.CertificateURL,
 				}
 			}
 			secs[idx] = VmSecrets{
@@ -849,7 +854,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		for cidx, cert := range secret.Certificates {
 			vcs[cidx] = nodetype.VaultCertificate{
 				CertificateStore: cert.Store,
-				CertificateUrl:   cert.Url,
+				CertificateURL:   cert.Url,
 			}
 		}
 		vmSecrets[idx] = nodetype.VaultSecretGroup{
