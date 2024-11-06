@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorCustomDomainResource struct {
-}
+type CdnFrontDoorCustomDomainResource struct{}
 
 func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
@@ -159,7 +158,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   }
 
   tags {
-	test = "acctest"
+    test = "acctest"
   }
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(8))
