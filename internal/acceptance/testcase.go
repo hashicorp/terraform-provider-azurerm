@@ -4,7 +4,9 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -168,14 +170,14 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
-	testCase.ProviderFactories = td.providers()
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm")
 
 	resource.ParallelTest(t, testCase)
 }
 
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
-	testCase.ProviderFactories = td.providers()
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm")
 
 	resource.Test(t, testCase)
 }
