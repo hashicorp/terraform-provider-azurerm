@@ -327,3 +327,13 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		return out
 	}()
 }
+
+func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
+	services := []sdk.FrameworkTypedServiceRegistration{
+		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
+		// e.g.
+		// resource.Registration{}
+	}
+
+	return services
+}

@@ -19,6 +19,8 @@ var _ Return = Int64Return{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use [types.Int64], *int64, or int64.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type Int64Return struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.Int64Type]. When setting data, the
