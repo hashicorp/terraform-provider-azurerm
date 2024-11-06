@@ -231,8 +231,8 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var mpe ManagedPrivateEndpointModel
-			if err := metadata.Decode(&mpe); err != nil {
+			var config ManagedPrivateEndpointModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -241,13 +241,13 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
+			model := resp.Model
 
 			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = &mpe.Tags
+				model.Tags = &config.Tags
 			}
 
 			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
