@@ -47,9 +47,11 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Is the Data Factory visible to the public network? Defaults to `true`.
 
-* `customer_managed_key_id` - (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with user assigned identity.
+* `customer_managed_key_id` - (Optional) Specifies the Azure Key Vault Key ID to be used as the Customer Managed Key (CMK) for double encryption. Required with `customer_managed_key_identity_id`.
 
-* `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` is set.
+* `customer_managed_hsm_key_id` - (Optional) Specifies the Managed HSM Key ID to be used as the Customer Managed Key (CMK) for double encryption. Both versioned or versionless ID are supported. Required with `customer_managed_key_identity_id`.
+
+* `customer_managed_key_identity_id` - (Optional) Specifies the ID of the user assigned identity associated with the Customer Managed Key. Must be supplied if `customer_managed_key_id` or `customer_managed_hsm_key_id` is set.
 
 * `purview_id` - (Optional) Specifies the ID of the purview account resource associated with the Data Factory.
 
