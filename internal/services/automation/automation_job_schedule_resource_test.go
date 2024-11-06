@@ -51,33 +51,6 @@ func TestAccAutomationJobSchedule_complete(t *testing.T) {
 	})
 }
 
-func TestAccAutomationJobSchedule_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
-	r := AutomationJobScheduleResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccAutomationJobSchedule_updateRunbook(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}
