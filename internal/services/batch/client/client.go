@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	batchDataplane "github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch"
+	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
 type Client struct {
