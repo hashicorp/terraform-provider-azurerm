@@ -201,7 +201,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
 			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
-				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
+				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyURL))
 			}
 
 			storage, err := flattenStorageConfiguration(props.StorageConfiguration)
