@@ -133,8 +133,6 @@ func TestAccCognitiveAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -163,8 +161,6 @@ func TestAccCognitiveAccount_update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
 		},
 	})

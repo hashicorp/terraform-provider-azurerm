@@ -389,16 +389,6 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			keys, err := client.AccountsListKeys(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("listing the Keys for %s: %+v", id, err)
-			}
-
-			if model := keys.Model; model != nil {
-				state.PrimaryAccessKey = pointer.From(model.Key1)
-				state.SecondaryAccessKey = pointer.From(model.Key2)
-			}
-
 			state.Name = id.AccountName
 			state.ResourceGroupName = id.ResourceGroupName
 
@@ -426,6 +416,18 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 					localAuthEnabled := true
 					if props.DisableLocalAuth != nil {
 						localAuthEnabled = !*props.DisableLocalAuth
+					}
+
+					if localAuthEnabled {
+						keys, err := client.AccountsListKeys(ctx, *id)
+						if err != nil {
+							return fmt.Errorf("listing the Keys for %s: %+v", id, err)
+						}
+
+						if model := keys.Model; model != nil {
+							state.PrimaryAccessKey = pointer.From(model.Key1)
+							state.SecondaryAccessKey = pointer.From(model.Key2)
+						}
 					}
 					state.LocalAuthorizationEnabled = localAuthEnabled
 
