@@ -11,6 +11,7 @@ import (
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,10 +91,17 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  string(cdn.AfdMinimumTLSVersionTLS12),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.AfdMinimumTLSVersionTLS10),
-								string(cdn.AfdMinimumTLSVersionTLS12),
-							}, false),
+							ValidateFunc: validation.StringInSlice(func() []string {
+								if !features.FivePointOhBeta() {
+									return []string{
+										string(cdn.AfdMinimumTLSVersionTLS10),
+										string(cdn.AfdMinimumTLSVersionTLS12),
+									}
+								}
+								return []string{
+									string(cdn.AfdMinimumTLSVersionTLS12),
+								}
+							}(), false),
 						},
 
 						// NOTE: If the secret is managed by FrontDoor this will cause a perpetual diff,

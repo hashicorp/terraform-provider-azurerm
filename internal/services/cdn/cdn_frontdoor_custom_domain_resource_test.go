@@ -155,7 +155,11 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   tls {
     certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS10"
+    minimum_tls_version = "TLS12"
+  }
+
+  tags {
+	test = "acctest"
   }
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(8))
@@ -174,7 +178,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   tls {
     certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS10"
+    minimum_tls_version = "TLS12"
   }
 }
 `, template, data.RandomInteger, data.RandomStringOfLength(8))
