@@ -161,6 +161,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"virtual_network_subnet_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -224,13 +229,14 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 
 		if props := model.Properties; props != nil {
 			d.Set("app_service_plan_id", pointer.From(props.ServerFarmId))
-			d.Set("enabled", props.Enabled)
-			d.Set("default_hostname", props.DefaultHostName)
-			d.Set("https_only", props.HTTPSOnly)
-			d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
-			d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-			d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
-			d.Set("custom_domain_verification_id", props.CustomDomainVerificationId)
+			d.Set("enabled", pointer.From(props.Enabled))
+			d.Set("default_hostname", pointer.From(props.DefaultHostName))
+			d.Set("https_only", pointer.From(props.HTTPSOnly))
+			d.Set("outbound_ip_addresses", pointer.From(props.OutboundIPAddresses))
+			d.Set("possible_outbound_ip_addresses", pointer.From(props.PossibleOutboundIPAddresses))
+			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
+			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
+			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -302,6 +308,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("listing connection strings for %s: %+v", id, err)
 	}
+
 	if model := connectionStringsResp.Model; model != nil {
 		if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(model.Properties)); err != nil {
 			return err
@@ -312,6 +319,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("retrieving the configuration for %s: %+v", id, err)
 	}
+
 	if model := configResp.Model; model != nil {
 		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
 		if err = d.Set("site_config", siteConfig); err != nil {

@@ -36,7 +36,22 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
 			),
 		},
-		data.ImportStep("site_credential"),
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -928,7 +943,7 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccessEnabled(data, false),
+			Config: r.siteConfigPublicNetworkAccessEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
@@ -936,7 +951,7 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccessEnabled(data, true),
+			Config: r.siteConfigPublicNetworkAccessEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
@@ -1004,6 +1019,26 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) publicNetworkAccess(data acceptance.TestData, status string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  public_network_access      = "%s"
+}
+`, r.template(data), data.RandomInteger, status)
 }
 
 func (r LogicAppStandardResource) containerized(data acceptance.TestData) string {
@@ -2280,7 +2315,7 @@ resource "azurerm_logic_app_standard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LogicAppStandardResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+func (r LogicAppStandardResource) siteConfigPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

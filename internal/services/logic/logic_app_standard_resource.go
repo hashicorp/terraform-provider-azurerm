@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,7 +37,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 		Update: resourceLogicAppStandardUpdate,
 		Delete: resourceLogicAppStandardDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogicAppStandardID(id)
+			_, err := commonids.ParseLogicAppId(id)
 			return err
 		}),
 
@@ -170,6 +169,17 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  helpers.PublicNetworkAccessEnabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					helpers.PublicNetworkAccessEnabled,
+					helpers.PublicNetworkAccessDisabled,
+				}, false),
+			},
+
 			"storage_account_share_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -180,6 +190,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "~4",
+			},
+
+			"virtual_network_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"tags": commonschema.Tags(),
@@ -227,18 +243,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"virtual_network_subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateSubnetID,
-			},
 		},
 	}
 }
 
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	clientNew := meta.(*clients.Client).AppService.WebAppsClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +264,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
 	id := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := clientNew.Get(ctx, id)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -317,6 +327,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
 			ClientCertEnabled:     pointer.To(clientCertEnabled),
 			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
+			PublicNetworkAccess:   pointer.To(d.Get("public_network_access").(string)),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -337,7 +348,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.Identity = expandedIdentity
 	}
 
-	if err := clientNew.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -346,7 +357,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	clientNew := meta.(*clients.Client).AppService.WebAppsClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -403,6 +414,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
 			ClientCertEnabled:     pointer.To(clientCertEnabled),
 			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
+			PublicNetworkAccess:   pointer.To(d.Get("public_network_access").(string)),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -414,7 +426,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	if d.HasChange("virtual_network_subnet_id") {
 		subnetId := d.Get("virtual_network_subnet_id").(string)
 		if subnetId == "" {
-			if _, err := clientNew.DeleteSwiftVirtualNetwork(ctx, *id); err != nil {
+			if _, err := client.DeleteSwiftVirtualNetwork(ctx, *id); err != nil {
 				return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
 			}
 			var empty *string
@@ -432,7 +444,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.Identity = expandedIdentity
 	}
 
-	if err := clientNew.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -441,7 +453,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Properties: &siteConfig,
 		}
 
-		if _, err := clientNew.CreateOrUpdateConfiguration(ctx, *id, siteConfigResource); err != nil {
+		if _, err := client.CreateOrUpdateConfiguration(ctx, *id, siteConfigResource); err != nil {
 			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
 		}
 	}
@@ -450,7 +462,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: pointer.To(appSettings),
 	}
 
-	if _, err = clientNew.UpdateApplicationSettings(ctx, *id, settings); err != nil {
+	if _, err = client.UpdateApplicationSettings(ctx, *id, settings); err != nil {
 		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
@@ -460,7 +472,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			Properties: pointer.To(connectionStrings),
 		}
 
-		if _, err := clientNew.UpdateConnectionStrings(ctx, *id, properties); err != nil {
+		if _, err := client.UpdateConnectionStrings(ctx, *id, properties); err != nil {
 			return fmt.Errorf("updating Connection Strings for %s: %+v", *id, err)
 		}
 	}
@@ -469,7 +481,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	clientNew := meta.(*clients.Client).AppService.WebAppsClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -478,7 +490,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := clientNew.Get(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
@@ -513,14 +525,15 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return err
 			}
 			d.Set("app_service_plan_id", servicePlanId.ID())
-			d.Set("enabled", props.Enabled)
-			d.Set("default_hostname", props.DefaultHostName)
-			d.Set("https_only", props.HTTPSOnly)
-			d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
-			d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-			d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
-			d.Set("custom_domain_verification_id", props.CustomDomainVerificationId)
-			d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetId)
+			d.Set("enabled", pointer.From(props.Enabled))
+			d.Set("default_hostname", pointer.From(props.DefaultHostName))
+			d.Set("https_only", pointer.From(props.HTTPSOnly))
+			d.Set("outbound_ip_addresses", pointer.From(props.OutboundIPAddresses))
+			d.Set("possible_outbound_ip_addresses", pointer.From(props.PossibleOutboundIPAddresses))
+			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
+			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetId))
+			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
@@ -528,13 +541,13 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("client_certificate_mode", clientCertMode)
 		}
-
 	}
 
-	appSettingsResp, err := clientNew.ListApplicationSettings(ctx, *id)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing application settings for %s: %+v", *id, err)
 	}
+
 	if model := appSettingsResp.Model; model != nil {
 		appSettings := flattenLogicAppStandardAppSettings(model.Properties)
 
@@ -587,28 +600,31 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	connectionStringsResp, err := clientNew.ListConnectionStrings(ctx, *id)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
 	}
+
 	if model := connectionStringsResp.Model; model != nil {
 		if err = d.Set("connection_string", flattenLogicAppStandardConnectionStrings(model.Properties)); err != nil {
 			return err
 		}
 	}
 
-	siteCredentials, err := helpers.ListPublishingCredentials(ctx, clientNew, *id)
+	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 	if err != nil {
 		return fmt.Errorf("listing publishing credentials for %s: %+v", *id, err)
 	}
+
 	if err = d.Set("site_credential", flattenLogicAppStandardSiteCredential(siteCredentials)); err != nil {
 		return err
 	}
 
-	configResp, err := clientNew.GetConfiguration(ctx, *id)
+	configResp, err := client.GetConfiguration(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving the configuration for %s: %+v", *id, err)
 	}
+
 	if model := configResp.Model; model != nil {
 		siteConfig := flattenLogicAppStandardSiteConfig(model.Properties)
 		if err = d.Set("site_config", siteConfig); err != nil {
@@ -620,7 +636,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	clientNew := meta.(*clients.Client).AppService.WebAppsClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -633,7 +649,7 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	opts.DeleteMetrics = pointer.To(true)
 	opts.DeleteEmptyServerFarm = pointer.To(false)
 
-	if _, err := clientNew.Delete(ctx, *id, opts); err != nil {
+	if _, err := client.Delete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
