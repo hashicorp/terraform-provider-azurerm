@@ -1,4 +1,4 @@
-# Framework Adoption
+# Framework Adoption - Experimental
 
 **WARNING:** This functionality is experimental, and not for use in the provider at this time. It is intended for maintainer experimentation to facilitate migration efforts for moving from `terraform-plugin-sdk` to `terraform-plugin-framework`.  This package is subject to removal or significant breaking change. Any PR submitted referencing/using this package/functionality will not be accepted, and will be closed.
 
@@ -342,6 +342,7 @@ func (m MyEphemeralResource) Configure(ctx context.Context, req ephemeral.Config
 func (m MyEphemeralResource) Open(ctx context.Context, request ephemeral.OpenRequest, openResponse *ephemeral.OpenResponse) {
 	client := m.Client.SomeAzureService.FooClient
 
+	// TODO - example code for ephemeral resource
 }
 
 ```

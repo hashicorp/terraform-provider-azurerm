@@ -8,14 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -180,19 +178,6 @@ func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.T
 	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm")
 
 	resource.Test(t, testCase)
-}
-
-func (td TestData) providers() map[string]func() (*schema.Provider, error) {
-	return map[string]func() (*schema.Provider, error){
-		"azurerm": func() (*schema.Provider, error) { //nolint:unparam
-			azurerm := provider.TestAzureProvider()
-			return azurerm, nil
-		},
-		"azurerm-alt": func() (*schema.Provider, error) { //nolint:unparam
-			azurerm := provider.TestAzureProvider()
-			return azurerm, nil
-		},
-	}
 }
 
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {

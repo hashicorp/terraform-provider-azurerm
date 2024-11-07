@@ -17,9 +17,9 @@ import (
 
 var IDPath = path.Root("id")
 
-func (r *ResourceMetadata) MarkAsGone(idFormatter resourceids.Id, State *tfsdk.State, Diags *diag.Diagnostics) {
-	Diags.Append(diag.NewWarningDiagnostic(fmt.Sprintf("[DEBUG] %s was not found - removing from state", idFormatter), ""))
-	State.SetAttribute(context.Background(), IDPath, nil)
+func (r *ResourceMetadata) MarkAsGone(idFormatter resourceids.Id, state *tfsdk.State, diags *diag.Diagnostics) {
+	diags.Append(diag.NewWarningDiagnostic(fmt.Sprintf("[DEBUG] %s was not found - removing from state", idFormatter), ""))
+	state.SetAttribute(context.Background(), IDPath, nil)
 }
 
 func (r *ResourceMetadata) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id, resp *resource.CreateResponse) {
@@ -127,30 +127,30 @@ func SetResponseErrorDiagnostic(resp interface{}, summary string, detail interfa
 	case string:
 		errorMsg = e
 	}
-	switch resp.(type) {
+	switch v := resp.(type) {
 	case *resource.CreateResponse:
-		resp.(*resource.CreateResponse).Diagnostics.AddError(summary, errorMsg)
+		v.Diagnostics.AddError(summary, errorMsg)
 	case *resource.UpdateResponse:
-		resp.(*resource.UpdateResponse).Diagnostics.AddError(summary, errorMsg)
+		v.Diagnostics.AddError(summary, errorMsg)
 	case *resource.DeleteResponse:
-		resp.(*resource.DeleteResponse).Diagnostics.AddError(summary, errorMsg)
+		v.Diagnostics.AddError(summary, errorMsg)
 	case *resource.ReadResponse:
-		resp.(*resource.ReadResponse).Diagnostics.AddError(summary, errorMsg)
+		v.Diagnostics.AddError(summary, errorMsg)
 	}
 }
 
 // SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response type
 // detail can be specified as an error, from which error.Error() will be used or as a string
 func AppendResponseErrorDiagnostic(resp interface{}, d diag.Diagnostics) {
-	switch resp.(type) {
+	switch v := resp.(type) {
 	case *resource.CreateResponse:
-		resp.(*resource.CreateResponse).Diagnostics.Append(d...)
+		v.Diagnostics.Append(d...)
 	case *resource.UpdateResponse:
-		resp.(*resource.UpdateResponse).Diagnostics.Append(d...)
+		v.Diagnostics.Append(d...)
 	case *resource.DeleteResponse:
-		resp.(*resource.DeleteResponse).Diagnostics.Append(d...)
+		v.Diagnostics.Append(d...)
 	case *resource.ReadResponse:
-		resp.(*resource.ReadResponse).Diagnostics.Append(d...)
+		v.Diagnostics.Append(d...)
 	}
 }
 
