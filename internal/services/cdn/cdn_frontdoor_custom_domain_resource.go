@@ -119,8 +119,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOhBeta() {
-		tlsElem := resource.Schema["tls"].Elem.(*pluginsdk.Resource)
-		tlsElem.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(cdn.AfdMinimumTLSVersionTLS12),
@@ -129,7 +128,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				string(cdn.AfdMinimumTLSVersionTLS10),
 			}, false),
 		}
-		resource.Schema["tls"].Elem = tlsElem
 	}
 
 	return resource
