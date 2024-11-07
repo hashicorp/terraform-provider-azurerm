@@ -14,6 +14,14 @@ type AdhocBasedTriggerContext struct {
 	TaggingCriteria AdhocBasedTaggingCriteria `json:"taggingCriteria"`
 
 	// Fields inherited from TriggerContext
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s AdhocBasedTriggerContext) TriggerContext() BaseTriggerContextImpl {
+	return BaseTriggerContextImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = AdhocBasedTriggerContext{}
@@ -27,9 +35,10 @@ func (s AdhocBasedTriggerContext) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AdhocBasedTriggerContext: %+v", err)
 	}
+
 	decoded["objectType"] = "AdhocBasedTriggerContext"
 
 	encoded, err = json.Marshal(decoded)

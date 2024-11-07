@@ -15,7 +15,7 @@ type NetAppAccountsClient struct {
 }
 
 func NewNetAppAccountsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetAppAccountsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "netappaccounts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "netappaccounts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetAppAccountsClient: %+v", err)
 	}

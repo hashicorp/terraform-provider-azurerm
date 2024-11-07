@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -216,8 +215,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		"evaluation_frequency": {
 			Type: pluginsdk.TypeString,
 			// this field is required, missing this field will get an error from service
-			Optional: !features.FourPointOhBeta(),
-			Required: features.FourPointOhBeta(),
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",

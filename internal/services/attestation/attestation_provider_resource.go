@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation"
+	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 func resourceAttestationProvider() *pluginsdk.Resource {
@@ -405,11 +405,11 @@ func expandArmAttestationProviderJSONWebKeySet(pem string) *attestationproviders
 	return &result
 }
 
-func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestationproviders.JsonWebKey {
-	results := make([]attestationproviders.JsonWebKey, 0)
+func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestationproviders.JSONWebKey {
+	results := make([]attestationproviders.JSONWebKey, 0)
 	certs := []string{pem}
 
-	result := attestationproviders.JsonWebKey{
+	result := attestationproviders.JSONWebKey{
 		Kty: "RSA",
 		X5c: &certs,
 	}

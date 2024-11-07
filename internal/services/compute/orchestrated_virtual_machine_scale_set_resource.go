@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -33,6 +34,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+const (
+	SkuNameMix = "Mix"
 )
 
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -90,6 +95,35 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
+			},
+
+			"sku_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allocation_strategy": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice(
+								virtualmachinescalesets.PossibleValuesForAllocationStrategy(),
+								false,
+							),
+						},
+
+						"vm_sizes": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
 			},
 
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
@@ -250,7 +284,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptional(),
 
 			"tags": commonschema.Tags(),
 
@@ -269,6 +303,47 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
+
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				skuName, hasSkuName := diff.GetOk("sku_name")
+				_, hasSkuProfile := diff.GetOk("sku_profile")
+
+				if hasSkuProfile {
+					if !hasSkuName || skuName != SkuNameMix {
+						return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
+					}
+				} else {
+					if hasSkuName && skuName == SkuNameMix {
+						return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
@@ -349,6 +424,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			return fmt.Errorf("expanding 'sku_name': %+v", err)
 		}
 		props.Sku = sku
+	}
+
+	if v, ok := d.GetOk("sku_profile"); ok {
+		props.Properties.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
@@ -619,6 +698,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		}
 
 		if v, ok := d.GetOk("automatic_instance_repair"); ok {
+			if !hasHealthExtension {
+				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+			}
+
 			props.Properties.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
 		}
 
@@ -726,6 +809,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 				updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 			}
+		}
+
+		if d.HasChange("sku_profile") {
+			updateInstances = true
+			updateProps.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(d.Get("sku_profile").([]interface{}))
 		}
 
 		if d.HasChange("max_bid_price") {
@@ -985,6 +1073,23 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		if d.HasChange("automatic_instance_repair") {
 			automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 			automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+			if automaticRepairsPolicy != nil {
+				// we need to know if the VMSS has a health extension or not
+				hasHealthExtension := false
+
+				if v, ok := d.GetOk("extension"); ok {
+					var err error
+					_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+					if err != nil {
+						return err
+					}
+				}
+
+				if !hasHealthExtension {
+					return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+				}
+			}
 			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 		}
 
@@ -1049,6 +1154,10 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 			updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = pointer.To(d.Get("extensions_time_budget").(string))
 		}
+	}
+
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	// Only two fields that can change in legacy mode
@@ -1173,6 +1282,11 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			if props.SinglePlacementGroup != nil {
 				d.Set("single_placement_group", props.SinglePlacementGroup)
 			}
+
+			if err := d.Set("sku_profile", flattenOrchestratedVirtualMachineScaleSetSkuProfile(props.SkuProfile)); err != nil {
+				return fmt.Errorf("setting `sku_profile`: %+v", err)
+			}
+
 			d.Set("unique_id", props.UniqueId)
 			d.Set("zone_balance", props.ZoneBalance)
 
@@ -1340,17 +1454,60 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
+func expandOrchestratedVirtualMachineScaleSetSkuProfile(input []interface{}) *virtualmachinescalesets.SkuProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	vmSizesRaw := v["vm_sizes"].(*pluginsdk.Set).List()
+	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
+	for _, vmSize := range vmSizesRaw {
+		vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
+			Name: pointer.To(vmSize.(string)),
+		})
+	}
+
+	return &virtualmachinescalesets.SkuProfile{
+		AllocationStrategy: pointer.To((virtualmachinescalesets.AllocationStrategy)(v["allocation_strategy"].(string))),
+		VMSizes:            pointer.To(vmSizes),
+	}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinescalesets.SkuProfile) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	vmSizes := make([]string, 0)
+	if input.VMSizes != nil {
+		for _, vmSize := range *input.VMSizes {
+			vmSizes = append(vmSizes, *vmSize.Name)
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+			"vm_sizes":            vmSizes,
+		},
+	}
+}
+
 func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*virtualmachinescalesets.Sku, error) {
 	skuParts := strings.Split(input, "_")
 
-	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+	if (input != SkuNameMix && len(skuParts) < 2) || strings.Contains(input, "__") || strings.Contains(input, " ") {
 		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly", input)
 	}
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
 		Capacity: utils.Int64(int64(capacity)),
-		Tier:     pointer.To("Standard"),
+	}
+
+	if input != SkuNameMix {
+		sku.Tier = pointer.To("Standard")
 	}
 
 	return sku, nil
@@ -1359,7 +1516,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets.Sku) (*string, error) {
 	var skuName string
 	if input != nil && input.Name != nil {
-		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == SkuNameMix {
 			skuName = *input.Name
 		} else {
 			skuName = fmt.Sprintf("Standard_%s", *input.Name)

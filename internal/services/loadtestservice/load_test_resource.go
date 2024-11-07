@@ -67,7 +67,6 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -185,6 +184,9 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 				if err := r.mapLoadTestResourceToLoadTestResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
 				}
+				if property := model.Properties; property != nil {
+					schema.Description = pointer.From(property.Description)
+				}
 			}
 
 			return metadata.Encode(&schema)
@@ -263,7 +265,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 
 	return &loadtests.EncryptionProperties{
-		KeyUrl:   pointer.To(attr.KeyURL),
+		KeyURL:   pointer.To(attr.KeyURL),
 		Identity: encryptionIdentity,
 	}
 }
@@ -277,7 +279,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 		outputEncryption := make([]LoadTestEncryption, 0)
 		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
 		output.Encryption = append(outputEncryption, LoadTestEncryption{
-			KeyURL:   pointer.From(encryption.KeyUrl),
+			KeyURL:   pointer.From(encryption.KeyURL),
 			Identity: outputEncryptionIdentity,
 		})
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
@@ -344,6 +346,10 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
+
+	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
+		Description: pointer.To(input.Description),
+	}
 	return nil
 }
 

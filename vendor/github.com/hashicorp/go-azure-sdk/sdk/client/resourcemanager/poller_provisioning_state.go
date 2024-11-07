@@ -5,6 +5,7 @@ package resourcemanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -27,6 +28,9 @@ type provisioningStatePoller struct {
 	initialRetryDuration time.Duration
 	originalUri          string
 	resourcePath         string
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfReference bool, client *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
@@ -58,11 +62,12 @@ func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfRef
 	}
 
 	return &provisioningStatePoller{
-		apiVersion:           apiVersion,
-		client:               client,
-		initialRetryDuration: pollingInterval,
-		originalUri:          originalUri,
-		resourcePath:         resourcePath,
+		apiVersion:            apiVersion,
+		client:                client,
+		initialRetryDuration:  pollingInterval,
+		originalUri:           originalUri,
+		resourcePath:          resourcePath,
+		maxDroppedConnections: 3,
 	}, nil
 }
 
@@ -84,8 +89,22 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	}
 	resp, err := p.client.Execute(ctx, req)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				return &pollers.PollResult{
+					PollInterval: p.initialRetryDuration,
+					Status:       pollers.PollingStatusUnknown,
+				}, nil
+			}
+		}
+
 		return nil, fmt.Errorf("executing request: %+v", err)
 	}
+
+	p.droppedConnectionCount = 0
+
 	if resp == nil {
 		return nil, pollers.PollingDroppedConnectionError{}
 	}
@@ -143,13 +162,15 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 }
 
 type provisioningStateResult struct {
-	Properties struct {
-		// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties provisioningStateResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type provisioningStateResultProperties struct {
+	// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 func resourceManagerResourcePathFromUri(input string) (*string, error) {

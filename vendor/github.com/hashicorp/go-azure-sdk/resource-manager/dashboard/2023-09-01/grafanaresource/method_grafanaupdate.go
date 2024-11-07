@@ -50,7 +50,6 @@ func (c GrafanaResourceClient) GrafanaUpdate(ctx context.Context, id GrafanaId, 
 
 	var model ManagedGrafana
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

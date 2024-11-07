@@ -168,9 +168,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 							AtLeastOneOf: []string{"container_configuration.0.type", "container_configuration.0.container_image_names", "container_configuration.0.container_registries"},
 						},
 						"container_registries": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							ForceNew: true,
+							Type:       pluginsdk.TypeList,
+							Optional:   true,
+							ForceNew:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: containerRegistry(),
 							},
@@ -1447,15 +1448,15 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 		startTask := *pool.StartTask
 		if startTask.ResourceFiles != nil {
 			for _, referenceFile := range *startTask.ResourceFiles {
-				// Must specify exactly one of AutoStorageContainerName, StorageContainerUrl or HttpUrl
+				// Must specify exactly one of AutoStorageContainerName, StorageContainerURL or HttpUrl
 				sourceCount := 0
 				if referenceFile.AutoStorageContainerName != nil {
 					sourceCount++
 				}
-				if referenceFile.StorageContainerUrl != nil {
+				if referenceFile.StorageContainerURL != nil {
 					sourceCount++
 				}
-				if referenceFile.HTTPUrl != nil {
+				if referenceFile.HTTPURL != nil {
 					sourceCount++
 				}
 				if sourceCount != 1 {
@@ -1463,12 +1464,12 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 				}
 
 				if referenceFile.BlobPrefix != nil {
-					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerUrl == nil {
+					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
 						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
 					}
 				}
 
-				if referenceFile.HTTPUrl != nil {
+				if referenceFile.HTTPURL != nil {
 					if referenceFile.FilePath == nil {
 						return fmt.Errorf("file_path must be specified when using http_url")
 					}

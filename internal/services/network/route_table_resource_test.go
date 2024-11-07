@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,7 +28,6 @@ func TestAccRouteTable_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -45,7 +44,6 @@ func TestAccRouteTable_basicNilNextHopIPAddress(t *testing.T) {
 			Config: r.nilNextHopIPAddess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -62,7 +60,6 @@ func TestAccRouteTable_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -97,7 +94,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("0"),
 			),
 		},
@@ -105,7 +101,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.basicAppliance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("false"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},
@@ -113,7 +108,6 @@ func TestAccRouteTable_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("disable_bgp_route_propagation").HasValue("true"),
 				check.That(data.ResourceName).Key("route.#").HasValue("1"),
 			),
 		},

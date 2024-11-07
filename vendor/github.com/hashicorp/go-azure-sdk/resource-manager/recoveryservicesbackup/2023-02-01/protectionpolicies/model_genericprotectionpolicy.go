@@ -16,8 +16,18 @@ type GenericProtectionPolicy struct {
 	TimeZone            *string                `json:"timeZone,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
+
+	BackupManagementType           string    `json:"backupManagementType"`
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
 	ResourceGuardOperationRequests *[]string `json:"resourceGuardOperationRequests,omitempty"`
+}
+
+func (s GenericProtectionPolicy) ProtectionPolicy() BaseProtectionPolicyImpl {
+	return BaseProtectionPolicyImpl{
+		BackupManagementType:           s.BackupManagementType,
+		ProtectedItemsCount:            s.ProtectedItemsCount,
+		ResourceGuardOperationRequests: s.ResourceGuardOperationRequests,
+	}
 }
 
 var _ json.Marshaler = GenericProtectionPolicy{}
@@ -31,9 +41,10 @@ func (s GenericProtectionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling GenericProtectionPolicy: %+v", err)
 	}
+
 	decoded["backupManagementType"] = "GenericProtectionPolicy"
 
 	encoded, err = json.Marshal(decoded)

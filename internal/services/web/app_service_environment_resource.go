@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -35,10 +35,11 @@ const (
 
 func resourceAppServiceEnvironment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServiceEnvironmentCreate,
-		Read:   resourceAppServiceEnvironmentRead,
-		Update: resourceAppServiceEnvironmentUpdate,
-		Delete: resourceAppServiceEnvironmentDelete,
+		DeprecationMessage: "This resource is deprecated due to the [retirement of v1 and v2 App Service Environments](https://azure.microsoft.com/en-gb/updates/app-service-environment-v1-and-v2-retirement-announcement/) and will be removed inv4.0 of the provider. Please use `azurerm_app_service_environment_v3` instead.",
+		Create:             resourceAppServiceEnvironmentCreate,
+		Read:               resourceAppServiceEnvironmentRead,
+		Update:             resourceAppServiceEnvironmentUpdate,
+		Delete:             resourceAppServiceEnvironmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceEnvironmentID(id)
 			return err

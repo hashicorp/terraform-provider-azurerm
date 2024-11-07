@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -461,12 +461,12 @@ func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptanc
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = "%s"
-  resource_group_name           = azurerm_resource_group.test.name
-  auxiliary_mode                = "AcceleratedConnections"
-  auxiliary_sku                 = "A2"
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  auxiliary_mode                 = "AcceleratedConnections"
+  auxiliary_sku                  = "A2"
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "primary"
@@ -1022,6 +1022,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
+
 }
 
 resource "azurerm_subnet" "test" {

@@ -46,7 +46,6 @@ func (c ExportsClient) GetExecutionHistory(ctx context.Context, id ScopedExportI
 
 	var model ExportExecutionListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

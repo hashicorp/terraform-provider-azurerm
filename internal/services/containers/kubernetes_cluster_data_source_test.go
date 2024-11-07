@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type KubernetesClusterDataSource struct{}
@@ -102,8 +103,6 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.client_app_id").Exists(),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.server_app_id").Exists(),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
@@ -123,7 +122,6 @@ func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.managed").HasValue("true"),
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
@@ -459,7 +457,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -476,7 +474,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -505,7 +503,7 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 		{
 			Config: r.nodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
@@ -557,6 +555,9 @@ func TestAccDataSourceKubernetesCluster_microsoftDefender(t *testing.T) {
 }
 
 func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping this test in 4.0 beta as it is not supported")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
@@ -608,6 +609,66 @@ func TestAccDataSourceKubernetesCluster_serviceMeshCertificateAuthority(t *testi
 				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_chain_object_name").Exists(),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_object_name").Exists(),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.key_object_name").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			// create a cluster with an istio revision with revision currently at asm-1-20
+			Config: r.serviceMeshRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// rollback the istio revision back to asm-1-20
+			Config: r.serviceMeshRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// complete the istio revision upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-21"),
 			),
 		},
 	})
@@ -731,7 +792,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure", true))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure"))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyCompleteConfig(data acceptance.TestData) string {
@@ -775,7 +836,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet", true))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet"))
 }
 
 func (KubernetesClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {
@@ -958,4 +1019,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data))
+}
+
+func (KubernetesClusterDataSource) serviceMeshRevisions(data acceptance.TestData, revisions string) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
 }

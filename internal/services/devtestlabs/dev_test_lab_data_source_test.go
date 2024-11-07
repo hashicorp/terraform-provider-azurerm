@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AzureRMDevTestLabDataSource struct{}
+type DevTestLabDataSource struct{}
 
-func TestAccAzureRMDevTestLabDataSource_basic(t *testing.T) {
+func TestAccDevTestLabDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
-	r := AzureRMDevTestLabDataSource{}
+	r := DevTestLabDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -28,15 +28,15 @@ func TestAccAzureRMDevTestLabDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestLabDataSource_complete(t *testing.T) {
+func TestAccDevTestLabDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
-	r := AzureRMDevTestLabDataSource{}
+	r := DevTestLabDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
 			),
@@ -44,7 +44,7 @@ func TestAccAzureRMDevTestLabDataSource_complete(t *testing.T) {
 	})
 }
 
-func (AzureRMDevTestLabDataSource) basic(data acceptance.TestData) string {
+func (DevTestLabDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -68,7 +68,7 @@ data "azurerm_dev_test_lab" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AzureRMDevTestLabDataSource) complete(data acceptance.TestData) string {
+func (DevTestLabDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,7 +83,6 @@ resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  storage_type        = "Standard"
 
   tags = {
     Hello = "World"

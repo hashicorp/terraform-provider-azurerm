@@ -45,7 +45,6 @@ func (c DscNodeConfigurationClient) Get(ctx context.Context, id NodeConfiguratio
 
 	var model DscNodeConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

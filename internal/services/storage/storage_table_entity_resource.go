@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -26,7 +27,7 @@ import (
 )
 
 func resourceStorageTableEntity() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceStorageTableEntityCreate,
 		Read:   resourceStorageTableEntityRead,
 		Update: resourceStorageTableEntityUpdate,
@@ -46,31 +47,9 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"storage_table_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true, // TODO: make required and forcenew in v4.0
-				Computed:      true, // TODO: remove computed in v4.0
-				ConflictsWith: []string{"table_name", "storage_account_name"},
-				ValidateFunc:  storageValidate.StorageTableDataPlaneID,
-			},
-
-			"table_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
-				ConflictsWith: []string{"storage_table_id"},
-				RequiredWith:  []string{"storage_account_name"},
-				ValidateFunc:  validate.StorageTableName,
-			},
-
-			"storage_account_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
-				ConflictsWith: []string{"storage_table_id"},
-				RequiredWith:  []string{"table_name"},
-				ValidateFunc:  validate.StorageAccountName,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: storageValidate.StorageTableDataPlaneID,
 			},
 
 			"partition_key": {
@@ -96,6 +75,35 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["storage_table_id"].Required = false
+		resource.Schema["storage_table_id"].Optional = true
+		resource.Schema["storage_table_id"].Computed = true
+		resource.Schema["storage_table_id"].ConflictsWith = []string{"table_name", "storage_account_name"}
+
+		resource.Schema["table_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
+			ConflictsWith: []string{"storage_table_id"},
+			RequiredWith:  []string{"storage_account_name"},
+			ValidateFunc:  validate.StorageTableName,
+		}
+
+		resource.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
+			ConflictsWith: []string{"storage_table_id"},
+			RequiredWith:  []string{"table_name"},
+			ValidateFunc:  validate.StorageAccountName,
+		}
+	}
+
+	return resource
 }
 
 func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -114,7 +122,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		if err != nil {
 			return err
 		}
-	} else {
+	} else if !features.FourPointOhBeta() {
 		// TODO: this is needed until `table_name` / `storage_account_name` are removed in favor of `storage_table_id` in v4.0
 		// we will retrieve the storage account twice but this will make it easier to refactor later
 		storageAccountName := d.Get("storage_account_name").(string)
@@ -280,10 +288,13 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.Set("storage_table_id", storageTableId.ID())
-	d.Set("storage_account_name", id.AccountId.AccountName)
-	d.Set("table_name", id.TableName)
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
+
+	if !features.FourPointOhBeta() {
+		d.Set("storage_account_name", id.AccountId.AccountName)
+		d.Set("table_name", id.TableName)
+	}
 
 	if err = d.Set("entity", flattenEntity(result.Entity)); err != nil {
 		return fmt.Errorf("setting `entity` for %s: %v", id, err)

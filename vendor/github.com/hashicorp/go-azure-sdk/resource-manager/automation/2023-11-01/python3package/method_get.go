@@ -45,7 +45,6 @@ func (c Python3PackageClient) Get(ctx context.Context, id Python3PackageId) (res
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

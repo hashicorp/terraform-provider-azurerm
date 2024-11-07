@@ -37,7 +37,7 @@ func TestAccWebPubsubCustomDomainResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_domain", "test")
 	r := WebPubsubCustomDomainResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -161,7 +161,7 @@ resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
   key_vault_id = azurerm_key_vault.test.id
   certificate {
-    contents = filebase64("testdata/wpstftestzone.pfx")
+    contents = filebase64("testdata/custom-domain-cert-wps.pfx")
     password = ""
   }
 }
