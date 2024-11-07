@@ -219,6 +219,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -278,6 +280,7 @@ resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = "acctest"
   iothub_id           = azurerm_iothub.test.id
+  subscription_id     = data.azurerm_client_config.current.subscription_id
 
   connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
 }
