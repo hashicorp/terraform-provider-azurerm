@@ -98,5 +98,3 @@ require (
 go 1.22.0
 
 toolchain go1.22.7
-
-replace github.com/hashicorp/go-azure-helpers => ../go-azure-helpers
