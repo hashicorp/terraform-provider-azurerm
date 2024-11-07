@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -41,16 +40,6 @@ type ResourceMetadata struct {
 	Features features.UserFeatures
 }
 
-type DataSourceMetadata struct {
-	Client *clients.Client
-
-	SubscriptionId string
-
-	TimeoutRead time.Duration
-
-	Features features.UserFeatures
-}
-
 // Defaults set the default base configuration values on a Framework Resource.
 func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
@@ -71,25 +60,6 @@ func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resourc
 	r.TimeoutUpdate = pointer.To(30 * time.Minute)
 	r.TimeoutRead = 5 * time.Minute
 	r.TimeoutDelete = 30 * time.Minute
-}
-
-// Defaults set the default base configuration values on a Framework DataSource.
-func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	c, ok := req.ProviderData.(*clients.Client)
-	if !ok {
-		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
-		return
-	}
-
-	r.Client = c
-	r.SubscriptionId = c.Account.SubscriptionId
-	r.Features = c.Features
-
-	r.TimeoutRead = 5 * time.Minute
 }
 
 // DecodeCreate reads a plan from a resource.CreateRequest into a pointer to a target model and sets resource.CreateResponse diags on error.
