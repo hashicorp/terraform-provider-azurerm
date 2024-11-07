@@ -100,14 +100,8 @@ func (r WorkspaceNetworkOutboundRuleServiceTagResource) template(data acceptance
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  //name     = "acctestRG-ml-%[1]d"
-	name     = "rg-sfi-%[1]d"
+  name     = "acctestRG-ml-%[1]d"
   location = "%[2]s"
-	lifecycle {
-    ignore_changes = [ 
-		tags,
-    ]
-  }
 }
 
 resource "azurerm_application_insights" "test" {
