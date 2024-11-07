@@ -188,7 +188,7 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *monitorId, *properties); err != nil {
+			if err := client.UpdateThenPoll(ctx, *monitorId, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -275,7 +275,7 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, monitorId, *existing); err != nil {
+			if err := client.UpdateThenPoll(ctx, monitorId, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
