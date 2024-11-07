@@ -215,12 +215,26 @@ func (r MonitorsResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_dynatrace_monitor" "import" {
   name                     = azurerm_dynatrace_monitor.test.name
-  resource_group_name      = azurerm_dynatrace_monitor.test.name
+  resource_group_name      = azurerm_dynatrace_monitor.test.resource_group_name
   location                 = azurerm_dynatrace_monitor.test.location
-  identity                 = azurerm_dynatrace_monitor.test.identity
   marketplace_subscription = azurerm_dynatrace_monitor.test.marketplace_subscription
-  plan                     = azurerm_dynatrace_monitor.test.plan
-  user                     = azurerm_dynatrace_monitor.test.user
+
+  identity {
+    type = azurerm_dynatrace_monitor.test.identity.0.type
+  }
+  user {
+    first_name   = azurerm_dynatrace_monitor.test.user.0.first_name
+    last_name    = azurerm_dynatrace_monitor.test.user.0.last_name
+    email        = azurerm_dynatrace_monitor.test.user.0.email
+    phone_number = azurerm_dynatrace_monitor.test.user.0.phone_number
+    country      = azurerm_dynatrace_monitor.test.user.0.country
+  }
+
+  plan {
+    usage_type    = azurerm_dynatrace_monitor.test.plan.0.usage_type
+    billing_cycle = azurerm_dynatrace_monitor.test.plan.0.billing_cycle
+    plan          = azurerm_dynatrace_monitor.test.plan.0.plan
+  }
 }
 `, template)
 }
