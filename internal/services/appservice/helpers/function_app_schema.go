@@ -146,10 +146,9 @@ func FlexFunctionAppDeploymentSchema() *pluginsdk.Schema {
 				},
 
 				"instance_memory_in_mb": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      2048,
-					ValidateFunc: validation.IntInSlice([]int{512, 2048, 4096}),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  2048,
 				},
 
 				"maximum_instance_count": {

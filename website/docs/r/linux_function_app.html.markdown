@@ -756,7 +756,7 @@ A `flex_function_app_deployment` block supports the following:
 
 * `maximum_instance_count` - (Optional) Specifies the maximum instance count of the flex function app. Accepted values are in the range `40` to `1000`. Defaults to `100`.
 
-* `instance_memory_in_mb` - (Optional) Specifies the instance memory of the flex function app. The possible values are `512`, `2048`, `4096`. Defaults to `2048`.
+* `instance_memory_in_mb` - (Optional) Specifies the instance memory of the flex function app.
 
 ---
 
