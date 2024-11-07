@@ -18,11 +18,19 @@ import (
 
 type MongoClusterResource struct{}
 
-func TestAccMongoCluster_basic(t *testing.T) {
+func TestAccMongoClusterFreeTier(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"freeTier": { // Run tests in sequence since each subscription is limited to one free tier cluster per region and free tier is currently only available in South India.
+			"basic":  testAccMongoCluster_basic,
+			"update": testAccMongoCluster_update,
+			"import": testAccMongoCluster_requiresImport,
+		},
+	})
+}
+func testAccMongoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +41,11 @@ func TestAccMongoCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccMongoCluster_update(t *testing.T) {
+func testAccMongoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -52,6 +60,21 @@ func TestAccMongoCluster_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func testAccMongoCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -74,21 +97,6 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "source_location"),
-	})
-}
-
-func TestAccMongoCluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
-	r := MongoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -122,7 +130,7 @@ resource "azurerm_mongo_cluster" "test" {
   storage_size_in_gb     = "32"
   version                = "6.0"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) update(data acceptance.TestData) string {
@@ -146,7 +154,7 @@ resource "azurerm_mongo_cluster" "test" {
     environment = "test"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
@@ -185,7 +193,7 @@ resource "azurerm_mongo_cluster" "test" {
   preview_features       = ["GeoReplicas"]
   version                = "7.0"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) geoReplica(data acceptance.TestData) string {
@@ -207,7 +215,7 @@ resource "azurerm_mongo_cluster" "geo_replica" {
 `, r.previewFeature(data), data.RandomInteger, data.Locations.Secondary)
 }
 
-func (r MongoClusterResource) template(data acceptance.TestData) string {
+func (r MongoClusterResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -217,5 +225,5 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, location)
 }
