@@ -10,7 +10,7 @@ import (
 )
 
 // EphemeralResource wraps the Framework implementation in an opinionated presentation for the AzureRM provider, where we
-// always want a Configure to be present to be able to collect the appropriate metadata from the provider via the Defaults()
+// always want a Configure to be present to be able to collect the appropriate metadata from the Provider via the Defaults()
 // helper, and optionally override / add settings as needed.
 type EphemeralResource interface {
 	ephemeral.EphemeralResourceWithConfigure
@@ -33,7 +33,7 @@ type EphemeralResourceWithRenew interface {
 type EphemeralResourceWithConfigurationValidation interface {
 	EphemeralResource
 
-	ephemeral.EphemeralResourceWithConfigValidators // TODO - Do we need to wrap the ConfigValidators to ease the import burden?
+	ephemeral.EphemeralResourceWithConfigValidators
 }
 
 type EphemeralResourceMetadata struct {
@@ -42,10 +42,9 @@ type EphemeralResourceMetadata struct {
 	SubscriptionId string
 
 	Features features.UserFeatures
-
-	// TODO - Extend this struct? not sure what else, if anything, needs to be surfaced for Ephemeral Resources?
 }
 
+// Defaults configures the EphemeralResource Metadata for client access, Provider Features, and subscriptionId.
 func (r *EphemeralResourceMetadata) Defaults(req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -60,7 +59,6 @@ func (r *EphemeralResourceMetadata) Defaults(req ephemeral.ConfigureRequest, res
 	r.Client = c
 	r.SubscriptionId = c.Account.SubscriptionId
 	r.Features = c.Features
-
 }
 
 // DecodeOpen performs a Get on the OpenRequest config and attempts to load it into the interface cfg. cfg *must* be a pointer to the struct.

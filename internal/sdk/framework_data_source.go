@@ -20,7 +20,7 @@ type DataSourceMetadata struct {
 	Features features.UserFeatures
 }
 
-// Defaults set the default base configuration values on a Framework DataSource.
+// Defaults configures the Data Source Metadata for client access, Provider Features, and subscriptionId.
 func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -39,8 +39,10 @@ func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *dat
 	r.TimeoutRead = 5 * time.Minute
 }
 
-func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, state interface{}) bool {
-	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
+// DecodeRead is a helper function to populate the Data Source model from the user config and writes any diags back to the ReadResponse
+// Returns true if there are no Error Diagnostics.
+func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, config interface{}) bool {
+	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
 
 	return !resp.Diagnostics.HasError()
 }

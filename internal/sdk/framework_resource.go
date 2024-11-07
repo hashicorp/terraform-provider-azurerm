@@ -40,7 +40,7 @@ type ResourceMetadata struct {
 	Features features.UserFeatures
 }
 
-// Defaults set the default base configuration values on a Framework Resource.
+// Defaults configures the Resource Metadata for client access, Provider Features, and subscriptionId.
 func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
