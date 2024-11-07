@@ -1,4 +1,3 @@
-# This file is not generated since it is static labels that does not rely on any Go code.
 bug:
   - '- \[ ?X ?\] Bug Fix'
 
