@@ -27,7 +27,6 @@ func TestAccBastionHost_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 	})
@@ -58,6 +57,7 @@ func TestAccBastionHost_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
