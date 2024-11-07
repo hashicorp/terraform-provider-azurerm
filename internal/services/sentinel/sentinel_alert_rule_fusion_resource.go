@@ -179,7 +179,7 @@ func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta inter
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if resp.Model == nil {
@@ -234,7 +234,7 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
@@ -279,7 +279,7 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
