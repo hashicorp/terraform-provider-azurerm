@@ -183,13 +183,14 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Dynatrace.MonitorsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model MonitorsResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			client := metadata.Client.Dynatrace.MonitorsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := monitors.NewMonitorID(subscriptionId, model.ResourceGroup, model.Name)
 
 			existing, err := client.Get(ctx, id)
