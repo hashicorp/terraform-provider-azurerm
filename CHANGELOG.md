@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241104.1140654` [GH-27896]
 * dependencies - update `go-azure-helpers` to `v0.71.0` [GH-27897]
+* `azurerm_cognitive_deployment` - `sku.0.name` now supports `DataZoneStandard` [GH-27926]
 * `azurerm_public_ip_prefix` - add support for the `sku_tier` property [GH-27882]
 *  `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
 *  `azurerm_public_ip` - support for the d`omain_name_label_scope` property [GH-27748]
