@@ -125,6 +125,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // MobileNetwork is only available in certain locations
         "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
 
+        // Mongocluster free tier is currently only available in southindia
+        "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
+
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 

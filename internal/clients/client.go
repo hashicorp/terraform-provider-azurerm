@@ -97,6 +97,7 @@ import (
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
+	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mssqlmanagedinstance "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
@@ -231,6 +232,7 @@ type Client struct {
 	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
 	MobileNetwork                     *mobilenetwork.Client
+	MongoCluster                      *mongocluster.Client
 	MSSQL                             *mssql.Client
 	MSSQLManagedInstance              *mssqlmanagedinstance.Client
 	MySQL                             *mysql.Client
@@ -513,6 +515,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mobile Network: %+v", err)
+	}
+	if client.MongoCluster, err = mongocluster.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mongo Cluster: %+v", err)
 	}
 	if client.MSSQL, err = mssql.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for MSSQL: %+v", err)
