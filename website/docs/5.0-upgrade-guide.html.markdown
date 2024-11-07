@@ -57,6 +57,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
 
+### `azurerm_sentinel_alert_rule_fusion`
+
+* The deprecated `name` property has been removed.
+
 ### `azurerm_storage_account`
 
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource. 
