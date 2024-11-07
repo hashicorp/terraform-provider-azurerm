@@ -9,16 +9,21 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type dataSourceStorageShare struct{}
 
-func TestAccDataSourceStorageShare_basic(t *testing.T) {
+func TestAccDataSourceStorageShare_basicDeprecated(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("skipping as not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_share", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: dataSourceStorageShare{}.basic(data),
+			Config: dataSourceStorageShare{}.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("quota").HasValue("120"),
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
@@ -29,7 +34,23 @@ func TestAccDataSourceStorageShare_basic(t *testing.T) {
 	})
 }
 
-func (d dataSourceStorageShare) basic(data acceptance.TestData) string {
+func TestAccStorageShareDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_share", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: dataSourceStorageShare{}.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("quota").HasValue("5"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("metadata.foo").HasValue("bar"),
+			),
+		},
+	})
+}
+
+func (d dataSourceStorageShare) basicDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -74,4 +95,15 @@ data "azurerm_storage_share" "test" {
   storage_account_name = azurerm_storage_share.test.storage_account_name
 }
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (d dataSourceStorageShare) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_share" "test" {
+  name               = azurerm_storage_share.test.name
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, StorageShareResource{}.complete(data))
 }

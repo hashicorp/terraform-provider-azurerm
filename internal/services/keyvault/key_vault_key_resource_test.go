@@ -137,6 +137,47 @@ func TestAccKeyVaultKey_complete(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultKey_updateExpirationDate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	r := KeyVaultKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/keys/key-%s", data.RandomString, data.RandomString)),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2021-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2022-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config: r.expirationDate(data, "2021-01-01T01:02:03Z"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+	})
+}
+
 func TestAccKeyVaultKey_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}
@@ -641,6 +682,38 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.templateStandard(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) expirationDate(data acceptance.TestData, expirationDate string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name            = "key-%s"
+  key_vault_id    = azurerm_key_vault.test.id
+  key_type        = "RSA"
+  key_size        = 2048
+  not_before_date = "2020-01-01T01:02:03Z"
+  expiration_date = "%s"
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  tags = {
+    "hello" = "world"
+  }
+}
+`, r.templateStandard(data), data.RandomString, expirationDate)
 }
 
 func (r KeyVaultKeyResource) basicUpdated(data acceptance.TestData) string {

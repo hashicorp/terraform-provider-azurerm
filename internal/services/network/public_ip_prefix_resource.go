@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -61,6 +61,14 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(publicipprefixes.PublicIPPrefixSkuNameStandard),
 				}, false),
+			},
+
+			"sku_tier": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuTier(), false),
 			},
 
 			"prefix_length": {
@@ -118,6 +126,7 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku: &publicipprefixes.PublicIPPrefixSku{
 			Name: pointer.To(publicipprefixes.PublicIPPrefixSkuName(d.Get("sku").(string))),
+			Tier: pointer.To(publicipprefixes.PublicIPPrefixSkuTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &publicipprefixes.PublicIPPrefixPropertiesFormat{
 			PrefixLength:           pointer.To(int64(d.Get("prefix_length").(int))),
@@ -190,11 +199,10 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
-		skuName := ""
 		if sku := model.Sku; sku != nil {
-			skuName = string(pointer.From(sku.Name))
+			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku_tier", string(pointer.From(sku.Tier)))
 		}
-		d.Set("sku", skuName)
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)
 			d.Set("ip_prefix", props.IPPrefix)

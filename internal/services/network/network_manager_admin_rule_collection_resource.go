@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/adminrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +37,7 @@ func (r ManagerAdminRuleCollectionResource) ModelObject() interface{} {
 }
 
 func (r ManagerAdminRuleCollectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return adminrulecollections.ValidateRuleCollectionID
+	return adminrulecollections.ValidateSecurityAdminConfigurationRuleCollectionID
 }
 
 func (r ManagerAdminRuleCollectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -91,7 +91,7 @@ func (r ManagerAdminRuleCollectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := adminrulecollections.NewRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
+			id := adminrulecollections.NewSecurityAdminConfigurationRuleCollectionID(configurationId.SubscriptionId, configurationId.ResourceGroupName,
 				configurationId.NetworkManagerName, configurationId.SecurityAdminConfigurationName, model.Name)
 			existing, err := client.Get(ctx, id)
 
@@ -129,7 +129,7 @@ func (r ManagerAdminRuleCollectionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -175,7 +175,7 @@ func (r ManagerAdminRuleCollectionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -219,7 +219,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.AdminRuleCollections
 
-			id, err := adminrulecollections.ParseRuleCollectionID(metadata.ResourceData.Id())
+			id, err := adminrulecollections.ParseSecurityAdminConfigurationRuleCollectionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
