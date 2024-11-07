@@ -36,6 +36,11 @@ func dataSourceCognitiveAccount() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"local_auth_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -90,18 +95,7 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	keys, err := client.AccountsListKeys(ctx, id)
-	if err != nil {
-		// TODO: gracefully fail here
-		return fmt.Errorf("retrieving Keys for %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
-
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.Key1)
-		d.Set("secondary_access_key", model.Key2)
-	}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
@@ -115,6 +109,25 @@ func dataSourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 			}
 			d.Set("endpoint", props.Endpoint)
+
+			localAuthEnabled := true
+			if props.DisableLocalAuth != nil {
+				localAuthEnabled = !*props.DisableLocalAuth
+			}
+			d.Set("local_auth_enabled", localAuthEnabled)
+
+			if localAuthEnabled {
+				keys, err := client.AccountsListKeys(ctx, id)
+				if err != nil {
+					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
+					return fmt.Errorf("listing the Keys for %s: %+v", id, err)
+				}
+
+				if model := keys.Model; model != nil {
+					d.Set("primary_access_key", model.Key1)
+					d.Set("secondary_access_key", model.Key2)
+				}
+			}
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
