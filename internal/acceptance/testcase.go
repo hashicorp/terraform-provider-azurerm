@@ -6,7 +6,6 @@ package acceptance
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 func (td TestData) DataSourceTest(t *testing.T, steps []TestStep) {
