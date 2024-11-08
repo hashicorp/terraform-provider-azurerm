@@ -10,11 +10,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ModelSku struct {
-	Capacity        *CapacityConfig  `json:"capacity,omitempty"`
-	DeprecationDate *string          `json:"deprecationDate,omitempty"`
-	Name            *string          `json:"name,omitempty"`
-	RateLimits      *[]CallRateLimit `json:"rateLimits,omitempty"`
-	UsageName       *string          `json:"usageName,omitempty"`
+	Capacity        *CapacityConfig     `json:"capacity,omitempty"`
+	Cost            *[]BillingMeterInfo `json:"cost,omitempty"`
+	DeprecationDate *string             `json:"deprecationDate,omitempty"`
+	Name            *string             `json:"name,omitempty"`
+	RateLimits      *[]CallRateLimit    `json:"rateLimits,omitempty"`
+	UsageName       *string             `json:"usageName,omitempty"`
 }
 
 func (o *ModelSku) GetDeprecationDateAsTime() (*time.Time, error) {

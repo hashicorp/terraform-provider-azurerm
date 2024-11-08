@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts` Documentation
 
-The `cognitiveservicesaccounts` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2023-05-01`).
+The `cognitiveservicesaccounts` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2024-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
 ```
 
 
@@ -200,6 +200,27 @@ payload := cognitiveservicesaccounts.Account{
 
 if err := client.AccountsUpdateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.CalculateModelCapacity`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+payload := cognitiveservicesaccounts.CalculateModelCapacityParameter{
+	// ...
+}
+
+
+read, err := client.CalculateModelCapacity(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
 }
 ```
 

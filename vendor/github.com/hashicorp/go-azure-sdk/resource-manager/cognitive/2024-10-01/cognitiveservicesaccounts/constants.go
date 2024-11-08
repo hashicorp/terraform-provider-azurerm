@@ -50,6 +50,47 @@ func parseAbusePenaltyAction(input string) (*AbusePenaltyAction, error) {
 	return &out, nil
 }
 
+type ByPassSelection string
+
+const (
+	ByPassSelectionAzureServices ByPassSelection = "AzureServices"
+	ByPassSelectionNone          ByPassSelection = "None"
+)
+
+func PossibleValuesForByPassSelection() []string {
+	return []string{
+		string(ByPassSelectionAzureServices),
+		string(ByPassSelectionNone),
+	}
+}
+
+func (s *ByPassSelection) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseByPassSelection(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseByPassSelection(input string) (*ByPassSelection, error) {
+	vals := map[string]ByPassSelection{
+		"azureservices": ByPassSelectionAzureServices,
+		"none":          ByPassSelectionNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ByPassSelection(input)
+	return &out, nil
+}
+
 type KeyName string
 
 const (
@@ -135,14 +176,20 @@ func parseKeySource(input string) (*KeySource, error) {
 type ModelLifecycleStatus string
 
 const (
+	ModelLifecycleStatusDeprecated         ModelLifecycleStatus = "Deprecated"
+	ModelLifecycleStatusDeprecating        ModelLifecycleStatus = "Deprecating"
 	ModelLifecycleStatusGenerallyAvailable ModelLifecycleStatus = "GenerallyAvailable"
 	ModelLifecycleStatusPreview            ModelLifecycleStatus = "Preview"
+	ModelLifecycleStatusStable             ModelLifecycleStatus = "Stable"
 )
 
 func PossibleValuesForModelLifecycleStatus() []string {
 	return []string{
+		string(ModelLifecycleStatusDeprecated),
+		string(ModelLifecycleStatusDeprecating),
 		string(ModelLifecycleStatusGenerallyAvailable),
 		string(ModelLifecycleStatusPreview),
+		string(ModelLifecycleStatusStable),
 	}
 }
 
@@ -161,8 +208,11 @@ func (s *ModelLifecycleStatus) UnmarshalJSON(bytes []byte) error {
 
 func parseModelLifecycleStatus(input string) (*ModelLifecycleStatus, error) {
 	vals := map[string]ModelLifecycleStatus{
+		"deprecated":         ModelLifecycleStatusDeprecated,
+		"deprecating":        ModelLifecycleStatusDeprecating,
 		"generallyavailable": ModelLifecycleStatusGenerallyAvailable,
 		"preview":            ModelLifecycleStatusPreview,
+		"stable":             ModelLifecycleStatusStable,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
