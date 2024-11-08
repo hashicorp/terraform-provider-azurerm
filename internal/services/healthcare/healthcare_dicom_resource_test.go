@@ -109,13 +109,6 @@ resource "azurerm_healthcare_dicom_service" "test" {
   workspace_id = azurerm_healthcare_workspace.test.id
   location     = azurerm_resource_group.test.location
   depends_on   = [azurerm_healthcare_workspace.test]
-
-  lifecycle {
-    ignore_changes = [
-      "cors",
-      "storage"
-    ]
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -200,12 +193,6 @@ resource "azurerm_healthcare_dicom_service" "test" {
   tags = {
     environment = "Prod"
   }
-
-  lifecycle {
-    ignore_changes = [
-      "storage"
-    ]
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -217,13 +204,6 @@ resource "azurerm_healthcare_dicom_service" "import" {
   name         = azurerm_healthcare_dicom_service.test.name
   workspace_id = azurerm_healthcare_dicom_service.test.workspace_id
   location     = azurerm_healthcare_dicom_service.test.location
-
-  lifecycle {
-    ignore_changes = [
-      "cors",
-      "storage"
-    ]
-  }
 }
 `, r.basic(data))
 }
@@ -235,7 +215,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg%[2]s"
+  name     = "rg-sfi-acctestrg%[2]s"
   location = "%[1]s"
 }
 

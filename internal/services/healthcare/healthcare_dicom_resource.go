@@ -122,6 +122,8 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 			"cors": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C API sets defaults for these if omitted
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -183,6 +185,8 @@ func resourceHealthcareApisDicomService() *pluginsdk.Resource {
 			"storage": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C API sets defaults for these if omitted
+				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
@@ -256,7 +260,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 	if v, ok := d.GetOk("encryption_key_url"); ok {
 		encryption = &dicomservices.Encryption{
 			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
-				KeyEncryptionKeyUrl: pointer.To(v.(string)),
+				KeyEncryptionKeyURL: pointer.To(v.(string)),
 			},
 		}
 	}
@@ -332,7 +336,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("cors", flattenDicomServiceCorsConfiguration(props.CorsConfiguration))
 
 			if props.Encryption != nil && props.Encryption.CustomerManagedKeyEncryption != nil {
-				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyUrl))
+				d.Set("encryption_key_url", pointer.From(props.Encryption.CustomerManagedKeyEncryption.KeyEncryptionKeyURL))
 			}
 
 			storage, err := flattenStorageConfiguration(props.StorageConfiguration)
@@ -387,7 +391,7 @@ func resourceHealthcareApisDicomServiceUpdate(d *pluginsdk.ResourceData, meta in
 	if d.HasChange("encryption_key_url") {
 		payload.Properties.Encryption = &dicomservices.Encryption{
 			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
-				KeyEncryptionKeyUrl: pointer.To(d.Get("encryption_key_url").(string)),
+				KeyEncryptionKeyURL: pointer.To(d.Get("encryption_key_url").(string)),
 			},
 		}
 	}
