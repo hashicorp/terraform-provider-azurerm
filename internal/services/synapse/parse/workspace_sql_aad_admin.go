@@ -35,7 +35,7 @@ func (id WorkspaceSqlAADAdminId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Workspace Sql A A D Admin", segmentsStr) // nolint: dupword
+	return fmt.Sprintf("%s: (%s)", "Workspace Sql A A D Admin", segmentsStr)
 }
 
 func (id WorkspaceSqlAADAdminId) ID() string {
