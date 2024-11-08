@@ -197,6 +197,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected recver_services.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
 	}
 
+	if features.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy {
+		t.Errorf("expected recver_services.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
+	}
+
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
@@ -296,14 +300,16 @@ func defaultFeaturesList() types.List {
 	machineLearningList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes), []attr.Value{machineLearning})
 
 	recoveryServices, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes), []attr.Value{recoveryServices})
 
 	recoveryServicesVaults, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceVaultsAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesVaultsList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes), []attr.Value{recoveryServicesVaults})
 

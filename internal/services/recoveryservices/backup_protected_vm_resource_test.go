@@ -251,6 +251,25 @@ func TestAccBackupProtectedVm_protectionStoppedOnDestroy(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_protectionSuspendedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protectionSuspendOnDestroy(data),
+		},
+	})
+}
+
 func TestAccBackupProtectedVm_recoverSoftDeletedVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
@@ -953,6 +972,21 @@ provider "azurerm" {
   features {
     recovery_service {
       vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
+}
+
+%s
+`, r.base(data))
+}
+
+func (r BackupProtectedVmResource) protectionSuspendOnDestroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    recovery_service {
+      vm_backup_suspend_protection_and_retain_data_on_destroy = true
       purge_protected_items_from_vault_on_destroy          = true
     }
   }

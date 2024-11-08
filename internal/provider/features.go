@@ -375,9 +375,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_backup_stop_protection_and_retain_data_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"vm_backup_stop_protection_and_retain_data_on_destroy", "vm_backup_suspend_protection_and_retain_data_on_destroy"},
+					},
+					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"vm_backup_stop_protection_and_retain_data_on_destroy", "vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
@@ -641,6 +648,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			recoveryServicesRaw := items[0].(map[string]interface{})
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["vm_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
 			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
