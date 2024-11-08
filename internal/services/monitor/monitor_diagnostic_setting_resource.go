@@ -474,7 +474,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			if props.MarketplacePartnerId != nil && *props.MarketplacePartnerId != "" {
-				d.Set("partner_solution_id", *props.MarketplacePartnerId)
+				d.Set("partner_solution_id", props.MarketplacePartnerId)
 			}
 
 			logAnalyticsDestinationType := ""
