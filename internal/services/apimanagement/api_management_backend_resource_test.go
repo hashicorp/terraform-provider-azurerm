@@ -328,7 +328,8 @@ resource "azurerm_api_management_backend" "test" {
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	// nolint: dupword
+	return fmt.Sprintf(` 
 %s
 
 resource "azurerm_api_management_certificate" "test" {
@@ -357,7 +358,7 @@ resource "azurerm_api_management_backend" "test" {
     ]
   }
 }
-`, r.template(data, "sf"), data.RandomInteger)
+`, r.template(data, "sf"), data.RandomInteger) // nolint: dupword
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabricCluster(data acceptance.TestData) string {
@@ -394,6 +395,7 @@ resource "azurerm_api_management_backend" "test" {
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 %s
 
@@ -423,7 +425,7 @@ resource "azurerm_api_management_backend" "test" {
     ]
   }
 }
-`, r.template(data, "sf"), data.RandomInteger)
+`, r.template(data, "sf"), data.RandomInteger) // nolint: dupword
 }
 
 func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
