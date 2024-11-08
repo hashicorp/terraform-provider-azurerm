@@ -633,7 +633,7 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 	// building configuration profile in json format
 	jsonConfig := make(map[string]interface{})
 
-	if model.Antimalware != nil && len(model.Antimalware) > 0 {
+	if len(model.Antimalware) > 0 {
 		antimalwareConfig := model.Antimalware[0]
 		jsonConfig["Antimalware/Enable"] = true
 		jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
@@ -641,7 +641,7 @@ func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 		jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
 		jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
 		jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
-		if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
+		if len(antimalwareConfig.Exclusions) > 0 {
 			jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
 			jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
 			jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes

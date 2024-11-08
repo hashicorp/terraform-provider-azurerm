@@ -630,7 +630,7 @@ func expandBackupProtectionPolicyVMWorkloadProtectionPolicies(input []Protection
 
 		switch backupBlock.Frequency {
 		case string(protectionpolicies.ScheduleRunTypeDaily):
-			if item.RetentionDaily == nil || len(item.RetentionDaily) == 0 {
+			if len(item.RetentionDaily) == 0 {
 				return nil, fmt.Errorf("`retention_daily` must be set when `backup.0.frequency` is `Daily`")
 			}
 
@@ -770,7 +770,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 	if input.PolicyType == string(protectionpolicies.PolicyTypeFull) {
 		retentionPolicy := protectionpolicies.LongTermRetentionPolicy{}
 
-		if input.RetentionDaily != nil && len(input.RetentionDaily) > 0 {
+		if len(input.RetentionDaily) > 0 {
 			retentionDaily := input.RetentionDaily[0]
 
 			retentionPolicy.DailySchedule = &protectionpolicies.DailyRetentionSchedule{
@@ -782,7 +782,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			}
 		}
 
-		if input.RetentionWeekly != nil && len(input.RetentionWeekly) > 0 {
+		if len(input.RetentionWeekly) > 0 {
 			retentionWeekly := input.RetentionWeekly[0]
 
 			retentionPolicy.WeeklySchedule = &protectionpolicies.WeeklyRetentionSchedule{
@@ -802,18 +802,18 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			}
 		}
 
-		if input.RetentionMonthly != nil && len(input.RetentionMonthly) > 0 {
+		if len(input.RetentionMonthly) > 0 {
 			retentionMonthly := input.RetentionMonthly[0]
 
 			if input.Backup[0].Frequency == string(protectionpolicies.ScheduleRunTypeWeekly) && retentionMonthly.FormatType != string(protectionpolicies.RetentionScheduleFormatWeekly) {
 				return nil, fmt.Errorf("`retention_monthly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
-			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (retentionMonthly.Monthdays == nil || len(retentionMonthly.Monthdays) == 0) {
+			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (len(retentionMonthly.Monthdays) == 0) {
 				return nil, fmt.Errorf("`retention_monthly.monthdays` must be set when `retention_monthly.format_type` is `Daily`")
 			}
 
-			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && ((retentionMonthly.Weeks == nil || len(retentionMonthly.Weeks) == 0) || (retentionMonthly.Weekdays == nil || len(retentionMonthly.Weekdays) == 0)) {
+			if retentionMonthly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && (len(retentionMonthly.Weeks) == 0 || len(retentionMonthly.Weekdays) == 0) {
 				return nil, fmt.Errorf("`retention_monthly.weeks` and `retention_monthly.weekdays` must be set when `retention_monthly.format_type` is `Weekly`")
 			}
 

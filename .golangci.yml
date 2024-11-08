@@ -36,7 +36,7 @@ linters:
     - goimports #Check import statements are formatted according to the 'goimport' command
     - gosimple #Linter for Go source code that specializes in simplifying code.
     #- gosec #Gosec is a security linter for Go source code
-    - govet #reports suspicious constructs. It is roughly the same as 'go vet'
+    - govet #reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
     - ineffassign #Detects when assignments to existing variables are not used
     - misspell #Finds commonly misspelled English words.
     #- nakedret #Checks that functions with naked returns are not longer than a maximum size
@@ -48,17 +48,19 @@ linters:
     #- perfsprint #Checks that fmt.Sprintf can be replaced with a faster alternative.
     #- prealloc #Finds slice declarations that could potentially be pre-allocated.
     #- predeclared #Find code that shadows one of Go's predeclared identifiers.
-    #- reassign #Checks that package variables are not reassigned.
+    - reassign #Checks that package variables are not reassigned.
     #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-    - staticcheck
-    - typecheck
+    - staticcheck #It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
+    #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
+    # - tparallel #Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
+    - typecheck # doesn't exist?!>?! XXXXXXXXX
     - unused #Checks Go code for unused constants, variables, functions and types.
-    - unconvert
-    - unparam
-    - vet
-    - vetshadow
+    - unconvert #Remove unnecessary type conversions.
+    - unparam #Reports unused function parameters.
     #- wastedassign # disabled because of generics
-    # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
+    #- wsl Add or remove empty lines.
+
+    #- whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
 
 linters-settings:
   errcheck:
