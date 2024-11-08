@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
@@ -80,6 +81,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance"
@@ -149,6 +151,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		azurestackhci.Registration{},
 		batch.Registration{},
 		bot.Registration{},
+		codesigning.Registration{},
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
@@ -181,6 +184,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		maintenance.Registration{},
 		managedhsm.Registration{},
 		mobilenetwork.Registration{},
+		mongocluster.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
 		mssqlmanagedinstance.Registration{},

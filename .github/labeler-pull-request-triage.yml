@@ -364,6 +364,11 @@ service/mobile-network:
   - any-glob-to-any-file:
     - internal/services/mobilenetwork/**/*
 
+service/mongo-cluster:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/mongocluster/**/*
+
 service/monitor:
 - changed-files:
   - any-glob-to-any-file:
@@ -555,6 +560,11 @@ service/traffic-manager:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
 
+service/trustedsigning:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/codesigning/**/*
+
 service/video-indexer:
 - changed-files:
   - any-glob-to-any-file:
@@ -574,12 +584,3 @@ service/workloads:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/workloads/**/*
-
-bug:
-  - '- \[ ?X ?\] Bug Fix'
-
-enhancement:
-  - '- \[ ?X ?\] Enhancement'
-
-breaking-change:
-  - '- \[ ?X ?\] Breaking Change'

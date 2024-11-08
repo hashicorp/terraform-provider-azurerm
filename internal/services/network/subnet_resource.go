@@ -204,7 +204,6 @@ func resourceSubnet() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Default:  true,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"private_endpoint_network_policies": {
@@ -512,6 +511,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
+	}
+
+	if d.HasChange("default_outbound_access_enabled") {
+		props.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 	}
 
 	if d.HasChange("delegation") {
