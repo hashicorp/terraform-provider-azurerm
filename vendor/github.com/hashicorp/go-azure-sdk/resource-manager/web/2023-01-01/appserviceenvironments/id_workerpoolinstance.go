@@ -127,11 +127,11 @@ func (id WorkerPoolInstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticHostingEnvironments", "hostingEnvironments", "hostingEnvironments"),
-		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "name"),
+		resourceids.UserSpecifiedSegment("hostingEnvironmentName", "hostingEnvironmentName"),
 		resourceids.StaticSegment("staticWorkerPools", "workerPools", "workerPools"),
 		resourceids.UserSpecifiedSegment("workerPoolName", "workerPoolName"),
 		resourceids.StaticSegment("staticInstances", "instances", "instances"),
-		resourceids.UserSpecifiedSegment("instanceName", "instance"),
+		resourceids.UserSpecifiedSegment("instanceName", "instanceName"),
 	}
 }
 

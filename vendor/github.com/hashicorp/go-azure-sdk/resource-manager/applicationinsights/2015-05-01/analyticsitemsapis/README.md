@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsDelete(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsDeleteOperationOptions())
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsGet(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsGetOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.AnalyticsItemsList(ctx, id, analyticsitemsapis.DefaultAnalyticsItemsListOperationOptions())
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := analyticsitemsapis.NewProviderComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := analyticsitemsapis.ApplicationInsightsComponentAnalyticsItem{
 	// ...

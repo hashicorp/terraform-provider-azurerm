@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetLogSasUrlOperationResponse struct {
+type GetLogSasURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *RunGetLogResult
 }
 
-// GetLogSasUrl ...
-func (c RunsClient) GetLogSasUrl(ctx context.Context, id RunId) (result GetLogSasUrlOperationResponse, err error) {
+// GetLogSasURL ...
+func (c RunsClient) GetLogSasURL(ctx context.Context, id RunId) (result GetLogSasURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

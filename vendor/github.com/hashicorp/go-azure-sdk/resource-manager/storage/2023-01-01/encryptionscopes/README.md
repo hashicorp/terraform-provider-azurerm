@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "encryptionScopeName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "encryptionScopeName")
 
 payload := encryptionscopes.EncryptionScope{
 	// ...
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "encryptionScopeName")
+id := encryptionscopes.NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "encryptionScopeName")
 
 payload := encryptionscopes.EncryptionScope{
 	// ...

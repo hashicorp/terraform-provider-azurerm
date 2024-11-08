@@ -57,7 +57,6 @@ func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
 					"Day",
 					"Hour",
 					"Minute",
-					"Hour",
 					"Second",
 				}, false),
 			},

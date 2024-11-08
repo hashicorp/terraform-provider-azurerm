@@ -113,7 +113,7 @@ func (id DeletedAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorage", "Microsoft.Storage", "Microsoft.Storage"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDeletedAccounts", "deletedAccounts", "deletedAccounts"),
 		resourceids.UserSpecifiedSegment("deletedAccountName", "deletedAccountName"),
 	}
