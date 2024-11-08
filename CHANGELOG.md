@@ -18,7 +18,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_managed_database` - support for the `tags` property [GH-27857]
 * `azurerm_oracle_cloud_vm_cluster` - support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
 * `azurerm_public_ip_prefix` - support for the `sku_tier` property [GH-27882]
-* `azurerm_public_ip` - support for the d`omain_name_label_scope` property [GH-27748]
+* `azurerm_public_ip` - support for the `domain_name_label_scope` property [GH-27748]
 * `azurerm_subnet` - `default_outbound_access_enabled` can now be updated [GH-27858]
 * `azurerm_storage_container` - support for the `storage_account_id` property [GH-27733]
 * `azurerm_storage_share` - support for the `storage_account_id` property [GH-27733]
