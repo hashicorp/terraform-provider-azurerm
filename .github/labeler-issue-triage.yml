@@ -128,6 +128,9 @@ service/dns:
 service/domain-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_active_directory_domain_service((.|\n)*)###'
 
+service/dynatrace:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dynatrace_monitor((.|\n)*)###'
+
 service/elastic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
 
