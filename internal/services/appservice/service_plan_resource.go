@@ -264,11 +264,11 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 						state.AppServiceEnvironmentId = *ase.Id
 					}
 
-					state.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
+					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
 
-					state.Reserved = utils.NormaliseNilableBool(props.Reserved)
+					state.Reserved = pointer.From(props.Reserved)
 
-					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
+					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
 
 					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}

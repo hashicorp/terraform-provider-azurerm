@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
@@ -315,7 +316,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 
 	d.Set("policy_assignment_id", prop.PolicyAssignmentId)
 	d.Set("policy_definition_reference_id", prop.PolicyDefinitionReferenceId)
-	d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(prop.ResourceDiscoveryMode)))
+	d.Set("resource_discovery_mode", pointer.From((*string)(prop.ResourceDiscoveryMode)))
 
 	d.Set("resource_count", prop.ResourceCount)
 	d.Set("parallel_deployments", prop.ParallelDeployments)

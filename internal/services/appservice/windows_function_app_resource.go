@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsFunctionAppResource struct{}
@@ -757,7 +756,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					ResourceGroup: id.ResourceGroupName,
 					Location:      location.Normalize(model.Location),
 					Tags:          pointer.From(model.Tags),
-					Kind:          utils.NormalizeNilableString(model.Kind),
+					Kind:          pointer.From(model.Kind),
 				}
 
 				if props := model.Properties; props != nil {

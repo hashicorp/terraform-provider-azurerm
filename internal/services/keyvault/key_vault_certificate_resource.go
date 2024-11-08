@@ -188,7 +188,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"trigger": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -842,7 +842,7 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedCertsOnDestroy
-	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && pointer.From(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge certificate %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
 	}
