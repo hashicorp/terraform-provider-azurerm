@@ -17,28 +17,47 @@ issues:
 linters:
   disable-all: true
   enable:
-    - asciicheck
-    - bidichk
-    - errcheck
-    - gocritic
-    - gofmt
-    - goimports
-    - gosimple
-    - govet
-    - ineffassign
-    #- nakedret
-    - misspell
-    #- nolintlint
-    #- nlreturn
-    - reassign
+    #- asasalint #check for pass []any as any in variadic func(...any)
+    - asciicheck #code does not contain non-ASCII identifiers
+    - bidichk #Checks for dangerous unicode character sequences
+    #- copyloopvar #Detects range loop variables that are overwritten in the loop body
+    #- decorder #Check declaration order and count of types, constants, variables and functions.
+    #- dupl #Check for duplicated code
+    #- dupword #Check for duplicated words in comments
+    #- durationcheck #Check for common mistakes when working with time.Duration
+    #- err113 Go linter to check the errors handling expressions.
+    - errcheck #checking for unchecked errors
+    #- errorlint #Errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme used in the github.com/pkg/errors package.
+    #- exhaustive #Check for missing cases in select statements
+    #- fatcontex #Check for context.Contexts that are unnecessarily passed to functions
+    - gocritic #Linter for Go source code that specializes in simplifying code
+    - gofmt #Gofmt checks whether code was gofmt-ed
+    #- gofumpt #Gofumpt is a stricter gofmt
+    - goimports #Check import statements are formatted according to the 'goimport' command
+    - gosimple #Linter for Go source code that specializes in simplifying code.
+    #- gosec #Gosec is a security linter for Go source code
+    - govet #reports suspicious constructs. It is roughly the same as 'go vet'
+    - ineffassign #Detects when assignments to existing variables are not used
+    - misspell #Finds commonly misspelled English words.
+    #- nakedret #Checks that functions with naked returns are not longer than a maximum size
+    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
+    #- nilnil #Checks that there is no simultaneous return of nil error and an invalid value
+    #- nolintlint #Reports ill-formed or insufficient nolint directives.
+    #- nlreturn #Nlreturn checks for a new line before return and branch statements to increase code clarity.
+    #- paralleltest #Detects missing usage of t.Parallel() method in your Go test.
+    #- perfsprint #Checks that fmt.Sprintf can be replaced with a faster alternative.
+    #- prealloc #Finds slice declarations that could potentially be pre-allocated.
+    #- predeclared #Find code that shadows one of Go's predeclared identifiers.
+    #- reassign #Checks that package variables are not reassigned.
+    #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
     - staticcheck
     - typecheck
-    - unused
+    - unused #Checks Go code for unused constants, variables, functions and types.
     - unconvert
     - unparam
     - vet
     - vetshadow
-    # - wastedassign # disabled because of generics
+    #- wastedassign # disabled because of generics
     # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
 
 linters-settings:
