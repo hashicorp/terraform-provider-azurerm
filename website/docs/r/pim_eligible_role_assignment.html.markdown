@@ -98,6 +98,13 @@ The following arguments are supported:
 
 * `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new resource to be created.
 
+
+~> **NOTE:** If one of `condition` or `condition_version` is set both fields must be present.
+
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
+
+* `condition_version` - (Optional) The version of the condition. Currently accepted value is `2.0`. Changing this forces a new resource to be created.
+
 ---
 
 An `expiration` block supports the following:
