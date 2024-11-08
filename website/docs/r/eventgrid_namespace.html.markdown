@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource should exist. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional)  (Optional) Specifies the Capacity / Throughput Units for an Eventgrid Namespace. Valid values can be between `1` and `40`.
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for an Eventgrid Namespace. Valid values can be between `1` and `40`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -80,11 +80,11 @@ A `topic_spaces_configuration` block supports the following:
 
 * `alternative_authentication_name_source` - (Optional) Specifies a list of alternative sources for the client authentication name from the client certificate. Possible values are `ClientCertificateDns`, `ClientCertificateEmail`, `ClientCertificateIp`, `ClientCertificateSubject` and `ClientCertificateUri`.
 
-* `maximum_client_sessions_per_authentication_name` - (Optional) Specifies the maximum number of client sessions epr authentication name. Valid values can be between `1` and `100`.
+* `maximum_client_sessions_per_authentication_name` - (Optional) Specifies the maximum number of client sessions per authentication name. Valid values can be between `1` and `100`.
 
 * `maximum_session_expiry_in_hours` - (Optional) Specifies the maximum session expiry interval allowed for all MQTT clients connecting to the Event Grid namespace. Valid values can be between `1` and `8`.
 
-* `route_topic_id` - (Optional) Specifies the Event Grid topic resource id to route messages to.
+* `route_topic_id` - (Optional) Specifies the Event Grid topic resource ID to route messages to.
 
 * `dynamic_routing_enrichment` - One or more `dynamic_routing_enrichment` blocks as defined below.
 

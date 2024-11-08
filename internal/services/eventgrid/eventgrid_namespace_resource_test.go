@@ -104,6 +104,13 @@ func TestAccEventGridNamespaceResource_basicWithTags(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basicWithTagsUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -189,7 +196,6 @@ resource "azurerm_eventgrid_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -289,7 +295,6 @@ resource "azurerm_eventgrid_namespace" "test" {
       azurerm_user_assigned_identity.test.id
     ]
   }
-
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -383,8 +388,29 @@ resource "azurerm_eventgrid_namespace" "test" {
     "foo" = "bar"
   }
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
 
+func (r EventGridNamespaceResource) basicWithTagsUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_namespace" "test" {
+  name                = "acctest-egn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    "hello" = "world"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -469,8 +495,6 @@ resource "azurerm_eventgrid_namespace" "test" {
     type = "SystemAssigned"
   }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -503,7 +527,5 @@ resource "azurerm_eventgrid_namespace" "test" {
     ]
   }
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

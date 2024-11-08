@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -60,9 +61,10 @@ type RoutingEnrichmentModel struct {
 func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(3, 50),
 		},
 
 		"location": commonschema.Location(),
@@ -79,15 +81,15 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"inbound_ip_rule": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   128,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 128,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.CIDR,
 					},
 					"action": {
 						Type:     pluginsdk.TypeString,
@@ -159,13 +161,15 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 20),
 								},
 
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
 								},
 							},
 						},
@@ -177,13 +181,15 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"key": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 20),
 								},
 
 								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
 								},
 							},
 						},
@@ -362,7 +368,7 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 
 				if model.Sku != nil {
 					state.Sku = string(pointer.From(model.Sku.Name))
@@ -377,7 +383,11 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.ZoneRedundant = pointer.From(props.IsZoneRedundant)
-					state.TopicSpacesConfiguration = flattenTopicSpacesConfiguration(props.TopicSpacesConfiguration)
+					topicSpacesConfig, err := flattenTopicSpacesConfiguration(props.TopicSpacesConfiguration)
+					if err != nil {
+						return fmt.Errorf("flattening `topic_spaces_configuration`: %v", err)
+					}
+					state.TopicSpacesConfiguration = topicSpacesConfig
 					state.InboundIpRules = flattenInboundIPRules(props.InboundIPRules)
 					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
 				}
@@ -413,12 +423,11 @@ func (r EventGridNamespaceResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRule {
-	var ipRules []namespaces.InboundIPRule
-
 	if len(input) == 0 {
-		return &ipRules
+		return nil
 	}
 
+	var ipRules []namespaces.InboundIPRule
 	for _, v := range input {
 		ipRules = append(ipRules, namespaces.InboundIPRule{
 			Action: pointer.To(namespaces.IPActionType(v.Action)),
@@ -445,11 +454,11 @@ func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleM
 }
 
 func expandTopicSpacesConfiguration(input []TopicSpacesConfigurationModel) *namespaces.TopicSpacesConfiguration {
-	topicSpacesConfig := namespaces.TopicSpacesConfiguration{}
 	if input == nil {
-		return &topicSpacesConfig
+		return nil
 	}
 
+	topicSpacesConfig := namespaces.TopicSpacesConfiguration{}
 	topicSpacesConfig = namespaces.TopicSpacesConfiguration{
 		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
@@ -469,11 +478,10 @@ func expandTopicSpacesConfiguration(input []TopicSpacesConfigurationModel) *name
 }
 
 func expandTopicSpacesConfigurationUpdate(input []TopicSpacesConfigurationModel) *namespaces.UpdateTopicSpacesConfigurationInfo {
-	topicSpacesConfig := namespaces.UpdateTopicSpacesConfigurationInfo{}
 	if input == nil {
-		return &topicSpacesConfig
+		return nil
 	}
-
+	topicSpacesConfig := namespaces.UpdateTopicSpacesConfigurationInfo{}
 	topicSpacesConfig = namespaces.UpdateTopicSpacesConfigurationInfo{
 		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
@@ -493,8 +501,11 @@ func expandTopicSpacesConfigurationUpdate(input []TopicSpacesConfigurationModel)
 }
 
 func expandAlternativeAuthenticationNameSources(input []string) *[]namespaces.AlternativeAuthenticationNameSource {
-	var nameSources []namespaces.AlternativeAuthenticationNameSource
+	if len(input) == 0 {
+		return nil
+	}
 
+	var nameSources []namespaces.AlternativeAuthenticationNameSource
 	for _, v := range input {
 		nameSources = append(nameSources, namespaces.AlternativeAuthenticationNameSource(v))
 	}
@@ -502,11 +513,10 @@ func expandAlternativeAuthenticationNameSources(input []string) *[]namespaces.Al
 }
 
 func expandDynamicRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespaces.DynamicRoutingEnrichment {
-	var dynamicRoutingEnrichments []namespaces.DynamicRoutingEnrichment
 	if len(input) == 0 {
-		return &dynamicRoutingEnrichments
+		return nil
 	}
-
+	var dynamicRoutingEnrichments []namespaces.DynamicRoutingEnrichment
 	for _, v := range input {
 		dynamicRoutingEnrichments = append(dynamicRoutingEnrichments, namespaces.DynamicRoutingEnrichment{
 			Value: pointer.To(v.Value),
@@ -518,11 +528,11 @@ func expandDynamicRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespac
 }
 
 func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespaces.StaticRoutingEnrichment {
-	var staticRoutingEnrichments []namespaces.StaticRoutingEnrichment
 	if len(input) == 0 {
-		return &staticRoutingEnrichments
+		return nil
 	}
 
+	var staticRoutingEnrichments []namespaces.StaticRoutingEnrichment
 	for _, v := range input {
 		staticRoutingEnrichments = append(staticRoutingEnrichments, namespaces.StaticStringRoutingEnrichment{
 			Value:     pointer.To(v.Value),
@@ -534,15 +544,24 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 	return &staticRoutingEnrichments
 }
 
-func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesConfiguration) []TopicSpacesConfigurationModel {
+func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesConfiguration) ([]TopicSpacesConfigurationModel, error) {
 	var output TopicSpacesConfigurationModel
 	if topicSpacesConfig == nil {
-		return nil
+		return nil, nil
 	}
 
 	output.MaximumSessionExpiryInHours = pointer.From(topicSpacesConfig.MaximumSessionExpiryInHours)
 	output.MaximumClientSessionsPerAuthenticationName = pointer.From(topicSpacesConfig.MaximumClientSessionsPerAuthenticationName)
-	output.RouteTopicResourceId = pointer.From(topicSpacesConfig.RouteTopicResourceId)
+	var routeId string
+	if topicSpacesConfig.RouteTopicResourceId != nil && *topicSpacesConfig.RouteTopicResourceId != "" {
+		id, err := topics.ParseTopicID(*topicSpacesConfig.RouteTopicResourceId)
+		if err != nil {
+			return nil, err
+		}
+		routeId = id.ID()
+	}
+	output.RouteTopicResourceId = routeId
+
 	if topicSpacesConfig.ClientAuthentication != nil {
 		output.AlternativeAuthenticationNameSources = flattenAlternativeAuthenticationNameSources(topicSpacesConfig.ClientAuthentication.AlternativeAuthenticationNameSources)
 	}
@@ -551,7 +570,7 @@ func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesCo
 		output.StaticRoutingEnrichment = flattenStaticRoutingEnrichments(topicSpacesConfig.RoutingEnrichments.Static)
 	}
 
-	return []TopicSpacesConfigurationModel{output}
+	return []TopicSpacesConfigurationModel{output}, nil
 
 }
 
