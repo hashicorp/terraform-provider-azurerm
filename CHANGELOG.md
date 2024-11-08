@@ -1,3 +1,9 @@
+## 4.10.0 (Unreleased)
+
+BREAKING CHANGES:
+
+* dependencies - update `cognitive` to `2024-10-01`, due to a behavioural change in this version of the API, the `primary_access_key` and `secondary_access_key` can not be retrieved if `local_authentication_enabled` has been set to `false`. These properties that may have had values previously will now be empty. This has affected the `azurerm_ai_services` and `azurerm_cognitive_account` resources as well as the `azurerm_cognitive_account` data source [GH-27851]
+
 ## 4.9.0 (November 08, 2024)
 
 FEATURES:
