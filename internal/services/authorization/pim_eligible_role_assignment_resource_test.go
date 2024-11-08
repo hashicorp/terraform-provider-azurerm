@@ -439,9 +439,7 @@ data "azurerm_role_definition" "test" {
   name = "Storage Blob Data Contributor"
 }
 
-/*
 %[1]s
-*/
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
@@ -453,7 +451,7 @@ resource "time_static" "test" {}
 resource "azurerm_pim_eligible_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-  principal_id       = "fce9dbfd-1e1f-4c4a-95e7-dbe9211c191d"
+  principal_id       = azuread_user.test.object_id
 
   schedule {
     start_date_time = time_static.test.rfc3339
