@@ -73,6 +73,71 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				},
 			},
 
+			"default_retention_rule": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"life_cycle": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"data_store_type": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											// confirmed with the service team that the possible values do not include `OperationalStore`.
+											string(backuppolicies.DataStoreTypesVaultStore),
+											string(backuppolicies.DataStoreTypesArchiveStore),
+										}, false),
+									},
+
+									"duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.ISO8601Duration,
+									},
+
+									"target_copy": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"option_json": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsJSON,
+												},
+												"data_store_type": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+														// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
+														// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+														string(backuppolicies.DataStoreTypesArchiveStore),
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"retention_rule": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -158,6 +223,61 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 							},
 						},
 
+						"life_cycle": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"data_store_type": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											// confirmed with the service team that the possible values do not include `OperationalStore`.
+											string(backuppolicies.DataStoreTypesVaultStore),
+											string(backuppolicies.DataStoreTypesArchiveStore),
+										}, false),
+									},
+
+									"duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.ISO8601Duration,
+									},
+
+									"target_copy": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"option_json": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsJSON,
+												},
+												"data_store_type": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+														// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
+														// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+														string(backuppolicies.DataStoreTypesArchiveStore),
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
 						"priority": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
@@ -210,6 +330,8 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			Deprecated:    "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
 			ValidateFunc:  validate.ISO8601Duration,
 		}
+
+		// Since the length of `retention_rule` may be greater than 1, it cannot be set via `ConflictsWith`, the conflict check is performed in CustomizeDiff.
 		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["duration"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -218,247 +340,15 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
 			ValidateFunc: validate.ISO8601Duration,
 		}
-		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"data_store_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// confirmed with the service team that the possible values do not include `OperationalStore`.
-							string(backuppolicies.DataStoreTypesVaultStore),
-							string(backuppolicies.DataStoreTypesArchiveStore),
-						}, false),
-					},
 
-					"duration": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.ISO8601Duration,
-					},
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"].Required = false
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"].Optional = true
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"].Computed = true
 
-					"target_copy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"option_json": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsJSON,
-								},
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
-										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
-										string(backuppolicies.DataStoreTypesArchiveStore),
-									}, false),
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-
-		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ForceNew:      true,
-			Computed:      true,
-			MaxItems:      1,
-			ConflictsWith: []string{"default_retention_duration"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"life_cycle": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that the possible values do not include `OperationalStore`.
-										string(backuppolicies.DataStoreTypesVaultStore),
-										string(backuppolicies.DataStoreTypesArchiveStore),
-									}, false),
-								},
-
-								"duration": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
-								},
-
-								"target_copy": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"option_json": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsJSON,
-											},
-											"data_store_type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
-													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
-													string(backuppolicies.DataStoreTypesArchiveStore),
-												}, false),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	} else {
-		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"data_store_type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							// confirmed with the service team that the possible values do not include `OperationalStore`.
-							string(backuppolicies.DataStoreTypesVaultStore),
-							string(backuppolicies.DataStoreTypesArchiveStore),
-						}, false),
-					},
-
-					"duration": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validate.ISO8601Duration,
-					},
-
-					"target_copy": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						ForceNew: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"option_json": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringIsJSON,
-								},
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
-										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
-										string(backuppolicies.DataStoreTypesArchiveStore),
-									}, false),
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-
-		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"life_cycle": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// confirmed with the service team that the possible values do not include `OperationalStore`.
-										string(backuppolicies.DataStoreTypesVaultStore),
-										string(backuppolicies.DataStoreTypesArchiveStore),
-									}, false),
-								},
-
-								"duration": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validate.ISO8601Duration,
-								},
-
-								"target_copy": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"option_json": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsJSON,
-											},
-											"data_store_type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
-													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 5.0.
-													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
-													string(backuppolicies.DataStoreTypesArchiveStore),
-												}, false),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}
+		resource.Schema["default_retention_rule"].Required = false
+		resource.Schema["default_retention_rule"].Optional = true
+		resource.Schema["default_retention_rule"].Computed = true
+		resource.Schema["default_retention_rule"].ConflictsWith = []string{"default_retention_duration"}
 	}
 
 	return resource
