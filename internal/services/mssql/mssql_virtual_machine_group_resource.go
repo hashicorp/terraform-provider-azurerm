@@ -247,7 +247,7 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 						return err
 					}
 					storageAccountPrimaryKey := ""
-					if oldModel.WsfcDomainProfile != nil && len(oldModel.WsfcDomainProfile) != 0 {
+					if len(oldModel.WsfcDomainProfile) != 0 {
 						storageAccountPrimaryKey = oldModel.WsfcDomainProfile[0].StorageAccountPrimaryKey
 					}
 					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile, storageAccountPrimaryKey)

@@ -29,7 +29,7 @@ func (client ThreatIntelligenceIndicatorClient) Get(ctx context.Context, resourc
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Get", err.Error())
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Get", err.Error()) // nolint: govet
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, name)
@@ -100,7 +100,7 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Cont
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", err.Error())
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", err.Error()) // nolint: govet
 	}
 
 	req, err := client.CreateIndicatorPreparer(ctx, resourceGroupName, workspaceName, threatIntelligenceProperties)
@@ -173,7 +173,7 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", err.Error())
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", err.Error()) // nolint: govet
 	}
 
 	result.fn = client.queryIndicatorsNextResults
@@ -284,7 +284,7 @@ func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, reso
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Create", err.Error())
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Create", err.Error()) // nolint: govet
 	}
 
 	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, name, threatIntelligenceProperties)

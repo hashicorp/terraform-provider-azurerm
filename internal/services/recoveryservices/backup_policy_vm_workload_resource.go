@@ -829,18 +829,18 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 			}
 		}
 
-		if input.RetentionYearly != nil && len(input.RetentionYearly) > 0 {
+		if len(input.RetentionYearly) > 0 {
 			retentionYearly := input.RetentionYearly[0]
 
 			if input.Backup[0].Frequency == string(protectionpolicies.ScheduleRunTypeWeekly) && retentionYearly.FormatType != string(protectionpolicies.RetentionScheduleFormatWeekly) {
 				return nil, fmt.Errorf("`retention_yearly.format_type` must be `Weekly` when `policy_type` is `Full` and `frequency` is `Weekly`")
 			}
 
-			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (retentionYearly.Monthdays == nil || len(retentionYearly.Monthdays) == 0) {
+			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatDaily) && (len(retentionYearly.Monthdays) == 0) {
 				return nil, fmt.Errorf("`retention_yearly.monthdays` must be set when `retention_yearly.format_type` is `Daily`")
 			}
 
-			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && ((retentionYearly.Weeks == nil || len(retentionYearly.Weeks) == 0) || (retentionYearly.Weekdays == nil || len(retentionYearly.Weekdays) == 0)) {
+			if retentionYearly.FormatType == string(protectionpolicies.RetentionScheduleFormatWeekly) && (len(retentionYearly.Weeks) == 0 || len(retentionYearly.Weekdays) == 0) {
 				return nil, fmt.Errorf("`retention_yearly.weeks` and `retention_yearly.weekdays` must be set when `retention_yearly.format_type` is `Weekly`")
 			}
 
@@ -868,7 +868,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionPolicy(input ProtectionPolic
 	} else {
 		retentionPolicy := protectionpolicies.SimpleRetentionPolicy{}
 
-		if input.SimpleRetention != nil && len(input.SimpleRetention) > 0 {
+		if len(input.SimpleRetention) > 0 {
 			simpleRetention := input.SimpleRetention[0]
 
 			retentionPolicy.RetentionDuration = &protectionpolicies.RetentionDuration{

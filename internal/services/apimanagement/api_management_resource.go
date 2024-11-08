@@ -5,6 +5,7 @@ package apimanagement
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -727,7 +728,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
 		if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
 			// this exists but the users opted out, so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			return errors.New(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
 		}
 
 		// First recover the deleted API Management, since all other properties are ignored during a restore operation

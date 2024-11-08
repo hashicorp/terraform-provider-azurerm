@@ -719,7 +719,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 				state.DisplayName = *model.DisplayName
 			}
 
-			if model.Extensions != nil && len(model.Extensions) > 0 {
+			if len(model.Extensions) > 0 {
 				extensionsValue, err := pluginsdk.FlattenJsonToString(model.Extensions)
 				if err != nil {
 					return err
