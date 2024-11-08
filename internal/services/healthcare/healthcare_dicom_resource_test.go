@@ -215,7 +215,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "rg-sfi-acctestrg%[2]s"
+  name     = "acctestrg%[2]s"
   location = "%[1]s"
 }
 
