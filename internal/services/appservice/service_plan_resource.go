@@ -265,11 +265,8 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					}
 
 					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
-
 					state.Reserved = pointer.From(props.Reserved)
-
 					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
-
 					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				state.Tags = pointer.From(model.Tags)
