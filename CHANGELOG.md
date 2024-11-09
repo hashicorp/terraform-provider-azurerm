@@ -8,6 +8,8 @@ ENHANCEMENTS:
 
 * Data Source: `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
 * `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
+* `azurerm_communication_service` - support for `usgov` region [GH-27919]
+* `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
 
 ## 4.9.0 (November 08, 2024)
 
