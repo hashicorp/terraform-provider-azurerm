@@ -35,7 +35,7 @@ func (id OpenIDConnectProviderId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Open I D Connect Provider", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "OpenID Connect Provider", segmentsStr)
 }
 
 func (id OpenIDConnectProviderId) ID() string {

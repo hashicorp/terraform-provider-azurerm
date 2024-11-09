@@ -35,7 +35,7 @@ func (id ServerDNSAliasId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Server D N S Alias", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "ServerDNS Alias", segmentsStr)
 }
 
 func (id ServerDNSAliasId) ID() string {

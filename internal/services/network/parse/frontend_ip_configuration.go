@@ -35,7 +35,7 @@ func (id FrontendIPConfigurationId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Frontend I P Configuration", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "FrontendIP Configuration", segmentsStr)
 }
 
 func (id FrontendIPConfigurationId) ID() string {
