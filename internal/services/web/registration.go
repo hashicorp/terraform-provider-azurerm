@@ -33,9 +33,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_function_app":                  dataSourceFunctionApp(),
 		"azurerm_function_app_host_keys":        dataSourceFunctionAppHostKeys(),
 	}
-	if !features.FourPointOhBeta() {
-		datasources["azurerm_app_service_environment"] = dataSourceAppServiceEnvironment()
-	}
 	return datasources
 }
 
