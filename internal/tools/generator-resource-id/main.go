@@ -398,7 +398,7 @@ func (id ResourceIdGenerator) codeForDescription() string {
 
 		chars := make([]rune, 0)
 		for i, c := range input {
-			if unicode.IsUpper(c) && unicode.IsLower(rune(input[i+1])) {
+			if unicode.IsUpper(c) && i+1 < len(input) && unicode.IsLower(rune(input[i+1])) {
 				chars = append(chars, ' ')
 			}
 
