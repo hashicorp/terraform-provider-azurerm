@@ -1095,7 +1095,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     azurerm_role_assignment.test_sa1,
     azurerm_key_vault_access_policy.test-policy1,
   ]
-}`, r.template(data), data.RandomInteger) //nolint:dupword
+}`, r.template(data), data.RandomInteger)
 }
 
 func (r WorkspaceResource) featureStore(data acceptance.TestData) string {

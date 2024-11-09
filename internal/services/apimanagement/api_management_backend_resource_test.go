@@ -358,7 +358,7 @@ resource "azurerm_api_management_backend" "test" {
     ]
   }
 }
-`, r.template(data, "sf"), data.RandomInteger) // nolint: dupword
+`, r.template(data, "sf"), data.RandomInteger)
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabricCluster(data acceptance.TestData) string {
@@ -425,7 +425,7 @@ resource "azurerm_api_management_backend" "test" {
     ]
   }
 }
-`, r.template(data, "sf"), data.RandomInteger) // nolint: dupword
+`, r.template(data, "sf"), data.RandomInteger)
 }
 
 func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
