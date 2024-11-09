@@ -421,7 +421,7 @@ func (r CommunicationsGatewayResource) Read() sdk.ResourceFunc {
 				state.Connectivity = string(properties.Connectivity)
 
 				codecsValue := ""
-				if properties.Codecs != nil && len(properties.Codecs) > 0 {
+				if len(properties.Codecs) > 0 {
 					codecsValue = string(properties.Codecs[0])
 				}
 				state.Codecs = codecsValue
