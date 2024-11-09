@@ -525,10 +525,9 @@ func prefixHasMatch(labelToCheck string, prefixToCheck Prefix, labelToPrefixes m
 }
 
 func getPrefixesForNames(names []string) []Prefix {
-
-	var prefixes []Prefix
 	groupedNames := commonPrefixGroups(names)
 
+	prefixes := make([]Prefix, 0, len(groupedNames))
 	for _, group := range groupedNames {
 		prefix := Prefix{
 			Names:        group,

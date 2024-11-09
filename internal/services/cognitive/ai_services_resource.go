@@ -502,7 +502,7 @@ func (AzureAIServicesResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("custom_subdomain_name") {
-				props.Properties.CustomSubDomainName = pointer.FromString(model.CustomSubdomainName)
+				props.Properties.CustomSubDomainName = pointer.To(model.CustomSubdomainName)
 			}
 
 			if metadata.ResourceData.HasChange("fqdns") {

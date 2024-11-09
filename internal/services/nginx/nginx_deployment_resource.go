@@ -384,8 +384,8 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			req := nginxdeployment.NginxDeployment{}
-			req.Name = pointer.FromString(model.Name)
-			req.Location = pointer.FromString(model.Location)
+			req.Name = pointer.To(model.Name)
+			req.Location = pointer.To(model.Location)
 			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
 
 			if model.Sku != "" {
@@ -394,13 +394,13 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
-			prop.ManagedResourceGroup = pointer.FromString(model.ManagedResourceGroup)
+			prop.ManagedResourceGroup = pointer.To(model.ManagedResourceGroup)
 
 			if len(model.LoggingStorageAccount) > 0 {
 				prop.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -415,7 +415,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				var publicIPs []nginxdeployment.NginxPublicIPAddress
 				for _, ip := range public[0].IpAddress {
 					publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
-						Id: pointer.FromString(ip),
+						Id: pointer.To(ip),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
@@ -426,16 +426,16 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				for _, ip := range private {
 					alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
 					privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
-						PrivateIPAddress:          pointer.FromString(ip.IpAddress),
+						PrivateIPAddress:          pointer.To(ip.IpAddress),
 						PrivateIPAllocationMethod: &alloc,
-						SubnetId:                  pointer.FromString(ip.SubnetId),
+						SubnetId:                  pointer.To(ip.SubnetId),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
 			}
 
 			if len(model.NetworkInterface) > 0 {
-				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
+				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.To(model.NetworkInterface[0].SubnetId)
 			}
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
@@ -485,7 +485,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if model.Email != "" {
 				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
@@ -715,8 +715,8 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 				req.Properties.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -751,7 +751,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 

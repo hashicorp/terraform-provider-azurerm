@@ -4,6 +4,7 @@
 package trafficmanager
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -258,12 +259,12 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
 	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&
 		profile.Properties.MaxReturn == nil {
-		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
+		return errors.New("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.Properties.MonitorConfig.IntervalInSeconds == int64(10) &&
 		*profile.Properties.MonitorConfig.TimeoutInSeconds == int64(10) {
-		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+		return errors.New("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, profile); err != nil {

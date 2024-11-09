@@ -378,12 +378,13 @@ func loadBalancingModeDiffSuppress(k, old, new string, d *pluginsdk.ResourceData
 }
 
 func expandAppServiceEnvironmentClusterSettings(input interface{}) *[]web.NameValuePair {
-	var clusterSettings []web.NameValuePair
 	if input == nil {
-		return &clusterSettings
+		return &[]web.NameValuePair{}
 	}
 
 	clusterSettingsRaw := input.([]interface{})
+	clusterSettings := make([]web.NameValuePair, 0, len(clusterSettingsRaw))
+
 	for _, v := range clusterSettingsRaw {
 		setting := v.(map[string]interface{})
 		clusterSettings = append(clusterSettings, web.NameValuePair{

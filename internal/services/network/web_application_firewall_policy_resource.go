@@ -778,7 +778,8 @@ func expanedWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplic
 	if len(input) == 0 {
 		return nil
 	}
-	var res []webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
+
+	res := make([]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, 0)
 	for _, rule := range input {
 		v := rule.(map[string]interface{})
 		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules

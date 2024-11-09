@@ -3,7 +3,7 @@
 
 run:
   timeout: 60m
-  go: 1.21
+  go: 1.22
   modules-download-mode: vendor
   skip-dirs:
     - /sdk/ # Excluding sdk folders as these are externally generated
@@ -37,24 +37,25 @@ linters:
     #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
     #- paralleltest # Detects missing usage of t.Parallel() method in your Go test.
-    #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
-    #- prealloc # Finds slice declarations that could potentially be pre-allocated.
-    #- predeclared # Find code that shadows one of Go's predeclared identifiers.
+    - prealloc # Finds slice declarations that could potentially be pre-allocated.
+    - predeclared # Find code that shadows one of Go's predeclared identifiers.
     - reassign # Checks that package variables are not reassigned.
     #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-    - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
     #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
-    - typecheck # doesn't exist?!>?! XXXXXXXXX
+    - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
     - unused # Checks Go code for unused constants, variables, functions and types.
     - unconvert # Remove unnecessary type conversions.
     - unparam # Reports unused function parameters.
     - wastedassign # Finds wasted assignment statements
     #- wsl Add or remove empty lines.
 
+    ##### DISABLED as i was fixing them with other linters, and not realizing how many there are - disabling for now even thou it is valid
+    #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
+
     #### DISABLED TO DO IN ITS OWN PR - should be enabled and done #####
     #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
 
-    #### REQUIRES GO 1.22 #####
+    #### bunch of hits, need to confirm if errors or not #####
     #- copyloopvar #Detects range loop variables that are overwritten in the loop body
 
     #### DISABLED till %+v -> %w #####
@@ -64,7 +65,7 @@ linters:
     # disabled as it may be useful but there are a lot of switch statements in the codebase with unhandled inputs
     #- exhaustive #Check for missing cases in select statements
 
-    ###### DISABLED because golang will put the space back into //nolint: linter ######
+    ###### DISABLED because golang will put the space back into `//nolint: linter` -> `// nolint: linter` ######
     #- nolintlint  #Reports ill-formed or insufficient nolint directives.
 
     # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
@@ -79,3 +80,6 @@ linters-settings:
       - exportfs
   nakedret:
     max-func-lines: 40
+  predeclared:
+    ignore: new,min,max # should we use newer, minimum, and maximum instead?
+

@@ -466,7 +466,7 @@ func (r SimPolicyResource) Delete() sdk.ResourceFunc {
 }
 
 func expandSliceConfigurationResourceModel(inputList []SliceConfigurationResourceModel) []simpolicy.SliceConfiguration {
-	var outputList []simpolicy.SliceConfiguration
+	outputList := make([]simpolicy.SliceConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := simpolicy.SliceConfiguration{
@@ -490,7 +490,7 @@ func expandSliceConfigurationResourceModel(inputList []SliceConfigurationResourc
 }
 
 func expandDataNetworkConfigurationResourceModel(inputList []DataNetworkConfigurationResourceModel) []simpolicy.DataNetworkConfiguration {
-	var outputList []simpolicy.DataNetworkConfiguration
+	outputList := make([]simpolicy.DataNetworkConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 
@@ -523,7 +523,7 @@ func expandDataNetworkConfigurationResourceModel(inputList []DataNetworkConfigur
 }
 
 func expandSimPolicyAdditionalAllowedSessionTypeResource(inputList []string) *[]simpolicy.PduSessionType {
-	var outputList []simpolicy.PduSessionType
+	outputList := make([]simpolicy.PduSessionType, 0, len(inputList))
 	for _, v := range inputList {
 		outputList = append(outputList, simpolicy.PduSessionType(v))
 	}
@@ -532,7 +532,7 @@ func expandSimPolicyAdditionalAllowedSessionTypeResource(inputList []string) *[]
 }
 
 func expandServiceResourceIdResourceModel(inputList []string) []simpolicy.ServiceResourceId {
-	var outputList []simpolicy.ServiceResourceId
+	outputList := make([]simpolicy.ServiceResourceId, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := simpolicy.ServiceResourceId{

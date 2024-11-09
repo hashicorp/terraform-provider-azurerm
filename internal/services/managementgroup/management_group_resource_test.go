@@ -191,7 +191,7 @@ func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, *id, managementgroups.GetOperationOptions{
-		CacheControl: pointer.FromString("no-cache"),
+		CacheControl: pointer.To("no-cache"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
 		Recurse:      pointer.FromBool(false),
 	})

@@ -400,7 +400,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input []failovergroups
 }
 
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) []failovergroups.PartnerInfo {
-	var partnerServers []failovergroups.PartnerInfo
+	partnerServers := make([]failovergroups.PartnerInfo, 0, len(input))
 	if input == nil {
 		return partnerServers
 	}

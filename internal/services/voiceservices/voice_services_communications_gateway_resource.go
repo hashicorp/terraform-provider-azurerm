@@ -515,7 +515,7 @@ func expandCommunicationsPlatformModel(input []string) []communicationsgateways.
 		return nil
 	}
 
-	var output []communicationsgateways.CommunicationsPlatform
+	output := make([]communicationsgateways.CommunicationsPlatform, 0, len(input))
 	for _, v := range input {
 		platform := communicationsgateways.CommunicationsPlatform(v)
 		output = append(output, platform)

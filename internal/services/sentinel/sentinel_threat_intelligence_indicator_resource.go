@@ -821,7 +821,7 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 }
 
 func expandThreatIntelligenceExternalReferenceModel(inputList []externalReferenceModel) *[]securityinsight.ThreatIntelligenceExternalReference {
-	var outputList []securityinsight.ThreatIntelligenceExternalReference
+	outputList := make([]securityinsight.ThreatIntelligenceExternalReference, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		hashesValue := make(map[string]*string, 0)
@@ -886,7 +886,7 @@ func flattenThreatIntelligenceExternalReferenceModel(input *[]securityinsight.Th
 }
 
 func expandThreatIntelligenceGranularMarkingModelModel(inputList []granularMarkingModel) *[]azuresdkhacks.ThreatIntelligenceGranularMarkingModel {
-	var outputList []azuresdkhacks.ThreatIntelligenceGranularMarkingModel
+	outputList := make([]azuresdkhacks.ThreatIntelligenceGranularMarkingModel, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := azuresdkhacks.ThreatIntelligenceGranularMarkingModel{
@@ -926,7 +926,7 @@ func flattenThreatIntelligenceGranularMarkingModelModel(input *[]azuresdkhacks.T
 }
 
 func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel) *[]securityinsight.ThreatIntelligenceKillChainPhase {
-	var outputList []securityinsight.ThreatIntelligenceKillChainPhase
+	outputList := make([]securityinsight.ThreatIntelligenceKillChainPhase, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := securityinsight.ThreatIntelligenceKillChainPhase{

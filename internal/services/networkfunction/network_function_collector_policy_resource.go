@@ -313,7 +313,7 @@ func collectorPolicyDeletedRefreshFunc(ctx context.Context, client *collectorpol
 }
 
 func expandEmissionPoliciesPropertiesFormatModelArray(inputList []IpfxEmissionModel) *[]collectorpolicies.EmissionPoliciesPropertiesFormat {
-	var outputList []collectorpolicies.EmissionPoliciesPropertiesFormat
+	outputList := make([]collectorpolicies.EmissionPoliciesPropertiesFormat, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := collectorpolicies.EmissionPoliciesPropertiesFormat{
@@ -328,7 +328,7 @@ func expandEmissionPoliciesPropertiesFormatModelArray(inputList []IpfxEmissionMo
 }
 
 func expandEmissionPolicyDestinationModelArray(inputList []string) *[]collectorpolicies.EmissionPolicyDestination {
-	var outputList []collectorpolicies.EmissionPolicyDestination
+	outputList := make([]collectorpolicies.EmissionPolicyDestination, 0, len(inputList))
 	for _, v := range inputList {
 		output := collectorpolicies.EmissionPolicyDestination{
 			DestinationType: pointer.To(collectorpolicies.DestinationType(v)),
@@ -345,7 +345,7 @@ func expandIngestionSourcesPropertiesFormatModelArray(inputList []IpfxIngestionM
 		return nil
 	}
 
-	var outputList []collectorpolicies.IngestionSourcesPropertiesFormat
+	outputList := make([]collectorpolicies.IngestionSourcesPropertiesFormat, 0, len(inputList))
 	for _, v := range inputList[0].SourceResourceIds {
 		output := collectorpolicies.IngestionSourcesPropertiesFormat{
 			SourceType: pointer.To(collectorpolicies.SourceTypeResource),

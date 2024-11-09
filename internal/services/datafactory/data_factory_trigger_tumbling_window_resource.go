@@ -439,7 +439,7 @@ func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.Basi
 		return nil
 	}
 
-	var result []datafactory.BasicDependencyReference
+	result := make([]datafactory.BasicDependencyReference, 0, len(input))
 	for _, item := range input {
 		raw := item.(map[string]interface{})
 

@@ -103,9 +103,9 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 
 			req := nginxcertificate.NginxCertificate{
 				Properties: &nginxcertificate.NginxCertificateProperties{
-					CertificateVirtualPath: pointer.FromString(model.CertificateVirtualPath),
-					KeyVaultSecretId:       pointer.FromString(model.KeyVaultSecretId),
-					KeyVirtualPath:         pointer.FromString(model.KeyVirtualPath),
+					CertificateVirtualPath: pointer.To(model.CertificateVirtualPath),
+					KeyVaultSecretId:       pointer.To(model.KeyVaultSecretId),
+					KeyVirtualPath:         pointer.To(model.KeyVirtualPath),
 				},
 			}
 
@@ -148,7 +148,7 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 			// have to pass all existing properties to update
 			upd := existing.Model
 			if meta.ResourceData.HasChange("key_virtual_path") {
-				upd.Properties.KeyVirtualPath = pointer.FromString(model.KeyVirtualPath)
+				upd.Properties.KeyVirtualPath = pointer.To(model.KeyVirtualPath)
 			}
 
 			if meta.ResourceData.HasChange("certificate_virtual_path") {
