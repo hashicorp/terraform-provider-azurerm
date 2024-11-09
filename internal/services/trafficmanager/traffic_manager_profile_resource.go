@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +26,7 @@ import (
 )
 
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
@@ -195,19 +194,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["profile_status"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(profiles.ProfileStatusEnabled),
-				string(profiles.ProfileStatusDisabled),
-			}, false),
-		}
-	}
-	return resource
 }
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {

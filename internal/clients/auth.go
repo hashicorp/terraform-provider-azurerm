@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -99,19 +98,6 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 			}
 			tenantId = cli.TenantID
 			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
-		}
-
-		// TODO: remove this in v4.0
-		if !features.FourPointOhBeta() {
-			// Use the subscription ID from Azure CLI when otherwise unknown
-			if subscriptionId == "" {
-				if cli.DefaultSubscriptionID == "" {
-					return nil, errors.New("azure-cli could not determine subscription ID to use and no subscription was specified")
-				}
-
-				subscriptionId = cli.DefaultSubscriptionID
-				log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
-			}
 		}
 
 		// Use the Azure CLI client ID

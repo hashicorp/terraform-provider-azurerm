@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +29,7 @@ import (
 )
 
 func resourceStreamAnalyticsJob() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceStreamAnalyticsJobCreateUpdate,
 		Read:   resourceStreamAnalyticsJobRead,
 		Update: resourceStreamAnalyticsJobCreateUpdate,
@@ -210,16 +209,6 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["data_locale"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-	return resource
 }
 
 func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
