@@ -256,7 +256,6 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 				if scheduleTriggerProps.Description != nil {
 					model.Description = *scheduleTriggerProps.Description
 				}
-
 			}
 			if err := metadata.Encode(&model); err != nil {
 				return fmt.Errorf("encoding: %+v", err)

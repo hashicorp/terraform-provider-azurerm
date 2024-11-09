@@ -269,7 +269,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {

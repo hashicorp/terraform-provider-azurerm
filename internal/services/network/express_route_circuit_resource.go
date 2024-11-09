@@ -267,7 +267,6 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s : %s", id, err)
-
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {

@@ -208,7 +208,6 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
 
 		if ok && len(anfAccountIdentity) > 0 {
-
 			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
 			if err != nil {
 				return err

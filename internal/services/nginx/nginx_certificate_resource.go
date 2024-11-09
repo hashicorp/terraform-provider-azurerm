@@ -124,7 +124,6 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-
 			client := meta.Client.Nginx.NginxCertificate
 			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {

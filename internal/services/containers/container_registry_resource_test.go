@@ -511,7 +511,6 @@ resource "azurerm_container_registry" "test" {
   sku                 = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
-
 }
 
 func (r ContainerRegistryResource) requiresImport(data acceptance.TestData, sku string) string {

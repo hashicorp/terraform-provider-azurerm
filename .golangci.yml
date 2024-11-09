@@ -69,7 +69,7 @@ linters:
     #- nolintlint  #Reports ill-formed or insufficient nolint directives.
 
     # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
-    #- whitespace #checks for unnecessary newlines at the start and end of functions, if, for, etc.
+    - whitespace #checks for unnecessary newlines at the start and end of functions, if, for, etc.
 
 linters-settings:
   errcheck:

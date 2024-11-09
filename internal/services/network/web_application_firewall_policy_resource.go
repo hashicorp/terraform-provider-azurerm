@@ -1134,7 +1134,6 @@ func flattenWebApplicationFirewallPolicyLogScrubbingRules(rules *[]webapplicatio
 		result = append(result, item)
 	}
 	return &result
-
 }
 
 func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicationfirewallpolicies.ManagedRulesDefinition) []interface{} {

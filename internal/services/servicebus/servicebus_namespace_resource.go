@@ -712,7 +712,6 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 			!trustedServiceEnabled &&
 			len(networkRules) == 0 &&
 			len(ipRules) == 0 {
-
 			return []interface{}{}
 		}
 	}

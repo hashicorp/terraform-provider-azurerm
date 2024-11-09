@@ -128,7 +128,6 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if serviceProviders.Value == nil {
-
 		return errors.New("no service providers were returned from the Azure API")
 	}
 

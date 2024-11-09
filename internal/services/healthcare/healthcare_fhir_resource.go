@@ -600,9 +600,7 @@ func flattenFhirAccessPolicy(policies *[]fhirservices.FhirServiceAccessPolicyEnt
 	}
 
 	for _, policy := range *policies {
-
 		result = append(result, policy.ObjectId)
-
 	}
 	return result
 }

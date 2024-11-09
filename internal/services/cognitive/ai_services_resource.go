@@ -637,7 +637,6 @@ func expandAzureAIServicesCustomerManagedKey(input []AzureAIServicesCustomerMana
 		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
 	}
 	return encryption, nil
-
 }
 
 func flattenAzureAIServicesCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]AzureAIServicesCustomerManagedKey, error) {

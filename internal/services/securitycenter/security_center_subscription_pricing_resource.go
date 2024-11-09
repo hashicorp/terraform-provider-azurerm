@@ -284,7 +284,6 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 	}
 
 	for extensionName, toBeEnabled := range extensionStatuses {
-
 		isEnabled := pricings_v2023_01_01.IsEnabledFalse
 		if toBeEnabled {
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue

@@ -419,7 +419,6 @@ func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRul
 func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interface{}, error) {
 	rules := make([]interface{}, 0, len(input))
 	for _, accessRule := range input {
-
 		anonymousUID := 0
 		if accessRule.AnonymousUID != nil {
 			var err error

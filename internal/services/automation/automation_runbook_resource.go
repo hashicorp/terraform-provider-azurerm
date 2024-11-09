@@ -308,7 +308,6 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-
 		location := azure.NormalizeLocation(d.Get("location").(string))
 		t := d.Get("tags").(map[string]interface{})
 

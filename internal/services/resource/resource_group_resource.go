@@ -130,7 +130,6 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				}
 
 				return true, "Done", nil
-
 			},
 		}
 

@@ -710,7 +710,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
-
 			}
 
 			if !features.FourPointOhBeta() {

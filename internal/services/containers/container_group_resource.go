@@ -1274,7 +1274,6 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
 					container.Properties.Resources.Limits.Gpu.Sku = v
 				}
-
 			}
 		}
 

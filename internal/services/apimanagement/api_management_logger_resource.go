@@ -325,7 +325,6 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 		if clientId != "" {
 			credentials["identityClientId"] = clientId
 		}
-
 	}
 
 	return &credentials

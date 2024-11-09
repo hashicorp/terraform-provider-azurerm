@@ -589,7 +589,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("external_reference") {
 				properties.ExternalReferences = expandThreatIntelligenceExternalReferenceModel(model.ExternalRefrence)
-
 			}
 
 			if metadata.ResourceData.HasChange("granular_marking") {

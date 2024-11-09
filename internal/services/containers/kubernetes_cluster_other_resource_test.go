@@ -1694,7 +1694,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) linuxProfileConfig(data acceptance.TestData, keyData string) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3605,7 +3604,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) customCATrustCertificates(data acceptance.TestData, certsList []string) string {
-
 	certsString := ""
 
 	if certsList != nil {

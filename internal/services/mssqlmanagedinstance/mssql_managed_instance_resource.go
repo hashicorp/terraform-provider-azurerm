@@ -484,7 +484,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			model := MsSqlManagedInstanceModel{}
 
 			if existing.Model != nil {
-
 				model = MsSqlManagedInstanceModel{
 					Name:              id.ManagedInstanceName,
 					Location:          location.NormalizeNilable(&existing.Model.Location),

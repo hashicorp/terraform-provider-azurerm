@@ -362,7 +362,6 @@ func (r SimPolicyResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("default_slice") {
 				model.Properties.DefaultSlice = simpolicy.SliceResourceId{Id: plan.DefaultSliceId}
-
 			}
 
 			if metadata.ResourceData.HasChange("registration_timer_in_seconds") {

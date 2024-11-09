@@ -335,7 +335,6 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
-
 			d.Set("address_prefix", props.AddressPrefix)
 			d.Set("sku", props.Sku)
 

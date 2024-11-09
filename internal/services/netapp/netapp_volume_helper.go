@@ -23,7 +23,6 @@ import (
 )
 
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
-
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
@@ -31,7 +30,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-
 		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed

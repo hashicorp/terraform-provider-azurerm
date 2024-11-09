@@ -324,7 +324,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			if existing.Model != nil {
-
 				model.Tags = pointer.From(existing.Model.Tags)
 
 				if props := existing.Model.Properties; props != nil {
@@ -343,7 +342,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 					}}
 
 					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
-
 				}
 			}
 

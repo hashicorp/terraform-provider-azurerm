@@ -246,7 +246,6 @@ func (r NetworkFunctionCollectorPolicyResource) Read() sdk.ResourceFunc {
 					if properties.IngestionPolicy != nil {
 						state.IpfxIngestion = flattenIngestionSourcesPropertiesFormatModelArray(properties.IngestionPolicy.IngestionSources)
 					}
-
 				}
 
 				state.Tags = tags.Flatten(model.Tags)
