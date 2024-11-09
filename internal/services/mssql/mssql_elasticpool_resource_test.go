@@ -55,14 +55,12 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MsSqlElasticPoolResource{}
 
-	maintenance_configuration_name := ""
+	maintenance_configuration_name := "SQL_Default"
 	switch data.Locations.Primary {
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
 		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
-	default:
-		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
