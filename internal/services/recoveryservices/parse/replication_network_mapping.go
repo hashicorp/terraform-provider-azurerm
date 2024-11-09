@@ -6,7 +6,6 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -63,11 +62,11 @@ func ReplicationNetworkMappingID(input string) (*ReplicationNetworkMappingId, er
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, errors.New("ID was missing the 'subscriptions' element")
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, errors.New("ID was missing the 'resourceGroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.VaultName, err = id.PopSegment("vaults"); err != nil {

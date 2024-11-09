@@ -6,7 +6,6 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -50,7 +49,7 @@ func SubscriptionPolicyRemediationID(input string) (*SubscriptionPolicyRemediati
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, errors.New("ID was missing the 'subscriptions' element")
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.RemediationName, err = id.PopSegment("remediations"); err != nil {

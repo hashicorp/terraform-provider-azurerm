@@ -6,7 +6,6 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -54,11 +53,11 @@ func FrontDoorID(input string) (*FrontDoorId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, errors.New("ID was missing the 'subscriptions' element")
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, errors.New("ID was missing the 'resourceGroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("frontDoors"); err != nil {
@@ -90,11 +89,11 @@ func FrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, errors.New("ID was missing the 'subscriptions' element")
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, errors.New("ID was missing the 'resourceGroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'frontDoors' segment
