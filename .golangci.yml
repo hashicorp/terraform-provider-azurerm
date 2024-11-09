@@ -32,7 +32,6 @@ linters:
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
     - ineffassign # detects when assignments to existing variables are not used
     - misspell # finds commonly misspelled English words.
-    #- nakedret # Checks that functions with naked returns are not longer than a maximum size
     #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
     #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
@@ -48,13 +47,16 @@ linters:
     - unparam # reports unused function parameters.
     - wastedassign # finds wasted assignment statements
     - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
-    #- wsl Add or remove empty lines.
+    #- wsl # add or remove empty lines.
 
     ###### DISABLED because : integer overflow conversion int -> int32
     # - gosec # Gosec is a security linter for Go source code
 
     ##### DISABLED as i was fixing them with other linters, and not realizing how many there are - disabling for now even thou it is valid
     #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
+
+    #### VALID but DISABLED as we have a lot of these in the codebase to switch over
+    #- nakedret # Checks that functions with naked returns are not longer than a maximum size
 
     #### DISABLED TO DO IN ITS OWN PR - should be enabled and done #####
     #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
@@ -80,7 +82,7 @@ linters-settings:
       - hdinsight
       - exportfs
   nakedret:
-    max-func-lines: 40
+    max-func-lines: 30
   tagalign:
     sort: true
     order:
