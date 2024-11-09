@@ -62,7 +62,7 @@ func (EmailCommunicationServiceResource) Arguments() map[string]*pluginsdk.Schem
 				"UAE",
 				"UK",
 				"United States",
-				"usgov"
+				"usgov",
 			}, false),
 		},
 
