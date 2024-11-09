@@ -29,7 +29,6 @@ linters:
     #- gofumpt # Gofumpt is a stricter gofmt
     - goimports # Check import statements are formatted according to the 'goimport' command
     - gosimple # Linter for Go source code that specializes in simplifying code.
-    #- gosec # Gosec is a security linter for Go source code
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
     - ineffassign # Detects when assignments to existing variables are not used
     - misspell # Finds commonly misspelled English words.
@@ -42,12 +41,16 @@ linters:
     - reassign # Checks that package variables are not reassigned.
     #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
     #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
+    #- tagalign # Tagalign checks struct tags that do not align with the specified column in struct definitions.
     - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
     - unused # Checks Go code for unused constants, variables, functions and types.
     - unconvert # Remove unnecessary type conversions.
     - unparam # Reports unused function parameters.
     - wastedassign # Finds wasted assignment statements
     #- wsl Add or remove empty lines.
+
+    ###### DISABLED because : integer overflow conversion int -> int32
+    # - gosec # Gosec is a security linter for Go source code
 
     ##### DISABLED as i was fixing them with other linters, and not realizing how many there are - disabling for now even thou it is valid
     #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
