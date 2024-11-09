@@ -30,7 +30,7 @@ func NewLoadBalancerFrontendIpConfigurationID(subscriptionId, resourceGroup, loa
 
 func (id LoadBalancerFrontendIpConfigurationId) String() string {
 	segments := []string{
-		fmt.Sprintf("Frontend I P Configuration Name %q", id.FrontendIPConfigurationName),
+		fmt.Sprintf("FrontendIP Configuration Name %q", id.FrontendIPConfigurationName),
 		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
