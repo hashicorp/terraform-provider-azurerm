@@ -18,35 +18,36 @@ linters:
   disable-all: true
   enable:
     - asasalint # check for pass []any as any in variadic func(...any)
-    - asciicheck # code does not contain non-ASCII identifiers
-    - bidichk # Checks for dangerous unicode character sequences
-    - decorder # Check declaration order and count of types, constants, variables and functions.
-    - durationcheck # Check for common mistakes when working with time.Duration
-    - dupword #Check for duplicated words in comments
+    - asciicheck # ensure code does not contain non-ASCII identifiers
+    - bidichk # checks for dangerous unicode character sequences
+    - decorder # check declaration order and count of types, constants, variables and functions.
+    - durationcheck # check for common mistakes when working with time.Duration
+    - dupword # check for duplicated words in comments
     - errcheck # checking for unchecked errors
-    - gocritic # Linter for Go source code that specializes in simplifying code
-    - gofmt # Gofmt checks whether code was gofmt-ed
+    - gocritic # linter for Go source code that specializes in simplifying code
+    - gofmt # checks whether code was gofmt-ed
     #- gofumpt # Gofumpt is a stricter gofmt
-    - goimports # Check import statements are formatted according to the 'goimport' command
-    - gosimple # Linter for Go source code that specializes in simplifying code.
+    - goimports # check import statements are formatted according to the 'goimport' command
+    - gosimple # linter for Go source code that specializes in simplifying code.
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
-    - ineffassign # Detects when assignments to existing variables are not used
-    - misspell # Finds commonly misspelled English words.
+    - ineffassign # detects when assignments to existing variables are not used
+    - misspell # finds commonly misspelled English words.
     #- nakedret # Checks that functions with naked returns are not longer than a maximum size
     #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
-    #- paralleltest # Detects missing usage of t.Parallel() method in your Go test.
-    - prealloc # Finds slice declarations that could potentially be pre-allocated.
-    - predeclared # Find code that shadows one of Go's predeclared identifiers.
-    - reassign # Checks that package variables are not reassigned.
+    #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
+    - prealloc # finds slice declarations that could potentially be pre-allocated.
+    - predeclared # find code that shadows one of Go's predeclared identifiers.
+    - reassign # checks that package variables are not reassigned.
     #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
     #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
-    #- tagalign # Tagalign checks struct tags that do not align with the specified column in struct definitions.
-    - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
-    - unused # Checks Go code for unused constants, variables, functions and types.
-    - unconvert # Remove unnecessary type conversions.
-    - unparam # Reports unused function parameters.
-    - wastedassign # Finds wasted assignment statements
+    - tagalign #  checks struct tags that do not align with the specified column in struct definitions.
+    - staticcheck # checks rules from staticcheck. It's not the same thing as the staticcheck binary.
+    - unused # checks Go code for unused constants, variables, functions and types.
+    - unconvert # checks for unnecessary type conversions.
+    - unparam # reports unused function parameters.
+    - wastedassign # finds wasted assignment statements
+    - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
     #- wsl Add or remove empty lines.
 
     ###### DISABLED because : integer overflow conversion int -> int32
@@ -71,9 +72,6 @@ linters:
     ###### DISABLED because golang will put the space back into `//nolint: linter` -> `// nolint: linter` ######
     #- nolintlint  #Reports ill-formed or insufficient nolint directives.
 
-    # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
-    - whitespace #checks for unnecessary newlines at the start and end of functions, if, for, etc.
-
 linters-settings:
   errcheck:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
@@ -83,6 +81,16 @@ linters-settings:
       - exportfs
   nakedret:
     max-func-lines: 40
+  tagalign:
+    sort: true
+    order:
+      - json
+      - tfschema
+      - computed
   predeclared:
     ignore: new,min,max # should we use newer, minimum, and maximum instead?
+  revive:
+    rules:
+      - name: var-naming
+        disabled: true
 
