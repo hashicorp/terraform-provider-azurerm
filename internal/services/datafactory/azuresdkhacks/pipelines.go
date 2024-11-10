@@ -62,7 +62,7 @@ func (client PipelinesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 			}},
 		},
 	}); err != nil {
-		return result, validation.NewError("datafactory.PipelinesClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("datafactory.PipelinesClient", "CreateOrUpdate", err.Error()) // nolint: govet
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, factoryName, pipelineName, pipeline, ifMatch)
@@ -152,7 +152,7 @@ func (client PipelinesClient) Get(ctx context.Context, resourceGroupName string,
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("datafactory.PipelinesClient", "Get", err.Error())
+		return result, validation.NewError("datafactory.PipelinesClient", "Get", err.Error()) // nolint: govet
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, factoryName, pipelineName, ifNoneMatch)

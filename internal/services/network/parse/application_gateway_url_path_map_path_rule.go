@@ -38,7 +38,7 @@ func (id ApplicationGatewayURLPathMapPathRuleId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Application Gateway U R L Path Map Path Rule", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Application GatewayURL Path Map Path Rule", segmentsStr)
 }
 
 func (id ApplicationGatewayURLPathMapPathRuleId) ID() string {

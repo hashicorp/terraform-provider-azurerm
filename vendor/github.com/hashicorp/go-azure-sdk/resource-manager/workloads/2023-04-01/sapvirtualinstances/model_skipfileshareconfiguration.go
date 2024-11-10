@@ -13,6 +13,14 @@ var _ FileShareConfiguration = SkipFileShareConfiguration{}
 type SkipFileShareConfiguration struct {
 
 	// Fields inherited from FileShareConfiguration
+
+	ConfigurationType ConfigurationType `json:"configurationType"`
+}
+
+func (s SkipFileShareConfiguration) FileShareConfiguration() BaseFileShareConfigurationImpl {
+	return BaseFileShareConfigurationImpl{
+		ConfigurationType: s.ConfigurationType,
+	}
 }
 
 var _ json.Marshaler = SkipFileShareConfiguration{}
@@ -26,9 +34,10 @@ func (s SkipFileShareConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SkipFileShareConfiguration: %+v", err)
 	}
+
 	decoded["configurationType"] = "Skip"
 
 	encoded, err = json.Marshal(decoded)

@@ -45,7 +45,6 @@ func (c ActivityLogAlertsAPIsClient) ActivityLogAlertsGet(ctx context.Context, i
 
 	var model ActivityLogAlertResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

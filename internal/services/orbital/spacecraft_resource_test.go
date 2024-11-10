@@ -119,7 +119,7 @@ func (r SpacecraftResource) update(data acceptance.TestData) string {
 resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "eastus"
+  location            = "westus"
   norad_id            = "23456"
 
   links {

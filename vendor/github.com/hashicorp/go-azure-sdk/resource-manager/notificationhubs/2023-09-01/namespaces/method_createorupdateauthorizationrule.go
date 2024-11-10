@@ -50,7 +50,6 @@ func (c NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Context, i
 
 	var model SharedAccessAuthorizationRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

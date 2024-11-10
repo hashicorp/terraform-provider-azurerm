@@ -571,8 +571,8 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := existing.Model.Properties; props != nil {
-				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
-				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
+				model.GroupDescription = pointer.From(props.GroupMetaData.GroupDescription)
+				model.ApplicationIdentifier = pointer.From(props.GroupMetaData.ApplicationIdentifier)
 
 				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
 				if err != nil {

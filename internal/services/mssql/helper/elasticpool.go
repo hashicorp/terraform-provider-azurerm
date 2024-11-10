@@ -4,6 +4,7 @@
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -214,6 +215,21 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			40: 4096,
 			80: 4096,
 		},
+		"PRMS": {
+			4:  1024,
+			6:  1536,
+			8:  2048,
+			10: 2048,
+			12: 3072,
+			14: 3072,
+			16: 3072,
+			18: 3072,
+			20: 3072,
+			24: 4096,
+			32: 4096,
+			40: 4096,
+			80: 4096,
+		},
 	},
 }
 
@@ -387,7 +403,7 @@ func buildErrorString(stub string, m map[int]float64) string {
 
 func doDTUSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getDTUCapacityErrorMsg(s))
+		return errors.New(getDTUCapacityErrorMsg(s))
 	}
 
 	if strings.EqualFold(s.Name, "BasicPool") {
@@ -407,7 +423,7 @@ func doDTUSKUValidation(s sku) error {
 
 		// Check to see if the max_size_gb value is valid for this SKU type and capacity
 		if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
-			return fmt.Errorf(getDTUNotValidSizeErrorMsg(s))
+			return errors.New(getDTUNotValidSizeErrorMsg(s))
 		}
 	}
 
@@ -425,7 +441,7 @@ func doDTUSKUValidation(s sku) error {
 
 func doVCoreSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getVCoreCapacityErrorMsg(s))
+		return errors.New(getVCoreCapacityErrorMsg(s))
 	}
 
 	if s.MaxSizeGb > s.MaxAllowedGB {

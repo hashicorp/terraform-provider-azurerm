@@ -1034,7 +1034,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 			Status: &status,
 			SourceRepository: tasks.SourceProperties{
 				SourceControlType: tasks.SourceControlType(trigger.SourceType),
-				RepositoryUrl:     trigger.RepositoryURL,
+				RepositoryURL:     trigger.RepositoryURL,
 			},
 		}
 		if len(trigger.Events) != 0 {
@@ -1076,7 +1076,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 		}
 
 		obj.SourceType = string(trigger.SourceRepository.SourceControlType)
-		obj.RepositoryURL = trigger.SourceRepository.RepositoryUrl
+		obj.RepositoryURL = trigger.SourceRepository.RepositoryURL
 		if trigger.SourceRepository.Branch != nil {
 			obj.Branch = *trigger.SourceRepository.Branch
 		}

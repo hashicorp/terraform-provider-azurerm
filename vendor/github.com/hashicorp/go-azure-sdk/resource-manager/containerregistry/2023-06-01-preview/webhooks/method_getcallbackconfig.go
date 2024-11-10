@@ -46,7 +46,6 @@ func (c WebHooksClient) GetCallbackConfig(ctx context.Context, id WebHookId) (re
 
 	var model CallbackConfig
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

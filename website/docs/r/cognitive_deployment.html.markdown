@@ -36,7 +36,7 @@ resource "azurerm_cognitive_deployment" "example" {
   }
 
   sku {
-    type = "Standard"
+    name = "Standard"
   }
 }
 
@@ -72,7 +72,7 @@ A `model` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU. Possible values include `Standard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
+* `name` - (Required) The name of the SKU. Possible values include `Standard`, `DataZoneStandard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
 
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
 

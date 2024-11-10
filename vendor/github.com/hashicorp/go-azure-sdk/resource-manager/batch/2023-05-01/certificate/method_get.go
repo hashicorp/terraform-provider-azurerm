@@ -45,7 +45,6 @@ func (c CertificateClient) Get(ctx context.Context, id CertificateId) (result Ge
 
 	var model Certificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

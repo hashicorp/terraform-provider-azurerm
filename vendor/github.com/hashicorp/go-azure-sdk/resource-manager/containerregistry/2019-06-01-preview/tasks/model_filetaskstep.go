@@ -16,9 +16,20 @@ type FileTaskStep struct {
 	ValuesFilePath *string     `json:"valuesFilePath,omitempty"`
 
 	// Fields inherited from TaskStepProperties
+
 	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
 	ContextAccessToken    *string                `json:"contextAccessToken,omitempty"`
 	ContextPath           *string                `json:"contextPath,omitempty"`
+	Type                  StepType               `json:"type"`
+}
+
+func (s FileTaskStep) TaskStepProperties() BaseTaskStepPropertiesImpl {
+	return BaseTaskStepPropertiesImpl{
+		BaseImageDependencies: s.BaseImageDependencies,
+		ContextAccessToken:    s.ContextAccessToken,
+		ContextPath:           s.ContextPath,
+		Type:                  s.Type,
+	}
 }
 
 var _ json.Marshaler = FileTaskStep{}
@@ -32,9 +43,10 @@ func (s FileTaskStep) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling FileTaskStep: %+v", err)
 	}
+
 	decoded["type"] = "FileTask"
 
 	encoded, err = json.Marshal(decoded)

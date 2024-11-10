@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VolumeSpecNameSapHana string
@@ -142,7 +141,7 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		// Validating that data-backup and log-backup don't have PPG defined
 		if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaDataBackup)) ||
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLogBackup))) &&
-			utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) != "" {
+			pointer.From(volume.Properties.ProximityPlacementGroup) != "" {
 
 			errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
 		}
@@ -151,7 +150,7 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaData)) ||
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLog)) ||
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaShared))) &&
-			utils.NormalizeNilableString(volume.Properties.ProximityPlacementGroup) == "" {
+			pointer.From(volume.Properties.ProximityPlacementGroup) == "" {
 
 			errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
 		}

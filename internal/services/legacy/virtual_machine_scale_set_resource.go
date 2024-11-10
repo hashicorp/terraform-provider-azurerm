@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -1145,8 +1145,8 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(config *virtualm
 			listener := make(map[string]interface{})
 			listener["protocol"] = i.Protocol
 
-			if i.CertificateUrl != nil {
-				listener["certificate_url"] = *i.CertificateUrl
+			if i.CertificateURL != nil {
+				listener["certificate_url"] = *i.CertificateURL
 			}
 
 			listeners = append(listeners, listener)
@@ -1187,7 +1187,7 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets *[]virtualmach
 			certs := make([]map[string]interface{}, 0, len(*secret.VaultCertificates))
 			for _, cert := range *secret.VaultCertificates {
 				vaultCert := make(map[string]interface{})
-				vaultCert["certificate_url"] = *cert.CertificateUrl
+				vaultCert["certificate_url"] = *cert.CertificateURL
 
 				if cert.CertificateStore != nil {
 					vaultCert["certificate_store"] = *cert.CertificateStore
@@ -2105,7 +2105,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 					Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(protocol)),
 				}
 				if v := config["certificate_url"].(string); v != "" {
-					winRmListener.CertificateUrl = &v
+					winRmListener.CertificateURL = &v
 				}
 
 				winRmListeners = append(winRmListeners, winRmListener)
@@ -2166,7 +2166,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileSecrets(d *pluginsdk.ResourceDa
 
 				certUrl := config["certificate_url"].(string)
 				cert := virtualmachinescalesets.VaultCertificate{
-					CertificateUrl: &certUrl,
+					CertificateURL: &certUrl,
 				}
 				if v := config["certificate_store"].(string); v != "" {
 					cert.CertificateStore = &v

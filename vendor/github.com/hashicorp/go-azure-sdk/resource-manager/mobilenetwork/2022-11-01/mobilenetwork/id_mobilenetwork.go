@@ -42,7 +42,7 @@ func ParseMobileNetworkID(input string) (*MobileNetworkId, error) {
 	}
 
 	id := MobileNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseMobileNetworkIDInsensitively(input string) (*MobileNetworkId, error) {
 	}
 
 	id := MobileNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id MobileNetworkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticMobileNetworks", "mobileNetworks", "mobileNetworks"),
-		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkValue"),
+		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkName"),
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -518,17 +518,6 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keys, err := client.AccountsListKeys(ctx, *id)
-	if err != nil {
-		// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
-		return fmt.Errorf("listing the Keys for %s: %+v", *id, err)
-	}
-
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.Key1)
-		d.Set("secondary_access_key", model.Key2)
-	}
-
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -590,6 +579,19 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				localAuthEnabled = !*props.DisableLocalAuth
 			}
 			d.Set("local_auth_enabled", localAuthEnabled)
+
+			if localAuthEnabled {
+				keys, err := client.AccountsListKeys(ctx, *id)
+				if err != nil {
+					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
+					return fmt.Errorf("listing the Keys for %s: %+v", *id, err)
+				}
+
+				if model := keys.Model; model != nil {
+					d.Set("primary_access_key", model.Key1)
+					d.Set("secondary_access_key", model.Key2)
+				}
+			}
 
 			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
 			if err != nil {

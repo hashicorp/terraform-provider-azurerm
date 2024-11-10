@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 const (
@@ -383,7 +383,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
@@ -392,9 +392,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
-				Key:                  strings.TrimPrefix(utils.NormalizeNilableString(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
+				Key:                  strings.TrimPrefix(pointer.From(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
 				Name:                 fv.ID,
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Label:                pointer.From(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
@@ -444,7 +444,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}

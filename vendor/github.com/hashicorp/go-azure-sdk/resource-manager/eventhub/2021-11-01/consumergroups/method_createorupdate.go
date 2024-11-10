@@ -49,7 +49,6 @@ func (c ConsumerGroupsClient) CreateOrUpdate(ctx context.Context, id ConsumerGro
 
 	var model ConsumerGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
