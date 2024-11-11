@@ -649,6 +649,16 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {
+				var retentionInDays int64
+				if policies.RetentionPolicy != nil && policies.RetentionPolicy.Status != nil && *policies.RetentionPolicy.Status == registries.PolicyStatusEnabled {
+					retentionInDays = pointer.From(policies.RetentionPolicy.Days)
+				}
+				d.Set("retention_policy_in_days", retentionInDays)
+
+				if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
+					policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
+					d.Set("trust_policy_enabled", policyEnabled)
+				}
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
 
