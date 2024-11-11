@@ -253,6 +253,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if files := prop.Files; files != nil {
+					output.ConfigFile = []ConfigFile{}
 					for _, file := range *files {
 						output.ConfigFile = append(output.ConfigFile, ConfigFile{
 							Content:     pointer.ToString(file.Content),
@@ -263,6 +264,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 
 				// GET does not return protected files
 				if files := prop.ProtectedFiles; files != nil {
+					output.ProtectedFile = []ProtectedFile{}
 					for _, file := range *files {
 						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
 							Content:     pointer.ToString(file.Content),
