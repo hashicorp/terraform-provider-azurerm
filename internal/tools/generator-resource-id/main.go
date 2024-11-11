@@ -1002,8 +1002,7 @@ func Test%[1]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[2]s
+	}{%[2]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
