@@ -35,7 +35,6 @@ type EventGridNamespaceResourceModel struct {
 	PublicNetworkAccess      string                                     `tfschema:"public_network_access"`
 	Sku                      string                                     `tfschema:"sku"`
 	TopicSpacesConfiguration []TopicSpacesConfigurationModel            `tfschema:"topic_spaces_configuration"`
-	ZoneRedundant            bool                                       `tfschema:"zone_redundant"`
 	Tags                     map[string]string                          `tfschema:"tags"`
 }
 
@@ -198,13 +197,6 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zone_redundant": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -257,7 +249,6 @@ func (r EventGridNamespaceResource) Create() sdk.ResourceFunc {
 				Name:     pointer.To(model.Name),
 				Properties: &namespaces.NamespaceProperties{
 					InboundIPRules:      expandInboundIPRules(model.InboundIpRules),
-					IsZoneRedundant:     pointer.To(model.ZoneRedundant),
 					PublicNetworkAccess: pointer.To(namespaces.PublicNetworkAccess(model.PublicNetworkAccess)),
 				},
 				Sku: &namespaces.NamespaceSku{
@@ -382,7 +373,6 @@ func (r EventGridNamespaceResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
-					state.ZoneRedundant = pointer.From(props.IsZoneRedundant)
 					topicSpacesConfig, err := flattenTopicSpacesConfiguration(props.TopicSpacesConfiguration)
 					if err != nil {
 						return fmt.Errorf("flattening `topic_spaces_configuration`: %v", err)

@@ -52,8 +52,6 @@ The following arguments are supported:
 
 * `topic_spaces_configuration` - (Optional) A `topic_spaces_configuration` block as defined below.
 
-* `zone_redundant` - (Optional) Whether or not the Event Grid Namespace is zone redundant. Defaults to `true`. Changing this forces a new resource to be created.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

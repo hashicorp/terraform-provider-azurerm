@@ -270,7 +270,6 @@ resource "azurerm_eventgrid_namespace" "test" {
   capacity              = 2
   public_network_access = "Disabled"
   sku                   = "Standard"
-  zone_redundant        = true
 
   topic_spaces_configuration {
     alternative_authentication_name_source          = ["ClientCertificateEmail", "ClientCertificateSubject"]
@@ -446,7 +445,6 @@ resource "azurerm_eventgrid_namespace" "test" {
   capacity              = 5
   public_network_access = "Disabled"
   sku                   = "Standard"
-  zone_redundant        = true
 
   topic_spaces_configuration {
     alternative_authentication_name_source          = ["ClientCertificateUri", "ClientCertificateIp"]
