@@ -20,6 +20,7 @@ func PlanResourceChangeResponse(ctx context.Context, fw *fwserver.PlanResourceCh
 	}
 
 	proto6 := &tfprotov6.PlanResourceChangeResponse{
+		Deferred:    ResourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 

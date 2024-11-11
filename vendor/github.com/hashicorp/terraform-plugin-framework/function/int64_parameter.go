@@ -4,13 +4,17 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Int64Parameter{}
 var _ ParameterWithInt64Validators = Int64Parameter{}
+var _ fwfunction.ParameterWithValidateImplementation = Int64Parameter{}
 
 // Int64Parameter represents a function parameter that is a 64-bit integer.
 //
@@ -110,4 +114,10 @@ func (p Int64Parameter) GetType() attr.Type {
 	}
 
 	return basetypes.Int64Type{}
+}
+
+func (p Int64Parameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
+	}
 }

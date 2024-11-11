@@ -6,9 +6,6 @@ package releases
 import "fmt"
 
 type EnterpriseOptions struct {
-	// LicenseDir represents directory path where to install license files (required)
-	LicenseDir string
-
 	// Meta represents optional version metadata (e.g. hsm, fips1402)
 	Meta string
 }
@@ -25,12 +22,12 @@ func enterpriseVersionMetadata(eo *EnterpriseOptions) string {
 	return metadata
 }
 
-func validateEnterpriseOptions(eo *EnterpriseOptions) error {
+func validateEnterpriseOptions(eo *EnterpriseOptions, licenseDir string) error {
 	if eo == nil {
 		return nil
 	}
 
-	if eo.LicenseDir == "" {
+	if licenseDir == "" {
 		return fmt.Errorf("LicenseDir must be provided when requesting enterprise versions")
 	}
 

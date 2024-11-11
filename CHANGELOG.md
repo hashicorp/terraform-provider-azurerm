@@ -6,6 +6,11 @@ BREAKING CHANGES:
 
 ENHANCEMENTS:
 
+* dependencies: update `terraform-plugin-framework` to version `v1.13.0` [GH-27936]
+* dependencies: update `terraform-plugin-framework-validators` to version `v0.14.0` [GH-27936]
+* dependencies: update `terraform-plugin-go` to version `v0.25.0` [GH-27936]
+* dependencies: update `terraform-plugin-mux` to version `v0.17.0` [GH-27936]
+* dependencies: update `terraform-plugin-sdk/v2` to version `v2.35.0` [GH-27936]
 * Data Source: `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
 * `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
 * `azurerm_communication_service` - support for `usgov` region [GH-27919]

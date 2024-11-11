@@ -517,7 +517,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 }
 
 func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) []ClusterSettingModel {
-	if len(*input) == 0 {
+	if input == nil || len(*input) == 0 {
 		return []ClusterSettingModel{}
 	}
 
