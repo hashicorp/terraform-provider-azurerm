@@ -88,7 +88,6 @@ type AzureAIServicesResourceResourceModel struct {
 
 func (AzureAIServicesResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

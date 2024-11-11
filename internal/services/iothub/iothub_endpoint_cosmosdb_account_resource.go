@@ -25,9 +25,7 @@ import (
 
 type IotHubEndpointCosmosDBAccountResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
 
 type IotHubEndpointCosmosDBAccountModel struct {
 	Name                 string `tfschema:"name"`

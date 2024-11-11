@@ -47,8 +47,10 @@ type Permission struct {
 
 type KeyVaultMHSMRoleDefinitionResource struct{}
 
-var _ sdk.ResourceWithStateMigration = KeyVaultMHSMRoleDefinitionResource{}
-var _ sdk.ResourceWithUpdate = KeyVaultMHSMRoleDefinitionResource{}
+var (
+	_ sdk.ResourceWithStateMigration = KeyVaultMHSMRoleDefinitionResource{}
+	_ sdk.ResourceWithUpdate         = KeyVaultMHSMRoleDefinitionResource{}
+)
 
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
@@ -503,7 +505,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaV
 func expandKeyVaultMHSMRolePermissions(perms []Permission) *[]keyvault.Permission {
 	res := make([]keyvault.Permission, 0, len(perms))
 	for _, perm := range perms {
-		var dataActions, notDataActions = make([]keyvault.DataAction, 0), make([]keyvault.DataAction, 0)
+		dataActions, notDataActions := make([]keyvault.DataAction, 0), make([]keyvault.DataAction, 0)
 		for _, data := range perm.DataActions {
 			dataActions = append(dataActions, keyvault.DataAction(data))
 		}

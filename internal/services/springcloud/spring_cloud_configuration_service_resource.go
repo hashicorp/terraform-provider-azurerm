@@ -45,8 +45,10 @@ type SpringCloudRepositoryModel struct {
 
 type SpringCloudConfigurationServiceResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudConfigurationServiceResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+)
 
 func (s SpringCloudConfigurationServiceResource) ResourceType() string {
 	return "azurerm_spring_cloud_configuration_service"
@@ -361,6 +363,7 @@ func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []SpringCloudRepositoryModel) *[]appplatform.ConfigurationServiceGitRepository {
 	if len(input) == 0 {
 		return nil

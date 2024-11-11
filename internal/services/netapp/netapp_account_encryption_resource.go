@@ -44,7 +44,6 @@ func (r NetAppAccountEncryptionResource) IDValidationFunc() pluginsdk.SchemaVali
 
 func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"netapp_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

@@ -243,7 +243,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.Re
 
 	// Service managed doesn't require a key name
 	encryptionProtector := managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtector{
-
 		Properties: &managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorProperties{
 			ServerKeyType: managedinstanceencryptionprotectors.ServerKeyTypeServiceManaged,
 			ServerKeyName: &managedInstanceKeyName,

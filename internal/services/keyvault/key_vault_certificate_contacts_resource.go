@@ -24,9 +24,7 @@ import (
 
 type KeyVaultCertificateContactsResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = KeyVaultCertificateContactsResource{}
-)
+var _ sdk.ResourceWithUpdate = KeyVaultCertificateContactsResource{}
 
 type KeyVaultCertificateContactsResourceModel struct {
 	KeyVaultId string    `tfschema:"key_vault_id"`

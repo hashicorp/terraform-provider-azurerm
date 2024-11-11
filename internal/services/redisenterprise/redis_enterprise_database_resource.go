@@ -485,6 +485,7 @@ func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta inter
 
 	return nil
 }
+
 func redisEnterpriseDatabaseDeleteRefreshFunc(ctx context.Context, databaseClient *databases.DatabasesClient, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId redisenterprise.RedisEnterpriseId, databaseId databases.DatabaseId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		cluster, err := clusterClient.Get(ctx, clusterId)
@@ -568,6 +569,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 
 	return results
 }
+
 func expandArmGeoLinkedDatabase(inputId []interface{}, parentDBId string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {

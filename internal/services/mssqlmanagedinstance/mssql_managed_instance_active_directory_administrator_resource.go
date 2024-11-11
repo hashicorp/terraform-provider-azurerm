@@ -29,8 +29,10 @@ type MsSqlManagedInstanceActiveDirectoryAdministratorModel struct {
 	TenantId                  string `tfschema:"tenant_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+)
 
 type MsSqlManagedInstanceActiveDirectoryAdministratorResource struct{}
 

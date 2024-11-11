@@ -279,7 +279,8 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 }
 
 func managementGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context,
-	client *remediations.RemediationsClient, id remediations.Providers2RemediationId) pluginsdk.StateRefreshFunc {
+	client *remediations.RemediationsClient, id remediations.Providers2RemediationId,
+) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.GetAtManagementGroup(ctx, id)
 		if err != nil {

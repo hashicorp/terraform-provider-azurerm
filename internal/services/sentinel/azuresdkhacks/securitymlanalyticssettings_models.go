@@ -227,9 +227,11 @@ type SecurityMLAnalyticsSetting struct {
 func (smas SecurityMLAnalyticsSetting) AsAnomalySecurityMLAnalyticsSettings() (*AnomalySecurityMLAnalyticsSettings, bool) {
 	return nil, false
 }
+
 func (smas SecurityMLAnalyticsSetting) AsSecurityMLAnalyticsSetting() (*SecurityMLAnalyticsSetting, bool) {
 	return &smas, true
 }
+
 func (smas SecurityMLAnalyticsSetting) AsBasicSecurityMLAnalyticsSetting() (BasicSecurityMLAnalyticsSetting, bool) {
 	return &smas, true
 }
@@ -247,9 +249,11 @@ type AnomalySecurityMLAnalyticsSettings struct {
 func (asmas AnomalySecurityMLAnalyticsSettings) AsAnomalySecurityMLAnalyticsSettings() (*AnomalySecurityMLAnalyticsSettings, bool) {
 	return &asmas, true
 }
+
 func (asmas AnomalySecurityMLAnalyticsSettings) AsSecurityMLAnalyticsSetting() (*SecurityMLAnalyticsSetting, bool) {
 	return nil, false
 }
+
 func (asmas AnomalySecurityMLAnalyticsSettings) AsBasicSecurityMLAnalyticsSetting() (BasicSecurityMLAnalyticsSetting, bool) {
 	return &asmas, true
 }

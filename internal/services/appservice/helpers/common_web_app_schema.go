@@ -44,6 +44,7 @@ func HandlerMappingSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func HandlerMappingSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,

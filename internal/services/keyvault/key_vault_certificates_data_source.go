@@ -124,7 +124,7 @@ func dataSourceKeyVaultCertificatesRead(d *pluginsdk.ResourceData, meta interfac
 }
 
 func expandCertificate(name string, item keyvault.CertificateItem) map[string]interface{} {
-	var cert = map[string]interface{}{
+	cert := map[string]interface{}{
 		"name": name,
 		"id":   *item.ID,
 	}
