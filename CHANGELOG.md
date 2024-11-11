@@ -16,6 +16,10 @@ ENHANCEMENTS:
 * `azurerm_communication_service` - support for `usgov` region [GH-27919]
 * `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
 
+BUG FIXES:
+
+* `azurerm_log_analytics_workspace_table` - use the subscription from workspace ID [GH-27590]
+
 ## 4.9.0 (November 08, 2024)
 
 FEATURES:
