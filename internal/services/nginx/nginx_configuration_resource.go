@@ -253,23 +253,34 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if files := prop.Files; files != nil {
-					output.ConfigFile = []ConfigFile{}
+					configs := []ConfigFile{}
 					for _, file := range *files {
-						output.ConfigFile = append(output.ConfigFile, ConfigFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ConfigFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+					if len(configs) > 0 {
+						output.ConfigFile = configs
 					}
 				}
 
 				// GET does not return protected files
 				if files := prop.ProtectedFiles; files != nil {
-					output.ProtectedFile = []ProtectedFile{}
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ProtectedFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
