@@ -129,42 +129,6 @@ func testAccMonitorAADDiagnosticSetting_updateToEnabledLog(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_aad_diagnostic_setting", "test")
 	r := MonitorAADDiagnosticSettingResource{}
 
-	if !features.FivePointOhBeta() {
-		data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.storageAccount(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.multiEnabledLog(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				// the retention block is removed in 5.0 so we can skip this step
-				Config: r.retentionDisabled(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.storageAccount(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-
-		return
-	}
-
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccount(data),
@@ -175,6 +139,13 @@ func testAccMonitorAADDiagnosticSetting_updateToEnabledLog(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.multiEnabledLog(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.retentionDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -529,7 +500,8 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
 }
 
 func (MonitorAADDiagnosticSettingResource) retentionDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -563,6 +535,41 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
       enabled = false
       days    = 3
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_kind             = "StorageV2"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_aad_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  storage_account_id = azurerm_storage_account.test.id
+  enabled_log {
+    category = "AuditLogs"
+  }
+  enabled_log {
+    category = "SignInLogs"
+  }
+  enabled_log {
+    category = "NonInteractiveUserSignInLogs"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
