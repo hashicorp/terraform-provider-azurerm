@@ -27,7 +27,6 @@ func TestSentinelAlertRuleTemplateID(t *testing.T) {
 		Error    bool
 		Expected *SentinelAlertRuleTemplateId
 	}{
-
 		{
 			// empty
 			Input: "",

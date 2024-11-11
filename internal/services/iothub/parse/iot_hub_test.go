@@ -27,7 +27,6 @@ func TestIotHubID(t *testing.T) {
 		Error    bool
 		Expected *IotHubId
 	}{
-
 		{
 			// empty
 			Input: "",

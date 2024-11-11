@@ -27,7 +27,6 @@ func TestSqlPoolRecoverableDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolRecoverableDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

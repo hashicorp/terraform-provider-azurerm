@@ -34,12 +34,10 @@ linters:
     - misspell # finds commonly misspelled English words.
     #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
-    #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
     - prealloc # finds slice declarations that could potentially be pre-allocated.
     - predeclared # find code that shadows one of Go's predeclared identifiers.
     - reassign # checks that package variables are not reassigned.
     #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-    #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
     - tagalign #  checks struct tags that do not align with the specified column in struct definitions.
     - staticcheck # checks rules from staticcheck. It's not the same thing as the staticcheck binary.
     - unused # checks Go code for unused constants, variables, functions and types.
@@ -48,6 +46,10 @@ linters:
     - wastedassign # finds wasted assignment statements
     - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
     #- wsl # add or remove empty lines.
+
+    ##### need to confirm these are valid and not false positives #####
+    #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
+    #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
 
     ###### DISABLED because : integer overflow conversion int -> int32
     # - gosec # Gosec is a security linter for Go source code

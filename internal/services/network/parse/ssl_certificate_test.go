@@ -27,7 +27,6 @@ func TestSslCertificateID(t *testing.T) {
 		Error    bool
 		Expected *SslCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

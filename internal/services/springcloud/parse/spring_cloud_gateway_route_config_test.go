@@ -27,7 +27,6 @@ func TestSpringCloudGatewayRouteConfigID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudGatewayRouteConfigId
 	}{
-
 		{
 			// empty
 			Input: "",

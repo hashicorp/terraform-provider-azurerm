@@ -27,7 +27,6 @@ func TestManagedInstanceID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceId
 	}{
-
 		{
 			// empty
 			Input: "",

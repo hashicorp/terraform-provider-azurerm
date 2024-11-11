@@ -27,7 +27,6 @@ func TestEndpointEventhubID(t *testing.T) {
 		Error    bool
 		Expected *EndpointEventhubId
 	}{
-
 		{
 			// empty
 			Input: "",

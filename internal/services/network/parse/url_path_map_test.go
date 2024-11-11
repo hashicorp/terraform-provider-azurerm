@@ -27,7 +27,6 @@ func TestUrlPathMapID(t *testing.T) {
 		Error    bool
 		Expected *UrlPathMapId
 	}{
-
 		{
 			// empty
 			Input: "",

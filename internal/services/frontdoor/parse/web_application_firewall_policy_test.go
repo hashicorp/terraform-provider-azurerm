@@ -27,7 +27,6 @@ func TestWebApplicationFirewallPolicyID(t *testing.T) {
 		Error    bool
 		Expected *WebApplicationFirewallPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

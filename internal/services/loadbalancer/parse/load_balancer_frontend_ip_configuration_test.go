@@ -27,7 +27,6 @@ func TestLoadBalancerFrontendIpConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *LoadBalancerFrontendIpConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

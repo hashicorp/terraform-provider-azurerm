@@ -27,7 +27,6 @@ func TestSpringCloudAPIPortalID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAPIPortalId
 	}{
-
 		{
 			// empty
 			Input: "",

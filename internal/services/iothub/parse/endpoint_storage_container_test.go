@@ -27,7 +27,6 @@ func TestEndpointStorageContainerID(t *testing.T) {
 		Error    bool
 		Expected *EndpointStorageContainerId
 	}{
-
 		{
 			// empty
 			Input: "",

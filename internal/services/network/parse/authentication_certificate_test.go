@@ -27,7 +27,6 @@ func TestAuthenticationCertificateID(t *testing.T) {
 		Error    bool
 		Expected *AuthenticationCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -27,7 +27,6 @@ func TestRedirectConfigurationsID(t *testing.T) {
 		Error    bool
 		Expected *RedirectConfigurationsId
 	}{
-
 		{
 			// empty
 			Input: "",

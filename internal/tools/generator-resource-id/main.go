@@ -345,6 +345,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -465,7 +466,7 @@ func (id ResourceIdGenerator) codeForParser() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -520,7 +521,7 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
-		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+		return nil, errors.New("ID was missing the '%[2]s' element")
 	}
 `, segment.FieldName, segment.SegmentKey))
 			continue
@@ -700,8 +701,7 @@ func Test%[1]sID(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {

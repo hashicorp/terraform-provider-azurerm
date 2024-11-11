@@ -27,7 +27,6 @@ func TestSpringCloudDeploymentID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudDeploymentId
 	}{
-
 		{
 			// empty
 			Input: "",

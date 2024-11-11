@@ -27,7 +27,6 @@ func TestSpringCloudContainerRegistryID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudContainerRegistryId
 	}{
-
 		{
 			// empty
 			Input: "",

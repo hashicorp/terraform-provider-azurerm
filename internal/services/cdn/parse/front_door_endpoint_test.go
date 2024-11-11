@@ -27,7 +27,6 @@ func TestFrontDoorEndpointID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorEndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

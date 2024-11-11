@@ -27,7 +27,6 @@ func TestTrustedRootCertificateID(t *testing.T) {
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

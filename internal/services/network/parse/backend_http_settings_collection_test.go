@@ -27,7 +27,6 @@ func TestBackendHttpSettingsCollectionID(t *testing.T) {
 		Error    bool
 		Expected *BackendHttpSettingsCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",
