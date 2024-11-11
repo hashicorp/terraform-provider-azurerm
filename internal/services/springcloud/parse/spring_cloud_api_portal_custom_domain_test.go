@@ -151,7 +151,6 @@ func TestSpringCloudAPIPortalCustomDomainIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAPIPortalCustomDomainId
 	}{
-
 		{
 			// empty
 			Input: "",

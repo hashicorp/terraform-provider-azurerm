@@ -731,8 +731,7 @@ func Test%[1]sID(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -857,8 +856,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -888,8 +886,7 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *parse.%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {
@@ -1038,8 +1035,7 @@ func Test%[2]sID(t *testing.T) {
 	cases := []struct {
 		Input    string
 		Valid bool
-	}{
-%[3]s
+	}{%[3]s
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %%s", tc.Input)

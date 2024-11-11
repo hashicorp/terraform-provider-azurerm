@@ -151,7 +151,6 @@ func TestFrontDoorRouteIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorRouteId
 	}{
-
 		{
 			// empty
 			Input: "",

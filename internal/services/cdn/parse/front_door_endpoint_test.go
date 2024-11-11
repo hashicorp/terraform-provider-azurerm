@@ -135,7 +135,6 @@ func TestFrontDoorEndpointIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorEndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

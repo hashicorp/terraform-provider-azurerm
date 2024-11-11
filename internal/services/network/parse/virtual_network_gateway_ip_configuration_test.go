@@ -135,7 +135,6 @@ func TestVirtualNetworkGatewayIpConfigurationIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkGatewayIpConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

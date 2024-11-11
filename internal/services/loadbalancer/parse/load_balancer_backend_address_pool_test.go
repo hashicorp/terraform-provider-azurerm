@@ -135,7 +135,6 @@ func TestLoadBalancerBackendAddressPoolIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *LoadBalancerBackendAddressPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

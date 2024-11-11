@@ -167,7 +167,6 @@ func TestSpringCloudBuildPackBindingIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudBuildPackBindingId
 	}{
-
 		{
 			// empty
 			Input: "",

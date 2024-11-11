@@ -135,7 +135,6 @@ func TestRewriteRuleSetIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *RewriteRuleSetId
 	}{
-
 		{
 			// empty
 			Input: "",

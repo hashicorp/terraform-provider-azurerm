@@ -135,7 +135,6 @@ func TestIotHubCertificateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *IotHubCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -119,7 +119,6 @@ func TestActionGroupIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ActionGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

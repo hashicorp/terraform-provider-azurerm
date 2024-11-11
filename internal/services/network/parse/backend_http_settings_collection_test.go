@@ -135,7 +135,6 @@ func TestBackendHttpSettingsCollectionIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *BackendHttpSettingsCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -135,7 +135,6 @@ func TestAutomationRuleIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *AutomationRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

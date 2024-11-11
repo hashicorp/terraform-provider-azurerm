@@ -151,7 +151,6 @@ func TestFrontDoorOriginIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorOriginId
 	}{
-
 		{
 			// empty
 			Input: "",

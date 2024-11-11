@@ -135,7 +135,6 @@ func TestFrontDoorCustomDomainIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorCustomDomainId
 	}{
-
 		{
 			// empty
 			Input: "",

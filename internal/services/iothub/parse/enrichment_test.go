@@ -135,7 +135,6 @@ func TestEnrichmentIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EnrichmentId
 	}{
-
 		{
 			// empty
 			Input: "",

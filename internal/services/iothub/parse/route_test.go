@@ -135,7 +135,6 @@ func TestRouteIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *RouteId
 	}{
-
 		{
 			// empty
 			Input: "",

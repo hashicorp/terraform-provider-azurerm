@@ -135,7 +135,6 @@ func TestEndpointStorageContainerIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointStorageContainerId
 	}{
-
 		{
 			// empty
 			Input: "",

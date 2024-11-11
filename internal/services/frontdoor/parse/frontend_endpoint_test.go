@@ -135,7 +135,6 @@ func TestFrontendEndpointIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontendEndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

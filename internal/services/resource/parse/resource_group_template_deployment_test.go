@@ -119,7 +119,6 @@ func TestResourceGroupTemplateDeploymentIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupTemplateDeploymentId
 	}{
-
 		{
 			// empty
 			Input: "",

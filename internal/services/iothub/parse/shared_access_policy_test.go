@@ -135,7 +135,6 @@ func TestSharedAccessPolicyIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SharedAccessPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

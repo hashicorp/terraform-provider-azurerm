@@ -119,7 +119,6 @@ func TestAppServiceEnvironmentIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *AppServiceEnvironmentId
 	}{
-
 		{
 			// empty
 			Input: "",

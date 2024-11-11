@@ -135,7 +135,6 @@ func TestRulesEngineIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *RulesEngineId
 	}{
-
 		{
 			// empty
 			Input: "",
