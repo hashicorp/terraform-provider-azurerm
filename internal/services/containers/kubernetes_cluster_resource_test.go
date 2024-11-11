@@ -236,7 +236,21 @@ func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeOverrideSetting(data),
+			Config: r.upgradeOverrideSetting(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -939,7 +953,15 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData) string {
+func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
+
+	upgradeOverrideSetting := ""
+	if isUpgradeOverrideSettingEnabled {
+		upgradeOverrideSetting = `
+  upgrade_override_setting {
+	effective_until = "2024-01-01T00:00:00Z"
+  }`
+	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -966,15 +988,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  upgrade_override_setting {
-    effective_until = "2024-01-01T00:00:00Z"
-  }
-
   identity {
     type = "SystemAssigned"
   }
 
+  %[3]s
+
 }
-  `, data.RandomString, data.Locations.Primary)
+  `, data.RandomString, data.Locations.Primary, upgradeOverrideSetting)
 
 }
