@@ -336,7 +336,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 					// Modify volumeType as data protection type on main volumeList
 					// so it gets created correctly as data protection volume
 					(pointer.From(volumeList))[i].Properties.VolumeType = utils.String("DataProtection")
@@ -375,7 +374,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 					capacityPoolId, err := capacitypools.ParseCapacityPoolID(pointer.From(volumeCrr.Properties.CapacityPoolResourceId))
 					if err != nil {
 						return err
@@ -438,10 +436,8 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Updating %s", id)
 
 			if metadata.ResourceData.HasChange("volume") {
-
 				// Iterating over each volume and performing individual patch
 				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
-
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
 
@@ -451,7 +447,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange(volumeItem) {
-
 						volumeId := volumes.NewVolumeID(id.SubscriptionId,
 							id.ResourceGroupName,
 							id.NetAppAccountName,
@@ -504,7 +499,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 								dataProtectionReplication.Replication != nil &&
 								dataProtectionReplication.Replication.EndpointType != nil &&
 								strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 
@@ -539,7 +533,6 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeGroupClient
 
 			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())
@@ -591,7 +584,6 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeGroupClient
 
 			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())

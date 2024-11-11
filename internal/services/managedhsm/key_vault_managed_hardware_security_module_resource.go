@@ -471,8 +471,8 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
-	param.Required = utils.Int32(int32(quorum))
-	var certs []kv74.SecurityDomainJSONWebKey
+	param.Required = pointer.To(int32(quorum))
+	certs := make([]kv74.SecurityDomainJSONWebKey, 0, len(certIds))
 	for _, certID := range certIds {
 		certIDStr, ok := certID.(string)
 		if !ok {
@@ -490,12 +490,12 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 			return "", fmt.Errorf("got nil key for %s", certID)
 		}
 		cert := kv74.SecurityDomainJSONWebKey{
-			Kty:    pointer.FromString("RSA"),
+			Kty:    pointer.To("RSA"),
 			KeyOps: &[]string{""},
-			Alg:    pointer.FromString("RSA-OAEP-256"),
+			Alg:    pointer.To("RSA-OAEP-256"),
 		}
 		if certRes.Policy != nil && certRes.Policy.KeyProperties != nil {
-			cert.Kty = pointer.FromString(string(certRes.Policy.KeyProperties.KeyType))
+			cert.Kty = pointer.To(string(certRes.Policy.KeyProperties.KeyType))
 		}
 		x5c := ""
 		if contents := certRes.Cer; contents != nil {
@@ -506,7 +506,7 @@ func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomai
 		sum256 := sha256.Sum256([]byte(x5c))
 		s256Dst := make([]byte, base64.StdEncoding.EncodedLen(len(sum256)))
 		base64.URLEncoding.Encode(s256Dst, sum256[:])
-		cert.X5tS256 = pointer.FromString(string(s256Dst))
+		cert.X5tS256 = pointer.To(string(s256Dst))
 		certs = append(certs, cert)
 	}
 	param.Certificates = &certs

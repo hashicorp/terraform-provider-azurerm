@@ -760,7 +760,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-
 					state.Enabled = pointer.From(props.Enabled)
 					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
@@ -807,7 +806,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						state.VirtualNetworkSubnetID = subnetId
 					}
-
 				}
 				configResp, err := client.GetConfiguration(ctx, *id)
 				if err != nil {
@@ -1284,7 +1282,6 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
 							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
 						}
-
 					}
 				}
 			}
@@ -1394,7 +1391,6 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input *webapp
 				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
 			case "custom":
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
-
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":

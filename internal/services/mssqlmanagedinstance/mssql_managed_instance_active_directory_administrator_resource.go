@@ -237,12 +237,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 			}
 
 			if result.Model != nil {
-
 				if props := result.Model.Properties; props != nil {
 					model.LoginUsername = props.Login
 					model.ObjectId = props.Sid
 					model.TenantId = pointer.From(props.TenantId)
-
 				}
 			}
 

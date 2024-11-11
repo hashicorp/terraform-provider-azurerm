@@ -443,7 +443,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		}
 
 		props.Properties.ScaleInPolicy = scaleInPolicy
-
 	}
 	if v, ok := d.GetOk("scale_in"); ok {
 		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {

@@ -618,7 +618,6 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 			StartGroupActions:         &preActions,
 			EndGroupActions:           &postActions,
 		})
-
 	}
 	return output, nil
 }
@@ -755,7 +754,6 @@ func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
 				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
 			}
 		}
-
 	}
 
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {

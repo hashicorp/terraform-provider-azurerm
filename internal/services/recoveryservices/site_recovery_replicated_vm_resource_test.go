@@ -2154,7 +2154,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
-
 }
 
 func (r SiteRecoveryReplicatedVmResource) withAvailabilitySet(data acceptance.TestData) string {

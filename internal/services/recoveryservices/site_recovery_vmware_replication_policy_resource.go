@@ -222,7 +222,6 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-
 }
 
 func (r VMWareReplicationPolicyResource) Delete() sdk.ResourceFunc {

@@ -146,9 +146,9 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset
 type DatasetColumn struct {
-	Name        string `json:"name,omitempty" tfschema:"name"`
+	Name        string `json:"name,omitempty"        tfschema:"name"`
 	Description string `json:"description,omitempty" tfschema:"description"`
-	Type        string `json:"type,omitempty" tfschema:"type"`
+	Type        string `json:"type,omitempty"        tfschema:"type"`
 }
 
 func expandDataFactoryDatasetStructure(input []interface{}) interface{} {

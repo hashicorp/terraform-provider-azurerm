@@ -395,7 +395,6 @@ func New%[1]sID(%[2]s string) %[1]sId {
 
 func (id ResourceIdGenerator) codeForDescription() string {
 	makeHumanReadable := func(input string) string {
-
 		chars := make([]rune, 0)
 		for i, c := range input {
 			if unicode.IsUpper(c) && i+1 < len(input) && unicode.IsLower(rune(input[i+1])) {

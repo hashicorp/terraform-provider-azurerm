@@ -92,7 +92,6 @@ func (d *DiffResult) ToString() string {
 					timeoutCount++
 				case forceNewDiff:
 					forceNewCount++
-
 				}
 			}
 		}

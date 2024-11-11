@@ -192,9 +192,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID: pointer.FromString(config.PrincipalId),
+				PrincipalID: pointer.To(config.PrincipalId),
 				// the role definition id may have '/' prefix, but the api doesn't accept it
-				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(config.RoleDefinitionId, "/")),
+				RoleDefinitionID: pointer.To(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
 
 			//nolint:misspell

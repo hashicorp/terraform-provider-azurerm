@@ -2697,7 +2697,6 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 	secretsRaw, _ := metadata.ResourceData.GetChange("secret")
 	result := make([]containerapps.Secret, 0)
 	if secrets, ok := secretsRaw.([]interface{}); ok {
-
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{

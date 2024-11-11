@@ -1626,7 +1626,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 		applicationGatewayBackendAddressPoolIds = flattenSubResourcesToIDs(props.ApplicationGatewayBackendAddressPools)
 		applicationSecurityGroupIds = flattenSubResourcesToIDs(props.ApplicationSecurityGroups)
 		loadBalancerBackendAddressPoolIds = flattenSubResourcesToIDs(props.LoadBalancerBackendAddressPools)
-
 	}
 
 	return map[string]interface{}{
@@ -1686,7 +1685,6 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 		if input.Sku != nil && input.Sku.Name != nil && input.Sku.Tier != nil {
 			sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 		}
-
 	}
 
 	return map[string]interface{}{
@@ -1855,7 +1853,6 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 					ipConfigurations = append(ipConfigurations, config)
 				}
 			}
-
 		}
 
 		results = append(results, map[string]interface{}{
@@ -2025,7 +2022,6 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virt
 }
 
 func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualmachinescalesets.PriorityMixPolicy) []interface{} {
-
 	baseRegularPriorityCount := int64(0)
 	if input != nil && input.BaseRegularPriorityCount != nil {
 		baseRegularPriorityCount = *input.BaseRegularPriorityCount

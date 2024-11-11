@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -370,11 +371,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
 
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("setting `version` without the required `version_set_id`")
+		return errors.New("setting `version` without the required `version_set_id`")
 	}
 
 	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
+		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
