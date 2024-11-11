@@ -27,7 +27,6 @@ func TestVirtualNetworkDnsServersID(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkDnsServersId
 	}{
-
 		{
 			// empty
 			Input: "",

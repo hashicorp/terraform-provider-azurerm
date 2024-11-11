@@ -27,7 +27,6 @@ func TestSharedAccessPolicyID(t *testing.T) {
 		Error    bool
 		Expected *SharedAccessPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

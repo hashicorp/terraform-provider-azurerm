@@ -27,7 +27,6 @@ func TestRoutingRuleID(t *testing.T) {
 		Error    bool
 		Expected *RoutingRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

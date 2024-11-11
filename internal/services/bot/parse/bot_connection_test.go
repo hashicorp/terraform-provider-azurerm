@@ -27,7 +27,6 @@ func TestBotConnectionID(t *testing.T) {
 		Error    bool
 		Expected *BotConnectionId
 	}{
-
 		{
 			// empty
 			Input: "",

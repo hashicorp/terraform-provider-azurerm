@@ -27,7 +27,6 @@ func TestFrontDoorCustomDomainID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorCustomDomainId
 	}{
-
 		{
 			// empty
 			Input: "",

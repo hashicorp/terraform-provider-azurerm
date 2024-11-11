@@ -27,7 +27,6 @@ func TestSparkPoolID(t *testing.T) {
 		Error    bool
 		Expected *SparkPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

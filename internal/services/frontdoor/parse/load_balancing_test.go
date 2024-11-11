@@ -27,7 +27,6 @@ func TestLoadBalancingID(t *testing.T) {
 		Error    bool
 		Expected *LoadBalancingId
 	}{
-
 		{
 			// empty
 			Input: "",

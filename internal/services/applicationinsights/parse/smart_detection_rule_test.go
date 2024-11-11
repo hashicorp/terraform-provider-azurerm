@@ -27,7 +27,6 @@ func TestSmartDetectionRuleID(t *testing.T) {
 		Error    bool
 		Expected *SmartDetectionRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -27,7 +27,6 @@ func TestFrontendEndpointID(t *testing.T) {
 		Error    bool
 		Expected *FrontendEndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -27,7 +27,6 @@ func TestActionGroupID(t *testing.T) {
 		Error    bool
 		Expected *ActionGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

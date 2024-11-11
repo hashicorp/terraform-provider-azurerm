@@ -701,8 +701,7 @@ func Test%[1]sID(t *testing.T) {
 		Input  string
 		Error  bool
 		Expected *%[1]sId
-	}{
-%[2]s
+	}{%[2]s
 	}
 
 	for _, v := range testData {

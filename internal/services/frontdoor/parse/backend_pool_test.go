@@ -27,7 +27,6 @@ func TestBackendPoolID(t *testing.T) {
 		Error    bool
 		Expected *BackendPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

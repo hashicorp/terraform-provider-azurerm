@@ -27,7 +27,6 @@ func TestFrontendIPConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *FrontendIPConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

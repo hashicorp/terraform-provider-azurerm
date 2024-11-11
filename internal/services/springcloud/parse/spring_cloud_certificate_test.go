@@ -27,7 +27,6 @@ func TestSpringCloudCertificateID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",
