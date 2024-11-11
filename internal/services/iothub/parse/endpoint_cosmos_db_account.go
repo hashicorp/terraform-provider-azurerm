@@ -35,7 +35,7 @@ func (id EndpointCosmosDBAccountId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Endpoint Cosmos D B Account", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Endpoint CosmosDB Account", segmentsStr)
 }
 
 func (id EndpointCosmosDBAccountId) ID() string {

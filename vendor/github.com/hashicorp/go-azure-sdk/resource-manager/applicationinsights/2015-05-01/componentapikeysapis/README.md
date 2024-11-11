@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := componentapikeysapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentapikeysapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 payload := componentapikeysapis.APIKeyRequest{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentapikeysapis.NewApiKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "keyId")
+id := componentapikeysapis.NewApiKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "keyId")
 
 read, err := client.APIKeysDelete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentapikeysapis.NewApiKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "keyId")
+id := componentapikeysapis.NewApiKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName", "keyId")
 
 read, err := client.APIKeysGet(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := componentapikeysapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := componentapikeysapis.NewComponentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "componentName")
 
 read, err := client.APIKeysList(ctx, id)
 if err != nil {

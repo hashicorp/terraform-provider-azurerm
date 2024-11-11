@@ -66,15 +66,15 @@ dependencies:
     - vendor/**/*
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - website/**/*
 tooling:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/tools/**/*
 state-migration:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/services/**/migration/**/*
 `
 
@@ -291,7 +291,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 
 		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
 		// keep a record of resources/datasources that don't have labels so they can be used to check that prefixes generated later don't match resources from those services
-		label = ""
 		if ok {
 			label = v.AssociatedGitHubLabel()
 		}

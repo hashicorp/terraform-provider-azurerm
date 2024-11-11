@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "configurationName")
+id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "singleSignOnConfigurationName")
 
 payload := singlesignon.DatadogSingleSignOnResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "configurationName")
+id := singlesignon.NewSingleSignOnConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName", "singleSignOnConfigurationName")
 
 read, err := client.ConfigurationsGet(ctx, id)
 if err != nil {

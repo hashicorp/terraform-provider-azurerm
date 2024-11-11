@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "failoverGroupName")
+id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "instanceFailoverGroupName")
 
 payload := instancefailovergroups.InstanceFailoverGroup{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "failoverGroupName")
+id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "instanceFailoverGroupName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "failoverGroupName")
+id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "instanceFailoverGroupName")
 
 if err := client.FailoverThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.FailoverThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "failoverGroupName")
+id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "instanceFailoverGroupName")
 
 if err := client.ForceFailoverAllowDataLossThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -77,7 +77,7 @@ if err := client.ForceFailoverAllowDataLossThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "failoverGroupName")
+id := instancefailovergroups.NewInstanceFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName", "instanceFailoverGroupName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

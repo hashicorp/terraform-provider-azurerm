@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSearchService() *pluginsdk.Resource {
@@ -653,8 +652,8 @@ func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	if input != nil {
 		for _, v := range *input {
 			results = append(results, map[string]interface{}{
-				"name": utils.NormalizeNilableString(v.Name),
-				"key":  utils.NormalizeNilableString(v.Key),
+				"name": pointer.From(v.Name),
+				"key":  pointer.From(v.Key),
 			})
 		}
 	}
@@ -668,7 +667,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	for _, rule := range input {
 		if rule != nil {
 			output = append(output, services.IPRule{
-				Value: utils.String(rule.(string)),
+				Value: pointer.To(rule.(string)),
 			})
 		}
 	}

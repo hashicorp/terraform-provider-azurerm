@@ -123,7 +123,7 @@ func (id QueryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticQueryPacks", "queryPacks", "queryPacks"),
 		resourceids.UserSpecifiedSegment("queryPackName", "queryPackName"),
 		resourceids.StaticSegment("staticQueries", "queries", "queries"),
-		resourceids.UserSpecifiedSegment("queryName", "id"),
+		resourceids.UserSpecifiedSegment("queryName", "queryName"),
 	}
 }
 

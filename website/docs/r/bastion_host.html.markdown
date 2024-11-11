@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `file_copy_enabled` - (Optional) Is File Copy feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
@@ -80,23 +80,23 @@ The following arguments are supported:
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `ip_connect_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `kerberos_enabled` - (Optional) Is Kerberos authentication feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
-~> **Note:** `scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`.
+~> **Note:** `scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`.
 
 * `shareable_link_enabled` - (Optional) Is Shareable Link feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `shareable_link_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `tunneling_enabled` - (Optional) Is Tunneling feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `session_recording_enabled` - (Optional) Is Session Recording feature enabled for the Bastion Host. Defaults to `false`.
 
@@ -105,6 +105,8 @@ The following arguments are supported:
 * `virtual_network_id` - (Optional) The ID of the Virtual Network for the Developer Bastion Host. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Public Bastion Host should be located. Changing this forces a new resource to be created.
 
 ---
 

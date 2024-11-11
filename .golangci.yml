@@ -17,29 +17,58 @@ issues:
 linters:
   disable-all: true
   enable:
-    - asciicheck
-    - bidichk
-    - errcheck
-    - gocritic
-    - gofmt
-    - goimports
-    - gosimple
-    - govet
-    - ineffassign
-    #- nakedret
-    - misspell
-    #- nolintlint
-    #- nlreturn
-    - reassign
-    - staticcheck
-    - typecheck
-    - unused
-    - unconvert
-    - unparam
-    - vet
-    - vetshadow
-    # - wastedassign # disabled because of generics
-    # - whitespace # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
+    - asasalint # check for pass []any as any in variadic func(...any)
+    - asciicheck # code does not contain non-ASCII identifiers
+    - bidichk # Checks for dangerous unicode character sequences
+    - decorder # Check declaration order and count of types, constants, variables and functions.
+    - durationcheck # Check for common mistakes when working with time.Duration
+    - dupword #Check for duplicated words in comments
+    - errcheck # checking for unchecked errors
+    - gocritic # Linter for Go source code that specializes in simplifying code
+    - gofmt # Gofmt checks whether code was gofmt-ed
+    #- gofumpt # Gofumpt is a stricter gofmt
+    - goimports # Check import statements are formatted according to the 'goimport' command
+    - gosimple # Linter for Go source code that specializes in simplifying code.
+    #- gosec # Gosec is a security linter for Go source code
+    - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
+    - ineffassign # Detects when assignments to existing variables are not used
+    - misspell # Finds commonly misspelled English words.
+    #- nakedret # Checks that functions with naked returns are not longer than a maximum size
+    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
+    #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
+    #- paralleltest # Detects missing usage of t.Parallel() method in your Go test.
+    #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
+    #- prealloc # Finds slice declarations that could potentially be pre-allocated.
+    #- predeclared # Find code that shadows one of Go's predeclared identifiers.
+    - reassign # Checks that package variables are not reassigned.
+    #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
+    - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
+    #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
+    - typecheck # doesn't exist?!>?! XXXXXXXXX
+    - unused # Checks Go code for unused constants, variables, functions and types.
+    - unconvert # Remove unnecessary type conversions.
+    - unparam # Reports unused function parameters.
+    - wastedassign # Finds wasted assignment statements
+    #- wsl Add or remove empty lines.
+
+    #### DISABLED TO DO IN ITS OWN PR - should be enabled and done #####
+    #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
+
+    #### REQUIRES GO 1.22 #####
+    #- copyloopvar #Detects range loop variables that are overwritten in the loop body
+
+    #### DISABLED till %+v -> %w #####
+    #- err113 #Go linter to check the errors handling expressions. - disabled as it suggests (correctly?) to use %w in fmt.Errorf instead of %+v (1000s of usages in the codebase)
+    #- errorlint #### DISABLED till %+v -> %w ##### #Errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme used in the github.com/pkg/errors package.
+
+    # disabled as it may be useful but there are a lot of switch statements in the codebase with unhandled inputs
+    #- exhaustive #Check for missing cases in select statements
+
+    ###### DISABLED because golang will put the space back into //nolint: linter ######
+    #- nolintlint  #Reports ill-formed or insufficient nolint directives.
+
+    # Disabled for performance reasons - Ignores cache and takes 12+ minutes to run on the repo for _any_ change
+    #- whitespace #checks for unnecessary newlines at the start and end of functions, if, for, etc.
 
 linters-settings:
   errcheck:

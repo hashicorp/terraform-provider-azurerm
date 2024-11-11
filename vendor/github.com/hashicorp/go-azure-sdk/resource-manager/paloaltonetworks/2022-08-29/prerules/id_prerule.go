@@ -107,7 +107,7 @@ func (id PreRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
 		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticPreRules", "preRules", "preRules"),
-		resourceids.UserSpecifiedSegment("preRuleName", "priority"),
+		resourceids.UserSpecifiedSegment("preRuleName", "preRuleName"),
 	}
 }
 
