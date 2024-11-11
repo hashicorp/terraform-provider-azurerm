@@ -5,6 +5,7 @@ package appconfiguration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -298,7 +299,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
 			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+				return errors.New(userIsMissingNecessaryPermission(name, location))
 			}
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)

@@ -529,7 +529,7 @@ func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) 
 
 		output = append(output, ClusterSettingModel{
 			Name:  *v.Name,
-			Value: utils.NormalizeNilableString(v.Value),
+			Value: pointer.From(v.Value),
 		})
 	}
 	return output

@@ -132,7 +132,7 @@ func ExpandKeyVaultOrManagedHSMKey(d interface{}, requireVersion VersionType, ke
 
 // ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey
 // d: should be one of *pluginsdk.ResourceData or map[string]interface{}
-// if return nil, nil, it means no key_vault_key_id or managed_hsm_key_id is specified
+// if return nil, nil - it means no key_vault_key_id or managed_hsm_key_id is specified //nolint:dupword
 func ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d interface{}, requireVersion VersionType, keyVaultFieldName, hsmFieldName string, keyVaultEnv, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
 	key := &KeyVaultOrManagedHSMKey{}
 	var err error

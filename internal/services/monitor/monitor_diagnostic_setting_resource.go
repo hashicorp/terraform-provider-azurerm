@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
@@ -443,7 +444,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("eventhub_name", props.EventHubName)
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
-				authRuleId := utils.NormalizeNilableString(props.EventHubAuthorizationRuleId)
+				authRuleId := pointer.From(props.EventHubAuthorizationRuleId)
 				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
 				if err != nil {
 					return err
@@ -463,21 +464,17 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_workspace_id", workspaceId)
 
-			storageAccountId := ""
 			if props.StorageAccountId != nil && *props.StorageAccountId != "" {
 				parsedId, err := commonids.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
 				if err != nil {
 					return err
 				}
 
-				storageAccountId = parsedId.ID()
-				d.Set("storage_account_id", storageAccountId)
+				d.Set("storage_account_id", parsedId.ID())
 			}
 
-			partnerSolutionId := ""
 			if props.MarketplacePartnerId != nil && *props.MarketplacePartnerId != "" {
-				partnerSolutionId = *props.MarketplacePartnerId
-				d.Set("partner_solution_id", partnerSolutionId)
+				d.Set("partner_solution_id", props.MarketplacePartnerId)
 			}
 
 			logAnalyticsDestinationType := ""

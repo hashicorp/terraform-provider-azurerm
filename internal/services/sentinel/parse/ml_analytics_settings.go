@@ -30,12 +30,12 @@ func NewMLAnalyticsSettingsID(subscriptionId, resourceGroup, workspaceName, secu
 
 func (id MLAnalyticsSettingsId) String() string {
 	segments := []string{
-		fmt.Sprintf("Security M L Analytics Setting Name %q", id.SecurityMLAnalyticsSettingName),
+		fmt.Sprintf("SecurityML Analytics Setting Name %q", id.SecurityMLAnalyticsSettingName),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "M L Analytics Settings", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "ML Analytics Settings", segmentsStr)
 }
 
 func (id MLAnalyticsSettingsId) ID() string {

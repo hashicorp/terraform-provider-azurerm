@@ -434,7 +434,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
+			if len(model.A2ASettings) == 1 {
 				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 

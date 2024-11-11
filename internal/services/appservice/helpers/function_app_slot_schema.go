@@ -1096,7 +1096,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+		if len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
 			appSettings = append(appSettings, webapps.NameValuePair{
 				Name:  pointer.To("DOCKER_REGISTRY_SERVER_URL"),

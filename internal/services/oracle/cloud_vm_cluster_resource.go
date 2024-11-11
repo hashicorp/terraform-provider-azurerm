@@ -352,7 +352,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			if model.ClusterName != "" {
 				param.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
-			if model.DataCollectionOptions != nil && len(model.DataCollectionOptions) > 0 {
+			if len(model.DataCollectionOptions) > 0 {
 				param.Properties.DataCollectionOptions = &cloudvmclusters.DataCollectionOptions{
 					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOptions[0].IsDiagnosticsEventsEnabled),
 					IsHealthMonitoringEnabled:  pointer.To(model.DataCollectionOptions[0].IsHealthMonitoringEnabled),

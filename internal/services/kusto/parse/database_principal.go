@@ -34,7 +34,7 @@ func NewDatabasePrincipalID(subscriptionId, resourceGroup, clusterName, database
 
 func (id DatabasePrincipalId) String() string {
 	segments := []string{
-		fmt.Sprintf("F Q N Name %q", id.FQNName),
+		fmt.Sprintf("FQN Name %q", id.FQNName),
 		fmt.Sprintf("Role Name %q", id.RoleName),
 		fmt.Sprintf("Database Name %q", id.DatabaseName),
 		fmt.Sprintf("Cluster Name %q", id.ClusterName),

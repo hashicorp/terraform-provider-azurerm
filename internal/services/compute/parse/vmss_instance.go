@@ -35,7 +35,7 @@ func (id VMSSInstanceId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "V M S S Instance", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "VMSS Instance", segmentsStr)
 }
 
 func (id VMSSInstanceId) ID() string {

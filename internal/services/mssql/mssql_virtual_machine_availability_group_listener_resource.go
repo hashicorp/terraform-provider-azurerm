@@ -281,7 +281,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				},
 			}
 
-			if model.LoadBalancerConfiguration != nil && len(model.LoadBalancerConfiguration) != 0 {
+			if len(model.LoadBalancerConfiguration) != 0 {
 				lbConfigs, err := expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(model.LoadBalancerConfiguration)
 				if err != nil {
 					return err
@@ -289,7 +289,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				parameters.Properties.LoadBalancerConfigurations = lbConfigs
 			}
 
-			if model.MultiSubnetIpConfiguration != nil && len(model.MultiSubnetIpConfiguration) != 0 {
+			if len(model.MultiSubnetIpConfiguration) != 0 {
 				parameters.Properties.MultiSubnetIPConfigurations = expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(model.MultiSubnetIpConfiguration)
 			}
 

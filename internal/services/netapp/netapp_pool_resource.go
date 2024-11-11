@@ -241,10 +241,9 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		poolProperties := model.Properties
 		d.Set("service_level", poolProperties.ServiceLevel)
 
-		sizeInTB := int64(0)
 		sizeInBytes := poolProperties.Size
 		sizeInMB := sizeInBytes / 1024 / 1024
-		sizeInTB = sizeInMB / 1024 / 1024
+		sizeInTB := sizeInMB / 1024 / 1024
 		d.Set("size_in_tb", int(sizeInTB))
 		qosType := ""
 		if poolProperties.QosType != nil {

@@ -548,7 +548,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					}
 
 					if !hasHealthExtension {
-						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always always contain a 'application health extension'", patchMode)
+						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always contain a 'application health extension'", patchMode)
 					}
 				}
 
