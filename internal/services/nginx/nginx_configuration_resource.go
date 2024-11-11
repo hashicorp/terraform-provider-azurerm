@@ -237,7 +237,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			// protected files field not return by API so decode from state
+			// protected files content field not return by API so decode from state
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
@@ -267,7 +267,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				// GET does not return protected files
+				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
 					configs := []ProtectedFile{}
 					for _, file := range *files {
