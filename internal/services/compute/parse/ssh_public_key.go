@@ -32,7 +32,7 @@ func (id SSHPublicKeyId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "S S H Public Key", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "SSH Public Key", segmentsStr)
 }
 
 func (id SSHPublicKeyId) ID() string {

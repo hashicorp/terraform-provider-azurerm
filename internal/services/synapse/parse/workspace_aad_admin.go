@@ -35,7 +35,7 @@ func (id WorkspaceAADAdminId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Workspace A A D Admin", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "WorkspaceAAD Admin", segmentsStr)
 }
 
 func (id WorkspaceAADAdminId) ID() string {

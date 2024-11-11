@@ -466,7 +466,7 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			shouldPurge := metadata.Client.Features.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy
-			if shouldPurge && managedHSM.Model != nil && managedHSM.Model.Properties != nil && utils.NormaliseNilableBool(managedHSM.Model.Properties.EnablePurgeProtection) {
+			if shouldPurge && managedHSM.Model != nil && managedHSM.Model.Properties != nil && pointer.From(managedHSM.Model.Properties.EnablePurgeProtection) {
 				log.Printf("[DEBUG] cannot purge key %q because Managed HSM %q has purge protection enabled", id.KeyName, id.ManagedHSMName)
 				shouldPurge = false
 			}

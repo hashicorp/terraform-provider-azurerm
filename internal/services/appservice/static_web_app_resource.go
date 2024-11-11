@@ -293,10 +293,7 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 				}
 
 				if secProps := sec.Model.Properties; secProps != nil {
-					propsMap := pointer.From(secProps)
-					apiKey := ""
-					apiKey = propsMap["apiKey"]
-					state.ApiKey = apiKey
+					state.ApiKey = pointer.From(secProps)["apiKey"]
 				}
 			}
 

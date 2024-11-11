@@ -770,63 +770,63 @@ func expandEventSubscriptionStorageBlobDeadLetterDestination(d *pluginsdk.Resour
 	return nil
 }
 
-func flattenValue(inputKey *string, inputValue *interface{}) map[string]interface{} {
+func flattenValue(inputKey *string, inputValue *any) map[string]any {
 	key := ""
 	if inputKey != nil {
 		key = *inputKey
 	}
-	var value interface{}
+	var value any
 	if inputValue != nil {
 		value = inputValue
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"key":   key,
 		"value": value,
 	}
 }
 
-func flattenValues(inputKey *string, inputValues *[]interface{}) map[string]interface{} {
+func flattenValues(inputKey *string, inputValues *[]any) map[string]any {
 	key := ""
 	if inputKey != nil {
 		key = *inputKey
 	}
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	if inputValues != nil {
 		values = *inputValues
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"key":    key,
 		"values": values,
 	}
 }
 
-func flattenRangeValues(inputKey *string, inputValues *[][]interface{}) map[string]interface{} {
+func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
 	key := ""
 	if inputKey != nil {
 		key = *inputKey
 	}
-	values := make([]interface{}, 0)
+	values := make([]any, 0)
 	if inputValues != nil {
 		for _, item := range *inputValues {
-			values = append(values, item)
+			values = append(values, item...)
 		}
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"key":    key,
 		"values": values,
 	}
 }
 
-func flattenKey(inputKey *string) map[string]interface{} {
+func flattenKey(inputKey *string) map[string]any {
 	key := ""
 	if inputKey != nil {
 		key = *inputKey
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"key": key,
 	}
 }

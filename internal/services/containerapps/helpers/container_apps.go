@@ -1668,7 +1668,7 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 
 func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -1690,7 +1690,7 @@ func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.Environment
 
 func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 

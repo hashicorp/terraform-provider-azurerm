@@ -4819,7 +4819,7 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 					buf.WriteString(statusCode.(string))
 				}
 				if pageUrl, ok := customError["custom_error_page_url"]; ok {
-					buf.WriteString(fmt.Sprintf(pageUrl.(string)))
+					buf.WriteString(pageUrl.(string))
 				}
 			}
 		}
