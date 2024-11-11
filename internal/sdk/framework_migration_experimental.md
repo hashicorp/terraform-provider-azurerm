@@ -108,7 +108,6 @@ func (r *FWResourceGroupResource) Schema(_ context.Context, _ resource.SchemaReq
 
 func (r *FWResourceGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	client := r.Client.Resource.ResourceGroupsClient
-
 	createContext, cancel := context.WithTimeout(ctx, r.TimeoutCreate)
 	defer cancel()
 
@@ -160,11 +159,11 @@ func (r *FWResourceGroupResource) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *FWResourceGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state FWResourceGroupResourceModel
+	client := r.Client.Resource.ResourceGroupsClient
 	readContext, cancel := context.WithTimeout(ctx, r.TimeoutRead)
 	defer cancel()
 
-	client := r.Client.Resource.ResourceGroupsClient
+	var state FWResourceGroupResourceModel
 
 	if ok := r.DecodeRead(readContext, req, resp, &state); !ok {
 		return
