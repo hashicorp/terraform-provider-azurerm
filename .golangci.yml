@@ -26,7 +26,7 @@ linters:
     - errcheck # checking for unchecked errors
     - gocritic # linter for Go source code that specializes in simplifying code
     - gofmt # checks whether code was gofmt-ed
-    #- gofumpt # Gofumpt is a stricter gofmt
+    - gofumpt # checks whether code was gofumpt-ed, a stricter gofmt
     - goimports # check import statements are formatted according to the 'goimport' command
     - gosimple # linter for Go source code that specializes in simplifying code.
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
