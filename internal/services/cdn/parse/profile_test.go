@@ -119,7 +119,6 @@ func TestProfileIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ProfileId
 	}{
-
 		{
 			// empty
 			Input: "",

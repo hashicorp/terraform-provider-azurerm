@@ -135,7 +135,6 @@ func TestSqlAzureActiveDirectoryAdministratorIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SqlAzureActiveDirectoryAdministratorId
 	}{
-
 		{
 			// empty
 			Input: "",

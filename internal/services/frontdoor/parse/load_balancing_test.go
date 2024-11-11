@@ -135,7 +135,6 @@ func TestLoadBalancingIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *LoadBalancingId
 	}{
-
 		{
 			// empty
 			Input: "",

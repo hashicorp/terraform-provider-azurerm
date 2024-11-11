@@ -135,7 +135,6 @@ func TestHttpListenerIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *HttpListenerId
 	}{
-
 		{
 			// empty
 			Input: "",

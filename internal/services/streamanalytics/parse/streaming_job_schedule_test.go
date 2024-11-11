@@ -135,7 +135,6 @@ func TestStreamingJobScheduleIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *StreamingJobScheduleId
 	}{
-
 		{
 			// empty
 			Input: "",

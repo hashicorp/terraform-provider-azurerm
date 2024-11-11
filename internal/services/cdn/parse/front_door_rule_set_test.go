@@ -135,7 +135,6 @@ func TestFrontDoorRuleSetIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorRuleSetId
 	}{
-
 		{
 			// empty
 			Input: "",

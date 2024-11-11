@@ -135,7 +135,6 @@ func TestProductIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ProductId
 	}{
-
 		{
 			// empty
 			Input: "",

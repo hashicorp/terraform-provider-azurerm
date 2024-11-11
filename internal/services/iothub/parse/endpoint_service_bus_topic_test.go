@@ -135,7 +135,6 @@ func TestEndpointServiceBusTopicIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointServiceBusTopicId
 	}{
-
 		{
 			// empty
 			Input: "",

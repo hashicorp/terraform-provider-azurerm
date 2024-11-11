@@ -135,7 +135,6 @@ func TestAuthenticationCertificateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *AuthenticationCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

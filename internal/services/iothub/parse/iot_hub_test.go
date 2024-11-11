@@ -119,7 +119,6 @@ func TestIotHubIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *IotHubId
 	}{
-
 		{
 			// empty
 			Input: "",

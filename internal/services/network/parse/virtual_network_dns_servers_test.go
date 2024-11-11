@@ -135,7 +135,6 @@ func TestVirtualNetworkDnsServersIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkDnsServersId
 	}{
-
 		{
 			// empty
 			Input: "",

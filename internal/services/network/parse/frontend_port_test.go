@@ -135,7 +135,6 @@ func TestFrontendPortIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontendPortId
 	}{
-
 		{
 			// empty
 			Input: "",

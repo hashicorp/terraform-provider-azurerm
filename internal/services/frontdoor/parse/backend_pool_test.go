@@ -135,7 +135,6 @@ func TestBackendPoolIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *BackendPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

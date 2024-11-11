@@ -103,7 +103,6 @@ func TestAutoProvisioningSettingIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *AutoProvisioningSettingId
 	}{
-
 		{
 			// empty
 			Input: "",

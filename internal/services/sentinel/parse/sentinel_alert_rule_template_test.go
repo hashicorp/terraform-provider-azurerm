@@ -135,7 +135,6 @@ func TestSentinelAlertRuleTemplateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SentinelAlertRuleTemplateId
 	}{
-
 		{
 			// empty
 			Input: "",

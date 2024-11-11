@@ -135,7 +135,6 @@ func TestEndpointEventhubIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointEventhubId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -119,7 +119,6 @@ func TestWorkspaceIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",

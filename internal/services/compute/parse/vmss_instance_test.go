@@ -135,7 +135,6 @@ func TestVMSSInstanceIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *VMSSInstanceId
 	}{
-
 		{
 			// empty
 			Input: "",

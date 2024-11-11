@@ -135,7 +135,6 @@ func TestFallbackRouteIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FallbackRouteId
 	}{
-
 		{
 			// empty
 			Input: "",

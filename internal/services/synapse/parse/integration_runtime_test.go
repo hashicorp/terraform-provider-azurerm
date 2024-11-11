@@ -135,7 +135,6 @@ func TestIntegrationRuntimeIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *IntegrationRuntimeId
 	}{
-
 		{
 			// empty
 			Input: "",

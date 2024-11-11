@@ -135,7 +135,6 @@ func TestFrontDoorSecurityPolicyIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorSecurityPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

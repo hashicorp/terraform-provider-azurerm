@@ -135,7 +135,6 @@ func TestSmartDetectionRuleIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SmartDetectionRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

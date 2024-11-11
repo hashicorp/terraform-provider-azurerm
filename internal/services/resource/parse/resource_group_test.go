@@ -103,7 +103,6 @@ func TestResourceGroupIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

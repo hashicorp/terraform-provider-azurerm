@@ -135,7 +135,6 @@ func TestCustomHttpsConfigurationIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *CustomHttpsConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

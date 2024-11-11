@@ -135,7 +135,6 @@ func TestSpringCloudConfigurationServiceIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudConfigurationServiceId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -135,7 +135,6 @@ func TestTrustedRootCertificateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *TrustedRootCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",
