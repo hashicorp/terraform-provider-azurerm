@@ -1450,6 +1450,21 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"upgrade_override_setting": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"effective_until": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+					},
+				},
+			},
+
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1641,6 +1656,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
+	upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
+	upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+
 	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
 	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
 
@@ -1723,6 +1741,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
+			UpgradeSettings:           upgradeOverrideSetting,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
@@ -2456,6 +2475,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("upgrade_override_setting") {
+		updateCluster = true
+		upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
+		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
+	}
+
 	if d.HasChange("maintenance_window") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationDefault(d.Get("maintenance_window").([]interface{}))
@@ -2724,6 +2750,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
 			if err := d.Set("windows_profile", windowsProfile); err != nil {
 				return fmt.Errorf("setting `windows_profile`: %+v", err)
+			}
+
+			upgradeOverrideSetting := flattenKubernetesClusterUpgradeOverrideSetting(props.UpgradeSettings)
+			if err := d.Set("upgrade_override_setting", upgradeOverrideSetting); err != nil {
+				return fmt.Errorf("setting `upgrade_override_setting`: %+v", err)
 			}
 
 			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
@@ -4589,4 +4620,34 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 	}
 
 	return err
+}
+
+func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
+	if len(input) == 0 || input[0] == nil {
+		return &managedclusters.ClusterUpgradeSettings{
+			OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+				ForceUpgrade: pointer.To(false),
+			},
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &managedclusters.ClusterUpgradeSettings{
+		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+			ForceUpgrade: pointer.To(true),
+			Until:        pointer.To(raw["effective_until"].(string)),
+		},
+	}
+}
+
+func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.ClusterUpgradeSettings) []interface{} {
+	if input == nil || input.OverrideSettings == nil || pointer.From(input.OverrideSettings.ForceUpgrade) == false {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"effective_until": pointer.From(input.OverrideSettings.Until),
+		},
+	}
 }
