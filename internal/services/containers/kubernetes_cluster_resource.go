@@ -4641,7 +4641,7 @@ func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managed
 }
 
 func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.ClusterUpgradeSettings) []interface{} {
-	if input == nil || input.OverrideSettings == nil || pointer.From(input.OverrideSettings.ForceUpgrade) == false {
+	if input == nil || input.OverrideSettings == nil || !pointer.From(input.OverrideSettings.ForceUpgrade) {
 		return []interface{}{}
 	}
 
