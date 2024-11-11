@@ -2300,6 +2300,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("upgrade_override_setting") {
+		updateCluster = true
+		upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
+		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2473,13 +2480,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			log.Printf("[DEBUG] Updated Default Node Pool.")
 		}
-	}
-
-	if d.HasChange("upgrade_override_setting") {
-		updateCluster = true
-		upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
-		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
-		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
 	}
 
 	if d.HasChange("maintenance_window") {
