@@ -56,7 +56,7 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -86,7 +86,7 @@ func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.expiryReflectValue(data, time.Now().Add(time.Hour).Format(time.RFC3339), "password1"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -108,7 +108,7 @@ func TestAccContainerRegistryTokenPassword_replace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithACRName("acctest1", data),
 			Check: acceptance.ComposeTestCheckFunc(
