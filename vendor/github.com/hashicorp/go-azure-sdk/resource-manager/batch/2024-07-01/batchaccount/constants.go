@@ -452,14 +452,16 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 type PublicNetworkAccessType string
 
 const (
-	PublicNetworkAccessTypeDisabled PublicNetworkAccessType = "Disabled"
-	PublicNetworkAccessTypeEnabled  PublicNetworkAccessType = "Enabled"
+	PublicNetworkAccessTypeDisabled           PublicNetworkAccessType = "Disabled"
+	PublicNetworkAccessTypeEnabled            PublicNetworkAccessType = "Enabled"
+	PublicNetworkAccessTypeSecuredByPerimeter PublicNetworkAccessType = "SecuredByPerimeter"
 )
 
 func PossibleValuesForPublicNetworkAccessType() []string {
 	return []string{
 		string(PublicNetworkAccessTypeDisabled),
 		string(PublicNetworkAccessTypeEnabled),
+		string(PublicNetworkAccessTypeSecuredByPerimeter),
 	}
 }
 
@@ -478,8 +480,9 @@ func (s *PublicNetworkAccessType) UnmarshalJSON(bytes []byte) error {
 
 func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error) {
 	vals := map[string]PublicNetworkAccessType{
-		"disabled": PublicNetworkAccessTypeDisabled,
-		"enabled":  PublicNetworkAccessTypeEnabled,
+		"disabled":           PublicNetworkAccessTypeDisabled,
+		"enabled":            PublicNetworkAccessTypeEnabled,
+		"securedbyperimeter": PublicNetworkAccessTypeSecuredByPerimeter,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

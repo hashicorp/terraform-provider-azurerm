@@ -13,5 +13,7 @@ type VirtualMachineConfiguration struct {
 	NodeAgentSkuId              string                       `json:"nodeAgentSkuId"`
 	NodePlacementConfiguration  *NodePlacementConfiguration  `json:"nodePlacementConfiguration,omitempty"`
 	OsDisk                      *OSDisk                      `json:"osDisk,omitempty"`
+	SecurityProfile             *SecurityProfile             `json:"securityProfile,omitempty"`
+	ServiceArtifactReference    *ServiceArtifactReference    `json:"serviceArtifactReference,omitempty"`
 	WindowsConfiguration        *WindowsConfiguration        `json:"windowsConfiguration,omitempty"`
 }
