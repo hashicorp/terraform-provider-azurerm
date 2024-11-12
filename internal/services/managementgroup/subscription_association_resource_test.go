@@ -116,7 +116,7 @@ func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, clie
 	}
 
 	resp, err := client.ManagementGroups.GroupsClient.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
-		CacheControl: pointer.FromString("no-cache"),
+		CacheControl: pointer.To("no-cache"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
 		Recurse:      pointer.FromBool(false),
 	})

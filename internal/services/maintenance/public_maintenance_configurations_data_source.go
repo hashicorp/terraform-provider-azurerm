@@ -5,6 +5,7 @@ package maintenance
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
@@ -120,7 +121,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 	resp, err := client.List(ctx, subId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("no Public Maintenance Configurations were found")
+			return errors.New("no Public Maintenance Configurations were found")
 		}
 		return fmt.Errorf("retrieving Public Maintenance Configurations: %+v", err)
 	}
@@ -170,7 +171,7 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 		}
 	}
 	if len(filteredPublicConfigs) == 0 {
-		return fmt.Errorf("no Public Maintenance Configurations were found")
+		return errors.New("no Public Maintenance Configurations were found")
 	}
 
 	if err := d.Set("configs", filteredPublicConfigs); err != nil {

@@ -675,18 +675,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		secondaryEndpoints = model.Properties.SecondaryEndpoints
 	}
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.set(d); err != nil {
-		return err
-	}
+	endpoints.set(d)
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.set(d); err != nil {
-		return err
-	}
+	keysAndConnectionStrings.set(d)
 
 	return nil
 }

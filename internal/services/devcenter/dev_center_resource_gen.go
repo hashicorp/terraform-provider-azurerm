@@ -193,7 +193,6 @@ func (r DevCenterResource) Update() sdk.ResourceFunc {
 }
 
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenterResourceSchema, output *devcenters.DevCenter) error {
-
 	identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding SystemAndUserAssigned Identity: %+v", err)
@@ -214,7 +213,6 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 }
 
 func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenters.DevCenter, output *DevCenterResourceSchema) error {
-
 	identity, err := identity.FlattenSystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening SystemAndUserAssigned Identity: %+v", err)
@@ -235,7 +233,6 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 }
 
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-
 	return nil
 }
 

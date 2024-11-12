@@ -245,7 +245,6 @@ func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.Reso
 
 	err = client.IotConnectorFhirDestinationDeleteThenPoll(ctx, *id)
 	if err != nil {
-
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	log.Printf("[DEBUG] Waiting for %s to be deleted..", id)

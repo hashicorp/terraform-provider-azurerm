@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -508,11 +508,9 @@ func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dn
 		}
 		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
 	}
-	enableProxyStr := ""
+	enableProxyStr := "dns_proxy_enabled = false"
 	if enableProxy {
 		enableProxyStr = "dns_proxy_enabled = true"
-	} else {
-		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`

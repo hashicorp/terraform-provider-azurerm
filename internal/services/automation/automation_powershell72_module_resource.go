@@ -5,6 +5,7 @@ package automation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -189,7 +190,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 								provisioningState = string(*props.ProvisioningState)
 							}
 							if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-								return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+								return resp, provisioningState, errors.New(*props.Error.Message)
 							}
 							return resp, provisioningState, nil
 						}
@@ -281,7 +282,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 								provisioningState = string(*props.ProvisioningState)
 							}
 							if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-								return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+								return resp, provisioningState, errors.New(*props.Error.Message)
 							}
 							return resp, provisioningState, nil
 						}

@@ -236,7 +236,6 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 							debugLogger.Infof("[SLICE] Setting %q to %+v", structTags.hclPath, attr)
 							output[structTags.hclPath] = attr
 						}
-
 					}
 				} else {
 					debugLogger.Infof("Setting %q to nil", structTags.hclPath)

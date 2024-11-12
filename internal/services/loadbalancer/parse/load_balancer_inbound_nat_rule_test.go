@@ -27,7 +27,6 @@ func TestLoadBalancerInboundNatRuleID(t *testing.T) {
 		Error    bool
 		Expected *LoadBalancerInboundNatRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

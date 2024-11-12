@@ -215,7 +215,6 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.MSSQL.VirtualMachineGroupsClient
 
 			id, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupID(metadata.ResourceData.Id())
@@ -238,7 +237,6 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-
 					state.SqlImageOffer = pointer.From(props.SqlImageOffer)
 					state.SqlImageSku = string(pointer.From(props.SqlImageSku))
 
@@ -247,11 +245,10 @@ func (r MsSqlVirtualMachineGroupResource) Read() sdk.ResourceFunc {
 						return err
 					}
 					storageAccountPrimaryKey := ""
-					if oldModel.WsfcDomainProfile != nil && len(oldModel.WsfcDomainProfile) != 0 {
+					if len(oldModel.WsfcDomainProfile) != 0 {
 						storageAccountPrimaryKey = oldModel.WsfcDomainProfile[0].StorageAccountPrimaryKey
 					}
 					state.WsfcDomainProfile = flattenMsSqlVirtualMachineGroupWsfcDomainProfile(props.WsfcDomainProfile, storageAccountPrimaryKey)
-
 				}
 				state.Location = location.Normalize(model.Location)
 

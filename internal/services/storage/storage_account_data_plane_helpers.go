@@ -5,8 +5,10 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"slices"
 	"time"
 
@@ -64,8 +66,10 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 			return fmt.Errorf("building Blob Service Poller: %+v", err)
 		}
 		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if !connectionError(err) {
+				return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
+			}
 		}
 	}
 
@@ -76,8 +80,10 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 			return fmt.Errorf("building Queues Poller: %+v", err)
 		}
 		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if !connectionError(err) {
+				return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
+			}
 		}
 	}
 
@@ -88,8 +94,10 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 			return fmt.Errorf("building File Share Poller: %+v", err)
 		}
 		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the File Service to become available: %+v", err)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if !connectionError(err) {
+				return fmt.Errorf("waiting for the File Service to become available: %+v", err)
+			}
 		}
 	}
 
@@ -100,10 +108,21 @@ func waitForDataPlaneToBecomeAvailableForAccount(ctx context.Context, client *cl
 			return fmt.Errorf("building Static Website Poller: %+v", err)
 		}
 		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
+		if err = poller.PollUntilDone(ctx); err != nil {
+			if !connectionError(err) {
+				return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
+			}
 		}
 	}
 
 	return nil
+}
+
+func connectionError(e error) bool {
+	var pollingDroppedConnectionError pollers.PollingDroppedConnectionError
+	if errors.As(e, &pollingDroppedConnectionError) {
+		return true
+	}
+
+	return regexp.MustCompile(`dial tcp .*:`).MatchString(e.Error()) || regexp.MustCompile(`EOF$`).MatchString(e.Error())
 }

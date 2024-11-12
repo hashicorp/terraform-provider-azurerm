@@ -16,6 +16,7 @@ type UserFeatures struct {
 	ResourceGroup            ResourceGroupFeatures
 	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
+	Storage                  StorageFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 	MachineLearning          MachineLearningFeatures
@@ -82,6 +83,10 @@ type ManagedDiskFeatures struct {
 type AppConfigurationFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 	RecoverSoftDeleted       bool
+}
+
+type StorageFeatures struct {
+	DataPlaneAvailable bool
 }
 
 type SubscriptionFeatures struct {

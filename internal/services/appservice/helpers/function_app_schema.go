@@ -1646,7 +1646,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+		if len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)

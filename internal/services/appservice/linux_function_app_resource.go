@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
+	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppResource struct{}
@@ -1262,10 +1262,8 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
 							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
 						}
-
 					}
 				}
-
 			}
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
@@ -1330,7 +1328,6 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-
 			}
 			return nil
 		},

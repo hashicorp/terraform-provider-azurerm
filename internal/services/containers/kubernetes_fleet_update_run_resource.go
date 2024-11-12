@@ -422,7 +422,6 @@ func flattenKubernetesFleetUpdateRunStage(input []updateruns.UpdateStage) []Kube
 		})
 	}
 	return output
-
 }
 
 func flattenKubernetesFleetUpdateRunGroup(input *[]updateruns.UpdateGroup) []KubernetesFleetUpdateRunResourceUpdateGroupSchema {

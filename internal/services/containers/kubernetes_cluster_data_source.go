@@ -786,7 +786,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 		}
-
 	}
 
 	return resource

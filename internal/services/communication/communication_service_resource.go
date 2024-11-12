@@ -80,6 +80,7 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				"UAE",
 				"UK",
 				"United States",
+				"usgov",
 			}, false),
 		},
 

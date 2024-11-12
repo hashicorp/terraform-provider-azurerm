@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -527,7 +528,7 @@ func flattenManagedApplicationParameterValuesValueToString(input *interface{}, l
 func extractParameterOrOutputValue(v interface{}) (string, error) {
 	switch t := v.(type) {
 	case bool:
-		return fmt.Sprintf("%t", v.(bool)), nil
+		return strconv.FormatBool(v.(bool)), nil
 	case float64:
 		// use precision 0 since this comes from an int
 		return fmt.Sprintf("%.f", v.(float64)), nil

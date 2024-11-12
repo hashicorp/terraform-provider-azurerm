@@ -140,7 +140,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 }
 
 func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
-	var output []containerModel
+	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
 		var name string
 		if item.Name != nil {

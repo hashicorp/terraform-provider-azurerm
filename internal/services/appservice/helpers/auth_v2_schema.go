@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
+	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type AuthV2Settings struct {
@@ -1035,7 +1035,6 @@ func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Se
 			}
 			result.LoginParameters = loginParams
 		}
-
 	}
 
 	if validation := input.Validation; validation != nil {
@@ -1782,7 +1781,6 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 				Scopes: pointer.To(google.LoginScopes),
 			},
 		}
-
 	}
 
 	return &webapps.Google{

@@ -5,6 +5,7 @@ package keyvault
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -304,7 +305,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if !response.WasNotFound(softDeletedKeyVault.HttpResponse) && !response.WasStatusCode(softDeletedKeyVault.HttpResponse, http.StatusForbidden) {
 		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
 			// this exists but the users opted out so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.VaultName, location))
+			return errors.New(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.VaultName, location))
 		}
 
 		recoverSoftDeletedKeyVault = true
