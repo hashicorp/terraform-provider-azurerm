@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -258,45 +257,6 @@ func TestAccApiManagement_delegationSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccApiManagement_policy(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping since `policy` has been deprecated and removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	r := ApiManagementResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.policyXmlContent(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.policyXmlLink(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				"policy.0.xml_link",
-			},
-		},
-		{
-			Config: r.policyRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
