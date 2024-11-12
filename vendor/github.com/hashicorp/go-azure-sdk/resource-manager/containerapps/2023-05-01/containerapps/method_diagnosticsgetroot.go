@@ -46,7 +46,6 @@ func (c ContainerAppsClient) DiagnosticsGetRoot(ctx context.Context, id Containe
 
 	var model ContainerApp
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

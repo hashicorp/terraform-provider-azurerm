@@ -15,7 +15,7 @@ type ClusterPrincipalAssignmentsClient struct {
 }
 
 func NewClusterPrincipalAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*ClusterPrincipalAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "clusterprincipalassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "clusterprincipalassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ClusterPrincipalAssignmentsClient: %+v", err)
 	}

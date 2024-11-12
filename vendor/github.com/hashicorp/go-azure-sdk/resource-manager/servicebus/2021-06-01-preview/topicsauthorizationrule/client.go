@@ -15,7 +15,7 @@ type TopicsAuthorizationRuleClient struct {
 }
 
 func NewTopicsAuthorizationRuleClientWithBaseURI(sdkApi sdkEnv.Api) (*TopicsAuthorizationRuleClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "topicsauthorizationrule", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "topicsauthorizationrule", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TopicsAuthorizationRuleClient: %+v", err)
 	}

@@ -434,7 +434,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
+			if len(model.A2ASettings) == 1 {
 				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 
@@ -618,7 +618,6 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 			StartGroupActions:         &preActions,
 			EndGroupActions:           &postActions,
 		})
-
 	}
 	return output, nil
 }
@@ -755,7 +754,6 @@ func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
 				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
 			}
 		}
-
 	}
 
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {

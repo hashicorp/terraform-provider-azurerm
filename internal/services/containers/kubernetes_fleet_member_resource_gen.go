@@ -192,7 +192,6 @@ func (r KubernetesFleetMemberResource) Update() sdk.ResourceFunc {
 }
 
 func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToFleetMember(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMember) error {
-
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberProperties{}
 	}
@@ -204,7 +203,6 @@ func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToF
 }
 
 func (r KubernetesFleetMemberResource) mapFleetMemberToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMember, output *KubernetesFleetMemberResourceSchema) error {
-
 	if input.Properties == nil {
 		input.Properties = &fleetmembers.FleetMemberProperties{}
 	}
@@ -228,7 +226,6 @@ func (r KubernetesFleetMemberResource) mapFleetMemberPropertiesToKubernetesFleet
 }
 
 func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdate) error {
-
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberUpdateProperties{}
 	}
@@ -240,7 +237,6 @@ func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToF
 }
 
 func (r KubernetesFleetMemberResource) mapFleetMemberUpdateToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMemberUpdate, output *KubernetesFleetMemberResourceSchema) error {
-
 	if input.Properties == nil {
 		input.Properties = &fleetmembers.FleetMemberUpdateProperties{}
 	}

@@ -354,7 +354,6 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		if props := model.Properties; props != nil {
-
 			d.Set("account_endpoint", props.AccountEndpoint)
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
@@ -632,7 +631,6 @@ func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccess
 			}
 			ipRules = append(ipRules, flattenedIpRule)
 		}
-
 	}
 
 	return []interface{}{

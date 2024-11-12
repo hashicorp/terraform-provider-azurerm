@@ -15,7 +15,7 @@ type PrivateZonesClient struct {
 }
 
 func NewPrivateZonesClientWithBaseURI(sdkApi sdkEnv.Api) (*PrivateZonesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "privatezones", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "privatezones", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrivateZonesClient: %+v", err)
 	}

@@ -124,6 +124,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the AI Services Account.
 
+-> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
+
 ---
 
 An `identity` block exports the following:

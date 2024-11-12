@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -370,11 +371,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
 
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("setting `version` without the required `version_set_id`")
+		return errors.New("setting `version` without the required `version_set_id`")
 	}
 
 	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
+		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
@@ -427,7 +428,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 
 		if v, ok := d.GetOk("service_url"); ok {
-			apiParams.Properties.ServiceUrl = pointer.To(v.(string))
+			apiParams.Properties.ServiceURL = pointer.To(v.(string))
 		}
 
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
@@ -485,7 +486,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			Description:                   pointer.To(description),
 			Path:                          path,
 			Protocols:                     protocols,
-			ServiceUrl:                    pointer.To(serviceUrl),
+			ServiceURL:                    pointer.To(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
@@ -512,7 +513,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("terms_of_service_url"); ok {
-		params.Properties.TermsOfServiceUrl = pointer.To(v.(string))
+		params.Properties.TermsOfServiceURL = pointer.To(v.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, newId, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -560,7 +561,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("is_current", pointer.From(props.IsCurrent))
 			d.Set("is_online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
-			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("revision", pointer.From(props.ApiRevision))
 			if !features.FourPointOhBeta() {
 				d.Set("soap_pass_through", apiType == string(api.ApiTypeSoap))
@@ -570,7 +571,7 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
 			d.Set("revision_description", pointer.From(props.ApiRevisionDescription))
 			d.Set("version_description", pointer.From(props.ApiVersionDescription))
-			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceUrl))
+			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceURL))
 
 			if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 				return fmt.Errorf("setting `protocols`: %s", err)

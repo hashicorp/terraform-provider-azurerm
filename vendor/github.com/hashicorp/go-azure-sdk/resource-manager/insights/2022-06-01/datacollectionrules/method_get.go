@@ -45,7 +45,6 @@ func (c DataCollectionRulesClient) Get(ctx context.Context, id DataCollectionRul
 
 	var model DataCollectionRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

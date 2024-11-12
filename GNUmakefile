@@ -80,6 +80,10 @@ whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
 
+golangci-fix:
+	@echo "==> Fixing source code with all golangci linters..."
+	golangci-lint run ./... --fix
+
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh

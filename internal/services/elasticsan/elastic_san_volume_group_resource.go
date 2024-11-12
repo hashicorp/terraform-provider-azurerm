@@ -440,7 +440,7 @@ func ExpandVolumeGroupNetworkRules(input []ElasticSANVolumeGroupResourceNetworkR
 		}
 	}
 
-	var networkRules []volumegroups.VirtualNetworkRule
+	networkRules := make([]volumegroups.VirtualNetworkRule, 0, len(input))
 	for _, rule := range input {
 		networkRules = append(networkRules, volumegroups.VirtualNetworkRule{
 			Id:     rule.SubnetId,

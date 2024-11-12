@@ -44,7 +44,7 @@ func ParseInboundEndpointID(input string) (*InboundEndpointId, error) {
 	}
 
 	id := InboundEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseInboundEndpointIDInsensitively(input string) (*InboundEndpointId, erro
 	}
 
 	id := InboundEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id InboundEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsResolvers", "dnsResolvers", "dnsResolvers"),
-		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverValue"),
+		resourceids.UserSpecifiedSegment("dnsResolverName", "dnsResolverName"),
 		resourceids.StaticSegment("staticInboundEndpoints", "inboundEndpoints", "inboundEndpoints"),
-		resourceids.UserSpecifiedSegment("inboundEndpointName", "inboundEndpointValue"),
+		resourceids.UserSpecifiedSegment("inboundEndpointName", "inboundEndpointName"),
 	}
 }
 

@@ -138,7 +138,6 @@ func (r StorageMoverSourceEndpointResource) Create() sdk.ResourceFunc {
 					v.Description = utils.String(model.Description)
 					properties.Properties = v
 				}
-
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {

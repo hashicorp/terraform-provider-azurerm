@@ -15,7 +15,7 @@ type ProximityPlacementGroupsClient struct {
 }
 
 func NewProximityPlacementGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*ProximityPlacementGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "proximityplacementgroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "proximityplacementgroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProximityPlacementGroupsClient: %+v", err)
 	}

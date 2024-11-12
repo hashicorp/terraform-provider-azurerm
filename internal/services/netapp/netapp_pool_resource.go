@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -103,18 +102,6 @@ func resourceNetAppPool() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["qos_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(capacitypools.QosTypeAuto),
-				string(capacitypools.QosTypeManual),
-			}, false),
-		}
 	}
 
 	return resource
@@ -254,10 +241,9 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		poolProperties := model.Properties
 		d.Set("service_level", poolProperties.ServiceLevel)
 
-		sizeInTB := int64(0)
 		sizeInBytes := poolProperties.Size
 		sizeInMB := sizeInBytes / 1024 / 1024
-		sizeInTB = sizeInMB / 1024 / 1024
+		sizeInTB := sizeInMB / 1024 / 1024
 		d.Set("size_in_tb", int(sizeInTB))
 		qosType := ""
 		if poolProperties.QosType != nil {

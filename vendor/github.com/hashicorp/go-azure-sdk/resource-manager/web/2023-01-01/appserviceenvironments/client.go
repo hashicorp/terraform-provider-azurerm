@@ -15,7 +15,7 @@ type AppServiceEnvironmentsClient struct {
 }
 
 func NewAppServiceEnvironmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*AppServiceEnvironmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "appserviceenvironments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "appserviceenvironments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AppServiceEnvironmentsClient: %+v", err)
 	}

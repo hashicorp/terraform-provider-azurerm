@@ -43,7 +43,7 @@ func TestAccManagementGroupDataSource_basicByDisplayName(t *testing.T) {
 	})
 }
 
-func TestAccManagementGroupDataSource_nestedManagmentGroup(t *testing.T) {
+func TestAccManagementGroupDataSource_nestedManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 	r := ManagementGroupDataSource{}
 

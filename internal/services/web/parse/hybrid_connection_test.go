@@ -27,7 +27,6 @@ func TestHybridConnectionID(t *testing.T) {
 		Error    bool
 		Expected *HybridConnectionId
 	}{
-
 		{
 			// empty
 			Input: "",

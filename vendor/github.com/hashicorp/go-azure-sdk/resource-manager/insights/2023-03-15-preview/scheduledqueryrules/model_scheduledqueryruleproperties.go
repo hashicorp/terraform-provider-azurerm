@@ -17,7 +17,7 @@ type ScheduledQueryRuleProperties struct {
 	IsWorkspaceAlertsStorageConfigured    *bool                       `json:"isWorkspaceAlertsStorageConfigured,omitempty"`
 	MuteActionsDuration                   *string                     `json:"muteActionsDuration,omitempty"`
 	OverrideQueryTimeRange                *string                     `json:"overrideQueryTimeRange,omitempty"`
-	RuleResolveConfiguration              *RuleResolveConfiguration   `json:"ruleResolveConfiguration,omitempty"`
+	ResolveConfiguration                  *RuleResolveConfiguration   `json:"resolveConfiguration,omitempty"`
 	Scopes                                *[]string                   `json:"scopes,omitempty"`
 	Severity                              *AlertSeverity              `json:"severity,omitempty"`
 	SkipQueryValidation                   *bool                       `json:"skipQueryValidation,omitempty"`

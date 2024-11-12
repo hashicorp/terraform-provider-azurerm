@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -362,18 +361,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["network_features"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(volumes.NetworkFeaturesBasic),
-				string(volumes.NetworkFeaturesStandard),
-			}, false),
-		}
 	}
 
 	return resource
@@ -1012,29 +999,29 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		}
 
 		protocolsEnabled := []string{}
-		if utils.NormaliseNilableBool(item.Cifs) {
+		if pointer.From(item.Cifs) {
 			protocolsEnabled = append(protocolsEnabled, "CIFS")
 		}
-		if utils.NormaliseNilableBool(item.Nfsv3) {
+		if pointer.From(item.Nfsv3) {
 			protocolsEnabled = append(protocolsEnabled, "NFSv3")
 		}
-		if utils.NormaliseNilableBool(item.Nfsv41) {
+		if pointer.From(item.Nfsv41) {
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
 		result := map[string]interface{}{
 			"allowed_clients":                utils.FlattenStringSlice(&allowedClients),
-			"kerberos_5_read_only_enabled":   utils.NormaliseNilableBool(item.Kerberos5ReadOnly),
-			"kerberos_5_read_write_enabled":  utils.NormaliseNilableBool(item.Kerberos5ReadWrite),
-			"kerberos_5i_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5iReadOnly),
-			"kerberos_5i_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5iReadWrite),
-			"kerberos_5p_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5pReadOnly),
-			"kerberos_5p_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5pReadWrite),
+			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
+			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
+			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
+			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
+			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
+			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
 			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
-			"root_access_enabled":            utils.NormaliseNilableBool(item.HasRootAccess),
+			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
-			"unix_read_only":                 utils.NormaliseNilableBool(item.UnixReadOnly),
-			"unix_read_write":                utils.NormaliseNilableBool(item.UnixReadWrite),
+			"unix_read_only":                 pointer.From(item.UnixReadOnly),
+			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
 		results = append(results, result)
 	}
