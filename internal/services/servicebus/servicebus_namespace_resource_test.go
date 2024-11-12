@@ -473,30 +473,6 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-// TODO: Remove in v4.0
-func (ServiceBusNamespaceResource) zoneRedundant(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                         = "acctestservicebusnamespace-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku                          = "Premium"
-  premium_messaging_partitions = 1
-  capacity                     = 1
-  zone_redundant               = true
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (ServiceBusNamespaceResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

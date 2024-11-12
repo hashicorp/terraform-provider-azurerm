@@ -2045,67 +2045,6 @@ func flattenApiManagementSignUpSettings(input signupsettings.PortalSignupSetting
 	}
 }
 
-func expandApiManagementPolicies(input []interface{}) (*policy.PolicyContract, error) {
-	if len(input) == 0 || input[0] == nil {
-		return nil, nil
-	}
-
-	vs := input[0].(map[string]interface{})
-	xmlContent := vs["xml_content"].(string)
-	xmlLink := vs["xml_link"].(string)
-
-	if xmlContent != "" {
-		return &policy.PolicyContract{
-			Properties: &policy.PolicyContractProperties{
-				Format: pointer.To(policy.PolicyContentFormatRawxml),
-				Value:  xmlContent,
-			},
-		}, nil
-	}
-
-	if xmlLink != "" {
-		return &policy.PolicyContract{
-			Properties: &policy.PolicyContractProperties{
-				Format: pointer.To(policy.PolicyContentFormatXmlNegativelink),
-				Value:  xmlLink,
-			},
-		}, nil
-	}
-
-	return nil, errors.New("Either `xml_content` or `xml_link` should be set if the `policy` block is defined.")
-}
-
-func flattenApiManagementPolicies(d *pluginsdk.ResourceData, input *policy.PolicyContract) []interface{} {
-	xmlContent := ""
-	if input != nil && input.Properties != nil {
-		if input.Properties.Value != "" {
-			xmlContent = input.Properties.Value
-		}
-	}
-
-	// if there's no policy assigned, we set this to an empty list
-	if xmlContent == "" {
-		return []interface{}{}
-	}
-
-	output := map[string]interface{}{
-		"xml_content": xmlContent,
-		"xml_link":    "",
-	}
-
-	// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-	// as such we need to retrieve this value from the state if it's present
-	if existing, ok := d.GetOk("policy"); ok {
-		existingVs := existing.([]interface{})
-		if len(existingVs) > 0 && existingVs[0] != nil {
-			existingV := existingVs[0].(map[string]interface{})
-			output["xml_link"] = existingV["xml_link"].(string)
-		}
-	}
-
-	return []interface{}{output}
-}
-
 func expandApiManagementTenantAccessSettings(input []interface{}) tenantaccess.AccessInformationUpdateParameters {
 	enabled := false
 

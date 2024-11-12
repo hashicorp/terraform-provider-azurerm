@@ -278,8 +278,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
-	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -387,8 +385,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
-	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -836,29 +832,6 @@ func flattenArmWorkspaceDataLakeStorageAccountDetails(input *synapse.DataLakeSto
 		return fmt.Sprintf("%s/%s", *input.AccountURL, *input.Filesystem)
 	}
 	return ""
-}
-
-func flattenArmWorkspaceAadAdmin(input *synapse.AadAdminProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-	var tenantId, login, sid string
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-	if input.Login != nil {
-		login = *input.Login
-	}
-	if input.Sid != nil {
-		sid = *input.Sid
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"tenant_id": tenantId,
-			"login":     login,
-			"object_id": sid,
-		},
-	}
 }
 
 func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []interface{}) {
