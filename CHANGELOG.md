@@ -12,7 +12,8 @@ ENHANCEMENTS:
 * dependencies: update `terraform-plugin-mux` to version `v0.17.0` [GH-27936]
 * dependencies: update `terraform-plugin-sdk/v2` to version `v2.35.0` [GH-27936]
 * Data Source: `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
-* `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
+* `azurerm_application_gateway` - support more values for the `status_code` property [GH-27535]
+* `azurerm_bastion_host` - support for the `zones` property [GH-27909]
 * `azurerm_communication_service` - support for `usgov` region [GH-27919]
 * `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
 
