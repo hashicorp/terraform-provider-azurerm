@@ -635,7 +635,6 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			} else {
 				d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
 			}
-
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

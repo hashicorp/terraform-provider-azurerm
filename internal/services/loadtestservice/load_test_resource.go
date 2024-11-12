@@ -296,7 +296,6 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
-
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -317,7 +316,6 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input Load
 }
 
 func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input loadtests.LoadTestResource, output *LoadTestResourceSchema) error {
-
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -338,7 +336,6 @@ func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input load
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(input LoadTestResourceSchema, output *loadtests.LoadTestResourceUpdate) error {
-
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -355,7 +352,6 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 
 // nolint: unused
 func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
-
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)

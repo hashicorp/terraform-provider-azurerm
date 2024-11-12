@@ -627,7 +627,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if accessConnector.Model.Identity != nil {
-
 			accIdentityId := ""
 			for raw := range accessConnector.Model.Identity.IdentityIds {
 				id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)

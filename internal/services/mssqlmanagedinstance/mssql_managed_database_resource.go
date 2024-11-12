@@ -378,7 +378,6 @@ func expandLongTermRetentionPolicy(ltrPolicy []LongTermRetentionPolicy) managedi
 }
 
 func flattenLongTermRetentionPolicy(ltrPolicy managedinstancelongtermretentionpolicies.ManagedInstanceLongTermRetentionPolicyProperties) []LongTermRetentionPolicy {
-
 	ltrModel := LongTermRetentionPolicy{
 		WeeklyRetention:  pointer.From(ltrPolicy.WeeklyRetention),
 		MonthlyRetention: pointer.From(ltrPolicy.MonthlyRetention),

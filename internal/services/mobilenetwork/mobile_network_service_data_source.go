@@ -332,8 +332,7 @@ func (r ServiceDataSource) Read() sdk.ResourceFunc {
 }
 
 func flattenPccRuleConfigurationDataSourceModel(inputList []service.PccRuleConfiguration) []ServiceDataSourcePccRuleConfigurationModel {
-	var outputList []ServiceDataSourcePccRuleConfigurationModel
-
+	outputList := make([]ServiceDataSourcePccRuleConfigurationModel, 0, len(inputList))
 	for _, input := range inputList {
 		output := ServiceDataSourcePccRuleConfigurationModel{
 			RuleName:       input.RuleName,

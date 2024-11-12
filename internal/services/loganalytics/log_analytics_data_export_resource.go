@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
@@ -23,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsDataExport() *pluginsdk.Resource {
@@ -124,8 +124,10 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	destinationId := d.Get("destination_resource_id").(string)
-	var tableNames []string
-	for _, v := range d.Get("table_names").(*pluginsdk.Set).List() {
+
+	tableNamesGet := d.Get("table_names").(*pluginsdk.Set).List()
+	tableNames := make([]string, 0, len(tableNamesGet))
+	for _, v := range tableNamesGet {
 		tableNames = append(tableNames, v.(string))
 	}
 
@@ -135,27 +137,28 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 				ResourceId: destinationId,
 			},
 			TableNames: tableNames,
-			Enable:     utils.Bool(d.Get("enabled").(bool)),
+			Enable:     pointer.To(d.Get("enabled").(bool)),
 		},
 	}
 
 	if strings.Contains(destinationId, "Microsoft.EventHub") {
-		_, err := eventhubs.ValidateNamespaceID(destinationId, "destination_resource_id")
-		if err == nil {
+		if _, err := eventhubs.ValidateNamespaceID(destinationId, "destination_resource_id"); err == nil {
 			eventhubNamespace, err := eventhubs.ParseNamespaceID(destinationId)
 			if err != nil {
 				return fmt.Errorf("parsing destination eventhub namespaces id error: %+v", err)
 			}
+
 			parameters.Properties.Destination.ResourceId = eventhubNamespace.ID()
 		} else {
 			eventhubId, err := eventhubs.ParseEventhubID(destinationId)
 			if err != nil {
 				return fmt.Errorf("parsing destination eventhub id error: %+v", err)
 			}
+
 			destinationId = namespaces.NewNamespaceID(eventhubId.SubscriptionId, eventhubId.ResourceGroupName, eventhubId.NamespaceName).ID()
 			parameters.Properties.Destination.ResourceId = destinationId
 			parameters.Properties.Destination.MetaData = &dataexport.DestinationMetaData{
-				EventHubName: utils.String(eventhubId.EventhubName),
+				EventHubName: pointer.To(eventhubId.EventhubName),
 			}
 		}
 	}

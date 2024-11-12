@@ -321,7 +321,6 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if properties := model.Properties; properties != nil {
-
 				state.Model = flattenDeploymentModelModel(properties.Model)
 
 				if v := properties.RaiPolicyName; v != nil {

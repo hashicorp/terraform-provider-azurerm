@@ -27,7 +27,6 @@ func TestStorageAccountManagementPolicyID(t *testing.T) {
 		Error    bool
 		Expected *StorageAccountManagementPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -35,7 +35,6 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 	// NFS Volume must not have Windows SIDs
 	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 1 &&
 		(findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "nfsv3") || findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "nfsv4.1")) {
-
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateWindowsSID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {
@@ -46,7 +45,6 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 
 	// CIFS Volume must not have Windows SIDs
 	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 1 && findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "cifs") {
-
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateUnixUserIDOrGroupID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {

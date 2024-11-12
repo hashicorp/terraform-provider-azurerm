@@ -508,11 +508,9 @@ func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dn
 		}
 		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
 	}
-	enableProxyStr := ""
+	enableProxyStr := "dns_proxy_enabled = false"
 	if enableProxy {
 		enableProxyStr = "dns_proxy_enabled = true"
-	} else {
-		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`

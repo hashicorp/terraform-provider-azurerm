@@ -74,7 +74,6 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.AccountClient
 
 			var state netAppModels.NetAppAccountEncryptionDataSourceModel
@@ -111,13 +110,11 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if len(anfAccountIdentityFlattened) > 0 {
-
 				if anfAccountIdentityFlattened[0].Type == identity.TypeSystemAssigned {
 					state.SystemAssignedIdentityPrincipalID = anfAccountIdentityFlattened[0].PrincipalId
 				}
 
 				if anfAccountIdentityFlattened[0].Type == identity.TypeUserAssigned {
-
 					if len(anfAccountIdentityFlattened[0].IdentityIds) > 0 {
 						state.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
 					}
