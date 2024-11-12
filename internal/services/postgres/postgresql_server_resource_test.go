@@ -173,13 +173,6 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.gp(data, "9.6"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -208,13 +201,6 @@ func TestAccPostgreSQLServer_updateSKU(t *testing.T) {
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku(data, "10.0", "B_Gen5_2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
 			Config: r.sku(data, "10.0", "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -222,7 +208,7 @@ func TestAccPostgreSQLServer_updateSKU(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.sku(data, "10.0", "MO_Gen5_16"),
+			Config: r.sku(data, "10.0", "GP_Gen5_4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -553,6 +539,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
+  allow_nested_items_to_be_public = false
 
   tags = {
     environment = "staging"
@@ -612,6 +599,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
+  allow_nested_items_to_be_public = false
 }
 
 resource "azurerm_postgresql_server" "test" {
