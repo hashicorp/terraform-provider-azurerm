@@ -284,7 +284,6 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		"customer_managed_key_id", "customer_managed_hsm_key_id", envs.KeyVault, envs.ManagedHSM); err != nil {
 		return fmt.Errorf("expanding CMK: %+v", err)
 	} else if cmk != nil {
-
 		enc := &factories.EncryptionConfiguration{
 			VaultBaseURL: cmk.BaseUri(),
 		}
