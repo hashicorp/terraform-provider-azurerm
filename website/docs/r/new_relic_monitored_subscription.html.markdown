@@ -42,7 +42,7 @@ data "azurerm_subscription" "another" {
 resource "azurerm_new_relic_monitored_subscription" "example" {
   monitor_id = azurerm_new_relic_monitor.example.id
   monitored_subcription {
-    subscription_id                    = data.azurerm_subscription.another.id
+    subscription_id                    = data.azurerm_subscription.another.subscription_id
     azure_active_directory_log_enabled = true
     activity_log_enabled               = true
     metric_enabled                     = true
@@ -108,6 +108,8 @@ A `metric_tag_filter` block supports the following:
 ---
 
 A `monitored_subscription` block supports the following:
+
+* `subscription_id` - (Required) Specifies the UUID of the subscription to be monitored.
 
 * `activity_log_enabled` - (Optional) Whether activity logs from Azure resources should be sent to the Monitor resource. Defaults to `false`.
 

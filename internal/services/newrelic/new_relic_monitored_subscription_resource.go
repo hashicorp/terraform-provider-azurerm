@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitoredsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
@@ -68,7 +67,11 @@ func (r NewRelicMonitoredSubscriptionResource) Arguments() map[string]*pluginsdk
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"subscription_id": commonschema.ResourceIDReferenceRequired(&commonids.SubscriptionId{}),
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
 
 					"azure_active_directory_log_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -176,6 +179,9 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
+			if !response.WasNotFound(existing.HttpResponse) && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.MonitoredSubscriptionList != nil && len(*existing.Model.Properties.MonitoredSubscriptionList) != 0 {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
 			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
 			if err != nil {
@@ -188,7 +194,7 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.UpdateThenPoll(ctx, *monitorId, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *monitorId, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -306,11 +312,11 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 }
 
 func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription, email string) *[]monitoredsubscriptions.MonitoredSubscription {
+	results := make([]monitoredsubscriptions.MonitoredSubscription, 0)
 	if len(input) == 0 {
-		return nil
+		return &results
 	}
 
-	results := make([]monitoredsubscriptions.MonitoredSubscription, 0)
 	for _, v := range input {
 		logRules := monitoredsubscriptions.LogRules{
 			FilteringTags:        expandMonitoredSubscriptionFilteringTagModelArray(v.LogTagFilter),
@@ -375,7 +381,6 @@ func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSub
 			if metricRule := tagRule.MetricRules; metricRule != nil {
 				result.MetricEnabled = metricRule.SendMetrics != nil && *metricRule.SendMetrics == monitoredsubscriptions.SendMetricsStatusEnabled
 				result.MetricTagFilter = flattenMonitoredSubscriptionFilteringTagModelArray(metricRule.FilteringTags)
-
 			}
 		}
 	}

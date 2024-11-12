@@ -159,7 +159,7 @@ resource "azurerm_new_relic_monitored_subscription" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
 
   monitored_subscription {
-    subscription_id = data.azurerm_subscription.test.id
+    subscription_id = data.azurerm_subscription.test.subscription_id
 
     log_tag_filter {
       name   = "log2"
@@ -193,7 +193,7 @@ data "azurerm_subscription" "test" {
 resource "azurerm_new_relic_monitored_subscription" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
   monitored_subscription {
-    subscription_id                    = data.azurerm_subscription.test.id
+    subscription_id                    = data.azurerm_subscription.test.subscription_id
     azure_active_directory_log_enabled = true
     activity_log_enabled               = true
     metric_enabled                     = true
