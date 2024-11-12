@@ -20,6 +20,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_log_analytics_workspace_table` - use the subscription from workspace ID [GH-27590]
+* `azurerm_traffic_manager_external_endpoint` - the value for `priority` will be dynamically assigned by the API [GH-27966]
+* `azurerm_traffic_manager_azure_endpoint` - the value for `priority` will be dynamically assigned by the API [GH-27966]
+
 
 ## 4.9.0 (November 08, 2024)
 
