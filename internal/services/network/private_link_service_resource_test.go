@@ -736,6 +736,7 @@ resource "azurerm_private_link_service" "test" {
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
   fqdns                          = ["foo.com", "bar.com"]
+  destination_ip_address         = "10.0.0.1"
 
   nat_ip_configuration {
     name                       = "primaryIpConfiguration-%d"
