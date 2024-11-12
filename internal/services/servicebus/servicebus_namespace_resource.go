@@ -702,3 +702,80 @@ func networkRuleHash(input interface{}) int {
 	// the service returns this ID with segment resourceGroup and resource group name all in lower cases, to avoid unnecessary diff, we extract this ID and reconstruct this hash code
 	return set.HashStringIgnoreCase(v["subnet_id"])
 }
+
+func expandServiceBusNamespaceVirtualNetworkRules(input []interface{}) *[]namespaces.NWRuleSetVirtualNetworkRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]namespaces.NWRuleSetVirtualNetworkRules, 0)
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+		result = append(result, namespaces.NWRuleSetVirtualNetworkRules{
+			Subnet: &namespaces.Subnet{
+				Id: raw["subnet_id"].(string),
+			},
+			IgnoreMissingVnetServiceEndpoint: pointer.To(raw["ignore_missing_vnet_service_endpoint"].(bool)),
+		})
+	}
+
+	return &result
+}
+
+func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSetVirtualNetworkRules) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(*input))
+	for _, v := range *input {
+		subnetId := ""
+		if v.Subnet != nil && v.Subnet.Id != "" {
+			subnetId = v.Subnet.Id
+		}
+
+		ignore := false
+		if v.IgnoreMissingVnetServiceEndpoint != nil {
+			ignore = *v.IgnoreMissingVnetServiceEndpoint
+		}
+
+		result = append(result, map[string]interface{}{
+			"subnet_id":                            subnetId,
+			"ignore_missing_vnet_service_endpoint": ignore,
+		})
+	}
+
+	return result
+}
+
+func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleSetIPRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	action := namespaces.NetworkRuleIPActionAllow
+	result := make([]namespaces.NWRuleSetIPRules, 0, len(input))
+	for _, v := range input {
+		result = append(result, namespaces.NWRuleSetIPRules{
+			IPMask: pointer.To(v.(string)),
+			Action: &action,
+		})
+	}
+
+	return &result
+}
+
+func flattenServiceBusNamespaceIPRules(input *[]namespaces.NWRuleSetIPRules) []interface{} {
+	if input == nil || len(*input) == 0 {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(*input))
+	for _, v := range *input {
+		if v.IPMask != nil {
+			result = append(result, *v.IPMask)
+		}
+	}
+
+	return result
+}
