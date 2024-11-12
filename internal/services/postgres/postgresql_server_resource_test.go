@@ -534,7 +534,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%[1]d"
+  name                     = "accsa%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -593,12 +593,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                            = "accsa%[1]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "GRS"
-  allow_nested_items_to_be_public = false
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
 
 resource "azurerm_postgresql_server" "test" {
