@@ -247,6 +247,9 @@ func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing
 }
 
 func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("There is no more available values for `minimal_tls_version` to test.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
