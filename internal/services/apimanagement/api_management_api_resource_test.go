@@ -574,23 +574,6 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameDeveloper), data.RandomInteger)
 }
 
-func (r ApiManagementApiResource) soapPassthrough(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_api" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "api1"
-  path                = "api1"
-  protocols           = ["https"]
-  revision            = "1"
-  api_type            = "soap"
-}
-`, r.template(data, SkuNameConsumption), data.RandomInteger)
-}
-
 func (r ApiManagementApiResource) subscriptionRequired(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
