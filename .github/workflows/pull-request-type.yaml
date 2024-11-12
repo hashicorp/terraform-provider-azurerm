@@ -2,7 +2,7 @@
 name: Pull Request Type
 
 permissions:
-  issues: write
+  pull-requests: write
 
 on: 
   pull_request_target:
@@ -12,6 +12,7 @@ jobs:
   issue_triage:
     runs-on: ubuntu-latest
     steps:
+      continue-on-error: true
     - uses: github/issue-labeler@c1b0f9f52a63158c4adc09425e858e87b32e9685 # v3.4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
