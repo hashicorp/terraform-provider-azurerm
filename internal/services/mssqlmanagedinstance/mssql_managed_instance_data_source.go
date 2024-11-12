@@ -215,7 +215,6 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				model.SubnetId = pointer.From(props.SubnetId)
 				model.TimezoneId = pointer.From(props.TimezoneId)
 				model.VCores = pointer.From(props.VCores)
-
 			}
 
 			metadata.SetID(id)

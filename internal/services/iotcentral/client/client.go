@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -40,7 +41,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*dataplane.OrganizationsClient, error) {
 	if !c.Endpoint.Available() {
-		return nil, fmt.Errorf("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
+		return nil, errors.New("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
 	}
 
 	iotCentralAuth, err := c.authorizerFunc(c.Endpoint)

@@ -176,7 +176,6 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
-
 		schema["auto_delete_on_idle"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -252,7 +251,6 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 	if !features.FourPointOhBeta() {
-
 		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
 			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
 		}

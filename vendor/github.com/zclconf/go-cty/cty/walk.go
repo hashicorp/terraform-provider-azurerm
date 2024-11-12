@@ -213,7 +213,7 @@ func transform(path Path, val Value, t Transformer) (Value, error) {
 			atys := ty.AttributeTypes()
 			newAVs := make(map[string]Value)
 			for name := range atys {
-				av := val.GetAttr(name)
+				av := rawVal.GetAttr(name)
 				path := append(path, GetAttrStep{
 					Name: name,
 				})

@@ -301,7 +301,6 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			}
 			tmp.Elem().Set(slice)
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
-
 		}
 
 	default:

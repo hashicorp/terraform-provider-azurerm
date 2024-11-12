@@ -227,7 +227,6 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Delete() sdk.ResourceFunc {
 }
 
 func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvault.KeyRotationPolicy {
-
 	var expiryTime *string // = nil // needs to be set to nil if not set
 	if policy.ExpireAfter != "" {
 		expiryTime = pointer.To(policy.ExpireAfter)

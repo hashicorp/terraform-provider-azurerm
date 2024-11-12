@@ -43,7 +43,6 @@ func waitForPolicyAssignmentToStabilize(ctx context.Context, client *assignments
 				}
 
 				return nil, "0", fmt.Errorf("polling for %s: %+v", id, err)
-
 			}
 
 			return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil

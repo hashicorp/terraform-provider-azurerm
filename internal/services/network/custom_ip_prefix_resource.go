@@ -521,7 +521,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		for startingState, path := range plan {
 			// Look for a plan that works from our lastKnownState
 			if *lastKnownState == startingState || transitioningStatesFor(startingState).contains(*lastKnownState) {
-
 				// If we're currently transitioning to the startingState for this plan, wait for this to complete before proceeding
 				if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState), commissionedStates{startingState}); err != nil {
 					return lastKnownState, err

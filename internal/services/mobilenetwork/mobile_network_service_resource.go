@@ -511,7 +511,7 @@ func (r ServiceResource) Delete() sdk.ResourceFunc {
 }
 
 func expandPccRuleConfigurationResourceModel(inputList []ServiceResourcePccRuleConfigurationModel) []service.PccRuleConfiguration {
-	var outputList []service.PccRuleConfiguration
+	outputList := make([]service.PccRuleConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := service.PccRuleConfiguration{
@@ -524,11 +524,8 @@ func expandPccRuleConfigurationResourceModel(inputList []ServiceResourcePccRuleC
 			trafficControlValue = service.TrafficControlPermissionEnabled
 		}
 		output.TrafficControl = &trafficControlValue
-
 		output.RuleQosPolicy = expandPccRuleQosPolicyResourceModel(input.RuleQosPolicy)
-
 		output.ServiceDataFlowTemplates = expandServiceDataFlowTemplateResourceModel(input.ServiceDataFlowTemplates)
-
 		outputList = append(outputList, output)
 	}
 
@@ -600,8 +597,7 @@ func expandQosPolicyResourceModel(inputList []ServiceResourceQosPolicyModel) *se
 }
 
 func flattenPccRuleConfigurationModel(inputList []service.PccRuleConfiguration) []ServiceResourcePccRuleConfigurationModel {
-	var outputList []ServiceResourcePccRuleConfigurationModel
-
+	outputList := make([]ServiceResourcePccRuleConfigurationModel, 0, len(inputList))
 	for _, input := range inputList {
 		output := ServiceResourcePccRuleConfigurationModel{
 			RuleName:       input.RuleName,
@@ -655,11 +651,11 @@ func flattenPccRuleQosPolicyResourceModel(input *service.PccRuleQosPolicy) []Ser
 }
 
 func flattenServiceDataFlowTemplateResourceModel(inputList *[]service.ServiceDataFlowTemplate) []ServiceResourceServiceDataFlowTemplateModel {
-	var outputList []ServiceResourceServiceDataFlowTemplateModel
 	if inputList == nil {
-		return outputList
+		return []ServiceResourceServiceDataFlowTemplateModel{}
 	}
 
+	outputList := make([]ServiceResourceServiceDataFlowTemplateModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := ServiceResourceServiceDataFlowTemplateModel{
 			Direction:    string(input.Direction),

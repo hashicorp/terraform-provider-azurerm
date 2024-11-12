@@ -861,7 +861,6 @@ func (r ContainerRegistryTaskResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

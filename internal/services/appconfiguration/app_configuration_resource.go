@@ -372,7 +372,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err := replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
 			return fmt.Errorf("creating %s: %+v", replicaId, err)
 		}
-
 	}
 
 	return resourceAppConfigurationRead(d, meta)

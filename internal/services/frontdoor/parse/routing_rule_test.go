@@ -27,7 +27,6 @@ func TestRoutingRuleID(t *testing.T) {
 		Error    bool
 		Expected *RoutingRuleId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestRoutingRuleIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *RoutingRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

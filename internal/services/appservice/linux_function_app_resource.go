@@ -1262,10 +1262,8 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
 							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
 						}
-
 					}
 				}
-
 			}
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
@@ -1330,7 +1328,6 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-
 			}
 			return nil
 		},

@@ -113,7 +113,6 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				if existing.Model.Properties.Encryption != nil && existing.Model.Properties.Encryption.KeySource != nil && pointer.From(existing.Model.Properties.Encryption.KeySource) == netappaccounts.KeySourceMicrosoftPointKeyVault {
-
 					return tf.ImportAsExistsError(r.ResourceType(), accountID.ID())
 				}
 			}
@@ -192,7 +191,6 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.AccountClient
 
 			id, err := netappaccounts.ParseNetAppAccountID((metadata.ResourceData.Id()))
@@ -234,7 +232,6 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 			}
 
 			if len(anfAccountIdentityFlattened) > 0 {
-
 				if anfAccountIdentityFlattened[0].Type == identity.TypeSystemAssigned {
 					model.SystemAssignedIdentityPrincipalID = anfAccountIdentityFlattened[0].PrincipalId
 				}
