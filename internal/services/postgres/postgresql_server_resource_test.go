@@ -539,7 +539,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
-  allow_nested_items_to_be_public = false
 
   tags = {
     environment = "staging"
@@ -594,11 +593,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
+  name                            = "accsa%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  account_tier                    = "Standard"
+  account_replication_type        = "GRS"
   allow_nested_items_to_be_public = false
 }
 
@@ -615,10 +614,10 @@ resource "azurerm_postgresql_server" "test" {
   storage_mb = 640000
 
   backup_retention_days        = 14
-  geo_redundant_backup_enabled = false
+  geo_redundant_backup_enabled = true
   auto_grow_enabled            = false
 
-  infrastructure_encryption_enabled = false
+  infrastructure_encryption_enabled = true
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
   ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
