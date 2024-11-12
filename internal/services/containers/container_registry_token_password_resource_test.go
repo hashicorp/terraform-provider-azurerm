@@ -53,6 +53,7 @@ func TestAccContainerRegistryTokenPassword_complete(t *testing.T) {
 }
 
 func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
+	t.Skip("Enable this test after removing the `ForceNew` on the `passwordx.expiry`")
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
@@ -83,6 +84,7 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 
 // Regression test for https://github.com/hashicorp/terraform-provider-azurerm/issues/19138
 func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testing.T) {
+	t.Skip("Enable this test after removing the `ForceNew` on the `passwordx.expiry`")
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{}
 
