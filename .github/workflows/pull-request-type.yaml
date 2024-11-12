@@ -9,7 +9,7 @@ on:
     types: [opened, edited]
 
 jobs:
-  issue_triage:
+  pr_triage_label_type:
     runs-on: ubuntu-latest
     steps:
       continue-on-error: true
