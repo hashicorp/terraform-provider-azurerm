@@ -11,9 +11,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/tokens"
+	containterregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
