@@ -46,23 +46,22 @@ var _ sdk.Resource = CognitiveRaiPolicyResource{}
 func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// ForceNew:     true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cognitive_account_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			// ForceNew:     true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
 		},
 
 		"base_policy_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			// ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Microsoft.Default",
 			}, false),
@@ -71,7 +70,6 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 		"mode": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			// ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Default",
 				"Asynchronous_filter",
@@ -83,7 +81,6 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 		"type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"SystemManaged",
 				"UserManaged",
@@ -91,18 +88,16 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"content_filters": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			// ForceNew: true,
-			// MinItems: 1,
-			MaxItems: 8,
+			Type:       pluginsdk.TypeList,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   12,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						// ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"hate",
 							"sexual",
@@ -118,21 +113,17 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 					"blocking": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						// ForceNew: true,
 					},
 
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						// ForceNew: true,
 					},
 
 					"severity_threshold": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Computed: true,
-						// ForceNew: true,
-						Description: "Medium as default value",
 						ValidateFunc: validation.StringInSlice([]string{
 							"High",
 							"Medium",
@@ -143,7 +134,6 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 					"source": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						// ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Prompt",
 							"Completion",
@@ -156,27 +146,23 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 		"custom_blocklists": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			// ForceNew: true,
-			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"blocklist_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						// ForceNew:     true,
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.StringIsEmpty,
 					},
 
 					"blocking": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
-						// ForceNew: true,
 					},
 
 					"source": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						// ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Prompt",
 							"Completion",
@@ -295,11 +281,11 @@ func (c CognitiveRaiPolicyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("content_filters") {
-				return nil
+				properties.Properties.ContentFilters = expandContentFiltersModel(model.ContentFilters)
 			}
 
 			if metadata.ResourceData.HasChange("custom_blocklists") {
-				return nil
+				properties.Properties.CustomBlocklists = expandCustomBlocklistsModel(model.CustomBlocklists)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
