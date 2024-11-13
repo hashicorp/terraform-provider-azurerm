@@ -50,8 +50,10 @@ type Criterion struct {
 
 type RouteMapResource struct{}
 
-var _ sdk.ResourceWithUpdate = RouteMapResource{}
-var _ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+var (
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"

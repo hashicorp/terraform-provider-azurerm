@@ -196,7 +196,7 @@ func FixFileNormalize(file string) {
 	}
 	newBs := strings.Join(newContent, "\n")
 	if newBs != content {
-		f, _ := os.OpenFile(file, os.O_TRUNC|os.O_WRONLY, 0666)
+		f, _ := os.OpenFile(file, os.O_TRUNC|os.O_WRONLY, 0o666)
 		_, _ = f.WriteString(newBs)
 		_ = f.Sync()
 	}

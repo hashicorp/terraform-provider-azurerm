@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-var (
-	testConfig = ProviderConfig{}
-)
+var testConfig = ProviderConfig{}
 
 func TestProviderConfig_LoadDefault(t *testing.T) {
 	if os.Getenv("ARM_CLIENT_ID") == "" {

@@ -752,7 +752,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 			if model := functionApp.Model; model != nil {
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
-
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}

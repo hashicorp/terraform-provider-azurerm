@@ -456,7 +456,8 @@ func flattenFirewallPolicyDNSSetting(input *firewallpolicies.DnsSettings) []inte
 		map[string]interface{}{
 			"servers":       utils.FlattenStringSlice(input.Servers),
 			"proxy_enabled": proxyEnabled,
-		}}
+		},
+	}
 }
 
 func flattenFirewallPolicyIntrusionDetection(input *firewallpolicies.FirewallPolicyIntrusionDetection) []interface{} {

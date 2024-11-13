@@ -23,9 +23,7 @@ import (
 
 type IotHubFileUploadResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
 
 type IotHubFileUploadResourceModel struct {
 	AuthenticationType   string `tfschema:"authentication_type"`

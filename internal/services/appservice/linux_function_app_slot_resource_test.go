@@ -2041,6 +2041,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
+
 func (r LinuxFunctionAppSlotResource) withIPRestrictionsDefaultActionDeny(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

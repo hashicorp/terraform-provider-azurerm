@@ -47,8 +47,10 @@ type PointInTimeRestore struct {
 	SourceDatabaseId   string `tfschema:"source_database_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedDatabaseResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedDatabaseResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedDatabaseResource{}
+)
 
 type MsSqlManagedDatabaseResource struct{}
 

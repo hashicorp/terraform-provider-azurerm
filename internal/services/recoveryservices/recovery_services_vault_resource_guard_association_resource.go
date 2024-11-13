@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const VaultGuardResourceType = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
-const VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+const (
+	VaultGuardResourceType           = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
+	VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+)
 
 type VaultGuardProxyResource struct{}
 
@@ -70,6 +72,7 @@ func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 func (r VaultGuardProxyResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
+
 func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

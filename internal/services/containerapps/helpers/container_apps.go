@@ -2929,6 +2929,7 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

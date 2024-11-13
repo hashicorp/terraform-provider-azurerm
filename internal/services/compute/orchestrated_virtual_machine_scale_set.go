@@ -664,7 +664,8 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
 									string(virtualmachinescalesets.DiffDiskPlacementResourceDisk),
 								}, false),
-							}},
+							},
+						},
 					},
 				},
 

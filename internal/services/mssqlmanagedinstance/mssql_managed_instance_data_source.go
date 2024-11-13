@@ -228,7 +228,7 @@ func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySy
 		return nil
 	}
 
-	var identityIds = make([]string, 0)
+	identityIds := make([]string, 0)
 	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {

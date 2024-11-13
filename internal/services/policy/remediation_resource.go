@@ -245,7 +245,8 @@ func waitForRemediationToDelete(ctx context.Context,
 	id string,
 	timeout time.Duration,
 	cancelFunc func() error,
-	refresh pluginsdk.StateRefreshFunc) error {
+	refresh pluginsdk.StateRefreshFunc,
+) error {
 	if prop == nil {
 		return nil
 	}

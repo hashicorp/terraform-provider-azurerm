@@ -1066,6 +1066,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

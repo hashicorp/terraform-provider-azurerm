@@ -702,6 +702,7 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 		},
 	}
 }
+
 func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
