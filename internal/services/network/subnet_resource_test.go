@@ -669,7 +669,7 @@ resource "azurerm_subnet" "test" {
 func (SubnetResource) basic_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"
@@ -693,7 +693,7 @@ resource "azurerm_subnet" "test" {
 func (SubnetResource) complete_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"
