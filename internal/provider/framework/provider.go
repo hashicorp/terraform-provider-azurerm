@@ -488,6 +488,7 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 
 		response.ResourceData = v
 		response.DataSourceData = v
+		response.EphemeralResourceData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
