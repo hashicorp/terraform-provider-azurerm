@@ -13,14 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -657,44 +654,4 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
-}
-
-func expandConfiguration(model Configuration) nginxconfiguration.NginxConfiguration {
-	result := nginxconfiguration.NginxConfiguration{
-		Properties: &nginxconfiguration.NginxConfigurationProperties{},
-	}
-
-	if len(model.ConfigureFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ConfigureFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.Files = &files
-	}
-
-	if len(model.ProtectedFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ProtectedFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.ProtectedFiles = &files
-	}
-
-	if model.PackageData != "" {
-		result.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-			Data: pointer.To(model.PackageData),
-		}
-	}
-
-	if model.RootFile != "" {
-		result.Properties.RootFile = pointer.To(model.RootFile)
-	}
-
-	return result
 }
