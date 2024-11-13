@@ -255,8 +255,8 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
                 NestedObject: schema.NestedBlockObject{
                     Blocks: map[string]schema.Block{
                         ...
-						// Add an attribute map variable for the new block or add to the existing map inside the Nested Object
-						"key_vault": schema.ListNestedBlock{
+                        // Add an attribute map variable for the new block or add to the existing map inside the Nested Object
+                        "key_vault": schema.ListNestedBlock{
                             NestedObject: schema.NestedBlockObject{
                             	Attributes: map[string]schema.Attribute{
                                 	"purge_soft_delete_on_destroy": schema.BoolAttribute{
@@ -304,13 +304,13 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 ```go
 func defaultFeaturesList() types.List {
     ...
-	// Add a NewObjectValueFrom that holds what type of feature you have or append to the existing ObjectValueFrom
-	keyVault, _ := basetypes.NewObjectValueFrom(context.Background(), KeyVaultAttributes, map[string]attr.Value{
+    // Add a NewObjectValueFrom that holds what type of feature you have or append to the existing ObjectValueFrom
+    keyVault, _ := basetypes.NewObjectValueFrom(context.Background(), KeyVaultAttributes, map[string]attr.Value{
         "purge_soft_delete_on_destroy":                            basetypes.NewBoolNull(),
     })
     keyVaultList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(KeyVaultAttributes), []attr.Value{keyVault})
     ...
-	// If the added feature is supporting a new service, add it to the following list of services
+    // If the added feature is supporting a new service, add it to the following list of services
     fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
         ...
         "key_vault": keyVaultList,
