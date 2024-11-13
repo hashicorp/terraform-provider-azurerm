@@ -97,7 +97,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
-
 }
 
 func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {

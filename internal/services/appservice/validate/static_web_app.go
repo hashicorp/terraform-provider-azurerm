@@ -4,6 +4,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 )
@@ -21,35 +22,35 @@ func StaticWebAppName(v interface{}, k string) (warnings []string, errors []erro
 	return warnings, errors
 }
 
-func StaticWebAppPassword(v interface{}, k string) (warnings []string, errors []error) {
+func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []error) {
 	value, ok := v.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected %s to be a string", k))
+		errs = append(errs, fmt.Errorf("expected %s to be a string", k))
 		return
 	}
 
 	if len(value) < 8 {
-		errors = append(errors, fmt.Errorf("the password should be at least eight characters long."))
+		errs = append(errs, errors.New("the password should be at least eight characters long."))
 	}
 
 	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("the password must contain at least one symbol"))
+		errs = append(errs, errors.New("the password must contain at least one symbol"))
 	}
 
 	if matched := regexp.MustCompile(`[a-z]`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("the password must contain at least one lower case letter"))
+		errs = append(errs, errors.New("the password must contain at least one lower case letter"))
 	}
 
 	if matched := regexp.MustCompile(`[A-Z]`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("the password must contain at least one upper case letter"))
+		errs = append(errs, errors.New("the password must contain at least one upper case letter"))
 	}
 
 	if matched := regexp.MustCompile(`[0-9]`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("the password must contain at least one number"))
+		errs = append(errs, errors.New("the password must contain at least one number"))
 	}
 
 	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("the password must contain at least one symbol"))
+		errs = append(errs, errors.New("the password must contain at least one symbol"))
 	}
 
 	return

@@ -269,7 +269,6 @@ func flattenKubernetesFleetUpdateStrategyStage(input []fleetupdatestrategies.Upd
 		})
 	}
 	return output
-
 }
 
 func flattenKubernetesFleetUpdateStrategyGroup(input *[]fleetupdatestrategies.UpdateGroup) []KubernetesFleetUpdateStrategyResourceUpdateGroupSchema {

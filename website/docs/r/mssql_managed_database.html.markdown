@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `long_term_retention_policy` block supports the following:

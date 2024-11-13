@@ -27,7 +27,6 @@ func TestBackendAddressPoolID(t *testing.T) {
 		Error    bool
 		Expected *BackendAddressPoolId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestBackendAddressPoolIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *BackendAddressPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

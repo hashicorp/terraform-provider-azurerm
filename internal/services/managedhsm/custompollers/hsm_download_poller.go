@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ pollers.PollerType = &hsmDownloadPoller{}

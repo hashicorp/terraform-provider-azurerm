@@ -1,21 +1,53 @@
-## 4.9.0 (Unreleased)
+## 4.10.0 (Unreleased)
 
-FEATURES:
+BREAKING CHANGES:
 
-* **New Resource**: `azurerm_dashboard_grafana_managed_private_endpoint` [GH-27781]
-* **New Resource**: `azurerm_data_protection_backup_instance_mysql_flexible_server` [GH-27464]
+* dependencies - update `cognitive` to `2024-10-01`, due to a behavioural change in this version of the API, the `primary_access_key` and `secondary_access_key` can not be retrieved if `local_authentication_enabled` has been set to `false`. These properties that may have had values previously will now be empty. This has affected the `azurerm_ai_services` and `azurerm_cognitive_account` resources as well as the `azurerm_cognitive_account` data source [GH-27851]
 
 ENHANCEMENTS:
 
-* dependencies - update `go-azure-sdk` to `v0.20241104.1140654` [GH-27896]
-* dependencies - update `go-azure-helpers` to `v0.71.0` [GH-27897]
-* `azurerm_public_ip_prefix` - add support for the `sku_tier` property [GH-27882]
-*  `azurerm_oracle_cloud_vm_cluster` - add support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties [GH-27808]
-*  `azurerm_public_ip` - support for the d`omain_name_label_scope` property [GH-27748]
-* `storage` - allow `azurerm_storage_account` to be used in Data Plane restrictive environments [GH-27818]
-* `azurerm_subnet` - `default_outbound_access_enabled` can now be updated [GH-27858]
-* `azurerm_storage_container` - support for the `storage_account_id` property [GH-27733]
-* `azurerm_storage_share` - support for the `storage_account_id` property [GH-27733]
+* dependencies: update `terraform-plugin-framework` to version `v1.13.0` [GH-27936]
+* dependencies: update `terraform-plugin-framework-validators` to version `v0.14.0` [GH-27936]
+* dependencies: update `terraform-plugin-go` to version `v0.25.0` [GH-27936]
+* dependencies: update `terraform-plugin-mux` to version `v0.17.0` [GH-27936]
+* dependencies: update `terraform-plugin-sdk/v2` to version `v2.35.0` [GH-27936]
+* Data Source: `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
+* `azurerm_application_gateway` - support more values for the `status_code` property [GH-27535]
+* `azurerm_bastion_host` - support for the `zones` property [GH-27909]
+* `azurerm_communication_service` - support for `usgov` region [GH-27919]
+* `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
+
+BUG FIXES:
+
+* `azurerm_log_analytics_workspace_table` - use the subscription from workspace ID [GH-27590]
+* `azurerm_traffic_manager_external_endpoint` - the value for `priority` will be dynamically assigned by the API [GH-27966]
+* `azurerm_traffic_manager_azure_endpoint` - the value for `priority` will be dynamically assigned by the API [GH-27966]
+
+
+## 4.9.0 (November 08, 2024)
+
+FEATURES:
+
+* **New Resource**: `azurerm_dynatrace_monitor` ([#27432](https://github.com/hashicorp/terraform-provider-azurerm/issues/27432))
+* **New Resource**: `azurerm_dashboard_grafana_managed_private_endpoint` ([#27781](https://github.com/hashicorp/terraform-provider-azurerm/issues/27781))
+* **New Resource**: `azurerm_data_protection_backup_instance_mysql_flexible_server` ([#27464](https://github.com/hashicorp/terraform-provider-azurerm/issues/27464))
+* **New Resource**: `azurerm_mongo_cluster` ([#27636](https://github.com/hashicorp/terraform-provider-azurerm/issues/27636))
+* **New Resource**: `azurerm_stack_hci_network_interface` ([#26888](https://github.com/hashicorp/terraform-provider-azurerm/issues/26888))
+
+ENHANCEMENTS:
+
+* dependencies - update `go-azure-sdk` to `v0.20241104.1140654` ([#27896](https://github.com/hashicorp/terraform-provider-azurerm/issues/27896))
+* dependencies - update `go-azure-helpers` to `v0.71.0` ([#27897](https://github.com/hashicorp/terraform-provider-azurerm/issues/27897))
+* dependencies - update `golang-jwt` to `v4.5.1` ([#27938](https://github.com/hashicorp/terraform-provider-azurerm/issues/27938))
+* `storage` - allow `azurerm_storage_account` to be used in Data Plane restrictive environments ([#27818](https://github.com/hashicorp/terraform-provider-azurerm/issues/27818))
+* `azurerm_cognitive_deployment` - `sku.0.name` now supports `DataZoneStandard` ([#27926](https://github.com/hashicorp/terraform-provider-azurerm/issues/27926))
+* `azurerm_mssql_managed_database` - support for the `tags` property ([#27857](https://github.com/hashicorp/terraform-provider-azurerm/issues/27857))
+* `azurerm_oracle_cloud_vm_cluster` - support for the `domain`, `scan_listener_port_tcp`, `scan_listener_port_tcp_ssl` and `zone_id` properties ([#27808](https://github.com/hashicorp/terraform-provider-azurerm/issues/27808))
+* `azurerm_public_ip_prefix` - support for the `sku_tier` property ([#27882](https://github.com/hashicorp/terraform-provider-azurerm/issues/27882))
+* `azurerm_public_ip` - support for the `domain_name_label_scope` property ([#27748](https://github.com/hashicorp/terraform-provider-azurerm/issues/27748))
+* `azurerm_subnet` - `default_outbound_access_enabled` can now be updated ([#27858](https://github.com/hashicorp/terraform-provider-azurerm/issues/27858))
+* `azurerm_storage_container` - support for the `storage_account_id` property ([#27733](https://github.com/hashicorp/terraform-provider-azurerm/issues/27733))
+* `azurerm_storage_share` - support for the `storage_account_id` property ([#27733](https://github.com/hashicorp/terraform-provider-azurerm/issues/27733))
 
 ## 4.8.0 (October 31, 2024)
 

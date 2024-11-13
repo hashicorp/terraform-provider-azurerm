@@ -1142,7 +1142,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
-	minCapacity := float64(0)
 	ledgerEnabled := false
 	enclaveType := ""
 
@@ -1150,7 +1149,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity = pointer.From(props.MinCapacity)
+			minCapacity := pointer.From(props.MinCapacity)
 
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {

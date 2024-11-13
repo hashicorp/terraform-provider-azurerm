@@ -27,7 +27,6 @@ func TestTriggerID(t *testing.T) {
 		Error    bool
 		Expected *TriggerId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -203,7 +203,6 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				if v := model.Properties.Credentials; v != nil {
 					state.Username = pointer.From(v.Username)
 				}
-
 			}
 
 			return metadata.Encode(&state)

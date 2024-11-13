@@ -252,7 +252,6 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
-
 			}
 
 			return metadata.Encode(&state)

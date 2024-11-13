@@ -871,7 +871,7 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 		return nil
 	}
 
-	var output []interface{}
+	output := make([]interface{}, 0, len(*input))
 	for _, policy := range *input {
 		id := ""
 		if policy.Id != nil {

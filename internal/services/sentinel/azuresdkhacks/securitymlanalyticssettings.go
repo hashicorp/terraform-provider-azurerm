@@ -27,7 +27,7 @@ func (client SecurityMLAnalyticsSettingsClient) List(ctx context.Context, resour
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "List", err.Error())
+		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "List", err.Error()) // nolint: govet
 	}
 
 	result.fn = client.listNextResults

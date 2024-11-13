@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSearchService() *pluginsdk.Resource {
@@ -154,8 +153,8 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving Admin Keys for %s: %+v", id, err)
 	}
 	if model := adminKeysResp.Model; model != nil {
-		primaryKey = utils.NormalizeNilableString(model.PrimaryKey)
-		secondaryKey = utils.NormalizeNilableString(model.SecondaryKey)
+		primaryKey = pointer.From(model.PrimaryKey)
+		secondaryKey = pointer.From(model.SecondaryKey)
 	}
 	d.Set("primary_key", primaryKey)
 	d.Set("secondary_key", secondaryKey)

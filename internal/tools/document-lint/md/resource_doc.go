@@ -75,7 +75,7 @@ func extractFieldFromLine(line string) (field *model.Field) {
 	if len(res) <= 1 || res[1] == "" {
 		field.Name = util.FirstCodeValue(line) // try to use the first code as name
 		field.FormatErr = "no field name found"
-		return
+		return field
 	}
 	field.Name = res[1]
 	if field.Name == "" {
