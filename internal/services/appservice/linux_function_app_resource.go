@@ -72,7 +72,7 @@ type LinuxFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
-	VnetContentShareEnabled          bool                                       `tfschema:"website_content_over_vnet"`
+	VnetContentShareEnabled          bool                                       `tfschema:"website_content_share_over_vnet_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -308,11 +308,11 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"website_content_over_vnet": {
+		"website_content_share_over_vnet_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
-			Description: "Should the app scale enabled when storage account restricted to a virtual network? Defaults to `false`.",
+			Description: "Should the traffic between the function app and the storage account be routed through the virtual network when Apps running in a Premium plan use a file share to store content? Defaults to `false`.",
 		},
 	}
 	if features.FourPointOhBeta() {
@@ -507,15 +507,15 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				if !functionApp.StorageUsesMSI {
 					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := functionApp.AppSettings["WEBSITE_CONTENTOVERVNET"]
-					contentOverVnetEnabledSiteSetting := functionApp.VnetContentShareEnabled
+					contentShareOverVnetEnabledSiteSetting := functionApp.VnetContentShareEnabled
 					_, contentSharePresent := functionApp.AppSettings["WEBSITE_CONTENTSHARE"]
 					if _, contentShareConnectionStringPresent := functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
 						functionApp.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 
 					if !contentSharePresent {
-						if contentOverVnetEnabled || contentOverVnetEnabledSiteSetting {
-							return fmt.Errorf("the app_setting WEBSITE_CONTENTSHARE must be specified and set to a valid share when WEBSITE_CONTENTOVERVNET is specified")
+						if contentOverVnetEnabled || contentShareOverVnetEnabledSiteSetting {
+							return fmt.Errorf("the name of the content share that's set by the `WEBSITE_CONTENTSHARE` must be specified and set to a valid file share when premium function app use a file share to store content which enabled by setting the `website_content_share_over_vnet_enabled` to true")
 						}
 						functionApp.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(functionApp.Name), suffix)
 					}
@@ -1081,7 +1081,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
-			if metadata.ResourceData.HasChange("website_content_over_vnet") {
+			if metadata.ResourceData.HasChange("website_content_share_over_vnet_enabled") {
 				model.Properties.VnetContentShareEnabled = pointer.To(state.VnetContentShareEnabled)
 			}
 

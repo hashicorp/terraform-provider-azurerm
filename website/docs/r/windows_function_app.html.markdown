@@ -148,6 +148,10 @@ The following arguments are supported:
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
+* `website_content_share_over_vnet_enabled` - (Optional) Should the traffic between the function app and the storage account be routed through the virtual network when Apps running in a Premium plan use a file share to store content? Defaults to `false`.
+
+!> **Note:** This property will replace the `WEBSITE_CONTENTOVERVNET` in `app_setting`. `website_content_share_over_vnet_enabled` is the recommended one despite both settings work currently.
+
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Function App.
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
