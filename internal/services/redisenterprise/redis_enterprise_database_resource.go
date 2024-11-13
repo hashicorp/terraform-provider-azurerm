@@ -11,12 +11,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -217,10 +215,6 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
-	}
-
 	return s
 }
 
@@ -343,10 +337,6 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("name", id.DatabaseName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
-
-	if !features.FourPointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
