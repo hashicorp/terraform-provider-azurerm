@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
@@ -344,36 +344,6 @@ func flattenVirtualMachineScaleSetGalleryApplications(input *[]virtualmachinesca
 }
 
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      !features.FourPointOhBeta(),
-			MaxItems:      1,
-			ConflictsWith: []string{"scale_in_policy"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"rule": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-						}, false),
-					},
-
-					"force_deletion_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		}
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1940,12 +1910,18 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
+				// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 				"grace_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "PT30M",
-					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
-					ValidateFunc: azValidate.ISO8601Duration,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
+				},
+				"action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
 		},
@@ -1957,38 +1933,37 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	v := input[0].(map[string]interface{})
 
-	return &virtualmachinescalesets.AutomaticRepairsPolicy{
-		Enabled:     pointer.To(raw["enabled"].(bool)),
-		GracePeriod: pointer.To(raw["grace_period"].(string)),
+	result := virtualmachinescalesets.AutomaticRepairsPolicy{}
+
+	result.Enabled = pointer.To(v["enabled"].(bool))
+	result.GracePeriod = pointer.To(v["grace_period"].(string))
+
+	if v["action"].(string) != "" {
+		result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
 	}
+
+	return &result
 }
 
 func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinescalesets.AutomaticRepairsPolicy) []interface{} {
-	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.Enabled != nil {
-		enabled = *input.Enabled
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	gracePeriod := "PT30M"
-	if input != nil && input.GracePeriod != nil {
-		gracePeriod = *input.GracePeriod
-	}
+	result := make(map[string]interface{})
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
-		},
-	}
+	result["enabled"] = pointer.From(input.Enabled)
+	result["grace_period"] = pointer.From(input.GracePeriod)
+	result["action"] = pointer.From(input.RepairAction)
+
+	return append(results, result)
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -2027,6 +2002,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_update_tag": {
@@ -2062,6 +2038,15 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		},
 		Set: virtualMachineScaleSetExtensionHash,
 	}
+
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["automatic_upgrade_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+	}
+
+	return schema
 }
 
 func virtualMachineScaleSetExtensionHash(v interface{}) int {

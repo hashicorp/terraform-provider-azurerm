@@ -44,7 +44,7 @@ func ParseFluidRelayContainerID(input string) (*FluidRelayContainerId, error) {
 	}
 
 	id := FluidRelayContainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFluidRelayContainerIDInsensitively(input string) (*FluidRelayContainer
 	}
 
 	id := FluidRelayContainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FluidRelayContainerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftFluidRelay", "Microsoft.FluidRelay", "Microsoft.FluidRelay"),
 		resourceids.StaticSegment("staticFluidRelayServers", "fluidRelayServers", "fluidRelayServers"),
-		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerValue"),
+		resourceids.UserSpecifiedSegment("fluidRelayServerName", "fluidRelayServerName"),
 		resourceids.StaticSegment("staticFluidRelayContainers", "fluidRelayContainers", "fluidRelayContainers"),
-		resourceids.UserSpecifiedSegment("fluidRelayContainerName", "fluidRelayContainerValue"),
+		resourceids.UserSpecifiedSegment("fluidRelayContainerName", "fluidRelayContainerName"),
 	}
 }
 

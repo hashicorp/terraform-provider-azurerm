@@ -46,7 +46,7 @@ func ParseTestJobStreamID(input string) (*TestJobStreamId, error) {
 	}
 
 	id := TestJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseTestJobStreamIDInsensitively(input string) (*TestJobStreamId, error) {
 	}
 
 	id := TestJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,13 +127,13 @@ func (id TestJobStreamId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticRunbooks", "runbooks", "runbooks"),
-		resourceids.UserSpecifiedSegment("runbookName", "runbookValue"),
+		resourceids.UserSpecifiedSegment("runbookName", "runbookName"),
 		resourceids.StaticSegment("staticDraft", "draft", "draft"),
 		resourceids.StaticSegment("staticTestJob", "testJob", "testJob"),
 		resourceids.StaticSegment("staticStreams", "streams", "streams"),
-		resourceids.UserSpecifiedSegment("jobStreamId", "jobStreamIdValue"),
+		resourceids.UserSpecifiedSegment("jobStreamId", "jobStreamId"),
 	}
 }
 

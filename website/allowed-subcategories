@@ -48,9 +48,10 @@ Desktop Virtualization
 Dev Center
 Dev Test
 Digital Twins
-Disks
+Dynatrace
 Elastic
 Elastic SAN
+Extended Location
 Fluid Relay
 Graph Services
 HDInsight
@@ -60,28 +61,27 @@ Hybrid Compute
 IoT Central
 IoT Hub
 Key Vault
-Lab Service
 Lighthouse
 Load Balancer
 Load Test
 Log Analytics
 Logic App
-Logz
 Machine Learning
 Maintenance
 Managed Applications
 Management
 Maps
-Media
 Messaging
 Mixed Reality
 Mobile Network
+Mongo Cluster
 Monitor
 NGINX
 NetApp
 Network
 Network Function
 New Relic
+Oracle
 Orbital
 Palo Alto
 Policy
@@ -107,8 +107,8 @@ Stream Analytics
 Synapse
 System Center Virtual Machine Manager
 Template
-Time Series Insights
-Video Analyzer
+Trusted Signing
+Video Indexer
 Voice Services
 Web PubSub
 Workloads

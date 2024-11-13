@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultManagedHSMRoleAssignmentModel struct {
@@ -36,7 +36,7 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	ResourceId       string `tfschema:"resource_id"`
 
 	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url"`
+	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}
@@ -159,14 +159,14 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 				}
 				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
 				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
 				}
 			}
 
 			if managedHsmId == nil && !features.FourPointOhBeta() {
 				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
 				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
 				}
 				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
 				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
@@ -192,9 +192,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID: pointer.FromString(config.PrincipalId),
+				PrincipalID: pointer.To(config.PrincipalId),
 				// the role definition id may have '/' prefix, but the api doesn't accept it
-				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(config.RoleDefinitionId, "/")),
+				RoleDefinitionID: pointer.To(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
 
 			//nolint:misspell

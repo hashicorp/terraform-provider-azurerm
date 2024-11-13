@@ -45,7 +45,6 @@ func (c ProfilesClient) Get(ctx context.Context, id TrafficManagerProfileId) (re
 
 	var model Profile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

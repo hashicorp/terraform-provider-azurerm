@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
@@ -432,6 +433,10 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabledWithExtensionDisable
 }
 
 func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skipf("Skipped the 'scale_in_policy' property has been deprecated in the 4.0 provider.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
@@ -511,6 +516,9 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 
 // TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
 func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("removing in 4.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
@@ -541,17 +549,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t 
 func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn automatic repair on
 		{
-			Config: r.otherAutomaticRepairsPolicyEnabled(data),
+			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair off
 		{
 			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -559,7 +564,20 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair on again
+		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Reimage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -818,7 +836,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 					}
 
 					return nil
-
 				}, data.ResourceName),
 			),
 		},
@@ -1233,10 +1250,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2020,6 +2039,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   disable_password_authentication = false
   provision_vm_agent              = %t
+  extension_operations_enabled    = false
 
   source_image_reference {
     publisher = "Canonical"
@@ -2328,6 +2348,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2336,7 +2357,6 @@ resource "azurerm_lb" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
-
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2378,21 +2398,20 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
-
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
@@ -2411,7 +2430,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   network_interface {
     name    = "example"
     primary = true
-
     ip_configuration {
       name                                   = "internal"
       primary                                = true
@@ -2423,7 +2441,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   automatic_instance_repair {
     enabled      = true
-    grace_period = "PT1H"
+    grace_period = "PT30M"
   }
 
   depends_on = [azurerm_lb_rule.test]
@@ -2431,7 +2449,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2440,6 +2458,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2448,7 +2467,6 @@ resource "azurerm_lb" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
-
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2490,21 +2508,19 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
-
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
-
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
@@ -2523,7 +2539,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   network_interface {
     name    = "example"
     primary = true
-
     ip_configuration {
       name                                   = "internal"
       primary                                = true
@@ -2533,6 +2548,104 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
+  automatic_instance_repair {
+    enabled      = true
+    grace_period = "PT30M"
+    action       = "%[3]s"
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger, action)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
+}
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+resource "azurerm_lb_probe" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
+}
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
+  disable_password_authentication = false
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+  data_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
   automatic_instance_repair {
     enabled = false
   }

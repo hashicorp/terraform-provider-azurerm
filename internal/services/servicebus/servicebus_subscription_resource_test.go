@@ -108,26 +108,20 @@ func TestAccServiceBusSubscription_updateEnableBatched(t *testing.T) {
 		{
 			Config: r.updateEnableBatched(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccServiceBusSubscription_updateRequiresSession(t *testing.T) {
+func TestAccServiceBusSubscription_requiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.updateRequiresSession(data),
+			Config: r.requiresSession(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_session").HasValue("true"),
 			),
@@ -332,10 +326,10 @@ func (ServiceBusSubscriptionResource) withDefaultTtl(data acceptance.TestData) s
 
 func (ServiceBusSubscriptionResource) updateEnableBatched(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
-		"enable_batched_operations = true\n")
+		"batched_operations_enabled = true\n")
 }
 
-func (ServiceBusSubscriptionResource) updateRequiresSession(data acceptance.TestData) string {
+func (ServiceBusSubscriptionResource) requiresSession(data acceptance.TestData) string {
 	return fmt.Sprintf(testAccServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"requires_session = true\n")
 }

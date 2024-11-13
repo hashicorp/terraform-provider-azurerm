@@ -351,7 +351,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.SchedulePolicy = schedulePolicy
 	}
 
-	if d.HasChange("retention_daily") {
+	if d.HasChange("retention_daily") || d.HasChange("backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}

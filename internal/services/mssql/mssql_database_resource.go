@@ -18,15 +18,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/serversecurityalertpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/transparentdataencryptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -277,6 +277,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
 	// if the 'enclave_type' matches. If they don't we need to raise an error stating that they must match.
 	elasticPoolId := d.Get("elastic_pool_id").(string)
+	elasticPoolSku := ""
 	if elasticPoolId != "" {
 		elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
 		if err != nil {
@@ -285,15 +286,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
-		if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-			elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-			databaseEnclaveType := string(enclaveType)
+		if elasticPool.Model != nil {
+			if elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
+				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				databaseEnclaveType := string(enclaveType)
 
-			if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+					return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+				}
+			}
+
+			if elasticPool.Model.Sku != nil {
+				elasticPoolSku = elasticPool.Model.Sku.Name
 			}
 		}
 	}
@@ -591,33 +598,35 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return nil
 	}
 
-	securityAlertPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
+	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
+	if longTermRetentionPolicyProps != nil {
+		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKUs do not support LRP currently
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
+			longTermRetentionPolicyPayload.Properties = longTermRetentionPolicyProps
 		}
 
-		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 		}
 	}
 
-	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if shortTermSecurityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
+	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
+	if shortTermRetentionPolicyProps != nil {
+		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
+			shortTermRetentionPolicyPayload.Properties = shortTermRetentionPolicyProps
 		}
 
-		if strings.HasPrefix(skuName, "HS") {
-			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		} else if shortTermRetentionPolicyProps.DiffBackupIntervalInHours == nil || pointer.From(shortTermRetentionPolicyProps.DiffBackupIntervalInHours) == 0 {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHoursOneTwo)
 		}
 
-		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -651,7 +660,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	// Determine whether the SKU is for SQL Data Warehouse
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
+	if strings.HasPrefix(skuName, "GP_S_") && !pluginsdk.IsExplicitlyNullInConfig(d, "license_type") {
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
@@ -1069,7 +1078,24 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
-			if strings.HasPrefix(skuName, "HS") {
+			elasticPoolSku := ""
+			if elasticPoolId != "" {
+				elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+				if err != nil {
+					return err
+				}
+
+				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
+				}
+
+				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
+					elasticPoolSku = elasticPool.Model.Sku.Name
+				}
+			}
+
+			if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 
@@ -1114,7 +1140,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
-	minCapacity := float64(0)
 	ledgerEnabled := false
 	enclaveType := ""
 
@@ -1122,7 +1147,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity = pointer.From(props.MinCapacity)
+			minCapacity := pointer.From(props.MinCapacity)
 
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
@@ -1207,8 +1232,11 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		// Determine whether the SKU is for SQL Data Warehouse
 		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
-		// DW SKUs do not currently support LRP and do not honour normal SRP operations
-		if !isDwSku {
+		// Determine whether the SKU is for SQL Database Free tier
+		isFreeSku := strings.EqualFold(skuName, "free")
+
+		// DW SKUs and SQL Database Free tier do not currently support LRP and do not honour normal SRP operations
+		if !isDwSku && !isFreeSku {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -1231,7 +1259,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				}
 			}
 		} else {
-			// DW SKUs need the retention policies to be empty for state consistency
+			// DW SKUs and SQL Database Free tier need the retention policies to be empty for state consistency
 			emptySlice := make([]interface{}, 0)
 			d.Set("long_term_retention_policy", emptySlice)
 			d.Set("short_term_retention_policy", emptySlice)
@@ -1246,9 +1274,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
 			}
 
-			// For Datawarehouse SKUs, set the geo-backup policy setting
+			// For Datawarehouse SKUs and SQL Database Free tier, set the geo-backup policy setting
 			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
-				if isDwSku && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+				if (isDwSku || isFreeSku) && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}

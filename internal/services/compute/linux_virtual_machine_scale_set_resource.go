@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -19,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -58,6 +59,30 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
 		Schema: resourceLinuxVirtualMachineScaleSetSchema(),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
+
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+		),
 	}
 }
 
@@ -357,24 +382,9 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
-	scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
-		Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
-		ForceDeletion: pointer.To(false),
-	}
-
 	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("scale_in_policy"); ok {
-			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
-		}
-
 		if v, ok := d.GetOk("terminate_notification"); ok {
 			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
-		}
-	}
-
-	if v, ok := d.GetOk("scale_in"); ok {
-		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
-			scaleInPolicy = v
 		}
 	}
 
@@ -384,6 +394,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+	if automaticRepairsPolicy != nil && healthProbeId == "" && !hasHealthExtension {
+		return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+	}
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
@@ -410,8 +424,26 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 			// standard VMSS resource, since virtualMachineProfile is now supported
 			// in both VMSS and Orchestrated VMSS...
 			OrchestrationMode: pointer.To(virtualmachinescalesets.OrchestrationModeUniform),
-			ScaleInPolicy:     scaleInPolicy,
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
+			Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
+			ForceDeletion: pointer.To(false),
+		}
+
+		if v, ok := d.GetOk("scale_in_policy"); ok {
+			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
+		}
+
+		props.Properties.ScaleInPolicy = scaleInPolicy
+	}
+
+	if v, ok := d.GetOk("scale_in"); ok {
+		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
+			props.Properties.ScaleInPolicy = v
+		}
 	}
 
 	if v, ok := d.GetOk("host_group_id"); ok {
@@ -509,6 +541,10 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		if policy.AutomaticOSUpgradePolicy != nil && policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade != nil {
 			automaticOSUpgradeIsEnabled = *policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
 		}
+	}
+
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
@@ -727,7 +763,28 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
-		updateProps.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+
+		if automaticRepairsPolicy != nil {
+			// we need to know if the VMSS has a health extension or not
+			hasHealthExtension := false
+
+			if v, ok := d.GetOk("extension"); ok {
+				var err error
+				_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
+				if err != nil {
+					return err
+				}
+			}
+
+			_, hasHealthProbeId := d.GetOk("health_probe_id")
+
+			if !hasHealthProbeId && !hasHealthExtension {
+				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension or a `health_probe_id` defined")
+			}
+		}
+
+		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
 	}
 
 	if d.HasChange("identity") {
@@ -1413,7 +1470,7 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		// Computed
 		"unique_id": {

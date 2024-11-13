@@ -46,7 +46,6 @@ func (c VolumesReplicationClient) VolumesReplicationStatus(ctx context.Context, 
 
 	var model ReplicationStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

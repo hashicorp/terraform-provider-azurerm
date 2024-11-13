@@ -36,7 +36,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: true,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
@@ -61,6 +61,9 @@ func Default() UserFeatures {
 			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
+		},
+		Storage: StorageFeatures{
+			DataPlaneAvailable: true,
 		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,

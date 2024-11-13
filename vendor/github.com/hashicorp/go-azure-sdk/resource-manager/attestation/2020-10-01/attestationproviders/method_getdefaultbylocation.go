@@ -46,7 +46,6 @@ func (c AttestationProvidersClient) GetDefaultByLocation(ctx context.Context, id
 
 	var model AttestationProviders
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

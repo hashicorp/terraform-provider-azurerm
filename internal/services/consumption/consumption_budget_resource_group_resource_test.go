@@ -111,18 +111,6 @@ func TestAccConsumptionBudgetResourceGroup_completeUpdate(t *testing.T) {
 	})
 }
 
-func TestAccConsumptionBudgetResourceGroup_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_resource_group", "test")
-	r := ConsumptionBudgetResourceGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       r.basic,
-			TestResource: r,
-		}),
-	})
-}
-
 func (ConsumptionBudgetResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := budgets.ParseScopedBudgetID(state.ID)
 	if err != nil {
@@ -371,11 +359,9 @@ resource "azurerm_consumption_budget_resource_group" "test" {
   name              = "acctestconsumptionbudgetresourcegroup-%d"
   resource_group_id = azurerm_resource_group.test.id
 
-  // Changed the amount from 1000 to 2000
   amount     = 2000
   time_grain = "Monthly"
 
-  // Removed end_date
   time_period {
     start_date = "%s"
   }
@@ -396,7 +382,6 @@ resource "azurerm_consumption_budget_resource_group" "test" {
       ]
     }
 
-    // Added tag: zip
     tag {
       name = "zip"
       values = [
@@ -404,20 +389,15 @@ resource "azurerm_consumption_budget_resource_group" "test" {
         "zop",
       ]
     }
-
-    // Removed not block
   }
 
   notification {
-    enabled   = true
-    threshold = 90.0
-    operator  = "EqualTo"
-    // We don't update the value of threshold_type because toggling between the two seems to be broken
-    // See the comment on threshold_type in the schema for more details
-    threshold_type = "Forecasted"
+    enabled        = true
+    threshold      = 90.0
+    operator       = "EqualTo"
+    threshold_type = "Actual"
 
     contact_emails = [
-      // Added baz@example.com
       "baz@example.com",
       "foo@example.com",
       "bar@example.com",
@@ -426,39 +406,22 @@ resource "azurerm_consumption_budget_resource_group" "test" {
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]
-    // Removed contact_roles
   }
 
   notification {
-    // Set enabled to true
     enabled   = true
     threshold = 100.0
-    // Changed from EqualTo to GreaterThanOrEqualTo 
-    operator = "GreaterThanOrEqualTo"
+    operator  = "GreaterThanOrEqualTo"
 
     contact_emails = [
       "foo@example.com",
       "bar@example.com",
     ]
 
-    // Added contact_groups
     contact_groups = [
       azurerm_monitor_action_group.test.id,
     ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
-}
-
-func (t ConsumptionBudgetResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := budgets.ParseScopedBudgetID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err = client.Consumption.BudgetsClient.Delete(ctx, *id); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
 }

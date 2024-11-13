@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -434,7 +434,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
+			if len(model.A2ASettings) == 1 {
 				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 
@@ -618,7 +618,6 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 			StartGroupActions:         &preActions,
 			EndGroupActions:           &postActions,
 		})
-
 	}
 	return output, nil
 }
@@ -755,7 +754,6 @@ func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
 				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
 			}
 		}
-
 	}
 
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {

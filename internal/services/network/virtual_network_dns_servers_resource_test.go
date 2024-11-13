@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,8 +107,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 
@@ -137,8 +137,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 

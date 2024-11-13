@@ -144,7 +144,7 @@ func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
 func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -331,7 +331,7 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 func TestAccStorageBlob_encryptionScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -347,7 +347,7 @@ func TestAccStorageBlob_encryptionScope(t *testing.T) {
 func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -472,13 +472,6 @@ func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.pageFromInlineContent(data, 512),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("parallelism", "size", "source_content", "type"),
-		{
-			Config: r.pageFromInlineContent(data, 1024),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

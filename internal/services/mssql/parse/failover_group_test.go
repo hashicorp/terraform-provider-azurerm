@@ -27,7 +27,6 @@ func TestFailoverGroupID(t *testing.T) {
 		Error    bool
 		Expected *FailoverGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

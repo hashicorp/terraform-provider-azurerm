@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -271,10 +270,6 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 }
 
 func TestAccVirtualNetwork_subnet(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("Skipping since this test is only applicable in 4.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -304,10 +299,6 @@ func TestAccVirtualNetwork_subnet(t *testing.T) {
 }
 
 func TestAccVirtualNetwork_subnetRouteTable(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("Skipping since this test is only applicable in 4.0")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
@@ -389,8 +380,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
     environment = "Production"
@@ -422,8 +413,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
                                     %s
@@ -455,13 +446,13 @@ resource "azurerm_virtual_network" "test" {
   }
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   subnet {
-    name           = "subnet2"
-    address_prefix = "10.10.1.0/24"
+    name             = "subnet2"
+    address_prefixes = ["10.10.1.0/24"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -478,8 +469,8 @@ resource "azurerm_virtual_network" "import" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 `, r.basic(data))
@@ -514,8 +505,8 @@ resource "azurerm_virtual_network" "test" {
   }
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
     environment = "Production"
@@ -542,8 +533,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   tags = {
@@ -572,8 +563,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   tags = {
@@ -584,26 +575,6 @@ resource "azurerm_virtual_network" "test" {
 }
 
 func (VirtualNetworkResource) noSubnet(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  subnet              = []
-}
-`, data.RandomInteger, data.Locations.Primary)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -625,6 +596,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -647,8 +619,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   bgp_community = "12076:20000"
@@ -724,13 +696,13 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%[1]d"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name                                          = "subnet1"
-    address_prefix                                = "10.0.1.0/24"
+    address_prefixes                              = ["10.0.1.0/24", "ace:cab:deca::/64"]
     private_link_service_network_policies_enabled = false
     private_endpoint_network_policies             = "Enabled"
     service_endpoints                             = ["Microsoft.Sql", "Microsoft.Storage"]
@@ -749,7 +721,7 @@ resource "azurerm_virtual_network" "test" {
 
   subnet {
     name                                          = "subnet2"
-    address_prefix                                = "10.0.2.0/24"
+    address_prefixes                              = ["10.0.2.0/24"]
     private_link_service_network_policies_enabled = false
     service_endpoints                             = ["Microsoft.Storage"]
     service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
@@ -797,12 +769,11 @@ resource "azurerm_virtual_network" "test" {
 
   subnet {
     name                                          = "subnet1"
-    address_prefix                                = "10.0.1.0/24"
+    address_prefixes                              = ["10.0.1.0/24"]
     default_outbound_access_enabled               = false
     private_link_service_network_policies_enabled = true
     private_endpoint_network_policies             = "Enabled"
     service_endpoints                             = ["Microsoft.Storage"]
-    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
 
     delegation {
       name = "first"
@@ -853,9 +824,9 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-    route_table_id = azurerm_route_table.test.id
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+    route_table_id   = azurerm_route_table.test.id
   }
 
   tags = {
@@ -896,8 +867,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   tags = {

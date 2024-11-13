@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -114,11 +115,31 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 				ConflictsWith: []string{"eventhub"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"instrumentation_key": {
+						"connection_string": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"application_insights.0.connection_string",
+								"application_insights.0.instrumentation_key",
+							},
+							ConflictsWith: []string{
+								"application_insights.0.instrumentation_key",
+							},
+						},
+						"instrumentation_key": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"application_insights.0.connection_string",
+								"application_insights.0.instrumentation_key",
+							},
+							ConflictsWith: []string{
+								"application_insights.0.connection_string",
+							},
 						},
 					},
 				},
@@ -150,7 +171,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	appInsightsRaw := d.Get("application_insights").([]interface{})
 
 	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
-		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+		return errors.New("either `eventhub` or `application_insights` is required")
 	}
 
 	if d.IsNewResource() {
@@ -304,7 +325,6 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 		if clientId != "" {
 			credentials["identityClientId"] = clientId
 		}
-
 	}
 
 	return &credentials
@@ -313,7 +333,12 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[string]string {
 	credentials := make(map[string]string)
 	ai := input[0].(map[string]interface{})
-	credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
+	if ai["instrumentation_key"].(string) != "" {
+		credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
+	}
+	if ai["connection_string"].(string) != "" {
+		credentials["connectionString"] = ai["connection_string"].(string)
+	}
 	return &credentials
 }
 

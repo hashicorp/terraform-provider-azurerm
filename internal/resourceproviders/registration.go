@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 )
 
@@ -22,6 +23,12 @@ import (
 // register them if it appears they are not. Note that this may fail if a resource provider is not available in the
 // current cloud environment (a warning message will be logged to indicate when a resource provider is not listed).
 func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs ResourceProviders) error {
+	// Cache supported resource providers if RP registration and enhanced validation are not both disabled
+	if len(requiredRPs) == 0 && !features.EnhancedValidationEnabled() {
+		log.Printf("[DEBUG] Skipping populating the resource provider cache, since resource provider registration and enhanced validation are both disabled")
+		return nil
+	}
+
 	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)

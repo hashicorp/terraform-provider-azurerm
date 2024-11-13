@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,7 +37,7 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 			Config: r.hostEncryption(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_host_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -318,10 +318,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = %q
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -437,13 +437,12 @@ resource "azurerm_subnet_nat_gateway_association" "node" {
 }
 
 resource "azurerm_route_table" "test" {
-  name                          = "test"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  disable_bgp_route_propagation = false
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   route {
     name           = "internal"
-    address_prefix = azurerm_virtual_network.test.address_space[0]
+    address_prefix = tolist(azurerm_virtual_network.test.address_space)[0]
     next_hop_type  = "VnetLocal"
   }
   route {
@@ -884,7 +883,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   storage_profile {
     blob_driver_enabled         = true
     disk_driver_enabled         = true
-    disk_driver_version         = "v1"
     file_driver_enabled         = false
     snapshot_controller_enabled = false
   }

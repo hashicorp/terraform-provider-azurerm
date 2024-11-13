@@ -5,6 +5,7 @@ package keyvault
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -31,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var keyVaultResourceName = "azurerm_key_vault"
@@ -89,9 +90,11 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 
 			"access_policy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1024,
+				Type:       pluginsdk.TypeList,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1024,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"tenant_id": {
@@ -241,38 +244,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["access_policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1024,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"object_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"application_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.IsUUIDOrEmpty,
-					},
-					"certificate_permissions": schemaCertificatePermissions(),
-					"key_permissions":         schemaKeyPermissions(),
-					"secret_permissions":      schemaSecretPermissions(),
-					"storage_permissions":     schemaStoragePermissions(),
-				},
-			},
-		}
-	}
 	return resource
 }
 
@@ -334,7 +305,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if !response.WasNotFound(softDeletedKeyVault.HttpResponse) && !response.WasStatusCode(softDeletedKeyVault.HttpResponse, http.StatusForbidden) {
 		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
 			// this exists but the users opted out so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.VaultName, location))
+			return errors.New(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(id.VaultName, location))
 		}
 
 		recoverSoftDeletedKeyVault = true

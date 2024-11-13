@@ -570,17 +570,31 @@ func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockMoreThanOne()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`at most one %s can be specified during creation`, "`ingress.0.traffic_weight`")),
+			Config:      r.ingressTrafficValidation(data, r.latestRevisionFalseRevisionSuffixEmpty()),
+			ExpectError: regexp.MustCompile("`either ingress.0.traffic_weight.0.revision_suffix` or `ingress.0.traffic_weight.0.latest_revision` should be specified"),
 		},
+	})
+}
+
+func TestAccContainerAppResource_maxInactiveRevisionsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockLatestRevisionNotSet()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must be set to true during creation`, "`ingress.0.traffic_weight.0.latest_revision`")),
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 		{
-			Config:      r.ingressTrafficValidation(data, r.trafficBlockRevisionSuffixSet()),
-			ExpectError: regexp.MustCompile(fmt.Sprintf(`%s must not be set during creation`, "`ingress.0.traffic_weight.0.revision_suffix`")),
+			Config: r.maxInactiveRevisionsChange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1312,6 +1326,7 @@ resource "azurerm_container_app" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
+  max_inactive_revisions       = 25
 
   template {
     container {
@@ -2184,6 +2199,7 @@ resource "azurerm_container_app" "test" {
         transport               = "HTTP"
         port                    = 5000
         path                    = "/uptime"
+        initial_delay           = 5
         timeout                 = 2
         failure_count_threshold = 1
         success_count_threshold = 1
@@ -2212,6 +2228,7 @@ resource "azurerm_container_app" "test" {
       startup_probe {
         transport               = "TCP"
         port                    = 5000
+        initial_delay           = 5
         timeout                 = 5
         failure_count_threshold = 1
       }
@@ -2650,8 +2667,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_account" "test" {
@@ -2694,8 +2709,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
   admin_enabled       = true
-
-  network_rule_set = []
 }
 
 resource "azurerm_storage_share" "test" {
@@ -2836,31 +2849,34 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ContainerAppResource) trafficBlockMoreThanOne() string {
+func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
-  percentage = 50
-}
-traffic_weight {
-  percentage = 50
-}
-`
-}
-
-func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
-	return `
-traffic_weight {
+  latest_revision = false
   percentage = 100
 }
 `
 }
 
-func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
-	return `
-traffic_weight {
-  percentage      = 100
-  latest_revision = true
-  revision_suffix = "foo"
+func (r ContainerAppResource) maxInactiveRevisionsChange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  max_inactive_revisions       = 50
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
-`
+`, r.template(data), data.RandomInteger)
 }

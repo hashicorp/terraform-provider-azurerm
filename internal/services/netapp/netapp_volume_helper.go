@@ -23,7 +23,6 @@ import (
 )
 
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
-
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
@@ -31,7 +30,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-
 		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed
@@ -119,7 +117,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		proximityPlacementGroupId := utils.NormalizeNilableString(&item.ProximityPlacementGroupId)
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -137,7 +134,6 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				ProximityPlacementGroup:  &proximityPlacementGroupId,
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Replication: dataProtectionReplication.Replication,
@@ -145,6 +141,10 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 				},
 			},
 			Tags: &item.Tags,
+		}
+
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
@@ -288,13 +288,13 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
 		volumeGroupVolume.SubnetId = props.SubnetId
-		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(props.CapacityPoolResourceId)
+		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
 		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
+		volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {

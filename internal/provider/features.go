@@ -183,7 +183,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"permanently_delete_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  !features.FourPointOhBeta(),
+						Default:  false,
 					},
 				},
 			},
@@ -301,6 +301,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expand_without_downtime": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
+		"storage": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"data_plane_available": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -577,6 +592,15 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			managedDiskRaw := items[0].(map[string]interface{})
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
+			}
+		}
+	}
+	if raw, ok := val["storage"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			storageRaw := items[0].(map[string]interface{})
+			if v, ok := storageRaw["data_plane_available"]; ok {
+				featuresMap.Storage.DataPlaneAvailable = v.(bool)
 			}
 		}
 	}

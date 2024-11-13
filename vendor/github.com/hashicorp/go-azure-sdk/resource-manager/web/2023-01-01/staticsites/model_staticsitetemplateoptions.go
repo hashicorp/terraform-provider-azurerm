@@ -8,5 +8,5 @@ type StaticSiteTemplateOptions struct {
 	IsPrivate             *bool   `json:"isPrivate,omitempty"`
 	Owner                 *string `json:"owner,omitempty"`
 	RepositoryName        *string `json:"repositoryName,omitempty"`
-	TemplateRepositoryUrl *string `json:"templateRepositoryUrl,omitempty"`
+	TemplateRepositoryURL *string `json:"templateRepositoryUrl,omitempty"`
 }

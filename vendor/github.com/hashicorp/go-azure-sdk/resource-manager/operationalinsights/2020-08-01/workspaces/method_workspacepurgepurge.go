@@ -50,7 +50,6 @@ func (c WorkspacesClient) WorkspacePurgePurge(ctx context.Context, id WorkspaceI
 
 	var model WorkspacePurgeResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

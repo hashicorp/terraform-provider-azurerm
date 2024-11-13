@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -34,7 +33,6 @@ func TestAccApiManagementApi_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
@@ -70,7 +68,6 @@ func TestAccApiManagementApi_blankPath(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("http"),
-				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
 				check.That(data.ResourceName).Key("is_current").HasValue("true"),
 				check.That(data.ResourceName).Key("is_online").HasValue("false"),
 				check.That(data.ResourceName).Key("path").HasValue(""),
@@ -183,25 +180,6 @@ func TestAccApiManagementApi_websocket(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("api_type").HasValue("websocket"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccApiManagementApi_soapPassthrough(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Test does not apply on 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
-	r := ApiManagementApiResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.soapPassthrough(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("api_type").HasValue("soap"),
 			),
 		},
 		data.ImportStep(),
@@ -594,23 +572,6 @@ resource "azurerm_api_management_api" "test" {
   service_url         = "wss://example.com/foo/bar"
 }
 `, r.template(data, SkuNameDeveloper), data.RandomInteger)
-}
-
-func (r ApiManagementApiResource) soapPassthrough(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_api" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "api1"
-  path                = "api1"
-  protocols           = ["https"]
-  revision            = "1"
-  soap_pass_through   = true
-}
-`, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
 
 func (r ApiManagementApiResource) subscriptionRequired(data acceptance.TestData) string {

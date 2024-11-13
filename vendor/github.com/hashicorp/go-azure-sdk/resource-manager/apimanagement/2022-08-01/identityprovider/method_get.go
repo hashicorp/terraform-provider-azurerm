@@ -45,7 +45,6 @@ func (c IdentityProviderClient) Get(ctx context.Context, id IdentityProviderId) 
 
 	var model IdentityProviderContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

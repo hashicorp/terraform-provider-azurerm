@@ -5,6 +5,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -48,7 +49,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
 	if builder.AuthConfig.Environment.IsAzureStack() {
-		return nil, fmt.Errorf(azureStackEnvironmentError)
+		return nil, errors.New(azureStackEnvironmentError)
 	}
 
 	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth auth.Authorizer
@@ -113,7 +114,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 	if !ok {
-		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
+		return nil, errors.New("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{
@@ -149,7 +150,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.RegisteredResourceProviders == nil,
+		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,

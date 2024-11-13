@@ -400,7 +400,6 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 	}
 
 	for _, item := range *input {
-
 		var strictHostKeyChecking bool
 		if item.StrictHostKeyChecking != nil {
 			strictHostKeyChecking = *item.StrictHostKeyChecking

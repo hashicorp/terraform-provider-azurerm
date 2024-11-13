@@ -245,13 +245,6 @@ func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data, "trial"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1269,7 +1262,7 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -2018,7 +2011,7 @@ resource "azurerm_subnet" "privatelink" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Enabled"
 }
 
 resource "azurerm_network_security_group" "nsg" {

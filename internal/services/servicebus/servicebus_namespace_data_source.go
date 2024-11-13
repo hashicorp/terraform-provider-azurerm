@@ -20,7 +20,7 @@ import (
 )
 
 func dataSourceServiceBusNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -79,11 +79,6 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -92,6 +87,8 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 			"tags": tags.SchemaDataSource(),
 		},
 	}
+
+	return resource
 }
 
 func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -122,7 +119,6 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 
 		if props := model.Properties; props != nil {
 			d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("endpoint", props.ServiceBusEndpoint)
 		}
 	}

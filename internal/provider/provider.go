@@ -143,7 +143,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", nil),
 				Description: "The Subscription ID which should be used.",
 			},
@@ -325,14 +325,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", "legacy"),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
-					"core",
-					"extended",
-					"all",
-					"none",
-					"legacy",
+					resourceproviders.ProviderRegistrationsCore,
+					resourceproviders.ProviderRegistrationsExtended,
+					resourceproviders.ProviderRegistrationsAll,
+					resourceproviders.ProviderRegistrationsNone,
+					resourceproviders.ProviderRegistrationsLegacy,
 				}, false),
 			},
 
@@ -385,6 +385,11 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 // This separation allows us to robustly test different authentication scenarios.
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		subscriptionId := d.Get("subscription_id").(string)
+		if subscriptionId == "" {
+			return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+		}
+
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
@@ -467,7 +472,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
 
-			AzureCliSubscriptionIDHint: d.Get("subscription_id").(string),
+			AzureCliSubscriptionIDHint: subscriptionId,
 
 			EnableAuthenticatingUsingClientCertificate: true,
 			EnableAuthenticatingUsingClientSecret:      true,
@@ -485,33 +490,22 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 // cloud environment and authentication-related settings, use the providerConfigure function.
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
 	// TODO: This hardcoded default is for v3.x, where `resource_provider_registrations` is not defined. Remove this hardcoded default in v4.0
-	providerRegistrations := "legacy"
+	providerRegistrations := resourceproviders.ProviderRegistrationsLegacy
 	if features.FourPointOhBeta() {
 		providerRegistrations = d.Get("resource_provider_registrations").(string)
 	}
 
 	// TODO: Remove in v5.0
 	if d.Get("skip_provider_registration").(bool) {
-		if providerRegistrations != "legacy" {
+		if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
 			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
 		}
-		providerRegistrations = "none"
+		providerRegistrations = resourceproviders.ProviderRegistrationsNone
 	}
 
-	requiredResourceProviders := make(resourceproviders.ResourceProviders)
-	switch providerRegistrations {
-	case "core":
-		requiredResourceProviders = resourceproviders.Core()
-	case "extended":
-		requiredResourceProviders = resourceproviders.Extended()
-	case "all":
-		requiredResourceProviders = resourceproviders.All()
-	case "none":
-	// defining this explicitly even though there is nothing to do here
-	case "legacy":
-		requiredResourceProviders = resourceproviders.Legacy()
-	default:
-		return nil, diag.Errorf("unsupported value %q for provider property `resource_provider_registrations`", providerRegistrations)
+	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
+	if err != nil {
+		return nil, diag.FromErr(err)
 	}
 
 	if features.FourPointOhBeta() {

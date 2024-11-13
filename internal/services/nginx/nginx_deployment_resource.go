@@ -6,19 +6,22 @@ package nginx
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -103,7 +106,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			// used for testing and for F5 NGINX private offers
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -123,7 +125,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			ConflictsWith: []string{"auto_scale_profile"},
-			Default:       20,
 			ValidateFunc:  validation.IntPositive,
 		},
 
@@ -264,6 +265,8 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource["capacity"].Default = defaultCapacity
+
 		resource["configuration"] = &pluginsdk.Schema{
 			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
 			Type:       pluginsdk.TypeList,
@@ -381,8 +384,8 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			req := nginxdeployment.NginxDeployment{}
-			req.Name = pointer.FromString(model.Name)
-			req.Location = pointer.FromString(model.Location)
+			req.Name = pointer.To(model.Name)
+			req.Location = pointer.To(model.Location)
 			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
 
 			if model.Sku != "" {
@@ -391,13 +394,13 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
-			prop.ManagedResourceGroup = pointer.FromString(model.ManagedResourceGroup)
+			prop.ManagedResourceGroup = pointer.To(model.ManagedResourceGroup)
 
 			if len(model.LoggingStorageAccount) > 0 {
 				prop.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -412,7 +415,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				var publicIPs []nginxdeployment.NginxPublicIPAddress
 				for _, ip := range public[0].IpAddress {
 					publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
-						Id: pointer.FromString(ip),
+						Id: pointer.To(ip),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
@@ -423,21 +426,42 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				for _, ip := range private {
 					alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
 					privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
-						PrivateIPAddress:          pointer.FromString(ip.IpAddress),
+						PrivateIPAddress:          pointer.To(ip.IpAddress),
 						PrivateIPAllocationMethod: &alloc,
-						SubnetId:                  pointer.FromString(ip.SubnetId),
+						SubnetId:                  pointer.To(ip.SubnetId),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
 			}
 
 			if len(model.NetworkInterface) > 0 {
-				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
+				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.To(model.NetworkInterface[0].SubnetId)
 			}
 
-			if model.Capacity > 0 {
-				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
+			if !features.FourPointOhBeta() {
+				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+
+				if model.Capacity > 0 && !isBasicSKU {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
+				}
+			} else {
+				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+				if isBasicSKU && hasScaling {
+					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+				}
+				if !isBasicSKU && !hasScaling {
+					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+				}
+
+				if model.Capacity > 0 {
+					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+						Capacity: pointer.FromInt64(model.Capacity),
+					}
 				}
 			}
 
@@ -461,7 +485,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if model.Email != "" {
 				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
@@ -691,8 +715,8 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 				req.Properties.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -727,7 +751,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
@@ -735,6 +759,10 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
+			}
+
+			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {

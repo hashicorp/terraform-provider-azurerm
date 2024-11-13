@@ -11,12 +11,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -191,7 +192,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 }
 
 func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -231,6 +232,7 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"failure_suppression_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_extension_execution_on_change": {
@@ -266,6 +268,15 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["failure_suppression_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		}
+	}
+
+	return schema
 }
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -1421,11 +1432,13 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		}
 		extensionType := extensionRaw["type"].(string)
 
+		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
+
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
 			Type:                     &extensionType,
 			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(extensionRaw["auto_upgrade_minor_version_enabled"].(bool)),
+			AutoUpgradeMinorVersion:  pointer.To(autoUpgradeMinorVersion),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
 		}
 
@@ -1613,7 +1626,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 		applicationGatewayBackendAddressPoolIds = flattenSubResourcesToIDs(props.ApplicationGatewayBackendAddressPools)
 		applicationSecurityGroupIds = flattenSubResourcesToIDs(props.ApplicationSecurityGroups)
 		loadBalancerBackendAddressPoolIds = flattenSubResourcesToIDs(props.LoadBalancerBackendAddressPools)
-
 	}
 
 	return map[string]interface{}{
@@ -1673,7 +1685,6 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 		if input.Sku != nil && input.Sku.Name != nil && input.Sku.Tier != nil {
 			sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 		}
-
 	}
 
 	return map[string]interface{}{
@@ -1842,7 +1853,6 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 					ipConfigurations = append(ipConfigurations, config)
 				}
 			}
-
 		}
 
 		results = append(results, map[string]interface{}{
@@ -2012,7 +2022,6 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virt
 }
 
 func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualmachinescalesets.PriorityMixPolicy) []interface{} {
-
 	baseRegularPriorityCount := int64(0)
 	if input != nil && input.BaseRegularPriorityCount != nil {
 		baseRegularPriorityCount = *input.BaseRegularPriorityCount

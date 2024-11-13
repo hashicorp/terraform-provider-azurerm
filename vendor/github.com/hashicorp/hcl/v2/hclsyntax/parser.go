@@ -811,9 +811,16 @@ Traversal:
 				// will probably be misparsed until we hit something that
 				// allows us to re-sync.
 				//
-				// We will probably need to do something better here eventually
-				// in order to support autocomplete triggered by typing a
-				// period.
+				// Returning an ExprSyntaxError allows us to pass more information
+				// about the invalid expression to the caller, which can then
+				// use this for example for completions that happen after typing
+				// a dot in an editor.
+				ret = &ExprSyntaxError{
+					Placeholder: cty.DynamicVal,
+					ParseDiags:  diags,
+					SrcRange:    hcl.RangeBetween(from.Range(), dot.Range),
+				}
+
 				p.setRecovery()
 			}
 
@@ -1161,15 +1168,20 @@ func (p *parser) finishParsingFunctionCall(name Token) (Expression, hcl.Diagnost
 	for openTok.Type == TokenDoubleColon {
 		nextName := p.Read()
 		if nextName.Type != TokenIdent {
-			diags = append(diags, &hcl.Diagnostic{
+			diag := hcl.Diagnostic{
 				Severity: hcl.DiagError,
 				Summary:  "Missing function name",
 				Detail:   "Function scope resolution symbol :: must be followed by a function name in this scope.",
 				Subject:  &nextName.Range,
 				Context:  hcl.RangeBetween(name.Range, nextName.Range).Ptr(),
-			})
+			}
+			diags = append(diags, &diag)
 			p.recoverOver(TokenOParen)
-			return nil, diags
+			return &ExprSyntaxError{
+				ParseDiags:  hcl.Diagnostics{&diag},
+				Placeholder: cty.DynamicVal,
+				SrcRange:    hcl.RangeBetween(name.Range, nextName.Range),
+			}, diags
 		}
 
 		// Initial versions of HCLv2 didn't support function namespaces, and
@@ -1192,15 +1204,21 @@ func (p *parser) finishParsingFunctionCall(name Token) (Expression, hcl.Diagnost
 	}
 
 	if openTok.Type != TokenOParen {
-		diags = append(diags, &hcl.Diagnostic{
+		diag := hcl.Diagnostic{
 			Severity: hcl.DiagError,
 			Summary:  "Missing open parenthesis",
 			Detail:   "Function selector must be followed by an open parenthesis to begin the function call.",
 			Subject:  &openTok.Range,
 			Context:  hcl.RangeBetween(name.Range, openTok.Range).Ptr(),
-		})
+		}
+
+		diags = append(diags, &diag)
 		p.recoverOver(TokenOParen)
-		return nil, diags
+		return &ExprSyntaxError{
+			ParseDiags:  hcl.Diagnostics{&diag},
+			Placeholder: cty.DynamicVal,
+			SrcRange:    hcl.RangeBetween(name.Range, openTok.Range),
+		}, diags
 	}
 
 	var args []Expression
@@ -1505,6 +1523,16 @@ func (p *parser) parseObjectCons() (Expression, hcl.Diagnostics) {
 		diags = append(diags, valueDiags...)
 
 		if p.recovery && valueDiags.HasErrors() {
+			// If the value is an ExprSyntaxError, we can add an item with it, even though we will recover afterwards
+			// This allows downstream consumers to still retrieve this first invalid item, even though following items
+			// won't be parsed. This is useful for supplying completions.
+			if exprSyntaxError, ok := value.(*ExprSyntaxError); ok {
+				items = append(items, ObjectConsItem{
+					KeyExpr:   key,
+					ValueExpr: exprSyntaxError,
+				})
+			}
+
 			// If expression parsing failed then we are probably in a strange
 			// place in the token stream, so we'll bail out and try to reset
 			// to after our closing brace to allow parsing to continue.

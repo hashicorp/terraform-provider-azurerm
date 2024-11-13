@@ -120,7 +120,7 @@ type SoftwareUpdateConfigurationModel struct {
 	ErrorCode             string       `tfschema:"error_code"`
 	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system"`
+	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -458,7 +458,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
+									Computed: !features.FourPointOhBeta(),
 									ValidateFunc: validation.StringInSlice([]string{
 										string(softwareupdateconfiguration.TagOperatorsAny),
 										string(softwareupdateconfiguration.TagOperatorsAll),
@@ -503,8 +503,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"start_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -513,12 +514,13 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"expiry_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -527,7 +529,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"is_enabled": {
@@ -537,8 +539,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"next_run": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which  can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -547,7 +550,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"interval": {
@@ -619,7 +622,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"occurrence": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 5),
+									ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, -1}), // -1 is last week and 5 is invalid
 								},
 
 								"day": {
@@ -1073,7 +1076,6 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 					} else {
 						target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}
 					}
-
 				} else {
 					target.AzureQueries = &[]softwareupdateconfiguration.AzureQueryProperties{}
 					target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}

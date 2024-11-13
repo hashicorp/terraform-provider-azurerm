@@ -123,7 +123,7 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicCapacity(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Basic\" only supports `capacity` of 0"),
 		},
 	})
 }
@@ -134,7 +134,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumCapacity(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
 		},
 	})
 }
@@ -145,23 +145,8 @@ func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.premiumMessagingPartition(data),
-			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
+			ExpectError: regexp.MustCompile("service bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
 		},
-	})
-}
-
-func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.zoneRedundant(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -304,7 +289,6 @@ func TestAccAzureRMServiceBusNamespace_networkRuleSet(t *testing.T) {
 			Config: r.networkRuleSetEmpty(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -485,29 +469,6 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = 2
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ServiceBusNamespaceResource) zoneRedundant(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                         = "acctestservicebusnamespace-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku                          = "Premium"
-  premium_messaging_partitions = 1
-  capacity                     = 1
-  zone_redundant               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

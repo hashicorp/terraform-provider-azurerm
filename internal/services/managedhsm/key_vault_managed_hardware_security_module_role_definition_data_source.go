@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
@@ -32,7 +32,7 @@ type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
 
 	// TODO: remove in v4.0
-	VaultBaseUrl string `tfschema:"vault_base_url"`
+	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type KeyvaultMHSMRoleDefinitionDataSource struct{}
