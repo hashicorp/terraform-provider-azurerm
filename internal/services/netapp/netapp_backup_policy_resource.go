@@ -204,7 +204,6 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.BackupPolicyClient
 
 			id, err := backuppolicy.ParseBackupPolicyID(metadata.ResourceData.Id())
@@ -248,7 +247,6 @@ func (r NetAppBackupPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.BackupPolicyClient
 
 			id, err := backuppolicy.ParseBackupPolicyID(metadata.ResourceData.Id())

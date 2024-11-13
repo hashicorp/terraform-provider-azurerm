@@ -82,7 +82,6 @@ func (r NetAppBackupPolicyDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.BackupPolicyClient
 
 			var state netAppModels.NetAppBackupPolicyModel

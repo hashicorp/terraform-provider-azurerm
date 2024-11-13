@@ -499,7 +499,6 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if !feature[0].PreventVolumeDestruction.IsNull() && !feature[0].PreventVolumeDestruction.IsUnknown() {
 				f.NetApp.PreventVolumeDestruction = feature[0].PreventVolumeDestruction.ValueBool()
 			}
-
 		} else {
 			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
 			f.NetApp.PreventVolumeDestruction = true

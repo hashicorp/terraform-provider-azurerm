@@ -866,7 +866,6 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// Handling DataProtection
 	if netApp.Model != nil && netApp.Model.Properties.DataProtection != nil {
-
 		// Handling Replication before volume deletion
 		if netApp.Model.Properties.DataProtection.Replication != nil {
 			dataProtectionReplication := netApp.Model.Properties.DataProtection
