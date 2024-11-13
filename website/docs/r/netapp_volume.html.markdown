@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Volume.
 
-!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion). With the latest version of this resource, we're also implementing another safeguard that by default will fail volume deletions if a newly introduced feature block for netapp, called `prevent_volume_destruction`, defaulting to `true`, is not intentionally set to `false`. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
+!>**IMPORTANT:** This resource uses a feature to prevent deletion called `prevent_volume_destruction`, defaulting to `true`. It is intentionally set to `true` to prevent the possibility of accidental data loss. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
 
 ## NetApp Volume Usage
 

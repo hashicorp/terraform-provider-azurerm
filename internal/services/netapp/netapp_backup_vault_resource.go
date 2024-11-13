@@ -243,7 +243,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 					return err
 				}
 
-				// DeleteThenPoll cannot be used due to potential racing condition where backup actually started when volume got deleted but it takes time for it to show up within the vault
+				// DeleteThenPoll cannot be used due to potential race condition where the backup started when the volume got deleted but it takes time for it to show up within the vault
 				// This will be handled by waitForBackupVaultDeletion and operation will be retried if needed
 				if _, err := vaultClient.Delete(ctx, pointer.From(id)); err != nil {
 					return fmt.Errorf("deleting %s: %+v", id, err)
@@ -256,7 +256,7 @@ func (r NetAppBackupVaultResource) Delete() sdk.ResourceFunc {
 				}
 
 				if strings.Contains(err.Error(), "backups found on vault") {
-					// Backup may not be showing up in the vault yet through a GET, wait for a bit before retrying
+					// Backup may not show up in the vault through a GET so we will wait for a bit before retrying
 					time.Sleep(30 * time.Second)
 					continue
 				}
@@ -302,8 +302,8 @@ func netappBackupVaultStateRefreshFunc(ctx context.Context, vaultClient *backupv
 			return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
 		}
 
-		// Handling a race condition where backup actually started when volume got deleted but it takes time for it to show up within the vault
-		// vault deletion process will hang until the deadline is reached and never retry to delete the backup preventing vault to be deleted.
+		// Handling a race condition where the backup started but the volume got deleted and it takes time for it to show up within the vault.
+		// The vault deletion process will hang until the deadline is reached and never retry to delete the backup preventing vault to be deleted.
 		// For this to work, need to scrub activity logs to see if there was a failed deletion operation due to backup just showing up in the vault
 		// midway after the vault deletion process started.
 		backupVaultID := backups.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.BackupVaultName)

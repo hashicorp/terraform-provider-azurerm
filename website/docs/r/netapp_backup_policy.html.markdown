@@ -25,14 +25,11 @@ resource "azurerm_netapp_account" "example" {
 }
 
 resource "azurerm_netapp_backup_policy" "example" {
-  name                    = "example-netappbackuppolicy"
-  resource_group_name     = azurerm_resource_group.example.name
-  location                = azurerm_resource_group.example.location
-  account_name            = azurerm_netapp_account.example.name
-  daily_backups_to_keep   = 2
-  weekly_backups_to_keep  = 2
-  monthly_backups_to_keep = 2
-  enabled                 = true
+  name                = "example-netappbackuppolicy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  account_name        = azurerm_netapp_account.example.name
+  enabled             = true
 }
 ```
 
@@ -54,11 +51,11 @@ The following arguments are supported:
 
 * `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
 
+~> **Note:** Currently, the combined (daily + weekly + monthy) retention counts cannot exceed 1019.
+
 * `enabled` - (Optional) Whether the Backup Policy is enabled. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-~> **Note:** Currently, the combined (daily + weekly + monthy) retention counts cannot exceed 1019.
 
 ## Timeouts
 

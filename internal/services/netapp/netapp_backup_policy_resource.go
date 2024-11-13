@@ -256,14 +256,6 @@ func (r NetAppBackupPolicyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.BackupPoliciesGet(ctx, pointer.From(id))
-			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving %s: %v", id, err)
-			}
-
 			if err = client.BackupPoliciesDeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}

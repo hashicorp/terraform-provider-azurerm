@@ -3,7 +3,7 @@ provider "azurerm" {
     netapp {
       prevent_volume_destruction = false
       delete_backups_on_backup_vault_destroy = true
-	  }
+    }
   }
 }
 

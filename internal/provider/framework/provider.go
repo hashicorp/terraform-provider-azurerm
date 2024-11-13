@@ -468,7 +468,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
-						"neapp": schema.ListNestedBlock{
+						"netapp": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
