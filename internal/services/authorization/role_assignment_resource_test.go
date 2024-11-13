@@ -229,7 +229,6 @@ func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 		},
 		data.ImportStep("skip_service_principal_aad_check"),
 	})
-
 }
 
 func TestAccRoleAssignment_resourceScoped(t *testing.T) {
