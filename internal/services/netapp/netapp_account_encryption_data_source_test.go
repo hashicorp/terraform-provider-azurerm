@@ -34,6 +34,10 @@ func TestAccNetAppAccountEncryptionDataSource_basic(t *testing.T) {
 
 func (d NetAppAccountEncryptionDataSource) basic(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
+// provider "azurerm" {
+//   features {}
+// }
+
 %s
 
 data "azurerm_netapp_account_encryption" "test" {

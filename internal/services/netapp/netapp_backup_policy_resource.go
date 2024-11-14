@@ -238,6 +238,8 @@ func (r NetAppBackupPolicyResource) Read() sdk.ResourceFunc {
 				state.Enabled = pointer.From(model.Properties.Enabled)
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&state)
 		},
 	}

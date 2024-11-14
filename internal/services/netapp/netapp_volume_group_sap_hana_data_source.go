@@ -270,6 +270,8 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&state)
 		},
 	}

@@ -178,6 +178,8 @@ func (r NetAppBackupVaultResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&state)
 		},
 	}

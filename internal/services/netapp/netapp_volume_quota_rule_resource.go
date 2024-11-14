@@ -212,6 +212,8 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 				QuotaType:      string(pointer.From(existing.Model.Properties.QuotaType)),
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&model)
 		},
 	}

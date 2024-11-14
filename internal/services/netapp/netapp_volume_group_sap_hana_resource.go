@@ -568,6 +568,8 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 				model.Volumes = volumes
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&model)
 		},
 	}

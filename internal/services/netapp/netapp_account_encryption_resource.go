@@ -240,6 +240,8 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&model)
 		},
 	}

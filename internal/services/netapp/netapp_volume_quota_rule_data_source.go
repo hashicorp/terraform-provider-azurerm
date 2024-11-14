@@ -108,6 +108,8 @@ func (r NetAppVolumeQuotaRuleDataSource) Read() sdk.ResourceFunc {
 			state.QuotaTarget = pointer.From(model.Properties.QuotaTarget)
 			state.QuotaType = string(pointer.From(model.Properties.QuotaType))
 
+			metadata.SetID(id)
+
 			return metadata.Encode(&state)
 		},
 	}
