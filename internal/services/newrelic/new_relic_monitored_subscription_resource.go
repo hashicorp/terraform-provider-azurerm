@@ -200,8 +200,7 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			// The resource is created by the NewRelic Monitor resource, so we only PATCH the monitored subscription list
-			if err := client.UpdateThenPoll(ctx, *monitorId, *properties); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *monitorId, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -314,14 +313,7 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 
 			monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName)
 
-			MonitoredSubscriptionProperties := &monitoredsubscriptions.MonitoredSubscriptionProperties{
-				Properties: &monitoredsubscriptions.SubscriptionList{
-					MonitoredSubscriptionList: &[]monitoredsubscriptions.MonitoredSubscription{},
-				},
-			}
-
-			// The resource cannot be deleted so we use PATCH method to update the monitored subscription list to empty
-			if err = client.UpdateThenPoll(ctx, monitorId, *MonitoredSubscriptionProperties); err != nil {
+			if _, err = client.Delete(ctx, monitorId); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
