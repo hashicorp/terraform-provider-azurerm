@@ -17,12 +17,12 @@ This document gives insights into who is maintaining this service and includes d
 
 - Some Netapp resources requires an extra type of polling mechanism. For example:
 
-  ```go
-    // Waiting for volume be completely provisioned
-    if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
-        return err
-    }
-  ```
+```go
+// Waiting for volume be completely provisioned
+if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
+  return err
+}
+```
 
   This is because some operations return from regular SDK polling as completed but due to several factors it is still in progress (e.g. ARM caching, software and hardware layer sync delays, etc.). These wait functions are necessary and should not be removed.
 
@@ -32,13 +32,13 @@ This document gives insights into who is maintaining this service and includes d
 
   In our tests we have added this block so the tests can delete the resources, but in production customers should not allow deletion of volumes by default.
 
-  ```hcl
-  features {
-      resource_group {
-        prevent_deletion_if_contains_resources = false
-      }
+```hcl
+features {
+  resource_group {
+    prevent_deletion_if_contains_resources = false
   }
-  ```
+}
+```
 
 ## Resource Group Deletion on Tests
 
