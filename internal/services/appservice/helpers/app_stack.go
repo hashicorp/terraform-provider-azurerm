@@ -89,7 +89,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"v6.0",
 					"v7.0",
 					"v8.0",
-					"v9.0"}, false),
+					"v9.0",
+				}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
