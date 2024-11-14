@@ -26,7 +26,6 @@ func (t NetAppBackupVaultResource) Exists(ctx context.Context, clients *clients.
 	}
 
 	resp, err := clients.NetApp.BackupVaultsClient.Get(ctx, *id)
-
 	if err != nil {
 		if resp.HttpResponse.StatusCode == http.StatusNotFound {
 			return utils.Bool(false), nil

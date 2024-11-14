@@ -25,7 +25,6 @@ func (t NetAppBackupPolicyResource) Exists(ctx context.Context, clients *clients
 	}
 
 	resp, err := clients.NetApp.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
-
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
