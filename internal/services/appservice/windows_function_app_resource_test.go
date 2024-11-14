@@ -3458,6 +3458,7 @@ resource "azurerm_windows_function_app" "test" {
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
+
 func (r WindowsFunctionAppResource) withIPRestrictionsDefaultActionDeny(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

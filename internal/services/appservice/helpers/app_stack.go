@@ -300,7 +300,6 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem:     r,
 	}
-
 }
 
 func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
@@ -404,7 +403,6 @@ func windowsApplicationStackSchemaComputed() *pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		}
-
 	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -628,7 +626,6 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 		r.Schema["docker_registry_url"].Computed = true
 		r.Schema["docker_registry_username"].Computed = true
 		r.Schema["docker_registry_password"].Computed = true
-
 	}
 
 	return &pluginsdk.Schema{

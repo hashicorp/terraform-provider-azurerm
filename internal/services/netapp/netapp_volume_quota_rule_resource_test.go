@@ -86,7 +86,6 @@ func (t NetAppVolumeQuotaRuleResource) Exists(ctx context.Context, clients *clie
 	}
 
 	resp, err := clients.NetApp.VolumeQuotaRules.Get(ctx, *id)
-
 	if err != nil {
 		if resp.HttpResponse.StatusCode == http.StatusNotFound {
 			return utils.Bool(false), nil

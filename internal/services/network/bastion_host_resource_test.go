@@ -57,6 +57,7 @@ func TestAccBastionHost_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -298,6 +299,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_bastion_host" "test" {
@@ -305,6 +307,7 @@ resource "azurerm_bastion_host" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   copy_paste_enabled  = false
+  zones               = azurerm_public_ip.test.zones
 
   ip_configuration {
     name                 = "ip-configuration"

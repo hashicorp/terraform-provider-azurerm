@@ -288,10 +288,8 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 	label := ""
 
 	for _, service := range provider.SupportedTypedServices() {
-
 		v, ok := service.(sdk.TypedServiceRegistrationWithAGitHubLabel)
 		// keep a record of resources/datasources that don't have labels so they can be used to check that prefixes generated later don't match resources from those services
-		label = ""
 		if ok {
 			label = v.AssociatedGitHubLabel()
 		}
@@ -306,7 +304,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		}
 
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
-
 	}
 	for _, service := range provider.SupportedUntypedServices() {
 		v, ok := service.(sdk.UntypedServiceRegistrationWithAGitHubLabel)
@@ -333,7 +330,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 
 		names = removeDuplicateNames(names)
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
-
 	}
 
 	sortedLabels := make([]string, 0)
@@ -348,7 +344,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 
 	// loop through all labels and get a list of prefixes that match each label. And for each prefix, record which resource/datasource names it is derived from - we need to retain these in case there are duplicate prefixes matching resources with a different label
 	for _, labelName := range sortedLabels {
-
 		longestPrefix := longestCommonPrefix(labelToNames[labelName])
 		var prefixGroups []Prefix
 		// If there is no common prefix for a service, separate it into groups using the next segment of the name (azurerm_xxx) and add multiple possible prefixes for the label
@@ -367,12 +362,10 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			}
 		}
 		labelToPrefixes[labelName] = prefixGroups
-
 	}
 
 	// loop though again, this time compiling prefixes into a regex for each label and separating out duplicates
 	for _, labelName := range sortedLabels {
-
 		if labelName == "" {
 			continue
 		}
@@ -385,7 +378,6 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 		for _, prefix := range labelToPrefixes[labelName] {
 			// if a prefix matches another prefix, use the whole name for each resource/ds that matches that prefix in the regex
 			if prefixHasMatch(labelName, prefix, labelToPrefixes) {
-
 				for _, name := range prefix.Names {
 					prefixes = append(prefixes, strings.TrimPrefix(name+"\\W+", azurerm))
 				}
@@ -458,7 +450,6 @@ func longestCommonPrefix(names []string) string {
 	end := false
 
 	if len(names) > 0 {
-
 		sort.Strings(names)
 		first := names[0]
 		last := names[len(names)-1]
@@ -526,10 +517,9 @@ func prefixHasMatch(labelToCheck string, prefixToCheck Prefix, labelToPrefixes m
 }
 
 func getPrefixesForNames(names []string) []Prefix {
-
-	var prefixes []Prefix
 	groupedNames := commonPrefixGroups(names)
 
+	prefixes := make([]Prefix, 0, len(groupedNames))
 	for _, group := range groupedNames {
 		prefix := Prefix{
 			Names:        group,

@@ -4,7 +4,7 @@
 package validate
 
 import (
-	"fmt"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -39,14 +39,14 @@ func RuleActionUrlRedirectQueryString() pluginsdk.SchemaValidateFunc {
 
 		re := regexp.MustCompile("^[?&]")
 		if re.MatchString(querystring) {
-			return nil, []error{fmt.Errorf("the Url Query String must not start with a question mark or ampersand")}
+			return nil, []error{errors.New("the Url Query String must not start with a question mark or ampersand")}
 		}
 
 		kvre := regexp.MustCompile("^[^?&]+=[^?&]+$")
 		kvs := strings.Split(querystring, "&")
 		for _, kv := range kvs {
 			if len(kv) > 0 && !kvre.MatchString(kv) {
-				return nil, []error{fmt.Errorf("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
+				return nil, []error{errors.New("the Url Query String must be in <key>=<value> format and separated by an ampersand")}
 			}
 		}
 

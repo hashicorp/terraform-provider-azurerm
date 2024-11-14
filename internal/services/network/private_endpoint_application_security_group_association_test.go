@@ -19,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
-}
+type PrivateEndpointApplicationSecurityGroupAssociationResource struct{}
 
 func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint_application_security_group_association", "test")

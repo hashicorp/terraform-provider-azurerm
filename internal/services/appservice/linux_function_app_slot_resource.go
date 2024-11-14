@@ -444,7 +444,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 						}
 					}
 				}
-
 			}
 			// Only send for ElasticPremium
 			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
