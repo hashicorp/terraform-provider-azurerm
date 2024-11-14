@@ -1336,8 +1336,8 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 			continue
 		}
 
-		// For backward compatibility, stablish the generated name is the incomming value is empty
-		clientSecretSettingName := ""
+		// For backward compatibility, stablish the generated name if the incomming value is empty
+		var clientSecretSettingName string
 		if clientSecretSettingName = v.ClientSecretSettingName; clientSecretSettingName == "" {
 			clientSecretSettingName = fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))
 		}
