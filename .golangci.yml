@@ -32,7 +32,6 @@ linters:
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
     - ineffassign # detects when assignments to existing variables are not used
     - misspell # finds commonly misspelled English words.
-    - nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     - prealloc # finds slice declarations that could potentially be pre-allocated.
     - predeclared # find code that shadows one of Go's predeclared identifiers.
     - reassign # checks that package variables are not reassigned.
@@ -57,6 +56,9 @@ linters:
 
     #### DISABLED but valid as relying on output variable names is less than idea, have a lot of these in the codebase to switch over
     #- nakedret # Checks that functions with naked returns are not longer than a maximum size
+
+    #### DISABLED as it doesn't appear to respect the no-lint directive
+    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
 
     #### bunch of hits, need to confirm if errors or not #####
     #- copyloopvar #Detects range loop variables that are overwritten in the loop body
