@@ -180,12 +180,14 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
+			Computed:     true,
 			ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
 			ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 		}
 		resource.Schema["target_resource_id"].Required = false
 		resource.Schema["target_resource_id"].Optional = true
+		resource.Schema["target_resource_id"].Computed = true
 		resource.Schema["target_resource_id"].ExactlyOneOf = []string{"network_security_group_id", "target_resource_id"}
 	}
 
@@ -312,11 +314,17 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	payload := existing.Model
-	var targetResourceId string
+
+	targetResourceId := ""
+
 	if !features.FivePointOhBeta() {
-		targetResourceId = d.Get("network_security_group_id").(string)
-	} else {
-		targetResourceId = d.Get("target_resource_id").(string)
+		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
+			targetResourceId = v.(string)
+		}
+	}
+
+	if v, ok := d.GetOk("target_resource_id"); ok && v.(string) != "" {
+		targetResourceId = v.(string)
 	}
 
 	locks.ByID(targetResourceId)
