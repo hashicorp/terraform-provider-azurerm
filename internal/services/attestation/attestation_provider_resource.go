@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -26,7 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation"
+	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 func resourceAttestationProvider() *pluginsdk.Resource {
@@ -294,25 +295,25 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("parsing OpenEnclave Policy for %s: %+v", *id, err)
 	}
-	d.Set("open_enclave_policy_base64", utils.NormalizeNilableString(openEnclavePolicyData))
+	d.Set("open_enclave_policy_base64", pointer.From(openEnclavePolicyData))
 
 	sgxEnclavePolicyData, err := base64DataFromAttestationJWT(sgxEnclavePolicy.Token)
 	if err != nil {
 		return fmt.Errorf("parsing SgxEnclave Policy for %s: %+v", *id, err)
 	}
-	d.Set("sgx_enclave_policy_base64", utils.NormalizeNilableString(sgxEnclavePolicyData))
+	d.Set("sgx_enclave_policy_base64", pointer.From(sgxEnclavePolicyData))
 
 	tpmPolicyData, err := base64DataFromAttestationJWT(tpmPolicy.Token)
 	if err != nil {
 		return fmt.Errorf("parsing Tpm Policy for %s: %+v", *id, err)
 	}
-	d.Set("tpm_policy_base64", utils.NormalizeNilableString(tpmPolicyData))
+	d.Set("tpm_policy_base64", pointer.From(tpmPolicyData))
 
 	sevSnpPolicyData, err := base64DataFromAttestationJWT(sevSnpPolicy.Token)
 	if err != nil {
 		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
 	}
-	d.Set("sev_snp_policy_base64", utils.NormalizeNilableString(sevSnpPolicyData))
+	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 
 	if !features.FourPointOhBeta() {
 		if err := d.Set("policy", []interface{}{}); err != nil {

@@ -33,10 +33,6 @@ func TestAccServerVulnerabilityAssessment(t *testing.T) {
 			"complete": testAccSecurityCenterAssessmentPolicy_complete,
 			"update":   testAccSecurityCenterAssessmentPolicy_update,
 		},
-		"serverVulnerabilityAssessment": {
-			"basic":          testAccServerVulnerabilityAssessment_basic,
-			"requiresImport": testAccServerVulnerabilityAssessment_requiresImport,
-		},
 		"serverVulnerabilityAssessmentVirtualMachine": {
 			"basic":          testAccServerVulnerabilityAssessmentVirtualMachine_basic,
 			"requiresImport": testAccServerVulnerabilityAssessmentVirtualMachine_requiresImport,

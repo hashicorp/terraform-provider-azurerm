@@ -681,11 +681,11 @@ func flattenAgentConfigurationModel(input *machines.AgentConfiguration) ([]Agent
 }
 
 func flattenConfigurationExtensionModel(inputList *[]machines.ConfigurationExtension) []ConfigurationExtensionModel {
-	var outputList []ConfigurationExtensionModel
 	if inputList == nil {
-		return outputList
+		return []ConfigurationExtensionModel{}
 	}
 
+	outputList := make([]ConfigurationExtensionModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := ConfigurationExtensionModel{}
 

@@ -20,8 +20,10 @@ import (
 
 type DataConnectorAwsS3Resource struct{}
 
-var _ sdk.ResourceWithUpdate = DataConnectorAwsS3Resource{}
-var _ sdk.ResourceWithCustomImporter = DataConnectorAwsS3Resource{}
+var (
+	_ sdk.ResourceWithUpdate         = DataConnectorAwsS3Resource{}
+	_ sdk.ResourceWithCustomImporter = DataConnectorAwsS3Resource{}
+)
 
 type DataConnectorAwsS3Model struct {
 	Name                    string   `tfschema:"name"`

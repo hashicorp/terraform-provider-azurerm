@@ -11,6 +11,7 @@ import (
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -72,10 +73,8 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MaxItems: 1,
-
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"certificate_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -91,7 +90,6 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 							Optional: true,
 							Default:  string(cdn.AfdMinimumTLSVersionTLS12),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.AfdMinimumTLSVersionTLS10),
 								string(cdn.AfdMinimumTLSVersionTLS12),
 							}, false),
 						},
@@ -118,6 +116,18 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(cdn.AfdMinimumTLSVersionTLS12),
+				string(cdn.AfdMinimumTLSVersionTLS10),
+			}, false),
+		}
 	}
 
 	return resource

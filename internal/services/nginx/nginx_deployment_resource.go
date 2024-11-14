@@ -13,15 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -264,78 +260,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource["capacity"].Default = defaultCapacity
-
-		resource["configuration"] = &pluginsdk.Schema{
-			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"config_file": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						AtLeastOneOf: []string{"configuration.0.config_file", "configuration.0.package_data"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"content": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsBase64,
-								},
-
-								"virtual_path": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-
-					"protected_file": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						RequiredWith: []string{"configuration.0.config_file"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"content": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									Sensitive:    true,
-									ValidateFunc: validation.StringIsBase64,
-								},
-
-								"virtual_path": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-
-					"package_data": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ValidateFunc:  validation.StringIsNotEmpty,
-						AtLeastOneOf:  []string{"configuration.0.config_file", "configuration.0.package_data"},
-						ConflictsWith: []string{"configuration.0.protected_file", "configuration.0.config_file"},
-					},
-
-					"root_file": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		}
-	}
-
 	return resource
 }
 
@@ -384,8 +308,8 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			req := nginxdeployment.NginxDeployment{}
-			req.Name = pointer.FromString(model.Name)
-			req.Location = pointer.FromString(model.Location)
+			req.Name = pointer.To(model.Name)
+			req.Location = pointer.To(model.Location)
 			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
 
 			if model.Sku != "" {
@@ -394,13 +318,13 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
-			prop.ManagedResourceGroup = pointer.FromString(model.ManagedResourceGroup)
+			prop.ManagedResourceGroup = pointer.To(model.ManagedResourceGroup)
 
 			if len(model.LoggingStorageAccount) > 0 {
 				prop.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -415,7 +339,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				var publicIPs []nginxdeployment.NginxPublicIPAddress
 				for _, ip := range public[0].IpAddress {
 					publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
-						Id: pointer.FromString(ip),
+						Id: pointer.To(ip),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
@@ -426,42 +350,30 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				for _, ip := range private {
 					alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
 					privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
-						PrivateIPAddress:          pointer.FromString(ip.IpAddress),
+						PrivateIPAddress:          pointer.To(ip.IpAddress),
 						PrivateIPAllocationMethod: &alloc,
-						SubnetId:                  pointer.FromString(ip.SubnetId),
+						SubnetId:                  pointer.To(ip.SubnetId),
 					})
 				}
 				prop.NetworkProfile.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
 			}
 
 			if len(model.NetworkInterface) > 0 {
-				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.FromString(model.NetworkInterface[0].SubnetId)
+				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.To(model.NetworkInterface[0].SubnetId)
 			}
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
-			if !features.FourPointOhBeta() {
-				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
-					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-				}
+			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+			if isBasicSKU && hasScaling {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+			if !isBasicSKU && !hasScaling {
+				return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+			}
 
-				if model.Capacity > 0 && !isBasicSKU {
-					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-						Capacity: pointer.FromInt64(model.Capacity),
-					}
-				}
-			} else {
-				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
-				if isBasicSKU && hasScaling {
-					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-				}
-				if !isBasicSKU && !hasScaling {
-					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
-				}
-
-				if model.Capacity > 0 {
-					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-						Capacity: pointer.FromInt64(model.Capacity),
-					}
+			if model.Capacity > 0 {
+				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					Capacity: pointer.FromInt64(model.Capacity),
 				}
 			}
 
@@ -485,7 +397,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if model.Email != "" {
 				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
@@ -505,18 +417,6 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			err = client.DeploymentsCreateOrUpdateThenPoll(ctx, id, req)
 			if err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
-			}
-
-			if !features.FourPointOhBeta() {
-				if len(model.Configuration) > 0 {
-					// update configuration
-					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
-
-					configProp := expandConfiguration(model.Configuration[0])
-					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-						return fmt.Errorf("update default configuration of %q: %v", configID, err)
-					}
-				}
 			}
 
 			meta.SetID(id)
@@ -634,48 +534,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if !features.FourPointOhBeta() {
-				if v := meta.ResourceData.Get("configuration"); len(v.([]interface{})) != 0 {
-					// read configuration
-					configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
-					if err != nil && !response.WasNotFound(configResp.HttpResponse) {
-						return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
-					}
-					if model := configResp.Model; model != nil {
-						if prop := model.Properties; prop != nil {
-							var files []ConfigureFile
-							if prop.Files != nil {
-								for _, file := range *prop.Files {
-									files = append(files, ConfigureFile{
-										Content:     pointer.From(file.Content),
-										VirtualPath: pointer.From(file.VirtualPath),
-									})
-								}
-							}
-
-							var protectedFiles []ConfigureFile
-							if prop.ProtectedFiles != nil {
-								for _, file := range *prop.ProtectedFiles {
-									protectedFiles = append(protectedFiles, ConfigureFile{
-										Content:     pointer.From(file.Content),
-										VirtualPath: pointer.From(file.VirtualPath),
-									})
-								}
-							}
-
-							output.Configuration = []Configuration{
-								{
-									ConfigureFile: files,
-									ProtectedFile: protectedFiles,
-									PackageData:   pointer.From(pointer.From(prop.Package).Data),
-									RootFile:      pointer.From(prop.RootFile),
-								},
-							}
-						}
-					}
-				}
-			}
-
 			return meta.Encode(&output)
 		},
 	}
@@ -715,8 +573,8 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 				req.Properties.Logging = &nginxdeployment.NginxLogging{
 					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 					},
 				}
 			}
@@ -751,7 +609,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
-					PreferredEmail: pointer.FromString(model.Email),
+					PreferredEmail: pointer.To(model.Email),
 				}
 			}
 
@@ -767,17 +625,6 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
-			}
-
-			if !features.FourPointOhBeta() {
-				if meta.ResourceData.HasChange("configuration") {
-					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
-
-					configProp := expandConfiguration(model.Configuration[0])
-					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-						return fmt.Errorf("update default configuration of %q: %v", configID, err)
-					}
-				}
 			}
 
 			return nil
@@ -807,44 +654,4 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
-}
-
-func expandConfiguration(model Configuration) nginxconfiguration.NginxConfiguration {
-	result := nginxconfiguration.NginxConfiguration{
-		Properties: &nginxconfiguration.NginxConfigurationProperties{},
-	}
-
-	if len(model.ConfigureFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ConfigureFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.Files = &files
-	}
-
-	if len(model.ProtectedFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ProtectedFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.ProtectedFiles = &files
-	}
-
-	if model.PackageData != "" {
-		result.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-			Data: pointer.To(model.PackageData),
-		}
-	}
-
-	if model.RootFile != "" {
-		result.Properties.RootFile = pointer.To(model.RootFile)
-	}
-
-	return result
 }

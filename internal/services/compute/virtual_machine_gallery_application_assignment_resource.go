@@ -23,9 +23,7 @@ import (
 
 type VirtualMachineGalleryApplicationAssignmentResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = VirtualMachineGalleryApplicationAssignmentResource{}
-)
+var _ sdk.ResourceWithUpdate = VirtualMachineGalleryApplicationAssignmentResource{}
 
 type VirtualMachineGalleryApplicationAssignmentResourceResourceModel struct {
 	GalleryApplicationVersionId string `tfschema:"gallery_application_version_id"`

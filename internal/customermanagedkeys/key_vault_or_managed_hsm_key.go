@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package customermanagedkeys
 
 import (
@@ -100,7 +103,8 @@ func parseKeyvaultID(keyRaw string, requireVersion VersionType, _ environments.A
 }
 
 func parseManagedHSMKey(keyRaw string, requireVersion VersionType, hsmEnv environments.Api) (
-	versioned *hsmParse.ManagedHSMDataPlaneVersionedKeyId, versionless *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, err error) {
+	versioned *hsmParse.ManagedHSMDataPlaneVersionedKeyId, versionless *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, err error,
+) {
 	// if specified with hasVersion == True, then it has to be parsed as versionedKeyID
 	var domainSuffix *string
 	if hsmEnv != nil {
@@ -129,7 +133,7 @@ func ExpandKeyVaultOrManagedHSMKey(d interface{}, requireVersion VersionType, ke
 
 // ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey
 // d: should be one of *pluginsdk.ResourceData or map[string]interface{}
-// if return nil, nil, it means no key_vault_key_id or managed_hsm_key_id is specified
+// if return nil, nil - it means no key_vault_key_id or managed_hsm_key_id is specified //nolint:dupword
 func ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d interface{}, requireVersion VersionType, keyVaultFieldName, hsmFieldName string, keyVaultEnv, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
 	key := &KeyVaultOrManagedHSMKey{}
 	var err error

@@ -180,7 +180,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
@@ -224,7 +223,6 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())

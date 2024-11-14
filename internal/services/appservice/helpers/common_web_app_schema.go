@@ -44,6 +44,7 @@ func HandlerMappingSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func HandlerMappingSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
@@ -1257,7 +1258,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 		return []StorageAccount{}
 	}
 
-	var storageAccounts []StorageAccount
+	storageAccounts := make([]StorageAccount, 0, len(*appStorageAccounts.Properties))
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
@@ -1289,7 +1290,8 @@ func FlattenConnectionStrings(appConnectionStrings *webapps.ConnectionStringDict
 	if appConnectionStrings.Properties == nil || len(*appConnectionStrings.Properties) == 0 {
 		return []ConnectionString{}
 	}
-	var connectionStrings []ConnectionString
+
+	connectionStrings := make([]ConnectionString, 0, len(*appConnectionStrings.Properties))
 	for k, v := range *appConnectionStrings.Properties {
 		connectionString := ConnectionString{
 			Name:  k,
@@ -1386,7 +1388,7 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 		return []HandlerMappings{}
 	}
 
-	var handlerMappings []HandlerMappings
+	handlerMappings := make([]HandlerMappings, 0, len(*appHandlerMappings))
 	for _, v := range *appHandlerMappings {
 		handlerMapping := HandlerMappings{
 			Extension:           pointer.From(v.Extension),
@@ -1404,7 +1406,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 		return []VirtualApplication{}
 	}
 
-	var virtualApplications []VirtualApplication
+	virtualApplications := make([]VirtualApplication, 0, len(*appVirtualApplications))
 	for _, v := range *appVirtualApplications {
 		virtualApp := VirtualApplication{
 			VirtualPath:  pointer.From(v.VirtualPath),

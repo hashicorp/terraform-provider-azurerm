@@ -49,6 +49,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
@@ -81,6 +82,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance"
@@ -167,6 +169,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		digitaltwins.Registration{},
 		domainservices.Registration{},
 		elasticsan.Registration{},
+		dynatrace.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
 		fluidrelay.Registration{},
@@ -183,6 +186,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		maintenance.Registration{},
 		managedhsm.Registration{},
 		mobilenetwork.Registration{},
+		mongocluster.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
 		mssqlmanagedinstance.Registration{},
@@ -326,4 +330,14 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		}
 		return out
 	}()
+}
+
+func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
+	services := []sdk.FrameworkTypedServiceRegistration{
+		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
+		// e.g.
+		// resource.Registration{}
+	}
+
+	return services
 }

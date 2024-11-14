@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultManagedHSMRoleAssignmentModel struct {
@@ -192,9 +192,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID: pointer.FromString(config.PrincipalId),
+				PrincipalID: pointer.To(config.PrincipalId),
 				// the role definition id may have '/' prefix, but the api doesn't accept it
-				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(config.RoleDefinitionId, "/")),
+				RoleDefinitionID: pointer.To(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
 
 			//nolint:misspell
