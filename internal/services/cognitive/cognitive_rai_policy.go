@@ -22,7 +22,7 @@ type cognitiveRaiPolicyModel struct {
 	Mode               string                        `tfschema:"mode"`
 	Type               string                        `tfschema:"type"`
 	ContentFilters     []RaiPolicyContentFilterModel `tfschema:"content_filters"`
-	CustomBlocklists   []CustomBlocklistsModel       `tfschema:"custom_blocklists"`
+	CustomBlocklists   []CustomBlocklistModel        `tfschema:"custom_blocklists"`
 }
 
 type RaiPolicyContentFilterModel struct {
@@ -33,9 +33,9 @@ type RaiPolicyContentFilterModel struct {
 	Source            string `tfschema:"source"`
 }
 
-type CustomBlocklistsModel struct {
+type CustomBlocklistModel struct {
 	Blocking      bool   `tfschema:"blocking"`
-	BlocklistName string `tfschema:"blocklists_name"`
+	BlocklistName string `tfschema:"blocklist_name"`
 	Source        string `tfschema:"source"`
 }
 
@@ -61,7 +61,8 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 
 		"base_policy_name": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
+			Default:  "Microsoft.Default",
 			ValidateFunc: validation.StringInSlice([]string{
 				"Microsoft.Default",
 			}, false),
@@ -92,21 +93,22 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 			ConfigMode: pluginsdk.SchemaConfigModeAttr,
 			Optional:   true,
 			Computed:   true,
-			MaxItems:   12,
+			MaxItems:   14,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							"hate",
-							"sexual",
-							"selfharm",
-							"violence",
-							"jailbreak",
-							"protected_material_text",
-							"protected_material_code",
-							"profanity",
+							"Hate",
+							"Sexual",
+							"Selfharm",
+							"Violence",
+							"Jailbreak",
+							"Protected Material Text",
+							"Protected Material Code",
+							"Indirect Attack",
+							"Profanity",
 						}, false),
 					},
 
@@ -123,7 +125,7 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 					"severity_threshold": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Default:  "Medium",
 						ValidateFunc: validation.StringInSlice([]string{
 							"High",
 							"Medium",
@@ -151,8 +153,8 @@ func (c CognitiveRaiPolicyResource) Arguments() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"blocklist_name": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsEmpty,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"blocking": {
@@ -371,7 +373,9 @@ func (c CognitiveRaiPolicyResource) Read() sdk.ResourceFunc {
 					state.Type = string(*r)
 				}
 
-				state.ContentFilters = flattenContentFiltersModel(properties.ContentFilters)
+				if contentFilters := flattenContentFiltersModel(properties.ContentFilters); contentFilters != nil {
+					state.ContentFilters = contentFilters
+				}
 
 				if customBlockLists := flattenCustomBlicklistsModel(properties.CustomBlocklists); customBlockLists != nil {
 					state.CustomBlocklists = customBlockLists
@@ -415,7 +419,7 @@ func expandContentFiltersModel(inputList []RaiPolicyContentFilterModel) *[]raipo
 	return &contentFilters
 }
 
-func expandCustomBlocklistsModel(inputList []CustomBlocklistsModel) *[]raipolicies.CustomBlocklistConfig {
+func expandCustomBlocklistsModel(inputList []CustomBlocklistModel) *[]raipolicies.CustomBlocklistConfig {
 	customBlocklists := make([]raipolicies.CustomBlocklistConfig, 0)
 
 	for _, customBlocklist := range inputList {
@@ -474,15 +478,15 @@ func flattenContentFiltersModel(inputList *[]raipolicies.RaiPolicyContentFilter)
 	return contentFilters
 }
 
-func flattenCustomBlicklistsModel(inputList *[]raipolicies.CustomBlocklistConfig) []CustomBlocklistsModel {
-	customBlocklists := make([]CustomBlocklistsModel, 0)
+func flattenCustomBlicklistsModel(inputList *[]raipolicies.CustomBlocklistConfig) []CustomBlocklistModel {
+	customBlocklists := make([]CustomBlocklistModel, 0)
 
 	if inputList == nil {
 		return customBlocklists
 	}
 
 	for _, blockList := range *inputList {
-		blockListRaw := CustomBlocklistsModel{}
+		blockListRaw := CustomBlocklistModel{}
 
 		if blockList.Blocking != nil {
 			blockListRaw.Blocking = *blockList.Blocking
