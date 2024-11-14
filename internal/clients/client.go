@@ -26,6 +26,7 @@ import (
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
 	advisor "github.com/hashicorp/terraform-provider-azurerm/internal/services/advisor/client"
 	analysisServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/client"
+	apiCenter "github.com/hashicorp/terraform-provider-azurerm/internal/services/apicenter/client"
 	apiManagement "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/client"
@@ -161,6 +162,7 @@ type Client struct {
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
+	ApiCenter                         *apiCenter.Client
 	ApiManagement                     *apiManagement.Client
 	AppConfiguration                  *appConfiguration.Client
 	AppInsights                       *applicationInsights.Client
@@ -308,6 +310,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.AnalysisServices, err = analysisServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for AnalysisServices: %+v", err)
+	}
+	if client.ApiCenter, err = apiCenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ApiCenter: %+v", err)
 	}
 	if client.ApiManagement, err = apiManagement.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ApiManagement: %+v", err)
