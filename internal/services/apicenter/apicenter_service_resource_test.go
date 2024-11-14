@@ -35,8 +35,8 @@ func TestAccApicenterService_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksAccessConnector_identityUserAssigned(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+func TestAccApicenterService_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_apicenter_service", "test")
 	r := ApiCenterServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,8 +49,8 @@ func TestAccDatabricksAccessConnector_identityUserAssigned(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksAccessConnector_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_access_connector", "test")
+func TestAccApicenterService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_apicenter_service", "test")
 	r := ApiCenterServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,7 +77,7 @@ func (ApiCenterServiceResource) Exists(ctx context.Context, clients *clients.Cli
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", id.ID(), err)
+		return nil, fmt.Errorf("making Read request on ApiCenter Service %s: %+v", id.ID(), err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

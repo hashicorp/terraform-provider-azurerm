@@ -23,6 +23,9 @@ service/analysis:
 service/api-management:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_api_management((.|\n)*)###'
 
+service/apicenter:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_apicenter_service((.|\n)*)###'
+
 service/app-configuration:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_app_configuration((.|\n)*)###'
 
