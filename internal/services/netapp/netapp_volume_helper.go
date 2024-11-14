@@ -274,7 +274,7 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 }
 
 func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
-	if len(input) == 0 {
+	if len(input) == 0 || input == nil {
 		return &volumes.VolumePropertiesDataProtection{}
 	}
 
@@ -282,18 +282,16 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 
 	backupRaw := input[0].(map[string]interface{})
 
-	if backupRaw != nil {
-		if v, ok := backupRaw["backup_policy_id"]; ok {
-			backupPolicyObject.BackupPolicyId = utils.String(v.(string))
-		}
+	if v, ok := backupRaw["backup_policy_id"]; ok {
+		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+	}
 
-		if v, ok := backupRaw["policy_enabled"]; ok {
-			backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
-		}
+	if v, ok := backupRaw["policy_enabled"]; ok {
+		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+	}
 
-		if v, ok := backupRaw["backup_vault_id"]; ok {
-			backupPolicyObject.BackupVaultId = utils.String(v.(string))
-		}
+	if v, ok := backupRaw["backup_vault_id"]; ok {
+		backupPolicyObject.BackupVaultId = utils.String(v.(string))
 	}
 
 	return &volumes.VolumePropertiesDataProtection{
@@ -302,7 +300,7 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 }
 
 func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 || input == nil {
 		return &volumes.VolumePatchPropertiesDataProtection{}
 	}
 
