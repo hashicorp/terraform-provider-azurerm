@@ -720,43 +720,6 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	}
 }
 
-func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.LanguageExtensionsList {
-	if v, ok := d.GetOk("language_extensions"); ok {
-		extList := v.(*pluginsdk.Set).List()
-		if len(extList) > 0 {
-			extensions := make([]clusters.LanguageExtension, 0)
-			for _, language := range extList {
-				name := language.(string)
-				lanExt := clusters.LanguageExtension{}
-				switch name {
-				case "R":
-					n := clusters.LanguageExtensionNameR
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNameR
-					lanExt.LanguageExtensionImageName = &imageName
-				case "PYTHON":
-					n := clusters.LanguageExtensionNamePYTHON
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
-					lanExt.LanguageExtensionImageName = &imageName
-				case "PYTHON_3.10.8":
-					n := clusters.LanguageExtensionNamePYTHON
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
-					lanExt.LanguageExtensionImageName = &imageName
-				default:
-					continue
-				}
-				extensions = append(extensions, lanExt)
-			}
-			return &clusters.LanguageExtensionsList{
-				Value: &extensions,
-			}
-		}
-	}
-	return nil
-}
-
 func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
 	if len(input) > 0 {
 		extensions := make([]clusters.LanguageExtension, 0)
@@ -806,30 +769,6 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 	}
 
 	return []interface{}{output}
-}
-
-func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensionsList) []interface{} {
-	if extensions == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-	if extensions.Value != nil {
-		for _, v := range *extensions.Value {
-			if v.LanguageExtensionImageName != nil {
-				switch *v.LanguageExtensionImageName {
-				case clusters.LanguageExtensionImageNameR:
-					output = append(output, "R")
-				case clusters.LanguageExtensionImageNamePythonThreeSixFive:
-					output = append(output, "PYTHON")
-				case clusters.LanguageExtensionImageNamePythonThreeOneZeroEight:
-					output = append(output, "PYTHON_3.10.8")
-				}
-			}
-		}
-	}
-
-	return output
 }
 
 func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {

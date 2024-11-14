@@ -369,45 +369,6 @@ func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	return results
 }
 
-func flattenManagedApplicationParameters(input *interface{}, localParameters map[string]interface{}) (map[string]interface{}, error) {
-	results := make(map[string]interface{})
-	if input == nil {
-		return results, nil
-	}
-
-	attrs := *input
-	if _, ok := attrs.(map[string]interface{}); ok {
-		for k, val := range attrs.(map[string]interface{}) {
-			mapVal, ok := val.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("unexpected managed application parameter type: %+v", mapVal)
-			}
-			if mapVal != nil {
-				v, ok := mapVal["value"]
-				if !ok {
-					// Secure values are not returned, thus settings it with local value
-					v = ""
-					if oldValueStruct, oldValueStructOK := localParameters[k]; oldValueStructOK {
-						if _, oldValueStructTypeOK := oldValueStruct.(map[string]interface{}); oldValueStructTypeOK {
-							if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
-								v = oldValue
-							}
-						}
-					}
-				}
-
-				value, err := extractParameterOrOutputValue(v)
-				if err != nil {
-					return nil, fmt.Errorf("extracting parameters: %+v", err)
-				}
-				results[k] = value
-			}
-		}
-	}
-
-	return results, nil
-}
-
 func flattenManagedApplicationOutputs(input *interface{}) (map[string]interface{}, error) {
 	results := make(map[string]interface{})
 	if input == nil {

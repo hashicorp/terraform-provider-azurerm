@@ -1080,55 +1080,6 @@ resource "azurerm_key_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-// TODO: Remove in 4.0
-func (KeyVaultResource) updateContacts(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-kv-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "vault%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "ManageContacts",
-    ]
-
-    key_permissions = [
-      "Create",
-    ]
-
-    secret_permissions = [
-      "Set",
-    ]
-  }
-
-  contact {
-    email = "example@example.com"
-    name  = "example"
-    phone = "01234567890"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (KeyVaultResource) basicPremiumSKU(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

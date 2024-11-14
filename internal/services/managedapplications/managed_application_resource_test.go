@@ -167,46 +167,6 @@ func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.C
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagedApplicationResource) parameters(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = ""
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
-}
-
-func (r ManagedApplicationResource) parametersUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_2"
-    secureStringParameter = ""
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
-}
-
 func (r ManagedApplicationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -379,26 +339,6 @@ resource "azurerm_managed_application" "test" {
   })
 }
 `, r.templateAllSupportedParametersTypes(data), data.RandomInteger)
-}
-
-func (r ManagedApplicationResource) parametersSecureString(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = "secure_value_1"
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
 }
 
 func (r ManagedApplicationResource) parameterValuesSecureString(data acceptance.TestData) string {
