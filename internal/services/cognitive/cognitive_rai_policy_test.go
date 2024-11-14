@@ -85,7 +85,7 @@ func TestAccCognitiveRaiPolicy_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: testRaiPolicy.update(data),
+			Config: testRaiPolicy.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(testRaiPolicy),
 			),
@@ -284,112 +284,4 @@ func (r CognitiveRaiPolicyTestResource) complete(data acceptance.TestData) strin
 			]
 		}
 	`, template, data.RandomInteger)
-}
-
-func (r CognitiveRaiPolicyTestResource) update(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`
-		%s
-		resource "azurerm_cognitive_rai_policy" "test"{
-			name                 = azurerm_cognitive_rai_policy.test.name
-			cognitive_account_id = azurerm_cognitive_account.test.id
-			base_policy_name     = "Microsoft.Default"
-			mode                 = "Asynchronous_filter"
-			type 				 = "SystemManaged"
-
-			content_filters = [
-				{
-					name               = "Hate"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Prompt"
-				},
-				{
-					name               = "Hate"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "Medium"
-					source             = "Completion"
-				},
-				{
-					name               = "Sexual"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Prompt"
-				},
-				{
-					name               = "Sexual"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Completion"
-				},
-				{
-					name               = "Selfharm"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Prompt"
-				},
-				{
-					name               = "Selfharm"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Completion"
-				},
-				{
-					name               = "Violence"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Prompt"
-				},
-				{
-					name               = "Violence"
-					blocking           = true
-					enabled            = true
-					severity_threshold = "High"
-					source             = "Completion"
-				},
-				{
-					name               = "Jailbreak"
-					blocking           = true
-					enabled            = true
-					source             = "Prompt"
-					severity_threshold = "Medium"
-				},
-				{
-					name               = "Indirect Attack"
-					blocking           = true
-					enabled            = true
-					source             = "Prompt"
-					severity_threshold = "Medium"
-				},
-				{
-					name               = "Protected Material Text"
-					blocking           = true
-					enabled            = true
-					source             = "Completion"
-					severity_threshold = "High"
-				},
-				{
-					name               = "Protected Material Code"
-					blocking           = true
-					enabled            = true
-					source             = "Completion"
-					severity_threshold = "High"
-				},
-				{
-					name               = "Profanity"
-					blocking           = true
-					enabled            = true
-					source             = "Prompt"
-					severity_threshold = "High"
-				},
-			]
-		}
-	`, config)
 }
