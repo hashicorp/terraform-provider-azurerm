@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -990,20 +989,6 @@ func resourceFirewallPolicySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resource["sku"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(firewallpolicies.FirewallPolicySkuTierPremium),
-				string(firewallpolicies.FirewallPolicySkuTierStandard),
-				string(firewallpolicies.FirewallPolicySkuTierBasic),
-			}, false),
-		}
 	}
 
 	return resource

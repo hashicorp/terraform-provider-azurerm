@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -57,65 +56,6 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_switchBetweenParametersAndParameterValues(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping bacause `parameters` is deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.parameters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedApplication_parameters(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping as `parameters` is deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.parameters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.parametersUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccManagedApplication_parameterValues(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
@@ -150,25 +90,6 @@ func TestAccManagedApplication_allSupportedParameterValuesTypes(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccManagedApplication_parametersSecureString(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping because `parameters` is removed in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.parametersSecureString(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("parameters.secureStringParameter", "parameter_values"),
 	})
 }
 

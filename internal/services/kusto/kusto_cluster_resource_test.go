@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -258,42 +257,6 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKustoCluster_languageExtensions(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Property has been removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	r := KustoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.languageExtensions(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.languageExtensionsUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("language_extensions.#").HasValue("2"),
-				check.That(data.ResourceName).Key("language_extensions.1").HasValue("R"),
-			),
-		},
-		{
-			Config: r.languageExtensionsRemove(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("language_extensions.#").HasValue("1"),
-				check.That(data.ResourceName).Key("language_extensions.0").HasValue("R"),
 			),
 		},
 		data.ImportStep(),

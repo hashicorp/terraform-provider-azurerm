@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -179,6 +178,25 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"language_extensions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+						},
+						"image": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+						},
+					},
+				},
+			},
+
 			"public_ip_type": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -232,42 +250,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
-	}
-
-	if features.FourPointOhBeta() {
-		resource.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-					},
-					"image": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
-					},
-				},
-			},
-		}
-	} else {
-		resource.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
-			},
-		}
-		resource.Schema["engine"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in v4.0 of the AzureRM Provider.",
-			ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
-		}
 	}
 
 	return resource
@@ -357,13 +339,9 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
-	if features.FourPointOhBeta() {
-		if v, ok := d.GetOk("language_extensions"); ok {
-			extList := v.([]interface{})
-			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
-		}
-	} else {
-		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+	if v, ok := d.GetOk("language_extensions"); ok {
+		extList := v.([]interface{})
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -489,12 +467,8 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("language_extensions") {
-		if features.FourPointOhBeta() {
-			if v, ok := d.GetOk("language_extensions"); ok {
-				props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
-			}
-		} else {
-			props.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+		if v, ok := d.GetOk("language_extensions"); ok {
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
 		}
 	}
 
@@ -630,11 +604,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
-			if features.FourPointOhBeta() {
-				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
-			} else {
-				d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
-			}
+			d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
