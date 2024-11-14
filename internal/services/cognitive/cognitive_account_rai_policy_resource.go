@@ -332,7 +332,7 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 		return nil
 	}
 
-	var contentFilters []raipolicies.RaiPolicyContentFilter
+	contentFilters := make([]raipolicies.RaiPolicyContentFilter, 0, len(filters))
 	for _, filter := range filters {
 		contentFilters = append(contentFilters, raipolicies.RaiPolicyContentFilter{
 			Name:              pointer.To(filter.Name),
@@ -350,7 +350,7 @@ func expandCustomBlockLists(list []AccountRaiPolicyCustomBlock) *[]raipolicies.C
 		return nil
 	}
 
-	var customBlockLists []raipolicies.CustomBlocklistConfig
+	customBlockLists := make([]raipolicies.CustomBlocklistConfig, 0, len(list))
 	for _, block := range list {
 		customBlockLists = append(customBlockLists, raipolicies.CustomBlocklistConfig{
 			BlocklistName: pointer.To(block.Name),
@@ -366,7 +366,7 @@ func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig)
 		return nil
 	}
 
-	var customBlockLists []AccountRaiPolicyCustomBlock
+	customBlockLists := make([]AccountRaiPolicyCustomBlock, 0, len(*blocklists))
 	for _, block := range *blocklists {
 		customBlockLists = append(customBlockLists, AccountRaiPolicyCustomBlock{
 			Name:         pointer.From(block.BlocklistName),
@@ -382,7 +382,7 @@ func flattenRaiPolicyContentFilters(filters *[]raipolicies.RaiPolicyContentFilte
 		return nil
 	}
 
-	var contentFilters []AccountRaiPolicyContentFilter
+	contentFilters := make([]AccountRaiPolicyContentFilter, 0, len(*filters))
 	for _, filter := range *filters {
 		contentFilters = append(contentFilters, AccountRaiPolicyContentFilter{
 			Name:              pointer.From(filter.Name),
