@@ -199,7 +199,6 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading: %+v", err)
 			}
@@ -354,7 +353,6 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -419,7 +417,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

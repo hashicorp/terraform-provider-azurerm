@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
 
 payload := managedhsms.ManagedHsm{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "location", "name")
+id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationName", "deletedManagedHSMName")
 
 read, err := client.GetDeleted(ctx, id)
 if err != nil {
@@ -158,7 +158,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "location", "name")
+id := managedhsms.NewDeletedManagedHSMID("12345678-1234-9876-4563-123456789012", "locationName", "deletedManagedHSMName")
 
 if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -170,7 +170,7 @@ if err := client.PurgeDeletedThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := managedhsms.NewManagedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedHSMName")
 
 payload := managedhsms.ManagedHsm{
 	// ...

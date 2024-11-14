@@ -136,7 +136,6 @@ func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *c
 	}
 
 	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
-
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

@@ -560,7 +560,6 @@ func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client,
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

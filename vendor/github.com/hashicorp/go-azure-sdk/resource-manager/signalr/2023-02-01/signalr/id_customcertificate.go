@@ -121,9 +121,9 @@ func (id CustomCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("signalRName", "resourceName"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRName"),
 		resourceids.StaticSegment("staticCustomCertificates", "customCertificates", "customCertificates"),
-		resourceids.UserSpecifiedSegment("customCertificateName", "certificateName"),
+		resourceids.UserSpecifiedSegment("customCertificateName", "customCertificateName"),
 	}
 }
 

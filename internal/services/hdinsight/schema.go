@@ -702,6 +702,7 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 		},
 	}
 }
+
 func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -732,11 +733,9 @@ func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.Resou
 		username = v
 	}
 
-	password := ""
+	password := d.Get("gateway.0.password").(string)
 	if v, exists := input["restAuthCredential.password"]; exists {
 		password = v
-	} else {
-		password = d.Get("gateway.0.password").(string)
 	}
 
 	out := map[string]interface{}{
@@ -1777,7 +1776,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
 		Domain:             utils.String(v["domain_name"].(string)),
-		LdapsUrls:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		LdapsURLs:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
 		DomainUsername:     utils.String(v["domain_username"].(string)),
 		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
 		AaddsResourceId:    utils.String(v["aadds_resource_id"].(string)),
@@ -2009,7 +2008,7 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
+			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsURLs),
 			"msi_resource_id":         msiResourceId,
 		},
 	}

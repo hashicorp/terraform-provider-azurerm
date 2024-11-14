@@ -60,7 +60,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"firewall": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
@@ -69,7 +68,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"cdn_frontdoor_firewall_policy_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -85,7 +83,6 @@ func resourceCdnFrontDoorSecurityPolicy() *pluginsdk.Resource {
 
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-
 												// NOTE: The max number of domains vary depending on sku: 100 Standard, 500 Premium
 												"domain": {
 													Type:     pluginsdk.TypeList,

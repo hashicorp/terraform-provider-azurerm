@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 payload := managedcassandras.ClusterResource{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CassandraClustersCreateUpdateThenPoll(ctx, id, payload); err !=
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 if err := client.CassandraClustersDeallocateThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.CassandraClustersDeallocateThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 if err := client.CassandraClustersDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.CassandraClustersDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 read, err := client.CassandraClustersGet(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 payload := managedcassandras.CommandPostBody{
 	// ...
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 if err := client.CassandraClustersStartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -143,7 +143,7 @@ if err := client.CassandraClustersStartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 read, err := client.CassandraClustersStatus(ctx, id)
 if err != nil {
@@ -159,7 +159,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 payload := managedcassandras.ClusterResource{
 	// ...
@@ -176,7 +176,7 @@ if err := client.CassandraClustersUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "dataCenterName")
+id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName", "dataCenterName")
 
 payload := managedcassandras.DataCenterResource{
 	// ...
@@ -193,7 +193,7 @@ if err := client.CassandraDataCentersCreateUpdateThenPoll(ctx, id, payload); err
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "dataCenterName")
+id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName", "dataCenterName")
 
 if err := client.CassandraDataCentersDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -205,7 +205,7 @@ if err := client.CassandraDataCentersDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "dataCenterName")
+id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName", "dataCenterName")
 
 read, err := client.CassandraDataCentersGet(ctx, id)
 if err != nil {
@@ -221,7 +221,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+id := managedcassandras.NewCassandraClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName")
 
 read, err := client.CassandraDataCentersList(ctx, id)
 if err != nil {
@@ -237,7 +237,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "dataCenterName")
+id := managedcassandras.NewDataCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cassandraClusterName", "dataCenterName")
 
 payload := managedcassandras.DataCenterResource{
 	// ...

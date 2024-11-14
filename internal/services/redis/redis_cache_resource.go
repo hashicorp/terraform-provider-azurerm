@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -399,81 +398,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["family"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ValidateFunc:     validation.StringInSlice(redis.PossibleValuesForSkuFamily(), true),
-			DiffSuppressFunc: suppress.CaseDifference,
-		}
-
-		resource.Schema["enable_non_ssl_port"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Default:       false,
-			Optional:      true,
-			ConflictsWith: []string{"non_ssl_port_enabled"},
-			Deprecated:    "`enable_non_ssl_port` will be removed in favour of the property `non_ssl_port_enabled` in version 4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["non_ssl_port_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Computed:      true,
-			Optional:      true,
-			ConflictsWith: []string{"enable_non_ssl_port"},
-		}
-
-		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["enable_authentication"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Default:       true,
-			ConflictsWith: []string{"redis_configuration.0.authentication_enabled"},
-			Deprecated:    "`enable_authentication` will be removed in favour of the property `authentication_enabled` in version 4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["authentication_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"redis_configuration.0.enable_authentication"},
-		}
-
-		resource.Schema["non_ssl_port_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-			Optional: true,
-		}
-
-		resource.Schema["replicas_per_master"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
-			// Can't make more than 3 replicas in portal, assuming it's a limitation
-			ValidateFunc: validation.IntBetween(1, 3),
-		}
-
-		resource.Schema["replicas_per_primary"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 3),
-		}
-
-		resource.Schema["redis_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
-			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				n := strings.Split(old, ".")
-				if len(n) >= 1 {
-					newMajor := n[0]
-					return new == newMajor
-				}
-				return false
-			},
-		}
-	}
-
 	return resource
 }
 
@@ -512,9 +436,6 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	enableNonSslPort := d.Get("non_ssl_port_enabled")
-	if v, ok := d.GetOk("enable_non_ssl_port"); ok && !features.FourPointOhBeta() {
-		enableNonSslPort = v
-	}
 
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -625,9 +546,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	enableNonSslPort := d.Get("non_ssl_port_enabled")
-	if v, ok := d.GetOk("enable_non_ssl_port"); ok && !features.FourPointOhBeta() {
-		enableNonSslPort = v
-	}
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -803,20 +721,16 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("capacity", int(props.Sku.Capacity))
 		d.Set("family", string(props.Sku.Family))
 		d.Set("sku_name", string(props.Sku.Name))
-
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("port", props.Port)
+		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
+
 		minimumTlsVersion := string(redis.TlsVersionOnePointTwo)
 		if props.MinimumTlsVersion != nil {
 			minimumTlsVersion = string(*props.MinimumTlsVersion)
 		}
 		d.Set("minimum_tls_version", minimumTlsVersion)
-		d.Set("port", props.Port)
-
-		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
-		if !features.FourPointOhBeta() {
-			d.Set("enable_non_ssl_port", props.EnableNonSslPort)
-		}
 
 		shardCount := 0
 		if props.ShardCount != nil {
@@ -1022,9 +936,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	authEnabled := raw["authentication_enabled"].(bool)
-	if v, ok := raw["enable_authentication"]; ok && !features.FourPointOhBeta() {
-		authEnabled = v.(bool)
-	}
 
 	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
@@ -1200,14 +1111,6 @@ func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redis.RedisComm
 	outputs["authentication_enabled"] = true
 	if v := input.Authnotrequired; v != nil {
 		outputs["authentication_enabled"] = isAuthRequiredAsBool(*v)
-	}
-
-	if !features.FourPointOhBeta() {
-		// `authnotrequired` is not set for instances launched outside a VNET
-		outputs["enable_authentication"] = true
-		if v := input.Authnotrequired; v != nil {
-			outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
-		}
 	}
 
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)

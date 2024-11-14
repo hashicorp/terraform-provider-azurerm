@@ -106,6 +106,7 @@ func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.BuildServiceBuilderClient

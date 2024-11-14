@@ -640,7 +640,7 @@ func (br assignmentBaseResource) flattenOverrides(overrides *[]policyassignments
 		return nil
 	}
 
-	var res []interface{}
+	res := make([]interface{}, 0, len(*overrides))
 	for _, o := range *overrides {
 		item := map[string]interface{}{
 			"value":     pointer.From(o.Value),
@@ -657,7 +657,7 @@ func (br assignmentBaseResource) flattenSelectors(selectors *[]policyassignments
 		return nil
 	}
 
-	var res []interface{}
+	res := make([]interface{}, 0, len(*selectors))
 	for _, s := range *selectors {
 		item := map[string]interface{}{
 			"in":     utils.FlattenStringSlice(s.In),
@@ -675,9 +675,9 @@ func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyass
 		return nil
 	}
 
-	var res []interface{}
+	res := make([]interface{}, 0, len(*selectors))
 	for _, v := range *selectors {
-		var item = map[string]interface{}{
+		item := map[string]interface{}{
 			"name":      pointer.From(v.Name),
 			"selectors": br.flattenSelectors(v.Selectors),
 		}

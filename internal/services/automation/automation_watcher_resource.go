@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
@@ -192,11 +193,11 @@ func (m WatcherResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := resp.Model.Properties; props != nil {
 					output.AutomationAccountID = watcher.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
-					output.ExecutionFrequencyInSeconds = utils.NormaliseNilableInt64(props.ExecutionFrequencyInSeconds)
-					output.ScriptName = utils.NormalizeNilableString(props.ScriptName)
-					output.ScriptRunOn = utils.NormalizeNilableString(props.ScriptRunOn)
-					output.Description = utils.NormalizeNilableString(props.Description)
-					output.Status = utils.NormalizeNilableString(props.Status)
+					output.ExecutionFrequencyInSeconds = pointer.From(props.ExecutionFrequencyInSeconds)
+					output.ScriptName = pointer.From(props.ScriptName)
+					output.ScriptRunOn = pointer.From(props.ScriptRunOn)
+					output.Description = pointer.From(props.Description)
+					output.Status = pointer.From(props.Status)
 
 					if props.ScriptParameters != nil {
 						output.ScriptParameters = flattenMap(*props.ScriptParameters)

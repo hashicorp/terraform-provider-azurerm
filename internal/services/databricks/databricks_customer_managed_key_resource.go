@@ -196,7 +196,6 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if model.Properties.Parameters != nil {
 			if props := model.Properties.Parameters.Encryption; props != nil {
-
 				if props.Value.KeySource != nil {
 					keySource = string(*props.Value.KeySource)
 				}

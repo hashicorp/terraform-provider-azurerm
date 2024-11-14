@@ -106,7 +106,7 @@ func (id ScopedScheduledActionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticScheduledActions", "scheduledActions", "scheduledActions"),
-		resourceids.UserSpecifiedSegment("scheduledActionName", "name"),
+		resourceids.UserSpecifiedSegment("scheduledActionName", "scheduledActionName"),
 	}
 }
 

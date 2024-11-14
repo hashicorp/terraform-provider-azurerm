@@ -76,6 +76,7 @@ func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r ChaosStudioCapabilityTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

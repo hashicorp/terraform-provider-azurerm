@@ -145,7 +145,7 @@ type Schema struct {
 	//
 	// The key benefit of activating this flag is that the result of Read or
 	// ReadContext will be cleaned of normalization-only changes in the same
-	// way as the planning result would normaly be, which therefore prevents
+	// way as the planning result would normally be, which therefore prevents
 	// churn for downstream expressions deriving from this attribute and
 	// prevents incorrect "Values changed outside of Terraform" messages
 	// when the remote API returns values which have the same meaning as the
@@ -1099,7 +1099,7 @@ func isValidFieldName(name string) bool {
 }
 
 // resourceDiffer is an interface that is used by the private diff functions.
-// This helps facilitate diff logic for both ResourceData and ResoureDiff with
+// This helps facilitate diff logic for both ResourceData and ResourceDiff with
 // minimal divergence in code.
 type resourceDiffer interface {
 	diffChange(string) (interface{}, interface{}, bool, bool, bool)
@@ -1119,24 +1119,24 @@ func (m schemaMap) diff(
 	d resourceDiffer,
 	all bool) error {
 
-	unsupressedDiff := new(terraform.InstanceDiff)
-	unsupressedDiff.Attributes = make(map[string]*terraform.ResourceAttrDiff)
+	unsuppressedDiff := new(terraform.InstanceDiff)
+	unsuppressedDiff.Attributes = make(map[string]*terraform.ResourceAttrDiff)
 
 	var err error
 	switch schema.Type {
 	case TypeBool, TypeInt, TypeFloat, TypeString:
-		err = m.diffString(k, schema, unsupressedDiff, d, all)
+		err = m.diffString(k, schema, unsuppressedDiff, d, all)
 	case TypeList:
-		err = m.diffList(ctx, k, schema, unsupressedDiff, d, all)
+		err = m.diffList(ctx, k, schema, unsuppressedDiff, d, all)
 	case TypeMap:
-		err = m.diffMap(k, schema, unsupressedDiff, d, all)
+		err = m.diffMap(k, schema, unsuppressedDiff, d, all)
 	case TypeSet:
-		err = m.diffSet(ctx, k, schema, unsupressedDiff, d, all)
+		err = m.diffSet(ctx, k, schema, unsuppressedDiff, d, all)
 	default:
 		err = fmt.Errorf("%s: unknown type %#v", k, schema.Type)
 	}
 
-	for attrK, attrV := range unsupressedDiff.Attributes {
+	for attrK, attrV := range unsuppressedDiff.Attributes {
 		switch rd := d.(type) {
 		case *ResourceData:
 			if schema.DiffSuppressFunc != nil && attrV != nil &&

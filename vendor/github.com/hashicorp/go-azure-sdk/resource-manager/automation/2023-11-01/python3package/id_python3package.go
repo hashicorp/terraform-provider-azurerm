@@ -123,7 +123,7 @@ func (id Python3PackageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
 		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticPython3Packages", "python3Packages", "python3Packages"),
-		resourceids.UserSpecifiedSegment("python3PackageName", "packageName"),
+		resourceids.UserSpecifiedSegment("python3PackageName", "python3PackageName"),
 	}
 }
 

@@ -27,7 +27,6 @@ func TestSslProfileID(t *testing.T) {
 		Error    bool
 		Expected *SslProfileId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSslProfileIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SslProfileId
 	}{
-
 		{
 			// empty
 			Input: "",

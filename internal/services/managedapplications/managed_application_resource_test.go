@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -195,12 +196,11 @@ func TestAccManagedApplication_plan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.empty(),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientWithoutResource(r.cancelExistingAgreement(publisher, offer, plan)),
-			),
-		},
-		{
+			PreConfig: func() {
+				if err := r.cancelExistingAgreement(t, publisher, offer, plan); err != nil {
+					t.Fatalf("Failed to cancel existing agreement with error: %+v", err)
+				}
+			},
 			Config: r.plan(data, publisher, offer, plan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -701,43 +701,39 @@ resource "azurerm_managed_application_definition" "test" {
 `, data.Locations.Primary, data.RandomInteger, parameters)
 }
 
-func (ManagedApplicationResource) empty() string {
-	return `
-provider "azurerm" {
-  features {}
-}
-`
-}
+func (ManagedApplicationResource) cancelExistingAgreement(t *testing.T, publisher string, offer string, plan string) error {
+	clientManager, err := testclient.Build()
+	if err != nil {
+		t.Fatalf("building client: %+v", err)
+	}
 
-func (ManagedApplicationResource) cancelExistingAgreement(publisher string, offer string, plan string) acceptance.ClientCheckFunc {
-	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		client := clients.Compute.MarketplaceAgreementsClient
-		subscriptionId := clients.Account.SubscriptionId
-		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
-		defer cancel()
+	ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(15*time.Minute))
+	defer cancel()
 
-		idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, plan)
-		idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, plan)
+	client := clientManager.Compute.MarketplaceAgreementsClient
+	subscriptionId := clientManager.Account.SubscriptionId
 
-		existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
-		if err != nil {
-			return err
-		}
+	idGet := agreements.NewOfferPlanID(subscriptionId, publisher, offer, plan)
+	idCancel := agreements.NewPlanID(subscriptionId, publisher, offer, plan)
 
-		if model := existing.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if accepted := props.Accepted; accepted != nil && *accepted {
-					resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return fmt.Errorf("marketplace agreement %q does not exist", idGet)
-						}
-						return fmt.Errorf("canceling %s: %+v", idGet, err)
+	existing, err := client.MarketplaceAgreementsGet(ctx, idGet)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %s", idGet, err)
+	}
+
+	if model := existing.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if accepted := props.Accepted; accepted != nil && *accepted {
+				resp, err := client.MarketplaceAgreementsCancel(ctx, idCancel)
+				if err != nil {
+					if response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("marketplace agreement %q does not exist", idGet)
 					}
+					return fmt.Errorf("canceling %s: %+v", idGet, err)
 				}
 			}
 		}
-
-		return nil
 	}
+
+	return nil
 }

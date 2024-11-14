@@ -24,6 +24,7 @@ var UnmanagedSettings = []string{
 	"spring.datasource.username",
 	"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 }
+
 var UnmanagedSettingsDeprecated = []string{
 	"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 	"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",

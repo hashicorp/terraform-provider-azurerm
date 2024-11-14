@@ -7,7 +7,7 @@ type PredefinedAcceleratorProperties struct {
 	AcceleratorTags   *[]string                               `json:"acceleratorTags,omitempty"`
 	Description       *string                                 `json:"description,omitempty"`
 	DisplayName       *string                                 `json:"displayName,omitempty"`
-	IconUrl           *string                                 `json:"iconUrl,omitempty"`
+	IconURL           *string                                 `json:"iconUrl,omitempty"`
 	ProvisioningState *PredefinedAcceleratorProvisioningState `json:"provisioningState,omitempty"`
 	State             *PredefinedAcceleratorState             `json:"state,omitempty"`
 }

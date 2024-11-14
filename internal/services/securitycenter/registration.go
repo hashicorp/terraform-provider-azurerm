@@ -4,15 +4,16 @@
 package securitycenter
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/security-center"
@@ -51,10 +52,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_security_center_auto_provisioning":                               resourceSecurityCenterAutoProvisioning(),
 		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
 		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_security_center_server_vulnerability_assessment"] = resourceServerVulnerabilityAssessment()
 	}
 
 	return resources

@@ -270,7 +270,6 @@ func resourceAutomationScheduleCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
 	if parameters.Properties.Frequency != schedule.ScheduleFrequencyOneTime {
-
 		var interval interface{}
 		interval = 1
 		if v, ok := d.GetOk("interval"); ok {
@@ -306,7 +305,6 @@ func resourceAutomationScheduleUpdate(d *pluginsdk.ResourceData, meta interface{
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-
 	}
 
 	if existing.Model == nil || existing.Model.Properties == nil {
