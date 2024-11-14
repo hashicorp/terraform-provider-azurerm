@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorOriginResource struct {
-}
+type CdnFrontDoorOriginResource struct{}
 
 func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")

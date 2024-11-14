@@ -180,6 +180,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
+
+						"daemonset_eviction_for_empty_nodes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"daemonset_eviction_for_occupied_nodes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"expander": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
@@ -191,85 +204,106 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.ExpanderRandom),
 							}, false),
 						},
+
+						"ignore_daemonsets_utilization_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"max_graceful_termination_sec": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"max_node_provisioning_time": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Default:      "15m",
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"max_unready_nodes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
 						"max_unready_percentage": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
 							Default:      45,
 							ValidateFunc: validation.FloatBetween(0, 100),
 						},
+
 						"new_pod_scale_up_delay": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scan_interval": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_add": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_delete": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_delay_after_failure": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_unneeded": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_unready": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: containerValidate.Duration,
 						},
+
 						"scale_down_utilization_threshold": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"empty_bulk_delete_max": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Computed: true,
 						},
+
 						"skip_nodes_with_local_storage": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+
 						"skip_nodes_with_system_pods": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -1072,12 +1106,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Default:      0,
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
+
 									"idle_timeout_in_minutes": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      30,
 										ValidateFunc: validation.IntBetween(4, 100),
 									},
+
 									"managed_outbound_ip_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
@@ -1085,6 +1121,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+
 									"managed_outbound_ipv6_count": {
 										Type:          pluginsdk.TypeInt,
 										Optional:      true,
@@ -1092,6 +1129,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc:  validation.IntBetween(1, 100),
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
+
 									"outbound_ip_prefix_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1101,6 +1139,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
+
 									"outbound_ip_address_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
@@ -1110,12 +1149,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
+
 									"effective_outbound_ips": {
 										Type:     pluginsdk.TypeSet,
 										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
+									},
+
+									"backend_pool_type": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.BackendPoolTypeNodeIPConfiguration),
+											string(managedclusters.BackendPoolTypeNodeIP),
+										}, false),
 									},
 								},
 							},
@@ -2039,6 +2089,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				loadBalancerProfile.AllocatedOutboundPorts = utils.Int64(int64(allocatedOutboundPorts))
 			}
 
+			if key := "network_profile.0.load_balancer_profile.0.backend_pool_type"; d.HasChange(key) {
+				backendPoolType := d.Get(key).(string)
+				loadBalancerProfile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+			}
+
 			existing.Model.Properties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
 		}
 
@@ -2758,24 +2813,30 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("setting `kube_config`: %+v", err)
 		}
 
+		var maintenanceWindow interface{}
 		maintenanceConfigurationsClient := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
 		configResp, _ := maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
-			d.Set("maintenance_window", flattenKubernetesClusterMaintenanceConfigurationDefault(configurationBody.Properties))
+			maintenanceWindow = flattenKubernetesClusterMaintenanceConfigurationDefault(configurationBody.Properties)
 		}
+		d.Set("maintenance_window", maintenanceWindow)
 
+		var maintenanceWindowAutoUpgrade interface{}
 		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		configResp, _ = maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			d.Set("maintenance_window_auto_upgrade", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow))
+			maintenanceWindowAutoUpgrade = flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
 		}
+		d.Set("maintenance_window_auto_upgrade", maintenanceWindowAutoUpgrade)
 
+		var maintenanceWindowNodeOS interface{}
 		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		configResp, _ = maintenanceConfigurationsClient.Get(ctx, maintenanceId)
 		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-			d.Set("maintenance_window_node_os", flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow))
+			maintenanceWindowNodeOS = flattenKubernetesClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
 		}
+		d.Set("maintenance_window_node_os", maintenanceWindowNodeOS)
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
@@ -3230,6 +3291,10 @@ func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterL
 		profile.OutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
+	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
+		profile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+	}
+
 	return profile
 }
 
@@ -3389,6 +3454,10 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 			if pip := oip.PublicIPPrefixes; pip != nil {
 				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(pip)
 			}
+		}
+
+		if v := lbp.BackendPoolType; v != nil {
+			lb["backend_pool_type"] = v
 		}
 
 		lb["effective_outbound_ips"] = resourceReferencesToIds(profile.LoadBalancerProfile.EffectiveOutboundIPs)
@@ -3566,10 +3635,19 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 		balanceSimilarNodeGroups = strings.EqualFold(*profile.BalanceSimilarNodeGroups, "true")
 	}
 
+	daemonsetEvictionForEmptyNodes := pointer.From(profile.DaemonsetEvictionForEmptyNodes)
+
+	daemonsetEvictionForOccupiedNodes := true
+	if profile.DaemonsetEvictionForOccupiedNodes != nil {
+		daemonsetEvictionForOccupiedNodes = pointer.From(profile.DaemonsetEvictionForOccupiedNodes)
+	}
+
 	expander := ""
 	if profile.Expander != nil {
 		expander = string(*profile.Expander)
 	}
+
+	ignoreDaemonsetsUtilization := pointer.From(profile.IgnoreDaemonsetsUtilization)
 
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
@@ -3656,23 +3734,26 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 
 	return []interface{}{
 		map[string]interface{}{
-			"balance_similar_node_groups":      balanceSimilarNodeGroups,
-			"expander":                         expander,
-			"max_graceful_termination_sec":     maxGracefulTerminationSec,
-			"max_node_provisioning_time":       maxNodeProvisionTime,
-			"max_unready_nodes":                maxUnreadyNodes,
-			"max_unready_percentage":           maxUnreadyPercentage,
-			"new_pod_scale_up_delay":           newPodScaleUpDelay,
-			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
-			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
-			"scale_down_delay_after_failure":   scaleDownDelayAfterFailure,
-			"scale_down_unneeded":              scaleDownUnneededTime,
-			"scale_down_unready":               scaleDownUnreadyTime,
-			"scale_down_utilization_threshold": scaleDownUtilizationThreshold,
-			"empty_bulk_delete_max":            emptyBulkDeleteMax,
-			"scan_interval":                    scanInterval,
-			"skip_nodes_with_local_storage":    skipNodesWithLocalStorage,
-			"skip_nodes_with_system_pods":      skipNodesWithSystemPods,
+			"balance_similar_node_groups":                   balanceSimilarNodeGroups,
+			"daemonset_eviction_for_empty_nodes_enabled":    daemonsetEvictionForEmptyNodes,
+			"daemonset_eviction_for_occupied_nodes_enabled": daemonsetEvictionForOccupiedNodes,
+			"expander":                              expander,
+			"ignore_daemonsets_utilization_enabled": ignoreDaemonsetsUtilization,
+			"max_graceful_termination_sec":          maxGracefulTerminationSec,
+			"max_node_provisioning_time":            maxNodeProvisionTime,
+			"max_unready_nodes":                     maxUnreadyNodes,
+			"max_unready_percentage":                maxUnreadyPercentage,
+			"new_pod_scale_up_delay":                newPodScaleUpDelay,
+			"scale_down_delay_after_add":            scaleDownDelayAfterAdd,
+			"scale_down_delay_after_delete":         scaleDownDelayAfterDelete,
+			"scale_down_delay_after_failure":        scaleDownDelayAfterFailure,
+			"scale_down_unneeded":                   scaleDownUnneededTime,
+			"scale_down_unready":                    scaleDownUnreadyTime,
+			"scale_down_utilization_threshold":      scaleDownUtilizationThreshold,
+			"empty_bulk_delete_max":                 emptyBulkDeleteMax,
+			"scan_interval":                         scanInterval,
+			"skip_nodes_with_local_storage":         skipNodesWithLocalStorage,
+			"skip_nodes_with_system_pods":           skipNodesWithSystemPods,
 		},
 	}, nil
 }
@@ -3685,7 +3766,10 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	config := input[0].(map[string]interface{})
 
 	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	daemonsetEvictionForEmptyNodes := config["daemonset_eviction_for_empty_nodes_enabled"].(bool)
+	daemonsetEvictionForOccupiedNodes := config["daemonset_eviction_for_occupied_nodes_enabled"].(bool)
 	expander := config["expander"].(string)
+	ignoreDaemonsetsUtilization := config["ignore_daemonsets_utilization_enabled"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	maxNodeProvisionTime := config["max_node_provisioning_time"].(string)
 	maxUnreadyNodes := fmt.Sprint(config["max_unready_nodes"].(int))
@@ -3703,23 +3787,26 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	skipNodesWithSystemPods := config["skip_nodes_with_system_pods"].(bool)
 
 	return &managedclusters.ManagedClusterPropertiesAutoScalerProfile{
-		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
-		Expander:                      pointer.To(managedclusters.Expander(expander)),
-		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
-		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
-		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
-		NewPodScaleUpDelay:            utils.String(newPodScaleUpDelay),
-		OkTotalUnreadyCount:           utils.String(maxUnreadyNodes),
-		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
-		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
-		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
-		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
-		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
-		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
-		MaxEmptyBulkDelete:            utils.String(emptyBulkDeleteMax),
-		ScanInterval:                  utils.String(scanInterval),
-		SkipNodesWithLocalStorage:     utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
-		SkipNodesWithSystemPods:       utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
+		BalanceSimilarNodeGroups:          utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
+		DaemonsetEvictionForEmptyNodes:    pointer.To(daemonsetEvictionForEmptyNodes),
+		DaemonsetEvictionForOccupiedNodes: pointer.To(daemonsetEvictionForOccupiedNodes),
+		Expander:                          pointer.To(managedclusters.Expander(expander)),
+		IgnoreDaemonsetsUtilization:       pointer.To(ignoreDaemonsetsUtilization),
+		MaxGracefulTerminationSec:         utils.String(maxGracefulTerminationSec),
+		MaxNodeProvisionTime:              utils.String(maxNodeProvisionTime),
+		MaxTotalUnreadyPercentage:         utils.String(maxUnreadyPercentage),
+		NewPodScaleUpDelay:                utils.String(newPodScaleUpDelay),
+		OkTotalUnreadyCount:               utils.String(maxUnreadyNodes),
+		ScaleDownDelayAfterAdd:            utils.String(scaleDownDelayAfterAdd),
+		ScaleDownDelayAfterDelete:         utils.String(scaleDownDelayAfterDelete),
+		ScaleDownDelayAfterFailure:        utils.String(scaleDownDelayAfterFailure),
+		ScaleDownUnneededTime:             utils.String(scaleDownUnneededTime),
+		ScaleDownUnreadyTime:              utils.String(scaleDownUnreadyTime),
+		ScaleDownUtilizationThreshold:     utils.String(scaleDownUtilizationThreshold),
+		MaxEmptyBulkDelete:                utils.String(emptyBulkDeleteMax),
+		ScanInterval:                      utils.String(scanInterval),
+		SkipNodesWithLocalStorage:         utils.String(strconv.FormatBool(skipNodesWithLocalStorage)),
+		SkipNodesWithSystemPods:           utils.String(strconv.FormatBool(skipNodesWithSystemPods)),
 	}
 }
 
@@ -4268,7 +4355,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
 
 		if raw["internal_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["internal_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeInternal,
@@ -4278,7 +4364,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		if raw["external_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["external_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeExternal,
@@ -4403,9 +4488,7 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 	}
 
 	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
-
 		for _, value := range *input.Istio.Components.IngressGateways {
-
 			mode := value.Mode
 			enabled := value.Enabled
 
@@ -4446,7 +4529,6 @@ func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateA
 			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
 		},
 	}
-
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

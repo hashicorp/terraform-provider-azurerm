@@ -1,9 +1,29 @@
+## v1.6.2
+
+ENHANCEMENTS:
+
+* Added support for gRPC dial options to the `Dial` API [[GH-257](https://github.com/hashicorp/go-plugin/pull/257)]
+
+BUGS:
+
+* Fixed a bug where reattaching to a plugin that exits could kill an unrelated process [[GH-320](https://github.com/hashicorp/go-plugin/pull/320)]
+
+## v1.6.1
+
+BUGS:
+
+* Suppress spurious `os.ErrClosed` on plugin shutdown [[GH-299](https://github.com/hashicorp/go-plugin/pull/299)]
+
+ENHANCEMENTS:
+
+* deps: bump google.golang.org/grpc to v1.58.3 [[GH-296](https://github.com/hashicorp/go-plugin/pull/296)]
+
 ## v1.6.0
 
 CHANGES:
 
 * plugin: Plugins written in other languages can optionally start to advertise whether they support gRPC broker multiplexing.
-  If the environment variable `PLUGIN_MULTIPLEX_GRPC` is set, it is safe to include a seventh field containing a boolean 
+  If the environment variable `PLUGIN_MULTIPLEX_GRPC` is set, it is safe to include a seventh field containing a boolean
   value in the `|`-separated protocol negotiation line.
 
 ENHANCEMENTS:

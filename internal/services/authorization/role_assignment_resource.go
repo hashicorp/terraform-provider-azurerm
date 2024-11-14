@@ -327,7 +327,6 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if roleResp.Model != nil && roleResp.Model.Properties != nil {
 				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
 			}
-
 		}
 	}
 

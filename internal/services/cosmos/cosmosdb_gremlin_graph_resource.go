@@ -336,7 +336,6 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
 				"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
-
 	}
 
 	return resourceCosmosDbGremlinGraphRead(d, meta)

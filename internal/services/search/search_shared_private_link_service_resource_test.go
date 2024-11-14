@@ -90,6 +90,7 @@ resource "azurerm_search_shared_private_link_service" "import" {
 }
 `, template)
 }
+
 func (r SearchSharedPrivateLinkServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

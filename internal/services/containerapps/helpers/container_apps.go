@@ -1668,7 +1668,7 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 
 func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -1690,7 +1690,7 @@ func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.Environment
 
 func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -2697,7 +2697,6 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 	secretsRaw, _ := metadata.ResourceData.GetChange("secret")
 	result := make([]containerapps.Secret, 0)
 	if secrets, ok := secretsRaw.([]interface{}); ok {
-
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
@@ -2930,6 +2929,7 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

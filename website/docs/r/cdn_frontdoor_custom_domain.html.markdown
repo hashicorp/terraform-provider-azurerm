@@ -104,6 +104,8 @@ A `tls` block supports the following:
 ->**NOTE:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
 
 * `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values include `TLS10` and `TLS12`. Defaults to `TLS12`.
+  
+~> **Note** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
 

@@ -281,7 +281,6 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 
 	default:
 		return pointer.To(fmt.Sprintf("%s|%s-%s", javaServer, javaServerVersion, javaMajorVersion)), nil
-
 	}
 	return nil, fmt.Errorf("unsupported combination of `java_version`, `java_server`, and `java_server_version`")
 }

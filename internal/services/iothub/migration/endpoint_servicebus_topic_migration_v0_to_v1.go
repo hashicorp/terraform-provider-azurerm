@@ -28,7 +28,7 @@ func (s IoTHubEndpointServiceBusTopicV0ToV1) Schema() map[string]*pluginsdk.Sche
 			ForceNew: true,
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,

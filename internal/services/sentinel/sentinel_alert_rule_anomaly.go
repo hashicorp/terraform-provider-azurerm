@@ -293,7 +293,6 @@ func AlertRuleAnomalyReadWithPredicate(ctx context.Context, baseClient securityi
 			if predicateFunc(v) {
 				return v, nil
 			}
-
 		}
 		if err := resp.NextWithContext(ctx); err != nil {
 			return nil, fmt.Errorf("listing next: %+v", err)

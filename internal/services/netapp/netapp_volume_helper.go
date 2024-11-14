@@ -23,7 +23,6 @@ import (
 )
 
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
-
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
@@ -31,7 +30,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-
 		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed
@@ -146,7 +144,7 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 		}
 
 		if v := item.ProximityPlacementGroupId; v != "" {
-			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(v)))
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
@@ -290,13 +288,13 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
 		volumeGroupVolume.SubnetId = props.SubnetId
-		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(props.CapacityPoolResourceId)
+		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
 		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
+		volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {

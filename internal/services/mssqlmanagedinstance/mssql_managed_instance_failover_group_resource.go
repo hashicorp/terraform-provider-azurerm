@@ -45,8 +45,10 @@ type MsSqlManagedInstancePartnerRegionModel struct {
 	Role     string `tfschema:"role"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceFailoverGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceFailoverGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceFailoverGroupResource{}
+)
 
 type MsSqlManagedInstanceFailoverGroupResource struct{}
 
