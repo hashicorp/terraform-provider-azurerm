@@ -13,7 +13,7 @@ import (
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type Client struct {
