@@ -445,14 +445,6 @@ func flattenDataSourceRedisConfiguration(input *redis.RedisCommonPropertiesRedis
 		outputs["authentication_enabled"] = isAuthRequiredAsBool(*v)
 	}
 
-	if !features.FourPointOhBeta() {
-		// `authnotrequired` is not set for instances launched outside a VNET
-		outputs["enable_authentication"] = true
-		if v := input.Authnotrequired; v != nil {
-			outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
-		}
-	}
-
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
 	return []interface{}{outputs}, nil
