@@ -63,7 +63,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
