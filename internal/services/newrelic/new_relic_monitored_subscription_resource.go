@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitoredsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/newrelic/validate"
@@ -269,11 +271,11 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 
 			existing := resp.Model
 			if existing == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
 			if existing.Properties == nil {
-				return fmt.Errorf("retrieving %s: property was nil", id)
+				return fmt.Errorf("retrieving %s: property was nil", *id)
 			}
 
 			var config NewRelicMonitoredSubscriptionModel
@@ -292,7 +294,7 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.UpdateThenPoll(ctx, monitorId, *existing); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, monitorId, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -314,7 +316,17 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 			monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName)
 
 			if _, err = client.Delete(ctx, monitorId); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			// The resource cannot be deleted if the parent NewRelic Monitor exists, the DELETE only clears the monitoredSubscriptionList
+			pollerType := &monitoredSubscriptionDeletedPoller{
+				client: client,
+				id:     *id,
+			}
+			poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling after purging for %s: %+v", *id, err)
 			}
 
 			return nil
@@ -460,4 +472,35 @@ func flattenMonitoredSubscriptionFilteringTagModelArray(inputList *[]monitoredsu
 	}
 
 	return outputList
+}
+
+var _ pollers.PollerType = &monitoredSubscriptionDeletedPoller{}
+
+type monitoredSubscriptionDeletedPoller struct {
+	client *monitoredsubscriptions.MonitoredSubscriptionsClient
+	id     parse.NewRelicMonitoredSubscriptionId
+}
+
+func (p *monitoredSubscriptionDeletedPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	monitorId := monitoredsubscriptions.NewMonitorID(p.id.SubscriptionId, p.id.ResourceGroup, p.id.MonitorName)
+	resp, err := p.client.Get(ctx, monitorId)
+	if err != nil && !response.WasNotFound(resp.HttpResponse) {
+		return nil, fmt.Errorf("retrieving %q: %+v", p.id, err)
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) && resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.MonitoredSubscriptionList != nil && len(*resp.Model.Properties.MonitoredSubscriptionList) == 0 {
+		return &pollers.PollResult{
+			HttpResponse: &client.Response{
+				Response: resp.HttpResponse,
+			},
+			Status: pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return &pollers.PollResult{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		Status: pollers.PollingStatusSucceeded,
+	}, nil
 }
