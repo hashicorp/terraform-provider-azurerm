@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -40,21 +41,6 @@ func testAccNetworkWatcherFlowLog_basicWithVirtualNetwork(t *testing.T) {
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfigWithVirtualNetwork(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccNetworkWatcherFlowLog_basicOldNSGProperty(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
-	r := NetworkWatcherFlowLogResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicConfigOldNSGProperty(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -315,6 +301,26 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) basicConfig(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  enabled                   = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -336,6 +342,33 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) basicConfigWithVirtualNetwork(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  network_security_group_id = azurerm_virtual_network.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -363,28 +396,27 @@ resource "azurerm_network_watcher_flow_log" "test" {
 `, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkWatcherFlowLogResource) basicConfigOldNSGProperty(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r NetworkWatcherFlowLogResource) requiresImport(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_watcher_flow_log" "test" {
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  name                 = "flowlog-%d"
+resource "azurerm_network_watcher_flow_log" "import" {
+  network_watcher_name = azurerm_network_watcher_flow_log.test.network_watcher_name
+  resource_group_name  = azurerm_network_watcher_flow_log.test.resource_group_name
+  name                 = azurerm_network_watcher_flow_log.test.name
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  network_security_group_id = azurerm_network_watcher_flow_log.test.target_resource_id
+  storage_account_id = azurerm_network_watcher_flow_log.test.storage_account_id
+  enabled            = azurerm_network_watcher_flow_log.test.enabled
 
   retention_policy {
     enabled = false
     days    = 0
   }
 }
-`, r.prerequisites(data), data.RandomInteger)
-}
-
-func (r NetworkWatcherFlowLogResource) requiresImport(data acceptance.TestData) string {
+`, r.basicConfig(data))
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -406,6 +438,26 @@ resource "azurerm_network_watcher_flow_log" "import" {
 }
 
 func (r NetworkWatcherFlowLogResource) retentionPolicyConfig(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+}
+`, r.prerequisites(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -427,6 +479,37 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) retentionPolicyConfigUpdateStorageAccount(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "testb" {
+  name                = "acctestsab%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.testb.id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+}
+`, r.prerequisites(data), data.RandomInteger%1000000+1, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -459,6 +542,27 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) disabledConfig(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = false
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+}
+`, r.prerequisites(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -481,6 +585,41 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsEnabledConfig(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = azurerm_log_analytics_workspace.test.workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.test.location
+    workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -517,6 +656,42 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsUpdateInterval(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = azurerm_log_analytics_workspace.test.workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.test.location
+    workspace_resource_id = azurerm_log_analytics_workspace.test.id
+    interval_in_minutes   = 10
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -554,6 +729,43 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsDisabledConfig(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = false
+    workspace_id          = azurerm_log_analytics_workspace.test.workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.test.location
+    workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -590,6 +802,44 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) versionConfig(data acceptance.TestData, version int) string {
+	if !features.FivePointOhBeta() {
+
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_network_watcher.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+  version            = %d
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = azurerm_log_analytics_workspace.test.workspace_id
+    workspace_region      = azurerm_log_analytics_workspace.test.location
+    workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger, version)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -627,6 +877,28 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) location(data acceptance.TestData) string {
+	if !features.FivePointOhBeta() {
+
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+  location             = azurerm_resource_group.test.location
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -649,6 +921,31 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) tags(data acceptance.TestData, v string) string {
+	if !features.FivePointOhBeta() {
+
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  network_security_group_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+
+  tags = {
+    env = "%s"
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, v)
+	}
 	return fmt.Sprintf(`
 %s
 

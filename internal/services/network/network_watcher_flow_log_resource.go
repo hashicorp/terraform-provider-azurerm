@@ -188,7 +188,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		resource.Schema["target_resource_id"].Required = false
 		resource.Schema["target_resource_id"].Optional = true
 		resource.Schema["target_resource_id"].Computed = true
-		resource.Schema["target_resource_id"].ExactlyOneOf = []string{"network_security_group_id", "target_resource_id"}
+		resource.Schema["target_resource_id"].ConflictsWith = []string{"network_security_group_id"}
 	}
 
 	return resource
