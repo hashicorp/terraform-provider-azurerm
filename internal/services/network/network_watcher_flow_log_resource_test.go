@@ -358,7 +358,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   name                 = "flowlog-%d"
 
-  network_security_group_id = azurerm_virtual_network.test.id
+  target_resource_id        = azurerm_virtual_network.test.id
   storage_account_id        = azurerm_storage_account.test.id
   enabled                   = true
 
