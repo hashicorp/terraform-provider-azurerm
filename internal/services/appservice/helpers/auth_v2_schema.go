@@ -1214,6 +1214,7 @@ func CustomOIDCAuthV2SettingsSchema() *pluginsdk.Schema {
 
 				"client_secret_setting_name": {
 					Type:        pluginsdk.TypeString,
+					Optional:    true,
 					Computed:    true,
 					Description: "The App Setting name that contains the secret for this Custom OIDC Client.",
 				},
@@ -1334,13 +1335,20 @@ func expandCustomOIDCAuthV2Settings(input []CustomOIDCAuthV2Settings) map[string
 		if v.Name == "" {
 			continue
 		}
+
+		// For backward compatibility, stablish the generated name is the incomming value is empty
+		clientSecretSettingName := ""
+		if clientSecretSettingName = v.ClientSecretSettingName; clientSecretSettingName == "" {
+			clientSecretSettingName = fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))
+		}
+
 		provider := webapps.CustomOpenIdConnectProvider{
 			Enabled: pointer.To(true),
 			Registration: &webapps.OpenIdConnectRegistration{
 				ClientId: pointer.To(v.ClientId),
 				ClientCredential: &webapps.OpenIdConnectClientCredential{
 					Method:                  pointer.To(webapps.ClientCredentialMethodClientSecretPost),
-					ClientSecretSettingName: pointer.To(fmt.Sprintf("%s_PROVIDER_AUTHENTICATION_SECRET", strings.ToUpper(v.Name))),
+					ClientSecretSettingName: pointer.To(clientSecretSettingName),
 				},
 				OpenIdConnectConfiguration: &webapps.OpenIdConnectConfig{
 					WellKnownOpenIdConfiguration: pointer.To(v.OpenIDConfigurationEndpoint),
