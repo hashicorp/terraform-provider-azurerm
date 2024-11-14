@@ -179,6 +179,8 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
+
+			// The resource is created by the NewRelic Monitor resource, so we check the monitored subscription list to check if it exists
 			if !response.WasNotFound(existing.HttpResponse) &&
 				existing.Model != nil &&
 				existing.Model.Properties != nil &&
@@ -198,7 +200,8 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *monitorId, *properties); err != nil {
+			// The resource is created by the NewRelic Monitor resource, so we only PATCH the monitored subscription list
+			if err := client.UpdateThenPoll(ctx, *monitorId, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -311,7 +314,14 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 
 			monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName)
 
-			if err = client.DeleteThenPoll(ctx, monitorId); err != nil {
+			MonitoredSubscriptionProperties := &monitoredsubscriptions.MonitoredSubscriptionProperties{
+				Properties: &monitoredsubscriptions.SubscriptionList{
+					MonitoredSubscriptionList: &[]monitoredsubscriptions.MonitoredSubscription{},
+				},
+			}
+
+			// The resource cannot be deleted so we use PATCH method to update the monitored subscription list to empty
+			if err = client.UpdateThenPoll(ctx, monitorId, *MonitoredSubscriptionProperties); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

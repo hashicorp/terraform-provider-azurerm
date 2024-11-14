@@ -113,6 +113,8 @@ func (r NewRelicMonitoredSubscriptionResource) Exists(ctx context.Context, clien
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	// The resource exists if the parent NewRelic Monitor resource exists, so we need to check if the monitored subscription list is empty
 	return pointer.To(resp.Model != nil &&
 		resp.Model.Properties != nil &&
 		resp.Model.Properties.MonitoredSubscriptionList != nil &&
