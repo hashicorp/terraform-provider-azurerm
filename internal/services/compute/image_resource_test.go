@@ -466,6 +466,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 # NOTE: using the legacy vm resource since this test requires an unmanaged disk
+# this vm is not used for anything else than creating the image
 resource "azurerm_virtual_machine" "testsource" {
   name                  = "testsource"
   location              = azurerm_resource_group.test.location
