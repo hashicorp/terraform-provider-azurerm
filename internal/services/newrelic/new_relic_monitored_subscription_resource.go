@@ -179,7 +179,11 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.MonitoredSubscriptionList != nil && len(*existing.Model.Properties.MonitoredSubscriptionList) != 0 {
+			if !response.WasNotFound(existing.HttpResponse) &&
+				existing.Model != nil &&
+				existing.Model.Properties != nil &&
+				existing.Model.Properties.MonitoredSubscriptionList != nil &&
+				len(*existing.Model.Properties.MonitoredSubscriptionList) != 0 {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -226,13 +230,18 @@ func (r NewRelicMonitoredSubscriptionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if resp.Model == nil ||
+				resp.Model.Properties == nil ||
+				resp.Model.Properties.MonitoredSubscriptionList == nil ||
+				len(*resp.Model.Properties.MonitoredSubscriptionList) == 0 {
+				return metadata.MarkAsGone(id)
+			}
+
 			state := NewRelicMonitoredSubscriptionModel{
 				MonitorId: monitorId.ID(),
 			}
 
-			if resp.Model != nil && resp.Model.Properties != nil {
-				state.MonitoredSubscription = flattenMonitorSubscriptionList(resp.Model.Properties.MonitoredSubscriptionList)
-			}
+			state.MonitoredSubscription = flattenMonitorSubscriptionList(resp.Model.Properties.MonitoredSubscriptionList)
 
 			return metadata.Encode(&state)
 		},
@@ -318,42 +327,54 @@ func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription, email 
 	}
 
 	for _, v := range input {
-		logRules := monitoredsubscriptions.LogRules{
-			FilteringTags:        expandMonitoredSubscriptionFilteringTagModelArray(v.LogTagFilter),
-			SendAadLogs:          pointer.To(monitoredsubscriptions.SendAadLogsStatusDisabled),
-			SendActivityLogs:     pointer.To(monitoredsubscriptions.SendActivityLogsStatusDisabled),
-			SendSubscriptionLogs: pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusDisabled),
+		result := monitoredsubscriptions.MonitoredSubscription{
+			SubscriptionId: pointer.To(v.SubscriptionId),
 		}
 
-		if v.AadLogEnabled {
-			logRules.SendAadLogs = pointer.To(monitoredsubscriptions.SendAadLogsStatusEnabled)
+		if len(v.LogTagFilter) > 0 {
+			logRules := monitoredsubscriptions.LogRules{
+				FilteringTags:        expandMonitoredSubscriptionFilteringTagModelArray(v.LogTagFilter),
+				SendAadLogs:          pointer.To(monitoredsubscriptions.SendAadLogsStatusDisabled),
+				SendActivityLogs:     pointer.To(monitoredsubscriptions.SendActivityLogsStatusDisabled),
+				SendSubscriptionLogs: pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusDisabled),
+			}
+
+			if v.AadLogEnabled {
+				logRules.SendAadLogs = pointer.To(monitoredsubscriptions.SendAadLogsStatusEnabled)
+			}
+
+			if v.ActivityLogEnabled {
+				logRules.SendActivityLogs = pointer.To(monitoredsubscriptions.SendActivityLogsStatusEnabled)
+			}
+
+			if v.SubscriptionLogEnabled {
+				logRules.SendSubscriptionLogs = pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusEnabled)
+			}
+
+			if result.TagRules == nil {
+				result.TagRules = &monitoredsubscriptions.MonitoringTagRulesProperties{}
+			}
+			result.TagRules.LogRules = pointer.To(logRules)
 		}
 
-		if v.ActivityLogEnabled {
-			logRules.SendActivityLogs = pointer.To(monitoredsubscriptions.SendActivityLogsStatusEnabled)
+		if len(v.MetricTagFilter) > 0 {
+			metricRules := monitoredsubscriptions.MetricRules{
+				FilteringTags: expandMonitoredSubscriptionFilteringTagModelArray(v.MetricTagFilter),
+				SendMetrics:   pointer.To(monitoredsubscriptions.SendMetricsStatusDisabled),
+				UserEmail:     pointer.To(email),
+			}
+
+			if v.MetricEnabled {
+				metricRules.SendMetrics = pointer.To(monitoredsubscriptions.SendMetricsStatusEnabled)
+			}
+
+			if result.TagRules == nil {
+				result.TagRules = &monitoredsubscriptions.MonitoringTagRulesProperties{}
+			}
+			result.TagRules.MetricRules = pointer.To(metricRules)
 		}
 
-		if v.SubscriptionLogEnabled {
-			logRules.SendSubscriptionLogs = pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusEnabled)
-		}
-
-		metricRules := monitoredsubscriptions.MetricRules{
-			FilteringTags: expandMonitoredSubscriptionFilteringTagModelArray(v.MetricTagFilter),
-			SendMetrics:   pointer.To(monitoredsubscriptions.SendMetricsStatusDisabled),
-			UserEmail:     pointer.To(email),
-		}
-
-		if v.MetricEnabled {
-			metricRules.SendMetrics = pointer.To(monitoredsubscriptions.SendMetricsStatusEnabled)
-		}
-
-		results = append(results, monitoredsubscriptions.MonitoredSubscription{
-			TagRules: &monitoredsubscriptions.MonitoringTagRulesProperties{
-				LogRules:    pointer.To(logRules),
-				MetricRules: pointer.To(metricRules),
-			},
-		})
-
+		results = append(results, result)
 	}
 
 	return &results

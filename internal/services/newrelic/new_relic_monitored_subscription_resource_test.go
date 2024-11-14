@@ -113,7 +113,11 @@ func (r NewRelicMonitoredSubscriptionResource) Exists(ctx context.Context, clien
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil &&
+		resp.Model.Properties != nil &&
+		resp.Model.Properties.MonitoredSubscriptionList != nil &&
+		len(*resp.Model.Properties.MonitoredSubscriptionList) != 0,
+	), nil
 }
 
 func (r NewRelicMonitoredSubscriptionResource) basic(data acceptance.TestData, email string) string {
@@ -127,6 +131,10 @@ provider "azurerm" {
 
 resource "azurerm_new_relic_monitored_subscription" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
+
+  monitored_subscription {
+    subscription_id = data.azurerm_subscription.test.subscription_id
+  }
 }
 `, template)
 }
@@ -138,6 +146,10 @@ func (r NewRelicMonitoredSubscriptionResource) requiresImport(data acceptance.Te
 
 resource "azurerm_new_relic_monitored_subscription" "import" {
   monitor_id = azurerm_new_relic_monitored_subscription.test.monitor_id
+
+  monitored_subscription {
+    subscription_id = data.azurerm_subscription.test.subscription_id
+  }
 }
 `, config)
 }
@@ -150,10 +162,6 @@ provider "azurerm" {
 }
 
 %s
-
-data "azurerm_subscription" "test" {
-  subscription_id = "%s"
-}
 
 resource "azurerm_new_relic_monitored_subscription" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
@@ -173,8 +181,10 @@ resource "azurerm_new_relic_monitored_subscription" "test" {
       value  = ""
     }
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
-`, template, data.Subscriptions.Secondary)
+`, template)
 }
 
 func (r NewRelicMonitoredSubscriptionResource) complete(data acceptance.TestData, email string) string {
@@ -186,12 +196,9 @@ provider "azurerm" {
 
 %s
 
-data "azurerm_subscription" "test" {
-  subscription_id = "%s"
-}
-
 resource "azurerm_new_relic_monitored_subscription" "test" {
   monitor_id = azurerm_new_relic_monitor.test.id
+
   monitored_subscription {
     subscription_id                    = data.azurerm_subscription.test.subscription_id
     azure_active_directory_log_enabled = true
@@ -223,8 +230,10 @@ resource "azurerm_new_relic_monitored_subscription" "test" {
       value  = ""
     }
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
-`, template, data.Subscriptions.Secondary)
+`, template)
 }
 
 func (r NewRelicMonitoredSubscriptionResource) template(data acceptance.TestData, email string) string {
@@ -257,5 +266,15 @@ resource "azurerm_new_relic_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
+
+data "azurerm_subscription" "test" {
+  subscription_id = "%s"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.test.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = azurerm_new_relic_monitor.test.identity.0.principal_id
+}
+`, data.RandomInteger, data.Locations.Primary, effectiveDate, email, data.Subscriptions.Secondary)
 }

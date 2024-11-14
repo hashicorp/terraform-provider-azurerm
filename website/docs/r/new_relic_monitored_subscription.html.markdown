@@ -33,10 +33,20 @@ resource "azurerm_new_relic_monitor" "example" {
     last_name    = "User"
     phone_number = "+12313803556"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 data "azurerm_subscription" "another" {
   subscription_id = "00000000-0000-0000-0000-000000000000"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.test.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = azurerm_new_relic_monitor.test.identity.0.principal_id
 }
 
 resource "azurerm_new_relic_monitored_subscription" "example" {
@@ -72,6 +82,8 @@ resource "azurerm_new_relic_monitored_subscription" "example" {
       value  = ""
     }
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 ```
 
@@ -122,7 +134,6 @@ A `monitored_subscription` block supports the following:
 * `metric_tag_filter` - (Optional) One or more `metric_tag_filter` blocks as defined below.
 
 * `subscription_log_enabled` - (Optional) Whether subscription logs should be sent to the Monitor resource. Defaults to `false`.
-
 
 ## Attributes Reference
 
