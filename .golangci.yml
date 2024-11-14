@@ -58,7 +58,7 @@ linters:
     #- nakedret # Checks that functions with naked returns are not longer than a maximum size
 
     #### DISABLED as it doesn't appear to respect the no-lint directive
-    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
+    - nilerr # Finds the code that returns nil even if it checks that the error is not nil.
 
     #### bunch of hits, need to confirm if errors or not #####
     #- copyloopvar #Detects range loop variables that are overwritten in the loop body
