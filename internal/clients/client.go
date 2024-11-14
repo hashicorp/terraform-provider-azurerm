@@ -43,6 +43,7 @@ import (
 	blueprints "github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints/client"
 	bot "github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/client"
 	cdn "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/client"
+	codesigning "github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning/client"
 	cognitiveServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/client"
 	communication "github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/client"
 	compute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
@@ -67,6 +68,7 @@ import (
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
 	domainservices "github.com/hashicorp/terraform-provider-azurerm/internal/services/domainservices/client"
+	dynatrace "github.com/hashicorp/terraform-provider-azurerm/internal/services/dynatrace/client"
 	elastic "github.com/hashicorp/terraform-provider-azurerm/internal/services/elastic/client"
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
@@ -96,6 +98,7 @@ import (
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
 	mixedreality "github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality/client"
 	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
+	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
 	mssqlmanagedinstance "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/client"
@@ -175,6 +178,7 @@ type Client struct {
 	Blueprints                        *blueprints.Client
 	Bot                               *bot.Client
 	Cdn                               *cdn.Client
+	CodeSigning                       *codesigning.Client
 	Cognitive                         *cognitiveServices.Client
 	Communication                     *communication.Client
 	Compute                           *compute.Client
@@ -199,6 +203,7 @@ type Client struct {
 	DigitalTwins                      *digitaltwins.Client
 	Dns                               *dns_v2018_05_01.Client
 	DomainServices                    *domainservices.Client
+	Dynatrace                         *dynatrace.Client
 	Elastic                           *elastic.Client
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid_v2022_06_15.Client
@@ -229,6 +234,7 @@ type Client struct {
 	MixedReality                      *mixedreality.Client
 	Monitor                           *monitor.Client
 	MobileNetwork                     *mobilenetwork.Client
+	MongoCluster                      *mongocluster.Client
 	MSSQL                             *mssql.Client
 	MSSQLManagedInstance              *mssqlmanagedinstance.Client
 	MySQL                             *mysql.Client
@@ -349,6 +355,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Bot: %+v", err)
 	}
 	client.Cdn = cdn.NewClient(o)
+	if client.CodeSigning, err = codesigning.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Code Signing: %+v", err)
+	}
 	if client.Cognitive, err = cognitiveServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Cognitive: %+v", err)
 	}
@@ -430,6 +439,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.EventGrid, err = eventgrid.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for EventGrid: %+v", err)
 	}
+	if client.Dynatrace, err = dynatrace.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Dynatrace: %+v", err)
+	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
 	}
@@ -508,6 +520,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mobile Network: %+v", err)
+	}
+	if client.MongoCluster, err = mongocluster.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Mongo Cluster: %+v", err)
 	}
 	if client.MSSQL, err = mssql.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for MSSQL: %+v", err)

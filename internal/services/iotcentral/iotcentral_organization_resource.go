@@ -18,9 +18,7 @@ import (
 
 type IotCentralOrganizationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotCentralOrganizationResource{}
-)
+var _ sdk.ResourceWithUpdate = IotCentralOrganizationResource{}
 
 type IotCentralOrganizationModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`

@@ -334,7 +334,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading built-in anomaly rule: %+v", err)
 			}
@@ -521,7 +520,6 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

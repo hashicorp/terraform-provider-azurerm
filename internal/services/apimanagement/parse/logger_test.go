@@ -27,7 +27,6 @@ func TestLoggerID(t *testing.T) {
 		Error    bool
 		Expected *LoggerId
 	}{
-
 		{
 			// empty
 			Input: "",

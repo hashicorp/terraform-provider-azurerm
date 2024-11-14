@@ -332,7 +332,6 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 
 				o.Properties.RoutingConfiguration = rc
 			}
-
 		}
 		output = append(output, o)
 	}

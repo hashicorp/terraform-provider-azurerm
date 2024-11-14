@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-var (
-	testConfig = ProviderConfig{}
-)
+var testConfig = ProviderConfig{}
 
 func TestProviderConfig_LoadDefault(t *testing.T) {
 	if os.Getenv("ARM_CLIENT_ID") == "" {
@@ -275,6 +273,11 @@ func defaultFeaturesList() types.List {
 	})
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
+	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
+		"data_plane_available": basetypes.NewBoolNull(),
+	})
+	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
+
 	subscription, _ := basetypes.NewObjectValueFrom(context.Background(), SubscriptionAttributes, map[string]attr.Value{
 		"prevent_cancellation_on_destroy": basetypes.NewBoolNull(),
 	})
@@ -314,6 +317,7 @@ func defaultFeaturesList() types.List {
 		"virtual_machine_scale_set":  virtualMachineScaleSetList,
 		"resource_group":             resourceGroupList,
 		"managed_disk":               managedDiskList,
+		"storage":                    storageList,
 		"subscription":               subscriptionList,
 		"postgresql_flexible_server": postgresqlFlexibleServerList,
 		"machine_learning":           machineLearningList,

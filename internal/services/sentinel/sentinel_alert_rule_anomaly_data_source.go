@@ -187,7 +187,6 @@ func (a AlertRuleAnomalyDataSource) Read() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving: %+v", err)
 			}

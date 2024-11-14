@@ -228,7 +228,8 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 		param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{
 			VirtualNetwork: &loadbalancers.SubResource{
 				Id: pointer.To(v.(string)),
-			}}
+			},
+		}
 	}
 
 	if v, ok := d.GetOk("synchronous_mode"); ok {

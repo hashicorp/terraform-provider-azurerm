@@ -10,7 +10,6 @@ func TestResourceDeploymentScriptAzureCliVersion(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			Input: "",
 			Valid: false,

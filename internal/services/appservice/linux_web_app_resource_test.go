@@ -1621,14 +1621,16 @@ func TestAccLinuxWebApp_disableDeployBasicAuthUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"), {
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.deployBasicAuthDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"), {
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

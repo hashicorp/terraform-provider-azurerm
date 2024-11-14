@@ -27,7 +27,6 @@ func TestApiReleaseID(t *testing.T) {
 		Error    bool
 		Expected *ApiReleaseId
 	}{
-
 		{
 			// empty
 			Input: "",

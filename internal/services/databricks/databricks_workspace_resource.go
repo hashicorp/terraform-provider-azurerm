@@ -616,7 +616,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
-
 		if err != nil {
 			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
 		}
@@ -627,7 +626,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if accessConnector.Model.Identity != nil {
-
 			accIdentityId := ""
 			for raw := range accessConnector.Model.Identity.IdentityIds {
 				id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)

@@ -27,7 +27,6 @@ func TestSubscriptionAssignmentID(t *testing.T) {
 		Error    bool
 		Expected *SubscriptionAssignmentId
 	}{
-
 		{
 			// empty
 			Input: "",

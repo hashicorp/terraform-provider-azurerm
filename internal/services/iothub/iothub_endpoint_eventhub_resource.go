@@ -64,7 +64,7 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
