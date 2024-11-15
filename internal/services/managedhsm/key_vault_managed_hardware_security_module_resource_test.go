@@ -48,6 +48,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"purge":              testAccKeyVaultHSMKey_purge,
 			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
 			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
+			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
 		},
 	})
 }
