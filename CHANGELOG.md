@@ -1,5 +1,10 @@
 ## 4.11.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
+* `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
+
 BUG:
 
 * `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
