@@ -2034,7 +2034,9 @@ resource "azurerm_app_service_plan" "test" {
 
 func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2110,12 +2112,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2192,12 +2198,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
