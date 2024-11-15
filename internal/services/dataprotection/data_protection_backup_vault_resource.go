@@ -86,17 +86,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"datastore_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(backupvaults.StorageSettingStoreTypesArchiveStore),
-					string(backupvaults.StorageSettingStoreTypesOperationalStore),
-					string(backupvaults.StorageSettingStoreTypesVaultStore),
-				}, false),
-			},
-
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -111,11 +100,10 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
 			},
 
-			// NOTE O+C: we do not want to disable immutability if a user has enabled it via the portal or other methods.
 			"immutability": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      false,
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
@@ -125,13 +113,19 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+
+			// Once `immutability` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && new.(bool) != old.(bool)
 			}),
 
 			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
-			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(bool) && new.(bool) != old.(bool)
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.ImmutabilityStateLocked) && new.(string) != string(backupvaults.ImmutabilityStateLocked)
+			}),
+
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
