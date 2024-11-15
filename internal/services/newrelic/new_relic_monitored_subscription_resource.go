@@ -339,7 +339,7 @@ func resourceMonitoredSubscriptionsRefresh(ctx context.Context, client *monitore
 		availableCount := 0
 		for _, v := range monitoredSubscriptions {
 			for _, u := range *resp.Model.Properties.MonitoredSubscriptionList {
-				if u.SubscriptionId != nil && strings.EqualFold(v.SubscriptionId, *u.SubscriptionId) && u.Status != nil && *u.Status == monitoredsubscriptions.StatusActive {
+				if u.SubscriptionId != nil && strings.EqualFold(v.SubscriptionId, *u.SubscriptionId) {
 					availableCount++
 					break
 				}
