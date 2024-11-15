@@ -103,7 +103,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"immutability": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      false,
+				Default:      backupvaults.ImmutabilityStateDisabled,
 				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
@@ -241,7 +241,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
 
-		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
+		if len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
