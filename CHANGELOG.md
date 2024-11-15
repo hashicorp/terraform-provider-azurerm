@@ -22,6 +22,14 @@ ENHANCEMENTS:
 * `azurerm_bastion_host` - support for the `zones` property [GH-27909]
 * `azurerm_communication_service` - support for `usgov` region [GH-27919]
 * `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
+* `azurerm_linux_function_app` - support for .NET 9  [GH-27879]
+* `azurerm_linux_function_app_slot` - support for .NET 9  [GH-27879]
+* `azurerm_linux_web_app` - support for .NET 9  [GH-27879]
+* `azurerm_linux_web_app_slot` - support for .NET 9  [GH-27879]
+* `azurerm_windows_web_app` - support for .NET 9  [GH-27879]
+* `azurerm_windows_web_app_slot` - support for .NET 9  [GH-27879]
+* `azurerm_windows_function_app` - support for .NET 9  [GH-27879]
+* `azurerm_windows_function_app_slot` - support for .NET 9  [GH-27879]
 
 BUG FIXES:
 
