@@ -6,6 +6,7 @@ BREAKING CHANGES:
 
 FEATURES:
 
+* **New Data Source**: `azurerm_key_vault_managed_hardware_security_module_key` [GH-27827]
 * **New Resource**: `azurerm_netapp_backup_vault` [GH-27188]
 * **New Resource**: `azurerm_netapp_backup_policy` [GH-27188]
 
