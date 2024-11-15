@@ -36,7 +36,7 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 ### `azurerm_security_center_auto_provisioning`
 
-* This deprecated resource has been removed from the Azure Provider. [Please see the [documention for more details]](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ## Removed Data Sources
 
