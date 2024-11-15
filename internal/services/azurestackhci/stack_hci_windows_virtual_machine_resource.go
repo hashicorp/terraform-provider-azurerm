@@ -3,6 +3,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualharddisks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualmachineinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
@@ -25,32 +26,32 @@ import (
 )
 
 var (
-	_ sdk.Resource           = StackHCIVirtualMachineResource{}
-	_ sdk.ResourceWithUpdate = StackHCIVirtualMachineResource{}
+	_ sdk.Resource           = StackHCIWindowsVirtualMachineResource{}
+	_ sdk.ResourceWithUpdate = StackHCIWindowsVirtualMachineResource{}
 )
 
-type StackHCIVirtualMachineResource struct{}
+type StackHCIWindowsVirtualMachineResource struct{}
 
-func (StackHCIVirtualMachineResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (StackHCIWindowsVirtualMachineResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.StackHCIVirtualMachineID
 }
 
-func (StackHCIVirtualMachineResource) ResourceType() string {
-	return "azurerm_stack_hci_virtual_machine"
+func (StackHCIWindowsVirtualMachineResource) ResourceType() string {
+	return "azurerm_stack_hci_windows_virtual_machine"
 }
 
-func (StackHCIVirtualMachineResource) ModelObject() interface{} {
-	return &StackHCIVirtualMachineResourceModel{}
+func (StackHCIWindowsVirtualMachineResource) ModelObject() interface{} {
+	return &StackHCIWindowsVirtualMachineResourceModel{}
 }
 
-type StackHCIVirtualMachineResourceModel struct {
+type StackHCIWindowsVirtualMachineResourceModel struct {
 	ArcMachineId           string                                         `tfschema:"arc_machine_id"`
 	CustomLocationId       string                                         `tfschema:"custom_location_id"`
 	HardwareProfile        []StackHCIVirtualMachineHardwareProfile        `tfschema:"hardware_profile"`
 	HttpProxyConfiguration []StackHCIVirtualMachineHttpProxyConfiguration `tfschema:"http_proxy_configuration"`
 	Identity               []identity.ModelSystemAssigned                 `tfschema:"identity"`
 	NetworkProfile         []StackHCIVirtualMachineNetworkProfile         `tfschema:"network_profile"`
-	OsProfile              []StackHCIVirtualMachineOsProfile              `tfschema:"os_profile"`
+	OsProfile              []StackHCIVirtualMachineOsProfileWindows       `tfschema:"os_profile"`
 	SecurityProfile        []StackHCIVirtualMachineSecurityProfile        `tfschema:"security_profile"`
 	StorageProfile         []StackHCIVirtualMachineStorageProfile         `tfschema:"storage_profile"`
 }
@@ -79,22 +80,12 @@ type StackHCIVirtualMachineNetworkProfile struct {
 	NetworkInterfaceIds []string `tfschema:"network_interface_ids"`
 }
 
-type StackHCIVirtualMachineOsProfile struct {
-	AdminUsername        string                                       `tfschema:"admin_username"`
-	AdminPassword        string                                       `tfschema:"admin_password"`
-	ComputerName         string                                       `tfschema:"computer_name"`
-	LinuxConfiguration   []StackHCIVirtualMachineLinuxConfiguration   `tfschema:"linux_configuration"`
-	WindowsConfiguration []StackHCIVirtualMachineWindowsConfiguration `tfschema:"windows_configuration"`
-}
+type StackHCIVirtualMachineOsProfileWindows struct {
+	AdminUsername string `tfschema:"admin_username"`
+	AdminPassword string `tfschema:"admin_password"`
+	ComputerName  string `tfschema:"computer_name"`
 
-type StackHCIVirtualMachineLinuxConfiguration struct {
-	PasswordAuthenticationEnabled bool                                 `tfschema:"password_authentication_enabled"`
-	ProvisionVmAgentEnabled       bool                                 `tfschema:"provision_vm_agent_enabled"`
-	ProvisionVmConfigAgentEnabled bool                                 `tfschema:"provision_vm_config_agent_enabled"`
-	SshPublicKey                  []StackHCIVirtualMachineSshPublicKey `tfschema:"ssh_public_key"`
-}
-
-type StackHCIVirtualMachineWindowsConfiguration struct {
+	// windowsConfiguration
 	AutomaticUpdateEnabled        bool                                 `tfschema:"automatic_update_enabled"`
 	ProvisionVmAgentEnabled       bool                                 `tfschema:"provision_vm_agent_enabled"`
 	ProvisionVmConfigAgentEnabled bool                                 `tfschema:"provision_vm_config_agent_enabled"`
@@ -114,18 +105,15 @@ type StackHCIVirtualMachineSecurityProfile struct {
 }
 
 type StackHCIVirtualMachineStorageProfile struct {
-	DataDiskIds           []string                       `tfschema:"data_disk_ids"`
-	ImageId               string                         `tfschema:"image_id"`
-	OsDisk                []StackHCIVirtualMachineOsDisk `tfschema:"os_disk"`
-	VmConfigStoragePathId string                         `tfschema:"vm_config_storage_path_id"`
+	DataDiskIds           []string `tfschema:"data_disk_ids"`
+	ImageId               string   `tfschema:"image_id"`
+	OsDiskId              string   `tfschema:"os_disk_id"`
+	VmConfigStoragePathId string   `tfschema:"vm_config_storage_path_id"`
 }
 
-type StackHCIVirtualMachineOsDisk struct {
-	DiskId string `tfschema:"disk_id"`
-	OsType string `tfschema:"os_type"`
-}
+type StackHCIVirtualMachineOsDisk struct{}
 
-func (StackHCIVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
+func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"arc_machine_id": commonschema.ResourceIDReferenceRequiredForceNew(&machines.MachineId{}),
 
@@ -234,121 +222,62 @@ func (StackHCIVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"computer_name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[\-a-zA-Z0-9]{0,15}$`),
+							"name must begin and end with an alphanumeric character, be between 2 and 64 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
+						),
 					},
 
-					"linux_configuration": {
-						Type:     pluginsdk.TypeList,
+					"automatic_update_enabled": {
+						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"password_authentication_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									ForceNew: true,
-									Default:  false,
-								},
-
-								"ssh_public_key": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"path": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-
-											"key_data": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-										},
-									},
-								},
-
-								"provision_vm_agent_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-
-								"provision_vm_config_agent_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-							},
-						},
+						ForceNew: true,
+						Default:  false,
 					},
 
-					"windows_configuration": {
+					"ssh_public_key": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
-						MaxItems: 1,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"automatic_update_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									ForceNew: true,
-									Default:  false,
-								},
-
-								"ssh_public_key": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MinItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"path": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-
-											"key_data": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsNotEmpty,
-											},
-										},
-									},
-								},
-
-								"time_zone": {
+								"path": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
-								"provision_vm_agent_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-
-								"provision_vm_config_agent_enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
+								"key_data": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
+					},
+
+					"time_zone": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"provision_vm_agent_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"provision_vm_config_agent_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -372,7 +301,7 @@ func (StackHCIVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						ForceNew: true,
-						Default:  false,
+						Default:  true,
 					},
 
 					"security_type": {
@@ -408,33 +337,16 @@ func (StackHCIVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: marketplacegalleryimages.ValidateMarketplaceGalleryImageID,
 					},
 
-					"os_disk": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						MinItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"disk_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: virtualharddisks.ValidateVirtualHardDiskID,
-								},
-
-								"os_type": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: validation.StringInSlice(virtualmachineinstances.PossibleValuesForOperatingSystemTypes(), false),
-								},
-							},
-						},
+					"os_disk_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: virtualharddisks.ValidateVirtualHardDiskID,
 					},
 
 					"vm_config_storage_path_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: storagecontainers.ValidateStorageContainerID,
 					},
@@ -487,17 +399,17 @@ func (StackHCIVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (StackHCIVirtualMachineResource) Attributes() map[string]*pluginsdk.Schema {
+func (StackHCIWindowsVirtualMachineResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r StackHCIVirtualMachineResource) Create() sdk.ResourceFunc {
+func (r StackHCIWindowsVirtualMachineResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.VirtualMachineInstances
 
-			var config StackHCIVirtualMachineResourceModel
+			var config StackHCIWindowsVirtualMachineResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -518,13 +430,7 @@ func (r StackHCIVirtualMachineResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-
 			payload := virtualmachineinstances.VirtualMachineInstance{
-				Identity: expandedIdentity,
 				ExtendedLocation: &virtualmachineinstances.ExtendedLocation{
 					Name: pointer.To(config.CustomLocationId),
 					Type: pointer.To(virtualmachineinstances.ExtendedLocationTypesCustomLocation),
@@ -533,10 +439,16 @@ func (r StackHCIVirtualMachineResource) Create() sdk.ResourceFunc {
 					HardwareProfile: expandVirtualMachineHardwareProfile(config.HardwareProfile),
 					HTTPProxyConfig: expandVirtualMachineHttpProxyConfig(config.HttpProxyConfiguration),
 					NetworkProfile:  expandVirtualMachineNetworkProfile(config.NetworkProfile),
-					OsProfile:       expandVirtualMachineOsProfile(config.OsProfile),
+					OsProfile:       expandVirtualMachineOsProfileWindows(config.OsProfile),
 					SecurityProfile: expandVirtualMachineSecurityProfile(config.SecurityProfile),
-					StorageProfile:  expandVirtualMachineStorageProfile(config.StorageProfile),
+					StorageProfile:  expandVirtualMachineStorageProfileWindows(config.StorageProfile),
 				},
+			}
+			if len(config.Identity) > 0 {
+				payload.Identity, err = identity.ExpandSystemAssignedFromModel(config.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, scopeId, payload); err != nil {
@@ -545,12 +457,14 @@ func (r StackHCIVirtualMachineResource) Create() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
+			time.Sleep(5 * time.Second)
+
 			return nil
 		},
 	}
 }
 
-func (r StackHCIVirtualMachineResource) Read() sdk.ResourceFunc {
+func (r StackHCIWindowsVirtualMachineResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -562,7 +476,7 @@ func (r StackHCIVirtualMachineResource) Read() sdk.ResourceFunc {
 			}
 
 			arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroup, id.MachineName)
-			scopeId := commonids.NewScopeID(arcMachineId.String())
+			scopeId := commonids.NewScopeID(arcMachineId.ID())
 
 			resp, err := client.Get(ctx, scopeId)
 			if err != nil {
@@ -570,11 +484,11 @@ func (r StackHCIVirtualMachineResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			schema := StackHCIVirtualMachineResourceModel{
-				ArcMachineId: arcMachineId.String(),
+			schema := StackHCIWindowsVirtualMachineResourceModel{
+				ArcMachineId: arcMachineId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -593,9 +507,9 @@ func (r StackHCIVirtualMachineResource) Read() sdk.ResourceFunc {
 					schema.HardwareProfile = flattenVirtualMachineHardwareProfile(props.HardwareProfile)
 					schema.HttpProxyConfiguration = flattenVirtualMachineHttpProxyConfig(props.HTTPProxyConfig)
 					schema.NetworkProfile = flattenVirtualMachineNetworkProfile(props.NetworkProfile)
-					schema.OsProfile = flattenVirtualMachineOsProfile(props.OsProfile)
+					schema.OsProfile = flattenVirtualMachineOsProfileWindows(props.OsProfile)
 					schema.SecurityProfile = flattenVirtualMachineSecurityProfile(props.SecurityProfile)
-					schema.StorageProfile = flattenVirtualMachineStorageProfile(props.StorageProfile)
+					schema.StorageProfile = flattenVirtualMachineStorageProfileWindows(props.StorageProfile)
 				}
 			}
 
@@ -604,9 +518,9 @@ func (r StackHCIVirtualMachineResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r StackHCIVirtualMachineResource) Update() sdk.ResourceFunc {
+func (r StackHCIWindowsVirtualMachineResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.VirtualMachineInstances
 
@@ -616,65 +530,65 @@ func (r StackHCIVirtualMachineResource) Update() sdk.ResourceFunc {
 			}
 
 			arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroup, id.MachineName)
-			scopeId := commonids.NewScopeID(arcMachineId.String())
+			scopeId := commonids.NewScopeID(arcMachineId.ID())
 
-			var config StackHCIVirtualMachineResourceModel
+			var config StackHCIWindowsVirtualMachineResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := virtualmachineinstances.VirtualMachineInstanceUpdateRequest{}
-
-			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding `identity`: %+v", err)
+			resp, err := client.Get(ctx, scopeId)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
 				}
 
-				parameters.Identity = expandedIdentity
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil || resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			existing := resp.Model
+
+			if metadata.ResourceData.HasChange("identity") {
+				if len(config.Identity) != 0 {
+					expandedIdentity, err := identity.ExpandSystemAssignedFromModel(config.Identity)
+					if err != nil {
+						return fmt.Errorf("expanding `identity`: %+v", err)
+					}
+
+					existing.Identity = expandedIdentity
+				} else {
+					existing.Identity = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("hardware_profile") {
-				if parameters.Properties == nil {
-					parameters.Properties = &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{}
-				}
-
-				parameters.Properties.HardwareProfile = expandVirtualMachineHardwareProfileUpdate(config.HardwareProfile)
+				existing.Properties.HardwareProfile = expandVirtualMachineHardwareProfile(config.HardwareProfile)
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {
-				if parameters.Properties == nil {
-					parameters.Properties = &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{}
-				}
-
-				parameters.Properties.NetworkProfile = expandVirtualMachineNetworkProfileUpdate(config.NetworkProfile)
+				existing.Properties.NetworkProfile = expandVirtualMachineNetworkProfile(config.NetworkProfile)
 			}
 
 			if metadata.ResourceData.HasChange("storage_profile") {
-				if parameters.Properties == nil {
-					parameters.Properties = &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{}
-				}
-
-				parameters.Properties.StorageProfile = expandVirtualMachineStorageProfileUpdate(config.StorageProfile)
+				existing.Properties.StorageProfile = expandVirtualMachineStorageProfileWindows(config.StorageProfile)
 			}
 
 			if metadata.ResourceData.HasChange("os_profile") {
-				if parameters.Properties == nil {
-					parameters.Properties = &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{}
-				}
-
-				parameters.Properties.OsProfile = expandVirtualMachineOsProfileUpdate(config.OsProfile)
+				existing.Properties.OsProfile = expandVirtualMachineOsProfileWindows(config.OsProfile)
 			}
 
-			if err := client.UpdateThenPoll(ctx, scopeId, parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, scopeId, *existing); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
 		},
 	}
 }
 
-func (r StackHCIVirtualMachineResource) Delete() sdk.ResourceFunc {
+func (r StackHCIWindowsVirtualMachineResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -686,10 +600,10 @@ func (r StackHCIVirtualMachineResource) Delete() sdk.ResourceFunc {
 			}
 
 			arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroup, id.MachineName)
-			scopeId := commonids.NewScopeID(arcMachineId.String())
+			scopeId := commonids.NewScopeID(arcMachineId.ID())
 
 			if err := client.DeleteThenPoll(ctx, scopeId); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -708,21 +622,6 @@ func expandVirtualMachineHardwareProfile(input []StackHCIVirtualMachineHardwareP
 		MemoryMB:            pointer.To(v.MemoryMb),
 		Processors:          pointer.To(v.ProcessorNumber),
 		VMSize:              pointer.To(virtualmachineinstances.VMSizeEnum(v.VmSize)),
-	}
-
-	return output
-}
-
-func expandVirtualMachineHardwareProfileUpdate(input []StackHCIVirtualMachineHardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	output := &virtualmachineinstances.HardwareProfileUpdate{
-		MemoryMB:   pointer.To(v.MemoryMb),
-		Processors: pointer.To(v.ProcessorNumber),
-		VMSize:     pointer.To(virtualmachineinstances.VMSizeEnum(v.VmSize)),
 	}
 
 	return output
@@ -820,25 +719,6 @@ func expandVirtualMachineNetworkProfile(input []StackHCIVirtualMachineNetworkPro
 	return output
 }
 
-func expandVirtualMachineNetworkProfileUpdate(input []StackHCIVirtualMachineNetworkProfile) *virtualmachineinstances.NetworkProfileUpdate {
-	if len(input) == 0 {
-		return nil
-	}
-
-	networkInterfaces := make([]virtualmachineinstances.NetworkProfileUpdateNetworkInterfacesInlined, 0)
-	for _, networkInterfaceId := range input[0].NetworkInterfaceIds {
-		networkInterfaces = append(networkInterfaces, virtualmachineinstances.NetworkProfileUpdateNetworkInterfacesInlined{
-			Id: pointer.To(networkInterfaceId),
-		})
-	}
-
-	output := &virtualmachineinstances.NetworkProfileUpdate{
-		NetworkInterfaces: &networkInterfaces,
-	}
-
-	return output
-}
-
 func flattenVirtualMachineNetworkProfile(input *virtualmachineinstances.VirtualMachineInstancePropertiesNetworkProfile) []StackHCIVirtualMachineNetworkProfile {
 	if input == nil || input.NetworkInterfaces == nil {
 		return make([]StackHCIVirtualMachineNetworkProfile, 0)
@@ -858,143 +738,49 @@ func flattenVirtualMachineNetworkProfile(input *virtualmachineinstances.VirtualM
 	}
 }
 
-func expandVirtualMachineOsProfile(input []StackHCIVirtualMachineOsProfile) *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfile {
+func expandVirtualMachineOsProfileWindows(input []StackHCIVirtualMachineOsProfileWindows) *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0]
 	output := &virtualmachineinstances.VirtualMachineInstancePropertiesOsProfile{
-		AdminUsername:        pointer.To(v.AdminUsername),
-		AdminPassword:        pointer.To(v.AdminPassword),
-		ComputerName:         pointer.To(v.ComputerName),
-		LinuxConfiguration:   expandVirtualMachineOsProfileLinuxConfiguration(v.LinuxConfiguration),
-		WindowsConfiguration: expandVirtualMachineOsProfileWindowsConfiguration(v.WindowsConfiguration),
-	}
-
-	return output
-}
-
-func expandVirtualMachineOsProfileUpdate(input []StackHCIVirtualMachineOsProfile) *virtualmachineinstances.OsProfileUpdate {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	output := &virtualmachineinstances.OsProfileUpdate{
-		ComputerName:         pointer.To(v.ComputerName),
-		LinuxConfiguration:   expandVirtualMachineOsProfileLinuxConfigurationUpdate(v.LinuxConfiguration),
-		WindowsConfiguration: expandVirtualMachineOsProfileWindowsConfigurationUpdate(v.WindowsConfiguration),
-	}
-
-	return output
-}
-
-func flattenVirtualMachineOsProfile(input *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfile) []StackHCIVirtualMachineOsProfile {
-	if input == nil {
-		return make([]StackHCIVirtualMachineOsProfile, 0)
-	}
-
-	return []StackHCIVirtualMachineOsProfile{
-		{
-			AdminUsername:        pointer.From(input.AdminUsername),
-			AdminPassword:        pointer.From(input.AdminPassword),
-			ComputerName:         pointer.From(input.ComputerName),
-			LinuxConfiguration:   flattenVirtualMachineOsProfileLinuxConfiguration(input.LinuxConfiguration),
-			WindowsConfiguration: flattenVirtualMachineOsProfileWindowsConfiguration(input.WindowsConfiguration),
+		AdminUsername: pointer.To(v.AdminUsername),
+		AdminPassword: pointer.To(v.AdminPassword),
+		ComputerName:  pointer.To(v.ComputerName),
+		WindowsConfiguration: &virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileWindowsConfiguration{
+			EnableAutomaticUpdates: pointer.To(v.AutomaticUpdateEnabled),
+			ProvisionVMAgent:       pointer.To(v.ProvisionVmAgentEnabled),
+			ProvisionVMConfigAgent: pointer.To(v.ProvisionVmConfigAgentEnabled),
+			Ssh:                    expandVirtualMachineOsProfileSsh(v.SshPublicKey),
+			TimeZone:               pointer.To(v.TimeZone),
 		},
 	}
-}
-
-func expandVirtualMachineOsProfileLinuxConfiguration(input []StackHCIVirtualMachineLinuxConfiguration) *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileLinuxConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	output := &virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileLinuxConfiguration{
-		DisablePasswordAuthentication: pointer.To(!v.PasswordAuthenticationEnabled),
-		ProvisionVMAgent:              pointer.To(v.ProvisionVmAgentEnabled),
-		ProvisionVMConfigAgent:        pointer.To(v.ProvisionVmConfigAgentEnabled),
-		Ssh:                           expandVirtualMachineOsProfileSsh(v.SshPublicKey),
-	}
 
 	return output
 }
 
-func expandVirtualMachineOsProfileLinuxConfigurationUpdate(input []StackHCIVirtualMachineLinuxConfiguration) *virtualmachineinstances.OsProfileUpdateLinuxConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	output := &virtualmachineinstances.OsProfileUpdateLinuxConfiguration{
-		ProvisionVMAgent:       pointer.To(v.ProvisionVmAgentEnabled),
-		ProvisionVMConfigAgent: pointer.To(v.ProvisionVmConfigAgentEnabled),
-	}
-
-	return output
-}
-
-func flattenVirtualMachineOsProfileLinuxConfiguration(input *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileLinuxConfiguration) []StackHCIVirtualMachineLinuxConfiguration {
+func flattenVirtualMachineOsProfileWindows(input *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfile) []StackHCIVirtualMachineOsProfileWindows {
 	if input == nil {
-		return make([]StackHCIVirtualMachineLinuxConfiguration, 0)
+		return make([]StackHCIVirtualMachineOsProfileWindows, 0)
 	}
 
-	return []StackHCIVirtualMachineLinuxConfiguration{
-		{
-			PasswordAuthenticationEnabled: !pointer.From(input.DisablePasswordAuthentication),
-			ProvisionVmAgentEnabled:       pointer.From(input.ProvisionVMAgent),
-			ProvisionVmConfigAgentEnabled: pointer.From(input.ProvisionVMConfigAgent),
-			SshPublicKey:                  flattenVirtualMachineOsProfileSsh(input.Ssh),
-		},
-	}
-}
-
-func expandVirtualMachineOsProfileWindowsConfiguration(input []StackHCIVirtualMachineWindowsConfiguration) *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileWindowsConfiguration {
-	if len(input) == 0 {
-		return nil
+	result := StackHCIVirtualMachineOsProfileWindows{
+		AdminUsername: pointer.From(input.AdminUsername),
+		AdminPassword: pointer.From(input.AdminPassword),
+		ComputerName:  pointer.From(input.ComputerName),
 	}
 
-	v := input[0]
-	output := &virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileWindowsConfiguration{
-		EnableAutomaticUpdates: pointer.To(v.AutomaticUpdateEnabled),
-		ProvisionVMAgent:       pointer.To(v.ProvisionVmAgentEnabled),
-		ProvisionVMConfigAgent: pointer.To(v.ProvisionVmConfigAgentEnabled),
-		Ssh:                    expandVirtualMachineOsProfileSsh(v.SshPublicKey),
-		TimeZone:               pointer.To(v.TimeZone),
+	if input.WindowsConfiguration != nil {
+		result.AutomaticUpdateEnabled = pointer.From(input.WindowsConfiguration.EnableAutomaticUpdates)
+		result.ProvisionVmAgentEnabled = pointer.From(input.WindowsConfiguration.ProvisionVMAgent)
+		result.ProvisionVmConfigAgentEnabled = pointer.From(input.WindowsConfiguration.ProvisionVMConfigAgent)
+		result.SshPublicKey = flattenVirtualMachineOsProfileSsh(input.WindowsConfiguration.Ssh)
+		result.TimeZone = pointer.From(input.WindowsConfiguration.TimeZone)
 	}
 
-	return output
-}
-
-func expandVirtualMachineOsProfileWindowsConfigurationUpdate(input []StackHCIVirtualMachineWindowsConfiguration) *virtualmachineinstances.OsProfileUpdateWindowsConfiguration {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	output := &virtualmachineinstances.OsProfileUpdateWindowsConfiguration{
-		ProvisionVMAgent:       pointer.To(v.ProvisionVmAgentEnabled),
-		ProvisionVMConfigAgent: pointer.To(v.ProvisionVmConfigAgentEnabled),
-	}
-
-	return output
-}
-
-func flattenVirtualMachineOsProfileWindowsConfiguration(input *virtualmachineinstances.VirtualMachineInstancePropertiesOsProfileWindowsConfiguration) []StackHCIVirtualMachineWindowsConfiguration {
-	if input == nil {
-		return make([]StackHCIVirtualMachineWindowsConfiguration, 0)
-	}
-
-	return []StackHCIVirtualMachineWindowsConfiguration{
-		{
-			AutomaticUpdateEnabled:        pointer.From(input.EnableAutomaticUpdates),
-			ProvisionVmAgentEnabled:       pointer.From(input.ProvisionVMAgent),
-			ProvisionVmConfigAgentEnabled: pointer.From(input.ProvisionVMConfigAgent),
-			SshPublicKey:                  flattenVirtualMachineOsProfileSsh(input.Ssh),
-			TimeZone:                      pointer.From(input.TimeZone),
-		},
+	return []StackHCIVirtualMachineOsProfileWindows{
+		result,
 	}
 }
 
@@ -1054,22 +840,21 @@ func flattenVirtualMachineSecurityProfile(input *virtualmachineinstances.Virtual
 		return make([]StackHCIVirtualMachineSecurityProfile, 0)
 	}
 
-	securityProfile := StackHCIVirtualMachineSecurityProfile{
-		TpmEnabled:        pointer.From(input.EnableTPM),
-		SecurityType:      string(pointer.From(input.SecurityType)),
-		SecureBootEnabled: false,
-	}
-
+	secureBootEnabled := false
 	if input.UefiSettings != nil {
-		securityProfile.SecureBootEnabled = pointer.From(input.UefiSettings.SecureBootEnabled)
+		secureBootEnabled = pointer.From(input.UefiSettings.SecureBootEnabled)
 	}
 
 	return []StackHCIVirtualMachineSecurityProfile{
-		securityProfile,
+		{
+			TpmEnabled:        pointer.From(input.EnableTPM),
+			SecurityType:      string(pointer.From(input.SecurityType)),
+			SecureBootEnabled: secureBootEnabled,
+		},
 	}
 }
 
-func expandVirtualMachineStorageProfile(input []StackHCIVirtualMachineStorageProfile) *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfile {
+func expandVirtualMachineStorageProfileWindows(input []StackHCIVirtualMachineStorageProfile) *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1084,39 +869,27 @@ func expandVirtualMachineStorageProfile(input []StackHCIVirtualMachineStoragePro
 	}
 
 	output := &virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfile{
-		DataDisks:             pointer.To(dataDiskIds),
-		OsDisk:                expandVirtualMachineOsDisk(v.OsDisk),
-		VMConfigStoragePathId: pointer.To(v.VmConfigStoragePathId),
+		DataDisks: pointer.To(dataDiskIds),
+		OsDisk: &virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfileOsDisk{
+			OsType: pointer.To(virtualmachineinstances.OperatingSystemTypesWindows),
+		},
 		ImageReference: &virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfileImageReference{
 			Id: pointer.To(v.ImageId),
 		},
 	}
 
-	return output
-}
-
-func expandVirtualMachineStorageProfileUpdate(input []StackHCIVirtualMachineStorageProfile) *virtualmachineinstances.StorageProfileUpdate {
-	if len(input) == 0 {
-		return nil
+	if v.OsDiskId != "" {
+		output.OsDisk.Id = pointer.To(v.OsDiskId)
 	}
 
-	v := input[0]
-
-	dataDiskIds := make([]virtualmachineinstances.StorageProfileUpdateDataDisksInlined, 0)
-	for _, dataDiskId := range v.DataDiskIds {
-		dataDiskIds = append(dataDiskIds, virtualmachineinstances.StorageProfileUpdateDataDisksInlined{
-			Id: pointer.To(dataDiskId),
-		})
-	}
-
-	output := &virtualmachineinstances.StorageProfileUpdate{
-		DataDisks: pointer.To(dataDiskIds),
+	if v.VmConfigStoragePathId != "" {
+		output.VMConfigStoragePathId = pointer.To(v.VmConfigStoragePathId)
 	}
 
 	return output
 }
 
-func flattenVirtualMachineStorageProfile(input *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfile) []StackHCIVirtualMachineStorageProfile {
+func flattenVirtualMachineStorageProfileWindows(input *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfile) []StackHCIVirtualMachineStorageProfile {
 	if input == nil {
 		return make([]StackHCIVirtualMachineStorageProfile, 0)
 	}
@@ -1135,37 +908,17 @@ func flattenVirtualMachineStorageProfile(input *virtualmachineinstances.VirtualM
 		imageId = pointer.From(input.ImageReference.Id)
 	}
 
+	var osDiskId string
+	if input.OsDisk != nil {
+		osDiskId = pointer.From(input.OsDisk.Id)
+	}
+
 	return []StackHCIVirtualMachineStorageProfile{
 		{
 			DataDiskIds:           dataDiskIds,
 			ImageId:               imageId,
-			OsDisk:                flattenVirtualMachineOsDisk(input.OsDisk),
+			OsDiskId:              osDiskId,
 			VmConfigStoragePathId: pointer.From(input.VMConfigStoragePathId),
-		},
-	}
-}
-
-func expandVirtualMachineOsDisk(input []StackHCIVirtualMachineOsDisk) *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfileOsDisk {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0]
-	return &virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfileOsDisk{
-		Id:     pointer.To(v.DiskId),
-		OsType: pointer.To(virtualmachineinstances.OperatingSystemTypes(v.OsType)),
-	}
-}
-
-func flattenVirtualMachineOsDisk(input *virtualmachineinstances.VirtualMachineInstancePropertiesStorageProfileOsDisk) []StackHCIVirtualMachineOsDisk {
-	if input == nil {
-		return make([]StackHCIVirtualMachineOsDisk, 0)
-	}
-
-	return []StackHCIVirtualMachineOsDisk{
-		{
-			DiskId: pointer.From(input.Id),
-			OsType: string(pointer.From(input.OsType)),
 		},
 	}
 }
