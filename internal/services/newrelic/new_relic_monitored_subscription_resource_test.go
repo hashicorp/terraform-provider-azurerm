@@ -137,6 +137,8 @@ resource "azurerm_new_relic_monitored_subscription" "test" {
   monitored_subscription {
     subscription_id = data.azurerm_subscription.test.subscription_id
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template)
 }
@@ -152,6 +154,8 @@ resource "azurerm_new_relic_monitored_subscription" "import" {
   monitored_subscription {
     subscription_id = data.azurerm_subscription.test.subscription_id
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, config)
 }
@@ -248,35 +252,35 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_new_relic_monitor" "test" {
-  name                = "acctest-nrm-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  plan {
-    effective_date = "%[3]s"
-  }
-
-  user {
-    email        = "%[4]s"
-    first_name   = "first"
-    last_name    = "last"
-    phone_number = "123456"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+//resource "azurerm_new_relic_monitor" "test" {
+//  name                = "acctest-nrm-%[1]d"
+//  resource_group_name = azurerm_resource_group.test.name
+//  location            = azurerm_resource_group.test.location
+//
+//  plan {
+//    effective_date = "%[3]s"
+//  }
+//
+//  user {
+//    email        = "%[4]s"
+//    first_name   = "first"
+//    last_name    = "last"
+//    phone_number = "123456"
+//  }
+//
+//  identity {
+//    type = "SystemAssigned"
+//  }
+//}
 
 data "azurerm_subscription" "test" {
   subscription_id = "%s"
 }
 
-resource "azurerm_role_assignment" "test" {
-  scope                = data.azurerm_subscription.test.id
-  role_definition_name = "Monitoring Reader"
-  principal_id         = azurerm_new_relic_monitor.test.identity.0.principal_id
-}
+//resource "azurerm_role_assignment" "test" {
+//  scope                = data.azurerm_subscription.test.id
+//  role_definition_name = "Monitoring Reader"
+//  principal_id         = azurerm_new_relic_monitor.test.identity.0.principal_id
+//}
 `, data.RandomInteger, data.Locations.Primary, effectiveDate, email, data.Subscriptions.Secondary)
 }

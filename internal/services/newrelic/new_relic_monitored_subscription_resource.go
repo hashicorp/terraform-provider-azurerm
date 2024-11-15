@@ -319,14 +319,14 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			// The resource cannot be deleted if the parent NewRelic Monitor exists, the DELETE only clears the monitoredSubscriptionList
+			// The resource cannot be deleted if the parent NewRelic Monitor exists, the DELETE only clears the monitoredSubscriptionList, so here we add a custom poller
 			pollerType := &monitoredSubscriptionDeletedPoller{
 				client: client,
 				id:     *id,
 			}
 			poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("polling after purging for %s: %+v", *id, err)
+				return fmt.Errorf("polling after deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -488,7 +488,7 @@ func (p *monitoredSubscriptionDeletedPoller) Poll(ctx context.Context) (*pollers
 		return nil, fmt.Errorf("retrieving %q: %+v", p.id, err)
 	}
 
-	if !response.WasNotFound(resp.HttpResponse) && resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.MonitoredSubscriptionList != nil && len(*resp.Model.Properties.MonitoredSubscriptionList) == 0 {
+	if !response.WasNotFound(resp.HttpResponse) && resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.MonitoredSubscriptionList != nil && len(*resp.Model.Properties.MonitoredSubscriptionList) != 0 {
 		return &pollers.PollResult{
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,
