@@ -246,17 +246,20 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
 
+		immutability := backupvaults.ImmutabilityStateDisabled
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
-			if immutability := securitySetting.ImmutabilitySettings; immutability != nil {
-				if immutability.State != nil {
-					d.Set("immutability", string(pointer.From(immutability.State)))
+			if immutabilitySettings := securitySetting.ImmutabilitySettings; immutabilitySettings != nil {
+				if immutabilitySettings.State != nil {
+					immutability = *immutabilitySettings.State
 				}
+
 			}
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
+		d.Set("immutability", string(immutability))
 
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
