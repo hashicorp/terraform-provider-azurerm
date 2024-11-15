@@ -1,3 +1,9 @@
+## 4.11.0 (Unreleased)
+
+BUG:
+
+* `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
+
 ## 4.10.0 (November 14, 2024)
 
 BREAKING CHANGES:
