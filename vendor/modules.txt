@@ -687,14 +687,17 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstart
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverstop
 github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servervalidateestimatehighavailability
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshotpolicy
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes
-github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backupvaults
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/netappaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshotpolicy
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumequotarules
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes
+github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans
@@ -1376,6 +1379,8 @@ github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation
 github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch
 github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory
+github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
+github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault
 github.com/jackofallops/kermit/sdk/web/2022-09-01/web
 github.com/jackofallops/kermit/version
@@ -1437,8 +1442,6 @@ github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
-github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
-github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
 github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse
 github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse
