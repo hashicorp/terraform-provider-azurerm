@@ -92,21 +92,31 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
 			"node_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
 			},
+
 			"disk_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
+
 			"availability_zones_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"sku_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "Standard_E16s_v5",
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"seed_node_ip_addresses": {

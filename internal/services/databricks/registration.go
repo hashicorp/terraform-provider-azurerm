@@ -41,13 +41,12 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	resources := map[string]*pluginsdk.Resource{
+	return map[string]*pluginsdk.Resource{
 		"azurerm_databricks_workspace":                                resourceDatabricksWorkspace(),
 		"azurerm_databricks_workspace_root_dbfs_customer_managed_key": resourceDatabricksWorkspaceRootDbfsCustomerManagedKey(),
 		"azurerm_databricks_virtual_network_peering":                  resourceDatabricksVirtualNetworkPeering(),
+		"azurerm_databricks_workspace_customer_managed_key":           resourceDatabricksWorkspaceCustomerManagedKey(), // TODO: Remove in 5.0
 	}
-
-	return resources
 }
 
 // DataSources returns the typed DataSources supported by this service
