@@ -27,7 +27,6 @@ func TestAuthorizationServerID(t *testing.T) {
 		Error    bool
 		Expected *AuthorizationServerId
 	}{
-
 		{
 			// empty
 			Input: "",

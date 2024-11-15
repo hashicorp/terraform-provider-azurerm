@@ -64,6 +64,7 @@ func resourceSpringCloudAPIPortalCustomDomain() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSpringCloudAPIPortalCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.APIPortalCustomDomainClient

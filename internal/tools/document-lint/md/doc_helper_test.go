@@ -31,7 +31,7 @@ func TestMDPathFor(t *testing.T) {
 }
 
 func TestResourceNameReg(t *testing.T) {
-	var titleReg = regexp.MustCompile(`\npage_title:[^\n]*(azurerm_[a-zA-Z0-9_]+)"`)
+	titleReg := regexp.MustCompile(`\npage_title:[^\n]*(azurerm_[a-zA-Z0-9_]+)"`)
 
 	subs := titleReg.FindStringSubmatch(`---
 subcategory: "AAD B2C"

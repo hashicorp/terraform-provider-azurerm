@@ -357,7 +357,7 @@ func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNe
 }
 
 func flattenNetworkManagerScopeAccesses(input []networkmanagers.ConfigurationType) []string {
-	var result []string
+	result := make([]string, 0, len(input))
 	for _, v := range input {
 		result = append(result, string(v))
 	}
@@ -369,7 +369,7 @@ func flattenNetworkManagerCrossTenantScopes(input *[]networkmanagers.CrossTenant
 		return make([]ManagerCrossTenantScopeModel, 0)
 	}
 
-	var results []ManagerCrossTenantScopeModel
+	results := make([]ManagerCrossTenantScopeModel, 0, len(*input))
 	for _, v := range *input {
 		results = append(results, ManagerCrossTenantScopeModel{
 			TenantId:         pointer.From(v.TenantId),

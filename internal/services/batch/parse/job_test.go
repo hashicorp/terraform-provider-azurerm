@@ -27,7 +27,6 @@ func TestJobID(t *testing.T) {
 		Error    bool
 		Expected *JobId
 	}{
-
 		{
 			// empty
 			Input: "",

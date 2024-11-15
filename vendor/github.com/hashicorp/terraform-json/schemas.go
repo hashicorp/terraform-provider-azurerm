@@ -87,6 +87,9 @@ type ProviderSchema struct {
 	// The schemas for any data sources in this provider.
 	DataSourceSchemas map[string]*Schema `json:"data_source_schemas,omitempty"`
 
+	// The schemas for any ephemeral resources in this provider.
+	EphemeralResourceSchemas map[string]*Schema `json:"ephemeral_resource_schemas,omitempty"`
+
 	// The definitions for any functions in this provider.
 	Functions map[string]*FunctionSignature `json:"functions,omitempty"`
 }

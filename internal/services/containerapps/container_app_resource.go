@@ -390,7 +390,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("dapr") {
 				model.Properties.Configuration.Dapr = helpers.ExpandContainerAppDapr(state.Dapr)
-
 			}
 
 			if metadata.ResourceData.HasChange("template") {
@@ -418,7 +417,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
-
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile_name") {
