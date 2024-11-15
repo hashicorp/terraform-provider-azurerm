@@ -139,7 +139,7 @@ resource "azurerm_iot_security_solution" "test" {
   display_name        = "Iot Security Solution"
   iothub_ids          = [azurerm_iothub.test.id]
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.iot-assign]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -155,7 +155,7 @@ resource "azurerm_iot_security_solution" "import" {
   display_name        = azurerm_iot_security_solution.test.display_name
   iothub_ids          = [azurerm_iothub.test.id]
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.iot-assign]
 }
 `, r.basic(data))
 }
@@ -240,7 +240,7 @@ resource "azurerm_iot_security_solution" "test" {
     "Env" : "Staging"
   }
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.iot-assign, azurerm_role_assignment.law-assign]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -268,7 +268,7 @@ resource "azurerm_iot_security_solution" "test" {
     workspace_id = azurerm_log_analytics_workspace.test.id
   }
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.iot-assign]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -303,7 +303,7 @@ resource "azurerm_iot_security_solution" "test" {
     workspace_id = azurerm_log_analytics_workspace.test2.id
   }
 
-  depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.iot-assign, azurerm_role_assignment.law-assign]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -334,9 +334,15 @@ data "azuread_service_principal" "iotsec" {
   display_name = "Azure Security for IoT"
 }
 
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_iothub.test.id
+resource "azurerm_role_assignment" "iot-assign" {
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Contributor"
+  principal_id         = data.azuread_service_principal.iotsec.object_id
+}
+
+resource "azurerm_role_assignment" "law-assign" {
+  scope                = azurerm_iothub.test.id
+  role_definition_name = "Log Analytics Contributor"
   principal_id         = data.azuread_service_principal.iotsec.object_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
