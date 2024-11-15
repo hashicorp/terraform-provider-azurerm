@@ -30,11 +30,13 @@ type PoolProperties struct {
 	ProvisioningState               *PoolProvisioningState         `json:"provisioningState,omitempty"`
 	ProvisioningStateTransitionTime *string                        `json:"provisioningStateTransitionTime,omitempty"`
 	ResizeOperationStatus           *ResizeOperationStatus         `json:"resizeOperationStatus,omitempty"`
+	ResourceTags                    *map[string]string             `json:"resourceTags,omitempty"`
 	ScaleSettings                   *ScaleSettings                 `json:"scaleSettings,omitempty"`
 	StartTask                       *StartTask                     `json:"startTask,omitempty"`
 	TargetNodeCommunicationMode     *NodeCommunicationMode         `json:"targetNodeCommunicationMode,omitempty"`
 	TaskSchedulingPolicy            *TaskSchedulingPolicy          `json:"taskSchedulingPolicy,omitempty"`
 	TaskSlotsPerNode                *int64                         `json:"taskSlotsPerNode,omitempty"`
+	UpgradePolicy                   *UpgradePolicy                 `json:"upgradePolicy,omitempty"`
 	UserAccounts                    *[]UserAccount                 `json:"userAccounts,omitempty"`
 	VMSize                          *string                        `json:"vmSize,omitempty"`
 }

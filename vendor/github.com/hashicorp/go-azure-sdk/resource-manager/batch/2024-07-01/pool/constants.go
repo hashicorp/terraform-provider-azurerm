@@ -311,6 +311,59 @@ func parseComputeNodeFillType(input string) (*ComputeNodeFillType, error) {
 	return &out, nil
 }
 
+type ContainerHostDataPath string
+
+const (
+	ContainerHostDataPathApplications ContainerHostDataPath = "Applications"
+	ContainerHostDataPathJobPrep      ContainerHostDataPath = "JobPrep"
+	ContainerHostDataPathShared       ContainerHostDataPath = "Shared"
+	ContainerHostDataPathStartup      ContainerHostDataPath = "Startup"
+	ContainerHostDataPathTask         ContainerHostDataPath = "Task"
+	ContainerHostDataPathVfsMounts    ContainerHostDataPath = "VfsMounts"
+)
+
+func PossibleValuesForContainerHostDataPath() []string {
+	return []string{
+		string(ContainerHostDataPathApplications),
+		string(ContainerHostDataPathJobPrep),
+		string(ContainerHostDataPathShared),
+		string(ContainerHostDataPathStartup),
+		string(ContainerHostDataPathTask),
+		string(ContainerHostDataPathVfsMounts),
+	}
+}
+
+func (s *ContainerHostDataPath) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerHostDataPath(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseContainerHostDataPath(input string) (*ContainerHostDataPath, error) {
+	vals := map[string]ContainerHostDataPath{
+		"applications": ContainerHostDataPathApplications,
+		"jobprep":      ContainerHostDataPathJobPrep,
+		"shared":       ContainerHostDataPathShared,
+		"startup":      ContainerHostDataPathStartup,
+		"task":         ContainerHostDataPathTask,
+		"vfsmounts":    ContainerHostDataPathVfsMounts,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ContainerHostDataPath(input)
+	return &out, nil
+}
+
 type ContainerType string
 
 const (
@@ -888,17 +941,101 @@ func parsePoolProvisioningState(input string) (*PoolProvisioningState, error) {
 	return &out, nil
 }
 
+type SecurityEncryptionTypes string
+
+const (
+	SecurityEncryptionTypesNonPersistedTPM  SecurityEncryptionTypes = "NonPersistedTPM"
+	SecurityEncryptionTypesVMGuestStateOnly SecurityEncryptionTypes = "VMGuestStateOnly"
+)
+
+func PossibleValuesForSecurityEncryptionTypes() []string {
+	return []string{
+		string(SecurityEncryptionTypesNonPersistedTPM),
+		string(SecurityEncryptionTypesVMGuestStateOnly),
+	}
+}
+
+func (s *SecurityEncryptionTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecurityEncryptionTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSecurityEncryptionTypes(input string) (*SecurityEncryptionTypes, error) {
+	vals := map[string]SecurityEncryptionTypes{
+		"nonpersistedtpm":  SecurityEncryptionTypesNonPersistedTPM,
+		"vmgueststateonly": SecurityEncryptionTypesVMGuestStateOnly,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SecurityEncryptionTypes(input)
+	return &out, nil
+}
+
+type SecurityTypes string
+
+const (
+	SecurityTypesConfidentialVM SecurityTypes = "confidentialVM"
+	SecurityTypesTrustedLaunch  SecurityTypes = "trustedLaunch"
+)
+
+func PossibleValuesForSecurityTypes() []string {
+	return []string{
+		string(SecurityTypesConfidentialVM),
+		string(SecurityTypesTrustedLaunch),
+	}
+}
+
+func (s *SecurityTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecurityTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSecurityTypes(input string) (*SecurityTypes, error) {
+	vals := map[string]SecurityTypes{
+		"confidentialvm": SecurityTypesConfidentialVM,
+		"trustedlaunch":  SecurityTypesTrustedLaunch,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SecurityTypes(input)
+	return &out, nil
+}
+
 type StorageAccountType string
 
 const (
-	StorageAccountTypePremiumLRS  StorageAccountType = "Premium_LRS"
-	StorageAccountTypeStandardLRS StorageAccountType = "Standard_LRS"
+	StorageAccountTypePremiumLRS     StorageAccountType = "Premium_LRS"
+	StorageAccountTypeStandardLRS    StorageAccountType = "Standard_LRS"
+	StorageAccountTypeStandardSSDLRS StorageAccountType = "StandardSSD_LRS"
 )
 
 func PossibleValuesForStorageAccountType() []string {
 	return []string{
 		string(StorageAccountTypePremiumLRS),
 		string(StorageAccountTypeStandardLRS),
+		string(StorageAccountTypeStandardSSDLRS),
 	}
 }
 
@@ -917,8 +1054,9 @@ func (s *StorageAccountType) UnmarshalJSON(bytes []byte) error {
 
 func parseStorageAccountType(input string) (*StorageAccountType, error) {
 	vals := map[string]StorageAccountType{
-		"premium_lrs":  StorageAccountTypePremiumLRS,
-		"standard_lrs": StorageAccountTypeStandardLRS,
+		"premium_lrs":     StorageAccountTypePremiumLRS,
+		"standard_lrs":    StorageAccountTypeStandardLRS,
+		"standardssd_lrs": StorageAccountTypeStandardSSDLRS,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -926,5 +1064,49 @@ func parseStorageAccountType(input string) (*StorageAccountType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := StorageAccountType(input)
+	return &out, nil
+}
+
+type UpgradeMode string
+
+const (
+	UpgradeModeAutomatic UpgradeMode = "automatic"
+	UpgradeModeManual    UpgradeMode = "manual"
+	UpgradeModeRolling   UpgradeMode = "rolling"
+)
+
+func PossibleValuesForUpgradeMode() []string {
+	return []string{
+		string(UpgradeModeAutomatic),
+		string(UpgradeModeManual),
+		string(UpgradeModeRolling),
+	}
+}
+
+func (s *UpgradeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpgradeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUpgradeMode(input string) (*UpgradeMode, error) {
+	vals := map[string]UpgradeMode{
+		"automatic": UpgradeModeAutomatic,
+		"manual":    UpgradeModeManual,
+		"rolling":   UpgradeModeRolling,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UpgradeMode(input)
 	return &out, nil
 }

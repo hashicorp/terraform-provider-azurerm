@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount` Documentation
 
-The `batchaccount` SDK allows for interaction with Azure Resource Manager `batch` (API Version `2023-05-01`).
+The `batchaccount` SDK allows for interaction with Azure Resource Manager `batch` (API Version `2024-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 ```
 
 
