@@ -4,7 +4,7 @@
 package databricks
 
 import (
-	`github.com/hashicorp/terraform-provider-azurerm/internal/features`
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
