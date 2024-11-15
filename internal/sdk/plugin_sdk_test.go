@@ -263,7 +263,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -349,7 +349,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -455,7 +455,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -648,7 +648,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
