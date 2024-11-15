@@ -169,32 +169,26 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	datastoreType := backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))
-	storageSettingType := backupvaults.StorageSettingTypes(d.Get("redundancy").(string))
-
 	parameters := backupvaults.BackupVaultResource{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: backupvaults.BackupVault{
 			StorageSettings: []backupvaults.StorageSetting{
 				{
-					DatastoreType: &datastoreType,
-					Type:          &storageSettingType,
+					DatastoreType: pointer.To(backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
+					Type:          pointer.To(backupvaults.StorageSettingTypes(d.Get("redundancy").(string))),
 				},
 			},
 			SecuritySettings: &backupvaults.SecuritySettings{
 				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
 					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
 				},
+				ImmutabilitySettings: &backupvaults.ImmutabilitySettings{
+					State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
+				},
 			},
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
-	}
-
-	if !pluginsdk.IsExplicitlyNullInConfig(d, "immutability") {
-		parameters.Properties.SecuritySettings.ImmutabilitySettings = &backupvaults.ImmutabilitySettings{
-			State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
-		}
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
