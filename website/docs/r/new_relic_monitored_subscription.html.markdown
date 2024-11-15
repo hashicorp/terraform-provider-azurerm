@@ -52,35 +52,7 @@ resource "azurerm_role_assignment" "test" {
 resource "azurerm_new_relic_monitored_subscription" "example" {
   monitor_id = azurerm_new_relic_monitor.example.id
   monitored_subcription {
-    subscription_id                    = data.azurerm_subscription.another.subscription_id
-    azure_active_directory_log_enabled = true
-    activity_log_enabled               = true
-    metric_enabled                     = true
-    subscription_log_enabled           = true
-
-    log_tag_filter {
-      name   = "log1"
-      action = "Include"
-      value  = "log1"
-    }
-
-    log_tag_filter {
-      name   = "log2"
-      action = "Exclude"
-      value  = ""
-    }
-
-    metric_tag_filter {
-      name   = "metric1"
-      action = "Include"
-      value  = "metric1"
-    }
-
-    metric_tag_filter {
-      name   = "metric2"
-      action = "Exclude"
-      value  = ""
-    }
+    subscription_id = data.azurerm_subscription.another.subscription_id
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -99,41 +71,9 @@ The following arguments are supported:
 
 ---
 
-A `log_tag_filter` block supports the following:
-
-* `name` - (Required) Specifies the name (also known as the key) of the tag.
-
-* `action` - (Required) Specifies the valid actions for the tag. Possible values are `Exclude` and `Include`. Exclusion takes priority over inclusion.
-
-* `value` - (Required) Specifies the value of the tag.
-
----
-
-A `metric_tag_filter` block supports the following:
-
-* `name` - (Required) Specifies the name (also known as the key) of the tag.
-
-* `action` - (Required) Specifies the valid actions for the tag. Possible values are `Exclude` and `Include`. Exclusion takes priority over inclusion.
-
-* `value` - (Required) Specifies the value of the tag.
-
----
-
 A `monitored_subscription` block supports the following:
 
 * `subscription_id` - (Required) Specifies the UUID of the subscription to be monitored.
-
-* `activity_log_enabled` - (Optional) Whether activity logs from Azure resources should be sent to the Monitor resource. Defaults to `false`.
-
-* `azure_active_directory_log_enabled` - (Optional) Whether Azure Active Directory logs should be sent to the Monitor resource. Defaults to `false`.
-
-* `log_tag_filter` - (Optional) One or more `log_tag_filter` blocks as defined below.
-
-* `metric_enabled` - (Optional) Whether metrics should be sent to the Monitor resource. Defaults to `false`.
-
-* `metric_tag_filter` - (Optional) One or more `metric_tag_filter` blocks as defined below.
-
-* `subscription_log_enabled` - (Optional) Whether subscription logs should be sent to the Monitor resource. Defaults to `false`.
 
 ## Attributes Reference
 

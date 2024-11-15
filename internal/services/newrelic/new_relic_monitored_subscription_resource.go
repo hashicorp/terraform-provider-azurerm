@@ -3,13 +3,14 @@ package newrelic
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitoredsubscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -44,19 +45,7 @@ type NewRelicMonitoredSubscriptionModel struct {
 }
 
 type NewRelicMonitoredSubscription struct {
-	SubscriptionId         string                               `tfschema:"subscription_id"`
-	AadLogEnabled          bool                                 `tfschema:"azure_active_directory_log_enabled"`
-	ActivityLogEnabled     bool                                 `tfschema:"activity_log_enabled"`
-	LogTagFilter           []NewRelicMonitoredFilteringTagModel `tfschema:"log_tag_filter"`
-	MetricEnabled          bool                                 `tfschema:"metric_enabled"`
-	MetricTagFilter        []NewRelicMonitoredFilteringTagModel `tfschema:"metric_tag_filter"`
-	SubscriptionLogEnabled bool                                 `tfschema:"subscription_log_enabled"`
-}
-
-type NewRelicMonitoredFilteringTagModel struct {
-	Action monitoredsubscriptions.TagAction `tfschema:"action"`
-	Name   string                           `tfschema:"name"`
-	Value  string                           `tfschema:"value"`
+	SubscriptionId string `tfschema:"subscription_id"`
 }
 
 func (r NewRelicMonitoredSubscriptionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -73,82 +62,6 @@ func (r NewRelicMonitoredSubscriptionResource) Arguments() map[string]*pluginsdk
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
-					},
-
-					"azure_active_directory_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"activity_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"log_tag_filter": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-
-								"action": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(monitoredsubscriptions.PossibleValuesForTagAction(), false),
-								},
-
-								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									// value can be empty string
-								},
-							},
-						},
-					},
-
-					"metric_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"metric_tag_filter": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"name": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-
-								"action": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(monitoredsubscriptions.PossibleValuesForTagAction(), false),
-								},
-
-								"value": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									// value can be empty string
-								},
-							},
-						},
-					},
-
-					"subscription_log_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
 					},
 				},
 			},
@@ -191,19 +104,18 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, monitorId)
-			if err != nil {
-				return err
-			}
-
 			properties := &monitoredsubscriptions.MonitoredSubscriptionProperties{
 				Properties: &monitoredsubscriptions.SubscriptionList{
-					MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription, email),
+					MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription),
 				},
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *monitorId, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, client, id, model.MonitoredSubscription); err != nil {
+				return fmt.Errorf("waiting for the %s to become available: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -283,14 +195,9 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			email, err := r.getEmail(ctx, metadata.Client.NewRelic.MonitorsClient, &monitorId)
-			if err != nil {
-				return err
-			}
-
 			if metadata.ResourceData.HasChange("monitored_subscription") {
 				existing.Properties = &monitoredsubscriptions.SubscriptionList{
-					MonitoredSubscriptionList: expandMonitorSubscriptionList(config.MonitoredSubscription, email),
+					MonitoredSubscriptionList: expandMonitorSubscriptionList(config.MonitoredSubscription),
 				}
 			}
 
@@ -334,61 +241,16 @@ func (r NewRelicMonitoredSubscriptionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription, email string) *[]monitoredsubscriptions.MonitoredSubscription {
+func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription) *[]monitoredsubscriptions.MonitoredSubscription {
 	results := make([]monitoredsubscriptions.MonitoredSubscription, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
 	for _, v := range input {
-		result := monitoredsubscriptions.MonitoredSubscription{
+		results = append(results, monitoredsubscriptions.MonitoredSubscription{
 			SubscriptionId: pointer.To(v.SubscriptionId),
-		}
-
-		if len(v.LogTagFilter) > 0 {
-			logRules := monitoredsubscriptions.LogRules{
-				FilteringTags:        expandMonitoredSubscriptionFilteringTagModelArray(v.LogTagFilter),
-				SendAadLogs:          pointer.To(monitoredsubscriptions.SendAadLogsStatusDisabled),
-				SendActivityLogs:     pointer.To(monitoredsubscriptions.SendActivityLogsStatusDisabled),
-				SendSubscriptionLogs: pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusDisabled),
-			}
-
-			if v.AadLogEnabled {
-				logRules.SendAadLogs = pointer.To(monitoredsubscriptions.SendAadLogsStatusEnabled)
-			}
-
-			if v.ActivityLogEnabled {
-				logRules.SendActivityLogs = pointer.To(monitoredsubscriptions.SendActivityLogsStatusEnabled)
-			}
-
-			if v.SubscriptionLogEnabled {
-				logRules.SendSubscriptionLogs = pointer.To(monitoredsubscriptions.SendSubscriptionLogsStatusEnabled)
-			}
-
-			if result.TagRules == nil {
-				result.TagRules = &monitoredsubscriptions.MonitoringTagRulesProperties{}
-			}
-			result.TagRules.LogRules = pointer.To(logRules)
-		}
-
-		if len(v.MetricTagFilter) > 0 {
-			metricRules := monitoredsubscriptions.MetricRules{
-				FilteringTags: expandMonitoredSubscriptionFilteringTagModelArray(v.MetricTagFilter),
-				SendMetrics:   pointer.To(monitoredsubscriptions.SendMetricsStatusDisabled),
-				UserEmail:     pointer.To(email),
-			}
-
-			if v.MetricEnabled {
-				metricRules.SendMetrics = pointer.To(monitoredsubscriptions.SendMetricsStatusEnabled)
-			}
-
-			if result.TagRules == nil {
-				result.TagRules = &monitoredsubscriptions.MonitoringTagRulesProperties{}
-			}
-			result.TagRules.MetricRules = pointer.To(metricRules)
-		}
-
-		results = append(results, result)
+		})
 	}
 
 	return &results
@@ -401,77 +263,12 @@ func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSub
 
 	results := make([]NewRelicMonitoredSubscription, 0)
 	for _, v := range *input {
-		result := NewRelicMonitoredSubscription{
+		results = append(results, NewRelicMonitoredSubscription{
 			SubscriptionId: pointer.From(v.SubscriptionId),
-		}
-
-		if tagRule := v.TagRules; tagRule != nil {
-			if logRule := tagRule.LogRules; logRule != nil {
-				result.AadLogEnabled = logRule.SendAadLogs != nil && *logRule.SendAadLogs == monitoredsubscriptions.SendAadLogsStatusEnabled
-				result.ActivityLogEnabled = logRule.SendActivityLogs != nil && *logRule.SendActivityLogs == monitoredsubscriptions.SendActivityLogsStatusEnabled
-				result.LogTagFilter = flattenMonitoredSubscriptionFilteringTagModelArray(logRule.FilteringTags)
-				result.SubscriptionLogEnabled = logRule.SendSubscriptionLogs != nil && *logRule.SendSubscriptionLogs == monitoredsubscriptions.SendSubscriptionLogsStatusEnabled
-			}
-
-			if metricRule := tagRule.MetricRules; metricRule != nil {
-				result.MetricEnabled = metricRule.SendMetrics != nil && *metricRule.SendMetrics == monitoredsubscriptions.SendMetricsStatusEnabled
-				result.MetricTagFilter = flattenMonitoredSubscriptionFilteringTagModelArray(metricRule.FilteringTags)
-			}
-		}
-	}
-
-	return results
-}
-
-func (r NewRelicMonitoredSubscriptionResource) getEmail(ctx context.Context, monitorClient *monitors.MonitorsClient, monitorId *monitoredsubscriptions.MonitorId) (string, error) {
-	id := monitors.NewMonitorID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName)
-	monitor, err := monitorClient.Get(ctx, id)
-	if err != nil {
-		return "", fmt.Errorf("getting monitor: %+v", err)
-	}
-
-	if monitor.Model == nil || monitor.Model.Properties.UserInfo == nil || monitor.Model.Properties.UserInfo.EmailAddress == nil || *monitor.Model.Properties.UserInfo.EmailAddress == "" {
-		return "", fmt.Errorf("failed to get user email address from monitor")
-	}
-
-	return *monitor.Model.Properties.UserInfo.EmailAddress, nil
-}
-
-func expandMonitoredSubscriptionFilteringTagModelArray(inputList []NewRelicMonitoredFilteringTagModel) *[]monitoredsubscriptions.FilteringTag {
-	var outputList []monitoredsubscriptions.FilteringTag
-	for _, v := range inputList {
-		input := v
-		output := monitoredsubscriptions.FilteringTag{
-			Action: pointer.To(input.Action),
-		}
-
-		if input.Name != "" {
-			output.Name = pointer.To(input.Name)
-		}
-
-		if input.Value != "" {
-			output.Value = pointer.To(input.Value)
-		}
-		outputList = append(outputList, output)
-	}
-	return &outputList
-}
-
-func flattenMonitoredSubscriptionFilteringTagModelArray(inputList *[]monitoredsubscriptions.FilteringTag) []NewRelicMonitoredFilteringTagModel {
-	outputList := make([]NewRelicMonitoredFilteringTagModel, 0)
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		outputList = append(outputList, NewRelicMonitoredFilteringTagModel{
-			Action: pointer.From(input.Action),
-			Name:   pointer.From(input.Name),
-			Value:  pointer.From(input.Value),
 		})
 	}
 
-	return outputList
+	return results
 }
 
 var _ pollers.PollerType = &monitoredSubscriptionDeletedPoller{}
@@ -503,4 +300,56 @@ func (p *monitoredSubscriptionDeletedPoller) Poll(ctx context.Context) (*pollers
 		},
 		Status: pollers.PollingStatusSucceeded,
 	}, nil
+}
+
+func resourceMonitoredSubscriptionsWaitForAvailable(ctx context.Context, client *monitoredsubscriptions.MonitoredSubscriptionsClient, id parse.NewRelicMonitoredSubscriptionId, monitoredSubscriptions []NewRelicMonitoredSubscription) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"Unavailable"},
+		Target:                    []string{"Available"},
+		Refresh:                   resourceMonitoredSubscriptionsRefresh(ctx, client, id, monitoredSubscriptions),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the %s to become available: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceMonitoredSubscriptionsRefresh(ctx context.Context, client *monitoredsubscriptions.MonitoredSubscriptionsClient, id parse.NewRelicMonitoredSubscriptionId, monitoredSubscriptions []NewRelicMonitoredSubscription) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if %s is available ..", id)
+
+		resp, err := client.Get(ctx, monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroup, id.MonitorName))
+		if err != nil {
+			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.MonitoredSubscriptionList == nil {
+			return resp, "Error", fmt.Errorf("unexpected nil model of %s", id)
+		}
+
+		availableCount := 0
+		for _, v := range monitoredSubscriptions {
+			for _, u := range *resp.Model.Properties.MonitoredSubscriptionList {
+				if u.SubscriptionId != nil && strings.EqualFold(v.SubscriptionId, *u.SubscriptionId) && u.Status != nil && *u.Status == monitoredsubscriptions.StatusActive {
+					availableCount++
+					break
+				}
+			}
+		}
+
+		if availableCount != len(monitoredSubscriptions) {
+			return resp, "Unavailable", nil
+		}
+
+		return resp, "Available", nil
+	}
 }
