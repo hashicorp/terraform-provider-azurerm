@@ -273,7 +273,7 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 
 func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
 	return &datafactory.IntegrationRuntimeComputeProperties{
-		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
 			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
 			CoreCount:   pointer.To(int32(d.Get("core_count").(int))),
