@@ -252,7 +252,6 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 				if immutabilitySettings.State != nil {
 					immutability = *immutabilitySettings.State
 				}
-
 			}
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
 				d.Set("soft_delete", string(pointer.From(softDelete.State)))
