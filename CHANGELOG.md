@@ -8,6 +8,8 @@ ENHANCEMENTS:
 
 BUG:
 
+* `azurerm_api_management_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
+* `azurerm_api_management_api_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
 * `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
 
 ## 4.10.0 (November 14, 2024)
