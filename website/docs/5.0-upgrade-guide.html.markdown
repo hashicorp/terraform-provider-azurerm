@@ -88,6 +88,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
 
+### `azurerm_eventhub`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:

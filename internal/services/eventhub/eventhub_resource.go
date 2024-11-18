@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +26,7 @@ import (
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubUpdate,
@@ -51,11 +52,11 @@ func resourceEventHub() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
-			"namespace_name": {
+			"namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubNamespaceName(),
+				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -163,6 +164,28 @@ func resourceEventHub() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		r.Schema["namespace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
+			ValidateFunc: namespaces.ValidateNamespaceID,
+		}
+
+		r.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ValidateEventHubNamespaceName(),
+			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
+			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id`",
+		}
+	}
+
+	return r
 }
 
 func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -173,7 +196,19 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	namespaceName := ""
+	if v := d.Get("namespace_id").(string); v != "" {
+		namespaceId, err := namespaces.ParseNamespaceID(v)
+		if err != nil {
+			return err
+		}
+		namespaceName = namespaceId.NamespaceName
+	}
+	if !features.FivePointOhBeta() && namespaceName == "" {
+		namespaceName = d.Get("namespace_name").(string)
+	}
+
+	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), namespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -218,7 +253,10 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id, err := eventhubs.ParseEventhubID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	if d.HasChange("partition_count") {
 		o, n := d.GetChange("partition_count")
@@ -253,7 +291,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return err
 	}
 
@@ -282,8 +320,14 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.EventhubName)
-	d.Set("namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if !features.FivePointOhBeta() {
+		d.Set("namespace_name", id.NamespaceName)
+	}
+
+	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	d.Set("namespace_id", namespaceId.ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
