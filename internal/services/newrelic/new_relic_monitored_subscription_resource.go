@@ -264,7 +264,8 @@ func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSub
 	results := make([]NewRelicMonitoredSubscription, 0)
 	for _, v := range *input {
 		results = append(results, NewRelicMonitoredSubscription{
-			SubscriptionId: pointer.From(v.SubscriptionId),
+			// The returned subscription ID is in upper case
+			SubscriptionId: strings.ToLower(pointer.From(v.SubscriptionId)),
 		})
 	}
 
