@@ -20,8 +20,10 @@ import (
 
 type FirewallResource struct{}
 
-const premium = "Premium"
-const standard = "Standard"
+const (
+	premium  = "Premium"
+	standard = "Standard"
+)
 
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")

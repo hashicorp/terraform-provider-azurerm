@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -271,27 +270,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
-			ForceNew:   true,
-		}
-
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointZero),
-				string(namespaces.TlsVersionOnePointOne),
-				string(namespaces.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
 	return resource
 }
 
@@ -355,13 +333,6 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if !features.FourPointOhBeta() {
-		// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
-		if sku != string(namespaces.SkuNamePremium) {
-			parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
-		}
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -458,10 +429,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if !features.FourPointOhBeta() {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -573,10 +540,6 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
-
-			if !features.FourPointOhBeta() {
-				d.Set("zone_redundant", props.ZoneRedundant)
-			}
 
 			localAuthDisabled := false
 			if props.DisableLocalAuth != nil {

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -254,7 +254,6 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			metadata.SetID(id)
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(pointer.From(model.Location))
 				if props := model.Properties; props != nil {
@@ -270,6 +269,8 @@ func (r NetAppVolumeGroupSapHanaDataSource) Read() sdk.ResourceFunc {
 					state.Volumes = volumes
 				}
 			}
+
+			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},

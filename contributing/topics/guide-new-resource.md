@@ -42,7 +42,7 @@ package client
 
 import (
 	"fmt"
-	
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -142,7 +142,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		
+
 		"location": commonschema.Location(),
 
 		"tags": tags.Schema(),
@@ -154,7 +154,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return &ResourceGroupExampleResourceModel
+	return &ResourceGroupExampleResourceModel{}
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
@@ -184,7 +184,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 
 			// retrieve the Name for this Resource Group from the Terraform Config
 			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name 
+			// using the Subscription ID & name
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
             var config ResourceGroupExampleResourceModel
@@ -192,7 +192,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
                 return fmt.Errorf("decoding: %+v", err)
             }
 			id := resources.NewResourceGroupID(subscriptionId, config.Name)
-			
+
 			// then we want to check for the presence of an existing resource with the resource's ID
 			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
 			// so we don't want to unintentionally adopt this resource by using the same name
@@ -203,7 +203,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-			
+
 			// create the Resource Group
 			param := resources.Group{
 				Location: pointer.To(location.Normalize(config.Location)),
@@ -241,7 +241,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			
+
 			var config ResourceGroupExampleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -256,7 +256,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			//     return fmt.Errorf("retrieving %s: %+v", id, err)
 			//   }
 			//
-			// Although the SDK will catch and error in cases where Model is nil we should still check for 
+			// Although the SDK will catch and error in cases where Model is nil we should still check for
 			// a non-nil Model and nested Properties object to prevent panics
 			//   if existing.Model == nil {
 			//      return fmt.Errorf("retrieving %s: `model` was nil", id)
@@ -280,7 +280,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
-			
+
 			return nil
 		},
 	}
@@ -299,40 +299,40 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 		// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
 		// limiting - but having this here means that users can override this in their config as necessary
 		Timeout: 5 * time.Minute,
-		
+
 		// the Func returns a function which looks up the state of the Resource Group and sets it into the state
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
-			
-			// parse the Resource Group ID from the `id` field 
+
+			// parse the Resource Group ID from the `id` field
 			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			
-			// then retrieve the Resource Group by its ID 
+
+			// then retrieve the Resource Group by its ID
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
 				// since this is a Resource (e.g. we created it/it was imported into the state)
-				// it previously existed - so we must mark this as "gone" for Terraform 
+				// it previously existed - so we must mark this as "gone" for Terraform
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				
+
 				// otherwise it's a genuine error (auth/api error etc) so raise it
 				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle 
+				// or raise a bug report if there's something we should handle
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			
-			// at this point we can set information about this Resource Group into the State 
-			// identifier fields such as the name, resource group name to name a few need to be sourced 
+
+			// at this point we can set information about this Resource Group into the State
+			// identifier fields such as the name, resource group name to name a few need to be sourced
 			// from the Resource ID instead of the API response
 			state := ResourceGroupExampleResourceModel{
 				Name: id.ResourceGroupName,
 			}
-			
+
 			// the SDK will return a Model as well as a nested Properties object for the resource
 			// for readability and consistency we assign the Model to a variable and nil check as shown below.
 			// since the SDK accounts for responses where the Model is nil we do not need to throw an error if
@@ -341,10 +341,10 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				// the Location field is a little different - and we have a normalization
 				// function for this.
-                            
+
 				// whilst this may seem like a weird thing to call out in an example, because these two fields
 				// are present on the majority of resources, we hope it explains why they're a little different
-                            
+
 				// in this case the Location can be returned in various different forms, for example
 				// "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
 				// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
@@ -354,7 +354,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					// if there are properties to set into state do that here
 				}
-			}       
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -381,7 +381,7 @@ func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			
+
 			// trigger the deletion of the Resource Group
 			// Delete calls that require request options can be populated by the `DefaultDeleteOperationOptions()`
 			// method in the SDK
@@ -472,7 +472,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 			id := resources.NewResourceGroupID(subscriptionId, config.Name)
-			
+
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -480,7 +480,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-			
+
 			param := resources.Group{
 				Location: pointer.To(location.Normalize(config.Location)),
 				Tags:     pointer.To(config.Tags),
@@ -488,7 +488,7 @@ func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
 			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -500,7 +500,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
-			
+
 			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Get("id").(string))
 			if err != nil {
 				return err
@@ -528,12 +528,12 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
-			
+
 			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			
+
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -547,7 +547,7 @@ func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
 			state := ResourceGroupExampleResourceModel{
 				Name: id.ResourceGroupName,
 			}
-			
+
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(model.Location)
 				state.Tags = pointer.From(model.Tags)
@@ -647,7 +647,7 @@ To register the Resource we need to add an instance of the struct used for the R
 // Resources returns a list of Resources supported by this Service
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		ResourceGroupExampleResource{},	
+		ResourceGroupExampleResource{},
 	}
 }
 ```
@@ -684,7 +684,7 @@ import (
     "context"
     "fmt"
     "testing"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
     "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
     "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"

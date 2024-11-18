@@ -22,9 +22,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ElasticSANVolumeGroupResource{}
-var _ sdk.ResourceWithUpdate = ElasticSANVolumeGroupResource{}
-var _ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeGroupResource{}
+var (
+	_ sdk.Resource                  = ElasticSANVolumeGroupResource{}
+	_ sdk.ResourceWithUpdate        = ElasticSANVolumeGroupResource{}
+	_ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeGroupResource{}
+)
 
 type ElasticSANVolumeGroupResource struct{}
 
