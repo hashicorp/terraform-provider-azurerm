@@ -2441,7 +2441,7 @@ func ExpandFlexFunctionAppDeployment(input []FlexFunctionAppDeployment, storageD
 		storageName := endpoint[:storageNameIndex]
 		storageString = fmt.Sprintf(StorageStringFmt, storageName, flexFaDeployment.StorageAccessKey, storageDomainSuffix)
 	} else {
-		return nil, "", fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", flexFaDeployment.StorageContainerEndpoint)
+		return nil, storageString, fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", flexFaDeployment.StorageContainerEndpoint)
 	}
 
 	storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
@@ -2514,7 +2514,6 @@ func FlattenFlexFunctionAppDeployment(input *webapps.FunctionAppConfig) []FlexFu
 				result.StorageUserAssignedIdentityAccessEnabled = false
 				result.StorageConnectionStringAccessEnabled = true
 			}
-
 		}
 	}
 
