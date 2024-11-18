@@ -27,7 +27,6 @@ func TestNewRelicMonitoredSubscriptionID(t *testing.T) {
 		Error    bool
 		Expected *NewRelicMonitoredSubscriptionId
 	}{
-
 		{
 			// empty
 			Input: "",
