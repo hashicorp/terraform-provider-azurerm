@@ -46,8 +46,10 @@ type WsfcDomainProfile struct {
 	ClusterSubnetType           string `tfschema:"cluster_subnet_type"`
 }
 
-var _ sdk.Resource = MsSqlVirtualMachineGroupResource{}
-var _ sdk.ResourceWithUpdate = MsSqlVirtualMachineGroupResource{}
+var (
+	_ sdk.Resource           = MsSqlVirtualMachineGroupResource{}
+	_ sdk.ResourceWithUpdate = MsSqlVirtualMachineGroupResource{}
+)
 
 func (r MsSqlVirtualMachineGroupResource) ModelObject() interface{} {
 	return &MsSqlVirtualMachineGroupModel{}

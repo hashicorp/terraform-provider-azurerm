@@ -1939,6 +1939,7 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 
 	return output
 }
+
 func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
 	output := make(map[string]interface{})
 

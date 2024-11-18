@@ -757,6 +757,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

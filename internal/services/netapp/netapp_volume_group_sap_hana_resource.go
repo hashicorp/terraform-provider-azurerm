@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -342,10 +342,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			// TODO: deploymentSpecId is temporary until the backend is updated and deploymentSpecId is not required anymore,
-			//       it will be handled internally by the RP
-			deploymentSpecId := "20542149-bfca-5618-1879-9863dc6767f1"
-
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
@@ -353,7 +349,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 						GroupDescription:      utils.String(model.GroupDescription),
 						ApplicationType:       pointer.To(volumegroups.ApplicationTypeSAPNegativeHANA),
 						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
-						DeploymentSpecId:      utils.String(deploymentSpecId),
 					},
 					Volumes: volumeList,
 				},
@@ -430,7 +425,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -543,7 +538,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
@@ -553,8 +548,6 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			model := netAppModels.NetAppVolumeGroupSapHanaModel{
 				Name:              id.VolumeGroupName,
@@ -574,6 +567,8 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 
 				model.Volumes = volumes
 			}
+
+			metadata.SetID(id)
 
 			return metadata.Encode(&model)
 		},

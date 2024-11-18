@@ -99,7 +99,6 @@ func (r ServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r ServiceDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"pcc_rule": {
@@ -352,6 +351,7 @@ func flattenPccRuleConfigurationDataSourceModel(inputList []service.PccRuleConfi
 
 	return outputList
 }
+
 func flattenPccRuleQosPolicyDataSourceModel(input *service.PccRuleQosPolicy) []ServiceDataSourcePccRuleQosPolicyModel {
 	if input == nil {
 		return []ServiceDataSourcePccRuleQosPolicyModel{}

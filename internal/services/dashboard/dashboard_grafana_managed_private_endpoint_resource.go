@@ -229,7 +229,6 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 
 			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return err
 			}
