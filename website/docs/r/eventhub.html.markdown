@@ -32,7 +32,7 @@ resource "azurerm_eventhub_namespace" "example" {
 
 resource "azurerm_eventhub" "example" {
   name                = "acceptanceTestEventHub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
+  namespace_id        = azurerm_eventhub_namespace.example.id
   resource_group_name = azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 1
@@ -45,7 +45,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
+* `namespace_name` - (Optional) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created. This property is deprecated in favour of `namespace_id`.
+
+* `namespace_id` - (Optional) Specifies the id of the EventHub Namespace. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `namespace_name` or `namespace_id` must be specified.
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 
