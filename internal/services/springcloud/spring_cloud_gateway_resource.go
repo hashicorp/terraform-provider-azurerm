@@ -80,8 +80,10 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudGatewayResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+)
 
 func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
@@ -593,6 +595,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,

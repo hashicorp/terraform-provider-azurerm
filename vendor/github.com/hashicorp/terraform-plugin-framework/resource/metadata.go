@@ -21,4 +21,32 @@ type MetadataResponse struct {
 	// TypeName should be the full resource type, including the provider
 	// type prefix and an underscore. For example, examplecloud_thing.
 	TypeName string
+
+	// ResourceBehavior is used to control framework-specific logic when
+	// interacting with this resource.
+	ResourceBehavior ResourceBehavior
+}
+
+// ResourceBehavior controls framework-specific logic when interacting
+// with a resource.
+type ResourceBehavior struct {
+	// ProviderDeferred enables provider-defined logic to be executed
+	// in the case of an automatic deferred response from provider configure.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	ProviderDeferred ProviderDeferredBehavior
+}
+
+// ProviderDeferredBehavior enables provider-defined logic to be executed
+// in the case of a deferred response from provider configuration.
+//
+// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+// to change or break without warning. It is not protected by version compatibility guarantees.
+type ProviderDeferredBehavior struct {
+	// When EnablePlanModification is true, framework will still execute
+	// provider-defined resource plan modification logic if
+	// provider.Configure defers. Framework will then automatically return a
+	// deferred response along with the modified plan.
+	EnablePlanModification bool
 }

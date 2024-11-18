@@ -2280,10 +2280,10 @@ func prepareCapabilities(capabilities interface{}) *[]cosmosdb.Capability {
 	for _, v := range capabilities.(*pluginsdk.Set).List() {
 		m := v.(map[string]interface{})
 		if c, ok := m["name"].(string); ok {
-			cap := cosmosdb.Capability{
+			capability := cosmosdb.Capability{
 				Name: pointer.To(c),
 			}
-			output = append(output, cap)
+			output = append(output, capability)
 		}
 	}
 	return &output

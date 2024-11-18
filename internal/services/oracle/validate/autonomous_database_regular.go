@@ -16,41 +16,35 @@ import (
 func AutonomousDatabaseName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
 	}
 
 	firstChar, _ := utf8.DecodeRuneInString(v)
 	if !unicode.IsLetter(firstChar) {
-		errors = append(errors, fmt.Errorf("%v must start with a letter", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must start with a letter", k))
 	}
 
 	for _, r := range v {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
-			errors = append(errors, fmt.Errorf("%v must contain only letters and numbers", k))
-			return
+			return []string{}, append(errors, fmt.Errorf("%v must contain only letters and numbers", k))
 		}
 	}
 
 	if len(v) > 30 {
-		errors = append(errors, fmt.Errorf("%v must be 30 characers max", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must be 30 characers max", k))
 	}
 
-	return
+	return []string{}, []error{}
 }
 
 func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
 	}
 
 	if len(v) < 12 || len(v) > 30 {
-		errors = append(errors, fmt.Errorf("%v must be 12 to 30 characters", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must be 12 to 30 characters", k))
 	}
 
 	hasUpper := false
@@ -72,57 +66,46 @@ func AutonomousDatabasePassword(i interface{}, k string) (warnings []string, err
 		}
 	}
 	if hasDoubleQuote {
-		errors = append(errors, fmt.Errorf("%v must not contain the double quote (\") character", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must not contain the double quote (\") character", k))
 	}
 	if !hasUpper {
-		errors = append(errors, fmt.Errorf("%v must contain at least one uppercase letter", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must contain at least one uppercase letter", k))
 	}
 	if !hasLower {
-		errors = append(errors, fmt.Errorf("%v must contain at least one lowercase letter", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must contain at least one lowercase letter", k))
 	}
 	if !hasNumber {
-		errors = append(errors, fmt.Errorf("%v must contain at least one number", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must contain at least one number", k))
 	}
 	if strings.Contains(v, "admin") {
-		errors = append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must not contain the username \"admin\"", k))
 	}
 
-	return
+	return []string{}, []error{}
 }
 
 func CustomerContactEmail(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
 	}
 
-	_, err := mail.ParseAddress(v)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("%v must be a valid email address", k))
-		return
+	if _, err := mail.ParseAddress(v); err != nil {
+		return []string{}, append(errors, fmt.Errorf("%v must be a valid email address", k))
 	}
 
-	return warnings, errors
+	return []string{}, []error{}
 }
 
 func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return []string{}, append(errors, fmt.Errorf("expected type of %s to be string", k))
 	}
 
 	if v != string(autonomousdatabases.ComputeModelECPU) && v != string(autonomousdatabases.ComputeModelOCPU) {
-		errors = append(errors, fmt.Errorf("%v must be %v or %v", k,
-			string(autonomousdatabases.ComputeModelECPU), string(autonomousdatabases.ComputeModelOCPU)))
-		return
+		return []string{}, append(errors, fmt.Errorf("%v must be %v or %v", k, string(autonomousdatabases.ComputeModelECPU), string(autonomousdatabases.ComputeModelOCPU)))
 	}
 
-	return
+	return []string{}, []error{}
 }

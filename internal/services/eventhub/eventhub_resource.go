@@ -221,7 +221,6 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.HasChange("partition_count") {
-
 		o, n := d.GetChange("partition_count")
 		if o.(int) > n.(int) {
 			return fmt.Errorf("`partition_count` cannot be decreased")

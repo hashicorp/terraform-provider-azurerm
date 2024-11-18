@@ -242,7 +242,6 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 				if configs := props.IPConfigurations; configs != nil {
 					for _, config := range *props.IPConfigurations {
 						if configProps := config.Properties; configProps != nil {
-
 							if configProps.PublicIPAddress == nil {
 								continue
 							}
