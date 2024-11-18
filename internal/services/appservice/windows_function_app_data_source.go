@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsFunctionAppDataSource struct{}
@@ -310,7 +309,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("reading Service Plan Id for %s: %+v", id, err)
 					}
 					functionApp.ServicePlanId = servicePlanId.ID()
-					functionApp.Enabled = utils.NormaliseNilableBool(props.Enabled)
+					functionApp.Enabled = pointer.From(props.Enabled)
 					functionApp.ClientCertMode = string(pointer.From(props.ClientCertMode))
 					functionApp.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)

@@ -5,6 +5,7 @@ package apimanagement
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -33,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -639,34 +639,6 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FourPointOhBeta() {
-		schema["policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Deprecated: "The `policy` block has been superseded by the resource `azurerm_api_management_policy` and will be removed in v4.0 of the AzureRM Provider",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"xml_content": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						Computed:         true,
-						ConflictsWith:    []string{"policy.0.xml_link"},
-						DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
-					},
-
-					"xml_link": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ConflictsWith: []string{"policy.0.xml_content"},
-					},
-				},
-			},
-		}
-	}
-
 	return schema
 }
 
@@ -727,7 +699,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	if !response.WasNotFound(softDeleted.HttpResponse) && !response.WasForbidden(softDeleted.HttpResponse) {
 		if !meta.(*clients.Client).Features.ApiManagement.RecoverSoftDeleted {
 			// this exists but the users opted out, so they must import this it out-of-band
-			return fmt.Errorf(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
+			return errors.New(optedOutOfRecoveringSoftDeletedApiManagementErrorFmt(id.ServiceName, location))
 		}
 
 		// First recover the deleted API Management, since all other properties are ignored during a restore operation
@@ -802,7 +774,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
 			if virtualNetworkConfiguration == nil {
-				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
+				return fmt.Errorf("you must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
 			}
 			properties.Properties.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		}
@@ -811,7 +783,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	if publicIpAddressId != "" {
 		if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
 			if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
-				return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+				return errors.New("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
 			}
 		}
 		properties.Properties.PublicIPAddressId = pointer.To(publicIpAddressId)
@@ -820,14 +792,14 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("client_certificate_enabled") {
 		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
 		if enableClientCertificate && sku.Name != apimanagementservice.SkuTypeConsumption {
-			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+			return errors.New("`client_certificate_enabled` is only supported when sku type is `Consumption`")
 		}
 		properties.Properties.EnableClientCertificate = pointer.To(enableClientCertificate)
 	}
 
 	gateWayDisabled := d.Get("gateway_disabled").(bool)
 	if gateWayDisabled && len(*properties.Properties.AdditionalLocations) == 0 {
-		return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
+		return errors.New("`gateway_disabled` is only supported when `additional_location` is set")
 	}
 	properties.Properties.DisableGateway = pointer.To(gateWayDisabled)
 
@@ -839,11 +811,11 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 
 	if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
 		if sku.Name != apimanagementservice.SkuTypePremium {
-			return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+			return errors.New("`zones` is only supported when sku type is `Premium`")
 		}
 
 		if publicIpAddressId == "" {
-			return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+			return errors.New("`public_ip_address` must be specified when `zones` are provided")
 		}
 		zones := zones.ExpandUntyped(v)
 		properties.Zones = &zones
@@ -905,7 +877,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+		return errors.New("`sign_in` is not support for sku tier `Consumption`")
 	}
 	if sku.Name != apimanagementservice.SkuTypeConsumption {
 		signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -939,32 +911,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 		if _, err := delegationClient.CreateOrUpdate(ctx, delegationSettingServiceId, delegationSettings, delegationsettings.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
-		}
-	}
-
-	if !features.FourPointOhBeta() {
-		policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-		policiesRaw := d.Get("policy").([]interface{})
-		policyContract, err := expandApiManagementPolicies(policiesRaw)
-		if err != nil {
-			return err
-		}
-
-		if _, ok := d.GetOk("policy"); ok {
-			policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
-			// remove the existing policy
-			if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
-				if !response.WasNotFound(delResp.HttpResponse) {
-					return fmt.Errorf("removing Policies from %s: %+v", id, err)
-				}
-			}
-
-			// then add the new one, if it exists
-			if policyContract != nil {
-				if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
-					return fmt.Errorf(" setting Policies for %s: %+v", id, err)
-				}
-			}
 		}
 	}
 
@@ -1103,7 +1049,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("client_certificate_enabled") {
 		enableClientCertificate := d.Get("client_certificate_enabled").(bool)
 		if enableClientCertificate && sku.Name != apimanagementservice.SkuTypeConsumption {
-			return fmt.Errorf("`client_certificate_enabled` is only supported when sku type is `Consumption`")
+			return errors.New("`client_certificate_enabled` is only supported when sku type is `Consumption`")
 		}
 		props.EnableClientCertificate = pointer.To(enableClientCertificate)
 	}
@@ -1111,7 +1057,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("gateway_disabled") {
 		gateWayDisabled := d.Get("gateway_disabled").(bool)
 		if gateWayDisabled && props.AdditionalLocations != nil && len(*props.AdditionalLocations) == 0 {
-			return fmt.Errorf("`gateway_disabled` is only supported when `additional_location` is set")
+			return errors.New("`gateway_disabled` is only supported when `additional_location` is set")
 		}
 		props.DisableGateway = pointer.To(gateWayDisabled)
 	}
@@ -1129,11 +1075,11 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("zones") {
 		if v := d.Get("zones").(*schema.Set).List(); len(v) > 0 {
 			if sku.Name != apimanagementservice.SkuTypePremium {
-				return fmt.Errorf("`zones` is only supported when sku type is `Premium`")
+				return errors.New("`zones` is only supported when sku type is `Premium`")
 			}
 
 			if d.Get("public_ip_address_id").(string) == "" {
-				return fmt.Errorf("`public_ip_address` must be specified when `zones` are provided")
+				return errors.New("`public_ip_address` must be specified when `zones` are provided")
 			}
 			zones := zones.ExpandUntyped(v)
 			payload.Zones = &zones
@@ -1151,7 +1097,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("sign_in") {
 		signInSettingsRaw := d.Get("sign_in").([]interface{})
 		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+			return errors.New("`sign_in` is not support for sku tier `Consumption`")
 		}
 		if sku.Name != apimanagementservice.SkuTypeConsumption {
 			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -1166,7 +1112,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("sign_up") {
 		signUpSettingsRaw := d.Get("sign_up").([]interface{})
 		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-			return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+			return errors.New("`sign_up` is not support for sku tier `Consumption`")
 		}
 		if sku.Name != apimanagementservice.SkuTypeConsumption {
 			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -1181,7 +1127,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	if d.HasChange("delegation") {
 		delegationSettingsRaw := d.Get("delegation").([]interface{})
 		if sku.Name == apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
-			return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+			return errors.New("`delegation` is not support for sku tier `Consumption`")
 		}
 		if sku.Name != apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
 			delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
@@ -1189,32 +1135,6 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 			delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
 			if _, err := delegationClient.CreateOrUpdate(ctx, delegationSettingServiceId, delegationSettings, delegationsettings.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf(" setting Delegation settings for %s: %+v", id, err)
-			}
-		}
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("policy") {
-			policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
-			policiesRaw := d.Get("policy").([]interface{})
-			policyContract, err := expandApiManagementPolicies(policiesRaw)
-			if err != nil {
-				return err
-			}
-
-			policyServiceId := policy.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
-			// remove the existing policy
-			if delResp, err := policyClient.Delete(ctx, policyServiceId, policy.DeleteOperationOptions{}); err != nil {
-				if !response.WasNotFound(delResp.HttpResponse) {
-					return fmt.Errorf("removing Policies from %s: %+v", id, err)
-				}
-			}
-
-			// then add the new one, if it exists
-			if policyContract != nil {
-				if _, err := policyClient.CreateOrUpdate(ctx, policyServiceId, *policyContract, policy.CreateOrUpdateOperationOptions{}); err != nil {
-					return fmt.Errorf(" setting Policies for %s: %+v", id, err)
-				}
 			}
 		}
 	}
@@ -1342,13 +1262,6 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(&model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku_name`: %+v", err)
 		}
-
-		if !features.FourPointOhBeta() {
-			if err := d.Set("policy", flattenApiManagementPolicies(d, policy.Model)); err != nil {
-				return fmt.Errorf("setting `policy`: %+v", err)
-			}
-		}
-
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
@@ -1693,9 +1606,9 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		childVnetConfig := config["virtual_network_configuration"].([]interface{})
 		switch {
 		case len(childVnetConfig) == 0 && len(parentVnetConfig) > 0:
-			return nil, fmt.Errorf("`virtual_network_configuration` must be specified in any `additional_location` block when top-level `virtual_network_configuration` is supplied")
+			return nil, errors.New("`virtual_network_configuration` must be specified in any `additional_location` block when top-level `virtual_network_configuration` is supplied")
 		case len(childVnetConfig) > 0 && len(parentVnetConfig) == 0:
-			return nil, fmt.Errorf("`virtual_network_configuration` must be empty in all `additional_location` blocks when top-level `virtual_network_configuration` is not supplied")
+			return nil, errors.New("`virtual_network_configuration` must be empty in all `additional_location` blocks when top-level `virtual_network_configuration` is not supplied")
 		case len(childVnetConfig) > 0 && len(parentVnetConfig) > 0:
 			v := childVnetConfig[0].(map[string]interface{})
 			subnetResourceId := v["subnet_id"].(string)
@@ -1708,7 +1621,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		if publicIPAddressID != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium {
 				if len(childVnetConfig) == 0 {
-					return nil, fmt.Errorf("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
 				}
 			}
 			additionalLocation.PublicIPAddressId = &publicIPAddressID
@@ -1816,47 +1729,47 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		tlsRsaWithAes128CbcShaCiphers = v["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
 
 		if skuIsConsumption && frontendProtocolSsl3 {
-			return nil, fmt.Errorf("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tripleDesCiphers {
-			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
-			return nil, fmt.Errorf("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes256CbcSha256Ciphers {
-			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128CbcSha256Ciphers {
-			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes256CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128CbcShaCiphers {
-			return nil, fmt.Errorf("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
 		}
 	}
 
@@ -2130,67 +2043,6 @@ func flattenApiManagementSignUpSettings(input signupsettings.PortalSignupSetting
 			"terms_of_service": termsOfService,
 		},
 	}
-}
-
-func expandApiManagementPolicies(input []interface{}) (*policy.PolicyContract, error) {
-	if len(input) == 0 || input[0] == nil {
-		return nil, nil
-	}
-
-	vs := input[0].(map[string]interface{})
-	xmlContent := vs["xml_content"].(string)
-	xmlLink := vs["xml_link"].(string)
-
-	if xmlContent != "" {
-		return &policy.PolicyContract{
-			Properties: &policy.PolicyContractProperties{
-				Format: pointer.To(policy.PolicyContentFormatRawxml),
-				Value:  xmlContent,
-			},
-		}, nil
-	}
-
-	if xmlLink != "" {
-		return &policy.PolicyContract{
-			Properties: &policy.PolicyContractProperties{
-				Format: pointer.To(policy.PolicyContentFormatXmlNegativelink),
-				Value:  xmlLink,
-			},
-		}, nil
-	}
-
-	return nil, fmt.Errorf("Either `xml_content` or `xml_link` should be set if the `policy` block is defined.")
-}
-
-func flattenApiManagementPolicies(d *pluginsdk.ResourceData, input *policy.PolicyContract) []interface{} {
-	xmlContent := ""
-	if input != nil && input.Properties != nil {
-		if input.Properties.Value != "" {
-			xmlContent = input.Properties.Value
-		}
-	}
-
-	// if there's no policy assigned, we set this to an empty list
-	if xmlContent == "" {
-		return []interface{}{}
-	}
-
-	output := map[string]interface{}{
-		"xml_content": xmlContent,
-		"xml_link":    "",
-	}
-
-	// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
-	// as such we need to retrieve this value from the state if it's present
-	if existing, ok := d.GetOk("policy"); ok {
-		existingVs := existing.([]interface{})
-		if len(existingVs) > 0 && existingVs[0] != nil {
-			existingV := existingVs[0].(map[string]interface{})
-			output["xml_link"] = existingV["xml_link"].(string)
-		}
-	}
-
-	return []interface{}{output}
 }
 
 func expandApiManagementTenantAccessSettings(input []interface{}) tenantaccess.AccessInformationUpdateParameters {

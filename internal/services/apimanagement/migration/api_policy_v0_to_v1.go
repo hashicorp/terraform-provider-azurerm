@@ -17,7 +17,6 @@ type ApiManagementApiPolicyV0ToV1 struct{}
 
 func (ApiManagementApiPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,

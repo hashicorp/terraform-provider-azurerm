@@ -553,7 +553,6 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 
 	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
 		return nil, diag.FromErr(err)
-
 	}
 
 	return client, nil

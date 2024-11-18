@@ -156,7 +156,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0` and `8.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0`, `8.0` and `9.0`.
 
 * `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
 
@@ -722,7 +722,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 

@@ -67,3 +67,15 @@ func ImportResourceStateClientCapabilities(in *tfplugin5.ClientCapabilities) *tf
 
 	return resp
 }
+
+func OpenEphemeralResourceClientCapabilities(in *tfplugin5.ClientCapabilities) *tfprotov5.OpenEphemeralResourceClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.OpenEphemeralResourceClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
+}

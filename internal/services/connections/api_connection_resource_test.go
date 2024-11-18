@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ApiConnectionTestResource struct {
-}
+type ApiConnectionTestResource struct{}
 
 func TestAccApiConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_connection", "test")

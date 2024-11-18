@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,6 +38,11 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -82,6 +87,7 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku_tier", string(pointer.From(sku.Tier)))
 		}
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)
