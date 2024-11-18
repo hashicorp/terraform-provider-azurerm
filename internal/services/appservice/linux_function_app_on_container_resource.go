@@ -166,7 +166,6 @@ func (r LinuxFunctionAppOnContainerResource) Arguments() map[string]*pluginsdk.S
 
 		"tags": tags.Schema(),
 	}
-
 }
 
 func (r LinuxFunctionAppOnContainerResource) Attributes() map[string]*pluginsdk.Schema {
