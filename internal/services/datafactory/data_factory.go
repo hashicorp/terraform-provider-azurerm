@@ -97,6 +97,18 @@ func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecifi
 	return output
 }
 
+func expandDataFactoryAnnotations(input *[]string) *[]interface{} {
+	annotations := make([]interface{}, 0)
+	if input == nil {
+		return &annotations
+	}
+
+	for _, annotation := range *input {
+		annotations = append(annotations, annotation)
+	}
+	return &annotations
+}
+
 func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	annotations := make([]string, 0)
 	if input == nil {
