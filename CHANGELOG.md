@@ -1,3 +1,17 @@
+## 4.11.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `batch` - upgrade api version to `2024-07-01` [GH-27982]
+* `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
+* `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
+
+BUG:
+
+* `azurerm_api_management_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
+* `azurerm_api_management_api_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
+* `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
+
 ## 4.10.0 (November 14, 2024)
 
 BREAKING CHANGES:
