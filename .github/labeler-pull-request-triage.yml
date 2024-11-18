@@ -214,6 +214,11 @@ service/domain-services:
   - any-glob-to-any-file:
     - internal/services/domainservices/**/*
 
+service/dynatrace:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/dynatrace/**/*
+
 service/elastic:
 - changed-files:
   - any-glob-to-any-file:

@@ -7,18 +7,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 )
 
 // This type of validator must satisfy all types.
 var (
 	_ validator.Bool    = ConflictsWithValidator{}
 	_ validator.Float64 = ConflictsWithValidator{}
+	_ validator.Float32 = ConflictsWithValidator{}
+	_ validator.Int32   = ConflictsWithValidator{}
 	_ validator.Int64   = ConflictsWithValidator{}
 	_ validator.List    = ConflictsWithValidator{}
 	_ validator.Map     = ConflictsWithValidator{}
@@ -115,7 +118,35 @@ func (av ConflictsWithValidator) ValidateBool(ctx context.Context, req validator
 	resp.Diagnostics.Append(validateResp.Diagnostics...)
 }
 
+func (av ConflictsWithValidator) ValidateFloat32(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
+	validateReq := ConflictsWithValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ConflictsWithValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
 func (av ConflictsWithValidator) ValidateFloat64(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
+	validateReq := ConflictsWithValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ConflictsWithValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ConflictsWithValidator) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	validateReq := ConflictsWithValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

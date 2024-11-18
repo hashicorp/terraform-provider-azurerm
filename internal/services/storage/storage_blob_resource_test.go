@@ -144,7 +144,7 @@ func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
 func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -331,7 +331,7 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 func TestAccStorageBlob_encryptionScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -347,7 +347,7 @@ func TestAccStorageBlob_encryptionScope(t *testing.T) {
 func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

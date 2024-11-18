@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyBuiltInModel struct {
@@ -199,7 +199,6 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading: %+v", err)
 			}
@@ -354,7 +353,6 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -419,7 +417,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

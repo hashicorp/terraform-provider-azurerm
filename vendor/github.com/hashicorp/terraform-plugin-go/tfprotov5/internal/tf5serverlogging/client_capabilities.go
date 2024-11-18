@@ -79,3 +79,17 @@ func ImportResourceStateClientCapabilities(ctx context.Context, capabilities *tf
 
 	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
 }
+
+// OpenEphemeralResourceClientCapabilities generates a TRACE "Announced client capabilities" log.
+func OpenEphemeralResourceClientCapabilities(ctx context.Context, capabilities *tfprotov5.OpenEphemeralResourceClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityDeferralAllowed: capabilities.DeferralAllowed,
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}

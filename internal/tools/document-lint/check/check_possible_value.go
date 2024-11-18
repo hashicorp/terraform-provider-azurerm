@@ -36,7 +36,7 @@ func newPossibleValueDiff(checkBase checkBase, want []string, got []string, miss
 }
 
 func possibleValueStr(values []string) string {
-	var codes []string
+	codes := make([]string, 0, len(values))
 	for _, val := range values {
 		codes = append(codes, util.ItalicCode(val))
 	}

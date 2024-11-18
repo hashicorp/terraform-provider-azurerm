@@ -750,7 +750,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	containerGroup := containerinstance.ContainerGroup{
-		Name:     pointer.FromString(id.ContainerGroupName),
+		Name:     pointer.To(id.ContainerGroupName),
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
@@ -978,7 +978,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				d.Set("dns_name_label_reuse_policy", containerinstance.DnsNameLabelReusePolicyUnsecure)
 			}
 		} else {
-			d.Set("dns_name_label_reuse_policy", pointer.FromString(string(containerinstance.DnsNameLabelReusePolicyUnsecure)))
+			d.Set("dns_name_label_reuse_policy", pointer.To(string(containerinstance.DnsNameLabelReusePolicyUnsecure)))
 		}
 
 		restartPolicy := ""
@@ -1111,7 +1111,7 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 		container := containerinstance.InitContainerDefinition{
 			Name: name,
 			Properties: containerinstance.InitContainerPropertiesDefinition{
-				Image:           pointer.FromString(image),
+				Image:           pointer.To(image),
 				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
@@ -1274,7 +1274,6 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
 					container.Properties.Resources.Limits.Gpu.Sku = v
 				}
-
 			}
 		}
 
@@ -1426,7 +1425,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:        k,
-				SecureValue: pointer.FromString(v.(string)),
+				SecureValue: pointer.To(v.(string)),
 			}
 
 			output = append(output, ev)
@@ -1435,7 +1434,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:  k,
-				Value: pointer.FromString(v.(string)),
+				Value: pointer.To(v.(string)),
 			}
 
 			output = append(output, ev)
@@ -1460,13 +1459,13 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 			imageRegistryCredential.Server = v.(string)
 		}
 		if v := credConfig["username"]; v != nil && v != "" {
-			imageRegistryCredential.Username = pointer.FromString(v.(string))
+			imageRegistryCredential.Username = pointer.To(v.(string))
 		}
 		if v := credConfig["password"]; v != nil && v != "" {
-			imageRegistryCredential.Password = pointer.FromString(v.(string))
+			imageRegistryCredential.Password = pointer.To(v.(string))
 		}
 		if v := credConfig["user_assigned_identity_id"]; v != nil && v != "" {
-			imageRegistryCredential.Identity = pointer.FromString(v.(string))
+			imageRegistryCredential.Identity = pointer.To(v.(string))
 		}
 
 		output = append(output, imageRegistryCredential)
@@ -1539,7 +1538,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 				ShareName:          shareName,
 				ReadOnly:           pointer.FromBool(readOnly),
 				StorageAccountName: storageAccountName,
-				StorageAccountKey:  pointer.FromString(storageAccountKey),
+				StorageAccountKey:  pointer.To(storageAccountKey),
 			}
 		}
 
@@ -1558,10 +1557,10 @@ func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
 		Repository: v["url"].(string),
 	}
 	if directory := v["directory"].(string); directory != "" {
-		gitRepoVolume.Directory = pointer.FromString(directory)
+		gitRepoVolume.Directory = pointer.To(directory)
 	}
 	if revision := v["revision"].(string); revision != "" {
-		gitRepoVolume.Revision = pointer.FromString(revision)
+		gitRepoVolume.Revision = pointer.To(revision)
 	}
 	return gitRepoVolume
 }
@@ -1636,7 +1635,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				httpGetScheme := containerinstance.Scheme(scheme)
 
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
-					Path:        pointer.FromString(path),
+					Path:        pointer.To(path),
 					Port:        int64(port),
 					Scheme:      &httpGetScheme,
 					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
@@ -1655,8 +1654,8 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 	headers := []containerinstance.HTTPHeader{}
 	for k, v := range input {
 		header := containerinstance.HTTPHeader{
-			Name:  pointer.FromString(k),
-			Value: pointer.FromString(v.(string)),
+			Name:  pointer.To(k),
+			Value: pointer.To(v.(string)),
 		}
 		headers = append(headers, header)
 	}
@@ -1940,6 +1939,7 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 
 	return output
 }
+
 func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
 	output := make(map[string]interface{})
 
@@ -2165,8 +2165,8 @@ func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConf
 		}
 
 		return &containerinstance.DnsConfiguration{
-			Options:       pointer.FromString(strings.Join(options, " ")),
-			SearchDomains: pointer.FromString(strings.Join(searchDomains, " ")),
+			Options:       pointer.To(strings.Join(options, " ")),
+			SearchDomains: pointer.To(strings.Join(searchDomains, " ")),
 			NameServers:   nameservers,
 		}
 	}

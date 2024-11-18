@@ -27,7 +27,6 @@ func TestCassandraTableID(t *testing.T) {
 		Error    bool
 		Expected *CassandraTableId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -10,7 +10,10 @@ import (
 // Attribute define a value field inside the Schema. Implementations in this
 // package include:
 //   - BoolAttribute
+//   - DynamicAttribute
+//   - Float32Attribute
 //   - Float64Attribute
+//   - Int32Attribute
 //   - Int64Attribute
 //   - ListAttribute
 //   - MapAttribute

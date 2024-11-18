@@ -97,7 +97,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
-
 }
 
 func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {
@@ -1067,6 +1066,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

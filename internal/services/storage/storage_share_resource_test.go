@@ -589,7 +589,6 @@ func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client
 	}
 
 	return pointer.To(existing.Model != nil), nil
-
 }
 
 // Destroy is deprecated for this resource. From 5.0 this will no longer use the Data Plane client.

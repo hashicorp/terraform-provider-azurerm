@@ -594,7 +594,6 @@ func expandVirtualMachineRunCommandInputParameter(input []VirtualMachineRunComma
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 	return &output
 }
@@ -611,7 +610,6 @@ func flattenVirtualMachineRunCommandInputParameter(input *[]virtualmachineruncom
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 
 	return output

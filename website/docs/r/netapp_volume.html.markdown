@@ -10,11 +10,20 @@ description: |-
 
 Manages a NetApp Volume.
 
-!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+!>**IMPORTANT:** This resource uses a feature to prevent deletion called `prevent_volume_destruction`, defaulting to `true`. It is intentionally set to `true` to prevent the possibility of accidental data loss. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
 
 ## NetApp Volume Usage
 
 ```hcl
+provider "azurerm" {
+  features {
+    netapp {
+      prevent_volume_destruction             = true
+      delete_backups_on_backup_vault_destroy = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -47,6 +56,24 @@ resource "azurerm_netapp_account" "example" {
   name                = "example-netappaccount"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_netapp_backup_vault" "example" {
+  name                = "example-netappbackupvault"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  account_name        = azurerm_netapp_account.example.name
+}
+
+resource "azurerm_netapp_backup_policy" "example" {
+  name                    = "example-netappbackuppolicy"
+  resource_group_name     = azurerm_resource_group.example.name
+  location                = azurerm_resource_group.example.location
+  account_name            = azurerm_netapp_account.example.name
+  daily_backups_to_keep   = 2
+  weekly_backups_to_keep  = 2
+  monthly_backups_to_keep = 2
+  enabled                 = true
 }
 
 resource "azurerm_netapp_pool" "example" {
@@ -89,6 +116,13 @@ resource "azurerm_netapp_volume" "example" {
   # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
+
+  # Enabling backup policy
+  data_protection_backup_policy {
+    backup_vault_id  = azurerm_netapp_backup_vault.example.id
+    backup_policy_id = azurerm_netapp_backup_policy.example.id
+    policy_enabled   = true
   }
 
   # prevent the possibility of accidental data loss
@@ -137,6 +171,8 @@ The following arguments are supported:
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new resource to be created.
 
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
+
+* `data_protection_backup_policy` - (Optional) A `data_protection_backup_policy` block as defined below.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -216,6 +252,18 @@ A full example of the `data_protection_snapshot_policy` attribute usage can be f
   
 ~> **NOTE:** `data_protection_snapshot_policy` block can be used alone or with data_protection_replication in the primary volume only, if enabling it in the secondary, an error will be thrown.
 
+---
+
+A `data_protection_backup_policy` block is used to setup automatic backups through a specific backup policy. It supports the following:
+
+* `backup_vault_id` - (Required) Resource ID of the backup backup vault to associate this volume to.
+
+* `backup_policy_id` - (Required) Resource ID of the backup policy to apply to the volume.
+
+* `policy_enabled` - (Optional) Enables the backup policy on the volume, defaults to `true`.
+
+For more information on Azure NetApp Files Backup feature please see [Understand Azure NetApp Files backup](https://learn.microsoft.com/en-us/azure/azure-netapp-files/backup-introduction)
+  
 ---
 
 ## Attributes Reference

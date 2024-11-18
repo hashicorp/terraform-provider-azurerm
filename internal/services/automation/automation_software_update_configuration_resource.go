@@ -1076,7 +1076,6 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 					} else {
 						target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}
 					}
-
 				} else {
 					target.AzureQueries = &[]softwareupdateconfiguration.AzureQueryProperties{}
 					target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}

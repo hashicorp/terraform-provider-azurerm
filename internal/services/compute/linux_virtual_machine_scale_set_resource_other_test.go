@@ -836,7 +836,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 					}
 
 					return nil
-
 				}, data.ResourceName),
 			),
 		},
