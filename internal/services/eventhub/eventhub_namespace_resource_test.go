@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -481,6 +482,9 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
 
