@@ -125,11 +125,8 @@ func ExpandSiteConfigLinuxFunctionAppOnContainer(siteConfig []SiteConfigLinuxFun
 		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
-
 	}
-
 	linuxFunctionOnContainerSiteConfig := siteConfig[0]
-
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
 		expanded.MinimumElasticInstanceCount = pointer.To(linuxFunctionOnContainerSiteConfig.ElasticInstanceMinimum)
 	}
@@ -205,7 +202,6 @@ func DecodeLinuxFunctionAppOnContainerRegistryImage(input *string, partial *weba
 				containerRegistry.UserName = v
 			}
 			if k == "DOCKER_REGISTRY_SERVER_PASSWORD" {
-
 				containerRegistry.Password = v
 			}
 		}
