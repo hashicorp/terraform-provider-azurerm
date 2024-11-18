@@ -48,7 +48,7 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 				Required: true,
 				Validators: []validator.String{
 					frameworkhelpers.WrappedStringValidator{
-						Func: validation.StringIsEmpty,
+						Func: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -98,7 +98,7 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 	response, err := client.GetSecret(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
 	if err != nil {
 		if utils.ResponseWasNotFound(response.Response) {
-			sdk.SetResponseErrorDiagnostic(resp, "keyvault secret does not exist", err)
+			sdk.SetResponseErrorDiagnostic(resp, "key vault secret does not exist", err)
 		}
 		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving secret %q from %s", data.Name.ValueString(), keyVaultId), err)
 	}

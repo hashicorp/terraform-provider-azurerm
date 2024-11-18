@@ -4,27 +4,35 @@
 package keyvault_test
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
 type KeyVaultSecretEphemeral struct{}
 
-func TestAccDataSourceKeyVaultEphemeral_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_secret", "test")
+func TestAccEphemeralKeyVaultSecret(t *testing.T) {
+	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretEphemeral{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
-			),
+	resource.UnitTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+			},
 		},
 	})
+
 }
 
 func (KeyVaultSecretEphemeral) basic(data acceptance.TestData) string {
