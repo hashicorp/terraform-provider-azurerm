@@ -1214,6 +1214,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessCompute(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1253,6 +1257,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {

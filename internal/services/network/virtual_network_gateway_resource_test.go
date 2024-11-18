@@ -1263,6 +1263,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func (VirtualNetworkGatewayResource) privateIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1319,6 +1323,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func (VirtualNetworkGatewayResource) privateIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1375,6 +1383,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func (VirtualNetworkGatewayResource) customRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1431,6 +1443,10 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func (VirtualNetworkGatewayResource) customRouteUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

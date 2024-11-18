@@ -2017,6 +2017,10 @@ resource "azurerm_batch_pool" "test" {
 
 func (BatchPoolResource) networkConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d-batchpool"
   location = "%[2]s"
