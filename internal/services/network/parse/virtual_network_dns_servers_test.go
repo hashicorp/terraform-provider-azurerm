@@ -27,7 +27,6 @@ func TestVirtualNetworkDnsServersID(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkDnsServersId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestVirtualNetworkDnsServersIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkDnsServersId
 	}{
-
 		{
 			// empty
 			Input: "",

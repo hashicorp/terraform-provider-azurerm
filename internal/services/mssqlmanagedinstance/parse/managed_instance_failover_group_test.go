@@ -27,7 +27,6 @@ func TestManagedInstanceFailoverGroupID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceFailoverGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -29,8 +29,10 @@ type AlertRuleThreatIntelligenceModel struct {
 
 type AlertRuleThreatIntelligenceResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
-var _ sdk.ResourceWithUpdate = AlertRuleThreatIntelligenceResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
+	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
+)
 
 func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
 	return &AlertRuleThreatIntelligenceModel{}

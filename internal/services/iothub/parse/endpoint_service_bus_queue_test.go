@@ -27,7 +27,6 @@ func TestEndpointServiceBusQueueID(t *testing.T) {
 		Error    bool
 		Expected *EndpointServiceBusQueueId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestEndpointServiceBusQueueIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointServiceBusQueueId
 	}{
-
 		{
 			// empty
 			Input: "",

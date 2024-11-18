@@ -20,8 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = CommunicationServiceResource{}
-var _ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+var (
+	_ sdk.ResourceWithUpdate         = CommunicationServiceResource{}
+	_ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+)
 
 type CommunicationServiceResource struct{}
 

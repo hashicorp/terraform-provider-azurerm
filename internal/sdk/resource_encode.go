@@ -27,7 +27,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
-		//lintignore:R001
+		// lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
@@ -236,7 +236,6 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 							debugLogger.Infof("[SLICE] Setting %q to %+v", structTags.hclPath, attr)
 							output[structTags.hclPath] = attr
 						}
-
 					}
 				} else {
 					debugLogger.Infof("Setting %q to nil", structTags.hclPath)

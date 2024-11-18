@@ -416,7 +416,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				if err := metadata.Encode(&webApp); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
-
 			}
 
 			return nil

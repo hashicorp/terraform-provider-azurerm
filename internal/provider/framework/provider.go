@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -18,6 +19,8 @@ import (
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
+
+	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
 type azureRmFrameworkProvider struct {
@@ -28,6 +31,8 @@ type azureRmFrameworkProvider struct {
 var _ provider.Provider = &azureRmFrameworkProvider{}
 
 var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
+
+var _ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
 
 func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
@@ -463,6 +468,20 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"netapp": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+									},
+									"prevent_volume_destruction": schema.BoolAttribute{
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Optional:    true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -492,11 +511,31 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 }
 
 func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	// We do not currently support any Native framework Data Sources
-	return nil
+	var output []func() datasource.DataSource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.FrameworkDataSources()...)
+	}
+
+	return output
 }
 
 func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
-	// We do not currently support any Native framework Resources
-	return nil
+	var output []func() resource.Resource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.FrameworkResources()...)
+	}
+
+	return output
+}
+
+func (p *azureRmFrameworkProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	var output []func() ephemeral.EphemeralResource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.EphemeralResources()...)
+	}
+
+	return output
 }

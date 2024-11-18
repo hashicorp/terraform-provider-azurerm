@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 )
 
 type VolumeSpecNameSapHana string
@@ -73,7 +73,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 
 	// Validating each volume
 	for _, volume := range pointer.From(volumeList) {
-
 		// Get protocol list
 		protocolTypeList := pointer.From(volume.Properties.ProtocolTypes)
 		protocolType := ""
@@ -110,7 +109,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 			(strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaData)) ||
 				strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaShared)) ||
 				strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLog))) {
-
 			errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
@@ -126,7 +124,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 			volume.Properties.DataProtection != nil &&
 			volume.Properties.DataProtection.Replication != nil &&
 			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 			errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
@@ -134,7 +131,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		if volume.Properties.DataProtection != nil &&
 			volume.Properties.DataProtection.Snapshot != nil &&
 			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst))) {
-
 			errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
@@ -142,7 +138,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaDataBackup)) ||
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLogBackup))) &&
 			pointer.From(volume.Properties.ProximityPlacementGroup) != "" {
-
 			errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
 		}
 
@@ -151,7 +146,6 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaLog)) ||
 			strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameSapHanaShared))) &&
 			pointer.From(volume.Properties.ProximityPlacementGroup) == "" {
-
 			errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
 		}
 

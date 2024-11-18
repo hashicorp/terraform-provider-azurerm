@@ -269,7 +269,6 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -392,7 +391,7 @@ func (AutonomousDatabaseRegularResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func expandAdbsCustomerContacts(customerContactsList []string) []autonomousdatabases.CustomerContact {
-	var customerContacts []autonomousdatabases.CustomerContact
+	customerContacts := make([]autonomousdatabases.CustomerContact, 0, len(customerContactsList))
 	for _, customerContact := range customerContactsList {
 		customerContacts = append(customerContacts, autonomousdatabases.CustomerContact{
 			Email: customerContact,

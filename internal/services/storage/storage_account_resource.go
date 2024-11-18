@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -1118,10 +1119,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					if _, ok := d.GetOk("queue_properties"); ok {
-						return fmt.Errorf("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
+						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 					if _, ok := d.GetOk("static_website"); ok {
-						return fmt.Errorf("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
+						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 				}
 

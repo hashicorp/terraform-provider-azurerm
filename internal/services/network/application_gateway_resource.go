@@ -512,12 +512,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"status_code": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree),
-											string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
 									},
 
 									"custom_error_page_url": {
@@ -1519,12 +1516,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"status_code": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree),
-								string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
 						},
 
 						"custom_error_page_url": {

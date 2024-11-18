@@ -979,7 +979,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 					}
 
 					return nil
-
 				}, data.ResourceName),
 			),
 		},

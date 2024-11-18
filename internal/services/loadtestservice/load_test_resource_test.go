@@ -119,6 +119,7 @@ func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Clien
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r LoadTestTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
