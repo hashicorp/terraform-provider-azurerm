@@ -478,10 +478,9 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				tags := pointer.From(model.Tags)
-				appInsightsId := ""
 				for i := range tags {
 					if strings.HasPrefix(i, "hidden-link") {
-						appInsightsId = strings.Split(i, ":")[1]
+						appInsightsId := strings.Split(i, ":")[1]
 
 						parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
 						if err != nil {
