@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -360,6 +361,34 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
+
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = %d
+  message_retention   = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

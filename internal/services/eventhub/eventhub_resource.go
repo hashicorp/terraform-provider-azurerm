@@ -169,7 +169,6 @@ func resourceEventHub() *pluginsdk.Resource {
 		r.Schema["namespace_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true,
 			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
 			ValidateFunc: namespaces.ValidateNamespaceID,
@@ -178,7 +177,6 @@ func resourceEventHub() *pluginsdk.Resource {
 		r.Schema["namespace_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true,
 			ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
