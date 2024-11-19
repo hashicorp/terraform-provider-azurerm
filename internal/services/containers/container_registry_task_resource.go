@@ -663,7 +663,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {

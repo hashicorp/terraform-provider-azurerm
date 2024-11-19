@@ -200,7 +200,7 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			var model ContainerConnectedRegistryModel
 			if err := metadata.Decode(&model); err != nil {
@@ -275,7 +275,7 @@ func (r ContainerConnectedRegistryResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -374,7 +374,7 @@ func (r ContainerConnectedRegistryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			id, err := connectedregistries.ParseConnectedRegistryID(metadata.ResourceData.Id())
 			if err != nil {
@@ -404,7 +404,7 @@ func (r ContainerConnectedRegistryResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.ConnectedRegistries
+			client := metadata.Client.Containers.ContainerRegistryClient.ConnectedRegistries
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

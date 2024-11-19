@@ -103,7 +103,7 @@ func (ContainerRegistryScopeMapResource) Exists(ctx context.Context, clients *cl
 		return nil, err
 	}
 
-	resp, err := clients.Containers.ContainerRegistryClient_v2023_06_01_preview.ScopeMaps.Get(ctx, *id)
+	resp, err := clients.Containers.ContainerRegistryClient.ScopeMaps.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
