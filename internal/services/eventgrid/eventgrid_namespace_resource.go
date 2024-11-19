@@ -428,7 +428,7 @@ func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRul
 }
 
 func flattenInboundIPRules(ipRules *[]namespaces.InboundIPRule) []InboundIpRuleModel {
-	var output []InboundIpRuleModel
+	output := make([]InboundIpRuleModel, 0)
 
 	if ipRules == nil || len(*ipRules) == 0 {
 		return output
@@ -556,7 +556,7 @@ func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesCo
 }
 
 func flattenAlternativeAuthenticationNameSources(nameSources *[]namespaces.AlternativeAuthenticationNameSource) []string {
-	var output []string
+	output := make([]string, 0)
 
 	if nameSources == nil || len(*nameSources) == 0 {
 		return output
@@ -569,7 +569,7 @@ func flattenAlternativeAuthenticationNameSources(nameSources *[]namespaces.Alter
 }
 
 func flattenDynamicRoutingEnrichments(dynamicRoutingEnrichments *[]namespaces.DynamicRoutingEnrichment) []RoutingEnrichmentModel {
-	var output []RoutingEnrichmentModel
+	output := make([]RoutingEnrichmentModel, 0)
 	if dynamicRoutingEnrichments == nil || len(*dynamicRoutingEnrichments) == 0 {
 		return output
 	}
@@ -584,7 +584,7 @@ func flattenDynamicRoutingEnrichments(dynamicRoutingEnrichments *[]namespaces.Dy
 }
 
 func flattenStaticRoutingEnrichments(staticRoutingEnrichments *[]namespaces.StaticRoutingEnrichment) []RoutingEnrichmentModel {
-	var output []RoutingEnrichmentModel
+	output := make([]RoutingEnrichmentModel, 0)
 	if staticRoutingEnrichments == nil || len(*staticRoutingEnrichments) == 0 {
 		return output
 	}

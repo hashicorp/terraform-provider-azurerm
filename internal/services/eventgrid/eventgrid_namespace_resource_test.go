@@ -92,20 +92,20 @@ func TestAccEventGridNamespaceResource_inboundIpRules(t *testing.T) {
 	})
 }
 
-func TestAccEventGridNamespaceResource_basicWithTags(t *testing.T) {
+func TestAccEventGridNamespaceResource_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace", "test")
 	r := EventGridNamespaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithTags(data),
+			Config: r.tags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithTagsUpdated(data),
+			Config: r.tagsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -367,7 +367,7 @@ resource "azurerm_eventgrid_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r EventGridNamespaceResource) basicWithTags(data acceptance.TestData) string {
+func (r EventGridNamespaceResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -390,7 +390,7 @@ resource "azurerm_eventgrid_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r EventGridNamespaceResource) basicWithTagsUpdated(data acceptance.TestData) string {
+func (r EventGridNamespaceResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
