@@ -175,20 +175,20 @@ func (r ArcMachineResource) Update() sdk.ResourceFunc {
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
-			existing := resp.Model
+			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				existing.Identity, err = identity.ExpandSystemAssignedFromModel(model.Identity)
+				payload.Identity, err = identity.ExpandSystemAssignedFromModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = pointer.To(model.Tags)
+				payload.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing, machines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload, machines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
