@@ -7,18 +7,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
@@ -84,35 +84,38 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+
+	profileId := cdn.ProfileId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ProfileName:       id.ProfileName,
+	}
+
+	existing, err := client.Get(ctx, profileId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
 	}
 
 	props := cdn.Profile{
-		Location: utils.String(location.Normalize("global")),
-		ProfileProperties: &cdn.ProfileProperties{
-			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
+		Location: location.Normalize("global"),
+		Properties: &cdn.ProfileProperties{
+			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
-		Sku: &cdn.Sku{
-			Name: cdn.SkuName(d.Get("sku_name").(string)),
+		Sku: cdn.Sku{
+			Name: pointer.To(cdn.SkuName(d.Get("sku_name").(string))),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: expandNewFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, props)
+	err = client.CreateThenPoll(ctx, profileId, props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -129,9 +132,15 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	profileId := cdn.ProfileId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ProfileName:       id.ProfileName,
+	}
+
+	resp, err := client.Get(ctx, profileId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -141,21 +150,31 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if props := resp.ProfileProperties; props != nil {
-		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
+	model := resp.Model
 
-		// whilst this is returned in the API as FrontDoorID other resources refer to
-		// this as the Resource GUID, so we will for consistency
-		d.Set("resource_guid", props.FrontDoorID)
+	if model == nil {
+		return fmt.Errorf("model is 'nil'")
 	}
+
+	if model.Properties == nil {
+		return fmt.Errorf("model.Properties is 'nil'")
+	}
+
+	d.Set("response_timeout_seconds", int(pointer.From(model.Properties.OriginResponseTimeoutSeconds)))
+
+	// whilst this is returned in the API as FrontDoorID other resources refer to
+	// this as the Resource GUID, so we will for consistency
+	d.Set("resource_guid", string(pointer.From(model.Properties.FrontDoorId)))
 
 	skuName := ""
-	if resp.Sku != nil {
-		skuName = string(resp.Sku.Name)
+	if model.Sku.Name != nil {
+		skuName = string(pointer.From(model.Sku.Name))
 	}
-	d.Set("sku_name", skuName)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	d.Set("sku_name", skuName)
+	d.Set("tags", flattenNewFrontDoorTags(model.Tags))
+
+	return nil
 }
 
 func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -168,22 +187,24 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
+	profileId := cdn.ProfileId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ProfileName:       id.ProfileName,
+	}
+
 	props := cdn.ProfileUpdateParameters{
-		Tags:                              tags.Expand(d.Get("tags").(map[string]interface{})),
-		ProfilePropertiesUpdateParameters: &cdn.ProfilePropertiesUpdateParameters{},
+		Tags:       expandNewFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
+		Properties: &cdn.ProfilePropertiesUpdateParameters{},
 	}
 
 	if d.HasChange("response_timeout_seconds") {
-		props.OriginResponseTimeoutSeconds = utils.Int32(int32(d.Get("response_timeout_seconds").(int)))
+		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, props)
+	err = client.UpdateThenPoll(ctx, profileId, props)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorProfileRead(d, meta)
@@ -199,13 +220,15 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	profileId := cdn.ProfileId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ProfileName:       id.ProfileName,
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	err = client.DeleteThenPoll(ctx, profileId)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

@@ -354,7 +354,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Bot, err = bot.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Bot: %+v", err)
 	}
-	client.Cdn = cdn.NewClient(o)
+	if client.Cdn, err = cdn.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for cdn: %+v", err)
+	}
 	if client.CodeSigning, err = codesigning.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Code Signing: %+v", err)
 	}

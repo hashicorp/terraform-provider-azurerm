@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,10 +91,16 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
+	profileId := cdn.ProfileId{
+		SubscriptionId:    id.SubscriptionId,
+		ResourceGroupName: id.ResourceGroup,
+		ProfileName:       id.ProfileName,
+	}
+
 	client := clients.Cdn.FrontDoorProfileClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	resp, err := client.Get(ctx, profileId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)

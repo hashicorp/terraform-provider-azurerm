@@ -8,8 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	cdnProfile "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -202,21 +205,37 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
-	profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+	profile := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
-	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	profileId := cdnProfile.ProfileId{
+		SubscriptionId:    profile.SubscriptionId,
+		ResourceGroupName: profile.ResourceGroup,
+		ProfileName:       profile.ProfileName,
+	}
+
+	profileResp, err := profileClient.Get(ctx, profileId)
 	if err != nil {
-		if utils.ResponseWasNotFound(profile.Response) {
+		if response.WasNotFound(profileResp.HttpResponse) {
 			return fmt.Errorf("retrieving parent %s: not found", profileId)
 		}
 
 		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
 
-	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
+	profileModel := profileResp.Model
+
+	if profileModel == nil {
+		return fmt.Errorf("profileModel is 'nil'")
 	}
-	skuName := profile.Sku.Name
+
+	if profileModel.Properties == nil {
+		return fmt.Errorf("profileModel.Properties is 'nil'")
+	}
+
+	if profileModel.Sku.Name == nil {
+		return fmt.Errorf("profileModel.Sku.Name' is 'nil'")
+	}
+	skuName := string(pointer.From(profileModel.Sku.Name))
 
 	var enabled bool
 	if !features.FourPointOhBeta() {
@@ -241,7 +260,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		props.OriginHostHeader = utils.String(originHostHeader)
 	}
 
-	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), cdn.SkuName(skuName), enableCertNameCheck)
 	if err != nil {
 		return err
 	}
@@ -357,21 +376,38 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("private_link") {
 		// I need to get the profile SKU so I know if it is valid or not to define a private link as
 		// private links are only allowed in the premium sku...
-		profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-		profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+		profile := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+
+		profileId := cdnProfile.ProfileId{
+			SubscriptionId:    profile.SubscriptionId,
+			ResourceGroupName: profile.ResourceGroup,
+			ProfileName:       profile.ProfileName,
+		}
+
+		profileResp, err := profileClient.Get(ctx, profileId)
 		if err != nil {
-			if utils.ResponseWasNotFound(profile.Response) {
-				return fmt.Errorf("retrieving parent %s: not found", profileId)
+			if response.WasNotFound(profileResp.HttpResponse) {
+				d.SetId("")
+				return nil
 			}
-
-			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
+			return fmt.Errorf("retrieving %s: %+v", profile, err)
 		}
 
-		if profile.Sku == nil {
-			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
+		profileModel := profileResp.Model
+
+		if profileModel == nil {
+			return fmt.Errorf("profileModel is 'nil'")
 		}
 
-		skuName := profile.Sku.Name
+		if profileModel.Properties == nil {
+			return fmt.Errorf("profileModel.Properties is 'nil'")
+		}
+
+		if profileModel.Sku.Name == nil {
+			return fmt.Errorf("retrieving parent %s: 'profileModel.Sku.Name' was 'nil'", profile)
+		}
+
+		skuName := cdn.SkuName(pointer.From(profileModel.Sku.Name))
 
 		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)

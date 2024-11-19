@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	cdnProfile "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnfrontdoorsecurityparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecurityparams"
@@ -148,6 +150,12 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
+	profileId := cdnProfile.ProfileId{
+		SubscriptionId:    profile.SubscriptionId,
+		ResourceGroupName: profile.ResourceGroup,
+		ProfileName:       profile.ProfileName,
+	}
+
 	securityPolicyName := d.Get("name").(string)
 	id := parse.NewFrontDoorSecurityPolicyID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, securityPolicyName)
 
@@ -163,16 +171,26 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
-	resp, err := profileClient.Get(ctx, profile.ResourceGroup, profile.ProfileName)
+	resp, err := profileClient.Get(ctx, profileId)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the 'sku_name' from the CDN FrontDoor Profile(Name: %q)': %+v", profile.ProfileName, err)
 	}
 
-	if resp.Sku == nil {
-		return fmt.Errorf("the CDN FrontDoor Profile(Name: %q) 'sku' was nil", profile.ProfileName)
+	profileModel := resp.Model
+
+	if profileModel == nil {
+		return fmt.Errorf("profileModel is 'nil'")
 	}
 
-	isStandardSku := strings.HasPrefix(strings.ToLower(string(resp.Sku.Name)), "standard")
+	if profileModel.Properties == nil {
+		return fmt.Errorf("profileModel.Properties is 'nil'")
+	}
+
+	if profileModel.Sku.Name == nil {
+		return fmt.Errorf("profileModel.Sku.Name is 'nil'")
+	}
+
+	isStandardSku := strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
 
 	params, err := cdnfrontdoorsecurityparams.ExpandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
 	if err != nil {
