@@ -791,11 +791,44 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		result.OsDisk = expandBatchPoolOSDisk(v)
 	}
 
+	if v, ok := d.GetOk("security_profile"); ok {
+		result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("windows"); ok {
 		result.WindowsConfiguration = expandBatchPoolWindowsConfiguration(v.([]interface{}))
 	}
 
 	return &result, nil
+}
+
+func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile {
+	if len(profile) == 0 {
+		return nil
+	}
+
+	item := profile[0].(map[string]interface{})
+	securityProfile := &pool.SecurityProfile{
+		UefiSettings: &pool.UefiSettings{},
+	}
+
+	if v, ok := item["host_encryption_enabled"]; ok {
+		securityProfile.EncryptionAtHost = pointer.FromBool(v.(bool))
+	}
+
+	if v, ok := item["security_type"]; ok {
+		securityProfile.SecurityType = pointer.To(pool.SecurityTypes(v.(string)))
+	}
+
+	if v, ok := item["secure_boot_enabled"]; ok {
+		securityProfile.UefiSettings.SecureBootEnabled = pointer.FromBool(v.(bool))
+	}
+
+	if v, ok := item["vtpm_enabled"]; ok {
+		securityProfile.UefiSettings.VTpmEnabled = pointer.FromBool(v.(bool))
+	}
+
+	return securityProfile
 }
 
 func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {

@@ -724,6 +724,35 @@ func resourceBatchPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"security_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"security_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityTypes(), false),
+						},
+						"secure_boot_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+						"vtpm_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+					},
+				},
+			},
+
 			"target_node_communication_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -1251,6 +1280,20 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+					if config.SecurityProfile != nil {
+						securityProfile := make([]interface{}, 0)
+						securityConfig := make(map[string]interface{})
+						securityConfig["host_encryption_enabled"] = pointer.ToBool(config.SecurityProfile.EncryptionAtHost)
+						if config.SecurityProfile.SecurityType != nil {
+							securityConfig["security_type"] = string(*config.SecurityProfile.SecurityType)
+						}
+						if config.SecurityProfile.UefiSettings != nil {
+							securityConfig["secure_boot_enabled"] = pointer.ToBool(config.SecurityProfile.UefiSettings.SecureBootEnabled)
+							securityConfig["vtpm_enabled"] = pointer.ToBool(config.SecurityProfile.UefiSettings.VTpmEnabled)
+						}
+						securityProfile = append(securityProfile, securityConfig)
+						d.Set("security_profile", securityProfile)
+					}
 					if config.WindowsConfiguration != nil {
 						windowsConfig := []interface{}{
 							map[string]interface{}{
