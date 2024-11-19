@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * `batch` - upgrade api version to `2024-07-01` [GH-27982]
 * `containerregistry` - upgrade api version to `2023-11-01-preview` [GH-27983]
 * `azurerm_application_gateway` - `1.1` is now accepted as a valid `rule_set_version` in the `waf_configuration` block [GH-28039]
+* `azurerm_arc_machine` - add support for the `identity` and `tags` properties [GH-27987]
 * `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_web_application_firewall_policy` - `1.1` is now accepted as a valid `version` for `Microsoft_BotManagerRuleSet` rule types [GH-28039]
