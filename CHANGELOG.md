@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `batch` - upgrade api version to `2024-07-01` [GH-27982]
+* `containerregistry` - upgrade api version to `2023-11-01-preview` [GH-27983]
 * `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 
