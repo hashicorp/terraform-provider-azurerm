@@ -144,7 +144,7 @@ service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
 
 service/extended-location:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_extended_custom_location((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_custom_location\W+|extended_location_custom_location\W+|extended_location_custom_location\W+)((.|\n)*)###'
 
 service/firewall:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'
