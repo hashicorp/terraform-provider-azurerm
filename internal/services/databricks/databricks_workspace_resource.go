@@ -1183,7 +1183,7 @@ func workspaceCustomParametersString() []string {
 
 func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplianceDefinition) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	enhancedSecurityCompliance := make(map[string]interface{})
@@ -1214,13 +1214,11 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 }
 
 func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSecurityComplianceDefinition {
-	var config map[string]interface{}
-
 	if len(input) == 0 || input[0] == nil {
 		return nil
-	} else {
-		config = input[0].(map[string]interface{})
 	}
+
+	config := input[0].(map[string]interface{})
 
 	automaticClusterUpdateEnabled := workspaces.AutomaticClusterUpdateValueDisabled
 	if enabled, ok := config["automatic_cluster_update_enabled"].(bool); ok && enabled {

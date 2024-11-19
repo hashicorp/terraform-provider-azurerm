@@ -6,7 +6,6 @@ package databricks_test
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -47,13 +46,13 @@ func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity_basic(t *testing.T) {
+func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, true),
+			Config: r.enhancedSecurityCompliance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
@@ -218,12 +217,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID))
 }
 
-func (DatabricksWorkspaceDataSource) enhancedSecurityCompliance(data acceptance.TestData, sku string, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, complianceSecurityProfileStandards []string, enhancedSecurityMonitoringEnabled bool) string {
-	complianceSecurityProfileStandardsStr := ""
-	if len(complianceSecurityProfileStandards) > 0 {
-		complianceSecurityProfileStandardsStr = fmt.Sprintf(`"%s"`, strings.Join(complianceSecurityProfileStandards, `", "`))
-	}
-
+func (DatabricksWorkspaceDataSource) enhancedSecurityCompliance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -238,13 +232,13 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestDBW-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "%s"
+  sku                 = "premium"
 
   enhanced_security_compliance {
-    automatic_cluster_update_enabled      = %t
-    compliance_security_profile_enabled   = %t
-    compliance_security_profile_standards = [%s]
-    enhanced_security_monitoring_enabled  = %t
+    automatic_cluster_update_enabled      = true
+    compliance_security_profile_enabled   = true
+    compliance_security_profile_standards = ["PCI_DSS", "HIPAA"]
+    enhanced_security_monitoring_enabled  = true
   }
 }
 
@@ -252,5 +246,5 @@ data "azurerm_databricks_workspace" "test" {
   name                = azurerm_databricks_workspace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

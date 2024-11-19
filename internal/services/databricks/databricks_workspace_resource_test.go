@@ -401,7 +401,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_enhancedComplianceSecurity_basic(t *testing.T) {
+func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
@@ -421,7 +421,39 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_enhancedComplianceSecurity_standardSku(t *testing.T) {
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutStandards(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{}, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.#").HasValue("1"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.automatic_cluster_update_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("0"),
+				check.That(data.ResourceName).Key("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandards(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"NONE"}, true),
+			ExpectError: regexp.MustCompile(`expected .* to be one of .*, got NONE`),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandardSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
@@ -433,7 +465,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity_standardSku(t *testin
 	})
 }
 
-func TestAccDatabricksWorkspace_enhancedComplianceSecurity_enhancedSecurityMonitoring(t *testing.T) {
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutEnhancedSecurityMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
@@ -445,7 +477,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity_enhancedSecurityMonit
 	})
 }
 
-func TestAccDatabricksWorkspace_enhancedComplianceSecurity_automaticClusterUpdate(t *testing.T) {
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutAutomaticClusterUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
@@ -457,7 +489,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity_automaticClusterUpdat
 	})
 }
 
-func TestAccDatabricksWorkspace_enhancedComplianceSecurity_complianceSecurityProfileStandards(t *testing.T) {
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceSecurityProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
 
