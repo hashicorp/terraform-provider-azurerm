@@ -48,6 +48,10 @@ Please follow the format in the example below for adding removed data sources:
 This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
 ## Breaking Changes in Resources
 
 Please follow the format in the example below for listing breaking changes in resources:
