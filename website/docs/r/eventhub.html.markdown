@@ -45,11 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Optional) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created. This property is deprecated in favour of `namespace_id`.
-
 * `namespace_id` - (Optional) Specifies the id of the EventHub Namespace. Changing this forces a new resource to be created.
-
-~> **NOTE:** One of `namespace_name` or `namespace_id` must be specified.
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 

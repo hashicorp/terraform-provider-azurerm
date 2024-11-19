@@ -379,7 +379,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = %d
   message_retention   = 1
@@ -394,7 +394,7 @@ func (EventHubResource) requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_eventhub" "import" {
   name                = azurerm_eventhub.test.name
-  namespace_name      = azurerm_eventhub.test.namespace_name
+  namespace_id        = azurerm_eventhub.test.namespace_id
   resource_group_name = azurerm_eventhub.test.resource_group_name
   partition_count     = azurerm_eventhub.test.partition_count
   message_retention   = azurerm_eventhub.test.message_retention
@@ -422,7 +422,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 10
   message_retention   = 1
@@ -450,7 +450,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctest-EH-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 7
@@ -493,7 +493,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctest-EH%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 7
@@ -536,7 +536,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctest-EH-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 5
@@ -564,7 +564,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   partition_count     = 5
   message_retention   = 1

@@ -179,6 +179,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
+			Computed:     true,
 			ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
 			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id`",
