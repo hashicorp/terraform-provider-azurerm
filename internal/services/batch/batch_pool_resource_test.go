@@ -2692,7 +2692,7 @@ resource "azurerm_batch_pool" "test" {
   }
   security_profile {
     host_encryption_enabled = false
-    security_type		   = "trustedLaunch"
+    security_type           = "trustedLaunch"
     secure_boot_enabled     = true
     vtpm_enabled            = false
   }
