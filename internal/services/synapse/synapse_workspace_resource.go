@@ -238,9 +238,6 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"sql_aad_admin"}
-					}
 					return []string{}
 				}(),
 				Elem: &pluginsdk.Resource{
@@ -276,73 +273,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["aad_admin"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Deprecated: "The `aad_admin` block has been superseded by the `azurerm_synapse_workspace_aad_admin` resource and will be removed in v4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"login": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-
-					"object_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-		resource.Schema["sql_aad_admin"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      true,
-			MaxItems:      1,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-			ConflictsWith: []string{"customer_managed_key"},
-			Deprecated:    "The `sql_aad_admin` block has been superseded by the `azurerm_synapse_workspace_sql_aad_admin` resource and will be removed in v4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"login": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-
-					"object_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-
-					"tenant_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-				},
-			},
-		}
-	}
-
 	return resource
 }
 
 func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
-	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -431,32 +366,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
 	}
 
-	if !features.FourPointOhBeta() {
-		aadAdmin := expandArmWorkspaceAadAdminInfo(d.Get("aad_admin").([]interface{}))
-		if aadAdmin != nil {
-			future, err := aadAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdmin)
-			if err != nil {
-				return fmt.Errorf("configuring AzureAD Admin for %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for configuration of AzureAD Admin for %s: %+v", id, err)
-			}
-		}
-
-		sqlAdmin := expandArmWorkspaceAadAdminInfo(d.Get("sql_aad_admin").([]interface{}))
-		if sqlAdmin != nil {
-			future, err := sqlAdminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlAdmin)
-			if err != nil {
-				return fmt.Errorf("configuring Sql Admin for %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for configuration of Sql Admin for %s: %+v", id, err)
-			}
-		}
-	}
-
 	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
 	future2, err := identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
 	if err != nil {
@@ -476,8 +385,6 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
-	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
-	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -495,30 +402,6 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	if !features.FourPointOhBeta() {
-		aadAdmin, err := aadAdminClient.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			// NOTE: AAD Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
-			if !utils.ResponseWasNotFound(aadAdmin.Response) && !utils.ResponseWasConflict(aadAdmin.Response) {
-				return fmt.Errorf("retrieving AzureAD Admin for %s: %+v", *id, err)
-			}
-		}
-		sqlAdmin, err := sqlAdminClient.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			// NOTE: SQL Admin isn't supported for a Workspace created from a Dedicated SQL Pool / SQL DataWarehouse and returns a Conflict
-			if !utils.ResponseWasNotFound(sqlAdmin.Response) && !utils.ResponseWasConflict(sqlAdmin.Response) {
-				return fmt.Errorf("retrieving Sql Admin for %s: %+v", *id, err)
-			}
-		}
-
-		if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
-			return fmt.Errorf("setting `aad_admin`: %+v", err)
-		}
-		if err := d.Set("sql_aad_admin", flattenArmWorkspaceAadAdmin(sqlAdmin.AadAdminProperties)); err != nil {
-			return fmt.Errorf("setting `sql_aad_admin`: %+v", err)
-		}
 	}
 
 	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroup, id.Name)
@@ -949,29 +832,6 @@ func flattenArmWorkspaceDataLakeStorageAccountDetails(input *synapse.DataLakeSto
 		return fmt.Sprintf("%s/%s", *input.AccountURL, *input.Filesystem)
 	}
 	return ""
-}
-
-func flattenArmWorkspaceAadAdmin(input *synapse.AadAdminProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-	var tenantId, login, sid string
-	if input.TenantID != nil {
-		tenantId = *input.TenantID
-	}
-	if input.Login != nil {
-		login = *input.Login
-	}
-	if input.Sid != nil {
-		sid = *input.Sid
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"tenant_id": tenantId,
-			"login":     login,
-			"object_id": sid,
-		},
-	}
 }
 
 func flattenWorkspaceRepositoryConfiguration(config *synapse.WorkspaceRepositoryConfiguration) (repoTypeResult string, result []interface{}) {

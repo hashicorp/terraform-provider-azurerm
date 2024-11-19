@@ -22,8 +22,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -163,7 +163,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -405,7 +405,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -441,7 +441,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				Set: resourceVirtualMachineStorageOsProfileHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -526,7 +526,7 @@ func resourceVirtualMachine() *pluginsdk.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1161,7 +1161,7 @@ func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]virtualmachines.Vau
 			certs := make([]map[string]interface{}, 0, len(*secret.VaultCertificates))
 			for _, cert := range *secret.VaultCertificates {
 				vaultCert := make(map[string]interface{})
-				vaultCert["certificate_url"] = *cert.CertificateUrl
+				vaultCert["certificate_url"] = *cert.CertificateURL
 
 				if cert.CertificateStore != nil {
 					vaultCert["certificate_store"] = *cert.CertificateStore
@@ -1247,8 +1247,8 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *virtualma
 			listener := make(map[string]interface{})
 			listener["protocol"] = string(pointer.From(i.Protocol))
 
-			if i.CertificateUrl != nil {
-				listener["certificate_url"] = *i.CertificateUrl
+			if i.CertificateURL != nil {
+				listener["certificate_url"] = *i.CertificateURL
 			}
 
 			listeners = append(listeners, listener)
@@ -1453,7 +1453,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *pluginsdk.ResourceData) *[]v
 
 				certUrl := config["certificate_url"].(string)
 				cert := virtualmachines.VaultCertificate{
-					CertificateUrl: &certUrl,
+					CertificateURL: &certUrl,
 				}
 				if v := config["certificate_store"].(string); v != "" {
 					cert.CertificateStore = &v
@@ -1539,7 +1539,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *pluginsdk.ResourceData
 					Protocol: pointer.To(virtualmachines.ProtocolTypes(protocol)),
 				}
 				if v := config["certificate_url"].(string); v != "" {
-					winRmListener.CertificateUrl = &v
+					winRmListener.CertificateURL = &v
 				}
 
 				winRmListeners = append(winRmListeners, winRmListener)

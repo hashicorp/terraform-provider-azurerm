@@ -538,7 +538,6 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -750,7 +749,7 @@ func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]actiongroupsap
 		receiver := actiongroupsapis.LogicAppReceiver{
 			Name:                 val["name"].(string),
 			ResourceId:           val["resource_id"].(string),
-			CallbackUrl:          val["callback_url"].(string),
+			CallbackURL:          val["callback_url"].(string),
 			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
@@ -766,7 +765,7 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]actiongro
 			Name:                  val["name"].(string),
 			FunctionAppResourceId: val["function_app_resource_id"].(string),
 			FunctionName:          val["function_name"].(string),
-			HTTPTriggerUrl:        val["http_trigger_url"].(string),
+			HTTPTriggerURL:        val["http_trigger_url"].(string),
 			UseCommonAlertSchema:  utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
@@ -981,7 +980,7 @@ func flattenMonitorActionGroupLogicAppReceiver(receivers *[]actiongroupsapis.Log
 
 			val["name"] = receiver.Name
 			val["resource_id"] = receiver.ResourceId
-			val["callback_url"] = receiver.CallbackUrl
+			val["callback_url"] = receiver.CallbackURL
 
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
@@ -1001,7 +1000,7 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]actiongroupsapi
 			val["name"] = receiver.Name
 			val["function_app_resource_id"] = receiver.FunctionAppResourceId
 			val["function_name"] = receiver.FunctionName
-			val["http_trigger_url"] = receiver.HTTPTriggerUrl
+			val["http_trigger_url"] = receiver.HTTPTriggerURL
 
 			if receiver.UseCommonAlertSchema != nil {
 				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema

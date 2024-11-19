@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -144,7 +143,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"network_security_group_rules_required": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(workspaces.RequiredNsgRulesAllRules),
 					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
@@ -380,17 +378,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		}),
 	}
 
-	if !features.FourPointOhBeta() {
-		// NOTE: Leaving this as O+C as the 2024-05-01 API breaking change was accidentally introduced in PR #25919
-		// and released in v3.104.0 of the provider...
-		resource.Schema["custom_parameters"].Elem.(*pluginsdk.Resource).Schema["no_public_ip"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			Computed:     true,
-			AtLeastOneOf: workspaceCustomParametersString(),
-		}
-	}
-
 	return resource
 }
 
@@ -616,7 +603,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
-
 		if err != nil {
 			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
 		}
@@ -627,7 +613,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		if accessConnector.Model.Identity != nil {
-
 			accIdentityId := ""
 			for raw := range accessConnector.Model.Identity.IdentityIds {
 				id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
@@ -801,8 +786,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		var workspaceUrl string
-		if model.Properties.WorkspaceUrl != nil {
-			workspaceUrl = *model.Properties.WorkspaceUrl
+		if model.Properties.WorkspaceURL != nil {
+			workspaceUrl = *model.Properties.WorkspaceURL
 		}
 		d.Set("workspace_url", workspaceUrl)
 

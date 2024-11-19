@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
@@ -309,22 +308,16 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	// for existing runbook, if only job_schedule field updated, then skip update runbook
 	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-
 		location := azure.NormalizeLocation(d.Get("location").(string))
 		t := d.Get("tags").(map[string]interface{})
 
-		runbookType := runbook.RunbookTypeEnum(d.Get("runbook_type").(string))
-		logProgress := d.Get("log_progress").(bool)
-		logVerbose := d.Get("log_verbose").(bool)
-		description := d.Get("description").(string)
-
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       &logVerbose,
-				LogProgress:      &logProgress,
-				RunbookType:      runbookType,
-				Description:      &description,
-				LogActivityTrace: utils.Int64(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
+				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:      pointer.To(d.Get("description").(string)),
+				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -540,23 +533,24 @@ func expandDraft(inputs []interface{}) *runbook.RunbookDraft {
 	var res runbook.RunbookDraft
 
 	res.DraftContentLink = expandContentLink(input["content_link"].([]interface{}))
-	res.InEdit = utils.Bool(input["edit_mode_enabled"].(bool))
+	res.InEdit = pointer.To(input["edit_mode_enabled"].(bool))
 	parameter := map[string]runbook.RunbookParameter{}
 
 	for _, iparam := range input["parameters"].([]interface{}) {
 		param := iparam.(map[string]interface{})
 		key := param["key"].(string)
 		parameter[key] = runbook.RunbookParameter{
-			Type:         utils.String(param["type"].(string)),
-			IsMandatory:  utils.Bool(param["mandatory"].(bool)),
-			Position:     utils.Int64(int64(param["position"].(int))),
-			DefaultValue: utils.String(param["default_value"].(string)),
+			Type:         pointer.To(param["type"].(string)),
+			IsMandatory:  pointer.To(param["mandatory"].(bool)),
+			Position:     pointer.To(int64(param["position"].(int))),
+			DefaultValue: pointer.To(param["default_value"].(string)),
 		}
 	}
 	res.Parameters = &parameter
 
-	var types []string
-	for _, v := range input["output_types"].([]interface{}) {
+	typesInput := input["output_types"].([]interface{})
+	types := make([]string, 0, len(typesInput))
+	for _, v := range typesInput {
 		types = append(types, v.(string))
 	}
 

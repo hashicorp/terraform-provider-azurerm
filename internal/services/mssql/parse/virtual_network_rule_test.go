@@ -27,7 +27,6 @@ func TestVirtualNetworkRuleID(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkRuleId
 	}{
-
 		{
 			// empty
 			Input: "",
