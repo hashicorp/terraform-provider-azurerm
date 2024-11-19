@@ -196,7 +196,11 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := share.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("quota", props.ShareQuota)
-			d.Set("acl", flattenStorageShareACLs(pointer.From(props.SignedIdentifiers)))
+			acl, err := flattenStorageShareACLs(pointer.From(props.SignedIdentifiers))
+			if err != nil {
+				return err
+			}
+			d.Set("acl", acl)
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))
 		}
 	}

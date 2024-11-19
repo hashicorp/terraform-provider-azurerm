@@ -660,8 +660,8 @@ resource "azurerm_storage_share" "test" {
 
     access_policy {
       permissions = "rwd"
-      start       = "2019-07-02T09:38:21Z"
-      expiry      = "2019-07-02T10:38:21Z"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
     }
   }
 
@@ -781,8 +781,8 @@ resource "azurerm_storage_share" "test" {
 
     access_policy {
       permissions = "rwd"
-      start       = "2019-07-02T09:38:21Z"
-      expiry      = "2019-07-02T10:38:21Z"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
     }
   }
 }
@@ -876,8 +876,8 @@ resource "azurerm_storage_share" "test" {
 
     access_policy {
       permissions = "rwd"
-      start       = "2019-07-02T09:38:21Z"
-      expiry      = "2019-07-02T10:38:21Z"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
     }
   }
   acl {
@@ -885,8 +885,8 @@ resource "azurerm_storage_share" "test" {
 
     access_policy {
       permissions = "rwd"
-      start       = "2019-07-02T09:38:21Z"
-      expiry      = "2019-07-02T10:38:21Z"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
     }
   }
 }

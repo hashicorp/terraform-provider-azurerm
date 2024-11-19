@@ -160,6 +160,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
@@ -171,6 +172,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
@@ -196,83 +198,91 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if !features.FivePointOhBeta() {
 		storageClient := meta.(*clients.Client).Storage
-		if accountName := d.Get("storage_account_name").(string); accountName != "" {
-			shareName := d.Get("name").(string)
-			quota := d.Get("quota").(int)
-			metaDataRaw := d.Get("metadata").(map[string]interface{})
-			metaData := ExpandMetaData(metaDataRaw)
 
-			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+		accountName := d.Get("storage_account_name").(string)
+		if accountName == "" {
+			accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
 			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Share %q: %v", accountName, shareName, err)
+				return err
 			}
-			if account == nil {
-				return fmt.Errorf("locating Storage Account %q", accountName)
-			}
-
-			// Determine the file endpoint, so we can build a data plane ID
-			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeFile)
-			if err != nil {
-				return fmt.Errorf("determining File endpoint: %v", err)
-			}
-
-			// Parse the file endpoint as a data plane account ID
-			accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
-			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
-			}
-
-			id := shares.NewShareID(*accountId, shareName)
-
-			protocol := shares.ShareProtocol(d.Get("enabled_protocol").(string))
-			if protocol == shares.NFS {
-				// Only FileStorage (whose sku tier is Premium only) storage account is able to have NFS file shares.
-				// See: https://learn.microsoft.com/en-us/azure/storage/files/storage-files-quick-create-use-linux#applies-to
-				if account.Kind != storageaccounts.KindFileStorage {
-					return fmt.Errorf("NFS File Share is only supported for Storage Account with kind %q but got `%s`", string(storageaccounts.KindFileStorage), account.Kind)
-				}
-			}
-
-			// The files API does not support bearer tokens (@manicminer, 2024-02-15)
-			fileSharesDataPlaneClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
-			if err != nil {
-				return fmt.Errorf("building File Share Client: %v", err)
-			}
-
-			exists, err := fileSharesDataPlaneClient.Exists(ctx, shareName)
-			if err != nil {
-				return fmt.Errorf("checking for existing %s: %v", id, err)
-			}
-			if exists != nil && *exists {
-				return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
-			}
-
-			log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
-			input := shares.CreateInput{
-				QuotaInGB:       quota,
-				MetaData:        metaData,
-				EnabledProtocol: protocol,
-			}
-
-			if accessTier := d.Get("access_tier").(string); accessTier != "" {
-				tier := shares.AccessTier(accessTier)
-				input.AccessTier = &tier
-			}
-
-			if err = fileSharesDataPlaneClient.Create(ctx, shareName, input); err != nil {
-				return fmt.Errorf("creating %s: %v", id, err)
-			}
-
-			d.SetId(id.ID())
-
-			aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
-			acls := expandStorageShareACLsDeprecated(aclsRaw)
-			if err = fileSharesDataPlaneClient.UpdateACLs(ctx, shareName, shares.SetAclInput{SignedIdentifiers: acls}); err != nil {
-				return fmt.Errorf("setting ACLs for %s: %v", id, err)
-			}
-
-			return resourceStorageShareRead(d, meta)
+			accountName = accountId.StorageAccountName
 		}
+
+		shareName := d.Get("name").(string)
+		quota := d.Get("quota").(int)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := ExpandMetaData(metaDataRaw)
+
+		account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Share %q: %v", accountName, shareName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("locating Storage Account %q", accountName)
+		}
+
+		// Determine the file endpoint, so we can build a data plane ID
+		endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeFile)
+		if err != nil {
+			return fmt.Errorf("determining File endpoint: %v", err)
+		}
+
+		// Parse the file endpoint as a data plane account ID
+		accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+		if err != nil {
+			return fmt.Errorf("parsing Account ID: %v", err)
+		}
+
+		id := shares.NewShareID(*accountId, shareName)
+
+		protocol := shares.ShareProtocol(d.Get("enabled_protocol").(string))
+		if protocol == shares.NFS {
+			// Only FileStorage (whose sku tier is Premium only) storage account is able to have NFS file shares.
+			// See: https://learn.microsoft.com/en-us/azure/storage/files/storage-files-quick-create-use-linux#applies-to
+			if account.Kind != storageaccounts.KindFileStorage {
+				return fmt.Errorf("NFS File Share is only supported for Storage Account with kind %q but got `%s`", string(storageaccounts.KindFileStorage), account.Kind)
+			}
+		}
+
+		// The files API does not support bearer tokens (@manicminer, 2024-02-15)
+		fileSharesDataPlaneClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
+		if err != nil {
+			return fmt.Errorf("building File Share Client: %v", err)
+		}
+
+		exists, err := fileSharesDataPlaneClient.Exists(ctx, shareName)
+		if err != nil {
+			return fmt.Errorf("checking for existing %s: %v", id, err)
+		}
+		if exists != nil && *exists {
+			return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		}
+
+		log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
+		input := shares.CreateInput{
+			QuotaInGB:       quota,
+			MetaData:        metaData,
+			EnabledProtocol: protocol,
+		}
+
+		if accessTier := d.Get("access_tier").(string); accessTier != "" {
+			tier := shares.AccessTier(accessTier)
+			input.AccessTier = &tier
+		}
+
+		if err = fileSharesDataPlaneClient.Create(ctx, shareName, input); err != nil {
+			return fmt.Errorf("creating %s: %v", id, err)
+		}
+
+		d.SetId(id.ID())
+
+		aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
+		acls := expandStorageShareACLsDeprecated(aclsRaw)
+		if err = fileSharesDataPlaneClient.UpdateACLs(ctx, shareName, shares.SetAclInput{SignedIdentifiers: acls}); err != nil {
+			return fmt.Errorf("setting ACLs for %s: %v", id, err)
+		}
+
+		return resourceStorageShareRead(d, meta)
 	}
 
 	accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -323,7 +333,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOhBeta() {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -357,7 +367,11 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		d.Set("name", id.ShareName)
+
+		// Setting both
+		d.Set("storage_account_id", account.StorageAccountId.ID())
 		d.Set("storage_account_name", id.AccountId.AccountName)
+
 		d.Set("quota", props.QuotaGB)
 		d.Set("url", id.ID())
 		d.Set("enabled_protocol", string(props.EnabledProtocol))
@@ -410,13 +424,14 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 			}
 			d.Set("enabled_protocol", string(enabledProtocols))
 			d.Set("access_tier", string(pointer.From(props.AccessTier)))
-			d.Set("acl", flattenStorageShareACLs(pointer.From(props.SignedIdentifiers)))
+
+			acl, err := flattenStorageShareACLs(pointer.From(props.SignedIdentifiers))
+			if err != nil {
+				return err
+			}
+			d.Set("acl", acl)
 			d.Set("metadata", FlattenMetaData(pointer.From(props.Metadata)))
 		}
-	}
-
-	if !features.FivePointOhBeta() {
-		d.Set("resource_manager_id", id.ID())
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
@@ -452,7 +467,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOhBeta() {
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -575,7 +590,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOhBeta() {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -687,16 +702,34 @@ func expandStorageShareACLs(input []interface{}) *[]fileshares.SignedIdentifier 
 	return pointer.To(results)
 }
 
-func flattenStorageShareACLs(input []fileshares.SignedIdentifier) []interface{} {
+func flattenStorageShareACLs(input []fileshares.SignedIdentifier) ([]interface{}, error) {
 	result := make([]interface{}, 0)
 
 	for _, v := range input {
+		var (
+			start  string
+			expiry string
+		)
+		if vv := v.AccessPolicy.StartTime; vv != nil {
+			t, err := time.Parse("2006-01-02T15:04:05Z", *vv)
+			if err != nil {
+				return nil, fmt.Errorf("parsing start time %q: %v", *vv, err)
+			}
+			start = t.Format("2006-01-02T15:04:05.0000000Z")
+		}
+		if vv := v.AccessPolicy.ExpiryTime; vv != nil {
+			t, err := time.Parse("2006-01-02T15:04:05Z", *vv)
+			if err != nil {
+				return nil, fmt.Errorf("parsing expiry time %q: %v", *vv, err)
+			}
+			expiry = t.Format("2006-01-02T15:04:05.0000000Z")
+		}
 		output := map[string]interface{}{
 			"id": v.Id,
 			"access_policy": []interface{}{
 				map[string]interface{}{
-					"start":       v.AccessPolicy.StartTime,
-					"expiry":      v.AccessPolicy.ExpiryTime,
+					"start":       start,
+					"expiry":      expiry,
 					"permissions": v.AccessPolicy.Permission,
 				},
 			},
@@ -705,5 +738,5 @@ func flattenStorageShareACLs(input []fileshares.SignedIdentifier) []interface{} 
 		result = append(result, output)
 	}
 
-	return result
+	return result, nil
 }
