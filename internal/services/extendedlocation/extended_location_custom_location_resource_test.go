@@ -42,7 +42,7 @@ func (r CustomLocationResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
@@ -58,7 +58,7 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 }
 
 func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
@@ -74,7 +74,7 @@ func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
 }
 
 func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
@@ -101,7 +101,7 @@ func (r CustomLocationResource) basic(data acceptance.TestData, credential strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -119,7 +119,7 @@ func (r CustomLocationResource) update(data acceptance.TestData, credential stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -139,7 +139,7 @@ func (r CustomLocationResource) complete(data acceptance.TestData, credential st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
