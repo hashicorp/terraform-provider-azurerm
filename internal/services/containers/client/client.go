@@ -56,7 +56,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
-	containerRegistryClient_v2023_06_01_preview, err := containerregistry.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	containerRegistryClient, err := containerregistry.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
 		CacheRulesClient:                            cacheRulesClient,
-		ContainerRegistryClient:                     containerRegistryClient_v2023_06_01_preview,
+		ContainerRegistryClient:                     containerRegistryClient,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
