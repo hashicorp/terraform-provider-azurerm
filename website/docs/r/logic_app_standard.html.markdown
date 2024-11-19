@@ -143,7 +143,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `public_network_access` - (Optional) Whether Public Network Access should be enabled or not. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. Changing this forces a new resource to be created.
+* `public_network_access` - (Optional) Whether Public Network Access should be enabled or not. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+
+~> **Note:** Setting this property will also set it in the Site Config.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -216,8 +218,6 @@ The `site_config` block supports the following:
 * `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Logic App Only affects apps on the Premium plan.
-
-* `public_network_access_enabled` - (Optional) Is public network access enabled? Defaults to `true`.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 

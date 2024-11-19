@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -31,7 +32,7 @@ import (
 )
 
 func resourceLogicAppStandard() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogicAppStandardCreate,
 		Read:   resourceLogicAppStandardRead,
 		Update: resourceLogicAppStandardUpdate,
@@ -172,7 +173,6 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  helpers.PublicNetworkAccessEnabled,
 				ValidateFunc: validation.StringInSlice([]string{
 					helpers.PublicNetworkAccessEnabled,
@@ -245,6 +245,15 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		// Due to the way the `site_config.public_network_access_enabled` property and the `public_network_access` property
+		// influence each other, the default needs to be handled in the Create for now until `site_config.public_network_access_enabled`
+		// is removed in v5.0
+		resource.Schema["public_network_access"].Default = nil
+		resource.Schema["public_network_access"].Computed = true
+	}
+	return resource
 }
 
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -327,10 +336,27 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
 			ClientCertEnabled:     pointer.To(clientCertEnabled),
 			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
-			PublicNetworkAccess:   pointer.To(d.Get("public_network_access").(string)),
 			SiteConfig:            &siteConfig,
 		},
 	}
+
+	publicNetworkAccess := d.Get("public_network_access").(string)
+	if !features.FivePointOhBeta() && publicNetworkAccess == "" {
+		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
+		publicNetworkAccess = helpers.PublicNetworkAccessEnabled
+		if *siteEnvelope.Properties.SiteConfig.PublicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+			publicNetworkAccess = helpers.PublicNetworkAccessDisabled
+		}
+	}
+
+	// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
+	if publicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+		siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+	} else if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+		siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+	}
+
+	siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 
 	if clientCertEnabled {
 		siteEnvelope.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(clientCertMode))
@@ -417,6 +443,16 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			PublicNetworkAccess:   pointer.To(d.Get("public_network_access").(string)),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if d.HasChange("public_network_access") {
+		publicNetworkAccess := d.Get("public_network_access").(string)
+		siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+		} else {
+			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+		}
 	}
 
 	if clientCertEnabled {
@@ -712,7 +748,7 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 }
 
 func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -866,12 +902,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -879,6 +909,17 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
+		}
+	}
+
+	return schema
 }
 
 func schemaLogicAppCorsSettings() *pluginsdk.Schema {
@@ -1094,7 +1135,10 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []interface{} 
 	if input.PublicNetworkAccess != nil {
 		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 	}
-	result["public_network_access_enabled"] = publicNetworkAccessEnabled
+
+	if !features.FivePointOhBeta() {
+		result["public_network_access_enabled"] = publicNetworkAccessEnabled
+	}
 
 	results = append(results, result)
 	return results
@@ -1319,12 +1363,14 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
-	if v, ok := config["public_network_access_enabled"]; ok {
-		pna := helpers.PublicNetworkAccessEnabled
-		if !v.(bool) {
-			pna = helpers.PublicNetworkAccessDisabled
+	if !features.FivePointOhBeta() {
+		if v, ok := config["public_network_access_enabled"]; ok {
+			pna := helpers.PublicNetworkAccessEnabled
+			if !v.(bool) {
+				pna = helpers.PublicNetworkAccessDisabled
+			}
+			siteConfig.PublicNetworkAccess = pointer.To(pna)
 		}
-		siteConfig.PublicNetworkAccess = pointer.To(pna)
 	}
 
 	return siteConfig, nil
