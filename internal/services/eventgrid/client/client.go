@@ -19,7 +19,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	NamespacesClient, err := namespaces.NewNamespacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Namespaces Client: %+v", err)

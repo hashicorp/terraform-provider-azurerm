@@ -417,7 +417,7 @@ func expandInboundIPRules(input []InboundIpRuleModel) *[]namespaces.InboundIPRul
 		return nil
 	}
 
-	var ipRules []namespaces.InboundIPRule
+	ipRules := make([]namespaces.InboundIPRule, 0)
 	for _, v := range input {
 		ipRules = append(ipRules, namespaces.InboundIPRule{
 			Action: pointer.To(namespaces.IPActionType(v.Action)),
@@ -447,9 +447,7 @@ func expandTopicSpacesConfiguration(input []TopicSpacesConfigurationModel) *name
 	if input == nil {
 		return nil
 	}
-
-	topicSpacesConfig := namespaces.TopicSpacesConfiguration{}
-	topicSpacesConfig = namespaces.TopicSpacesConfiguration{
+	topicSpacesConfig := namespaces.TopicSpacesConfiguration{
 		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
 			AlternativeAuthenticationNameSources: expandAlternativeAuthenticationNameSources(input[0].AlternativeAuthenticationNameSources),
@@ -462,17 +460,15 @@ func expandTopicSpacesConfiguration(input []TopicSpacesConfigurationModel) *name
 			Static:  expandStaticRoutingEnrichments(input[0].StaticRoutingEnrichment),
 		},
 	}
-
 	return &topicSpacesConfig
-
 }
 
 func expandTopicSpacesConfigurationUpdate(input []TopicSpacesConfigurationModel) *namespaces.UpdateTopicSpacesConfigurationInfo {
 	if input == nil {
 		return nil
 	}
-	topicSpacesConfig := namespaces.UpdateTopicSpacesConfigurationInfo{}
-	topicSpacesConfig = namespaces.UpdateTopicSpacesConfigurationInfo{
+
+	topicSpacesConfig := namespaces.UpdateTopicSpacesConfigurationInfo{
 		State: pointer.To(namespaces.TopicSpacesConfigurationStateEnabled),
 		ClientAuthentication: &namespaces.ClientAuthenticationSettings{
 			AlternativeAuthenticationNameSources: expandAlternativeAuthenticationNameSources(input[0].AlternativeAuthenticationNameSources),
@@ -485,9 +481,7 @@ func expandTopicSpacesConfigurationUpdate(input []TopicSpacesConfigurationModel)
 			Static:  expandStaticRoutingEnrichments(input[0].StaticRoutingEnrichment),
 		},
 	}
-
 	return &topicSpacesConfig
-
 }
 
 func expandAlternativeAuthenticationNameSources(input []string) *[]namespaces.AlternativeAuthenticationNameSource {
@@ -495,7 +489,7 @@ func expandAlternativeAuthenticationNameSources(input []string) *[]namespaces.Al
 		return nil
 	}
 
-	var nameSources []namespaces.AlternativeAuthenticationNameSource
+	nameSources := make([]namespaces.AlternativeAuthenticationNameSource, 0)
 	for _, v := range input {
 		nameSources = append(nameSources, namespaces.AlternativeAuthenticationNameSource(v))
 	}
@@ -506,14 +500,13 @@ func expandDynamicRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespac
 	if len(input) == 0 {
 		return nil
 	}
-	var dynamicRoutingEnrichments []namespaces.DynamicRoutingEnrichment
+	dynamicRoutingEnrichments := make([]namespaces.DynamicRoutingEnrichment, 0)
 	for _, v := range input {
 		dynamicRoutingEnrichments = append(dynamicRoutingEnrichments, namespaces.DynamicRoutingEnrichment{
 			Value: pointer.To(v.Value),
 			Key:   pointer.To(v.Key),
 		})
 	}
-
 	return &dynamicRoutingEnrichments
 }
 
@@ -522,7 +515,7 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 		return nil
 	}
 
-	var staticRoutingEnrichments []namespaces.StaticRoutingEnrichment
+	staticRoutingEnrichments := make([]namespaces.StaticRoutingEnrichment, 0)
 	for _, v := range input {
 		staticRoutingEnrichments = append(staticRoutingEnrichments, namespaces.StaticStringRoutingEnrichment{
 			Value:     pointer.To(v.Value),
@@ -530,7 +523,6 @@ func expandStaticRoutingEnrichments(input []RoutingEnrichmentModel) *[]namespace
 			ValueType: namespaces.StaticRoutingEnrichmentTypeString,
 		})
 	}
-
 	return &staticRoutingEnrichments
 }
 
@@ -561,7 +553,6 @@ func flattenTopicSpacesConfiguration(topicSpacesConfig *namespaces.TopicSpacesCo
 	}
 
 	return []TopicSpacesConfigurationModel{output}, nil
-
 }
 
 func flattenAlternativeAuthenticationNameSources(nameSources *[]namespaces.AlternativeAuthenticationNameSource) []string {
@@ -589,7 +580,6 @@ func flattenDynamicRoutingEnrichments(dynamicRoutingEnrichments *[]namespaces.Dy
 			Key:   pointer.From(v.Key),
 		})
 	}
-
 	return output
 }
 
@@ -605,6 +595,5 @@ func flattenStaticRoutingEnrichments(staticRoutingEnrichments *[]namespaces.Stat
 			Key:   pointer.From(v.(namespaces.StaticStringRoutingEnrichment).Key),
 		})
 	}
-
 	return output
 }
