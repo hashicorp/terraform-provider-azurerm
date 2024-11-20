@@ -175,10 +175,8 @@ func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 		return result
 	}
 
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, string(item))
-		}
+	for _, item := range *input {
+		result = append(result, string(item))
 	}
 
 	return result
@@ -190,14 +188,12 @@ func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) [
 		return result
 	}
 
-	if input != nil {
-		for _, item := range *input {
-			if item.ID == nil {
-				continue
-			}
-
-			result = append(result, *item.ID)
+	for _, item := range *input {
+		if item.ID == nil {
+			continue
 		}
+
+		result = append(result, *item.ID)
 	}
 
 	return result

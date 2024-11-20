@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -34,6 +35,8 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
@@ -96,6 +99,11 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 	// whilst this is returned in the API as FrontDoorID other resources refer to
 	// this as the Resource GUID, so we will for consistency
 	d.Set("resource_guid", pointer.From(model.Properties.FrontDoorId))
+
+	identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+	if err == nil {
+		d.Set("identity", identity)
+	}
 
 	skuName := ""
 	if model.Sku.Name != nil {

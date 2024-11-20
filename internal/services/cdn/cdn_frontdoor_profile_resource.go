@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -49,6 +50,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
@@ -113,6 +116,15 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: expandNewFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("identity"); ok {
+		i, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
+	}
+
 	err = client.CreateThenPoll(ctx, profileId, props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -160,6 +172,15 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("model.Properties is 'nil'")
 	}
 
+	identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	d.Set("response_timeout_seconds", int(pointer.From(model.Properties.OriginResponseTimeoutSeconds)))
 
 	// whilst this is returned in the API as FrontDoorID other resources refer to
@@ -200,6 +221,15 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("response_timeout_seconds") {
 		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
+	}
+
+	if d.HasChange("identity") {
+		i, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
 	}
 
 	err = client.UpdateThenPoll(ctx, profileId, props)
