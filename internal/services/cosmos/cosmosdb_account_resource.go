@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
@@ -127,7 +128,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 }
 
 func resourceCosmosDbAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCosmosDbAccountCreate,
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
@@ -253,10 +254,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 
 			// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
 			"minimal_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
-				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+				}, false),
 			},
 
 			"create_mode": {
@@ -764,6 +767,17 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["minimal_tls_version"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
+		}
+	}
+
+	return resource
 }
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {

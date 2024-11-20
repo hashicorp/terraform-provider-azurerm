@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -246,6 +247,9 @@ func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing
 }
 
 func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("There is no more available values for `minimal_tls_version` to test.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
