@@ -8,9 +8,7 @@ import (
 
 type Registration struct{}
 
-var (
-	_ sdk.TypedServiceRegistration = Registration{}
-)
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{

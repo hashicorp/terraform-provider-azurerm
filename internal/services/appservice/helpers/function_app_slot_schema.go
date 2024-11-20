@@ -14,7 +14,7 @@ import (
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
+	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type SiteConfigWindowsFunctionAppSlot struct {
@@ -1096,7 +1096,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+		if len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
 			appSettings = append(appSettings, webapps.NameValuePair{
 				Name:  pointer.To("DOCKER_REGISTRY_SERVER_URL"),

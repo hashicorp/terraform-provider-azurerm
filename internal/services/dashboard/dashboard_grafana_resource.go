@@ -557,7 +557,7 @@ func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegration
 }
 
 func expandAzureMonitorWorkspaceIntegrationModelArray(inputList []AzureMonitorWorkspaceIntegrationModel) *[]grafanaresource.AzureMonitorWorkspaceIntegration {
-	var outputList []grafanaresource.AzureMonitorWorkspaceIntegration
+	outputList := make([]grafanaresource.AzureMonitorWorkspaceIntegration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := grafanaresource.AzureMonitorWorkspaceIntegration{
@@ -622,17 +622,15 @@ func flattenSMTPConfigurationModel(input *grafanaresource.Smtp, data *schema.Res
 
 	output.Password = data.Get("smtp.0.password").(string)
 
-	outputList = append(outputList, output)
-
-	return outputList
+	return append(outputList, output)
 }
 
 func flattenAzureMonitorWorkspaceIntegrationModelArray(inputList *[]grafanaresource.AzureMonitorWorkspaceIntegration) []AzureMonitorWorkspaceIntegrationModel {
-	var outputList []AzureMonitorWorkspaceIntegrationModel
 	if inputList == nil {
-		return outputList
+		return []AzureMonitorWorkspaceIntegrationModel{}
 	}
 
+	outputList := make([]AzureMonitorWorkspaceIntegrationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := AzureMonitorWorkspaceIntegrationModel{}
 

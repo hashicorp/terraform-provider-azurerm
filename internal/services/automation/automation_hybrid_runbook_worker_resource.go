@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/hybridrunbookworker"
@@ -171,17 +172,17 @@ func (m HybridRunbookWorkerResource) Read() sdk.ResourceFunc {
 			var output HybridRunbookWorkerModel
 
 			// the name in response corresponding to work_id in request
-			output.WorkerId = utils.NormalizeNilableString(result.Model.Name)
+			output.WorkerId = pointer.From(result.Model.Name)
 			output.AutomationAccountName = id.AutomationAccountName
 			output.ResourceGroupName = id.ResourceGroupName
 			output.WorkerGroupName = id.HybridRunbookWorkerGroupName
 			if prop := result.Model.Properties; prop != nil {
-				output.VmResourceId = utils.NormalizeNilableString(prop.VMResourceId)
-				output.WorkerType = utils.NormalizeNilableString((*string)(prop.WorkerType))
-				output.LastSeenDateTime = utils.NormalizeNilableString(prop.LastSeenDateTime)
-				output.RegisteredDateTime = utils.NormalizeNilableString(prop.RegisteredDateTime)
-				output.Ip = utils.NormalizeNilableString(prop.IP)
-				output.WorkerName = utils.NormalizeNilableString(prop.WorkerName)
+				output.VmResourceId = pointer.From(prop.VMResourceId)
+				output.WorkerType = pointer.From((*string)(prop.WorkerType))
+				output.LastSeenDateTime = pointer.From(prop.LastSeenDateTime)
+				output.RegisteredDateTime = pointer.From(prop.RegisteredDateTime)
+				output.Ip = pointer.From(prop.IP)
+				output.WorkerName = pointer.From(prop.WorkerName)
 			}
 			return meta.Encode(&output)
 		},

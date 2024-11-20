@@ -399,7 +399,7 @@ func flattenStorageCacheNfsDefaultAccessPolicy(input caches.NfsAccessPolicy) ([]
 }
 
 func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRule {
-	var out []caches.NfsAccessRule
+	out := make([]caches.NfsAccessRule, 0, len(input))
 	for _, accessRuleRaw := range input {
 		b := accessRuleRaw.(map[string]interface{})
 		out = append(out, caches.NfsAccessRule{
@@ -417,9 +417,8 @@ func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRul
 }
 
 func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interface{}, error) {
-	var rules []interface{}
+	rules := make([]interface{}, 0, len(input))
 	for _, accessRule := range input {
-
 		anonymousUID := 0
 		if accessRule.AnonymousUID != nil {
 			var err error

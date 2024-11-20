@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -22,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMRoleDefinitionModel struct {
@@ -47,8 +46,10 @@ type Permission struct {
 
 type KeyVaultMHSMRoleDefinitionResource struct{}
 
-var _ sdk.ResourceWithStateMigration = KeyVaultMHSMRoleDefinitionResource{}
-var _ sdk.ResourceWithUpdate = KeyVaultMHSMRoleDefinitionResource{}
+var (
+	_ sdk.ResourceWithStateMigration = KeyVaultMHSMRoleDefinitionResource{}
+	_ sdk.ResourceWithUpdate         = KeyVaultMHSMRoleDefinitionResource{}
+)
 
 // Arguments ...
 // skip `assignable_scopes` field support as https://github.com/Azure/azure-rest-api-specs/issues/23045
@@ -61,20 +62,12 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"managed_hsm_id": func() *pluginsdk.Schema {
-			s := &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ForceNew:     true,
-				ValidateFunc: managedhsms.ValidateManagedHSMID,
-			}
-			if features.FourPointOhBeta() {
-				s.Required = true
-			} else {
-				s.Optional = true
-				s.Computed = true
-			}
-			return s
-		}(),
+		"managed_hsm_id": {
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
+		},
 
 		"role_name": {
 			Type:         pluginsdk.TypeString,
@@ -145,16 +138,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		s["vault_base_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-		}
-	}
-
 	return s
 }
 
@@ -222,21 +205,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
 				if err != nil {
 					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
-				}
-			}
-
-			if managedHsmId == nil && !features.FourPointOhBeta() {
-				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
-				}
-				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
-				if err != nil {
-					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
-				}
-				if managedHsmId == nil {
-					return fmt.Errorf("unable to determine the Resource Manager ID")
 				}
 			}
 
@@ -501,9 +469,9 @@ func (r KeyVaultMHSMRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaV
 }
 
 func expandKeyVaultMHSMRolePermissions(perms []Permission) *[]keyvault.Permission {
-	var res []keyvault.Permission
+	res := make([]keyvault.Permission, 0, len(perms))
 	for _, perm := range perms {
-		var dataActions, notDataActions = make([]keyvault.DataAction, 0), make([]keyvault.DataAction, 0)
+		dataActions, notDataActions := make([]keyvault.DataAction, 0), make([]keyvault.DataAction, 0)
 		for _, data := range perm.DataActions {
 			dataActions = append(dataActions, keyvault.DataAction(data))
 		}
@@ -526,7 +494,7 @@ func flattenKeyVaultMHSMRolePermission(perms *[]keyvault.Permission) []Permissio
 		return make([]Permission, 0)
 	}
 
-	var res []Permission
+	res := make([]Permission, 0, len(*perms))
 	for _, perm := range *perms {
 		var data, notData []string
 		for _, item := range pointer.From(perm.DataActions) {

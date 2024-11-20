@@ -254,7 +254,6 @@ func (r ExadataInfraResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.Oracle.OracleClient.CloudExadataInfrastructures
 			id, err := cloudexadatainfrastructures.ParseCloudExadataInfrastructureID(metadata.ResourceData.Id())
 			if err != nil {
@@ -358,7 +357,7 @@ func (ExadataInfraResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func ExpandCustomerContacts(customerContactsList []string) []cloudexadatainfrastructures.CustomerContact {
-	var customerContacts []cloudexadatainfrastructures.CustomerContact
+	customerContacts := make([]cloudexadatainfrastructures.CustomerContact, 0, len(customerContactsList))
 	for _, customerContact := range customerContactsList {
 		customerContacts = append(customerContacts, cloudexadatainfrastructures.CustomerContact{
 			Email: customerContact,
@@ -368,7 +367,7 @@ func ExpandCustomerContacts(customerContactsList []string) []cloudexadatainfrast
 }
 
 func ExpandDayOfWeekTo(daysOfWeek []string) []cloudexadatainfrastructures.DayOfWeek {
-	var daysOfWeekConverted []cloudexadatainfrastructures.DayOfWeek
+	daysOfWeekConverted := make([]cloudexadatainfrastructures.DayOfWeek, 0, len(daysOfWeek))
 	for _, day := range daysOfWeek {
 		daysOfWeekConverted = append(daysOfWeekConverted, cloudexadatainfrastructures.DayOfWeek{
 			Name: cloudexadatainfrastructures.DayOfWeekName(day),
@@ -378,7 +377,7 @@ func ExpandDayOfWeekTo(daysOfWeek []string) []cloudexadatainfrastructures.DayOfW
 }
 
 func ExpandMonths(months []string) []cloudexadatainfrastructures.Month {
-	var monthsConverted []cloudexadatainfrastructures.Month
+	monthsConverted := make([]cloudexadatainfrastructures.Month, 0, len(months))
 	for _, month := range months {
 		monthsConverted = append(monthsConverted, cloudexadatainfrastructures.Month{
 			Name: cloudexadatainfrastructures.MonthName(month),

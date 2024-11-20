@@ -47,3 +47,12 @@ type ImportResourceStateClientCapabilities struct {
 	// handle deferred responses from the provider.
 	DeferralAllowed bool
 }
+
+// OpenEphemeralResourceClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the OpenEphemeralResource RPC,
+// such as forward-compatible Terraform behavior changes.
+type OpenEphemeralResourceClientCapabilities struct {
+	// DeferralAllowed signals that the request from Terraform is able to
+	// handle deferred responses from the provider.
+	DeferralAllowed bool
+}
