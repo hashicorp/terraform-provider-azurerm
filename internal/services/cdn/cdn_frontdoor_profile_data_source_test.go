@@ -35,7 +35,7 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithSystemIdentity(t *testing.T) 
 		{
 			Config: d.basicWithSystemIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_AzureFrontDoor"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 			),
 		},
@@ -50,7 +50,7 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithUserIdentity(t *testing.T) {
 		{
 			Config: d.basicWithUserIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_AzureFrontDoor"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
@@ -65,7 +65,7 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithSystemAndUserIdentity(t *test
 		{
 			Config: d.basicWithSystemAndUserIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_AzureFrontDoor"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
 			),
 		},
