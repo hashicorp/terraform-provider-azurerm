@@ -391,6 +391,7 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -399,14 +400,7 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
 			),
 		},
-		{
-			Config: r.premium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
-				check.That(data.ResourceName).Key("capacity").HasValue("1"),
-			),
-		},
+		data.ImportStep(),
 	})
 }
 
