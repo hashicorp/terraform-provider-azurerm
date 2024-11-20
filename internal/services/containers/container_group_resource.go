@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -518,66 +517,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			}
 			return nil
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			ForceNew:   true,
-			Deprecated: "The `gpu` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.IntInSlice([]int{
-							1,
-							2,
-							4,
-						}),
-					},
-
-					"sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"K80",
-							"P100",
-							"V100",
-						}, false),
-					},
-				},
-			},
-		}
-		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu_limit"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			Deprecated: "The `gpu_limit` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"count": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-
-					"sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"K80",
-							"P100",
-							"V100",
-						}, false),
-					},
-				},
-			},
-		}
 	}
 
 	return resource
@@ -1241,42 +1180,6 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			container.Properties.Resources.Limits = limits
 		}
 
-		if !features.FourPointOhBeta() {
-			if v, ok := data["gpu"]; ok {
-				gpus := v.([]interface{})
-				for _, gpuRaw := range gpus {
-					if gpuRaw == nil {
-						continue
-					}
-					v := gpuRaw.(map[string]interface{})
-					gpuCount := int32(v["count"].(int))
-					gpuSku := containerinstance.GpuSku(v["sku"].(string))
-
-					gpus := containerinstance.GpuResource{
-						Count: int64(gpuCount),
-						Sku:   gpuSku,
-					}
-					container.Properties.Resources.Requests.Gpu = &gpus
-				}
-			}
-
-			gpuLimit, ok := data["gpu_limit"].([]interface{})
-			if ok && len(gpuLimit) == 1 && gpuLimit[0] != nil {
-				if container.Properties.Resources.Limits == nil {
-					container.Properties.Resources.Limits = &containerinstance.ResourceLimits{}
-				}
-
-				v := gpuLimit[0].(map[string]interface{})
-				container.Properties.Resources.Limits.Gpu = &containerinstance.GpuResource{}
-				if v := int64(v["count"].(int)); v != 0 {
-					container.Properties.Resources.Limits.Gpu.Count = v
-				}
-				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
-					container.Properties.Resources.Limits.Gpu.Sku = v
-				}
-			}
-		}
-
 		if v, ok := data["ports"].(*pluginsdk.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
 			for _, v := range v.List() {
@@ -1786,34 +1689,12 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["cpu"] = resourceRequests.Cpu
 		containerConfig["memory"] = resourceRequests.MemoryInGB
 
-		if !features.FourPointOhBeta() {
-			gpus := make([]interface{}, 0)
-			if v := resourceRequests.Gpu; v != nil {
-				gpu := make(map[string]interface{})
-				gpu["count"] = v.Count
-				gpu["sku"] = string(v.Sku)
-				gpus = append(gpus, gpu)
-			}
-			containerConfig["gpu"] = gpus
-		}
-
 		if resourceLimits := resources.Limits; resourceLimits != nil {
 			if v := resourceLimits.Cpu; v != nil {
 				containerConfig["cpu_limit"] = *v
 			}
 			if v := resourceLimits.MemoryInGB; v != nil {
 				containerConfig["memory_limit"] = *v
-			}
-
-			if !features.FourPointOhBeta() {
-				gpus := make([]interface{}, 0)
-				if v := resourceLimits.Gpu; v != nil {
-					gpu := make(map[string]interface{})
-					gpu["count"] = v.Count
-					gpu["sku"] = string(v.Sku)
-					gpus = append(gpus, gpu)
-				}
-				containerConfig["gpu_limit"] = gpus
 			}
 		}
 

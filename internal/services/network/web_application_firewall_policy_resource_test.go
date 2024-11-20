@@ -1987,7 +1987,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       excluded_rule_set {
         type    = "Microsoft_BotManagerRuleSet"
-        version = "1.0"
+        version = "1.1"
         rule_group {
           rule_group_name = "UnknownBots"
           excluded_rules = [
@@ -2036,7 +2036,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
     managed_rule_set {
       type    = "Microsoft_BotManagerRuleSet"
-      version = "1.0"
+      version = "1.1"
     }
 
     exclusion {
@@ -2046,7 +2046,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       excluded_rule_set {
         type    = "Microsoft_BotManagerRuleSet"
-        version = "1.0"
+        version = "1.1"
         rule_group {
           rule_group_name = "GoodBots"
           excluded_rules = [

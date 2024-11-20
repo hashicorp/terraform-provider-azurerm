@@ -6,14 +6,13 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -157,7 +156,7 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -177,8 +176,6 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 				if err := client.AccountsUpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
-
-				metadata.SetID(id)
 			}
 
 			return nil
@@ -200,12 +197,12 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.AccountsGet(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -266,7 +263,7 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -324,7 +321,7 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		KeyVaultProperties: &netappaccounts.KeyVaultProperties{
 			KeyName:            keyId.Name,
 			KeyVaultUri:        keyId.KeyVaultBaseUrl,
-			KeyVaultResourceId: parsedKeyVaultID.ID(),
+			KeyVaultResourceId: pointer.To(parsedKeyVaultID.ID()),
 		},
 	}
 
