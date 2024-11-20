@@ -1576,7 +1576,7 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 
 				"sub_path": {
 					Type:        pluginsdk.TypeString,
-					Optional:    true,
+					Computed:    true,
 					Description: "The sub path of the volume to be mounted in the container.",
 				},
 			},
