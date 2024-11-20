@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -30,12 +29,7 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,workflowapp"),
-				func() pluginsdk.TestCheckFunc {
-					if features.FourPointOhBeta() {
-						return check.That(data.ResourceName).Key("version").HasValue("~4")
-					}
-					return check.That(data.ResourceName).Key("version").HasValue("~3")
-				}(),
+				check.That(data.ResourceName).Key("version").HasValue("~4"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
@@ -2040,7 +2034,9 @@ resource "azurerm_app_service_plan" "test" {
 
 func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2116,12 +2112,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2198,12 +2198,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"

@@ -12,6 +12,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// ImportStateClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ImportResourceState RPC,
+// such as forward-compatible Terraform behavior changes.
+type ImportStateClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	DeferralAllowed bool
+}
+
 // ImportStateRequest represents a request for the provider to import a
 // resource. An instance of this request struct is supplied as an argument to
 // the Resource's ImportState method.
@@ -23,6 +35,10 @@ type ImportStateRequest struct {
 	// its own type of value and parsed during import. This value
 	// is not stored in the state unless the provider explicitly stores it.
 	ID string
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ImportResourceState RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities ImportStateClientCapabilities
 }
 
 // ImportStateResponse represents a response to a ImportStateRequest.
@@ -44,6 +60,16 @@ type ImportStateResponse struct {
 	// This field is not pre-populated as there is no pre-existing private state
 	// data during the resource's Import operation.
 	Private *privatestate.ProviderData
+
+	// Deferred indicates that Terraform should defer
+	// importing this resource.
+	//
+	// This field can only be set if
+	// `(resource.ImportStateRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	Deferred *Deferred
 }
 
 // ImportStatePassthroughID is a helper function to set the import

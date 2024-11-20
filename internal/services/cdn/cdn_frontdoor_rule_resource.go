@@ -40,7 +40,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -85,7 +84,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"redirect_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -154,7 +152,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"source_pattern": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -182,7 +179,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"header_action": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -214,7 +210,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"header_action": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -247,7 +242,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									"cdn_frontdoor_origin_group_id": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
@@ -326,7 +320,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"remote_address_condition": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -373,7 +366,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// In the API this is called selector
 									"post_args_name": {
 										Type:         pluginsdk.TypeString,
@@ -408,7 +400,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// In the API this is called selector
 									// match_values are invalid if operator is 'Any'
 									"header_name": {
@@ -513,7 +504,6 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-
 									// In the API this is called selector
 									"cookie_name": {
 										Type:         pluginsdk.TypeString,

@@ -65,7 +65,6 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 	queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Queues Client: %v", err)
-
 	}
 
 	// Determine the queue endpoint, so we can build a data plane ID

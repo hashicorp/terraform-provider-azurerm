@@ -134,7 +134,6 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 		}
 
 		return tags.FlattenAndSet(d, m.Tags)
-
 	}
 	return nil
 }

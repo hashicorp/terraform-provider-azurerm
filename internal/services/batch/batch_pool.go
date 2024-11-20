@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -302,7 +302,7 @@ func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRe
 }
 
 func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer string, armUsername string) interface{} {
-	numContainerRegistries := 0
+	var numContainerRegistries int
 	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
 		numContainerRegistries = n.(int)
 	} else {
@@ -542,17 +542,17 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	containerRegistry := pool.ContainerRegistry{}
 
 	if v := ref["registry_server"]; v != nil && v != "" {
-		containerRegistry.RegistryServer = pointer.FromString(v.(string))
+		containerRegistry.RegistryServer = pointer.To(v.(string))
 	}
 	if v := ref["user_name"]; v != nil && v != "" {
-		containerRegistry.Username = pointer.FromString(v.(string))
+		containerRegistry.Username = pointer.To(v.(string))
 	}
 	if v := ref["password"]; v != nil && v != "" {
-		containerRegistry.Password = pointer.FromString(v.(string))
+		containerRegistry.Password = pointer.To(v.(string))
 	}
 	if v := ref["user_assigned_identity_id"]; v != nil && v != "" {
 		containerRegistry.IdentityReference = &pool.ComputeNodeIdentityReference{
-			ResourceId: pointer.FromString(v.(string)),
+			ResourceId: pointer.To(v.(string)),
 		}
 	}
 
@@ -561,8 +561,7 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
-	var result []pool.CertificateReference
-
+	result := make([]pool.CertificateReference, 0, len(list))
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
 		certificateReference, err := expandBatchPoolCertificateReference(item)
@@ -920,8 +919,8 @@ func expandBatchPoolDataDisks(list []interface{}) *[]pool.DataDisk {
 	if len(list) == 0 || list[0] == nil {
 		return nil
 	}
-	var result []pool.DataDisk
 
+	result := make([]pool.DataDisk, 0, len(list))
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
 		result = append(result, expandBatchPoolDataDisk(item))

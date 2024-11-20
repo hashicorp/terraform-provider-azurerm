@@ -10,6 +10,8 @@ description: |-
 
 Enables or disables the Security Center Auto Provisioning feature for the subscription
 
+~> **Note:** The `azurerm_security_center_auto_provisioning` resource has been deprecated because [the auto provisioning capability will be deprecated by end of Novemember of 2024](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan) and will be removed in v5.0 of the AzureRM Provider.
+
 ~> **NOTE:** There is no resource name required, it will always be "default"
 
 ## Example Usage
