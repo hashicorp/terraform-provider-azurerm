@@ -655,27 +655,6 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (EventHubNamespaceResource) premium(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = "1"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (EventHubNamespaceResource) standardWithIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
