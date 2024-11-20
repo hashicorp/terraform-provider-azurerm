@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -376,7 +377,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
 				_, defaultStorageFirewallEnabled := d.GetChange("default_storage_firewall_enabled")
@@ -437,7 +437,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, enhancedSecurityMonitoringEnabled := d.GetChange("enhanced_security_compliance.0.enhanced_security_monitoring_enabled")
 
 				if complianceSecurityProfileEnabled.(bool) && (!automaticClusterUpdateEnabled.(bool) || !enhancedSecurityMonitoringEnabled.(bool)) {
-					return fmt.Errorf("'automatic_cluster_update_enabled' and 'enhanced_security_monitoring_enabled' must be set to true when using 'compliance_security_profile'")
+					return fmt.Errorf("'automatic_cluster_update_enabled' and 'enhanced_security_monitoring_enabled' must be set to true when 'compliance_security_profile_enabled' is set to true")
 				}
 
 				return nil
@@ -1189,18 +1189,18 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 	enhancedSecurityCompliance := make(map[string]interface{})
 
 	if v := input.AutomaticClusterUpdate; v != nil {
-		enhancedSecurityCompliance["automatic_cluster_update_enabled"] = *v.Value != workspaces.AutomaticClusterUpdateValueDisabled
+		enhancedSecurityCompliance["automatic_cluster_update_enabled"] = pointer.From(v.Value) != workspaces.AutomaticClusterUpdateValueDisabled
 	}
 
 	if v := input.EnhancedSecurityMonitoring; v != nil {
-		enhancedSecurityCompliance["enhanced_security_monitoring_enabled"] = *v.Value != workspaces.EnhancedSecurityMonitoringValueDisabled
+		enhancedSecurityCompliance["enhanced_security_monitoring_enabled"] = pointer.From(v.Value) != workspaces.EnhancedSecurityMonitoringValueDisabled
 	}
 
 	if v := input.ComplianceSecurityProfile; v != nil {
-		enhancedSecurityCompliance["compliance_security_profile_enabled"] = *v.Value != workspaces.ComplianceSecurityProfileValueDisabled
+		enhancedSecurityCompliance["compliance_security_profile_enabled"] = pointer.From(v.Value) != workspaces.ComplianceSecurityProfileValueDisabled
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
-		for _, s := range *v.ComplianceStandards {
+		for _, s := range pointer.From(v.ComplianceStandards) {
 			if s == workspaces.ComplianceStandardNONE {
 				continue
 			}
