@@ -102,7 +102,7 @@ In cases like these one option is to flatten the block into two top level proper
 },
 ```
 
-And a judement call should be made based off the behaviour of the API and expectations of a user.
+A judgement call should be made based off the behaviour of the API and expectations of a user.
 
 ## The `None` value or similar
 
