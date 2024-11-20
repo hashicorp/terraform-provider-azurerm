@@ -179,7 +179,6 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true,
 			ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
@@ -188,7 +187,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		resource.Schema["target_resource_id"].Required = false
 		resource.Schema["target_resource_id"].Optional = true
 		resource.Schema["target_resource_id"].Computed = true
-		resource.Schema["target_resource_id"].ConflictsWith = []string{"network_security_group_id"}
+		resource.Schema["target_resource_id"].ForceNew = false
+		resource.Schema["target_resource_id"].ExactlyOneOf = []string{"network_security_group_id", "target_resource_id"}
 	}
 
 	return resource
@@ -416,13 +416,15 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			targetResourceId := props.TargetResourceId
+			targetIsNSG := false
 			if nsgId, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = nsgId.ID()
+				targetIsNSG = true
 			} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = vnetId.ID()
 			}
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOhBeta() && targetIsNSG {
 				d.Set("network_security_group_id", targetResourceId)
 			}
 
