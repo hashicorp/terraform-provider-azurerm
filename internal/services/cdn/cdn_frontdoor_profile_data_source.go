@@ -95,7 +95,7 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 
 	// whilst this is returned in the API as FrontDoorID other resources refer to
 	// this as the Resource GUID, so we will for consistency
-	d.Set("resource_guid", string(pointer.From(model.Properties.FrontDoorId)))
+	d.Set("resource_guid", pointer.From(model.Properties.FrontDoorId))
 
 	skuName := ""
 	if model.Sku.Name != nil {

@@ -113,12 +113,10 @@ func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
 func expandNewFrontDoorTagsPointer(tagMap map[string]interface{}) *map[string]string {
 	t := make(map[string]string)
 
-	if tagMap != nil {
-		for k, v := range tagMap {
-			tagKey := k
-			tagValue := v
-			t[tagKey] = tagValue.(string)
-		}
+	for k, v := range tagMap {
+		tagKey := k
+		tagValue := v
+		t[tagKey] = tagValue.(string)
 	}
 
 	return pointer.To(t)
