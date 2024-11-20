@@ -995,7 +995,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
     }
 
     response_header_action {
-      header_action = "Appened"
+      header_action = "Append"
       header_name   = "Set-Cookie"
       value         = "sessionId=12345678"
     }
