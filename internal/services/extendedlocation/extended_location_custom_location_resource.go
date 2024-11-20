@@ -349,11 +349,15 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				model.Properties.Authentication = nil
 			}
 
+			if d.HasChange("display_name") {
+				model.Properties.DisplayName = pointer.To(state.DisplayName)
+			}
+
 			if d.HasChange("cluster_extension_ids") {
 				model.Properties.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

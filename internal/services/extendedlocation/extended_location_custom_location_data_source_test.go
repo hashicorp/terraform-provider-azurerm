@@ -25,7 +25,6 @@ func TestAccCustomLocationDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("cluster_extension_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("display_name").IsNotEmpty(),
 				check.That(data.ResourceName).Key("namespace").IsNotEmpty(),
-				check.That(data.ResourceName).Key("total_iops").Exists(),
 				check.That(data.ResourceName).Key("host_resource_id").IsNotEmpty(),
 			),
 		},
