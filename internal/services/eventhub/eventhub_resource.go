@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -58,8 +58,6 @@ func resourceEventHub() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
-
-			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
@@ -182,6 +180,15 @@ func resourceEventHub() *pluginsdk.Resource {
 			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
 			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id`",
 		}
+
+		r.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
+			ValidateFunc: resourcegroups.ValidateName,
+			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` ",
+		}
 	}
 
 	return r
@@ -196,18 +203,22 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
 	namespaceName := ""
+	resourceGroupName := ""
 	if v := d.Get("namespace_id").(string); v != "" {
 		namespaceId, err := namespaces.ParseNamespaceID(v)
 		if err != nil {
 			return err
 		}
 		namespaceName = namespaceId.NamespaceName
-	}
-	if !features.FivePointOhBeta() && namespaceName == "" {
-		namespaceName = d.Get("namespace_name").(string)
+		resourceGroupName = namespaceId.ResourceGroupName
 	}
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), namespaceName, d.Get("name").(string))
+	if !features.FivePointOhBeta() && namespaceName == "" {
+		namespaceName = d.Get("namespace_name").(string)
+		resourceGroupName = d.Get("resource_group_name").(string)
+	}
+
+	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -319,10 +330,10 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.EventhubName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if !features.FivePointOhBeta() {
 		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroupName)
 	}
 
 	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
