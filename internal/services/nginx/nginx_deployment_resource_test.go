@@ -335,8 +335,8 @@ resource "azurerm_nginx_deployment" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 
-  web_application_firewall_settings {
-    activation_state = "Enabled"
+  web_application_firewall {
+    activation_state_enabled = true
   }
 
   capacity = 20

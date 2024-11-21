@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
 
-* `web_application_firewall_settings` - (Optional) A `web_application_firewall_settings` blocks as defined below.
+* `web_application_firewall` - (Optional) A `web_application_firewall` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the NGINX Deployment.
 
@@ -174,9 +174,9 @@ An `auto_scale_profile` block supports the following:
 
 ---
 
-A `web_application_firewall_settings` - block supports the following:
+A `web_application_firewall` - block supports the following:
 
-* `activation_state` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment. Use 'Enabled' to enable WAF and 'Disabled' to disable it.
+* `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
 
 ## Attributes Reference
 
@@ -188,11 +188,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `nginx_version` - The version of deployed NGINX.
 
-* `web_application_firewall_status` - A `web_application_firewall_status` block as defined below:
+* `web_application_firewall.status` - A `web_application_firewall.status` block as defined below:
 
 ---
 
-A `web_application_firewall_status` - block supports the following:
+A `web_application_firewall.status` - block supports the following:
 
 * `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
 
