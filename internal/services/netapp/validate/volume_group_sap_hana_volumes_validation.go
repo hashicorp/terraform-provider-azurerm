@@ -38,22 +38,6 @@ func RequiredVolumesForSAPHANA() []string {
 	}
 }
 
-type ProtocolType string
-
-const (
-	ProtocolTypeNfsV41 ProtocolType = "NFSv4.1"
-	ProtocolTypeNfsV3  ProtocolType = "NFSv3"
-	ProtocolTypeCifs   ProtocolType = "CIFS"
-)
-
-func PossibleValuesForProtocolType() []string {
-	return []string{
-		string(ProtocolTypeNfsV41),
-		string(ProtocolTypeNfsV3),
-		string(ProtocolTypeCifs),
-	}
-}
-
 func PossibleValuesForProtocolTypeVolumeGroupSapHana() []string {
 	return []string{
 		string(ProtocolTypeNfsV41),
@@ -168,13 +152,4 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 	}
 
 	return errors
-}
-
-func findStringInSlice(slice []string, val string) bool {
-	for _, item := range slice {
-		if strings.EqualFold(item, val) {
-			return true
-		}
-	}
-	return false
 }

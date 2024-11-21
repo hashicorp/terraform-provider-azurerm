@@ -1,0 +1,169 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package validate
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+)
+
+type VolumeSpecNameOracle string
+
+const (
+	VolumeSpecNameOracleData1  VolumeSpecNameOracle = "ora-data1"
+	VolumeSpecNameOracleData2  VolumeSpecNameOracle = "ora-data2"
+	VolumeSpecNameOracleData3  VolumeSpecNameOracle = "ora-data3"
+	VolumeSpecNameOracleData4  VolumeSpecNameOracle = "ora-data4"
+	VolumeSpecNameOracleData5  VolumeSpecNameOracle = "ora-data5"
+	VolumeSpecNameOracleData6  VolumeSpecNameOracle = "ora-data6"
+	VolumeSpecNameOracleData7  VolumeSpecNameOracle = "ora-data7"
+	VolumeSpecNameOracleData8  VolumeSpecNameOracle = "ora-data8"
+	VolumeSpecNameOracleLog    VolumeSpecNameOracle = "ora-log"
+	VolumeSpecNameOracleMirror VolumeSpecNameOracle = "ora-log-mirror"
+	VolumeSpecNameOracleBinary VolumeSpecNameOracle = "ora-binary"
+	VolumeSpecNameOracleBackup VolumeSpecNameOracle = "ora-backup"
+)
+
+func PossibleValuesForVolumeSpecNameOracle() []string {
+	return []string{
+		string(VolumeSpecNameOracleData1),
+		string(VolumeSpecNameOracleData2),
+		string(VolumeSpecNameOracleData3),
+		string(VolumeSpecNameOracleData4),
+		string(VolumeSpecNameOracleData5),
+		string(VolumeSpecNameOracleData6),
+		string(VolumeSpecNameOracleData7),
+		string(VolumeSpecNameOracleData8),
+		string(VolumeSpecNameOracleLog),
+		string(VolumeSpecNameOracleMirror),
+		string(VolumeSpecNameOracleBinary),
+		string(VolumeSpecNameOracleBackup),
+	}
+}
+
+func RequiredVolumesForOracle() []string {
+	return []string{
+		string(VolumeSpecNameOracleData1),
+		string(VolumeSpecNameOracleLog),
+	}
+}
+
+func PossibleValuesForProtocolTypeVolumeGroupOracle() []string {
+	return []string{
+		string(ProtocolTypeNfsV41),
+		string(ProtocolTypeNfsV3),
+	}
+}
+
+func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties) []error {
+	errors := make([]error, 0)
+	volumeSpecRepeatCount := make(map[string]int)
+	applicationType := string(volumegroups.ApplicationTypeSAPNegativeHANA)
+
+	// Validating minimum volume count
+	if len(*volumeList) < len(RequiredVolumesForOracle()) {
+		errors = append(errors, fmt.Errorf("'minimum %v volumes are required for %v'", len(RequiredVolumesForOracle()), applicationType))
+	}
+
+	// Validating each volume
+	for _, volume := range pointer.From(volumeList) {
+		// Get protocol list
+		protocolTypeList := pointer.From(volume.Properties.ProtocolTypes)
+		protocolType := ""
+
+		// Validate protocol list is not empty
+		if len(protocolTypeList) == 0 {
+			errors = append(errors, fmt.Errorf("'protocol type list cannot be empty'"))
+		}
+
+		// Validate protocol list is not > 1
+		if len(protocolTypeList) > 1 {
+			errors = append(errors, fmt.Errorf("'multi-protocol volumes are not supported, protocol count is %v'", len(protocolTypeList)))
+		}
+
+		// Getting protocol for next validations
+		if len(protocolTypeList) > 0 {
+			protocolType = protocolTypeList[0]
+		}
+
+		// Validate protocol list does not contain invalid protocols
+		for _, protocol := range protocolTypeList {
+			if !findStringInSlice(PossibleValuesForProtocolType(), protocolType) {
+				errors = append(errors, fmt.Errorf("'protocol %v is invalid'", protocol))
+			}
+		}
+
+		// Validate that protocol is valid for SAP Hana
+		if !findStringInSlice(PossibleValuesForProtocolTypeVolumeGroupOracle(), protocolType) {
+			errors = append(errors, fmt.Errorf("'protocol %v is invalid for Oracle'", protocolType))
+		}
+
+		// TODO: // Can't be nfsv3 on data, log and share volumes
+		// if strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) &&
+		// 	(strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleData)) ||
+		// 		strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleShared)) ||
+		// 		strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog))) {
+		// 	errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, pointer.From(volume.Name)))
+		// }
+
+		// Validating export policies
+		if volume.Properties.ExportPolicy != nil {
+			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
+				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRuleOracle(rule, protocolType)...)
+			}
+		}
+
+		// Checking CRR rule that log cannot be DataProtection type
+		if strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog)) &&
+			volume.Properties.DataProtection != nil &&
+			volume.Properties.DataProtection.Replication != nil &&
+			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, pointer.From(volume.Name)))
+		}
+
+		// Validating that snapshot policies are not being created in a data protection volume
+		if volume.Properties.DataProtection != nil &&
+			volume.Properties.DataProtection.Snapshot != nil &&
+			(volume.Properties.DataProtection.Replication != nil && strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst))) {
+			errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, pointer.From(volume.Name)))
+		}
+
+		// TODO: // Validating that data-backup and log-backup don't have PPG defined
+		// if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleDataBackup)) ||
+		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLogBackup))) &&
+		// 	pointer.From(volume.Properties.ProximityPlacementGroup) != "" {
+		// 	errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
+		// }
+
+		// TODO: // Validating that data, log and shared have PPG defined.
+		// if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleData)) ||
+		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog)) ||
+		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleShared))) &&
+		// 	pointer.From(volume.Properties.ProximityPlacementGroup) == "" {
+		// 	errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
+		// }
+
+		// Adding volume spec name to hashmap for post volume loop check
+		volumeSpecRepeatCount[pointer.From(volume.Properties.VolumeSpecName)] += 1
+	}
+
+	// Validating required volume spec types
+	for _, requiredVolumeSpec := range RequiredVolumesForOracle() {
+		if _, ok := volumeSpecRepeatCount[requiredVolumeSpec]; !ok {
+			errors = append(errors, fmt.Errorf("'required volume spec type %v is not present for %v'", requiredVolumeSpec, applicationType))
+		}
+	}
+
+	// Validating that volume spec does not repeat
+	for volumeSpecName, count := range volumeSpecRepeatCount {
+		if count > 1 {
+			errors = append(errors, fmt.Errorf("'volume spec type %v cannot be repeated for %v'", volumeSpecName, applicationType))
+		}
+	}
+
+	return errors
+}

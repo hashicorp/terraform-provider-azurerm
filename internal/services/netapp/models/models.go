@@ -40,6 +40,7 @@ type NetAppVolumeGroupVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
 }
 
 type NetAppVolumeGroupSapHanaModel struct {
@@ -53,6 +54,26 @@ type NetAppVolumeGroupSapHanaModel struct {
 }
 
 type NetAppVolumeGroupSapHanaDataSourceModel struct {
+	Name                  string                    `tfschema:"name"`
+	ResourceGroupName     string                    `tfschema:"resource_group_name"`
+	Location              string                    `tfschema:"location"`
+	AccountName           string                    `tfschema:"account_name"`
+	GroupDescription      string                    `tfschema:"group_description"`
+	ApplicationIdentifier string                    `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleModel struct {
+	Name                  string                    `tfschema:"name"`
+	ResourceGroupName     string                    `tfschema:"resource_group_name"`
+	Location              string                    `tfschema:"location"`
+	AccountName           string                    `tfschema:"account_name"`
+	GroupDescription      string                    `tfschema:"group_description"`
+	ApplicationIdentifier string                    `tfschema:"application_identifier"`
+	Volumes               []NetAppVolumeGroupVolume `tfschema:"volume"`
+}
+
+type NetAppVolumeGroupOracleDataSourceModel struct {
 	Name                  string                    `tfschema:"name"`
 	ResourceGroupName     string                    `tfschema:"resource_group_name"`
 	Location              string                    `tfschema:"location"`
