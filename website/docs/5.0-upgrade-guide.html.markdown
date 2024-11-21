@@ -87,6 +87,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
 
+## `azurerm_network_watcher_flow_log`
+
+* The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
+
 ### `azurerm_mssql_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
