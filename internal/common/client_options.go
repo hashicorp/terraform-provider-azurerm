@@ -98,9 +98,6 @@ func userAgent(userAgent, tfVersion, partnerID string, disableTerraformPartnerID
 	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io)", tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
-	if features.FourPointOhBeta() {
-		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+4.0-beta", tfUserAgent, version.ProviderVersion)
-	}
 	if features.FivePointOhBeta() {
 		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+5.0-beta", tfUserAgent, version.ProviderVersion)
 	}

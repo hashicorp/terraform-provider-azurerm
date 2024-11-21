@@ -238,7 +238,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			// protected files field not return by API so decode from state
+			// protected files content field not return by API so decode from state
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
@@ -254,21 +254,34 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if files := prop.Files; files != nil {
+					configs := []ConfigFile{}
 					for _, file := range *files {
-						output.ConfigFile = append(output.ConfigFile, ConfigFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ConfigFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+					if len(configs) > 0 {
+						output.ConfigFile = configs
 					}
 				}
 
-				// GET does not return protected files
+				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ProtectedFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
