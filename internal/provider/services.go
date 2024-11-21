@@ -338,6 +338,7 @@ func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		keyvault.Registration{},
 	}
 
 	return services
