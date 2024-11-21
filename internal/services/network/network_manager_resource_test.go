@@ -240,7 +240,7 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["Connectivity", "SecurityAdmin"]
+  scope_accesses = ["Connectivity", "SecurityAdmin", "Routing"]
   description    = "test network manager"
   tags = {
     foo = "bar"

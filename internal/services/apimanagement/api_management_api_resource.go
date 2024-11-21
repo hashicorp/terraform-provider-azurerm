@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -336,18 +336,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["api_type"].ConflictsWith = []string{"soap_pass_through"}
-
-		resource.Schema["soap_pass_through"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`soap_pass_through` will be removed in favour of the property `api_type` in version 4.0 of the AzureRM Provider",
-			ConflictsWith: []string{"api_type"},
-		}
-	}
-
 	return resource
 }
 
@@ -370,11 +358,11 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
 
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("setting `version` without the required `version_set_id`")
+		return errors.New("setting `version` without the required `version_set_id`")
 	}
 
 	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
+		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
@@ -393,11 +381,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	apiType := api.ApiTypeHTTP
 	if v, ok := d.GetOk("api_type"); ok {
 		apiType = api.ApiType(v.(string))
-	}
-	if !features.FourPointOhBeta() {
-		if d.Get("soap_pass_through").(bool) {
-			apiType = api.ApiTypeSoap
-		}
 	}
 
 	soapApiType := map[api.ApiType]api.SoapApiType{
@@ -562,9 +545,6 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("path", props.Path)
 			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("revision", pointer.From(props.ApiRevision))
-			if !features.FourPointOhBeta() {
-				d.Set("soap_pass_through", apiType == string(api.ApiTypeSoap))
-			}
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))
 			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))

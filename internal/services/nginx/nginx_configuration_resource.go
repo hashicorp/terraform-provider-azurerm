@@ -26,8 +26,8 @@ type ConfigFile struct {
 
 func (c ConfigFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
 	return nginxconfiguration.NginxConfigurationFile{
-		Content:     pointer.FromString(c.Content),
-		VirtualPath: pointer.FromString(c.VirtualPath),
+		Content:     pointer.To(c.Content),
+		VirtualPath: pointer.To(c.VirtualPath),
 	}
 }
 
@@ -38,8 +38,8 @@ type ProtectedFile struct {
 
 func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
 	return nginxconfiguration.NginxConfigurationFile{
-		Content:     pointer.FromString(c.Content),
-		VirtualPath: pointer.FromString(c.VirtualPath),
+		Content:     pointer.To(c.Content),
+		VirtualPath: pointer.To(c.VirtualPath),
 	}
 }
 
@@ -52,7 +52,7 @@ type ConfigurationModel struct {
 }
 
 func (c ConfigurationModel) toSDKFiles() *[]nginxconfiguration.NginxConfigurationFile {
-	var files []nginxconfiguration.NginxConfigurationFile
+	files := make([]nginxconfiguration.NginxConfigurationFile, 0, len(c.ConfigFile))
 	for _, file := range c.ConfigFile {
 		files = append(files, file.toSDKModel())
 	}
@@ -63,7 +63,8 @@ func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxCon
 	if len(c.ProtectedFile) == 0 {
 		return nil
 	}
-	var files []nginxconfiguration.NginxConfigurationFile
+
+	files := make([]nginxconfiguration.NginxConfigurationFile, 0, len(c.ProtectedFile))
 	for _, file := range c.ProtectedFile {
 		files = append(files, file.toSDKModel())
 	}
@@ -73,9 +74,9 @@ func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxCon
 // ToSDKModel used in both Create and Update
 func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
 	req := nginxconfiguration.NginxConfiguration{
-		Name: pointer.FromString(defaultConfigurationName),
+		Name: pointer.To(defaultConfigurationName),
 		Properties: &nginxconfiguration.NginxConfigurationProperties{
-			RootFile: pointer.FromString(c.RootFile),
+			RootFile: pointer.To(c.RootFile),
 		},
 	}
 
@@ -84,7 +85,7 @@ func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
 
 	if c.PackageData != "" {
 		req.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-			Data: pointer.FromString(c.PackageData),
+			Data: pointer.To(c.PackageData),
 		}
 	}
 
@@ -237,7 +238,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			// protected files field not return by API so decode from state
+			// protected files content field not return by API so decode from state
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
@@ -253,21 +254,34 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if files := prop.Files; files != nil {
+					configs := []ConfigFile{}
 					for _, file := range *files {
-						output.ConfigFile = append(output.ConfigFile, ConfigFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ConfigFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+					if len(configs) > 0 {
+						output.ConfigFile = configs
 					}
 				}
 
-				// GET does not return protected files
+				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ProtectedFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
@@ -304,7 +318,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 			upd := existing.Model
 			// root file is required in update
 			if meta.ResourceData.HasChange("root_file") {
-				upd.Properties.RootFile = pointer.FromString(model.RootFile)
+				upd.Properties.RootFile = pointer.To(model.RootFile)
 			}
 
 			if meta.ResourceData.HasChange("config_file") {
@@ -316,7 +330,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("package_data") {
 				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-					Data: pointer.FromString(model.PackageData),
+					Data: pointer.To(model.PackageData),
 				}
 			}
 

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -29,6 +32,7 @@ func TestAccountStaticWebsiteResource_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccountStaticWebsiteResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := AccountStaticWebsiteResource{}

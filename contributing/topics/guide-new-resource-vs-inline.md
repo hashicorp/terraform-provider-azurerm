@@ -1,11 +1,11 @@
 # Guide: When to inline new functionality (as either a block or property) versus a new resource
 
-Sometimes when implementing new functionality it can be a bit unclear whether it is necessary to create a new resource versus to add a new property or block to an existing resource. 
+Sometimes when implementing new functionality it can be a bit unclear whether it is necessary to create a new resource versus to add a new property or block to an existing resource.
 
-To get a bit of insight in how a decision can be made, this are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
+To get a bit of insight in how a decision can be made, these are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
 
 ## Inline
-Most additional functionality will end up inline an existing resource. 
+Most additional functionality will end up inline an existing resource.
 
 APIs to enable or disable functionality, define the resource functionality or configure details on a resource are most of the time inlined. Relations between resources with clearly separate concern (i.e. which VNet a K8s cluster will land in) are most of the time inlined.
 

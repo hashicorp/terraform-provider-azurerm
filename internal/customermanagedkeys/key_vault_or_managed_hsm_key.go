@@ -103,7 +103,8 @@ func parseKeyvaultID(keyRaw string, requireVersion VersionType, _ environments.A
 }
 
 func parseManagedHSMKey(keyRaw string, requireVersion VersionType, hsmEnv environments.Api) (
-	versioned *hsmParse.ManagedHSMDataPlaneVersionedKeyId, versionless *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, err error) {
+	versioned *hsmParse.ManagedHSMDataPlaneVersionedKeyId, versionless *hsmParse.ManagedHSMDataPlaneVersionlessKeyId, err error,
+) {
 	// if specified with hasVersion == True, then it has to be parsed as versionedKeyID
 	var domainSuffix *string
 	if hsmEnv != nil {

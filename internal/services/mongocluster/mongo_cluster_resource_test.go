@@ -27,6 +27,7 @@ func TestAccMongoClusterFreeTier(t *testing.T) {
 		},
 	})
 }
+
 func testAccMongoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}

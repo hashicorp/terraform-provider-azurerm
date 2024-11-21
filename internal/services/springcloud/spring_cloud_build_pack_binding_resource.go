@@ -100,6 +100,7 @@ func resourceSpringCloudBuildPackBinding() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSpringCloudBuildPackBindingCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.BuildPackBindingClient

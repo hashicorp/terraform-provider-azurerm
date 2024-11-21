@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
@@ -144,7 +145,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleDefinitionsClient := accesscontrol.NewRoleDefinitionsClient(endpoint)
@@ -154,7 +155,7 @@ func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix 
 
 func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleAssignmentsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
@@ -164,7 +165,7 @@ func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix 
 
 func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
@@ -174,7 +175,7 @@ func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpoin
 
 func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	linkedServiceClient := artifacts.NewLinkedServiceClient(endpoint)

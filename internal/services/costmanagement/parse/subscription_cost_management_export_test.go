@@ -27,7 +27,6 @@ func TestSubscriptionCostManagementExportID(t *testing.T) {
 		Error    bool
 		Expected *SubscriptionCostManagementExportId
 	}{
-
 		{
 			// empty
 			Input: "",

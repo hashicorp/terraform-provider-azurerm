@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-var (
-	testConfig = ProviderConfig{}
-)
+var testConfig = ProviderConfig{}
 
 func TestProviderConfig_LoadDefault(t *testing.T) {
 	if os.Getenv("ARM_CLIENT_ID") == "" {
@@ -200,6 +198,18 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
+
+	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
+		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if features.NetApp.DeleteBackupsOnBackupVaultDestroy {
+		t.Errorf("expected netapp.DeleteBackupsOnBackupVaultDestroy to be false")
+	}
+
+	if !features.NetApp.PreventVolumeDestruction {
+		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
+	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -307,6 +317,12 @@ func defaultFeaturesList() types.List {
 	})
 	recoveryServicesVaultsList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes), []attr.Value{recoveryServicesVaults})
 
+	netapp, _ := basetypes.NewObjectValueFrom(context.Background(), NetAppAttributes, map[string]attr.Value{
+		"delete_backups_on_backup_vault_destroy": basetypes.NewBoolNull(),
+		"prevent_volume_destruction":             basetypes.NewBoolNull(),
+	})
+	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
@@ -325,6 +341,7 @@ func defaultFeaturesList() types.List {
 		"machine_learning":           machineLearningList,
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
+		"netapp":                     netappList,
 	})
 
 	fmt.Printf("%+v", d)

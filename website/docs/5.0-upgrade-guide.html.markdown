@@ -34,6 +34,9 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_security_center_auto_provisioning`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ## Removed Data Sources
 
@@ -61,6 +64,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
 
+### `azurerm_cosmosdb_account`
+
+* The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
@@ -83,7 +90,23 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_cdn_frontdoor_custom_domain`
 
 * The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
-  
+
+## `azurerm_network_watcher_flow_log`
+
+* The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
+
+### `azurerm_mssql_database`
+
+* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+
+### `azurerm_mssql_managed_database`
+
+* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+
+### `azurerm_eventhub_namespace`
+
+* The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:

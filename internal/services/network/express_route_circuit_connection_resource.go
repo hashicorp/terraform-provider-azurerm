@@ -182,7 +182,6 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("address_prefix_ipv4", props.AddressPrefix)
 
 			// The ExpressRoute Circuit Connection API returns "*****************" for AuthorizationKey when it's changed from a valid value to `nil`
