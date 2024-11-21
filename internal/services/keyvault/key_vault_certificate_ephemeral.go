@@ -10,7 +10,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"golang.org/x/crypto/pkcs12"
 	"strings"
 	"time"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"golang.org/x/crypto/pkcs12"
 )
 
 var _ sdk.EphemeralResource = &KeyVaultCertificateEphemeralResource{}
