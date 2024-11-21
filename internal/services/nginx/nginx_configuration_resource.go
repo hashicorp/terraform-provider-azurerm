@@ -269,10 +269,21 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 
 				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
+						config := ProtectedFile{
 							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						}
+						for _, protectedFile := range output.ProtectedFile {
+							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
+								config.Content = protectedFile.Content
+								break
+							}
+						}
+						configs = append(configs, config)
+					}
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
