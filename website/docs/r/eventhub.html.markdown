@@ -33,7 +33,6 @@ resource "azurerm_eventhub_namespace" "example" {
 resource "azurerm_eventhub" "example" {
   name                = "acceptanceTestEventHub"
   namespace_id        = azurerm_eventhub_namespace.example.id
-  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 1
 }
@@ -46,8 +45,6 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
 * `namespace_id` - (Optional) Specifies the id of the EventHub Namespace. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
