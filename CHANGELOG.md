@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_arc_machine` - add support for the `identity` and `tags` properties [GH-27987]
 * `azurerm_container_app` - `secret.name` now accepts up to 253 characters and `.` [GH-27935]
 * `azurerm_network_manager` - `scope_accesses` now accepts `Routing` [GH-28033]
+* `azurerm_network_watcher_flow_log` - add support for the `target_resource_id` property [GH-26015]
 * `azurerm_role_assignment` - `condition_version` will be defaulted to `2.0` when `condition` has been set [GH-27189]
 * `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
