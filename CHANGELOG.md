@@ -31,6 +31,7 @@ BUG:
 * `azurerm_application_gateway` - `rewrite_rule_set` can be supplied when using `Basic` sku [GH-28011]
 * `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
 * `azurerm_kusto_cluster` - `allowed_fqdn` and `allowed_ip_ranges` can now be set to empty lists [GH-27529]
+* `azurerm_linux_function_app_slot` - create content settings when using a consumpton plan [GH-25412]
 * `azurerm_virtual_network_gatway` - updating `ip_configuration` now recreates the resource [GH-27828]
 
 FEATURES:
