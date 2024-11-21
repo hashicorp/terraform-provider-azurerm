@@ -69,6 +69,11 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 			"version": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					frameworkhelpers.WrappedStringValidator{
+						Func: validation.StringIsNotEmpty,
+					},
+				},
 			},
 
 			"expiration_date": schema.StringAttribute{
