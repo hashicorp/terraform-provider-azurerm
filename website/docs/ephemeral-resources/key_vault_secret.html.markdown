@@ -8,6 +8,8 @@ description: |-
 
 # Ephemeral: azurerm_key_vault_secret
 
+~> Ephemeral Resources are supported in Terraform 1.10 and later.
+
 Use this to access information about an existing Key Vault Secret.
 
 ## Example Usage

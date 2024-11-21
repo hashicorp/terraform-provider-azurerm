@@ -178,7 +178,7 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 		return
 	}
 
-	PEMBlocks := make([]*pem.Block, 0)
+	pemBlocks := make([]*pem.Block, 0)
 
 	if *pfx.ContentType == "application/x-pkcs12" {
 		bytes, err := base64.StdEncoding.DecodeString(*pfx.Value)
@@ -192,24 +192,24 @@ func (e *KeyVaultCertificateEphemeralResource) Open(ctx context.Context, req eph
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("decoding certificate %q", id.Name), err)
 			return
 		}
-		PEMBlocks = blocks
+		pemBlocks = blocks
 	} else {
 		block, rest := pem.Decode([]byte(*pfx.Value))
 		if block == nil {
 			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("decoding %q", id.Name), err)
 			return
 		}
-		PEMBlocks = append(PEMBlocks, block)
+		pemBlocks = append(pemBlocks, block)
 		for len(rest) > 0 {
 			block, rest = pem.Decode(rest)
-			PEMBlocks = append(PEMBlocks, block)
+			pemBlocks = append(pemBlocks, block)
 		}
 	}
 
 	var pemKey []byte
 	var pemCerts [][]byte
 
-	for _, block := range PEMBlocks {
+	for _, block := range pemBlocks {
 		if strings.Contains(block.Type, "PRIVATE KEY") {
 			pemKey = block.Bytes
 		}
