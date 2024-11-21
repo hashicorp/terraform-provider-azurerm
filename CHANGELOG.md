@@ -2,19 +2,27 @@
 
 ENHANCEMENTS:
 
+* dependencies: update `hashicorp/go-azure-sdk` to `v0.20241118.1115603` [GH-28075]
 * `batch` - upgrade api version to `2024-07-01` [GH-27982]
 * `containerregistry` - upgrade api version to `2023-11-01-preview` [GH-27983]
 * `azurerm_application_gateway` - `1.1` is now accepted as a valid `rule_set_version` in the `waf_configuration` block [GH-28039]
 * `azurerm_arc_machine` - add support for the `identity` and `tags` properties [GH-27987]
+* `azurerm_container_app` - `secret.name` now accepts up to 253 characters and `.` [GH-27935]
+* `azurerm_network_manager` - `scope_accesses` now accepts `Routing` [GH-28033]
+* `azurerm_role_assignment` - `condition_version` will be defaulted to `2.0` when `condition` has been set [GH-27189]
 * `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` [GH-27993]
 * `azurerm_web_application_firewall_policy` - `1.1` is now accepted as a valid `version` for `Microsoft_BotManagerRuleSet` rule types [GH-28039]
 
 BUG:
 
+* `azurerm_api_management` - `public_ip_address_id` is no longer required when `zone` has been set [GH-27976]
 * `azurerm_api_management_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
 * `azurerm_api_management_api_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` [GH-27630]
+* `azurerm_application_gateway` - `rewrite_rule_set` can be supplied when using `Basic` sku [GH-28011]
 * `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist [GH-27232]
+* `azurerm_kusto_cluster` - `allowed_fqdn` and `allowed_ip_ranges` can now be set to empty lists [GH-27529]
+* `azurerm_virtual_network_gatway` - updating `ip_configuration` now recreates the resource [GH-27828]
 
 FEATURES:
 
