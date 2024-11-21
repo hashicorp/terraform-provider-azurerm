@@ -1,5 +1,13 @@
 ## 4.11.0 (Unreleased)
 
+NOTES:
+* New [ephemeral resources](https://developer.hashicorp.com/terraform/language/v1.10.x/resources/ephemeral) `azurerm_key_vault_certificate` and `azurerm_key_vault_secret` now support [ephemeral values](https://developer.hashicorp.com/terraform/language/v1.10.x/values/variables#exclude-values-from-state)
+
+FEATURES:
+
+* **New Ephemeral Resource**: `azurerm_key_vault_certificate` [GH-28083]
+* **New Ephemeral Resource**: `azurerm_key_vault_secret` [GH-28083]
+
 ENHANCEMENTS:
 
 * dependencies: update `hashicorp/go-azure-sdk` to `v0.20241118.1115603` [GH-28075]
