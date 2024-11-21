@@ -32,9 +32,9 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) Specifies the ID of the Key Vault instance where the Certificate resides, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `version` - (Optional) Specifies the version of the Key Vault Certificate. Defaults to the current version of the Key Vault Secret.
+* `version` - (Optional) Specifies the version of the Key Vault Certificate. Defaults to the current version of the Key Vault Certificate.
 
-**NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
+~> **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
 
@@ -46,6 +46,6 @@ The following attributes are exported:
 
 * `key` - The Key Vault Certificate Key.
 
-* `expiration_date` - The date and time at which the Key Vault Secret expires and is no longer valid.
+* `expiration_date` - The date and time at which the Key Vault Certificate expires and is no longer valid.
 
-* `not_before_date` - The earliest date at which the Key Vault Secret can be used.
+* `not_before_date` - The earliest date at which the Key Vault Certificate can be used.

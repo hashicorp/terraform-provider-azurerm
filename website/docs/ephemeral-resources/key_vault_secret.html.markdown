@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `version` - (Optional) Specifies the version of the Key Vault Secret. Defaults to the current version of the Key Vault Secret.
 
-**NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
+~> **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
 
