@@ -94,8 +94,9 @@ func (r AppServiceConnectorResource) Arguments() map[string]*schema.Schema {
 		"authentication": authInfoSchema(),
 
 		"scope": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"configuration": {
