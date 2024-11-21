@@ -86,6 +86,7 @@ func (r Registration) FrameworkDataSources() []func() datasource.DataSource {
 
 func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{
+		NewKeyVaultCertificateEphemeralResource,
 		NewKeyVaultSecretEphemeralResource,
 	}
 }

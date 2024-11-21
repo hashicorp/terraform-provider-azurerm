@@ -3,6 +3,8 @@ package keyvault
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -27,10 +29,12 @@ type KeyVaultSecretEphemeralResource struct {
 }
 
 type KeyVaultSecretEphemeralResourceModel struct {
-	Name       types.String `tfsdk:"name"`
-	KeyVaultID types.String `tfsdk:"key_vault_id"`
-	Value      types.String `tfsdk:"value"`
-	Version    types.String `tfsdk:"version"`
+	Name           types.String `tfsdk:"name"`
+	KeyVaultID     types.String `tfsdk:"key_vault_id"`
+	Version        types.String `tfsdk:"version"`
+	ExpirationDate types.String `tfsdk:"expiration_date"`
+	NotBeforeDate  types.String `tfsdk:"not_before_date"`
+	Value          types.String `tfsdk:"value"`
 }
 
 func (e *KeyVaultSecretEphemeralResource) Metadata(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
@@ -62,12 +66,20 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 				},
 			},
 
-			"value": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
+			"version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
 			},
 
-			"version": schema.StringAttribute{
+			"expiration_date": schema.StringAttribute{
+				Computed: true,
+			},
+
+			"not_before_date": schema.StringAttribute{
+				Computed: true,
+			},
+
+			"value": schema.StringAttribute{
 				Computed: true,
 			},
 		},
@@ -77,6 +89,8 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
 	keyVaultsClient := e.Client.KeyVault
 	client := e.Client.KeyVault.ManagementClient
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+	defer cancel()
 
 	var data KeyVaultSecretEphemeralResourceModel
 
@@ -84,35 +98,46 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 		return
 	}
 
-	keyVaultId, err := commonids.ParseKeyVaultID(data.KeyVaultID.ValueString())
+	keyVaultID, err := commonids.ParseKeyVaultID(data.KeyVaultID.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "", err)
 		return
 	}
 
-	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	keyVaultBaseUri, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("looking up secret %q vault url from id %q", data.Name.ValueString(), keyVaultId.ID()), err)
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("looking up base uri for secret %q in %s", data.Name.ValueString(), keyVaultID), err)
+		return
 	}
 
 	response, err := client.GetSecret(ctx, *keyVaultBaseUri, data.Name.ValueString(), data.Version.ValueString())
 	if err != nil {
 		if utils.ResponseWasNotFound(response.Response) {
-			sdk.SetResponseErrorDiagnostic(resp, "key vault secret does not exist", err)
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("secret %s does not exist in %s", data.Name.ValueString(), keyVaultID), err)
+			return
 		}
-		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving secret %q from %s", data.Name.ValueString(), keyVaultId), err)
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving secret %q from %s", data.Name.ValueString(), keyVaultID), err)
+		return
 	}
 
 	data.Value = types.StringValue(pointer.From(response.Value))
 
-	// parse the ID to get the version
-	if response.ID != nil {
-		secretID, err := parse.ParseNestedItemID(*response.ID)
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(resp, "", err)
+	id, err := parse.ParseNestedItemID(*response.ID)
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "", err)
+		return
+	}
+
+	data.Version = types.StringValue(id.Version)
+
+	if attributes := response.Attributes; attributes != nil {
+		if expirationDate := attributes.Expires; expirationDate != nil {
+			data.ExpirationDate = types.StringValue(time.Time(*expirationDate).Format(time.RFC3339))
 		}
 
-		data.Version = types.StringValue(secretID.Version)
+		if notBeforeDate := attributes.NotBefore; notBeforeDate != nil {
+			data.NotBeforeDate = types.StringValue(time.Time(*notBeforeDate).Format(time.RFC3339))
+		}
 	}
 
 	resp.Diagnostics.Append(resp.Result.Set(ctx, &data)...)

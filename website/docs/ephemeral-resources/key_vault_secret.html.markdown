@@ -28,9 +28,11 @@ ephemeral "azurerm_key_vault_secret" "example" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name of the Key Vault Secret.
+* `name` - (Required) Specifies the name of the Key Vault Secret.
 
-* `key_vault_id` - Specifies the ID of the Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
+* `key_vault_id` - (Required) Specifies the ID of the Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
+
+* `version` - (Optional) Specifies the version of the Key Vault Secret. Defaults to the current version of the Key Vault Secret.
 
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
@@ -38,6 +40,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `version` - The current version of the Key Vault Secret.
+* `expiration_date` - The date and time at which the Key Vault Secret expires and is no longer valid.
+
+* `not_before_date` - The earliest date at which the Key Vault Secret can be used.
 
 * `value` - The Key Vault Secret value.
