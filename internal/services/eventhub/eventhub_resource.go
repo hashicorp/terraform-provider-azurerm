@@ -178,7 +178,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			Computed:     true,
 			ValidateFunc: validate.ValidateEventHubNamespaceName(),
 			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id`",
+			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
 		}
 
 		r.Schema["resource_group_name"] = &pluginsdk.Schema{
@@ -187,7 +187,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			Computed:     true,
 			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
 			ValidateFunc: resourcegroups.ValidateName,
-			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` ",
+			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 

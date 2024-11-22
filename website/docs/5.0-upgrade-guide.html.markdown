@@ -71,6 +71,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
 
 ### `azurerm_eventhub_namespace`
 
