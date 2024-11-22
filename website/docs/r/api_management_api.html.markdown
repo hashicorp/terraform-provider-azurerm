@@ -36,6 +36,10 @@ resource "azurerm_api_management_api" "example" {
   display_name        = "Example API"
   path                = "example"
   protocols           = ["https"]
+  import {
+    content_format = "swagger-link-json"
+    content_value  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/testdata/api_management_api_schema_swagger.json"
+  }
 }
 ```
 
