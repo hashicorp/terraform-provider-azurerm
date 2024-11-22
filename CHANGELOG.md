@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
 
+ENHANCEMENTS:
+
+* `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
+
 ## 4.11.0 (November 22, 2024)
 
 NOTES:
