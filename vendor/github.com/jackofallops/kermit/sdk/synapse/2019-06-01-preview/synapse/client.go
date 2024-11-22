@@ -1,6 +1,4 @@
 // Package synapse implements the Azure ARM Synapse service API version 2019-06-01-preview.
-//
-//
 package synapse
 
 // Copyright (c) Microsoft Corporation. All rights reserved.

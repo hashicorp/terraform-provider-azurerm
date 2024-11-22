@@ -72,6 +72,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
 
+### `azurerm_eventhub_namespace`
+
+* The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
+
+### `azurerm_monitor_aad_diagnostic_setting`
+
+* The deprecated `enabled_log.retention_policy` block has been removed.
+
 ### `azurerm_mssql_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
@@ -79,6 +87,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_managed_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+
+## `azurerm_network_watcher_flow_log`
+
+* The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 
 ### `azurerm_sentinel_alert_rule_fusion`
 
