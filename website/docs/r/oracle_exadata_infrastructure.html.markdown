@@ -30,6 +30,13 @@ resource "azurerm_oracle_exadata_infrastructure" "example" {
 }
 ```
 
+## Updatable fields  
+The following fields currently support updates:
+* `tags`  
+
+Updating any other fields will force the existing resource to be deleted and recreated as a new resource which would be reflected in the Terraform plan before applying. Hence, it is highly recommended to NOT use the flag to “auto approve” as part of terraform plan.  
+Furthermore, as the state of these resources can be changed outside of terraform (for example, scale up/down done from OCI Console or OCI TF Provider), such actions will make any Terraform state file out of sync with the actual state of the resource. While a subsequent terraform replan will pull the current state of the resource, its recommended to import the resource using https://developer.hashicorp.com/terraform/cli/import in order to keep the resource states in sync.
+
 ## Arguments Reference
 
 The following arguments are supported:
