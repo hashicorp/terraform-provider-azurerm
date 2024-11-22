@@ -7,6 +7,7 @@ FEATURES:
 
 * **New Ephemeral Resource**: `azurerm_key_vault_certificate` [GH-28083]
 * **New Ephemeral Resource**: `azurerm_key_vault_secret` [GH-28083]
+* **New Resource**: `azurerm_eventgrid_namespace` [GH-27682]
 
 ENHANCEMENTS:
 
@@ -34,9 +35,6 @@ BUG:
 * `azurerm_linux_function_app_slot` - create content settings when using a consumpton plan [GH-25412]
 * `azurerm_virtual_network_gatway` - updating `ip_configuration` now recreates the resource [GH-27828]
 
-FEATURES:
-
-* **New Resource**: `azurerm_eventgrid_namespace` [GH-27682]
 
 ## 4.10.0 (November 14, 2024)
 
