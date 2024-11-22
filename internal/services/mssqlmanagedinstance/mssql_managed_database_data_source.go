@@ -145,9 +145,9 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 			}
 
 			id := commonids.NewSqlManagedInstanceDatabaseID(subscriptionId, managedInstanceId.ResourceGroupName, managedInstanceId.ManagedInstanceName, state.Name)
-			resp, err := client.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
-				if response.WasNotFound(resp.Response.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -160,19 +160,23 @@ func (d MsSqlManagedDatabaseDataSource) Read() sdk.ResourceFunc {
 				ManagedInstanceId:   managedInstanceId.ID(),
 			}
 
-			ltrResp, err := longTermRetentionClient.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
+			ltrResp, err := longTermRetentionClient.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policy for  %s: %v", id, err)
 			}
 
-			model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(ltrResp)
+			if ltrResp.Model != nil && ltrResp.Model.Properties != nil {
+				model.LongTermRetentionPolicy = flattenLongTermRetentionPolicy(*ltrResp.Model.Properties)
+			}
 
-			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, id.ResourceGroupName, id.ManagedInstanceName, id.DatabaseName)
+			shortTermRetentionResp, err := shortTermRetentionClient.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving Short Term Retention Policy for  %s: %v", id, err)
 			}
 
-			model.ShortTermRetentionDays = int64(pointer.From(shortTermRetentionResp.RetentionDays))
+			if shortTermRetentionResp.Model != nil && shortTermRetentionResp.Model.Properties != nil {
+				model.ShortTermRetentionDays = pointer.From(shortTermRetentionResp.Model.Properties.RetentionDays)
+			}
 
 			if v, ok := metadata.ResourceData.GetOk("point_in_time_restore"); ok {
 				model.PointInTimeRestore = flattenManagedDatabasePointInTimeRestore(v)
