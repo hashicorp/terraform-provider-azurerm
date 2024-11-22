@@ -1450,7 +1450,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
-			"upgrade_override_setting": {
+			"upgrade_override": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -1656,7 +1656,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
-	upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
+	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 	upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
 
 	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
@@ -2300,9 +2300,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.HasChange("upgrade_override_setting") {
+	if d.HasChange("upgrade_override") {
 		updateCluster = true
-		upgradeOverrideSettingRaw := d.Get("upgrade_override_setting").([]interface{})
+		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
 		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
 	}
@@ -2753,8 +2753,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			upgradeOverrideSetting := flattenKubernetesClusterUpgradeOverrideSetting(props.UpgradeSettings)
-			if err := d.Set("upgrade_override_setting", upgradeOverrideSetting); err != nil {
-				return fmt.Errorf("setting `upgrade_override_setting`: %+v", err)
+			if err := d.Set("upgrade_override", upgradeOverrideSetting); err != nil {
+				return fmt.Errorf("setting `upgrade_override`: %+v", err)
 			}
 
 			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)

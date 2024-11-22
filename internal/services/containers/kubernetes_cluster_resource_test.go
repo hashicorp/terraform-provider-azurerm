@@ -958,7 +958,7 @@ func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData
 	upgradeOverrideSetting := ""
 	if isUpgradeOverrideSettingEnabled {
 		upgradeOverrideSetting = `
-  upgrade_override_setting {
+  upgrade_override {
 	effective_until = "2024-01-01T00:00:00Z"
   }`
 	}
