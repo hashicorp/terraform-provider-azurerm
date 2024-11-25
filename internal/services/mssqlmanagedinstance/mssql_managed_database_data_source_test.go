@@ -32,8 +32,8 @@ func (d MsSqlManagedDatabaseDataSource) basic(data acceptance.TestData) string {
 %[1]s
 
 data "azurerm_mssql_managed_database" "test" {
-  name                  = azurerm_mssql_managed_database.test.name
-  managed_instance_id   = azurerm_mssql_managed_database.test.managed_instance_id
+  name                = azurerm_mssql_managed_database.test.name
+  managed_instance_id = azurerm_mssql_managed_database.test.managed_instance_id
 }
 `, MsSqlManagedDatabase{}.basic(data))
 }
