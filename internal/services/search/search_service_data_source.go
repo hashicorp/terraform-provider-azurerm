@@ -121,7 +121,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			replicaCount := 1
 			publicNetworkAccess := true
 
-			if props.EncryptionWithCmk != nil && props.EncryptionWithCmk {
+			if props.EncryptionWithCmk != nil {
 				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
