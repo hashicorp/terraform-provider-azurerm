@@ -6,7 +6,9 @@ BUG FIXES:
 
 ENHANCEMENTS:
 
+* Data Source: `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
 * `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
+* `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
 
 ## 4.11.0 (November 22, 2024)
 
