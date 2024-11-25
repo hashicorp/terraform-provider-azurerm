@@ -76,7 +76,7 @@ An `enhanced_security_compliance` block exports the following:
 
 * `compliance_security_profile_enabled` - Whether compliance security profile for this workspace is enabled.
 
-* `compliance_security_profile_standards` - A list of standards enforced on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+* `compliance_security_profile_standards` - A list of standards enforced on this workspace.
 
 * `enhanced_security_monitoring_enabled` - Whether enhanced security monitoring for this workspace is enabled.
 

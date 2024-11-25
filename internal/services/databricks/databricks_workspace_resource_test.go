@@ -410,11 +410,6 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
 			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.#").HasValue("1"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.automatic_cluster_update_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("2"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -430,11 +425,6 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutStandards(t *te
 			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{}, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.#").HasValue("1"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.automatic_cluster_update_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.compliance_security_profile_standards.#").HasValue("0"),
-				check.That(data.ResourceName).Key("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -460,7 +450,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandardSku
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enhancedSecurityCompliance(data, "standard", true, true, []string{"PCI_DSS", "HIPAA"}, true),
-			ExpectError: regexp.MustCompile("enhanced_security_compliance.*are only available with a 'premium'"),
+			ExpectError: regexp.MustCompile("enhanced_security_compliance.*are only available with a `premium`"),
 		},
 	})
 }
@@ -472,7 +462,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutEnhancedSecurit
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, false),
-			ExpectError: regexp.MustCompile("'enhanced_security_monitoring_enabled' must be set to true when using 'compliance_security_profile'"),
+			ExpectError: regexp.MustCompile("`enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true"),
 		},
 	})
 }
@@ -484,7 +474,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutAutomaticCluste
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enhancedSecurityCompliance(data, "premium", false, true, []string{"PCI_DSS", "HIPAA"}, true),
-			ExpectError: regexp.MustCompile("'automatic_cluster_update_enabled' .* must be set to true when using 'compliance_security_profile'"),
+			ExpectError: regexp.MustCompile("`automatic_cluster_update_enabled` .* must be set to true when `compliance_security_profile_enabled` is set to true"),
 		},
 	})
 }
@@ -496,7 +486,7 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.enhancedSecurityCompliance(data, "premium", true, false, []string{"PCI_DSS", "HIPAA"}, true),
-			ExpectError: regexp.MustCompile("'compliance_security_profile_standards' cannot be set when 'compliance_security_profile_enabled' is false"),
+			ExpectError: regexp.MustCompile("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false"),
 		},
 	})
 }

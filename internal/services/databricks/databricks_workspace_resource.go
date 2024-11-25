@@ -353,9 +353,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Default:  false,
 						},
 						"compliance_security_profile_standards": {
-							Type:         pluginsdk.TypeSet,
-							Optional:     true,
-							RequiredWith: []string{"enhanced_security_compliance.0.compliance_security_profile_enabled"},
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -396,10 +395,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				// the same workspace configuration...
 				if !publicNetworkAccess.(bool) {
 					if requireNsgRules.(string) == string(workspaces.RequiredNsgRulesAllRules) {
-						return fmt.Errorf("having 'network_security_group_rules_required' set to %q and 'public_network_access_enabled' set to 'false' is an invalid configuration", string(workspaces.RequiredNsgRulesAllRules))
+						return fmt.Errorf("having `network_security_group_rules_required` set to %q and `public_network_access_enabled` set to `false` is an invalid configuration", string(workspaces.RequiredNsgRulesAllRules))
 					}
 					if backendPool.(string) != "" {
-						return fmt.Errorf("having 'load_balancer_backend_address_pool_id' defined and having 'public_network_access_enabled' set to 'false' is an invalid configuration")
+						return fmt.Errorf("having `load_balancer_backend_address_pool_id` defined and having `public_network_access_enabled` set to `false` is an invalid configuration")
 					}
 				}
 
@@ -413,7 +412,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 
 				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-					return fmt.Errorf("'customer_managed_key_enabled', 'default_storage_firewall_enabled', 'enhanced_security_compliance', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
+					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
 				}
 
 				return nil
@@ -437,7 +436,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, enhancedSecurityMonitoringEnabled := d.GetChange("enhanced_security_compliance.0.enhanced_security_monitoring_enabled")
 
 				if complianceSecurityProfileEnabled.(bool) && (!automaticClusterUpdateEnabled.(bool) || !enhancedSecurityMonitoringEnabled.(bool)) {
-					return fmt.Errorf("'automatic_cluster_update_enabled' and 'enhanced_security_monitoring_enabled' must be set to true when 'compliance_security_profile_enabled' is set to true")
+					return fmt.Errorf("`automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true")
 				}
 
 				return nil
@@ -449,7 +448,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, complianceStandards := d.GetChange("enhanced_security_compliance.0.compliance_security_profile_standards")
 
 				if !complianceSecurityProfileEnabled.(bool) && complianceStandards.(*pluginsdk.Set).Len() > 0 {
-					return fmt.Errorf("'compliance_security_profile_standards' cannot be set when 'compliance_security_profile_enabled' is false")
+					return fmt.Errorf("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false")
 				}
 
 				return nil
@@ -559,16 +558,16 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		priSub := config["private_subnet_name"].(string)
 
 		if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
-			return fmt.Errorf("'public_subnet_name' and/or 'private_subnet_name' cannot be defined if 'virtual_network_id' is not set")
+			return fmt.Errorf("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
 		}
 		if config["virtual_network_id"].(string) != "" && (pubSub == "" || priSub == "") {
-			return fmt.Errorf("'public_subnet_name' and 'private_subnet_name' must both have values if 'virtual_network_id' is set")
+			return fmt.Errorf("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
 		}
 		if pubSub != "" && pubSubAssoc == nil {
-			return fmt.Errorf("you must define a value for 'public_subnet_network_security_group_association_id' if 'public_subnet_name' is set")
+			return fmt.Errorf("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
 		}
 		if priSub != "" && priSubAssoc == nil {
-			return fmt.Errorf("you must define a value for 'private_subnet_network_security_group_association_id' if 'private_subnet_name' is set")
+			return fmt.Errorf("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
 		}
 	}
 

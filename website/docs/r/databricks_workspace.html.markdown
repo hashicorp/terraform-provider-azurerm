@@ -128,9 +128,9 @@ A `custom_parameters` block supports the following:
 
 An `enhanced_security_compliance` block supports the following:
 
-* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace.
+* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace. Defaults to `false`.
 
-* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace.
+* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace. Defaults to `false`.
 
 ~> **Note:** Changing the value of `compliance_security_profile_enabled` from `true` to `false` forces a replacement of the Databricks workspace.
 
@@ -142,7 +142,7 @@ An `enhanced_security_compliance` block supports the following:
 
 ~> **Note:** Removing a standard from the `compliance_security_profile_standards` list forces a replacement of the Databricks workspace.
 
-* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace.
+* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace. Defaults to `false`.
 
 ## Example HCL Configurations
 
