@@ -457,7 +457,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
 		}
 		// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKUs...
-		if pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 3 {
+		if (pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 3 {
 			return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
 		}
 
