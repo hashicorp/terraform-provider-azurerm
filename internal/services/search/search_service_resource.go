@@ -246,6 +246,12 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
 	}
 
+	// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKU...
+
+	if (skuName == services.SkuNameBasic) && partitionCount > 3 {
+		return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+	}
+
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
 	// 'partition_count' must be between 1 and 3.
 	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
