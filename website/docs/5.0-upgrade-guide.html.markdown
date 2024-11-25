@@ -48,6 +48,10 @@ Please follow the format in the example below for adding removed data sources:
 This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
 ## Breaking Changes in Resources
 
 Please follow the format in the example below for listing breaking changes in resources:
@@ -76,6 +80,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_eventhub_namespace`
 
 * The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
+
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -122,6 +130,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
 * The deprecated `example_property_with_no_replacement` property has been removed.
 ```
+
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
 ### `azurerm_storage_container`
 
