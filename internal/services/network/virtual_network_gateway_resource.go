@@ -1093,7 +1093,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		addresses = append(addresses, addr.(string))
 	}
 
-	rootCertsConf := conf["root_certificate"].([]interface{})
+	rootCertsConf := conf["root_certificate"].(*pluginsdk.Set).List()
 	rootCerts := make([]virtualnetworkgateways.VpnClientRootCertificate, 0, len(rootCertsConf))
 	for _, rootCertSet := range rootCertsConf {
 		rootCert := rootCertSet.(map[string]interface{})
@@ -1106,7 +1106,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		rootCerts = append(rootCerts, r)
 	}
 
-	revokedCertsConf := conf["revoked_certificate"].([]interface{})
+	revokedCertsConf := conf["revoked_certificate"].(*pluginsdk.Set).List()
 	revokedCerts := make([]virtualnetworkgateways.VpnClientRevokedCertificate, 0, len(revokedCertsConf))
 	for _, revokedCertSet := range revokedCertsConf {
 		revokedCert := revokedCertSet.(map[string]interface{})
