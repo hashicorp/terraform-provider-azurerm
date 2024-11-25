@@ -2,7 +2,8 @@
 
 BUG FIXES:
 
-* `application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
+* `azurerm_application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
+* `azurerm_virtual_network_gateway` - fix crash issue when specifying `root_certificate ` or `revoked_certificate` [GH-28099]
 
 ENHANCEMENTS:
 
