@@ -106,20 +106,24 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 
+### `azurerm_nginx_deployment`
+
+* The deprecated `managed_resource_group` property has been removed.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
 
 ### `azurerm_storage_account`
 
-* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource. 
-* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource. 
+* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
+* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
 
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
- 
+
 ### `azurerm_storage_share`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
@@ -140,11 +144,19 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
+### `azurerm_nginx_configuration`
+
+* The deprecated `protected_file.content` property has been removed.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `managed_resource_group` property has been removed.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
-* 
+
 ### `azurerm_storage_share`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
