@@ -185,7 +185,7 @@ The `site_config` block supports the following:
 
 * `app_scale_limit` - (Optional) The number of workers this Logic App can scale out to. Only applicable to apps on the Consumption and Premium plan.
 
-* `auto_swap_slot_name` - The Auto-swap slot name.
+* `auto_swap_slot_name` - (Optional) The Auto-swap slot name.
 
 * `cors` - (Optional) A `cors` block as defined below.
 

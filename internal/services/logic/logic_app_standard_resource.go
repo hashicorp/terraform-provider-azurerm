@@ -295,7 +295,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if available.Model == nil || available.Model.NameAvailable == nil {
-		return fmt.Errorf("")
+		return fmt.Errorf("checking if name %q was available: `model` was nil", id.SiteName)
 	}
 
 	if !*available.Model.NameAvailable {
@@ -585,7 +585,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if model := appSettingsResp.Model; model != nil {
-		appSettings := flattenLogicAppStandardAppSettings(model.Properties)
+		appSettings := pointer.From(model.Properties)
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
@@ -1054,19 +1054,6 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-func flattenLogicAppStandardAppSettings(input *map[string]string) map[string]string {
-	output := make(map[string]string)
-	if input == nil || len(*input) == 0 {
-		return output
-	}
-
-	for k, v := range *input {
-		output[k] = v
-	}
-
-	return output
 }
 
 func flattenLogicAppStandardConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {

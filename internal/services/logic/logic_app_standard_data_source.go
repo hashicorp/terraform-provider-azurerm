@@ -254,7 +254,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("listing application settings for %s: %+v", id, err)
 	}
 	if model := appSettingsResp.Model; model != nil {
-		appSettings := flattenLogicAppStandardDataSourceAppSettings(model.Properties)
+		appSettings := pointer.From(model.Properties)
 
 		connectionString := appSettings["AzureWebJobsStorage"]
 
@@ -338,20 +338,6 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func flattenLogicAppStandardDataSourceAppSettings(input *map[string]string) map[string]string {
-	output := make(map[string]string)
-
-	if input == nil || len(*input) == 0 {
-		return output
-	}
-
-	for k, v := range *input {
-		output[k] = v
-	}
-
-	return output
 }
 
 func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
