@@ -2336,6 +2336,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) podCidrs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -2370,6 +2374,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) podCidrsDualStack(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -2405,6 +2413,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) serviceCidrs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -2440,6 +2452,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) serviceCidrsDualStack(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
@@ -2962,6 +2978,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3037,6 +3057,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3112,6 +3136,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3187,6 +3215,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) unsetLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -3778,6 +3810,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 func (KubernetesClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

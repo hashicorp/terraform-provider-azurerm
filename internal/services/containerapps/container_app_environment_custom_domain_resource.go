@@ -45,7 +45,6 @@ func (r ContainerAppEnvironmentCustomDomainResource) IDValidationFunc() pluginsd
 
 func (r ContainerAppEnvironmentCustomDomainResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"container_app_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

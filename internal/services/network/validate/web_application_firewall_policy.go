@@ -60,6 +60,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{
 	"0.1",
 	"1.0",
+	"1.1",
 	"2.1",
 	"2.2.9",
 	"3.0",
@@ -75,6 +76,7 @@ var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([
 
 var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
 	"1.0",
+	"1.1",
 	"2.1",
 	"3.2",
 }, false)

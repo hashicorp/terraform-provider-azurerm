@@ -109,6 +109,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkmanagers.ConfigurationTypeConnectivity),
+					string(networkmanagers.ConfigurationTypeRouting),
 					string(networkmanagers.ConfigurationTypeSecurityAdmin),
 				}, false),
 			},

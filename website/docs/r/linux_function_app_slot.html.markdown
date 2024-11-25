@@ -637,7 +637,7 @@ An `application_stack` block supports the following:
 
 * `docker` - (Optional) a `docker` block as detailed below.
 
-* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0` and `8.0`.
+* `dotnet_version` - (Optional) The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 

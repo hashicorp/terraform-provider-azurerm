@@ -38,9 +38,7 @@ type CustomIpPrefixModel struct {
 	Zones                       []string               `tfschema:"zones"`
 }
 
-var (
-	_ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
-)
+var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
 
 type CustomIpPrefixResource struct {
 	client *customipprefixes.CustomIPPrefixesClient
@@ -57,6 +55,7 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customipprefixes.ValidateCustomIPPrefixID
 }
+
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

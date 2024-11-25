@@ -223,7 +223,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 
 	// check forceNew attribute
 	if s.ForceNew != f.ForceNew && f.Name != "resource_group_name" {
-		var forceNew = ForceNewDefault
+		forceNew := ForceNewDefault
 		if s.ForceNew && !f.ForceNew {
 			forceNew = ShouldBeForceNew
 		} else if f.ForceNew && !s.ForceNew {

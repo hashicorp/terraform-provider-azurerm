@@ -245,6 +245,10 @@ func (t ServiceBusSubscriptionResource) Exists(ctx context.Context, clients *cli
 }
 
 const testAccServiceBusSubscription_tfTemplate = `
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -276,6 +280,10 @@ func (ServiceBusSubscriptionResource) basic(data acceptance.TestData) string {
 
 func (ServiceBusSubscriptionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -384,6 +392,10 @@ func (ServiceBusSubscriptionResource) updateDeadLetteringOnFilterEvaluationExcep
 
 func (ServiceBusSubscriptionResource) clientScopedSubscriptionEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"

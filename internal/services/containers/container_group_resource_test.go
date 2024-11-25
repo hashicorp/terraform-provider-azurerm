@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -369,84 +368,6 @@ func TestAccContainerGroup_linuxBasicTagsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.OS").HasValue("Linux"),
 			),
 		},
-	})
-}
-
-func TestAccContainerGroup_linuxComplete(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping in 4.0 since `gpu` and `gpu_limit`has been deprecated.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-
-	// Override locations for this test to location that has GPU SKU support:
-	// https://learn.microsoft.com/en-us/azure/container-instances/container-instances-gpu
-	data.Locations.Primary = "northeurope"
-	data.Locations.Secondary = "westeurope"
-
-	r := ContainerGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.linuxComplete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("dns_name_label_reuse_policy").HasValue("Unsecure"),
-				check.That(data.ResourceName).Key("container.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.commands.#").HasValue("3"),
-				check.That(data.ResourceName).Key("container.0.commands.0").HasValue("/bin/bash"),
-				check.That(data.ResourceName).Key("container.0.commands.1").HasValue("-c"),
-				check.That(data.ResourceName).Key("container.0.commands.2").HasValue("ls"),
-				check.That(data.ResourceName).Key("container.0.environment_variables.%").HasValue("2"),
-				check.That(data.ResourceName).Key("container.0.environment_variables.foo").HasValue("bar"),
-				check.That(data.ResourceName).Key("container.0.environment_variables.foo1").HasValue("bar1"),
-				check.That(data.ResourceName).Key("container.0.secure_environment_variables.%").HasValue("2"),
-				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo").HasValue("secureBar"),
-				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo1").HasValue("secureBar1"),
-				check.That(data.ResourceName).Key("container.0.gpu.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.gpu.0.count").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("V100"),
-				check.That(data.ResourceName).Key("container.0.volume.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.volume.0.mount_path").HasValue("/aci/logs"),
-				check.That(data.ResourceName).Key("container.0.volume.0.name").HasValue("logs"),
-				check.That(data.ResourceName).Key("container.0.volume.0.read_only").HasValue("false"),
-				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
-				check.That(data.ResourceName).Key("restart_policy").HasValue("OnFailure"),
-				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.#").HasValue("1"),
-				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.log_type").HasValue("ContainerInsights"),
-				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.metadata.%").HasValue("1"),
-				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_id").Exists(),
-				check.That(data.ResourceName).Key("diagnostics.0.log_analytics.0.workspace_key").Exists(),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.#").HasValue("2"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.0").HasValue("cat"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.exec.1").HasValue("/tmp/healthy"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.http_get.#").HasValue("0"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.initial_delay_seconds").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.period_seconds").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.failure_threshold").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.success_threshold").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.readiness_probe.0.timeout_seconds").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.failure_threshold").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.#").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.path").HasValue("/"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.port").HasValue("443"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.http_get.0.scheme").HasValue("http"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.initial_delay_seconds").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.period_seconds").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.success_threshold").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.liveness_probe.0.timeout_seconds").HasValue("1"),
-			),
-		},
-		data.ImportStep(
-			"container.0.volume.0.storage_account_key",
-			"container.0.secure_environment_variables.%",
-			"container.0.secure_environment_variables.secureFoo",
-			"container.0.secure_environment_variables.secureFoo1",
-			"diagnostics.0.log_analytics.0.workspace_key",
-		),
 	})
 }
 
@@ -1048,6 +969,7 @@ resource "azurerm_container_group" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
+
 func (ContainerGroupResource) UserAssignedIdentityWithVirtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

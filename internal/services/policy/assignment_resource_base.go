@@ -677,7 +677,7 @@ func (br assignmentBaseResource) flattenResourceSelectors(selectors *[]policyass
 
 	res := make([]interface{}, 0, len(*selectors))
 	for _, v := range *selectors {
-		var item = map[string]interface{}{
+		item := map[string]interface{}{
 			"name":      pointer.From(v.Name),
 			"selectors": br.flattenSelectors(v.Selectors),
 		}

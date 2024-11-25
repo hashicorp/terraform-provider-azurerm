@@ -630,6 +630,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
 func (DatasetDelimitedTextResource) blobFSDynamicPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

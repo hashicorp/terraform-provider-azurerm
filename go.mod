@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.71.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241104.1140654
-	github.com/hashicorp/go-azure-sdk/sdk v0.20241104.1140654
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241118.1115603
+	github.com/hashicorp/go-azure-sdk/sdk v0.20241118.1115603
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-mux v0.17.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
-	github.com/hashicorp/terraform-plugin-testing v1.8.0
+	github.com/hashicorp/terraform-plugin-testing v1.11.0
 	github.com/jackofallops/kermit v0.20241010.1180132
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 	github.com/mitchellh/mapstructure v1.5.0
@@ -36,7 +36,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/tombuildsstuff/giovanni v0.27.0
 	github.com/tombuildsstuff/kermit v0.20240122.1123108
-	golang.org/x/crypto v0.28.0
+	golang.org/x/crypto v0.29.0
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -58,7 +58,7 @@ require (
 	github.com/hashicorp/go-plugin v1.6.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/hc-install v0.9.0 // indirect
-	github.com/hashicorp/hcl/v2 v2.22.0 // indirect
+	github.com/hashicorp/hcl/v2 v2.23.0 // indirect
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.21.0 // indirect
@@ -84,9 +84,9 @@ require (
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.22.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/sync v0.9.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
 	google.golang.org/grpc v1.67.1 // indirect

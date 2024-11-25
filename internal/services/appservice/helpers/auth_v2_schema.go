@@ -172,6 +172,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

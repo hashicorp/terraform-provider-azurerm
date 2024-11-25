@@ -283,7 +283,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			id := webapps.NewSlotID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, webAppSlot.Name)
 
 			webApp, err := client.Get(ctx, *appId)
-
 			if err != nil {
 				return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
 			}

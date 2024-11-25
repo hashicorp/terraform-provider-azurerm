@@ -1,25 +1,90 @@
-## 4.10.0 (Unreleased)
-
-BREAKING CHANGES:
-
-* dependencies - update `cognitive` to `2024-10-01`, due to a behavioural change in this version of the API, the `primary_access_key` and `secondary_access_key` can not be retrieved if `local_authentication_enabled` has been set to `false`. These properties that may have had values previously will now be empty. This has affected the `azurerm_ai_services` and `azurerm_cognitive_account` resources as well as the `azurerm_cognitive_account` data source [GH-27851]
-
-ENHANCEMENTS:
-
-* dependencies: update `terraform-plugin-framework` to version `v1.13.0` [GH-27936]
-* dependencies: update `terraform-plugin-framework-validators` to version `v0.14.0` [GH-27936]
-* dependencies: update `terraform-plugin-go` to version `v0.25.0` [GH-27936]
-* dependencies: update `terraform-plugin-mux` to version `v0.17.0` [GH-27936]
-* dependencies: update `terraform-plugin-sdk/v2` to version `v2.35.0` [GH-27936]
-* Data Source: `azurerm_bastion_host` - add support for the `zones` property [GH-27909]
-* `azurerm_application_gateway` - support more values for the `status_code` property [GH-27535]
-* `azurerm_bastion_host` - support for the `zones` property [GH-27909]
-* `azurerm_communication_service` - support for `usgov` region [GH-27919]
-* `azurerm_email_communication_service` - support for `usgov` region added [GH-27919]
+## 4.12.0 (Unreleased)
 
 BUG FIXES:
 
-* `azurerm_log_analytics_workspace_table` - use the subscription from workspace ID [GH-27590]
+* `application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
+
+ENHANCEMENTS:
+
+* `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
+
+## 4.11.0 (November 22, 2024)
+
+NOTES:
+* New [ephemeral resources](https://developer.hashicorp.com/terraform/language/v1.10.x/resources/ephemeral) `azurerm_key_vault_certificate` and `azurerm_key_vault_secret` now support [ephemeral values](https://developer.hashicorp.com/terraform/language/v1.10.x/values/variables#exclude-values-from-state)
+
+FEATURES:
+
+* **New Ephemeral Resource**: `azurerm_key_vault_certificate` ([#28083](https://github.com/hashicorp/terraform-provider-azurerm/issues/28083))
+* **New Ephemeral Resource**: `azurerm_key_vault_secret` ([#28083](https://github.com/hashicorp/terraform-provider-azurerm/issues/28083))
+* **New Resource**: `azurerm_eventgrid_namespace` ([#27682](https://github.com/hashicorp/terraform-provider-azurerm/issues/27682))
+
+ENHANCEMENTS:
+
+* dependencies: update `hashicorp/go-azure-sdk` to `v0.20241118.1115603` ([#28075](https://github.com/hashicorp/terraform-provider-azurerm/issues/28075))
+* `batch` - upgrade api version to `2024-07-01` ([#27982](https://github.com/hashicorp/terraform-provider-azurerm/issues/27982))
+* `containerregistry` - upgrade api version to `2023-11-01-preview` ([#27983](https://github.com/hashicorp/terraform-provider-azurerm/issues/27983))
+* `azurerm_application_gateway` - `1.1` is now accepted as a valid `rule_set_version` in the `waf_configuration` block ([#28039](https://github.com/hashicorp/terraform-provider-azurerm/issues/28039))
+* `azurerm_arc_machine` - add support for the `identity` and `tags` properties ([#27987](https://github.com/hashicorp/terraform-provider-azurerm/issues/27987))
+* `azurerm_container_app` - `secret.name` now accepts up to 253 characters and `.` ([#27935](https://github.com/hashicorp/terraform-provider-azurerm/issues/27935))
+* `azurerm_network_manager` - `scope_accesses` now accepts `Routing` ([#28033](https://github.com/hashicorp/terraform-provider-azurerm/issues/28033))
+* `azurerm_network_watcher_flow_log` - add support for the `target_resource_id` property ([#26015](https://github.com/hashicorp/terraform-provider-azurerm/issues/26015))
+* `azurerm_role_assignment` - `condition_version` will be defaulted to `2.0` when `condition` has been set ([#27189](https://github.com/hashicorp/terraform-provider-azurerm/issues/27189))
+* `azurerm_subnet` - `Informatica.DataManagement/organizations` is a valid `service_delegation` ([#27993](https://github.com/hashicorp/terraform-provider-azurerm/issues/27993))
+* `azurerm_virtual_network` - `Informatica.DataManagement/organizations` is a valid `service_delegation` ([#27993](https://github.com/hashicorp/terraform-provider-azurerm/issues/27993))
+* `azurerm_web_application_firewall_policy` - `1.1` is now accepted as a valid `version` for `Microsoft_BotManagerRuleSet` rule types ([#28039](https://github.com/hashicorp/terraform-provider-azurerm/issues/28039))
+
+BUG FIXES:
+
+* `azurerm_api_management` - `public_ip_address_id` is no longer required when `zone` has been set ([#27976](https://github.com/hashicorp/terraform-provider-azurerm/issues/27976))
+* `azurerm_api_management_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` ([#27630](https://github.com/hashicorp/terraform-provider-azurerm/issues/27630))
+* `azurerm_api_management_api_diagnostic` - raise and error when `operation_name_format` is used with and `identity` that is not `applicationinsights` ([#27630](https://github.com/hashicorp/terraform-provider-azurerm/issues/27630))
+* `azurerm_application_gateway` - `rewrite_rule_set` can be supplied when using `Basic` sku ([#28011](https://github.com/hashicorp/terraform-provider-azurerm/issues/28011))
+* `azurerm_container_registry_token_password` - correctly mark as gone if container registry token doesn't exist ([#27232](https://github.com/hashicorp/terraform-provider-azurerm/issues/27232))
+* `azurerm_kusto_cluster` - `allowed_fqdn` and `allowed_ip_ranges` can now be set to empty lists ([#27529](https://github.com/hashicorp/terraform-provider-azurerm/issues/27529))
+* `azurerm_linux_function_app_slot` - create content settings when using a consumpton plan ([#25412](https://github.com/hashicorp/terraform-provider-azurerm/issues/25412))
+* `azurerm_virtual_network_gatway` - updating `ip_configuration` now recreates the resource ([#27828](https://github.com/hashicorp/terraform-provider-azurerm/issues/27828))
+
+
+## 4.10.0 (November 14, 2024)
+
+BREAKING CHANGES:
+
+* dependencies - update `cognitive` to `2024-10-01`, due to a behavioural change in this version of the API, the `primary_access_key` and `secondary_access_key` can not be retrieved if `local_authentication_enabled` has been set to `false`. These properties that may have had values previously will now be empty. This has affected the `azurerm_ai_services` and `azurerm_cognitive_account` resources as well as the `azurerm_cognitive_account` data source ([#27851](https://github.com/hashicorp/terraform-provider-azurerm/issues/27851))
+
+FEATURES:
+
+* **New Data Source**: `azurerm_key_vault_managed_hardware_security_module_key` ([#27827](https://github.com/hashicorp/terraform-provider-azurerm/issues/27827))
+* **New Resource**: `azurerm_netapp_backup_vault` ([#27188](https://github.com/hashicorp/terraform-provider-azurerm/issues/27188))
+* **New Resource**: `azurerm_netapp_backup_policy` ([#27188](https://github.com/hashicorp/terraform-provider-azurerm/issues/27188))
+
+ENHANCEMENTS:
+
+* dependencies: update `terraform-plugin-framework` to version `v1.13.0` ([#27936](https://github.com/hashicorp/terraform-provider-azurerm/issues/27936))
+* dependencies: update `terraform-plugin-framework-validators` to version `v0.14.0` ([#27936](https://github.com/hashicorp/terraform-provider-azurerm/issues/27936))
+* dependencies: update `terraform-plugin-go` to version `v0.25.0` ([#27936](https://github.com/hashicorp/terraform-provider-azurerm/issues/27936))
+* dependencies: update `terraform-plugin-mux` to version `v0.17.0` ([#27936](https://github.com/hashicorp/terraform-provider-azurerm/issues/27936))
+* dependencies: update `terraform-plugin-sdk/v2` to version `v2.35.0` ([#27936](https://github.com/hashicorp/terraform-provider-azurerm/issues/27936))
+* Data Source: `azurerm_bastion_host` - add support for the `zones` property ([#27909](https://github.com/hashicorp/terraform-provider-azurerm/issues/27909))
+* `azurerm_application_gateway` - support more values for the `status_code` property ([#27535](https://github.com/hashicorp/terraform-provider-azurerm/issues/27535))
+* `azurerm_bastion_host` - support for the `zones` property ([#27909](https://github.com/hashicorp/terraform-provider-azurerm/issues/27909))
+* `azurerm_communication_service` - support for `usgov` region ([#27919](https://github.com/hashicorp/terraform-provider-azurerm/issues/27919))
+* `azurerm_email_communication_service` - support for `usgov` region added ([#27919](https://github.com/hashicorp/terraform-provider-azurerm/issues/27919))
+* `azurerm_linux_function_app` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_linux_function_app_slot` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_linux_web_app` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_linux_web_app_slot` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_windows_web_app` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_windows_web_app_slot` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_windows_function_app` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+* `azurerm_windows_function_app_slot` - support for .NET 9  ([#27879](https://github.com/hashicorp/terraform-provider-azurerm/issues/27879))
+
+BUG FIXES:
+
+* `azurerm_log_analytics_workspace_table` - use the subscription from workspace ID ([#27590](https://github.com/hashicorp/terraform-provider-azurerm/issues/27590))
+* `azurerm_traffic_manager_external_endpoint` - the value for `priority` will be dynamically assigned by the API ([#27966](https://github.com/hashicorp/terraform-provider-azurerm/issues/27966))
+* `azurerm_traffic_manager_azure_endpoint` - the value for `priority` will be dynamically assigned by the API ([#27966](https://github.com/hashicorp/terraform-provider-azurerm/issues/27966))
+
 
 ## 4.9.0 (November 08, 2024)
 

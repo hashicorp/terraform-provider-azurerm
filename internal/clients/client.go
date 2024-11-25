@@ -14,7 +14,6 @@ import (
 	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
-	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview"
@@ -206,7 +205,7 @@ type Client struct {
 	Dynatrace                         *dynatrace.Client
 	Elastic                           *elastic.Client
 	ElasticSan                        *elasticsan.Client
-	EventGrid                         *eventgrid_v2022_06_15.Client
+	EventGrid                         *eventgrid.Client
 	Eventhub                          *eventhub.Client
 	ExtendedLocation                  *extendedlocation.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
