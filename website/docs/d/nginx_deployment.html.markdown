@@ -57,8 +57,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `logging_storage_account` - A `logging_storage_account` block as defined below.
 
-* `managed_resource_group` - Auto-generated managed resource group for the NGINX Deployment.
-
 * `network_interface` - A `network_interface` block as defined below.
 
 * `nginx_version` - NGINX version of the Deployment.
