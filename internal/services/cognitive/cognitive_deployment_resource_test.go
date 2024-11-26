@@ -199,8 +199,8 @@ func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
-  name                 = "acctest-cd-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
+  name                       = "acctest-cd-%d"
+  cognitive_account_id       = azurerm_cognitive_account.test.id
   dynamic_throttling_enabled = true
   model {
     format  = "OpenAI"
