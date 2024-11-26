@@ -1,5 +1,9 @@
 ## 4.12.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_mssql_managed_database` [GH-27026]
+
 BUG FIXES:
 
 * `azurerm_application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
