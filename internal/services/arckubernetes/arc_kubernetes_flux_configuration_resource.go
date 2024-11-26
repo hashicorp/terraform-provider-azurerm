@@ -99,9 +99,7 @@ type KustomizationDefinitionModel struct {
 
 type ArcKubernetesFluxConfigurationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = ArcKubernetesFluxConfigurationResource{}
-)
+var _ sdk.ResourceWithUpdate = ArcKubernetesFluxConfigurationResource{}
 
 func (r ArcKubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_flux_configuration"
@@ -887,7 +885,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.SecretKey != "" {
 		configSettings["bucketSecretKey"] = input.SecretKey
 	}
@@ -938,7 +936,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.HttpsKey != "" {
 		configSettings["httpsKey"] = input.HttpsKey
 	}

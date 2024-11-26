@@ -6,16 +6,16 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +23,6 @@ import (
 )
 
 func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
-
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
@@ -31,7 +30,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-
 		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed
@@ -146,7 +144,7 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 		}
 
 		if v := item.ProximityPlacementGroupId; v != "" {
-			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(utils.NormalizeNilableString(pointer.To(v)))
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
@@ -275,6 +273,58 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 	}
 }
 
+func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
+	if len(input) == 0 || input == nil {
+		return &volumes.VolumePropertiesDataProtection{}
+	}
+
+	backupPolicyObject := volumes.VolumeBackupProperties{}
+
+	backupRaw := input[0].(map[string]interface{})
+
+	if v, ok := backupRaw["backup_policy_id"]; ok {
+		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+	}
+
+	if v, ok := backupRaw["policy_enabled"]; ok {
+		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+	}
+
+	if v, ok := backupRaw["backup_vault_id"]; ok {
+		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePropertiesDataProtection{
+		Backup: &backupPolicyObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+	if len(input) == 0 || input == nil {
+		return &volumes.VolumePatchPropertiesDataProtection{}
+	}
+
+	backupPolicyObject := volumes.VolumeBackupProperties{}
+
+	backupRaw := input[0].(map[string]interface{})
+
+	if v, ok := backupRaw["backup_policy_id"]; ok {
+		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+	}
+
+	if v, ok := backupRaw["policy_enabled"]; ok {
+		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+	}
+
+	if v, ok := backupRaw["backup_vault_id"]; ok {
+		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePatchPropertiesDataProtection{
+		Backup: &backupPolicyObject,
+	}
+}
+
 func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupVolume, error) {
 	results := make([]netAppModels.NetAppVolumeGroupVolume, 0)
 
@@ -290,13 +340,13 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
 		volumeGroupVolume.SubnetId = props.SubnetId
-		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(props.CapacityPoolResourceId)
+		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
 		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
+		volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
@@ -438,7 +488,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 	existing, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
-		if existing.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(existing.HttpResponse) {
 			return metadata.MarkAsGone(id)
 		}
 		return fmt.Errorf("retrieving %s: %v", id, err)
@@ -495,7 +545,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 	}
 
-	// Deleting volume and waiting for it fo fully complete the operation
+	// Deleting volume and waiting for it to fully complete the operation
 	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
@@ -642,6 +692,28 @@ func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, i
 	return nil
 }
 
+func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200"}, // 200 means not in the state we need for backup
+		Target:                    []string{"204"}, // 204 means backup is in a state that need (! transitioning)
+		Refresh:                   netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to not be in the transferring state", id)
+	}
+
+	return nil
+}
+
 func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
@@ -697,6 +769,25 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 		// Setting 200 as default response
 		response := 200
 		if res.Model != nil && res.Model.MirrorState != nil && strings.EqualFold(string(*res.Model.MirrorState), desiredState) {
+			// return 204 if state matches desired state
+			response = 204
+		}
+
+		return res, strconv.Itoa(response), nil
+	}
+}
+
+func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetLatestStatus(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving backup relationship status information from %s: %s", id, err)
+			}
+		}
+
+		response := 200
+		if res.Model != nil && res.Model.RelationshipStatus != nil && *res.Model.RelationshipStatus != backups.RelationshipStatusTransferring {
 			// return 204 if state matches desired state
 			response = 204
 		}

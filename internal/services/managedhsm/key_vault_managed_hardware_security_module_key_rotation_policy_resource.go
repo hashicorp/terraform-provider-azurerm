@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMKeyRotationPolicyResource struct{}
@@ -227,7 +227,6 @@ func (r KeyVaultMHSMKeyRotationPolicyResource) Delete() sdk.ResourceFunc {
 }
 
 func expandKeyRotationPolicy(policy MHSMKeyRotationPolicyResourceSchema) keyvault.KeyRotationPolicy {
-
 	var expiryTime *string // = nil // needs to be set to nil if not set
 	if policy.ExpireAfter != "" {
 		expiryTime = pointer.To(policy.ExpireAfter)

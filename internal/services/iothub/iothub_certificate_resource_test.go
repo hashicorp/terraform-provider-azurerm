@@ -163,7 +163,7 @@ resource "azurerm_iothub" "test" {
 }
 
 resource "azurerm_iothub_certificate" "test" {
-  name                = "acctestIoTCertificate-%d"
+  name                = "acctestIoTHubCertificate-%d"
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
   is_verified         = true

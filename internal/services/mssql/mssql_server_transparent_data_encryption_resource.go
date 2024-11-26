@@ -272,7 +272,6 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 			hsmKey = keyId
 		} else {
 			keyVaultKeyId = keyId
-
 		}
 	}
 

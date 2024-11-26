@@ -57,8 +57,10 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudCustomizedAcceleratorResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+)
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"

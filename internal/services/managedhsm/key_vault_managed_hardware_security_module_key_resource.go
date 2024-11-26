@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMKeyResource struct{}
@@ -466,7 +466,7 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 			}
 
 			shouldPurge := metadata.Client.Features.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy
-			if shouldPurge && managedHSM.Model != nil && managedHSM.Model.Properties != nil && utils.NormaliseNilableBool(managedHSM.Model.Properties.EnablePurgeProtection) {
+			if shouldPurge && managedHSM.Model != nil && managedHSM.Model.Properties != nil && pointer.From(managedHSM.Model.Properties.EnablePurgeProtection) {
 				log.Printf("[DEBUG] cannot purge key %q because Managed HSM %q has purge protection enabled", id.KeyName, id.ManagedHSMName)
 				shouldPurge = false
 			}

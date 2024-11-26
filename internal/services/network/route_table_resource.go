@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -156,12 +156,6 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
-
-	if !features.FourPointOhBeta() {
-		// need to set default back to true for 3.x, this triggers ineffassign linter, so ignoring for now
-		bgpRoutePropagationEnabled = true // nolint: ineffassign
-		bgpRoutePropagationEnabled = !d.Get("disable_bgp_route_propagation").(bool)
-	}
 
 	routeSet := routetables.RouteTable{
 		Name:     &id.RouteTableName,

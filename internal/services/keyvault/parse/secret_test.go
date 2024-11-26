@@ -27,7 +27,6 @@ func TestSecretID(t *testing.T) {
 		Error    bool
 		Expected *SecretId
 	}{
-
 		{
 			// empty
 			Input: "",
