@@ -93,8 +93,6 @@ The following arguments are supported:
 
 * `hostname` - (Required) The hostname for the Cloud VM Cluster without suffix. Changing this forces a new Cloud VM Cluster to be created.
 
-* `hostname_actual` - The hostname for the Cloud VM Cluster with suffix. Changing this forces a new Cloud VM Cluster to be created.
-
 * `license_model` - (Required) The Oracle license model that applies to the Cloud VM Cluster, either `BringYourOwnLicense` or `LicenseIncluded`. Changing this forces a new Cloud VM Cluster to be created.
 
 * `location` - (Required) The Azure Region where the Cloud VM Cluster should exist. Changing this forces a new Cloud VM Cluster to be created.
