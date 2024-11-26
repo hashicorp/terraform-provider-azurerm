@@ -334,7 +334,6 @@ func resourceArcKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("arc_agent_auto_upgrade_enabled") {
-
 		autoUpgradeOption := arckubernetes.AutoUpgradeOptionsEnabled
 		if !d.Get("arc_agent_auto_upgrade_enabled").(bool) {
 			autoUpgradeOption = arckubernetes.AutoUpgradeOptionsDisabled
