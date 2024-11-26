@@ -295,8 +295,13 @@ func TestAccSearchService_partitionCountvalidBySkuBasic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.partitionCount(data, "basic", 4),
+			ExpectError: regexp.MustCompile("values greater than 3 cannot be set"),
+		},
 	})
 }
+
 
 func TestAccSearchService_partitionCountInvalidByInput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
