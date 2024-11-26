@@ -55,7 +55,7 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-z]([a-z\d]{1,61}[a-z\d])$`),
+				regexp.MustCompile(`^[a-z]([a-z\d]{2,62})$`),
 				"`name` must be between 3 and 63 characters. It can contain only lowercase letters and numbers. It must start with a lowercase letter.",
 			),
 		},
@@ -90,7 +90,6 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 		"administration_members": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -127,18 +126,19 @@ func (r FabricCapacityResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := fabriccapacities.FabricCapacity{
-				Location:   location.Normalize(model.Location),
-				Properties: fabriccapacities.FabricCapacityProperties{},
-			}
-
 			if len(model.AdministrationMembers) == 0 {
 				return fmt.Errorf("`administration_members` is required when creating a fabric capacity")
 			}
 
-			properties.Properties.Administration = pointer.From(expandCapacityAdministrationModel(model.AdministrationMembers))
-
-			properties.Sku = pointer.From(expandSkuModel(model.Sku))
+			properties := fabriccapacities.FabricCapacity{
+				Location: location.Normalize(model.Location),
+				Properties: fabriccapacities.FabricCapacityProperties{
+					Administration: fabriccapacities.CapacityAdministration{
+						Members: model.AdministrationMembers,
+					},
+				},
+				Sku: pointer.From(expandSkuModel(model.Sku)),
+			}
 
 			if model.Tags != nil {
 				properties.Tags = pointer.To(model.Tags)
@@ -181,7 +181,9 @@ func (r FabricCapacityResource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 			if metadata.ResourceData.HasChange("administration_members") {
-				payload.Properties.Administration = pointer.From(expandCapacityAdministrationModel(model.AdministrationMembers))
+				payload.Properties.Administration = fabriccapacities.CapacityAdministration{
+					Members: model.AdministrationMembers,
+				}
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
@@ -282,16 +284,6 @@ func (r FabricCapacityResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandCapacityAdministrationModel(inputList []string) *fabriccapacities.CapacityAdministration {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	return &fabriccapacities.CapacityAdministration{
-		Members: inputList,
-	}
-}
-
 func expandSkuModel(inputList []SkuModel) *fabriccapacities.RpSku {
 	if len(inputList) == 0 {
 		return nil
@@ -305,7 +297,7 @@ func expandSkuModel(inputList []SkuModel) *fabriccapacities.RpSku {
 }
 
 func flattenSkuModel(input *fabriccapacities.RpSku) []SkuModel {
-	var outputList []SkuModel
+	outputList := make([]SkuModel, 0)
 	if input == nil {
 		return outputList
 	}

@@ -14,7 +14,7 @@ type Client struct {
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	fabricCapacitiesClient, err := fabriccapacities.NewFabricCapacitiesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building fabric  client: %+v", err)
+		return nil, fmt.Errorf("building fabric client: %+v", err)
 	}
 	o.Configure(fabricCapacitiesClient.Client, o.Authorizers.ResourceManager)
 

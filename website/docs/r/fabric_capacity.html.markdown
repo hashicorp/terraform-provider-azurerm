@@ -60,7 +60,7 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the SKU to use for the Fabric Capacity.
 
-* `tier` - (Required) The tier of the SKU to use for the Fabric Capacity. Possible value is `Fabric`.
+* `tier` - (Required) The tier of the SKU to use for the Fabric Capacity. The only possible value is `Fabric`.
 
 ## Attributes Reference
 
@@ -79,7 +79,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Fabric Capacity can be imported using the `resource id`, e.g.
+Fabric Capacities can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_fabric_capacity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Fabric/capacities/capacity1
