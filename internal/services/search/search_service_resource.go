@@ -206,12 +206,12 @@ func resourceSearchService() *pluginsdk.Resource {
 				// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKU
 				partitionCount := int64(d.Get("partition_count").(int))
 				if (skuName == services.SkuNameFree) && partitionCount > 1 {
-					return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+					return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d", string(skuName), partitionCount)
 				}
 
 				// NOTE: 'partition_count' values greater than 3 are not valid for 'free' SKU
 				if (skuName == services.SkuNameBasic) && partitionCount > 3 {
-					return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+					return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d", string(skuName), partitionCount)
 				}
 
 				// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
