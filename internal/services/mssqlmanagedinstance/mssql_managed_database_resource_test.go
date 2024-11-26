@@ -34,6 +34,50 @@ func TestAccMsSqlManagedDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedDatabase_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+	})
+}
+
+func TestAccMsSqlManagedDatabase_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
+	r := MsSqlManagedDatabase{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(""),
+	})
+}
+
 func TestAccMsSqlManagedDatabase_withRetentionPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_database", "test")
 	r := MsSqlManagedDatabase{}
@@ -99,6 +143,18 @@ func (r MsSqlManagedDatabase) basic(data acceptance.TestData) string {
 resource "azurerm_mssql_managed_database" "test" {
   managed_instance_id = azurerm_mssql_managed_instance.test.id
   name                = "acctest-%[2]d"
+}
+`, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedDatabase) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_database" "test" {
+  managed_instance_id = azurerm_mssql_managed_instance.test.id
+  name                = "acctest-%[2]d"
+  tags                = { Environment = "Testing" }
 }
 `, MsSqlManagedInstanceResource{}.basic(data), data.RandomInteger)
 }

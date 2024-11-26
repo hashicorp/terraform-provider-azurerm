@@ -25,7 +25,6 @@ func TestCommunityGalleryImageVersionID(t *testing.T) {
 		Error    bool
 		Expected *CommunityGalleryImageVersionId
 	}{
-
 		{
 			// empty
 			Input: "",

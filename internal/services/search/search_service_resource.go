@@ -4,6 +4,7 @@
 package search
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSearchService() *pluginsdk.Resource {
@@ -123,6 +123,11 @@ func resourceSearchService() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"primary_key": {
@@ -260,7 +265,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
+		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
 	}
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
@@ -557,6 +562,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			if props.EncryptionWithCmk != nil {
 				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
 			// I am using 'DisableLocalAuth' here because when you are in
@@ -653,8 +659,8 @@ func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	if input != nil {
 		for _, v := range *input {
 			results = append(results, map[string]interface{}{
-				"name": utils.NormalizeNilableString(v.Name),
-				"key":  utils.NormalizeNilableString(v.Key),
+				"name": pointer.From(v.Name),
+				"key":  pointer.From(v.Key),
 			})
 		}
 	}
@@ -668,7 +674,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	for _, rule := range input {
 		if rule != nil {
 			output = append(output, services.IPRule{
-				Value: utils.String(rule.(string)),
+				Value: pointer.To(rule.(string)),
 			})
 		}
 	}

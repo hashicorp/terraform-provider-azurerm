@@ -144,15 +144,8 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformHtmlEntityDecode),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformLowercase),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformRemoveNulls),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformTrim),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLDecode),
-												string(webapplicationfirewallpolicies.WebApplicationFirewallTransformURLEncode),
-											}, false),
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallTransform(), false),
 										},
 									},
 								},
@@ -785,7 +778,8 @@ func expanedWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplic
 	if len(input) == 0 {
 		return nil
 	}
-	var res []webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
+
+	res := make([]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, 0)
 	for _, rule := range input {
 		v := rule.(map[string]interface{})
 		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
@@ -1140,7 +1134,6 @@ func flattenWebApplicationFirewallPolicyLogScrubbingRules(rules *[]webapplicatio
 		result = append(result, item)
 	}
 	return &result
-
 }
 
 func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicationfirewallpolicies.ManagedRulesDefinition) []interface{} {

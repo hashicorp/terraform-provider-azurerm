@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceSearchService() *pluginsdk.Resource {
@@ -38,6 +37,11 @@ func dataSourceSearchService() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,
@@ -116,6 +120,10 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			replicaCount := 1
 			publicNetworkAccess := true
 
+			if props.EncryptionWithCmk != nil {
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
+			}
+
 			if count := props.PartitionCount; count != nil {
 				partitionCount = int(*count)
 			}
@@ -154,8 +162,8 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving Admin Keys for %s: %+v", id, err)
 	}
 	if model := adminKeysResp.Model; model != nil {
-		primaryKey = utils.NormalizeNilableString(model.PrimaryKey)
-		secondaryKey = utils.NormalizeNilableString(model.SecondaryKey)
+		primaryKey = pointer.From(model.PrimaryKey)
+		secondaryKey = pointer.From(model.SecondaryKey)
 	}
 	d.Set("primary_key", primaryKey)
 	d.Set("secondary_key", secondaryKey)

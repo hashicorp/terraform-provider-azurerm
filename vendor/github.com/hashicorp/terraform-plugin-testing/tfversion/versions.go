@@ -30,10 +30,11 @@ var (
 	Version1_4_0  *version.Version = version.Must(version.NewVersion("1.4.0"))
 	// Version1_4_6 fixed inclusion of sensitive values in `terraform show -json` output.
 	// Reference: https://github.com/hashicorp/terraform/releases/tag/v1.4.6
-	Version1_4_6 *version.Version = version.Must(version.NewVersion("1.4.6"))
-	Version1_5_0 *version.Version = version.Must(version.NewVersion("1.5.0"))
-	Version1_6_0 *version.Version = version.Must(version.NewVersion("1.6.0"))
-	Version1_7_0 *version.Version = version.Must(version.NewVersion("1.7.0"))
-	Version1_8_0 *version.Version = version.Must(version.NewVersion("1.8.0"))
-	Version1_9_0 *version.Version = version.Must(version.NewVersion("1.9.0"))
+	Version1_4_6  *version.Version = version.Must(version.NewVersion("1.4.6"))
+	Version1_5_0  *version.Version = version.Must(version.NewVersion("1.5.0"))
+	Version1_6_0  *version.Version = version.Must(version.NewVersion("1.6.0"))
+	Version1_7_0  *version.Version = version.Must(version.NewVersion("1.7.0"))
+	Version1_8_0  *version.Version = version.Must(version.NewVersion("1.8.0"))
+	Version1_9_0  *version.Version = version.Must(version.NewVersion("1.9.0"))
+	Version1_10_0 *version.Version = version.Must(version.NewVersion("1.10.0"))
 )
