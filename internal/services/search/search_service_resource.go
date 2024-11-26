@@ -4,6 +4,7 @@
 package search
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -191,6 +192,59 @@ func resourceSearchService() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				skuName := services.SkuName(d.Get("sku").(string))
+				hostingMode := services.HostingMode(d.Get("hosting_mode").(string))
+
+				// NOTE: hosting mode is only valid if the SKU is 'standard3'
+				if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+					return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
+				}
+
+				// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKU
+				partitionCount := int64(d.Get("partition_count").(int))
+				if (skuName == services.SkuNameFree) && partitionCount > 1 {
+					return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+				}
+
+				// NOTE: 'partition_count' values greater than 3 are not valid for 'free' SKU
+				if (skuName == services.SkuNameBasic) && partitionCount > 3 {
+					return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+				}
+
+				// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
+				// 'partition_count' must be between 1 and 3.
+				if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+					return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
+				}
+
+				semanticSearchSku := services.SearchSemanticSearchDisabled
+				if v := d.Get("semantic_search_sku").(string); v != "" {
+					semanticSearchSku = services.SearchSemanticSearch(v)
+				}
+				// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
+				if skuName == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
+					return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
+				}
+
+				// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
+				// or between 1 and 3 for 'basic' SKU. Defaults to 1.
+				_, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), skuName)
+				if err != nil {
+					return err
+				}
+
+				localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
+				authenticationFailureMode := d.Get("authentication_failure_mode").(string)
+				if !localAuthenticationEnabled && authenticationFailureMode != "" {
+					return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
+				}
+
+				return nil
+			},
+		),
 	}
 }
 
@@ -234,39 +288,8 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		cmkEnforcement = services.SearchEncryptionWithCmkEnabled
 	}
 
-	// NOTE: hosting mode is only valid if the SKU is 'standard3'
-	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
-		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
-	}
-
-	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
 	partitionCount := int64(d.Get("partition_count").(int))
-
-	if (skuName == services.SkuNameFree || skuName == services.SkuNameBasic) && partitionCount > 1 {
-		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
-	}
-
-	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
-	// 'partition_count' must be between 1 and 3.
-	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
-		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
-	}
-
-	// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
-	if skuName == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
-		return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
-	}
-
-	// The number of replicas can be between 1 and 12 for 'standard', 'storage_optimized_l1' and storage_optimized_l2' SKUs
-	// or between 1 and 3 for 'basic' SKU. Defaults to 1.
-	replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), skuName)
-	if err != nil {
-		return err
-	}
-
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
-	}
+	replicaCount := int64(d.Get("replica_count").(int))
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
 	authenticationOptions := pointer.To(services.DataPlaneAuthOptions{
@@ -452,17 +475,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("partition_count") {
 		partitionCount := int64(d.Get("partition_count").(int))
-		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
-		if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
-			return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
-		}
-
-		// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
-		// where if 'hosting_mode' is set to 'default' the maximum number of partitions is 12...
-		if pointer.From(model.Sku.Name) == services.SkuNameStandardThree && partitionCount > 3 && pointer.From(model.Properties.HostingMode) == services.HostingModeHighDensity {
-			return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
-		}
-
 		model.Properties.PartitionCount = pointer.To(partitionCount)
 	}
 
@@ -479,12 +491,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if v := d.Get("semantic_search_sku").(string); v != "" {
 			semanticSearchSku = services.SearchSemanticSearch(v)
 		}
-
-		// NOTE: Semantic Search SKU cannot be set if the SKU is 'free'
-		if pointer.From(model.Sku.Name) == services.SkuNameFree && semanticSearchSku != services.SearchSemanticSearchDisabled {
-			return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
-		}
-
 		model.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 

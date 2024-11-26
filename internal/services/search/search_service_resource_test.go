@@ -32,6 +32,13 @@ func TestAccSearchService_basicSku(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.partitionCount(data, "basic", 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -276,9 +283,9 @@ func TestAccSearchService_partitionCountInvalidBySku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.partitionCount(data, "basic", 3),
+			Config:      r.partitionCount(data, "basic", 6),
 			Check:       acceptance.ComposeTestCheckFunc(),
-			ExpectError: regexp.MustCompile("values greater than 1 cannot be set"),
+			ExpectError: regexp.MustCompile("values greater than 3 cannot be set"),
 		},
 	})
 }
