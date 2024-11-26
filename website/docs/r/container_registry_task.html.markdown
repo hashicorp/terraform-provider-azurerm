@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `agent_setting` - (Optional) A `agent_setting` block as defined below.
 
-~> **NOTE:** `agent_pool_name` and `agent_setting` are in conflict. Only one of them can be specified.
+~> **NOTE:** Only one of `agent_pool_name` and `agent_setting` can be specified.
 
 * `enabled` - (Optional) Should this Container Registry Task be enabled? Defaults to `true`.
 
