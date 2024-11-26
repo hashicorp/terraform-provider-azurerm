@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -26,9 +27,6 @@ func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.template(data),
-		},
-		{
 			Config: r.basic(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -36,7 +34,8 @@ func TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic(t *testing.T)
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.basic(data, false),
+			PreConfig: func() { time.Sleep(5 * time.Minute) },
+			Config:    r.basic(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,6 +65,18 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Exists(ctx con
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -94,13 +105,6 @@ resource "azurerm_mssql_managed_instance" "test" {
   tags = {
     environment = "staging"
     database    = "test"
-  }
-
-  # changing azure_active_directory_administrator is ignored since the value of azure_active_directory_administrator is returned 
-  # when applying a terraform refresh after step 2/5 of testcase TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic 
-  # this is expected since the azuread_authentication_only is set to true in step 2/5
-  lifecycle {
-    ignore_changes = [azure_active_directory_administrator]
   }
 }
 

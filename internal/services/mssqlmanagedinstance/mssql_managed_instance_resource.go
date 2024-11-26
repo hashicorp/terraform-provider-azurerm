@@ -71,9 +71,11 @@ type AzureActiveDirectoryAdministrator struct {
 	TenantID                         string `tfschema:"tenant_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+var (
+	_ sdk.Resource                  = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithUpdate        = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+)
 
 type MsSqlManagedInstanceResource struct{}
 
@@ -615,9 +617,10 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					model.AdministratorLogin = pointer.From(props.AdministratorLogin)
 
-					if props.Administrators != nil {
-						model.AzureActiveDirectoryAdministrator = flattenMsSqlManagedInstanceAdministrators(*props.Administrators)
-					}
+					// read from state since when `azuread_authentication_only` is enabled via resource `azurerm_mssql_managed_instance_active_directory_administrator`,
+					// the API returns the value of `AzureActiveDirectoryAdministrator` which causes diff.
+					model.AzureActiveDirectoryAdministrator = state.AzureActiveDirectoryAdministrator
+
 					model.Collation = pointer.From(props.Collation)
 					model.DnsZone = pointer.From(props.DnsZone)
 					model.Fqdn = pointer.From(props.FullyQualifiedDomainName)
@@ -836,14 +839,4 @@ func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdmini
 	}
 
 	return pointer.To(adminProps)
-}
-
-func flattenMsSqlManagedInstanceAdministrators(admin managedinstances.ManagedInstanceExternalAdministrator) []AzureActiveDirectoryAdministrator {
-	results := make([]AzureActiveDirectoryAdministrator, 0)
-	return append(results, AzureActiveDirectoryAdministrator{
-		LoginUserName:                    pointer.From(admin.Login),
-		ObjectID:                         pointer.From(admin.Sid),
-		TenantID:                         pointer.From(admin.TenantId),
-		AzureADAuthenticationOnlyEnabled: pointer.From(admin.AzureADOnlyAuthentication),
-	})
 }

@@ -486,6 +486,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) withoutAadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_mssql_managed_instance" "test" {
@@ -962,6 +974,18 @@ func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
 
 func (r MsSqlManagedInstanceResource) aadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 provider "azuread" {}
@@ -1044,6 +1068,18 @@ resource "azuread_directory_role_member" "test" {
 
 func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 provider "azuread" {}
@@ -1101,6 +1137,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) setAadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 provider "azuread" {}
@@ -1165,6 +1213,18 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 provider "azuread" {}
