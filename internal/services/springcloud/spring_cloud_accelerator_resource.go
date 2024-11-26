@@ -27,8 +27,10 @@ type SpringCloudAcceleratorModel struct {
 
 type SpringCloudAcceleratorResource struct{}
 
-var _ sdk.Resource = SpringCloudAcceleratorResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudAcceleratorResource{}
+var (
+	_ sdk.Resource                   = SpringCloudAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudAcceleratorResource{}
+)
 
 func (s SpringCloudAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_accelerator"

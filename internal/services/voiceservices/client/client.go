@@ -17,7 +17,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	communicationsGatewaysClient, err := communicationsgateways.NewCommunicationsGatewaysClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Communications Gateways Client: %+v", err)

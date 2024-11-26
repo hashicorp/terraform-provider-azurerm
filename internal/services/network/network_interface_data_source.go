@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -181,7 +181,8 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 		dataSource.Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
-			Deprecated: "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider."}
+			Deprecated: "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider.",
+		}
 		dataSource.Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,

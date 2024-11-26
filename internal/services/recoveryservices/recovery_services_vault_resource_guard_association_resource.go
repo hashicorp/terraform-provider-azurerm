@@ -16,14 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-const VaultGuardResourceType = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
-const VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+const (
+	VaultGuardResourceType           = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
+	VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+)
 
 type VaultGuardProxyResource struct{}
 
@@ -54,22 +54,13 @@ func (r VaultGuardProxyResource) Arguments() map[string]*schema.Schema {
 		"resource_guard_id": commonschema.ResourceIDReferenceRequiredForceNew(&resourceguards.ResourceGuardId{}),
 	}
 
-	if !features.FourPointOhBeta() {
-		args["name"] = &pluginsdk.Schema{
-			Deprecated:   "The `name` field will be removed in v4.0 of the AzureRM Provider.",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      "VaultProxy",
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
 	return args
 }
 
 func (r VaultGuardProxyResource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{}
 }
+
 func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -86,9 +77,6 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 			}
 
 			name := "VaultProxy"
-			if !features.FourPointOhBeta() {
-				name = plan.Name
-			}
 			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
 
 			existing, err := client.Get(ctx, id)
@@ -142,10 +130,6 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 			vaultId := vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 			state := VaultGuardProxyModel{
 				VaultId: vaultId.ID(),
-			}
-
-			if !features.FourPointOhBeta() {
-				state.Name = id.BackupResourceGuardProxyName
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil {

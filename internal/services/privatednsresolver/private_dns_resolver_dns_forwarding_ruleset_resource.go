@@ -227,7 +227,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) Delete() sdk.ResourceFun
 }
 
 func expandDnsResolverOutboundEndpoints(inputList []string) *[]dnsforwardingrulesets.SubResource {
-	var outputList []dnsforwardingrulesets.SubResource
+	outputList := make([]dnsforwardingrulesets.SubResource, 0, len(inputList))
 	for _, v := range inputList {
 		output := dnsforwardingrulesets.SubResource{
 			Id: v,
@@ -239,11 +239,11 @@ func expandDnsResolverOutboundEndpoints(inputList []string) *[]dnsforwardingrule
 }
 
 func flattenDnsResolverOutboundEndpoints(inputList *[]dnsforwardingrulesets.SubResource) []string {
-	var outputList []string
 	if inputList == nil {
-		return outputList
+		return []string{}
 	}
 
+	outputList := make([]string, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := input.Id
 		outputList = append(outputList, output)

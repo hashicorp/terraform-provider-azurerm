@@ -27,7 +27,6 @@ func TestFrontDoorRouteDisableLinkToDefaultDomainID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorRouteDisableLinkToDefaultDomainId
 	}{
-
 		{
 			// empty
 			Input: "",
