@@ -836,7 +836,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 					}
 
 					return nil
-
 				}, data.ResourceName),
 			),
 		},
@@ -1233,6 +1232,10 @@ func (r LinuxVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1343,7 +1346,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
@@ -2706,10 +2709,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptan
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3143,10 +3142,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data accepta
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3189,10 +3184,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -3446,5 +3437,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, sku)
+`, r.templateWithOutProvider(data), data.RandomInteger, sku)
 }

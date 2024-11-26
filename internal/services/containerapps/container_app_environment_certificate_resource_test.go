@@ -33,6 +33,7 @@ func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 		data.ImportStep("certificate_blob_base64", "certificate_password"),
 	})
 }
+
 func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
 	r := ContainerAppEnvironmentCertificateResource{}

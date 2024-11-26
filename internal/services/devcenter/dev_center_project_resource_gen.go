@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = DevCenterProjectResource{}
-var _ sdk.ResourceWithUpdate = DevCenterProjectResource{}
+var (
+	_ sdk.Resource           = DevCenterProjectResource{}
+	_ sdk.ResourceWithUpdate = DevCenterProjectResource{}
+)
 
 type DevCenterProjectResource struct{}
 
@@ -41,9 +43,11 @@ type DevCenterProjectResourceSchema struct {
 func (r DevCenterProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return projects.ValidateProjectID
 }
+
 func (r DevCenterProjectResource) ResourceType() string {
 	return "azurerm_dev_center_project"
 }
+
 func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_id": {
@@ -70,6 +74,7 @@ func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 }
+
 func (r DevCenterProjectResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_uri": {
@@ -78,6 +83,7 @@ func (r DevCenterProjectResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
 func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -117,6 +123,7 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -149,6 +156,7 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r DevCenterProjectResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -168,6 +176,7 @@ func (r DevCenterProjectResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -93,21 +92,31 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
 			"node_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(3),
 				Default:      3,
 			},
+
 			"disk_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
+
 			"availability_zones_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"sku_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      "Standard_E16s_v5",
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"seed_node_ip_addresses": {
@@ -118,25 +127,6 @@ func resourceCassandraDatacenter() *pluginsdk.Resource {
 				},
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		// NOTE: The API does not expose a constant for the Sku so I had to hardcode it here...
-		// Per the service team, the current default Sku is 'Standard_DS14_v2' but moving forward
-		// the new default value should be 'Standard_E16s_v5'.
-		resource.Schema["sku_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	} else {
-		resource.Schema["sku_name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      "Standard_E16s_v5",
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
 	}
 
 	return resource

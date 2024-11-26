@@ -668,7 +668,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				if err := metadata.Encode(&state); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
-
 			}
 
 			return nil

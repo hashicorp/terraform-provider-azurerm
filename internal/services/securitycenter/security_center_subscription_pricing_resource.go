@@ -262,8 +262,8 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
 	extensionStatuses := map[string]bool{}
 	extensionProperties := make(map[string]interface{})
-	var outputList []pricings_v2023_01_01.Extension
 
+	outputList := make([]pricings_v2023_01_01.Extension, 0, len(inputList))
 	if extensionsStatusFromBackend != nil {
 		for _, backendExtension := range *extensionsStatusFromBackend {
 			// set the default value to false, then turn on the extension that appear in the template
@@ -284,16 +284,21 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 	}
 
 	for extensionName, toBeEnabled := range extensionStatuses {
-
 		isEnabled := pricings_v2023_01_01.IsEnabledFalse
 		if toBeEnabled {
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue
 		}
 		output := pricings_v2023_01_01.Extension{
-			Name:                          extensionName,
-			IsEnabled:                     isEnabled,
-			AdditionalExtensionProperties: pointer.To(extensionProperties),
+			Name:      extensionName,
+			IsEnabled: isEnabled,
 		}
+
+		if vAdditional, ok := extensionProperties[extensionName]; ok {
+			props, _ := vAdditional.(*interface{})
+			p := (*props).(map[string]interface{})
+			output.AdditionalExtensionProperties = pointer.To(p)
+		}
+
 		outputList = append(outputList, output)
 	}
 

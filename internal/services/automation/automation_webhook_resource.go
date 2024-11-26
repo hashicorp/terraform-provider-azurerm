@@ -206,7 +206,6 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("expiry_time", props.ExpiryTime)
 			d.Set("enabled", props.IsEnabled)
 

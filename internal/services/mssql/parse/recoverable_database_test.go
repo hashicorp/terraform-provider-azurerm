@@ -27,7 +27,6 @@ func TestRecoverableDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *RecoverableDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -49,8 +50,9 @@ func (d DBServersDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"cloud_exadata_infrastructure_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.ExadataName,
 		},
 	}
 }
@@ -142,11 +144,6 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"ocid": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"provisioning_state": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
