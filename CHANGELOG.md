@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
 * `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
+* `azurerm_cosmosdb_account` - add support for value `EnableNoSQLFullTextSearch` in the  `capabilities.name` property [GH-28114]
 
 ## 4.11.0 (November 22, 2024)
 
