@@ -283,6 +283,21 @@ func TestAccSearchService_partitionCountInvalidBySku(t *testing.T) {
 	})
 }
 
+func TestAccSearchService_partitionCountvalidBySkuBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partitionCount(data, "basic", 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSearchService_partitionCountInvalidByInput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
