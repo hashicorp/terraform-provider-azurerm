@@ -94,7 +94,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			errors := ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(tc.Rule, tc.Protocol)
+			errors := ValidateNetAppVolumeGroupExportPolicyRule(tc.Rule, tc.Protocol)
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("expected ValidateNetAppVolumeGroupSAPHanaVolumes to return %d error(s) not %d", tc.Errors, len(errors))

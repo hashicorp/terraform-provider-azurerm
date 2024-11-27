@@ -99,7 +99,7 @@ func ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList *[]volumegroups.VolumeGr
 		// Validating export policies
 		if volume.Properties.ExportPolicy != nil {
 			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
-				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, protocolType)...)
+				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, protocolType)...)
 			}
 		}
 

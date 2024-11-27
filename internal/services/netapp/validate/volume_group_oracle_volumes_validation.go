@@ -61,8 +61,9 @@ func PossibleValuesForProtocolTypeVolumeGroupOracle() []string {
 
 func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties) []error {
 	errors := make([]error, 0)
+	expectedZone := ""
 	volumeSpecRepeatCount := make(map[string]int)
-	applicationType := string(volumegroups.ApplicationTypeSAPNegativeHANA)
+	applicationType := string(volumegroups.ApplicationTypeORACLE)
 
 	// Validating minimum volume count
 	if len(*volumeList) < len(RequiredVolumesForOracle()) {
@@ -97,7 +98,7 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 			}
 		}
 
-		// Validate that protocol is valid for SAP Hana
+		// Validate that protocol is valid for Oracle
 		if !findStringInSlice(PossibleValuesForProtocolTypeVolumeGroupOracle(), protocolType) {
 			errors = append(errors, fmt.Errorf("'protocol %v is invalid for Oracle'", protocolType))
 		}
@@ -113,7 +114,7 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		// Validating export policies
 		if volume.Properties.ExportPolicy != nil {
 			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
-				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRuleOracle(rule, protocolType)...)
+				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, protocolType)...)
 			}
 		}
 
@@ -132,6 +133,11 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 			errors = append(errors, fmt.Errorf("'snapshot policy cannot be enabled on a data protection volume for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
+		// Validating that zone and proximity placement group are not specified together
+		if (pointer.From(volume.Zones) != nil || len(pointer.From(volume.Zones)) > 0) && pointer.From(volume.Properties.ProximityPlacementGroup) != "" {
+			errors = append(errors, fmt.Errorf("'zone and proximity_placement_group_id cannot be specified together on volume %v'", pointer.From(volume.Name)))
+		}
+
 		// TODO: // Validating that data-backup and log-backup don't have PPG defined
 		// if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleDataBackup)) ||
 		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLogBackup))) &&
@@ -146,6 +152,18 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		// 	pointer.From(volume.Properties.ProximityPlacementGroup) == "" {
 		// 	errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
 		// }
+
+		// Getting the first zone for validations, all volumes must be in the same zone
+		if expectedZone == "" {
+			if volume.Zones != nil && len(pointer.From(volume.Zones)) > 0 {
+				expectedZone = pointer.From(volume.Zones)[0]
+			}
+		}
+
+		// Validating that all volumes are in the same zone
+		if volume.Zones != nil && len(pointer.From(volume.Zones)) > 0 && pointer.From(volume.Zones)[0] != expectedZone {
+			errors = append(errors, fmt.Errorf("'zone must be the same on all volumes of this volume group, volume %v zone is %v'", pointer.From(volume.Name), pointer.From(volume.Zones)[0]))
+		}
 
 		// Adding volume spec name to hashmap for post volume loop check
 		volumeSpecRepeatCount[pointer.From(volume.Properties.VolumeSpecName)] += 1

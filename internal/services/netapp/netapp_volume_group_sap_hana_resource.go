@@ -473,7 +473,7 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
 									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
 
-									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule, volumeProtocol)...)
+									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
 								}
 							}
 

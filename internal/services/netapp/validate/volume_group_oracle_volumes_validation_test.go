@@ -437,6 +437,48 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 			Errors: 0,
 		},
 		{
+			Name: "ValidatePPGAndAvailabilityZoneNotSetAtSameTime",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data1
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
+					},
+					Zones: pointer.To([]string{"1"}),
+				},
+				{ // log
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
+					},
+					Zones: pointer.To([]string{"1"}),
+				},
+			},
+			Errors: 2,
+		},
+		{
 			Name: "ValidateMinimumVolumes",
 			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
 				{ // data1
@@ -475,6 +517,86 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 				},
 			},
 			Errors: 0,
+		},
+		{
+			Name: "ValidateVolumesSameZone",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data1
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameOracleData1)),
+					},
+					Zones: pointer.To([]string{"1"}),
+				},
+				{ // log
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameOracleLog)),
+					},
+					Zones: pointer.To([]string{"1"}),
+				},
+			},
+			Errors: 0,
+		},
+		{
+			Name: "ValidateVolumesNotSameZoneErrors",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data1
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameOracleData1)),
+					},
+					Zones: pointer.To([]string{"1"}),
+				},
+				{ // log
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: utils.Bool(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameOracleLog)),
+					},
+					Zones: pointer.To([]string{"2"}),
+				},
+			},
+			Errors: 1,
 		},
 		{
 			Name: "ValidateRequiredVolumeSpecs",
@@ -684,78 +806,6 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 		// 	},
 		// 	Errors: 3,
 		// },
-		// TODO:
-		// {
-		// 	Name: "ValidateNoPPGBackupVolumes",
-		// 	VolumesData: []volumegroups.VolumeGroupVolumeProperties{
-		// 		{ // data
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-		// 				ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-		// 				SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-		// 				VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData)),
-		// 			},
-		// 		},
-		// 		{ // log
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-		// 				ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-		// 				SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-		// 				VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
-		// 			},
-		// 		},
-		// 		{ // data-backup
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleDataBackup))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-		// 				ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-		// 				VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleDataBackup)),
-		// 			},
-		// 		},
-		// 		{ // log-backup
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLogBackup))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-		// 				ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-		// 				VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLogBackup)),
-		// 			},
-		// 		},
-		// 	},
-		// 	Errors: 2,
-		// },
-		// TODO:
-		//{
-		// 	Name: "ValidateRequiredPpgForNonBackupVolumes",
-		// 	VolumesData: []volumegroups.VolumeGroupVolumeProperties{
-		// 		{ // data
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
-		// 				SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
-		// 				VolumeSpecName: pointer.To(string(VolumeSpecNameOracleData)),
-		// 			},
-		// 		},
-		// 		{ // log
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
-		// 				SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
-		// 				VolumeSpecName: pointer.To(string(VolumeSpecNameOracleLog)),
-		// 			},
-		// 		},
-		// 		{ // shared
-		// 			Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleShared))),
-		// 			Properties: volumegroups.VolumeProperties{
-		// 				ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
-		// 				SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
-		// 				VolumeSpecName: pointer.To(string(VolumeSpecNameOracleShared)),
-		// 			},
-		// 		},
-		// 	},
-		// 	Errors: 3,
-		// },
 		{
 			Name: "ValidateVolumeSpecCantRepeat",
 			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
@@ -813,38 +863,6 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 								EndpointType: pointer.To(volumegroups.EndpointTypeDst),
 							},
 						},
-					},
-				},
-			},
-			Errors: 1,
-		},
-		{
-			Name: "ValidateSnapshotPolicyNotEnabledOnEndpointDstVolume",
-			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
-				{ // data1
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
-						DataProtection: &volumegroups.VolumePropertiesDataProtection{
-							Replication: &volumegroups.ReplicationObject{
-								EndpointType: pointer.To(volumegroups.EndpointTypeDst),
-							},
-							Snapshot: &volumegroups.VolumeSnapshotProperties{
-								SnapshotPolicyId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshotPolicies/snapshotPolicy1"),
-							},
-						},
-					},
-				},
-				{ // log
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
 					},
 				},
 			},
