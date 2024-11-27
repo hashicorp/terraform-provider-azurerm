@@ -157,6 +157,61 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 	return &results, nil
 }
 
+func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroupOracleVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
+	if len(input) == 0 {
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
+	}
+
+	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
+
+	for _, item := range input {
+		name := item.Name
+		volumePath := item.VolumePath
+		serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
+		subnetID := item.SubnetId
+		capacityPoolID := item.CapacityPoolId
+		protocols := item.Protocols
+		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
+		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
+		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
+		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
+		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
+
+		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
+			Name: utils.String(name),
+			Properties: volumegroups.VolumeProperties{
+				CapacityPoolResourceId:   utils.String(capacityPoolID),
+				CreationToken:            volumePath,
+				ServiceLevel:             &serviceLevel,
+				SubnetId:                 subnetID,
+				ProtocolTypes:            &protocols,
+				SecurityStyle:            &securityStyle,
+				UsageThreshold:           storageQuotaInGB,
+				ExportPolicy:             exportPolicyRule,
+				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
+				VolumeSpecName:           utils.String(item.VolumeSpecName),
+				DataProtection: &volumegroups.VolumePropertiesDataProtection{
+					Snapshot: dataProtectionSnapshotPolicy.Snapshot,
+				},
+			},
+			Tags: &item.Tags,
+		}
+
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
+		}
+
+		if v := item.Zone; v != "" {
+			volumeProperties.Zones = pointer.To([]string{v})
+		}
+
+		results = append(results, *volumeProperties)
+	}
+
+	return &results, nil
+}
+
 func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
 	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesExportPolicy{}
@@ -389,6 +444,76 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 
 		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Replication != nil {
 			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(standaloneVol.Model.Properties.DataProtection.Replication)
+		}
+
+		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Snapshot != nil {
+			volumeGroupVolume.DataProtectionSnapshotPolicy = flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(standaloneVol.Model.Properties.DataProtection.Snapshot)
+		}
+
+		volumeGroupVolume.Id = pointer.From(standaloneVol.Model.Id)
+
+		results = append(results, volumeGroupVolume)
+	}
+
+	return results, nil
+}
+
+func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupOracleVolume, error) {
+	results := make([]netAppModels.NetAppVolumeGroupOracleVolume, 0)
+
+	if input == nil || len(pointer.From(input)) == 0 {
+		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
+	}
+
+	for _, item := range *input {
+		volumeGroupVolume := netAppModels.NetAppVolumeGroupOracleVolume{}
+
+		props := item.Properties
+		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
+		volumeGroupVolume.VolumePath = props.CreationToken
+		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
+		volumeGroupVolume.SubnetId = props.SubnetId
+		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
+		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
+		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
+		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
+		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
+		volumeGroupVolume.Tags = pointer.From(item.Tags)
+
+		if props.ProximityPlacementGroup != nil {
+			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
+		}
+
+		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
+			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+		}
+
+		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
+
+		if props.UsageThreshold > 0 {
+			usageThreshold := props.UsageThreshold / 1073741824
+			volumeGroupVolume.StorageQuotaInGB = usageThreshold
+		}
+
+		if props.ExportPolicy != nil && props.ExportPolicy.Rules != nil && len(pointer.From(props.ExportPolicy.Rules)) > 0 {
+			volumeGroupVolume.ExportPolicy = flattenNetAppVolumeGroupVolumesExportPolicies(props.ExportPolicy.Rules)
+		}
+
+		if props.MountTargets != nil && len(pointer.From(props.MountTargets)) > 0 {
+			volumeGroupVolume.MountIpAddresses = flattenNetAppVolumeGroupVolumesMountIpAddresses(props.MountTargets)
+		}
+
+		// Getting volume resource directly from standalone volume
+		// since VolumeGroup Volumes don't return DataProtection information
+		volumeClient := metadata.Client.NetApp.VolumeClient
+		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
+		if err != nil {
+			return []netAppModels.NetAppVolumeGroupOracleVolume{}, err
+		}
+
+		standaloneVol, err := volumeClient.Get(ctx, pointer.From(id))
+		if err != nil {
+			return []netAppModels.NetAppVolumeGroupOracleVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Snapshot != nil {

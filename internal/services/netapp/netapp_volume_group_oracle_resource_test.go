@@ -35,6 +35,8 @@ func TestAccNetAppVolumeGroupOracle_basic(t *testing.T) {
 }
 
 func TestAccNetAppVolumeGroupOracle_nfsv3(t *testing.T) {
+	// Adjust test configurations to exclude data_protection_replication
+	// Use the new NetAppVolumeGroupOracleVolume model in test data
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test")
 	r := NetAppVolumeGroupOracleResource{}
 

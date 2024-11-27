@@ -288,7 +288,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			volumeList, err := expandNetAppVolumeGroupVolumes(model.Volumes)
+			volumeList, err := expandNetAppVolumeGroupOracleVolumes(model.Volumes)
 			if err != nil {
 				return err
 			}
@@ -465,7 +465,7 @@ func (r NetAppVolumeGroupOracleResource) Read() sdk.ResourceFunc {
 				model.GroupDescription = pointer.From(props.GroupMetaData.GroupDescription)
 				model.ApplicationIdentifier = pointer.From(props.GroupMetaData.ApplicationIdentifier)
 
-				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
+				volumes, err := flattenNetAppVolumeGroupOracleVolumes(ctx, props.Volumes, metadata)
 				if err != nil {
 					return fmt.Errorf("setting `volume`: %+v", err)
 				}
