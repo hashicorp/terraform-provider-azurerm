@@ -70,6 +70,13 @@ func TestAccFabricFabricCapacity_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -166,6 +173,30 @@ resource "azurerm_fabric_capacity" "test" {
   location            = "%s"
 
   administration_members = [data.azurerm_client_config.current.object_id]
+
+  sku {
+    name = "F32"
+    tier = "Fabric"
+  }
+
+  tags = {
+    environment = "test"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r FabricFabricCapacityResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_fabric_capacity" "test" {
+  name                = "acctestffc%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+
+  administration_members = []
 
   sku {
     name = "F64"
