@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * Data Source: `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
 * `azurerm_container_registry_task` - add validation on `cpu` as well as on `agent_pool_name`and `agent_setting` [GH-28098]
+* `azurerm_databricks_workspace` - add support for the `enhanced_security_compliance` block [GH-26606]
 * `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
 * `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
