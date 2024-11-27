@@ -6,6 +6,7 @@ package machinelearning_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -46,6 +47,25 @@ func TestAccMachineLearningDataStoreDataLakeGen2_spn(t *testing.T) {
 			),
 		},
 		data.ImportStep("client_secret"),
+	})
+}
+
+func TestAccMachineLearningDataStoreDataLakeGen2_crossSubStorageAccount(t *testing.T) {
+	if os.Getenv("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER") == "" {
+		t.Skip("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
+	r := MachineLearningDataStoreDataLakeGen2{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataLakeGen2CrossSubStorageAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -154,6 +174,30 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   client_secret        = azuread_service_principal_password.test.value
 }
 `, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreDataLakeGen2) dataLakeGen2CrossSubStorageAccount(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
+  name                 = "accdatastore%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+}
+
+resource "azurerm_machine_learning_datastore_datalake_gen2" "crosssub" {
+  name                 = "accdcrosssub%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_container_id = "%[3]s"
+}`, template, data.RandomInteger, os.Getenv("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER"))
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) requiresImport(data acceptance.TestData) string {
