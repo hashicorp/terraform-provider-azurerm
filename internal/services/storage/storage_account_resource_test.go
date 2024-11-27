@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1330,13 +1332,130 @@ func TestAccStorageAccount_infrastructureEncryptionBlockBlobStorage(t *testing.T
 	})
 }
 
-func TestAccStorageAccount_immutabilityPolicy(t *testing.T) {
+func TestAccStorageAccount_immutabilityPolicy_stateDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.immutabilityPolicy(data),
+			Config: r.immutabilityPolicy(data, 5, string(storageaccounts.AccountImmutabilityPolicyStateDisabled), true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_immutabilityPolicy_stateUnlocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.immutabilityPolicy(data, 5, string(storageaccounts.AccountImmutabilityPolicyStateUnlocked), true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_immutabilityPolicy_stateLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.immutabilityPolicy(data, 5, string(storageaccounts.AccountImmutabilityPolicyStateLocked), true),
+			ExpectError: regexp.MustCompile("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=Locked"),
+		},
+	})
+}
+
+func TestAccStorageAccount_immutabilityPolicy_stateDisabledLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.immutabilityPolicy(data, 5, string(storageaccounts.AccountImmutabilityPolicyStateDisabled), true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateLocked), false),
+			ExpectError: regexp.MustCompile("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=Disabled"),
+		},
+	})
+}
+
+func TestAccStorageAccount_immutabilityPolicy_stateUnlockedDisabledUnLockedLocked(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateUnlocked), false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.immutabilityPolicy(data, 5, string(storageaccounts.AccountImmutabilityPolicyStateDisabled), true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateUnlocked), false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateLocked), false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_immutabilityPolicy_stateLockedToUnlockedReplace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	// A locked immutability policy can't be unlocked
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateUnlocked), false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateLocked), false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.immutabilityPolicy(data, 3, string(storageaccounts.AccountImmutabilityPolicyStateUnlocked), false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -4117,7 +4236,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) immutabilityPolicy(data acceptance.TestData) string {
+func (r StorageAccountResource) immutabilityPolicy(data acceptance.TestData, period int, state string, allowProtectedAppend bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4137,12 +4256,12 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   immutability_policy {
-    period_since_creation_in_days = 3
-    state                         = "Unlocked"
-    allow_protected_append_writes = false
+    period_since_creation_in_days = %d
+    state                         = "%s"
+    allow_protected_append_writes = %t
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, period, state, allowProtectedAppend)
 }
 
 func (r StorageAccountResource) infrastructureEncryptionForBlockBlobStorage(data acceptance.TestData) string {

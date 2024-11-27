@@ -1126,6 +1126,30 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
+				if d.HasChange("immutability_policy.0.state") {
+					old, new := d.GetChange("immutability_policy.0.state")
+
+					// The initial value can be either "Disabled" or "Unlocked".
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if old == "" && (new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateDisabled) && new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked)) {
+						return fmt.Errorf("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=%s", new)
+					}
+
+					// Only "Unlocked" state can be updated to "Locked"
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if new.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) && old.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked) {
+						return fmt.Errorf("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=%s", old)
+					}
+
+					// Once "Locked", can't be changed.
+					// API error: InvalidStorageAccountImmutabilityPolicy: The immutability policy state cannot be changed once Locked.
+					if old.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) {
+						d.ForceNew("immutability_policy.0.state")
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1796,6 +1820,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
+	}
+	if d.HasChange("immutability_policy") {
+		props.ImmutableStorageWithVersioning = expandAccountImmutabilityPolicy(d.Get("immutability_policy").([]interface{}))
 	}
 
 	payload := storageaccounts.StorageAccountCreateParameters{
