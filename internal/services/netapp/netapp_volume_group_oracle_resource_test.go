@@ -2094,7 +2094,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
 // `, template, data.RandomInteger, "westus")
 // }
 
-// func (NetAppVolumeGroupSapHanaResource) templatePPG(data acceptance.TestData) string {
+// func (NetAppVolumeGroupSAPHanaResource) templatePPG(data acceptance.TestData) string {
 // 	return fmt.Sprintf(`
 // provider "azurerm" {
 //   alias = "all2"

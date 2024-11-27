@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(t *testing.T) {
+func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Protocol string

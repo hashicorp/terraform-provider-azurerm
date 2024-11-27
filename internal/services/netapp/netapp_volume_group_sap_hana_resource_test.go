@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppVolumeGroupSapHanaResource struct{}
+type NetAppVolumeGroupSAPHanaResource struct{}
 
-func TestAccNetAppVolumeGroupSapHana_basic(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,9 +34,9 @@ func TestAccNetAppVolumeGroupSapHana_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroupSapHana_backupVolumeSpecsNfsv3(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_backupVolumeSpecsNfsv3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +49,9 @@ func TestAccNetAppVolumeGroupSapHana_backupVolumeSpecsNfsv3(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroupSapHana_snapshotPolicy(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_snapshotPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,9 +64,9 @@ func TestAccNetAppVolumeGroupSapHana_snapshotPolicy(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroupSapHana_snapshotPolicyUpdate(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_snapshotPolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -86,9 +86,9 @@ func TestAccNetAppVolumeGroupSapHana_snapshotPolicyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroupSapHana_volumeUpdates(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_volumeUpdates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,9 +114,9 @@ func TestAccNetAppVolumeGroupSapHana_volumeUpdates(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolumeGroupSapHana_crossRegionReplication(t *testing.T) {
+func TestAccNetAppVolumeGroupSAPHana_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_sap_hana", "test_secondary")
-	r := NetAppVolumeGroupSapHanaResource{}
+	r := NetAppVolumeGroupSAPHanaResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,7 +129,7 @@ func TestAccNetAppVolumeGroupSapHana_crossRegionReplication(t *testing.T) {
 	})
 }
 
-func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t NetAppVolumeGroupSAPHanaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := volumegroups.ParseVolumeGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -146,8 +146,8 @@ func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(true), nil
 }
 
-func (NetAppVolumeGroupSapHanaResource) basic(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (NetAppVolumeGroupSAPHanaResource) basic(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -315,8 +315,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupSapHanaResource) backupVolumeSpecsNfsv3(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (NetAppVolumeGroupSAPHanaResource) backupVolumeSpecsNfsv3(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -484,8 +484,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupSapHanaResource) avgSnapshotPolicy(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (NetAppVolumeGroupSAPHanaResource) avgSnapshotPolicy(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -693,8 +693,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupSapHanaResource) updateAvgSnapshotPolicy(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (NetAppVolumeGroupSAPHanaResource) updateAvgSnapshotPolicy(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -902,8 +902,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupSapHanaResource) updateVolumes(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (NetAppVolumeGroupSAPHanaResource) updateVolumes(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1071,8 +1071,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 `, template, data.RandomInteger)
 }
 
-func (NetAppVolumeGroupSapHanaResource) crossRegionReplication(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templateForAvgCrossRegionReplication(data)
+func (NetAppVolumeGroupSAPHanaResource) crossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templateForAvgCrossRegionReplication(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1433,8 +1433,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
 `, template, data.RandomInteger, "westus")
 }
 
-func (r NetAppVolumeGroupSapHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
-	template := NetAppVolumeGroupSapHanaResource{}.templatePPG(data)
+func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
+	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1597,7 +1597,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
 `, template, data.RandomInteger, "westus")
 }
 
-func (NetAppVolumeGroupSapHanaResource) templatePPG(data acceptance.TestData) string {
+func (NetAppVolumeGroupSAPHanaResource) templatePPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   alias = "all2"

@@ -264,7 +264,7 @@ func (r NetAppVolumeGroupOracleDataSource) Read() sdk.ResourceFunc {
 						state.GroupDescription = pointer.From(groupMetaData.GroupDescription)
 					}
 
-					volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
+					volumes, err := flattenNetAppVolumeGroupOracleVolumes(ctx, props.Volumes, metadata)
 					if err != nil {
 						return fmt.Errorf("setting `volume`: %+v", err)
 					}

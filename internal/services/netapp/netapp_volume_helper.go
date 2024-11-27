@@ -100,9 +100,9 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []netAppModels.Da
 	}
 }
 
-func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
+func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGroupSAPHanaVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 {
-		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupSAPHanaVolume slice")
 	}
 
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
@@ -159,7 +159,7 @@ func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume
 
 func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroupOracleVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 {
-		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
+		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupSAPHanaVolume slice")
 	}
 
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
@@ -384,15 +384,15 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 	}
 }
 
-func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupVolume, error) {
-	results := make([]netAppModels.NetAppVolumeGroupVolume, 0)
+func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupSAPHanaVolume, error) {
+	results := make([]netAppModels.NetAppVolumeGroupSAPHanaVolume, 0)
 
 	if input == nil || len(pointer.From(input)) == 0 {
 		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
 	}
 
 	for _, item := range *input {
-		volumeGroupVolume := netAppModels.NetAppVolumeGroupVolume{}
+		volumeGroupVolume := netAppModels.NetAppVolumeGroupSAPHanaVolume{}
 
 		props := item.Properties
 		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
@@ -434,12 +434,12 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeClient := metadata.Client.NetApp.VolumeClient
 		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
 		if err != nil {
-			return []netAppModels.NetAppVolumeGroupVolume{}, err
+			return []netAppModels.NetAppVolumeGroupSAPHanaVolume{}, err
 		}
 
 		standaloneVol, err := volumeClient.Get(ctx, pointer.From(id))
 		if err != nil {
-			return []netAppModels.NetAppVolumeGroupVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
+			return []netAppModels.NetAppVolumeGroupSAPHanaVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Replication != nil {
