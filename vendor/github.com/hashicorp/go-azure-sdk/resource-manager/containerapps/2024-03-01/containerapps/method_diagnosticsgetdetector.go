@@ -18,7 +18,7 @@ type DiagnosticsGetDetectorOperationResponse struct {
 }
 
 // DiagnosticsGetDetector ...
-func (c ContainerAppsClient) DiagnosticsGetDetector(ctx context.Context, id DetectorId) (result DiagnosticsGetDetectorOperationResponse, err error) {
+func (c ContainerAppsClient) DiagnosticsGetDetector(ctx context.Context, id ContainerAppDetectorId) (result DiagnosticsGetDetectorOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
