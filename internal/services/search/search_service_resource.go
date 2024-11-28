@@ -187,6 +187,16 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(services.SearchBypassAzureServices),
+					string(services.SearchBypassNone),
+				}, false),
+				Default: string(services.SearchBypassNone),
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
@@ -223,6 +233,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	cmkEnforcementEnabled := d.Get("customer_managed_key_enforcement_enabled").(bool)
 	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
+	networkRuleBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
 
 	semanticSearchSku := services.SearchSemanticSearchDisabled
 	if v := d.Get("semantic_search_sku").(string); v != "" {
@@ -296,6 +307,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			NetworkRuleSet: pointer.To(services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(ipRulesRaw),
+				Bypass:  pointer.To(networkRuleBypassOptions),
 			}),
 			EncryptionWithCmk: pointer.To(services.EncryptionWithCmk{
 				Enforcement: pointer.To(cmkEnforcement),
@@ -474,6 +486,14 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	if d.HasChange("network_rule_bypass_option") {
+		networkBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
+		}
+		model.Properties.NetworkRuleSet.Bypass = pointer.To(networkBypassOptions)
+	}
+
 	if d.HasChange("semantic_search_sku") {
 		semanticSearchSku := services.SearchSemanticSearchDisabled
 		if v := d.Get("semantic_search_sku").(string); v != "" {
@@ -594,6 +614,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 			d.Set("semantic_search_sku", semanticSearchSku)
+
+			if props.NetworkRuleSet != nil {
+				d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleSet.Bypass)))
+			}
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

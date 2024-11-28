@@ -213,6 +213,35 @@ func TestAccSearchService_ipRules(t *testing.T) {
 	})
 }
 
+func TestAccSearchService_bypassServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.bypassServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSearchService_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
@@ -676,6 +705,25 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
   allowed_ips         = ["168.1.5.65", "1.2.3.0/24"]
+}
+`, template, data.RandomInteger)
+}
+
+func (r SearchServiceResource) bypassServices(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  network_rule_bypass_option = "AzureServices"
 }
 `, template, data.RandomInteger)
 }
