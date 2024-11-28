@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241128.1112539` [GH-28137]
 * `containerapps` - update api version to `2024-03-01` [GH-28074]
+* `Search` - update api version to `2024-06-01-preview` [GH-27803]
 * Data Source: `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * Data Source: `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
 * `azurerm_container_registry_task` - add validation on `cpu` as well as on `agent_pool_name`and `agent_setting` [GH-28098]
