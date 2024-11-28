@@ -19,7 +19,7 @@ import (
 
 type AIServices struct{}
 
-func TestAccAIServices_basic(t *testing.T) {
+func TestAccCognitiveAIServices_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -37,7 +37,7 @@ func TestAccAIServices_basic(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_requiresImport(t *testing.T) {
+func TestAccCognitiveAIServices_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -52,7 +52,7 @@ func TestAccAIServices_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_complete(t *testing.T) {
+func TestAccCognitiveAIServices_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -69,7 +69,7 @@ func TestAccAIServices_complete(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_update(t *testing.T) {
+func TestAccCognitiveAIServices_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -94,7 +94,7 @@ func TestAccAIServices_update(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_networkACLs(t *testing.T) {
+func TestAccCognitiveAIServices_networkACLs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -116,7 +116,7 @@ func TestAccAIServices_networkACLs(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_identity(t *testing.T) {
+func TestAccCognitiveAIServices_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -156,7 +156,7 @@ func TestAccAIServices_identity(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_customerManagedKey_update(t *testing.T) {
+func TestAccCognitiveAIServices_customerManagedKey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -189,7 +189,7 @@ func TestAccAIServices_customerManagedKey_update(t *testing.T) {
 	})
 }
 
-func TestAccAIServices_KVHsmManagedKey(t *testing.T) {
+func TestAccCognitiveAIServices_KVHsmManagedKey(t *testing.T) {
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
