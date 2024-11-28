@@ -98,6 +98,52 @@ func TestAccNewRelicMonitor_identity(t *testing.T) {
 	})
 }
 
+func TestAccNewRelicMonitor_monitoredSubscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
+	r := NewRelicMonitorResource{}
+	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	email := "7021d2ab-5eed-45e5-9582-d1f8a90b4477@example.com"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.monitoredSubscription(data, effectiveDate, email),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNewRelicMonitor_monitoredSubscriptionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
+	r := NewRelicMonitorResource{}
+	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	email := "4c82ab21-3697-4578-bd51-6428867ea12a@example.com"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, effectiveDate, email),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.monitoredSubscription(data, effectiveDate, email),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, effectiveDate, email),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r NewRelicMonitorResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitors.ParseMonitorID(state.ID)
 	if err != nil {
@@ -246,4 +292,36 @@ resource "azurerm_role_assignment" "test" {
   principal_id       = azurerm_new_relic_monitor.test.identity[0].principal_id
 }
 `, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
+}
+
+func (r NewRelicMonitorResource) monitoredSubscription(data acceptance.TestData, effectiveDate string, email string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subscription" "test" {
+  subscription_id = "%s"
+}
+
+resource "azurerm_new_relic_monitor" "test" {
+  name                = "acctest-nrm-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+  plan {
+    effective_date = "%s"
+  }
+  user {
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  monitored_subscription {
+    subscription_id = data.azurerm_subscription.test.subscription_id
+  }
+}
+`, template, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }

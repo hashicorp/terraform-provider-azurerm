@@ -18,6 +18,10 @@ resource "azurerm_resource_group" "example" {
   location = "East US"
 }
 
+data "azurerm_subscription" "another" {
+  subscription_id = "00000000-0000-0000-0000-000000000000"
+}
+
 resource "azurerm_new_relic_monitor" "example" {
   name                = "example-nrm"
   resource_group_name = azurerm_resource_group.example.name
@@ -36,6 +40,10 @@ resource "azurerm_new_relic_monitor" "example" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  monitored_subcription {
+    subscription_id = data.azurerm_subscription.another.subscription_id
   }
 }
 ```
@@ -71,6 +79,14 @@ The following arguments are supported:
 * `org_creation_source` - (Optional) Specifies the source of org creation. Possible values are `LIFTR` and `NEWRELIC`. Defaults to `LIFTR`. Changing this forces a new Azure Native New Relic Monitor to be created.
 
 * `user_id` - (Optional) Specifies the user id. Changing this forces a new Azure Native New Relic Monitor to be created.
+
+* `monitored_subscription` - (Optional) One or more `monitored_subscription` blocks as defined below.
+
+---
+
+A `monitored_subscription` block supports the following:
+
+* `subscription_id` - (Required) Specifies the UUID of the subscription to be monitored.
 
 ---
 
