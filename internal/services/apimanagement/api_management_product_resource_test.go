@@ -119,6 +119,16 @@ func TestAccApiManagementProduct_subscriptionsLimit(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.subscriptionLimitsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("approval_required").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("true"),
+				check.That(data.ResourceName).Key("subscriptions_limit").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -305,6 +315,40 @@ resource "azurerm_api_management_product" "test" {
   subscription_required = true
   approval_required     = true
   subscriptions_limit   = 2
+  published             = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementProductResource) subscriptionLimitsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_product" "test" {
+  product_id            = "test-product"
+  api_management_name   = azurerm_api_management.test.name
+  resource_group_name   = azurerm_resource_group.test.name
+  display_name          = "Test Product"
+  subscription_required = true
+  approval_required     = false
+  subscriptions_limit   = 0
   published             = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
