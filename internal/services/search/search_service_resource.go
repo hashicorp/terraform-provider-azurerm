@@ -185,16 +185,6 @@ func resourceSearchService() *pluginsdk.Resource {
 						validate.CIDR,
 					),
 				},
-			}, // NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
-
-			"network_rule_bypass_option": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(services.SearchBypassAzureServices),
-					string(services.SearchBypassNone),
-				}, false),
-				Default: string(services.SearchBypassNone),
 			},
 
 			"network_rule_bypass_option": {
