@@ -424,16 +424,22 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("monitored_subscription") {
 				monitoredSubscriptionsClient := metadata.Client.NewRelic.MonitoredSubscriptionsClient
-
-				monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
-					Properties: &monitoredsubscriptions.SubscriptionList{
-						MonitoredSubscriptionList: expandMonitorSubscriptionList(originalModel.MonitoredSubscription),
-					},
-				}
-
 				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
-				if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
-					return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", id, err)
+
+				if len(originalModel.MonitoredSubscription) == 0 {
+					if _, err := monitoredSubscriptionsClient.Delete(ctx, monitorId); err != nil {
+						return fmt.Errorf("deleting NewRelic Monitored Subscriptions of %s: %+v", id, err)
+					}
+				} else {
+					monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
+						Properties: &monitoredsubscriptions.SubscriptionList{
+							MonitoredSubscriptionList: expandMonitorSubscriptionList(originalModel.MonitoredSubscription),
+						},
+					}
+
+					if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
+						return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", id, err)
+					}
 				}
 
 				if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, monitoredSubscriptionsClient, monitorId, originalModel.MonitoredSubscription); err != nil {
