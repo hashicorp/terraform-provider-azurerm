@@ -1,17 +1,27 @@
 ## 4.12.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_mssql_managed_database` [GH-27026]
+
 BUG FIXES:
 
 * `azurerm_application_insights_api_key` - fix condition that nil checks the list of available API keys to prevent an indefinate loop when keys created outside of Terraform are present [GH-28037]
+* `azurerm_data_factory_linked_service_azure_sql_database` - send `tenant_id` only if it has been specified [GH-28120]
+* `azurerm_eventgrid_event_subscription` - fix crash when flattening `advanced_filter` [GH-28110]
 * `azurerm_virtual_network_gateway` - fix crash issue when specifying `root_certificate ` or `revoked_certificate` [GH-28099]
 
 ENHANCEMENTS:
 
+* `containerapps` - update api version to `2024-03-01` [GH-28074]
 * Data Source: `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * Data Source: `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
+* `azurerm_container_registry_task` - add validation on `cpu` as well as on `agent_pool_name`and `agent_setting` [GH-28098]
+* `azurerm_databricks_workspace` - add support for the `enhanced_security_compliance` block [GH-26606]
 * `azurerm_eventhub` - deprecate `namespace_name` and `resource_group_name` in favour of `namespace_id` [GH-28055]
 * `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
+* `azurerm_cosmosdb_account` - add support for value `EnableNoSQLFullTextSearch` in the  `capabilities.name` property [GH-28114]
 
 ## 4.11.0 (November 22, 2024)
 

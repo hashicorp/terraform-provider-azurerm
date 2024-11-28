@@ -12,22 +12,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 func init() {
-	recaser.RegisterResourceId(&DetectorId{})
+	recaser.RegisterResourceId(&ContainerAppDetectorId{})
 }
 
-var _ resourceids.ResourceId = &DetectorId{}
+var _ resourceids.ResourceId = &ContainerAppDetectorId{}
 
-// DetectorId is a struct representing the Resource ID for a Detector
-type DetectorId struct {
+// ContainerAppDetectorId is a struct representing the Resource ID for a Container App Detector
+type ContainerAppDetectorId struct {
 	SubscriptionId    string
 	ResourceGroupName string
 	ContainerAppName  string
 	DetectorName      string
 }
 
-// NewDetectorID returns a new DetectorId struct
-func NewDetectorID(subscriptionId string, resourceGroupName string, containerAppName string, detectorName string) DetectorId {
-	return DetectorId{
+// NewContainerAppDetectorID returns a new ContainerAppDetectorId struct
+func NewContainerAppDetectorID(subscriptionId string, resourceGroupName string, containerAppName string, detectorName string) ContainerAppDetectorId {
+	return ContainerAppDetectorId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroupName: resourceGroupName,
 		ContainerAppName:  containerAppName,
@@ -35,15 +35,15 @@ func NewDetectorID(subscriptionId string, resourceGroupName string, containerApp
 	}
 }
 
-// ParseDetectorID parses 'input' into a DetectorId
-func ParseDetectorID(input string) (*DetectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&DetectorId{})
+// ParseContainerAppDetectorID parses 'input' into a ContainerAppDetectorId
+func ParseContainerAppDetectorID(input string) (*ContainerAppDetectorId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ContainerAppDetectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := DetectorId{}
+	id := ContainerAppDetectorId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -51,16 +51,16 @@ func ParseDetectorID(input string) (*DetectorId, error) {
 	return &id, nil
 }
 
-// ParseDetectorIDInsensitively parses 'input' case-insensitively into a DetectorId
+// ParseContainerAppDetectorIDInsensitively parses 'input' case-insensitively into a ContainerAppDetectorId
 // note: this method should only be used for API response data and not user input
-func ParseDetectorIDInsensitively(input string) (*DetectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(&DetectorId{})
+func ParseContainerAppDetectorIDInsensitively(input string) (*ContainerAppDetectorId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ContainerAppDetectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	id := DetectorId{}
+	id := ContainerAppDetectorId{}
 	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func ParseDetectorIDInsensitively(input string) (*DetectorId, error) {
 	return &id, nil
 }
 
-func (id *DetectorId) FromParseResult(input resourceids.ParseResult) error {
+func (id *ContainerAppDetectorId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
@@ -90,29 +90,29 @@ func (id *DetectorId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateDetectorID checks that 'input' can be parsed as a Detector ID
-func ValidateDetectorID(input interface{}, key string) (warnings []string, errors []error) {
+// ValidateContainerAppDetectorID checks that 'input' can be parsed as a Container App Detector ID
+func ValidateContainerAppDetectorID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := ParseDetectorID(v); err != nil {
+	if _, err := ParseContainerAppDetectorID(v); err != nil {
 		errors = append(errors, err)
 	}
 
 	return
 }
 
-// ID returns the formatted Detector ID
-func (id DetectorId) ID() string {
+// ID returns the formatted Container App Detector ID
+func (id ContainerAppDetectorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/containerApps/%s/detectors/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName, id.DetectorName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Detector ID
-func (id DetectorId) Segments() []resourceids.Segment {
+// Segments returns a slice of Resource ID Segments which comprise this Container App Detector ID
+func (id ContainerAppDetectorId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
@@ -127,13 +127,13 @@ func (id DetectorId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Detector ID
-func (id DetectorId) String() string {
+// String returns a human-readable description of this Container App Detector ID
+func (id ContainerAppDetectorId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Container App Name: %q", id.ContainerAppName),
 		fmt.Sprintf("Detector Name: %q", id.DetectorName),
 	}
-	return fmt.Sprintf("Detector (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Container App Detector (%s)", strings.Join(components, "\n"))
 }
