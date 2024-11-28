@@ -322,7 +322,7 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			}
 
 			if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, monitoredSubscriptionsClient, monitorId, model.MonitoredSubscription); err != nil {
-				return fmt.Errorf("waiting for the NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
+				return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
 			}
 
 			return nil
@@ -433,11 +433,11 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 
 				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 				if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
-					return fmt.Errorf("creating NewRelic Monitored Subscriptions for %s: %+v", id, err)
+					return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", id, err)
 				}
 
 				if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, monitoredSubscriptionsClient, monitorId, originalModel.MonitoredSubscription); err != nil {
-					return fmt.Errorf("waiting for the NewRelic Monitored Subscriptions for %s to become available: %+v", id, err)
+					return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
 				}
 			}
 
@@ -673,7 +673,7 @@ func resourceMonitoredSubscriptionsWaitForAvailable(ctx context.Context, client 
 	}
 
 	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the %s to become available: %+v", id, err)
+		return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
 	}
 
 	return nil
