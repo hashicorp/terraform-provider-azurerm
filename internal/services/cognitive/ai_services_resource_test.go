@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package aiservices_test
+package cognitive_test
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package aiservices
+package machinelearning
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -26,9 +26,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AIServicesHub struct{}
+type AIFoundry struct{}
 
-type AIServicesHubModel struct {
+type AIFoundryModel struct {
 	Name                        string                                     `tfschema:"name"`
 	Location                    string                                     `tfschema:"location"`
 	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
@@ -60,19 +60,19 @@ type Encryption struct {
 	KeyID            string `tfschema:"key_id"`
 }
 
-func (r AIServicesHub) ModelObject() interface{} {
-	return &AIServicesHubModel{}
+func (r AIFoundry) ModelObject() interface{} {
+	return &AIFoundryModel{}
 }
 
-func (r AIServicesHub) ResourceType() string {
-	return "azurerm_ai_services_hub"
+func (r AIFoundry) ResourceType() string {
+	return "azurerm_ai_foundry"
 }
 
-func (r AIServicesHub) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AIFoundry) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workspaces.ValidateWorkspaceID
 }
 
-func (r AIServicesHub) CustomImporter() sdk.ResourceRunFunc {
+func (r AIFoundry) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 		if err != nil {
@@ -93,11 +93,11 @@ func (r AIServicesHub) CustomImporter() sdk.ResourceRunFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = AIServicesHub{}
+var _ sdk.ResourceWithUpdate = AIFoundry{}
 
-var _ sdk.ResourceWithCustomImporter = AIServicesHub{}
+var _ sdk.ResourceWithCustomImporter = AIFoundry{}
 
-func (r AIServicesHub) Arguments() map[string]*pluginsdk.Schema {
+func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -222,7 +222,7 @@ func (r AIServicesHub) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIServicesHub) Attributes() map[string]*pluginsdk.Schema {
+func (r AIFoundry) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"discovery_url": {
 			Type:     pluginsdk.TypeString,
@@ -236,14 +236,14 @@ func (r AIServicesHub) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIServicesHub) Create() sdk.ResourceFunc {
+func (r AIFoundry) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Workspaces
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AIServicesHubModel
+			var model AIFoundryModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -347,7 +347,7 @@ func (r AIServicesHub) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesHub) Update() sdk.ResourceFunc {
+func (r AIFoundry) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -358,7 +358,7 @@ func (r AIServicesHub) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state AIServicesHubModel
+			var state AIFoundryModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -441,7 +441,7 @@ func (r AIServicesHub) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesHub) Read() sdk.ResourceFunc {
+func (r AIFoundry) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -460,7 +460,7 @@ func (r AIServicesHub) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			hub := AIServicesHubModel{
+			hub := AIFoundryModel{
 				Name:              id.WorkspaceName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -510,7 +510,7 @@ func (r AIServicesHub) Read() sdk.ResourceFunc {
 					hub.HighBusinessImpactEnabled = pointer.From(props.HbiWorkspace)
 					hub.ImageBuildComputeName = pointer.From(props.ImageBuildCompute)
 					hub.PublicNetworkAccess = string(*props.PublicNetworkAccess)
-					hub.DiscoveryUrl = pointer.From(props.DiscoveryUrl)
+					hub.DiscoveryUrl = pointer.From(props.DiscoveryURL)
 					hub.WorkspaceId = pointer.From(props.WorkspaceId)
 					hub.ManagedNetwork = flattenManagedNetwork(props.ManagedNetwork)
 
@@ -535,7 +535,7 @@ func (r AIServicesHub) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesHub) Delete() sdk.ResourceFunc {
+func (r AIFoundry) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

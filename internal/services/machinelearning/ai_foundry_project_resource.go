@@ -1,4 +1,4 @@
-package aiservices
+package machinelearning
 
 import (
 	"context"
@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AIServicesProject struct{}
+type AIFoundryProject struct{}
 
-type AIServicesProjectModel struct {
+type AIFoundryProjectModel struct {
 	Name                      string                                     `tfschema:"name"`
 	Location                  string                                     `tfschema:"location"`
 	AIServicesHubId           string                                     `tfschema:"ai_services_hub_id"`
@@ -35,19 +35,19 @@ type AIServicesProjectModel struct {
 	Tags                      map[string]interface{}                     `tfschema:"tags"`
 }
 
-func (r AIServicesProject) ModelObject() interface{} {
-	return &AIServicesProjectModel{}
+func (r AIFoundryProject) ModelObject() interface{} {
+	return &AIFoundryProjectModel{}
 }
 
-func (r AIServicesProject) ResourceType() string {
-	return "azurerm_ai_services_project"
+func (r AIFoundryProject) ResourceType() string {
+	return "azurerm_ai_foundry_project"
 }
 
-func (r AIServicesProject) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AIFoundryProject) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workspaces.ValidateWorkspaceID
 }
 
-func (r AIServicesProject) CustomImporter() sdk.ResourceRunFunc {
+func (r AIFoundryProject) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 		if err != nil {
@@ -68,11 +68,11 @@ func (r AIServicesProject) CustomImporter() sdk.ResourceRunFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = AIServicesProject{}
+var _ sdk.ResourceWithUpdate = AIFoundryProject{}
 
-var _ sdk.ResourceWithCustomImporter = AIServicesProject{}
+var _ sdk.ResourceWithCustomImporter = AIFoundryProject{}
 
-func (r AIServicesProject) Arguments() map[string]*pluginsdk.Schema {
+func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -125,7 +125,7 @@ func (r AIServicesProject) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIServicesProject) Attributes() map[string]*pluginsdk.Schema {
+func (r AIFoundryProject) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"project_id": {
 			Type:     pluginsdk.TypeString,
@@ -134,14 +134,14 @@ func (r AIServicesProject) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIServicesProject) Create() sdk.ResourceFunc {
+func (r AIFoundryProject) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Workspaces
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AIServicesProjectModel
+			var model AIFoundryProjectModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -207,7 +207,7 @@ func (r AIServicesProject) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesProject) Update() sdk.ResourceFunc {
+func (r AIFoundryProject) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -218,7 +218,7 @@ func (r AIServicesProject) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state AIServicesProjectModel
+			var state AIFoundryProjectModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -279,7 +279,7 @@ func (r AIServicesProject) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesProject) Read() sdk.ResourceFunc {
+func (r AIFoundryProject) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -298,7 +298,7 @@ func (r AIServicesProject) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			hub := AIServicesProjectModel{
+			hub := AIFoundryProjectModel{
 				Name: id.WorkspaceName,
 			}
 
@@ -334,7 +334,7 @@ func (r AIServicesProject) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AIServicesProject) Delete() sdk.ResourceFunc {
+func (r AIFoundryProject) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
