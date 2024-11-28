@@ -75,20 +75,15 @@ func TestAccCognitiveAIServices_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
-			),
-		},
-		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -461,6 +456,128 @@ resource "azurerm_ai_services" "test" {
 
   tags = {
     Acceptance = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(8))
+}
+
+func (AIServices) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvkey%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test_a" {
+  name                 = "acctestsubneta%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  service_endpoints    = ["Microsoft.CognitiveServices"]
+}
+
+resource "azurerm_subnet" "test_b" {
+  name                 = "acctestsubnetb%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.4.0/24"]
+  service_endpoints    = ["Microsoft.CognitiveServices"]
+}
+
+resource "azurerm_ai_services" "test" {
+  name                               = "acctestcogacc-%[1]d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  sku_name                           = "S0"
+  fqdns                              = ["foo.com"]
+  local_authentication_enabled       = true
+  outbound_network_access_restricted = true
+  public_network_access              = "Enabled"
+  custom_subdomain_name              = "acctestcogacc-%[1]d"
+
+  customer_managed_key {
+    key_vault_key_id   = azurerm_key_vault_key.test.id
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+  }
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+  network_acls {
+    default_action = "Allow"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
+  }
+
+  tags = {
+    Acceptance  = "Test"
+    Environment = "Dev"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(8))

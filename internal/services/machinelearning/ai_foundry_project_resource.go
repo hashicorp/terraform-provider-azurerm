@@ -160,7 +160,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_services_project", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_foundry_project", id.ID())
 			}
 
 			payload := workspaces.Workspace{

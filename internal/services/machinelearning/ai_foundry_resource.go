@@ -257,7 +257,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_services_hub", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_foundry", id.ID())
 			}
 
 			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)

@@ -109,7 +109,7 @@ resource "azurerm_ai_foundry_project" "test" {
     type = "SystemAssigned"
   }
 }
-`, AIServicesHub{}.basic(data), data.RandomInteger)
+`, AIFoundry{}.basic(data), data.RandomInteger)
 }
 
 func (r AIFoundryProject) complete(data acceptance.TestData) string {
@@ -134,7 +134,7 @@ resource "azurerm_ai_foundry_project" "test" {
     model = "regression"
   }
 }
-`, AIServicesHub{}.complete(data), data.RandomInteger)
+`, AIFoundry{}.complete(data), data.RandomInteger)
 }
 
 func (r AIFoundryProject) update(data acceptance.TestData) string {
@@ -166,7 +166,7 @@ resource "azurerm_ai_foundry_project" "test" {
     env   = "test"
   }
 }
-`, AIServicesHub{}.complete(data), data.RandomInteger)
+`, AIFoundry{}.complete(data), data.RandomInteger)
 }
 
 func (AIFoundryProject) requiresImport(data acceptance.TestData) string {
