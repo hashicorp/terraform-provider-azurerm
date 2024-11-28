@@ -54,7 +54,7 @@ func (r NewRelicMonitoredSubscriptionResource) Arguments() map[string]*pluginsdk
 
 		"monitored_subscription": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -77,12 +77,13 @@ func (r NewRelicMonitoredSubscriptionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.NewRelic.MonitoredSubscriptionsClient
+
 			var model NewRelicMonitoredSubscriptionModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.NewRelic.MonitoredSubscriptionsClient
 			monitorId, err := monitoredsubscriptions.ParseMonitorID(model.MonitorId)
 			if err != nil {
 				return err
@@ -183,11 +184,11 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 
 			existing := resp.Model
 			if existing == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if existing.Properties == nil {
-				return fmt.Errorf("retrieving %s: property was nil", *id)
+				return fmt.Errorf("retrieving %s: `property` was nil", *id)
 			}
 
 			var config NewRelicMonitoredSubscriptionModel
@@ -203,6 +204,10 @@ func (r NewRelicMonitoredSubscriptionResource) Update() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, monitorId, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, client, *id, config.MonitoredSubscription); err != nil {
+				return fmt.Errorf("waiting for the %s to become available: %+v", id, err)
 			}
 
 			return nil
@@ -257,11 +262,11 @@ func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription) *[]mon
 }
 
 func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSubscription) []NewRelicMonitoredSubscription {
+	results := make([]NewRelicMonitoredSubscription, 0)
 	if input == nil {
-		return make([]NewRelicMonitoredSubscription, 0)
+		return results
 	}
 
-	results := make([]NewRelicMonitoredSubscription, 0)
 	for _, v := range *input {
 		results = append(results, NewRelicMonitoredSubscription{
 			// The returned subscription ID is in upper case

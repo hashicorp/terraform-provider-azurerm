@@ -28,7 +28,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	monitoredSubscriptionsClient, err := monitoredsubscriptions.NewMonitoredSubscriptionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Monitors client: %+v", err)
+		return nil, fmt.Errorf("building Monitored Subscriptions client: %+v", err)
 	}
 
 	o.Configure(monitoredSubscriptionsClient.Client, o.Authorizers.ResourceManager)
