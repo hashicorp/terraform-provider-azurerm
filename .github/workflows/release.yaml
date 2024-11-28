@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >>${GITHUB_OUTPUT}
+
   release-notes:
     runs-on: custom-linux-xl
     steps:
@@ -36,7 +37,6 @@ jobs:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@393dac4dd208c749b1622323f9f0e8d26a6f26cc # v4.0.1
-    
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
       hc-releases-host-staging: '${{ secrets.HC_RELEASES_HOST_STAGING }}'
@@ -54,3 +54,59 @@ jobs:
       setup-go-version: '${{ needs.go-version.outputs.version }}'
       # Product Version (e.g. v1.2.3 or github.ref_name)
       product-version: '${{ github.ref_name }}'
+
+  get-highest-version-tag:
+    needs: [terraform-provider-release]
+    runs-on: macos-latest
+    outputs:
+      tag: ${{ steps.highest-version-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # Allow tag to be fetched when ref is a commit
+          fetch-depth: 0
+      - name: Output highest version tag
+        id: highest-version-tag
+        run: |
+          HIGHEST=$(git tag | sort -V | tail -1)
+          echo "tag=$HIGHEST" >> "$GITHUB_OUTPUT"
+          
+  changelog-newversion:
+    needs: [terraform-provider-release, get-highest-version-tag]
+    # update changelog only if release tag is the $HIGHEST i.e. exists on main and not a backport release branch (e.g. release/4.x).
+    # This requires manually updating the CHANGELOG header if releasing from the non-default branch.
+    # TODO: find a more deterministic way to determine release branch from tag commit
+    if: github.ref_name == needs.highest-version-tag.outputs.tag
+    runs-on: macos-latest
+    steps:
+      #- uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
+      #  id: app-token
+      #  with:
+      #    app-id: ${{ secrets.APP_ID }}
+      #    private-key: ${{ secrets.APP_PEM }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Update Changelog # updates date & links, do we want to move updating the links elsewhere to where we automate the changelog?
+        run: |
+          bash ./scripts/changelog-update-for-release.sh
+      - run: |
+          git config --local user.email changelogbot@hashicorp.com
+          git config --local user.name changelogbot
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md after ${{ github.ref_name }}"
+          git push
+
+  upload-tag-before-post-publish:
+     needs: [terraform-provider-release]
+     runs-on: ubuntu-latest
+     steps:
+       - name: Save Release Tag
+         run: echo ${{ github.ref_name }} > release-tag.data
+       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+         with:
+           name: release-tag
+           path: release-tag.data
+           retention-days: 1
