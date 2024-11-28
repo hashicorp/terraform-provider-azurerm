@@ -13,6 +13,7 @@ BUG FIXES:
 
 ENHANCEMENTS:
 
+* dependencies - update `go-azure-sdk` to `v0.20241128.1112539` [GH-28137]
 * `containerapps` - update api version to `2024-03-01` [GH-28074]
 * Data Source: `azurerm_logic_app_standard` - add support for the `public_network_access` property [GH-27913]
 * Data Source: `azurerm_search_service` - add support for the `customer_managed_key_encryption_compliance_status` property [GH-27478]
