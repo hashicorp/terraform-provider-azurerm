@@ -624,7 +624,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 }
 
 func TestAccPluginSDKAndEncoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1") // nolint: tenv plugin sdk always is
+	os.Setenv("TF_ACC", "1") // lint:ignore tenv plugin sdk always is
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
