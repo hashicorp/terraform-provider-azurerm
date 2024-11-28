@@ -176,6 +176,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_databricks_workspace`
+* The deprecated `managed_services_cmk_key_vault_id` property has been removed in favour of the `managed_services_cmk_key_vault_key_id` property.
+* The deprecated `managed_disk_cmk_key_vault_id` property has been removed in favour of the `managed_disk_cmk_key_vault_key_id` property.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
