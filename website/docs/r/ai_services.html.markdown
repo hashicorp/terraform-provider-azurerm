@@ -1,5 +1,5 @@
 ---
-subcategory: "AI Services"
+subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ai_services"
 description: |-
