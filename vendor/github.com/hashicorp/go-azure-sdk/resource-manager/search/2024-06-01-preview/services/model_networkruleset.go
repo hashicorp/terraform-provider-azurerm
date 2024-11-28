@@ -4,5 +4,6 @@ package services
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NetworkRuleSet struct {
-	IPRules *[]IPRule `json:"ipRules,omitempty"`
+	Bypass  *SearchBypass `json:"bypass,omitempty"`
+	IPRules *[]IPRule     `json:"ipRules,omitempty"`
 }

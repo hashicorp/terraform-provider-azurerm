@@ -194,9 +194,9 @@ func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceC
 type ProvisioningState string
 
 const (
-	ProvisioningStateFailed       ProvisioningState = "failed"
-	ProvisioningStateProvisioning ProvisioningState = "provisioning"
-	ProvisioningStateSucceeded    ProvisioningState = "succeeded"
+	ProvisioningStateFailed       ProvisioningState = "Failed"
+	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
+	ProvisioningStateSucceeded    ProvisioningState = "Succeeded"
 )
 
 func PossibleValuesForProvisioningState() []string {
@@ -311,6 +311,88 @@ func parseResourceType(input string) (*ResourceType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ResourceType(input)
+	return &out, nil
+}
+
+type SearchBypass string
+
+const (
+	SearchBypassAzurePortal   SearchBypass = "AzurePortal"
+	SearchBypassAzureServices SearchBypass = "AzureServices"
+	SearchBypassNone          SearchBypass = "None"
+)
+
+func PossibleValuesForSearchBypass() []string {
+	return []string{
+		string(SearchBypassAzurePortal),
+		string(SearchBypassAzureServices),
+		string(SearchBypassNone),
+	}
+}
+
+func (s *SearchBypass) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSearchBypass(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSearchBypass(input string) (*SearchBypass, error) {
+	vals := map[string]SearchBypass{
+		"azureportal":   SearchBypassAzurePortal,
+		"azureservices": SearchBypassAzureServices,
+		"none":          SearchBypassNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SearchBypass(input)
+	return &out, nil
+}
+
+type SearchDisabledDataExfiltrationOption string
+
+const (
+	SearchDisabledDataExfiltrationOptionAll SearchDisabledDataExfiltrationOption = "All"
+)
+
+func PossibleValuesForSearchDisabledDataExfiltrationOption() []string {
+	return []string{
+		string(SearchDisabledDataExfiltrationOptionAll),
+	}
+}
+
+func (s *SearchDisabledDataExfiltrationOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSearchDisabledDataExfiltrationOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSearchDisabledDataExfiltrationOption(input string) (*SearchDisabledDataExfiltrationOption, error) {
+	vals := map[string]SearchDisabledDataExfiltrationOption{
+		"all": SearchDisabledDataExfiltrationOptionAll,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SearchDisabledDataExfiltrationOption(input)
 	return &out, nil
 }
 
@@ -452,6 +534,7 @@ const (
 	SearchServiceStatusError        SearchServiceStatus = "error"
 	SearchServiceStatusProvisioning SearchServiceStatus = "provisioning"
 	SearchServiceStatusRunning      SearchServiceStatus = "running"
+	SearchServiceStatusStopped      SearchServiceStatus = "stopped"
 )
 
 func PossibleValuesForSearchServiceStatus() []string {
@@ -462,6 +545,7 @@ func PossibleValuesForSearchServiceStatus() []string {
 		string(SearchServiceStatusError),
 		string(SearchServiceStatusProvisioning),
 		string(SearchServiceStatusRunning),
+		string(SearchServiceStatusStopped),
 	}
 }
 
@@ -486,6 +570,7 @@ func parseSearchServiceStatus(input string) (*SearchServiceStatus, error) {
 		"error":        SearchServiceStatusError,
 		"provisioning": SearchServiceStatusProvisioning,
 		"running":      SearchServiceStatusRunning,
+		"stopped":      SearchServiceStatusStopped,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
