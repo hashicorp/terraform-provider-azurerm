@@ -20,8 +20,6 @@ type FabricCapacityResource struct{}
 
 var _ sdk.ResourceWithUpdate = FabricCapacityResource{}
 
-var _ sdk.ResourceWithCustomizeDiff = FabricCapacityResource{}
-
 type FabricCapacityResourceModel struct {
 	Name                  string            `tfschema:"name"`
 	ResourceGroupName     string            `tfschema:"resource_group_name"`
@@ -71,11 +69,22 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"F2",
+							"F4",
+							"F8",
+							"F16",
+							"F32",
+							"F64",
+							"F128",
+							"F256",
+							"F512",
+							"F1024",
+							"F2048",
+						}, false),
 					},
-
 					"tier": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -88,7 +97,7 @@ func (r FabricCapacityResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administration_members": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -137,7 +146,7 @@ func (r FabricCapacityResource) Create() sdk.ResourceFunc {
 						Members: model.AdministrationMembers,
 					},
 				},
-				Sku: pointer.From(expandSkuModel(model.Sku)),
+				Sku: expandSkuModel(model.Sku),
 			}
 
 			if model.Tags != nil {
@@ -187,7 +196,7 @@ func (r FabricCapacityResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku") {
-				payload.Sku = pointer.From(expandSkuModel(model.Sku))
+				payload.Sku = expandSkuModel(model.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -231,7 +240,7 @@ func (r FabricCapacityResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.AdministrationMembers = model.Properties.Administration.Members
-				state.Sku = flattenSkuModel(&model.Sku)
+				state.Sku = flattenSkuModel(model.Sku)
 				state.Tags = pointer.From(model.Tags)
 			}
 
@@ -260,47 +269,16 @@ func (r FabricCapacityResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r FabricCapacityResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var state FabricCapacityResourceModel
-			if err := metadata.DecodeDiff(&state); err != nil {
-				return fmt.Errorf("DecodeDiff: %+v", err)
-			}
-
-			if len(state.AdministrationMembers) > 0 {
-				existing := make(map[string]bool)
-				for _, str := range state.AdministrationMembers {
-					if existing[str] {
-						return fmt.Errorf("`administration_members` contains the duplicate value %q", str)
-					}
-					existing[str] = true
-				}
-			}
-
-			return nil
-		},
-	}
-}
-
-func expandSkuModel(inputList []SkuModel) *fabriccapacities.RpSku {
-	if len(inputList) == 0 {
-		return nil
-	}
-
+func expandSkuModel(inputList []SkuModel) fabriccapacities.RpSku {
 	input := &inputList[0]
-	return &fabriccapacities.RpSku{
+	return fabriccapacities.RpSku{
 		Name: input.Name,
 		Tier: fabriccapacities.RpSkuTier(input.Tier),
 	}
 }
 
-func flattenSkuModel(input *fabriccapacities.RpSku) []SkuModel {
+func flattenSkuModel(input fabriccapacities.RpSku) []SkuModel {
 	outputList := make([]SkuModel, 0)
-	if input == nil {
-		return outputList
-	}
 	output := SkuModel{
 		Name: input.Name,
 		Tier: string(input.Tier),

@@ -58,7 +58,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU to use for the Fabric Capacity.
+* `name` - (Required) The name of the SKU to use for the Fabric Capacity. Possible values are `F2`, `F4`, `F8`, `F16`, `F32`, `F64`, `F128`, `F256`, `F512`, `F1024`, `F2048`.
 
 * `tier` - (Required) The tier of the SKU to use for the Fabric Capacity. The only possible value is `Fabric`.
 
