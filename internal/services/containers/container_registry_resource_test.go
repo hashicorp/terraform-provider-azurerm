@@ -491,13 +491,16 @@ resource "azurerm_container_registry" "test" {
     type = "SystemAssigned"
   }
 
-  public_network_access_enabled = false
-  quarantine_policy_enabled     = true
-  retention_policy_in_days      = 10
-  trust_policy_enabled          = true
-  export_policy_enabled         = false
-  anonymous_pull_enabled        = true
-  data_endpoint_enabled         = true
+  public_network_access_enabled                = false
+  azuread_authentication_as_arm_policy_enabled = true
+  quarantine_policy_enabled                    = true
+  retention_policy_in_days                     = 10
+  soft_delete_policy_retention_in_days         = 10
+  trust_policy_enabled                         = true
+  export_policy_enabled                        = false
+  anonymous_pull_enabled                       = true
+  data_endpoint_enabled                        = true
+  metadata_search_enabled                      = true
 
   network_rule_bypass_option = "None"
 
@@ -540,13 +543,16 @@ resource "azurerm_container_registry" "test" {
     ]
   }
 
-  public_network_access_enabled = true
-  quarantine_policy_enabled     = false
-  retention_policy_in_days      = 15
-  trust_policy_enabled          = false
-  export_policy_enabled         = true
-  anonymous_pull_enabled        = false
-  data_endpoint_enabled         = false
+  public_network_access_enabled                = true
+  azuread_authentication_as_arm_policy_enabled = false
+  quarantine_policy_enabled                    = false
+  retention_policy_in_days                     = 15
+  soft_delete_policy_retention_in_days         = 15
+  trust_policy_enabled                         = false
+  export_policy_enabled                        = true
+  anonymous_pull_enabled                       = false
+  data_endpoint_enabled                        = false
+  metadata_search_enabled                      = false
 
   network_rule_bypass_option = "AzureServices"
 

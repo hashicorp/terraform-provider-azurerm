@@ -82,14 +82,26 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				}
 			}
 
+			azureadAuthAsArmPolicyEnabled := d.Get("azuread_authentication_as_arm_policy_enabled").(bool)
+			if azureadAuthAsArmPolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+				return fmt.Errorf("ACR AzureAD Authentication As ARM policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset azuread_authentication_as_arm_policy_enabled")
+			}
+
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
-			retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
-			if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+			retentionPolicyEnabled, ok1 := d.GetOk("retention_policy_in_days")
+			softDeletePolicyEnabled, ok2 := d.GetOk("soft_delete_policy_retention_in_days")
+
+			if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+				if ok1 && retentionPolicyEnabled.(int) > 0 {
+					return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+				}
+				if ok2 && softDeletePolicyEnabled.(int) > 0 {
+					return fmt.Errorf("ACR soft delete policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `soft_delete_policy_retention_in_days`")
+				}
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
@@ -213,6 +225,12 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		retentionPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
 	}
 
+	softDeletePolicy := &registries.SoftDeletePolicy{}
+	if v, ok := d.GetOk("soft_delete_policy_retention_in_days"); ok && v.(int) > 0 {
+		softDeletePolicy.RetentionDays = pointer.To(int64(v.(int)))
+		softDeletePolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+	}
+
 	trustPolicy := &registries.TrustPolicy{}
 	if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
 		trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
@@ -230,15 +248,18 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			Encryption:       expandEncryption(d.Get("encryption").([]interface{})),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &registries.Policies{
-				QuarantinePolicy: expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
-				RetentionPolicy:  retentionPolicy,
-				TrustPolicy:      trustPolicy,
-				ExportPolicy:     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
+				AzureADAuthenticationAsArmPolicy: expandAzureADAuthenticationAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool)),
+				QuarantinePolicy:                 expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
+				RetentionPolicy:                  retentionPolicy,
+				SoftDeletePolicy:                 softDeletePolicy,
+				TrustPolicy:                      trustPolicy,
+				ExportPolicy:                     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
 			},
 			PublicNetworkAccess:      &publicNetworkAccess,
 			ZoneRedundancy:           &zoneRedundancy,
 			AnonymousPullEnabled:     pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:      pointer.To(d.Get("data_endpoint_enabled").(bool)),
+			MetadataSearch:           expandMetadataSearch(d.Get("metadata_search_enabled").(bool)),
 			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
 		},
 
@@ -329,11 +350,13 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	policyKeys := []string{
+		"azuread_authentication_as_arm_policy_enabled",
 		"quarantine_policy_enabled",
 		"export_policy_enabled",
+		"retention_policy_in_days",
+		"soft_delete_policy_retention_in_days",
+		"trust_policy_enabled",
 	}
-
-	policyKeys = append(policyKeys, []string{"retention_policy_in_days", "trust_policy_enabled"}...)
 
 	if d.HasChanges(policyKeys...) {
 		payload.Properties.Policies = &registries.Policies{}
@@ -352,6 +375,19 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("soft_delete_policy_retention_in_days") {
+		payload.Properties.Policies.SoftDeletePolicy = &registries.SoftDeletePolicy{
+			Status: pointer.To(registries.PolicyStatusDisabled),
+		}
+
+		if v := d.Get("soft_delete_policy_retention_in_days").(int); v != 0 {
+			payload.Properties.Policies.SoftDeletePolicy = &registries.SoftDeletePolicy{
+				Status:        pointer.To(registries.PolicyStatusEnabled),
+				RetentionDays: pointer.To(int64(d.Get("soft_delete_policy_retention_in_days").(int))),
+			}
+		}
+	}
+
 	if d.HasChange("trust_policy_enabled") {
 		payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
 			Status: pointer.To(registries.PolicyStatusDisabled),
@@ -360,6 +396,18 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		if v := d.Get("trust_policy_enabled").(bool); v {
 			payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
 				Status: pointer.To(registries.PolicyStatusEnabled),
+			}
+		}
+	}
+
+	if d.HasChange("azuread_authentication_as_arm_policy_enabled") {
+		payload.Properties.Policies.AzureADAuthenticationAsArmPolicy = &registries.AzureADAuthenticationAsArmPolicy{
+			Status: pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusDisabled),
+		}
+
+		if v := d.Get("azuread_authentication_as_arm_policy_enabled").(bool); v {
+			payload.Properties.Policies.AzureADAuthenticationAsArmPolicy = &registries.AzureADAuthenticationAsArmPolicy{
+				Status: pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusEnabled),
 			}
 		}
 	}
@@ -402,6 +450,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("data_endpoint_enabled") {
 		payload.Properties.DataEndpointEnabled = pointer.To(d.Get("data_endpoint_enabled").(bool))
+	}
+
+	if d.HasChange("metadata_search_enabled") {
+		payload.Properties.MetadataSearch = expandMetadataSearch(d.Get("metadata_search_enabled").(bool))
 	}
 
 	if d.HasChange("network_rule_bypass_option") {
@@ -646,6 +698,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("metadata_search_enabled", flattenMetadataSearch(props.MetadataSearch))
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {
@@ -655,10 +708,17 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				d.Set("retention_policy_in_days", retentionInDays)
 
+				var softDeleteRetentionInDays int64
+				if policies.SoftDeletePolicy != nil && policies.SoftDeletePolicy.Status != nil && *policies.SoftDeletePolicy.Status == registries.PolicyStatusEnabled {
+					softDeleteRetentionInDays = pointer.From(policies.SoftDeletePolicy.RetentionDays)
+				}
+				d.Set("soft_delete_policy_retention_in_days", softDeleteRetentionInDays)
+
 				if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
 					policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
 					d.Set("trust_policy_enabled", policyEnabled)
 				}
+				d.Set("azuread_authentication_as_arm_policy_enabled", flattenAzureADAuthenticationAsArmPolicy(props.Policies))
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
 			}
@@ -762,6 +822,18 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 	}
 }
 
+func expandAzureADAuthenticationAsArmPolicy(enabled bool) *registries.AzureADAuthenticationAsArmPolicy {
+	p := registries.AzureADAuthenticationAsArmPolicy{
+		Status: pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusDisabled),
+	}
+
+	if enabled {
+		p.Status = pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusEnabled)
+	}
+
+	return &p
+}
+
 func expandQuarantinePolicy(enabled bool) *registries.QuarantinePolicy {
 	quarantinePolicy := registries.QuarantinePolicy{
 		Status: pointer.To(registries.PolicyStatusDisabled),
@@ -826,6 +898,14 @@ func expandEncryption(input []interface{}) *registries.EncryptionProperty {
 	}
 }
 
+func expandMetadataSearch(enabled bool) *registries.MetadataSearch {
+	if enabled {
+		return pointer.To(registries.MetadataSearchEnabled)
+	} else {
+		return pointer.To(registries.MetadataSearchDisabled)
+	}
+}
+
 func flattenEncryption(input *registries.EncryptionProperty) []interface{} {
 	if input == nil || input.KeyVaultProperties == nil || input.Status == nil || *input.Status == registries.EncryptionStatusDisabled {
 		return []interface{}{}
@@ -867,6 +947,14 @@ func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interfac
 	return []interface{}{values}
 }
 
+func flattenAzureADAuthenticationAsArmPolicy(p *registries.Policies) bool {
+	if p.AzureADAuthenticationAsArmPolicy == nil {
+		return false
+	}
+
+	return *p.AzureADAuthenticationAsArmPolicy.Status == registries.AzureADAuthenticationAsArmPolicyStatusEnabled
+}
+
 func flattenQuarantinePolicy(p *registries.Policies) bool {
 	if p.QuarantinePolicy == nil {
 		return false
@@ -881,6 +969,13 @@ func flattenExportPolicy(p *registries.Policies) bool {
 	}
 
 	return *p.ExportPolicy.Status == registries.ExportPolicyStatusEnabled
+}
+
+func flattenMetadataSearch(in *registries.MetadataSearch) bool {
+	if in == nil {
+		return false
+	}
+	return *in == registries.MetadataSearchEnabled
 }
 
 func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
@@ -1029,6 +1124,11 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"azuread_authentication_as_arm_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
 		"quarantine_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -1038,6 +1138,12 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(0, 365),
+		},
+
+		"soft_delete_policy_retention_in_days": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 90),
 		},
 
 		"trust_policy_enabled": {
@@ -1065,6 +1171,11 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"metadata_search_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
