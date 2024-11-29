@@ -51,8 +51,8 @@ func TestAccMachineLearningDataStoreDataLakeGen2_spn(t *testing.T) {
 }
 
 func TestAccMachineLearningDataStoreDataLakeGen2_crossSubStorageAccount(t *testing.T) {
-	if os.Getenv("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER") == "" {
-		t.Skip("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER not set")
+	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
+		t.Skip("ARM_SUBSCRIPTION_ID_ALT not set")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_datalake_gen2", "test")
@@ -193,11 +193,45 @@ resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
 }
 
+provider "azurerm-alt" {
+  subscription_id = "%[3]s"
+
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "testalt" {
+  provider = azurerm-alt
+  name     = "acctestRG-alt-%[2]d"
+  location = "%[4]s"
+}
+
+resource "azurerm_storage_account" "testalt" {
+  provider                 = azurerm-alt
+  name                     = "acctestsaalt%[5]d"
+  location                 = azurerm_resource_group.testalt.location
+  resource_group_name      = azurerm_resource_group.testalt.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "testalt" {
+  provider              = azurerm-alt
+  name                  = "acctestcontaineralt%[5]d"
+  storage_account_name  = azurerm_storage_account.testalt.name
+  container_access_type = "private"
+}
+
 resource "azurerm_machine_learning_datastore_datalake_gen2" "crosssub" {
-  name                 = "accdcrosssub%[2]d"
+  name                 = "accdcrosssub%[5]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
-  storage_container_id = "%[3]s"
-}`, template, data.RandomInteger, os.Getenv("ARM_TEST_ACC_DATASTORE_GEN2_CROSS_SUB_SA_CONTAINER"))
+  storage_container_id = azurerm_storage_container.testalt.resource_manager_id
+}
+	`, template, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"), data.Locations.Primary, data.RandomIntOfLength(10))
 }
 
 func (r MachineLearningDataStoreDataLakeGen2) requiresImport(data acceptance.TestData) string {
