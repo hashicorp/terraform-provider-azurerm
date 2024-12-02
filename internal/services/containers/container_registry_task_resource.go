@@ -574,16 +574,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{2}),
 					},
 				},
 			},
+			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
