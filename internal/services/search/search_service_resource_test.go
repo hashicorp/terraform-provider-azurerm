@@ -375,7 +375,6 @@ func TestAccSearchService_partitionCountvalidBySkuBasic(t *testing.T) {
 	})
 }
 
-
 func TestAccSearchService_partitionCountInvalidByInput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	r := SearchServiceResource{}
