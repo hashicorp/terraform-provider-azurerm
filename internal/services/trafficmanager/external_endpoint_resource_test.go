@@ -108,6 +108,21 @@ func TestAccExternalEndpoint_subnets(t *testing.T) {
 	})
 }
 
+func TestAccExternalEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
+	r := ExternalEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccExternalEndpoint_performancePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_external_endpoint", "test")
 	r := ExternalEndpointResource{}
@@ -228,6 +243,32 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
     name  = "header"
     value = "www.bing.com"
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ExternalEndpointResource) multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_traffic_manager_external_endpoint" "test" {
+  name              = "acctestend-azure%[2]d"
+  target            = "www.example.com"
+  weight            = 5
+  profile_id        = azurerm_traffic_manager_profile.test.id
+  endpoint_location = azurerm_resource_group.test.location
+}
+
+resource "azurerm_traffic_manager_external_endpoint" "test2" {
+  name              = "acctestend-azure2%[2]d"
+  target            = "www.pandas.com"
+  weight            = 5
+  profile_id        = azurerm_traffic_manager_profile.test.id
+  endpoint_location = azurerm_resource_group.test.location
 }
 `, r.template(data), data.RandomInteger)
 }

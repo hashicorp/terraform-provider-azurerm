@@ -231,7 +231,6 @@ func resourceFirewallNetworkRuleCollectionCreateUpdate(d *pluginsdk.ResourceData
 
 	if read.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", firewallId)
-
 	}
 
 	var collectionID string

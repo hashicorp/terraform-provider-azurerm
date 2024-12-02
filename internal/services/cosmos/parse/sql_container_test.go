@@ -27,7 +27,6 @@ func TestSqlContainerID(t *testing.T) {
 		Error    bool
 		Expected *SqlContainerId
 	}{
-
 		{
 			// empty
 			Input: "",

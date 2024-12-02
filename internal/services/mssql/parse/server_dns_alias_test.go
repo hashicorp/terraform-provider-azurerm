@@ -27,7 +27,6 @@ func TestServerDNSAliasID(t *testing.T) {
 		Error    bool
 		Expected *ServerDNSAliasId
 	}{
-
 		{
 			// empty
 			Input: "",

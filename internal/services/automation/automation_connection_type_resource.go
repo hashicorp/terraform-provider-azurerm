@@ -27,11 +27,11 @@ type Field struct {
 }
 
 type AutomationConnectionTypeModel struct {
-	ResourceGroup         string  `json:"resource_group" tfschema:"resource_group_name"`
+	ResourceGroup         string  `json:"resource_group"          tfschema:"resource_group_name"`
 	AutomationAccountName string  `json:"automation_account_name" tfschema:"automation_account_name"`
-	Name                  string  `json:"name" tfschema:"name"`
-	IsGlobal              bool    `json:"is_global" tfschema:"is_global"`
-	Field                 []Field `json:"field" tfschema:"field"`
+	Name                  string  `json:"name"                    tfschema:"name"`
+	IsGlobal              bool    `json:"is_global"               tfschema:"is_global"`
+	Field                 []Field `json:"field"                   tfschema:"field"`
 }
 
 type AutomationConnectionTypeResource struct{}

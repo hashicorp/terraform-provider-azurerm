@@ -27,7 +27,6 @@ func TestVirtualNetworkGatewayPolicyGroupID(t *testing.T) {
 		Error    bool
 		Expected *VirtualNetworkGatewayPolicyGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

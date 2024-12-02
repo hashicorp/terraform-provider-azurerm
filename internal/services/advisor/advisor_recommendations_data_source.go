@@ -132,7 +132,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId(fmt.Sprintf("avdisor/recommendations/%s", time.Now().UTC().String()))
+	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
 
 	return nil
 }

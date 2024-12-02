@@ -15,8 +15,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = AssignmentVirtualMachineScaleSetV0ToV1{}
 
-type AssignmentVirtualMachineScaleSetV0ToV1 struct {
-}
+type AssignmentVirtualMachineScaleSetV0ToV1 struct{}
 
 func (AssignmentVirtualMachineScaleSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

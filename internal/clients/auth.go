@@ -5,6 +5,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -93,7 +94,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		// Use the tenant ID from Azure CLI when otherwise unknown
 		if tenantId == "" {
 			if cli.TenantID == "" {
-				return nil, fmt.Errorf("azure-cli could not determine tenant ID to use")
+				return nil, errors.New("azure-cli could not determine tenant ID to use")
 			}
 			tenantId = cli.TenantID
 			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
@@ -108,10 +109,10 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 
 	// We'll permit the provider to proceed with an unknown client ID since it only affects a small number of use cases when authenticating as a user
 	if tenantId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
 	}
 	if subscriptionId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
 	}
 
 	account := ResourceManagerAccount{

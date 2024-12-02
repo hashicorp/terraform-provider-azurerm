@@ -27,7 +27,6 @@ func TestStorageTableResourceManagerID(t *testing.T) {
 		Error    bool
 		Expected *StorageTableResourceManagerId
 	}{
-
 		{
 			// empty
 			Input: "",

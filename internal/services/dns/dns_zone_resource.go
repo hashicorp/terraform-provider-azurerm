@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -17,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -81,19 +79,12 @@ func resourceDnsZone() *pluginsdk.Resource {
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
-				//ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"email": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validate.DnsZoneSOARecordEmail,
-						},
-
-						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: !features.FourPointOhBeta(), // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
-							Computed: true,
 						},
 
 						"expire_time": {
@@ -143,6 +134,11 @@ func resourceDnsZone() *pluginsdk.Resource {
 						"fqdn": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
+						},
+
+						"host_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true, // (@jackofallops) - This should not be set or updatable to meet API design, see https://learn.microsoft.com/en-us/azure/dns/dns-zones-records#soa-records
 						},
 					},
 				},
@@ -306,10 +302,6 @@ func expandArmDNSZoneSOARecord(input map[string]interface{}) *recordsets.SoaReco
 		RefreshTime:  utils.Int64(int64(input["refresh_time"].(int))),
 		RetryTime:    utils.Int64(int64(input["retry_time"].(int))),
 		SerialNumber: utils.Int64(int64(input["serial_number"].(int))),
-	}
-
-	if !features.FourPointOhBeta() && input["host_name"].(string) != "" {
-		result.Host = pointer.To(input["host_name"].(string))
 	}
 
 	return result

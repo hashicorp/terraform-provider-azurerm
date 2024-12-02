@@ -141,7 +141,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 							}, false),
 						},
 
-						//lintignore:XS003
+						// lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,

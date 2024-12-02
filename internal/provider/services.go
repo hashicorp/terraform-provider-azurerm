@@ -168,8 +168,9 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
 		domainservices.Registration{},
-		elasticsan.Registration{},
 		dynatrace.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
 		fluidrelay.Registration{},
@@ -330,4 +331,15 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		}
 		return out
 	}()
+}
+
+func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
+	services := []sdk.FrameworkTypedServiceRegistration{
+		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
+		// e.g.
+		// resource.Registration{}
+		keyvault.Registration{},
+	}
+
+	return services
 }
