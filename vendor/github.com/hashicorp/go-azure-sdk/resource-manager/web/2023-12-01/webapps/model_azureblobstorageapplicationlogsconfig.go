@@ -6,5 +6,5 @@ package webapps
 type AzureBlobStorageApplicationLogsConfig struct {
 	Level           *LogLevel `json:"level,omitempty"`
 	RetentionInDays *int64    `json:"retentionInDays,omitempty"`
-	SasUrl          *string   `json:"sasUrl,omitempty"`
+	SasURL          *string   `json:"sasUrl,omitempty"`
 }

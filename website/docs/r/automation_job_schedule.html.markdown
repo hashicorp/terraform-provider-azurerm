@@ -10,7 +10,7 @@ description: |-
 
 Links an Automation Runbook and Schedule.
 
-~> **NOTE** AzureRM provides this stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and an inlined `job_schdule` property in [azurerm_runbook](automation_runbook.html.markdown) to manage the job schedules. You can only make use of one of these methods to manage a job schedule.
+~> **NOTE** AzureRM provides this stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and an inlined `job_schedule` property in [azurerm_runbook](automation_runbook.html.markdown) to manage the job schedules. You can only make use of one of these methods to manage a job schedule.
 
 ## Example Usage
 

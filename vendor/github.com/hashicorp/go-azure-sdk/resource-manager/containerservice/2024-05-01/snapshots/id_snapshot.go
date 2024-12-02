@@ -115,7 +115,7 @@ func (id SnapshotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticSnapshots", "snapshots", "snapshots"),
-		resourceids.UserSpecifiedSegment("snapshotName", "resourceName"),
+		resourceids.UserSpecifiedSegment("snapshotName", "snapshotName"),
 	}
 }
 

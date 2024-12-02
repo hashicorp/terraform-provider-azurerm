@@ -122,7 +122,7 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 		if props := m.Properties; props != nil {
 			d.Set("authentication", flattenDicomAuthentication(props.AuthenticationConfiguration))
 			d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
-			d.Set("service_url", props.ServiceUrl)
+			d.Set("service_url", props.ServiceURL)
 		}
 
 		i, err := identity.FlattenLegacySystemAndUserAssignedMap(m.Identity)
@@ -134,7 +134,6 @@ func dataSourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta in
 		}
 
 		return tags.FlattenAndSet(d, m.Tags)
-
 	}
 	return nil
 }

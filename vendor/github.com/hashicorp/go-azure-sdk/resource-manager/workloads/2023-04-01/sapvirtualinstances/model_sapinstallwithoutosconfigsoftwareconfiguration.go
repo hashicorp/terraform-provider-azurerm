@@ -11,7 +11,7 @@ import (
 var _ SoftwareConfiguration = SAPInstallWithoutOSConfigSoftwareConfiguration{}
 
 type SAPInstallWithoutOSConfigSoftwareConfiguration struct {
-	BomUrl                                string                                 `json:"bomUrl"`
+	BomURL                                string                                 `json:"bomUrl"`
 	HighAvailabilitySoftwareConfiguration *HighAvailabilitySoftwareConfiguration `json:"highAvailabilitySoftwareConfiguration,omitempty"`
 	SapBitsStorageAccountId               string                                 `json:"sapBitsStorageAccountId"`
 	SoftwareVersion                       string                                 `json:"softwareVersion"`

@@ -123,7 +123,7 @@ func (id MemberId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticFleets", "fleets", "fleets"),
 		resourceids.UserSpecifiedSegment("fleetName", "fleetName"),
 		resourceids.StaticSegment("staticMembers", "members", "members"),
-		resourceids.UserSpecifiedSegment("memberName", "fleetMemberName"),
+		resourceids.UserSpecifiedSegment("memberName", "memberName"),
 	}
 }
 

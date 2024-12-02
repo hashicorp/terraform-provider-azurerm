@@ -91,6 +91,7 @@ func TestAccKubernetesFleetUpdateRun_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r KubernetesFleetUpdateRunTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := updateruns.ParseUpdateRunID(state.ID)
 	if err != nil {
@@ -104,6 +105,7 @@ func (r KubernetesFleetUpdateRunTestResource) Exists(ctx context.Context, client
 
 	return pointer.To(resp.Model != nil), nil
 }
+
 func (r KubernetesFleetUpdateRunTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

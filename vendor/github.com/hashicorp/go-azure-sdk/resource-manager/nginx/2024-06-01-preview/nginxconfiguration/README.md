@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentName", "configurationName")
 
 payload := nginxconfiguration.NginxConfiguration{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentName", "configurationName")
 
 if err := client.ConfigurationsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ConfigurationsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName", "configurationName")
+id := nginxconfiguration.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentName", "configurationName")
 
 read, err := client.ConfigurationsGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := nginxconfiguration.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "deploymentName")
+id := nginxconfiguration.NewNginxDeploymentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "nginxDeploymentName")
 
 // alternatively `client.ConfigurationsList(ctx, id)` can be used to do batched pagination
 items, err := client.ConfigurationsListComplete(ctx, id)

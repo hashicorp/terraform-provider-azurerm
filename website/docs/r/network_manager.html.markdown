@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `scope` - (Required) A `scope` block as defined below.
 
-* `scope_accesses` - (Required) A list of configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`, corresponds to if Connectivity Configuration and Security Admin Configuration is allowed for the Network Manager.
+* `scope_accesses` - (Required) A list of configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, corresponds to if Connectivity Configuration, Security Admin Configuration or Routing Configuration is allowed for the Network Manager.
 
 * `description` - (Optional) A description of the network manager.
 

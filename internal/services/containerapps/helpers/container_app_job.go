@@ -115,7 +115,7 @@ func ExpandContainerAppJobSecrets(input []Secret) *[]jobs.Secret {
 	for _, v := range input {
 		result = append(result, jobs.Secret{
 			Identity:    pointer.To(v.Identity),
-			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
+			KeyVaultURL: pointer.To(v.KeyVaultSecretId),
 			Name:        pointer.To(v.Name),
 			Value:       pointer.To(v.Value),
 		})
@@ -439,7 +439,7 @@ func flattenInitContainerAppJobContainers(input *[]jobs.BaseContainer) []BaseCon
 
 func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -461,7 +461,7 @@ func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 
 func expandInitContainerJobEnvVar(input BaseContainer) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -1008,10 +1008,10 @@ func FlattenContainerAppJobSecrets(input *jobs.JobSecretsCollection) []Secret {
 	for _, v := range input.Value {
 		secret := Secret{
 			Identity:         pointer.From(v.Identity),
-			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			KeyVaultSecretId: pointer.From(v.KeyVaultURL),
 			Name:             pointer.From(v.Name),
 		}
-		if v.KeyVaultUrl == nil {
+		if v.KeyVaultURL == nil {
 			secret.Value = pointer.From(v.Value)
 		}
 		result = append(result, secret)

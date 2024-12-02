@@ -4,6 +4,7 @@
 package search
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -15,16 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSearchService() *pluginsdk.Resource {
@@ -125,6 +125,11 @@ func resourceSearchService() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"customer_managed_key_encryption_compliance_status": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -182,7 +187,7 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
 		},
@@ -260,7 +265,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
+		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
 	}
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
@@ -305,7 +310,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -387,7 +392,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -557,6 +562,7 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			if props.EncryptionWithCmk != nil {
 				cmkEnforcement = strings.EqualFold(string(pointer.From(props.EncryptionWithCmk.Enforcement)), string(services.SearchEncryptionWithCmkEnabled))
+				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
 			}
 
 			// I am using 'DisableLocalAuth' here because when you are in
@@ -590,7 +596,11 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("semantic_search_sku", semanticSearchSku)
 		}
 
-		if err = d.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err = d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %s", err)
 		}
 
@@ -653,8 +663,8 @@ func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	if input != nil {
 		for _, v := range *input {
 			results = append(results, map[string]interface{}{
-				"name": utils.NormalizeNilableString(v.Name),
-				"key":  utils.NormalizeNilableString(v.Key),
+				"name": pointer.From(v.Name),
+				"key":  pointer.From(v.Key),
 			})
 		}
 	}
@@ -668,7 +678,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 	for _, rule := range input {
 		if rule != nil {
 			output = append(output, services.IPRule{
-				Value: utils.String(rule.(string)),
+				Value: pointer.To(rule.(string)),
 			})
 		}
 	}

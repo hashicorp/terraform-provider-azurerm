@@ -6,6 +6,6 @@ package appplatform
 type DevToolPortalSsoProperties struct {
 	ClientId     *string   `json:"clientId,omitempty"`
 	ClientSecret *string   `json:"clientSecret,omitempty"`
-	MetadataUrl  *string   `json:"metadataUrl,omitempty"`
+	MetadataURL  *string   `json:"metadataUrl,omitempty"`
 	Scopes       *[]string `json:"scopes,omitempty"`
 }

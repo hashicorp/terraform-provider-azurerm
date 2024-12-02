@@ -60,9 +60,11 @@ type MsSqlManagedInstanceModel struct {
 	Tags                         map[string]string                   `tfschema:"tags"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+var (
+	_ sdk.Resource                  = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithUpdate        = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+)
 
 type MsSqlManagedInstanceResource struct{}
 
@@ -232,7 +234,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  StorageAccountTypeGRS,
 			ValidateFunc: validation.StringInSlice([]string{
 				StorageAccountTypeGRS,
@@ -408,14 +409,15 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				Identity: r.expandIdentity(state.Identity),
 				Location: location.Normalize(state.Location),
 				Properties: &managedinstances.ManagedInstanceProperties{
-					DnsZonePartner:            pointer.To(state.DnsZonePartnerId),
-					LicenseType:               pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
-					MinimalTlsVersion:         pointer.To(state.MinimumTlsVersion),
-					ProxyOverride:             pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
-					PublicDataEndpointEnabled: pointer.To(state.PublicDataEndpointEnabled),
-					StorageSizeInGB:           pointer.To(state.StorageSizeInGb),
-					VCores:                    pointer.To(state.VCores),
-					ZoneRedundant:             pointer.To(state.ZoneRedundantEnabled),
+					DnsZonePartner:                   pointer.To(state.DnsZonePartnerId),
+					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
+					MinimalTlsVersion:                pointer.To(state.MinimumTlsVersion),
+					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
+					PublicDataEndpointEnabled:        pointer.To(state.PublicDataEndpointEnabled),
+					StorageSizeInGB:                  pointer.To(state.StorageSizeInGb),
+					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType)),
+					VCores:                           pointer.To(state.VCores),
+					ZoneRedundant:                    pointer.To(state.ZoneRedundantEnabled),
 				},
 				Tags: pointer.To(state.Tags),
 			}
@@ -484,7 +486,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			model := MsSqlManagedInstanceModel{}
 
 			if existing.Model != nil {
-
 				model = MsSqlManagedInstanceModel{
 					Name:              id.ManagedInstanceName,
 					Location:          location.NormalizeNilable(&existing.Model.Location),
@@ -589,7 +590,7 @@ func (r MsSqlManagedInstanceResource) flattenIdentity(input *identity.LegacySyst
 		return nil
 	}
 
-	var identityIds = make([]string, 0)
+	identityIds := make([]string, 0)
 	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {

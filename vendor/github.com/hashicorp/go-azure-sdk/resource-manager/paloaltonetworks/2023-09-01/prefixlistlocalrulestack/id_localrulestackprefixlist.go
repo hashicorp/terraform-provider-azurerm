@@ -123,7 +123,7 @@ func (id LocalRulestackPrefixListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
 		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticPrefixLists", "prefixLists", "prefixLists"),
-		resourceids.UserSpecifiedSegment("prefixListName", "name"),
+		resourceids.UserSpecifiedSegment("prefixListName", "prefixListName"),
 	}
 }
 

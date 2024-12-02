@@ -50,7 +50,6 @@ func (r PacketCoreControlPlaneDataSource) Arguments() map[string]*pluginsdk.Sche
 
 func (r PacketCoreControlPlaneDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"control_plane_access_name": {

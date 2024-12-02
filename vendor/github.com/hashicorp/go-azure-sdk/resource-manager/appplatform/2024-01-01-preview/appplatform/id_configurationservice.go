@@ -121,7 +121,7 @@ func (id ConfigurationServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "serviceName"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticConfigurationServices", "configurationServices", "configurationServices"),
 		resourceids.UserSpecifiedSegment("configurationServiceName", "configurationServiceName"),
 	}

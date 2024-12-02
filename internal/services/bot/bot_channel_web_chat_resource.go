@@ -13,14 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelWebChat() *pluginsdk.Resource {
@@ -57,7 +56,6 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 			"site": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -84,28 +82,8 @@ func resourceBotChannelWebChat() *pluginsdk.Resource {
 						},
 					},
 				},
-				ExactlyOneOf: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"site_names", "site"}
-					}
-					return []string{}
-				}(),
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["site_names"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-			Deprecated:   "`site_names` will be removed in favour of the property `site` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"site_names", "site"},
-		}
 	}
 
 	return resource
@@ -150,13 +128,6 @@ func resourceBotChannelWebChatCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("site_names"); ok {
-			channel, _ := channel.Properties.AsWebChatChannel()
-			channel.Properties.Sites = expandSiteNames(v.(*pluginsdk.Set).List())
-		}
 	}
 
 	if v, ok := d.GetOk("site"); ok {
@@ -206,12 +177,6 @@ func resourceBotChannelWebChatRead(d *pluginsdk.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsWebChatChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				if !features.FourPointOhBeta() {
-					if err := d.Set("site_names", flattenSiteNames(channelProps.Sites)); err != nil {
-						return fmt.Errorf("setting `site_names`: %+v", err)
-					}
-				}
-
 				if err := d.Set("site", flattenSites(channelProps.Sites)); err != nil {
 					return fmt.Errorf("setting `site`: %+v", err)
 				}
@@ -239,13 +204,6 @@ func resourceBotChannelWebChatUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("site_names") {
-			channel, _ := channel.Properties.AsWebChatChannel()
-			channel.Properties.Sites = expandSiteNames(d.Get("site_names").(*pluginsdk.Set).List())
-		}
 	}
 
 	if d.HasChange("site") {
@@ -305,19 +263,6 @@ func resourceBotChannelWebChatDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandSiteNames(input []interface{}) *[]botservice.WebChatSite {
-	results := make([]botservice.WebChatSite, 0)
-
-	for _, item := range input {
-		results = append(results, botservice.WebChatSite{
-			SiteName:  utils.String(item.(string)),
-			IsEnabled: utils.Bool(true),
-		})
-	}
-
-	return &results
-}
-
 func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	results := make([]botservice.WebChatSite, 0)
 
@@ -338,24 +283,6 @@ func expandSites(input []interface{}) *[]botservice.WebChatSite {
 	}
 
 	return &results
-}
-
-func flattenSiteNames(input *[]botservice.WebChatSite) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var siteName string
-		if item.SiteName != nil {
-			siteName = *item.SiteName
-		}
-
-		results = append(results, siteName)
-	}
-
-	return results
 }
 
 func flattenSites(input *[]botservice.WebChatSite) []interface{} {
