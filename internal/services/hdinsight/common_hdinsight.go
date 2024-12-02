@@ -6,6 +6,7 @@ package hdinsight
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -401,6 +402,16 @@ func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []inte
 		})
 	}
 
+	return output
+}
+
+func expandHDInsightAvailabilityZones(input interface{}) []string {
+	output := make([]string, 0)
+
+	v := input.(*schema.Set)
+	for _, az := range v.List() {
+		output = append(output, az.(string))
+	}
 	return output
 }
 

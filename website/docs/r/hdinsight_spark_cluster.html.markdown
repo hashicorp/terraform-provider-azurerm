@@ -127,6 +127,8 @@ The following arguments are supported:
 
 * `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
+* `availability_zones` - (Optional) A list of Availability Zones which should be used for this HDInsight Spark Cluster.
+
 ---
 
 A `component_version` block supports the following:
