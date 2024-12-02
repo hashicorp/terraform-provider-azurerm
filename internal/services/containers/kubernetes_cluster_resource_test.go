@@ -959,8 +959,7 @@ func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData
 		upgradeOverrideSetting = fmt.Sprintf(`
   upgrade_override {
 	effective_until = "%s"
-  }`, time.Now().Add(8*time.Minute).Format(time.RFC3339))
-
+  }`, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339))
 	}
 
 	return fmt.Sprintf(`

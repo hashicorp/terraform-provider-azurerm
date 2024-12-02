@@ -4626,6 +4626,9 @@ func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managed
 	if len(input) == 0 || input[0] == nil {
 		return &managedclusters.ClusterUpgradeSettings{
 			OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+				// The forceUpgrade field controls the overrideUpgradeSetting feature.
+				// If overrideUpgradeSetting is not specified, set forceUpgrade to false to disable the feature.
+				// Not passing this field to the API will not disable the feature.
 				ForceUpgrade: pointer.To(false),
 			},
 		}
