@@ -1,3 +1,9 @@
+## 4.13.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_cognitive_deployment` - add support for the `dynamic_throttling_enabled` property [GH-28100]
+
 ## 4.12.0 (November 28, 2024)
 
 FEATURES:
