@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
-	network_2024_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01"
+	network_2024_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
