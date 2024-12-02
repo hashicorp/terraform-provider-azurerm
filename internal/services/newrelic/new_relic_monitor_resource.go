@@ -218,7 +218,6 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 		"monitored_subscription": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subscription_id": {
@@ -307,8 +306,6 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
-
 			monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
 				Properties: &monitoredsubscriptions.SubscriptionList{
 					MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription),
@@ -324,6 +321,8 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 			if err := resourceMonitoredSubscriptionsWaitForAvailable(ctx, monitoredSubscriptionsClient, monitorId, model.MonitoredSubscription); err != nil {
 				return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
 			}
+
+			metadata.SetID(id)
 
 			return nil
 		},
@@ -396,11 +395,13 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 
 			monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 			monitoredSubscriptionResp, err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.Get(ctx, monitorId)
-			if err != nil {
+			if err != nil && !response.WasNotFound(monitoredSubscriptionResp.HttpResponse) {
 				return fmt.Errorf("retrieving NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 			}
-			if monitoredSubscriptionResp.Model != nil && monitoredSubscriptionResp.Model.Properties != nil {
-				state.MonitoredSubscription = flattenMonitorSubscriptionList(monitoredSubscriptionResp.Model.Properties.MonitoredSubscriptionList)
+			if !response.WasNotFound(monitoredSubscriptionResp.HttpResponse) {
+				if monitoredSubscriptionResp.Model != nil && monitoredSubscriptionResp.Model.Properties != nil {
+					state.MonitoredSubscription = flattenMonitorSubscriptionList(monitoredSubscriptionResp.Model.Properties.MonitoredSubscriptionList)
+				}
 			}
 
 			return metadata.Encode(&state)
