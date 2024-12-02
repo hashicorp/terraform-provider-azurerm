@@ -1225,7 +1225,7 @@ func TestAccLinuxWebApp_withJre21Java(t *testing.T) {
 			Config: r.java(data, "21", "JAVA", "21"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|21-21"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|21-java21"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
