@@ -298,6 +298,10 @@ func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Clie
 
 func (RoleAssignmentResource) emptyNameConfig() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}

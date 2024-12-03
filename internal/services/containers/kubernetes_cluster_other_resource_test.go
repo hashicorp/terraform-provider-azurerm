@@ -1566,6 +1566,10 @@ func (KubernetesClusterResource) nodeLabelsConfig(data acceptance.TestData, labe
 	}
 	labelsStr := strings.Join(labelsSlice, "\n")
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-%d"
   location = "%s"
