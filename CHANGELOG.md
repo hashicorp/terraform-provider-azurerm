@@ -1,3 +1,13 @@
+## 4.13.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_cognitive_deployment` - add support for the `dynamic_throttling_enabled` property [GH-28100]
+
+BUG:
+
+* `azurerm_cdn_frontdoor_origin_group` - update validation of `interval_in_seconds` to match API behaviour [GH-28143]
+
 ## 4.12.0 (November 28, 2024)
 
 FEATURES:
