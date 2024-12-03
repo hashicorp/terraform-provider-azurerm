@@ -167,184 +167,184 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 
-  volume {
-    name                         = "acctest-NetAppVolume-Ora2-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-2-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data2"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+//   volume {
+//     name                         = "acctest-NetAppVolume-Ora2-%[2]d"
+//     volume_path                  = "my-unique-file-ora-path-2-%[2]d"
+//     service_level                = "Standard"
+//     capacity_pool_id             = azurerm_netapp_pool.test.id
+//     subnet_id                    = azurerm_subnet.test.id
+//     zone                         = "1"
+//     volume_spec_name             = "ora-data2"
+//     storage_quota_in_gb          = 1024
+//     throughput_in_mibps          = 24
+//     protocols                    = ["NFSv4.1"]
+//     security_style               = "unix"
+//     snapshot_directory_visible   = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
 
-    tags = {
-      "foo"    = "BAR",
-    }
-  }
+//     tags = {
+//       "foo"    = "BAR",
+//     }
+//   }
 
-  volume {
-    name                         = "acctest-NetAppVolume-Ora3-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-3-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data3"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+//   volume {
+//     name                         = "acctest-NetAppVolume-Ora3-%[2]d"
+//     volume_path                  = "my-unique-file-ora-path-3-%[2]d"
+//     service_level                = "Standard"
+//     capacity_pool_id             = azurerm_netapp_pool.test.id
+//     subnet_id                    = azurerm_subnet.test.id
+//     zone                         = "1"
+//     volume_spec_name             = "ora-data3"
+//     storage_quota_in_gb          = 1024
+//     throughput_in_mibps          = 24
+//     protocols                    = ["NFSv4.1"]
+//     security_style               = "unix"
+//     snapshot_directory_visible   = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-Ora4-%[2]d"
-    volume_path                = "my-unique-file-ora-path-4-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data4"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-Ora4-%[2]d"
+//     volume_path                = "my-unique-file-ora-path-4-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-data4"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-Ora5-%[2]d"
-    volume_path                = "my-unique-file-ora-path-5-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data5"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-Ora5-%[2]d"
+//     volume_path                = "my-unique-file-ora-path-5-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-data5"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-Ora6-%[2]d"
-    volume_path                = "my-unique-file-ora-path-6-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data6"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-Ora6-%[2]d"
+//     volume_path                = "my-unique-file-ora-path-6-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-data6"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-Ora7-%[2]d"
-    volume_path                = "my-unique-file-ora-path-7-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data7"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-Ora7-%[2]d"
+//     volume_path                = "my-unique-file-ora-path-7-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-data7"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-Ora8-%[2]d"
-    volume_path                = "my-unique-file-ora-path-8-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data8"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-Ora8-%[2]d"
+//     volume_path                = "my-unique-file-ora-path-8-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-data8"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
   volume {
     name                       = "acctest-NetAppVolume-OraLog-%[2]d"
@@ -371,80 +371,80 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-OraLogMirror-%[2]d"
-    volume_path                = "my-unique-file-oralogmirror-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-log-mirror"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-OraLogMirror-%[2]d"
+//     volume_path                = "my-unique-file-oralogmirror-path-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-log-mirror"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-OraBinary-%[2]d"
-    volume_path                = "my-unique-file-orabinary-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-binary"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-OraBinary-%[2]d"
+//     volume_path                = "my-unique-file-orabinary-path-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-binary"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 
-  volume {
-    name                       = "acctest-NetAppVolume-OraBackup-%[2]d"
-    volume_path                = "my-unique-file-orabackup-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-backup"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv4.1"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
+//   volume {
+//     name                       = "acctest-NetAppVolume-OraBackup-%[2]d"
+//     volume_path                = "my-unique-file-orabackup-path-%[2]d"
+//     service_level              = "Standard"
+//     capacity_pool_id           = azurerm_netapp_pool.test.id
+//     subnet_id                  = azurerm_subnet.test.id
+//     zone                       = "1"
+//     volume_spec_name           = "ora-backup"
+//     storage_quota_in_gb        = 1024
+//     throughput_in_mibps        = 24
+//     protocols                  = ["NFSv4.1"]
+//     security_style             = "unix"
+//     snapshot_directory_visible = false
 
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = false
-      nfsv41_enabled      = true
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
+//     export_policy_rule {
+//       rule_index          = 1
+//       allowed_clients     = "0.0.0.0/0"
+//       nfsv3_enabled       = false
+//       nfsv41_enabled      = true
+//       unix_read_only      = false
+//       unix_read_write     = true
+//       root_access_enabled = false
+//     }
+//   }
 }
 `, template, data.RandomInteger)
 }
@@ -488,185 +488,6 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   }
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora2-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-2-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data2"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-
-    tags = {
-      "foo"    = "BAR",
-    }
-  }
-
-  volume {
-    name                         = "acctest-NetAppVolume-Ora3-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-3-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data3"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-Ora4-%[2]d"
-    volume_path                = "my-unique-file-ora-path-4-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data4"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-Ora5-%[2]d"
-    volume_path                = "my-unique-file-ora-path-5-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data5"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-Ora6-%[2]d"
-    volume_path                = "my-unique-file-ora-path-6-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data6"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-Ora7-%[2]d"
-    volume_path                = "my-unique-file-ora-path-7-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data7"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-Ora8-%[2]d"
-    volume_path                = "my-unique-file-ora-path-8-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-data8"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
     name                       = "acctest-NetAppVolume-OraLog-%[2]d"
     volume_path                = "my-unique-file-oralog-path-%[2]d"
     service_level              = "Standard"
@@ -674,81 +495,6 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     subnet_id                  = azurerm_subnet.test.id
     zone                       = "1"
     volume_spec_name           = "ora-log"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-OraLogMirror-%[2]d"
-    volume_path                = "my-unique-file-oralogmirror-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-log-mirror"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-OraBinary-%[2]d"
-    volume_path                = "my-unique-file-orabinary-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-binary"
-    storage_quota_in_gb        = 1024
-    throughput_in_mibps        = 24
-    protocols                  = ["NFSv3"]
-    security_style             = "unix"
-    snapshot_directory_visible = false
-
-    export_policy_rule {
-      rule_index          = 1
-      allowed_clients     = "0.0.0.0/0"
-      nfsv3_enabled       = true
-      nfsv41_enabled      = false
-      unix_read_only      = false
-      unix_read_write     = true
-      root_access_enabled = false
-    }
-  }
-
-  volume {
-    name                       = "acctest-NetAppVolume-OraBackup-%[2]d"
-    volume_path                = "my-unique-file-orabackup-path-%[2]d"
-    service_level              = "Standard"
-    capacity_pool_id           = azurerm_netapp_pool.test.id
-    subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
-    volume_spec_name           = "ora-backup"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv3"]
@@ -1307,5 +1053,5 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 18
   qos_type            = "Manual"
 }
-`, data.RandomInteger, "eastus")
+`, data.RandomInteger, "canadaeast")
 }
