@@ -434,7 +434,7 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 						},
 					}
 
-					if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
+					if err := monitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
 						return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 					}
 				}
