@@ -6,7 +6,9 @@ ENHANCEMENTS:
 
 BUG:
 
+* Data Source: `azurerm_logic_app_standard` - update `identity` to support User Assigned Identities [GH-28158]
 * `azurerm_cdn_frontdoor_origin_group` - update validation of `interval_in_seconds` to match API behaviour [GH-28143]
+* `azurerm_container_group` - retrieve log analytics workspace key from config when updating resource [GH-28025]
 
 ## 4.12.0 (November 28, 2024)
 
