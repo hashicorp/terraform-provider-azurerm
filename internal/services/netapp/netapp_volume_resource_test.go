@@ -1404,14 +1404,13 @@ resource "azurerm_subnet" "test-non-delegated" {
 func (NetAppVolumeResource) templateProviderFeatureFlags() string {
 	return `
 provider "azurerm" {
-  alias = "volumeTests"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
 
     netapp {
-      prevent_volume_destruction            = false
+      prevent_volume_destruction             = false
       delete_backups_on_backup_vault_destroy = true
     } 
   }
