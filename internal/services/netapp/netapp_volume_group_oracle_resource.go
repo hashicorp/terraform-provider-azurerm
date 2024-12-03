@@ -418,9 +418,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 							update.Tags = tags.Expand(tagsRaw)
 						}
 
-						// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
-						// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-						if _, err = volumeClient.Update(ctx, volumeId, update); err != nil {
+						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
 						}
 

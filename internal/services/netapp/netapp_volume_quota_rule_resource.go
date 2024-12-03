@@ -172,9 +172,7 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 
 				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
 
-				// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
-				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-				if _, err := client.Update(ctx, pointer.From(id), update); err != nil {
+				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
@@ -251,7 +249,7 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+			// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
 			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
 			if _, err = client.Delete(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)

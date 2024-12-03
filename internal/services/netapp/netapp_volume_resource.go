@@ -745,9 +745,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
-	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-	if _, err = client.Update(ctx, *id, update); err != nil {
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -948,9 +946,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					},
 				}
 
-				// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
-				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-				if _, err = client.Update(ctx, *id, disableBackupPolicy); err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, disableBackupPolicy); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
@@ -975,9 +971,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					},
 				}
 
-				// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
-				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-				if _, err = client.Update(ctx, *id, backupPolicyIdRemoval); err != nil {
+				if err = client.UpdateThenPoll(ctx, *id, backupPolicyIdRemoval); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
