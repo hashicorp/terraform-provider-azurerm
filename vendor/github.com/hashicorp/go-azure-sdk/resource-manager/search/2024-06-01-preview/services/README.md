@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services` Documentation
 
-The `services` SDK allows for interaction with Azure Resource Manager `search` (API Version `2023-11-01`).
+The `services` SDK allows for interaction with Azure Resource Manager `search` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 ```
 
 
