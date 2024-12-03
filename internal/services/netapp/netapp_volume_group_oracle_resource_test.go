@@ -1053,5 +1053,5 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 18
   qos_type            = "Manual"
 }
-`, data.RandomInteger, "canadaeast")
+`, data.RandomInteger, "canadacentral")
 }
