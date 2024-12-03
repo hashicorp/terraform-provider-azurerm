@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type FabricFabricCapacityResource struct{}
+type FabricCapacityResource struct{}
 
-func TestAccFabricFabricCapacity_basic(t *testing.T) {
+func TestAccFabricCapacity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fabric_capacity", "test")
-	r := FabricFabricCapacityResource{}
+	r := FabricCapacityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -29,9 +29,9 @@ func TestAccFabricFabricCapacity_basic(t *testing.T) {
 	})
 }
 
-func TestAccFabricFabricCapacity_requiresImport(t *testing.T) {
+func TestAccFabricCapacity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fabric_capacity", "test")
-	r := FabricFabricCapacityResource{}
+	r := FabricCapacityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -43,9 +43,9 @@ func TestAccFabricFabricCapacity_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccFabricFabricCapacity_complete(t *testing.T) {
+func TestAccFabricCapacity_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fabric_capacity", "test")
-	r := FabricFabricCapacityResource{}
+	r := FabricCapacityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -57,9 +57,9 @@ func TestAccFabricFabricCapacity_complete(t *testing.T) {
 	})
 }
 
-func TestAccFabricFabricCapacity_update(t *testing.T) {
+func TestAccFabricCapacity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_fabric_capacity", "test")
-	r := FabricFabricCapacityResource{}
+	r := FabricCapacityResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -92,7 +92,7 @@ func TestAccFabricFabricCapacity_update(t *testing.T) {
 	})
 }
 
-func (r FabricFabricCapacityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r FabricCapacityResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fabriccapacities.ParseCapacityID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (r FabricFabricCapacityResource) Exists(ctx context.Context, clients *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r FabricFabricCapacityResource) template(data acceptance.TestData) string {
+func (r FabricCapacityResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -120,7 +120,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FabricFabricCapacityResource) basic(data acceptance.TestData) string {
+func (r FabricCapacityResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -139,7 +139,7 @@ resource "azurerm_fabric_capacity" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FabricFabricCapacityResource) requiresImport(data acceptance.TestData) string {
+func (r FabricCapacityResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_fabric_capacity" "import" {
 `, r.basic(data))
 }
 
-func (r FabricFabricCapacityResource) complete(data acceptance.TestData) string {
+func (r FabricCapacityResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -181,7 +181,7 @@ resource "azurerm_fabric_capacity" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r FabricFabricCapacityResource) update(data acceptance.TestData) string {
+func (r FabricCapacityResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
