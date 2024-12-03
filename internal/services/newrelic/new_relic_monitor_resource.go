@@ -434,7 +434,7 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("deleting NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 					}
 
-					if err := resourceMonitoredSubscriptionsWaitForDelete(ctx, monitoredSubscriptionsClient, *id, originalModel.MonitoredSubscription); err != nil {
+					if err := resourceMonitoredSubscriptionsWaitForDelete(ctx, monitoredSubscriptionsClient, *id); err != nil {
 						return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to be deleted: %+v", *id, err)
 					}
 				} else {
@@ -452,7 +452,6 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to be updated: %+v", *id, err)
 					}
 				}
-
 			}
 
 			return nil
@@ -728,7 +727,7 @@ func resourceMonitoredSubscriptionsWaitForCreateOrUpdate(ctx context.Context, mo
 	return nil
 }
 
-func resourceMonitoredSubscriptionsWaitForDelete(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId, monitoredSubscriptions []NewRelicMonitoredSubscription) error {
+func resourceMonitoredSubscriptionsWaitForDelete(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal error: context had no deadline")
