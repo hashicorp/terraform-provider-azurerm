@@ -109,35 +109,6 @@ func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
 	return input == cdn.HTTPSRedirectEnabled
 }
 
-func expandFrontDoorTags(tagMap *map[string]string) map[string]*string {
-	t := make(map[string]*string)
-
-	if tagMap != nil {
-		for k, v := range *tagMap {
-			tagKey := k
-			tagValue := v
-			t[tagKey] = &tagValue
-		}
-	}
-
-	return t
-}
-
-func flattenFrontDoorTags(tagMap map[string]*string) *map[string]string {
-	t := make(map[string]string)
-
-	for k, v := range tagMap {
-		tagKey := k
-		tagValue := v
-		if tagValue == nil {
-			continue
-		}
-		t[tagKey] = *tagValue
-	}
-
-	return &t
-}
-
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {

@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -506,7 +505,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := waf.WebApplicationFirewallPolicy{
-		Location: utils.String(location.Normalize("Global")),
+		Location: pointer.To(location.Normalize("Global")),
 		Sku: &waf.Sku{
 			Name: pointer.To(waf.SkuName(sku)),
 		},
@@ -527,15 +526,15 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if redirectUrl != "" {
-		payload.Properties.PolicySettings.RedirectURL = utils.String(redirectUrl)
+		payload.Properties.PolicySettings.RedirectURL = pointer.To(redirectUrl)
 	}
 
 	if customBlockResponseBody != "" {
-		payload.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
+		payload.Properties.PolicySettings.CustomBlockResponseBody = pointer.To(customBlockResponseBody)
 	}
 
 	if customBlockResponseStatusCode > 0 {
-		payload.Properties.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(customBlockResponseStatusCode))
+		payload.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
 	}
 
 	err = client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload)
@@ -595,15 +594,15 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		})
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
-			props.PolicySettings.RedirectURL = utils.String(redirectUrl)
+			props.PolicySettings.RedirectURL = pointer.To(redirectUrl)
 		}
 
 		if body := d.Get("custom_block_response_body").(string); body != "" {
-			props.PolicySettings.CustomBlockResponseBody = utils.String(body)
+			props.PolicySettings.CustomBlockResponseBody = pointer.To(body)
 		}
 
 		if statusCode := d.Get("custom_block_response_status_code").(int64); statusCode > 0 {
-			props.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(statusCode))
+			props.PolicySettings.CustomBlockResponseStatusCode = pointer.To(statusCode)
 		}
 	}
 
@@ -755,12 +754,12 @@ func expandCdnFrontDoorFirewallCustomRules(input []interface{}) *waf.CustomRuleL
 		action := custom["action"].(string)
 
 		output = append(output, waf.CustomRule{
-			Name:                       utils.String(name),
+			Name:                       pointer.To(name),
 			Priority:                   priority,
 			EnabledState:               pointer.To(enabled),
 			RuleType:                   waf.RuleType(ruleType),
-			RateLimitDurationInMinutes: utils.Int64(rateLimitDurationInMinutes),
-			RateLimitThreshold:         utils.Int64(rateLimitThreshold),
+			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
+			RateLimitThreshold:         pointer.To(rateLimitThreshold),
 			MatchConditions:            matchConditions,
 			Action:                     waf.ActionType(action),
 		})
@@ -798,7 +797,7 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 			matchCondition.MatchVariable = waf.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			matchCondition.Selector = utils.String(selector)
+			matchCondition.Selector = pointer.To(selector)
 		}
 
 		result = append(result, matchCondition)
@@ -985,7 +984,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 
 		priority := 0
 		if v.Priority != 0 {
-			priority = int(int(v.Priority))
+			priority = int(v.Priority)
 		}
 
 		rateLimitDurationInMinutes := 0
