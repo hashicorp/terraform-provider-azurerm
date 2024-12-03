@@ -6,7 +6,6 @@ package newrelic
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -313,14 +312,9 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 					},
 				}
 
-				monitoredSubscriptionsClient := metadata.Client.NewRelic.MonitoredSubscriptionsClient
 				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 				if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
 					return fmt.Errorf("creating NewRelic Monitored Subscriptions of %s: %+v", id, err)
-				}
-
-				if err := resourceMonitoredSubscriptionsWaitForCreateOrUpdate(ctx, monitoredSubscriptionsClient, id, model.MonitoredSubscription); err != nil {
-					return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to be created: %+v", id, err)
 				}
 			}
 
@@ -433,10 +427,6 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 					if _, err := monitoredSubscriptionsClient.Delete(ctx, monitorId); err != nil {
 						return fmt.Errorf("deleting NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 					}
-
-					if err := resourceMonitoredSubscriptionsWaitForDelete(ctx, monitoredSubscriptionsClient, *id); err != nil {
-						return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to be deleted: %+v", *id, err)
-					}
 				} else {
 					monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
 						Properties: &monitoredsubscriptions.SubscriptionList{
@@ -446,10 +436,6 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 
 					if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
 						return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", *id, err)
-					}
-
-					if err := resourceMonitoredSubscriptionsWaitForCreateOrUpdate(ctx, monitoredSubscriptionsClient, *id, originalModel.MonitoredSubscription); err != nil {
-						return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to be updated: %+v", *id, err)
 					}
 				}
 			}
@@ -669,106 +655,4 @@ func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSub
 	}
 
 	return results
-}
-
-func resourceMonitoredSubscriptionsRefreshForCreateOrUpdate(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId, monitoredSubscriptions []NewRelicMonitoredSubscription) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if NewRelic Monitored Subscriptions of %s is available ..", id)
-
-		monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
-		resp, err := monitoredSubscriptionClient.Get(ctx, monitorId)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-			return resp, "Error", fmt.Errorf("retrieving NewRelic Monitored Subscriptions of %s: %+v", id, err)
-		}
-
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.MonitoredSubscriptionList == nil {
-			return resp, "Error", fmt.Errorf("unexpected nil model of NewRelic Monitored Subscriptions of %s", id)
-		}
-
-		matchCount := 0
-		for _, v := range monitoredSubscriptions {
-			for _, u := range *resp.Model.Properties.MonitoredSubscriptionList {
-				if u.SubscriptionId != nil && strings.EqualFold(v.SubscriptionId, *u.SubscriptionId) {
-					matchCount++
-					break
-				}
-			}
-		}
-
-		if len(monitoredSubscriptions) != len(*resp.Model.Properties.MonitoredSubscriptionList) || matchCount != len(monitoredSubscriptions) {
-			return resp, "InProgress", nil
-		}
-
-		return resp, "Finished", nil
-	}
-}
-
-func resourceMonitoredSubscriptionsWaitForCreateOrUpdate(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId, monitoredSubscriptions []NewRelicMonitoredSubscription) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
-	}
-	state := &pluginsdk.StateChangeConf{
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 2,
-		Pending:                   []string{"InProgress"},
-		Target:                    []string{"Finished"},
-		Refresh:                   resourceMonitoredSubscriptionsRefreshForCreateOrUpdate(ctx, monitoredSubscriptionClient, id, monitoredSubscriptions),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
-	}
-
-	return nil
-}
-
-func resourceMonitoredSubscriptionsWaitForDelete(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
-	}
-	state := &pluginsdk.StateChangeConf{
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 2,
-		Pending:                   []string{"InProgress"},
-		Target:                    []string{"Deleted"},
-		Refresh:                   resourceMonitoredSubscriptionsRefreshForDelete(ctx, monitoredSubscriptionClient, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for NewRelic Monitored Subscriptions of %s to become available: %+v", id, err)
-	}
-
-	return nil
-}
-
-func resourceMonitoredSubscriptionsRefreshForDelete(ctx context.Context, monitoredSubscriptionClient *monitoredsubscriptions.MonitoredSubscriptionsClient, id monitors.MonitorId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if NewRelic Monitored Subscriptions of %s is available ..", id)
-
-		monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
-		resp, err := monitoredSubscriptionClient.Get(ctx, monitorId)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "Deleted", nil
-			}
-			return resp, "Error", fmt.Errorf("retrieving NewRelic Monitored Subscriptions of %s: %+v", id, err)
-		}
-
-		if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.MonitoredSubscriptionList == nil {
-			return resp, "Error", fmt.Errorf("unexpected nil model of NewRelic Monitored Subscriptions of %s", id)
-		}
-
-		if len(*resp.Model.Properties.MonitoredSubscriptionList) == 0 {
-			return resp, "Deleted", nil
-		}
-
-		return resp, "InProgress", nil
-	}
 }
