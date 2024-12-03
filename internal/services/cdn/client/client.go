@@ -7,6 +7,7 @@ import (
 	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"          // nolint: staticcheck
 	cdnFrontDoorSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"     // nolint: staticcheck
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -22,6 +23,7 @@ type Client struct {
 	FrontDoorSecretsClient                *cdnFrontDoorSdk.SecretsClient
 	FrontDoorRuleSetsClient               *cdnFrontDoorSdk.RuleSetsClient
 	FrontDoorLegacyFirewallPoliciesClient *frontdoor.PoliciesClient
+	FrontDoorFirewallPoliciesClient       *waf.WebApplicationFirewallPoliciesClient
 	CustomDomainsClient                   *cdnSdk.CustomDomainsClient
 	EndpointsClient                       *cdnSdk.EndpointsClient
 	ProfilesClient                        *cdnSdk.ProfilesClient
@@ -45,6 +47,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	frontDoorLegacyFirewallPoliciesClient := frontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorLegacyFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	frontDoorFirewallPoliciesClient := waf.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&frontDoorFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	frontDoorRoutesClient := cdnFrontDoorSdk.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorRoutesClient.Client, o.ResourceManagerAuthorizer)
@@ -82,6 +87,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FrontDoorSecretsClient:                &frontDoorPolicySecretsClient,
 		FrontDoorRuleSetsClient:               &frontDoorRuleSetsClient,
 		FrontDoorLegacyFirewallPoliciesClient: &frontDoorLegacyFirewallPoliciesClient,
+		FrontDoorFirewallPoliciesClient:       &frontDoorFirewallPoliciesClient,
 		CustomDomainsClient:                   &customDomainsClient,
 		EndpointsClient:                       &endpointsClient,
 		ProfilesClient:                        &profilesClient,

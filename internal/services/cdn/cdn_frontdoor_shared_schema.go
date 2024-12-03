@@ -4,28 +4,39 @@
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// SslProtocol enumerates the values for ssl protocol.
+type SslProtocol string
+
+const (
+	// SslProtocolTLSv1 ...
+	SslProtocolTLSv1 SslProtocol = "TLSv1"
+	// SslProtocolTLSv11 ...
+	SslProtocolTLSv11 SslProtocol = "TLSv1.1"
+	// SslProtocolTLSv12 ...
+	SslProtocolTLSv12 SslProtocol = "TLSv1.2"
+)
+
+// PossibleSslProtocolValues returns an array of possible values for the SslProtocol const type.
+func PossibleSslProtocolValues() []string {
+	return []string{
+		string(SslProtocolTLSv1),
+		string(SslProtocolTLSv11),
+		string(SslProtocolTLSv12),
+	}
+}
+
 func schemaCdnFrontDoorOperator() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Required: true,
-		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorEqual),
-			string(cdn.OperatorContains),
-			string(cdn.OperatorBeginsWith),
-			string(cdn.OperatorEndsWith),
-			string(cdn.OperatorLessThan),
-			string(cdn.OperatorLessThanOrEqual),
-			string(cdn.OperatorGreaterThan),
-			string(cdn.OperatorGreaterThanOrEqual),
-			string(cdn.OperatorRegEx),
-		}, false),
+		ValidateFunc: validation.StringInSlice(waf.PossibleValuesForOperator(),
+			false),
 	}
 }
 
@@ -33,9 +44,9 @@ func schemaCdnFrontDoorOperatorEqualOnly() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorEqual),
+		Default:  string(waf.OperatorEqual),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorEqual),
+			string(waf.OperatorEqual),
 		}, false),
 	}
 }
@@ -44,11 +55,11 @@ func schemaCdnFrontDoorOperatorRemoteAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorIPMatch),
+		Default:  string(waf.OperatorIPMatch),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorIPMatch),
-			string(cdn.OperatorGeoMatch),
+			string(waf.OperatorAny),
+			string(waf.OperatorIPMatch),
+			string(waf.OperatorGeoMatch),
 		}, false),
 	}
 }
@@ -57,10 +68,10 @@ func schemaCdnFrontDoorOperatorSocketAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorIPMatch),
+		Default:  string(waf.OperatorIPMatch),
 		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorIPMatch),
+			string(waf.OperatorAny),
+			string(waf.OperatorIPMatch),
 		}, false),
 	}
 }
@@ -110,11 +121,8 @@ func schemaCdnFrontDoorSslProtocolMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.SslProtocolTLSv1),
-				string(cdn.SslProtocolTLSv11),
-				string(cdn.SslProtocolTLSv12),
-			}, false),
+			ValidateFunc: validation.StringInSlice(PossibleSslProtocolValues(),
+				false),
 		},
 	}
 }
@@ -225,14 +233,8 @@ func schemaCdnFrontDoorRuleTransforms() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.TransformLowercase),
-				string(cdn.TransformRemoveNulls),
-				string(cdn.TransformTrim),
-				string(cdn.TransformUppercase),
-				string(cdn.TransformURLDecode),
-				string(cdn.TransformURLEncode),
-			}, false),
+			ValidateFunc: validation.StringInSlice(waf.PossibleValuesForTransformType(),
+				false),
 		},
 	}
 }
