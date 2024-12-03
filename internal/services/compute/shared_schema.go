@@ -641,7 +641,7 @@ func isValidHotPatchSourceImageReference(referenceInput []interface{}, imageId s
 	offer := raw["offer"].(string)
 	sku := raw["sku"].(string)
 
-	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && (sku == "2022-datacenter-azure-edition-core" || sku == "2022-datacenter-azure-edition-core-smalldisk" || sku == "2022-datacenter-azure-edition-hotpatch" || sku == "2022-datacenter-azure-edition-hotpatch-smalldisk") {
+	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && (sku == "2022-datacenter-azure-edition-core" || sku == "2022-datacenter-azure-edition-core-smalldisk" || sku == "2022-datacenter-azure-edition-hotpatch" || sku == "2022-datacenter-azure-edition-hotpatch-smalldisk" || sku == "2025-datacenter-azure-edition" || sku == "2025-datacenter-azure-edition-smalldisk" || sku == "2025-datacenter-azure-edition-core" || sku == "2025-datacenter-azure-edition-core-smalldisk") {
 		return true
 	}
 
