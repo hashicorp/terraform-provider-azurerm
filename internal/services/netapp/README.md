@@ -26,7 +26,7 @@ if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
 
   This is because some operations return from regular SDK polling as completed but due to several factors it is still in progress (e.g. ARM caching, software and hardware layer sync delays, etc.). These wait functions are necessary and should not be removed.
 
-- Do not approve Pull Requests that relies on <Operation>ThenPoll() methods, e.g. `DeleteThenPoll()`, and please do not ask contributors to use these methods, due to some unknown [issues](https://github.com/hashicorp/pandora/issues/4571) with Pandora, those for Azure NetApp Files are not reliable, causing errors from time to time (and depending on the operation, very frequently) like this:
+- Do not approve Pull Requests that relies on `<Create or Delete Operations>ThenPoll()` methods, e.g. `DeleteThenPoll()`, we should not use those for volume related operations due to some unknown [issues](https://github.com/hashicorp/pandora/issues/4571) with Pandora, those for Azure NetApp Files are not reliable, causing errors from time to time (and depending on the operation, very frequently) like this:
 
 ```text
 pmarques [ ~/go/src/github.com/hashicorp/terraform-provider-azurerm ]$ make acctests SERVICE='netapp' TESTARGS=' -parallel 5 -run=TestAccNetAppVolumeGroupSAPHana_crossRegionReplication -count=1' TESTTIMEOUT='1200m'
