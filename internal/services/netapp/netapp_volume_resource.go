@@ -609,9 +609,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
 	}
 
-	// Can't use CreateOrUpdateThenPoll because from time to time the LRO SDK fails,
-	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -628,9 +626,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		// Can't use VolumesAuthorizeReplicationThenPoll because from time to time the LRO SDK fails,
-		// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-		if _, err = replicationClient.VolumesAuthorizeReplication(ctx, *replVolID, volumesreplication.AuthorizeRequest{
+		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
 			RemoteVolumeResourceId: utils.String(id.ID()),
 		},
 		); err != nil {
@@ -984,9 +980,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
-	// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
-	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-	if _, err = client.Delete(ctx, *id, volumes.DeleteOperationOptions{
+	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

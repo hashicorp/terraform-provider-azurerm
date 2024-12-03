@@ -809,7 +809,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
     zone                         = "1"
-    volume_spec_name             = "ora-data"
+    volume_spec_name             = "ora-data1"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
@@ -913,7 +913,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
     zone                         = "2"
-    volume_spec_name             = "ora-data"
+    volume_spec_name             = "ora-data1"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
@@ -997,7 +997,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
     zone                         = "1"
-    volume_spec_name             = "ora-data"
+    volume_spec_name             = "ora-data1"
     storage_quota_in_gb          = 1200
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]

@@ -520,6 +520,11 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
+
+	netapp {
+      prevent_volume_destruction            = false
+      delete_backups_on_backup_vault_destroy = true
+    } 
   }
 }
 

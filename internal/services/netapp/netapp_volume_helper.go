@@ -651,9 +651,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 			}
 
 			// Breaking replication
-			// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
-			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-			if _, err = replicationClient.VolumesBreakReplication(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
+			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
 				ForceBreakReplication: utils.Bool(true),
 			}); err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", pointer.From(replicaVolumeId), err)
@@ -679,9 +677,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	}
 
 	// Deleting volume and waiting for it to fully complete the operation
-	// Can't use DeleteVolumeThenPoll because from time to time the LRO SDK fails,
-	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-	if _, err = client.Delete(ctx, pointer.From(id), volumes.DeleteOperationOptions{
+	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)

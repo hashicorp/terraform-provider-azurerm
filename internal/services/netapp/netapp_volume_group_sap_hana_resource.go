@@ -354,9 +354,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			// Can't use CreateThenPoll because from time to time the LRO SDK fails,
-			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-			if _, err = client.Create(ctx, id, parameters); err != nil {
+			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -390,9 +388,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 					}
 
 					// Authorizing
-					// Can't use CreateThenPoll because from time to time the LRO SDK fails,
-					// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-					if _, err = replicationClient.VolumesAuthorizeReplication(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
+					if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
 						RemoteVolumeResourceId: utils.String(secondaryId.ID()),
 					},
 					); err != nil {
@@ -614,9 +610,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Deleting Volume Group
-			// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
-			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-			if _, err = client.Delete(ctx, pointer.From(id)); err != nil {
+			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 

@@ -128,9 +128,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			// Can't use CreateThenPoll because from time to time the LRO SDK fails,
-			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-			if _, err = client.Create(ctx, id, parameters); err != nil {
+			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -249,9 +247,7 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
-			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
-			if _, err = client.Delete(ctx, pointer.From(id)); err != nil {
+			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 
