@@ -23,7 +23,7 @@ func TestAccNetAppVolumeGroupOracleDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("volume.1.volume_spec_name").HasValue("log"),
+				check.That(data.ResourceName).Key("volume.1.volume_spec_name").HasValue("ora-data2"),
 			),
 		},
 	})

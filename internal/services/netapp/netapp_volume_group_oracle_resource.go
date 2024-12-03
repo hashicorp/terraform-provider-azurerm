@@ -310,14 +310,15 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			// Can't use CreateThenPoll because from time to time the LRO SDK fails,
+			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+			if _, err = client.Create(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
-				return err
+				return fmt.Errorf("waiting creation %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -417,8 +418,15 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 							update.Tags = tags.Expand(tagsRaw)
 						}
 
-						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
+						// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+						// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+						if _, err = volumeClient.Update(ctx, volumeId, update); err != nil {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
+						}
+
+						// Waiting for volume to fully complete an update
+						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
+							return fmt.Errorf("waiting update %s: %+v", volumeId, err)
 						}
 					}
 				}
@@ -511,8 +519,15 @@ func (r NetAppVolumeGroupOracleResource) Delete() sdk.ResourceFunc {
 			}
 
 			// Removing Volume Group
-			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
+			// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
+			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+			if _, err = client.Delete(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
+			}
+
+			// Waiting for volume group be completely deleted
+			if err := waitForVolumeGroupDelete(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("waiting delete %s: %+v", pointer.From(id), err)
 			}
 
 			return nil

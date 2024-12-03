@@ -9,7 +9,7 @@ This document gives insights into who is maintaining this service and includes d
 
 ## Acceptance Tests
 
-- There is lack of SMB-related acceptance tests because it requires Active Directory Domain Controller infrastructure which is not easily automatable. SMB-related tests can only be tested if the infrastructure is setup beforehand which is not that trivial. We should not require SMB tests unless it comes with Domain Controller setup automation. Without automation, the SMB acceptance tests will fail and cause disruptions in CI/bulk testing.
+- There is lack of SMB-related acceptance tests because it requires Active Directory Domain Controller infrastructure which is not easy to automate properly. SMB-related tests can only be tested if the infrastructure is setup beforehand which is not that trivial. We should not require SMB tests unless it comes with Domain Controller setup automation. Without automation, the SMB acceptance tests will fail and cause disruptions in CI/bulk testing.
 
 - New tests failing should not be accepted.
 
@@ -25,6 +25,42 @@ if err := waitForVolumeCreateOrUpdate(ctx, client, id); err != nil {
 ```
 
   This is because some operations return from regular SDK polling as completed but due to several factors it is still in progress (e.g. ARM caching, software and hardware layer sync delays, etc.). These wait functions are necessary and should not be removed.
+
+- Do not approve Pull Requests that relies on <Operation>ThenPoll() methods, e.g. `DeleteThenPoll()`, and please do not ask contributors to use these methods, due to some unknown [issues](https://github.com/hashicorp/pandora/issues/4571) with Pandora, those for Azure NetApp Files are not reliable, causing errors from time to time (and depending on the operation, very frequently) like this:
+
+```text
+pmarques [ ~/go/src/github.com/hashicorp/terraform-provider-azurerm ]$ make acctests SERVICE='netapp' TESTARGS=' -parallel 5 -run=TestAccNetAppVolumeGroupSAPHana_crossRegionReplication -count=1' TESTTIMEOUT='1200m'
+==> Checking that code complies with gofmt requirements...
+==> Checking that Custom Timeouts are used...
+egrep: warning: egrep is obsolescent; using grep -E
+egrep: warning: egrep is obsolescent; using grep -E
+==> Checking that acceptance test packages are used...
+TF_ACC=1 go test -v ./internal/services/netapp -parallel 5 -run=TestAccNetAppVolumeGroupSAPHana_crossRegionReplication -count=1 -timeout 1200m -ldflags="-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc"
+=== RUN   TestAccNetAppVolumeGroupSAPHana_crossRegionReplication
+=== PAUSE TestAccNetAppVolumeGroupSAPHana_crossRegionReplication
+=== CONT  TestAccNetAppVolumeGroupSAPHana_crossRegionReplication
+    testcase.go:173: Error running post-test destroy, there may be dangling resources: exit status 1
+
+        Error: deleting `volume`: deleting replicate Volume (Subscription: "66bc9830-19b6-4987-94d2-0e487be7aa47"
+        Resource Group Name: "acctestRG-netapp-241202215210177839"
+        Net App Account Name: "acctest-NetAppAccount-Secondary-241202215210177839"
+        Capacity Pool Name: "acctest-NetAppPool-Secondary-241202215210177839"
+        Volume Name: "acctest-NetAppVolume-1-Secondary-241202215210177839"): polling after VolumesDeleteReplication: `result.Status` was nil/empty - `op.Status` was "DeleteReplication" / `op.Properties.ProvisioningState` was ""
+
+        deleting `volume`: deleting replicate Volume (Subscription:
+        "66bc9830-19b6-4987-94d2-0e487be7aa47"
+        Resource Group Name: "acctestRG-netapp-241202215210177839"
+        Net App Account Name: "acctest-NetAppAccount-Secondary-241202215210177839"
+        Capacity Pool Name: "acctest-NetAppPool-Secondary-241202215210177839"
+        Volume Name: "acctest-NetAppVolume-1-Secondary-241202215210177839"): polling
+        after VolumesDeleteReplication: `result.Status` was nil/empty - `op.Status`
+        was "DeleteReplication" / `op.Properties.ProvisioningState` was ""
+--- FAIL: TestAccNetAppVolumeGroupSAPHana_crossRegionReplication (1375.67s)
+FAIL
+FAIL    github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp        1375.697s
+FAIL
+make: *** [GNUmakefile:103: acctests] Error 1
+```
 
 ## Data loss prevention protection
 

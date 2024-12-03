@@ -147,10 +147,6 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
-		if v := item.Zone; v != "" {
-			volumeProperties.Zones = pointer.To([]string{v})
-		}
-
 		results = append(results, *volumeProperties)
 	}
 
@@ -410,10 +406,6 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
 		}
 
-		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
-			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
-		}
-
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
@@ -659,7 +651,9 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 			}
 
 			// Breaking replication
-			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
+			// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
+			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+			if _, err = replicationClient.VolumesBreakReplication(ctx, pointer.From(replicaVolumeId), volumesreplication.BreakReplicationRequest{
 				ForceBreakReplication: utils.Bool(true),
 			}); err != nil {
 				return fmt.Errorf("breaking replication for %s: %+v", pointer.From(replicaVolumeId), err)
@@ -673,7 +667,9 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 
 		// Deleting replication and waiting for it to fully complete the operation
-		if err = replicationClient.VolumesDeleteReplicationThenPoll(ctx, pointer.From(replicaVolumeId)); err != nil {
+		// Can't use VolumesDeleteReplicationThenPoll because from time to time the LRO SDK fails,
+		// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+		if _, err = replicationClient.VolumesDeleteReplication(ctx, pointer.From(replicaVolumeId)); err != nil {
 			return fmt.Errorf("deleting replicate %s: %+v", pointer.From(replicaVolumeId), err)
 		}
 
@@ -683,14 +679,16 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	}
 
 	// Deleting volume and waiting for it to fully complete the operation
-	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
+	// Can't use DeleteVolumeThenPoll because from time to time the LRO SDK fails,
+	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+	if _, err = client.Delete(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 	}
 
 	if err = waitForVolumeDeletion(ctx, client, pointer.From(id)); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", pointer.From(id), err)
+		return fmt.Errorf("waiting delete %s: %+v", pointer.From(id), err)
 	}
 
 	return nil
@@ -735,6 +733,28 @@ func waitForVolumeGroupCreateOrUpdate(ctx context.Context, client *volumegroups.
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to finish creating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func waitForVolumeGroupDelete(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappVolumeGroupStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil

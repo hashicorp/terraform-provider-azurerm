@@ -609,7 +609,9 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	// Can't use CreateOrUpdateThenPoll because from time to time the LRO SDK fails,
+	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -626,7 +628,9 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 
-		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
+		// Can't use VolumesAuthorizeReplicationThenPoll because from time to time the LRO SDK fails,
+		// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+		if _, err = replicationClient.VolumesAuthorizeReplication(ctx, *replVolID, volumesreplication.AuthorizeRequest{
 			RemoteVolumeResourceId: utils.String(id.ID()),
 		},
 		); err != nil {
@@ -741,7 +745,9 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
+	// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+	if _, err = client.Update(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -894,7 +900,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				// Breaking replication
-				if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
+				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
 					ForceBreakReplication: utils.Bool(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
@@ -940,7 +948,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					},
 				}
 
-				if err = client.UpdateThenPoll(ctx, *id, disableBackupPolicy); err != nil {
+				// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+				if _, err = client.Update(ctx, *id, disableBackupPolicy); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
@@ -965,7 +975,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					},
 				}
 
-				if err = client.UpdateThenPoll(ctx, *id, backupPolicyIdRemoval); err != nil {
+				// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+				if _, err = client.Update(ctx, *id, backupPolicyIdRemoval); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
@@ -978,7 +990,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Deleting volume and waiting for it fo fully complete the operation
-	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
+	// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
+	// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+	if _, err = client.Delete(ctx, *id, volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

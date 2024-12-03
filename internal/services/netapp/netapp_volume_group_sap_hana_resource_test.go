@@ -1429,14 +1429,19 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
   ]
 }
 
-
-`, template, data.RandomInteger, "westus")
+`, template, data.RandomInteger, "westus3")
 }
 
 func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
 	template := NetAppVolumeGroupSAPHanaResource{}.templatePPG(data)
 	return fmt.Sprintf(`
 %[1]s
+
+resource "azurerm_user_assigned_identity" "test_secondary" {
+  name                = "user-assigned-identity-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
 
 resource "azurerm_network_security_group" "test_secondary" {
   name                = "acctest-NSG-Secondary-%[2]d"
@@ -1534,7 +1539,7 @@ resource "azurerm_linux_virtual_machine" "test_secondary" {
   name                            = "acctest-vm-secondary-%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = "%[3]s"
-  size                            = "Standard_M8ms"
+  size                            = "Standard_D2s_v4"
   admin_username                  = local.admin_username
   admin_password                  = local.admin_password
   disable_password_authentication = false
@@ -1551,12 +1556,22 @@ resource "azurerm_linux_virtual_machine" "test_secondary" {
     version   = "latest"
   }
 
+  patch_assessment_mode = "AutomaticByPlatform"
+
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
 
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test_secondary.id
+    ]
+  }
+
   tags = {
+    "AzSecPackAutoConfigReady"                                                 = "true",
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
     "CreatedOnDate"                                                            = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack"                                                         = "true",
@@ -1594,13 +1609,12 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "westus")
+`, template, data.RandomInteger, "westus3")
 }
 
 func (NetAppVolumeGroupSAPHanaResource) templatePPG(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  alias = "all2"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
@@ -1626,6 +1640,12 @@ resource "azurerm_resource_group" "test" {
     "SkipASMAzSecPack" = "true",
     "SkipNRMSNSG"      = "true"
   }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "user-assigned-identity-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -1724,7 +1744,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                            = "acctest-vm-%[1]d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  size                            = "Standard_M8ms"
+  size                            = "Standard_D2s_v4"
   admin_username                  = local.admin_username
   admin_password                  = local.admin_password
   disable_password_authentication = false
@@ -1741,12 +1761,22 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 
+  patch_assessment_mode = "AutomaticByPlatform"
+
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
 
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
   tags = {
+    "AzSecPackAutoConfigReady"                                                 = "true",
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
     "CreatedOnDate"                                                            = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack"                                                         = "true",
@@ -1784,5 +1814,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "eastus")
+`, data.RandomInteger, "westus2")
 }

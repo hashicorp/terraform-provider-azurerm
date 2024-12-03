@@ -354,14 +354,15 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			// Can't use CreateThenPoll because from time to time the LRO SDK fails,
+			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+			if _, err = client.Create(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
-				return err
+				return fmt.Errorf("waiting create %s: %+v", id, err)
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
@@ -389,7 +390,9 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 					}
 
 					// Authorizing
-					if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
+					// Can't use CreateThenPoll because from time to time the LRO SDK fails,
+					// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+					if _, err = replicationClient.VolumesAuthorizeReplication(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
 						RemoteVolumeResourceId: utils.String(secondaryId.ID()),
 					},
 					); err != nil {
@@ -512,8 +515,15 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 							update.Tags = tags.Expand(tagsRaw)
 						}
 
-						if err = volumeClient.UpdateThenPoll(ctx, volumeId, update); err != nil {
+						// Can't use UpdateThenPoll because from time to time the LRO SDK fails,
+						// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+						if _, err = volumeClient.Update(ctx, volumeId, update); err != nil {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
+						}
+
+						// Waiting for volume be completely updated
+						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
+							return fmt.Errorf("waiting update %s: %+v", volumeId, err)
 						}
 					}
 				}
@@ -605,8 +615,10 @@ func (r NetAppVolumeGroupSAPHanaResource) Delete() sdk.ResourceFunc {
 				}
 			}
 
-			// Removing Volume Group
-			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
+			// Deleting Volume Group
+			// Can't use DeleteThenPoll because from time to time the LRO SDK fails,
+			// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+			if _, err = client.Delete(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 

@@ -40,7 +40,6 @@ type NetAppVolumeGroupSAPHanaVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
-	Zone                         string                         `tfschema:"zone"`
 }
 
 type NetAppVolumeGroupSAPHanaModel struct {
