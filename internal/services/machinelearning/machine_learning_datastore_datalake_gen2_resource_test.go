@@ -188,7 +188,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_datalake_gen2" "test" {
-  name                 = "accdatastore%[2]d"
+  name                 = "acctestdatastore%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
 }
@@ -227,7 +227,7 @@ resource "azurerm_storage_container" "testalt" {
 }
 
 resource "azurerm_machine_learning_datastore_datalake_gen2" "crosssub" {
-  name                 = "accdcrosssub%[5]d"
+  name                 = "acctestdcrosssub%[5]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.testalt.resource_manager_id
 }
