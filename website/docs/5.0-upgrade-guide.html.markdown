@@ -66,8 +66,8 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cdn_endpoint_custom_domain`
 
-* The `cdn_managed_https.tls_version` property no langer accepts `None` or `TLS10` as a value.
-* The `user_managed_https.tls_version` property no langer accepts `None` or `TLS10` as a value.
+* The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
+* The `user_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
 
 ### `azurerm_cdn_frontdoor_custom_domain`
 
