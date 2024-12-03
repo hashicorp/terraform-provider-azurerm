@@ -27,7 +27,6 @@ func TestArcKubernetesProvisionedClusterID(t *testing.T) {
 		Error    bool
 		Expected *ArcKubernetesProvisionedClusterId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestArcKubernetesProvisionedClusterIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ArcKubernetesProvisionedClusterId
 	}{
-
 		{
 			// empty
 			Input: "",
