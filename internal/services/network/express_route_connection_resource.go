@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressrouteconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceExpressRouteConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceExpressRouteConnectionCreate,
 		Read:   resourceExpressRouteConnectionRead,
 		Update: resourceExpressRouteConnectionUpdate,
@@ -71,11 +72,6 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_internet_security": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"private_link_fast_path_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -157,6 +153,16 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["private_link_fast_path_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: "'private_link_fast_path_enabled' has been deprecated in favor of not supported by service and will be removed in v5",
+		}
+	}
+
+	return resource
 }
 
 func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -193,14 +199,6 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
-	}
-
-	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
-	if !privateLinkFastPath.IsNull() {
-		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
-			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
-		}
-		parameters.Properties.EnablePrivateLinkFastPath = pointer.To(d.Get("private_link_fast_path_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
@@ -243,7 +241,6 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("routing_weight", props.RoutingWeight)
 			d.Set("authorization_key", props.AuthorizationKey)
 			d.Set("enable_internet_security", props.EnableInternetSecurity)
-			d.Set("private_link_fast_path_enabled", pointer.From(props.EnablePrivateLinkFastPath))
 
 			if props.ExpressRouteGatewayBypass != nil {
 				d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
@@ -293,14 +290,6 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
 		},
-	}
-
-	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
-	if !privateLinkFastPath.IsNull() {
-		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
-			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
-		}
-		parameters.Properties.EnablePrivateLinkFastPath = pointer.To(d.Get("private_link_fast_path_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {

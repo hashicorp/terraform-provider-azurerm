@@ -107,6 +107,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
 
+### `azurerm_express_route_connection`
+
+* The deprecated `private_link_fast_path_enabled` property has been removed in favour of not supported by service.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
