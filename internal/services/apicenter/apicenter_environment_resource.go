@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/environments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apicenter/2024-03-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,6 +22,7 @@ var _ sdk.ResourceWithUpdate = ApiCenterEnvironmentResource{}
 
 type ApiCenterEnvironmentResourceModel struct {
 	Name           string `tfschema:"name"`
+	ServiceId      string `tfschema:"service_id"`
 	Identification string `tfschema:"identification"`
 	Description    string `tfschema:"description"`
 	Type           string `tfschema:"environment_type"`
@@ -35,6 +35,12 @@ type ApiCenterEnvironmentResourceModel struct {
 func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
+		"service_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -116,30 +122,44 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.ApiCenter.EnvironmentsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := environments.NewEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)
+			service, err := services.ParseServiceID(model.ServiceId)
+			if err != nil {
+				return fmt.Errorf("parsing ApiCenter Service ID %s: %+v", model.ServiceId, err)
+			}
+
+			// @favoretti: can't find any workspace creation buttons in the portal, assume everything defaults to "default" for now?
+			id := environments.NewEnvironmentID(subscriptionId, service.ResourceGroupName, service.ServiceName, "default", model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing ApiCenter Service %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing ApiCenter Environment %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+			apiCenterEnvironmentProps := environments.EnvironmentProperties{
+				Kind:        environments.EnvironmentKind(model.Type),
+				Description: &model.Description,
+				Onboarding: &environments.Onboarding{
+					DeveloperPortalUri: &[]string{model.DevPortalUri},
+					Instructions:       &model.Instructions,
+				},
+				Server: &environments.EnvironmentServer{
+					Type:                pointer.To(environments.EnvironmentServerType(model.ServerType)),
+					ManagementPortalUri: &[]string{model.MgmtPortalUri},
+				},
 			}
 
-			apiCenterService := services.Service{
-				Name:     &model.Name,
-				Location: model.Location,
-				Tags:     &model.Tags,
-				Identity: expandedIdentity,
+			apiCenterEnvironment := environments.Environment{
+				Id:         &model.Identification,
+				Name:       &model.Name,
+				Properties: &apiCenterEnvironmentProps,
+				Type:       &model.Type,
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, apiCenterService); err != nil {
-				return fmt.Errorf("creating ApiCenter Service %s: %+v", id, err)
+			if _, err = client.CreateOrUpdate(ctx, id, apiCenterEnvironment); err != nil {
+				return fmt.Errorf("creating ApiCenter Environment %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -152,8 +172,8 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ApiCenter.ServicesClient
-			id, err := services.ParseServiceID(metadata.ResourceData.Id())
+			client := metadata.Client.ApiCenter.EnvironmentsClient
+			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -165,22 +185,7 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading ApiCenter Service %s: %v", id, err)
-			}
-
-			if metadata.ResourceData.HasChange("identity") {
-				// TODO: Switch this to 'identity.ExpandSystemOrSingleUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))'
-				// once SDK Helpers PR #164 has been merged and integrated into the provider...
-				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
-				if err != nil {
-					return fmt.Errorf("expanding `identity`: %+v", err)
-				}
-
-				existing.Model.Identity = identityValue
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = &state.Tags
+				return fmt.Errorf("reading ApiCenter Environment %s: %v", id, err)
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
@@ -196,44 +201,37 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := services.ParseServiceID(metadata.ResourceData.Id())
+			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.ApiCenter.ServicesClient
+			client := metadata.Client.ApiCenter.EnvironmentsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving ApiCenter Service %s: %+v", *id, err)
+				return fmt.Errorf("retrieving ApiCenter Environment %s: %+v", *id, err)
 			}
+
+			serviceId := services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 
 			state := ApiCenterEnvironmentResourceModel{
-				Name:          id.ServiceName,
-				Location:      location.Normalize(resp.Model.Location),
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
-
-				if model.Identity != nil {
-					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
-					if err != nil {
-						return fmt.Errorf("flattening `identity`: %+v", err)
-					}
-
-					if err := metadata.ResourceData.Set("identity", identityValue); err != nil {
-						return fmt.Errorf("setting `identity`: %+v", err)
-					}
-				}
+				Name:           *resp.Model.Name,
+				ServiceId:      serviceId.ID(),
+				Identification: *resp.Model.Id,
+				Description:    *resp.Model.Properties.Description,
+				Type:           *resp.Model.Type,
+				DevPortalUri:   (*resp.Model.Properties.Onboarding.DeveloperPortalUri)[0],
+				MgmtPortalUri:  (*resp.Model.Properties.Server.ManagementPortalUri)[0],
+				Instructions:   *resp.Model.Properties.Onboarding.Instructions,
+				ServerType:     string(*resp.Model.Properties.Server.Type),
 			}
 			return metadata.Encode(&state)
+
 		},
 	}
 }
@@ -242,15 +240,15 @@ func (r ApiCenterEnvironmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := services.ParseServiceID(metadata.ResourceData.Id())
+			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			client := metadata.Client.ApiCenter.ServicesClient
+			client := metadata.Client.ApiCenter.EnvironmentsClient
 
 			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting ApiCenter Service %s: %+v", *id, err)
+				return fmt.Errorf("deleting ApiCenter Environment %s: %+v", *id, err)
 			}
 
 			return nil
