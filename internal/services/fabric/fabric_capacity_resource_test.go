@@ -132,7 +132,7 @@ resource "azurerm_fabric_capacity" "test" {
   administration_members = [data.azurerm_client_config.current.object_id]
 
   sku {
-    name = "F32"
+    name = "F2"
     tier = "Fabric"
   }
 }
@@ -170,7 +170,7 @@ resource "azurerm_fabric_capacity" "test" {
   administration_members = [data.azurerm_client_config.current.object_id]
 
   sku {
-    name = "F32"
+    name = "F2"
     tier = "Fabric"
   }
 
@@ -194,7 +194,7 @@ resource "azurerm_fabric_capacity" "test" {
   administration_members = []
 
   sku {
-    name = "F64"
+    name = "F4"
     tier = "Fabric"
   }
 
