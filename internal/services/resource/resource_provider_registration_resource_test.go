@@ -6,6 +6,7 @@ package resource_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -46,6 +47,12 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders("Microsoft.AgFoodPlatform"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
 			Config: r.basic("Microsoft.AgFoodPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -63,6 +70,8 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			PreConfig: func() {
+				_ = os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
+
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
 				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
