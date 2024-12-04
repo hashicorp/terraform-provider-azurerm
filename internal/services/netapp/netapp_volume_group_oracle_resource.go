@@ -348,6 +348,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("volume") {
 				// Iterating over each volume and performing individual patch
 				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
+
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
 

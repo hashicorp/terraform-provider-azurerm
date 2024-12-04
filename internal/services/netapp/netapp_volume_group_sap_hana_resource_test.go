@@ -1510,6 +1510,9 @@ resource "azurerm_availability_set" "test_secondary" {
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 
+  platform_update_domain_count = 2
+  platform_fault_domain_count  = 2
+
   proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
 
   tags = {
@@ -1714,6 +1717,9 @@ resource "azurerm_availability_set" "test" {
   name                = "acctest-avset-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  platform_update_domain_count = 2
+  platform_fault_domain_count  = 2
 
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 
