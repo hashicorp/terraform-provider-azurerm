@@ -821,7 +821,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
   ]
 }
 
-`, template, data.RandomInteger, "canadaeast")
+`, template, data.RandomInteger, "westus2")
 }
 
 func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
@@ -1004,7 +1004,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "canadaeast")
+`, template, data.RandomInteger, "westus2")
 }
 
 func (NetAppVolumeGroupSAPHanaResource) templatePPG(data acceptance.TestData) string {
@@ -1212,5 +1212,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "canadacentral")
+`, data.RandomInteger, "westus3")
 }
