@@ -112,9 +112,9 @@ An `authentication` block supports the following:
 
 ---
 
-* `scope` - (Optional) Connection scope in source service. It's namespace name if source is AKS cluster, container name if source is Container app.
+* `scope` - (Optional) Connection scope in the source service. This is the Namespace Name if the source is an AKS cluster, or the Container Name if source is a Container App.
 
-* `configuration` - (Optional) The connection information consumed by applications, including secrets, connection strings. A `configuration` block as defined below.
+* `configuration` - (Optional) The connection information consumed by applications, including secrets and connection strings. A `configuration` block as defined below.
 
 ---
 
@@ -151,6 +151,12 @@ A `configuration` block supports the following:
 An `secret_store` block supports the following:
 
 * `key_vault_id` - (Required) The key vault id to store secret.
+
+---
+
+An `configuration_store` block supports the following:
+
+* `app_configuration_id` - (Optional) The app configuration id to store configuration.
 
 ## Attribute Reference
 
