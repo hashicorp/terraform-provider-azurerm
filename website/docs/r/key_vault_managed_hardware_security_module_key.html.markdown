@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `managed_hsm_id` - (Required) Specifies the ID of the Key Vault Managed Hardware Security Module that they key will be owned by. Changing this forces a new resource to be created.
 
-* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM` and `RSA-HSM`. Changing this forces a new resource to be created.
+* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Managed Hardware Security Module Key. Possible values are `EC-HSM`, `oct-HSM` and `RSA-HSM`. Changing this forces a new resource to be created.
 
 * `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA-HSM`. Changing this forces a new resource to be created.
 
