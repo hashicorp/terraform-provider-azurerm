@@ -903,7 +903,16 @@ func TestAccMsSqlManagedInstance_aadAdmin(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
 	})
 }
 
@@ -918,7 +927,16 @@ func TestAccMsSqlManagedInstance_aadAdminWithAadOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
 	})
 }
 
@@ -947,7 +965,16 @@ func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
 		{
 			Config: r.withoutAadAdmin(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -968,7 +995,16 @@ func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_login_password"),
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
 	})
 }
 
@@ -1023,6 +1059,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   azure_active_directory_administrator {
     login_username = azuread_user.test.user_principal_name
     object_id      = azuread_user.test.object_id
+    principal_type = "User"
     tenant_id      = data.azurerm_client_config.test.tenant_id
   }
 
@@ -1114,6 +1151,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   azure_active_directory_administrator {
     login_username                      = azuread_user.test.user_principal_name
     object_id                           = azuread_user.test.object_id
+    principal_type                      = "User"
     tenant_id                           = data.azurerm_client_config.test.tenant_id
     azuread_authentication_only_enabled = true
   }
@@ -1195,7 +1233,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   azure_active_directory_administrator {
     login_username = azuread_user.test.user_principal_name
     object_id      = azuread_user.test.object_id
-    tenant_id      = data.azurerm_client_config.test.tenant_id
+    principal_type = "User"
   }
 
   tags = {
@@ -1272,6 +1310,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     login_username                      = azuread_user.test.user_principal_name
     object_id                           = azuread_user.test.object_id
     tenant_id                           = data.azurerm_client_config.test.tenant_id
+    principal_type                      = "User"
     azuread_authentication_only_enabled = true
   }
 

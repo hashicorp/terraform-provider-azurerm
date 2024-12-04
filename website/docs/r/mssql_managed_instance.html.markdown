@@ -263,6 +263,8 @@ An `azure_active_directory_administrator` block supports the following:
 
 * `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Managed Instance.
 
+* `principal_type` - (Required) The principal type of the Azure AD Administrator of this SQL Managed Instance. Possible values are `Application`, `Group`, `User`.
+
 * `azuread_authentication_only_enabled` - (Optional) Specifies whether only Azure AD authentication can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance. Should be specified if the Azure AD Administrator is homed in a different tenant to the SQL Managed Instance.

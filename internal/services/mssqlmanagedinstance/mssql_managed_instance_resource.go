@@ -69,6 +69,7 @@ type AzureActiveDirectoryAdministrator struct {
 	ObjectID                         string `tfschema:"object_id"`
 	AzureADAuthenticationOnlyEnabled bool   `tfschema:"azuread_authentication_only_enabled"`
 	TenantID                         string `tfschema:"tenant_id"`
+	PrincipalType                    string `tfschema:"principal_type"`
 }
 
 var (
@@ -198,6 +199,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,
+					},
+
+					"principal_type": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForPrincipalType(), false),
 					},
 
 					"azuread_authentication_only_enabled": {
@@ -406,7 +413,8 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					TimezoneId:                       pointer.To(model.TimezoneId),
 					VCores:                           pointer.To(model.VCores),
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
-					Administrators:                   expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
+					// `Administrators` is only valid when specified during creation`
+					Administrators: expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -450,17 +458,17 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Decoding state for %s", id)
+			metadata.Logger.Infof("Decoding state for %s", *id)
 			var state MsSqlManagedInstanceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
+			metadata.Logger.Infof("Updating %s", *id)
 
 			sku, err := r.expandSkuName(state.SkuName)
 			if err != nil {
-				return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", id.ID(), err)
+				return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", *id, err)
 			}
 
 			properties := managedinstances.ManagedInstance{
@@ -522,9 +530,16 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				}
 
 				if aadAdminExists {
-					if err := azureADAuthenticationOnlyClient.DeleteThenPoll(ctx, *id); err != nil {
-						log.Printf("[INFO] Deletion of AAD Authentication Only failed for %s: %+v", *id, err)
-						return fmt.Errorf("disabling AAD Authentication Only for %s: %+v", *id, err)
+					// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
+					// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+					aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
+						Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
+							AzureADOnlyAuthentication: false,
+						},
+					}
+					err = azureADAuthenticationOnlyClient.CreateOrUpdateThenPoll(ctx, *id, aadAuthOnlyParams)
+					if err != nil {
+						return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", *id, err)
 					}
 
 					if err := adminClient.DeleteThenPoll(ctx, *id); err != nil {
@@ -551,7 +566,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
 				}
-				properties.Properties.Administrators = expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
 			}
 
 			metadata.Logger.Infof("Updating %s", *id)
@@ -805,16 +819,16 @@ func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirecto
 
 	admin := input[0]
 	adminParams := managedinstances.ManagedInstanceExternalAdministrator{
-		AdministratorType: pointer.To(managedinstances.AdministratorTypeActiveDirectory),
-		Login:             pointer.To(admin.LoginUserName),
-		Sid:               pointer.To(admin.ObjectID),
+		AdministratorType:         pointer.To(managedinstances.AdministratorTypeActiveDirectory),
+		PrincipalType:             pointer.To(managedinstances.PrincipalType(admin.PrincipalType)),
+		Login:                     pointer.To(admin.LoginUserName),
+		Sid:                       pointer.To(admin.ObjectID),
+		AzureADOnlyAuthentication: pointer.To(admin.AzureADAuthenticationOnlyEnabled),
 	}
 
 	if admin.TenantID != "" {
 		adminParams.TenantId = pointer.To(admin.TenantID)
 	}
-
-	adminParams.AzureADOnlyAuthentication = pointer.To(admin.AzureADAuthenticationOnlyEnabled)
 
 	return &adminParams
 }
