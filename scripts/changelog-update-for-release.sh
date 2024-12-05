@@ -40,10 +40,3 @@ echo "exporting Provider Schema JSON"
   set -x
   ${debug}go run internal/tools/schema-api/main.go -export .release/provider-schema.json
 )
-
-echo "Committing changelog and provider schema..."
-(
-  set -x
-  ${debug}git commit CHANGELOG.md .release/provider-schema.json -m v"${RELEASE}"
-  ${debug}git push origin "${BRANCH}"
-)

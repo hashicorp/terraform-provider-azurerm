@@ -52,6 +52,14 @@ if [[ "${GOTIME}" != "1" ]]; then
   exit 1
 fi
 
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo "(Using BSD sed)"
+  SED="sed -E"
+else
+  echo "(Using GNU sed)"
+  SED="sed -r"
+fi
+
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "${BRANCH}" != "${TRUNK}" ]]; then
   if [[ "${FORCE}" == "1" ]]; then
@@ -74,6 +82,13 @@ if [[ "${NOTEST}" == "1" ]]; then
 else
   echo "Running tests..."
   ( set -x; TF_ACC= scripts/run-test.sh )
+fi
+
+# Get the next release
+RELEASE="$($SED -n 's/^## v?([0-9.]+) \(Unreleased\)/\1/p' CHANGELOG.md)"
+if [[ "${RELEASE}" == "" ]]; then
+  echo "Error: could not determine next release in CHANGELOG.md" >&2
+  exit 3
 fi
 
 # Ensure latest changes are checked out
