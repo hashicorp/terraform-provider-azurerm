@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	cdnProfile "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -207,7 +207,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	// private links are only allowed in the premium sku...
 	profile := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
-	profileId := cdnProfile.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    profile.SubscriptionId,
 		ResourceGroupName: profile.ResourceGroup,
 		ProfileName:       profile.ProfileName,
@@ -378,7 +378,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		// private links are only allowed in the premium sku...
 		profile := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
-		profileId := cdnProfile.ProfileId{
+		profileId := profiles.ProfileId{
 			SubscriptionId:    profile.SubscriptionId,
 			ResourceGroupName: profile.ResourceGroup,
 			ProfileName:       profile.ProfileName,

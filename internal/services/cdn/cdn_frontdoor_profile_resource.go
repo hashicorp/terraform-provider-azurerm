@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -65,8 +65,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.SkuNamePremiumAzureFrontDoor),
-					string(cdn.SkuNameStandardAzureFrontDoor),
+					string(profiles.SkuNamePremiumAzureFrontDoor),
+					string(profiles.SkuNameStandardAzureFrontDoor),
 				}, false),
 			},
 
@@ -88,7 +88,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 
 	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	profileId := cdn.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ProfileName:       id.ProfileName,
@@ -105,13 +105,13 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
 	}
 
-	props := cdn.Profile{
+	props := profiles.Profile{
 		Location: location.Normalize("global"),
-		Properties: &cdn.ProfileProperties{
+		Properties: &profiles.ProfileProperties{
 			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
-		Sku: cdn.Sku{
-			Name: pointer.To(cdn.SkuName(d.Get("sku_name").(string))),
+		Sku: profiles.Sku{
+			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
 		},
 		Tags: expandNewFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
 	}
@@ -144,7 +144,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	profileId := cdn.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ProfileName:       id.ProfileName,
@@ -208,15 +208,15 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	profileId := cdn.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ProfileName:       id.ProfileName,
 	}
 
-	props := cdn.ProfileUpdateParameters{
+	props := profiles.ProfileUpdateParameters{
 		Tags:       expandNewFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
-		Properties: &cdn.ProfilePropertiesUpdateParameters{},
+		Properties: &profiles.ProfilePropertiesUpdateParameters{},
 	}
 
 	if d.HasChange("response_timeout_seconds") {
@@ -250,7 +250,7 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	profileId := cdn.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ProfileName:       id.ProfileName,

@@ -9,7 +9,7 @@ import (
 	cdnSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn"          // nolint: staticcheck
 	cdnFrontDoorSdk "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor"     // nolint: staticcheck
-	cdnProfile "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -21,7 +21,7 @@ type Client struct {
 	FrontDoorSecurityPoliciesClient       *cdnFrontDoorSdk.SecurityPoliciesClient
 	FrontDoorRoutesClient                 *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient                  *cdnFrontDoorSdk.RulesClient
-	FrontDoorProfileClient                *cdnProfile.ProfilesClient
+	FrontDoorProfileClient                *profiles.ProfilesClient
 	FrontDoorSecretsClient                *cdnFrontDoorSdk.SecretsClient
 	FrontDoorRuleSetsClient               *cdnFrontDoorSdk.RuleSetsClient
 	FrontDoorLegacyFirewallPoliciesClient *frontdoor.PoliciesClient
@@ -31,7 +31,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	frontDoorProfilesClient, err := cdnProfile.NewProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	frontDoorProfilesClient, err := profiles.NewProfilesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ProfilesClient: %+v", err)
 	}

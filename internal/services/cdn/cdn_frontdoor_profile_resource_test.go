@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	cdn "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -224,7 +224,7 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	profileId := cdn.ProfileId{
+	profileId := profiles.ProfileId{
 		SubscriptionId:    id.SubscriptionId,
 		ResourceGroupName: id.ResourceGroup,
 		ProfileName:       id.ProfileName,
