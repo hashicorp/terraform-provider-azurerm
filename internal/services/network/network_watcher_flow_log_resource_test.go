@@ -49,6 +49,36 @@ func testAccNetworkWatcherFlowLog_basicWithVirtualNetwork(t *testing.T) {
 	})
 }
 
+func testAccNetworkWatcherFlowLog_basicWithSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfigWithSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccNetworkWatcherFlowLog_basicWithNIC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+	r := NetworkWatcherFlowLogResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfigWithNIC(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func testAccNetworkWatcherFlowLog_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 	r := NetworkWatcherFlowLogResource{}
@@ -394,6 +424,88 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, r.prerequisites(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) basicConfigWithSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  target_resource_id = azurerm_subnet.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetworkWatcherFlowLogResource) basicConfigWithNIC(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = azurerm_network_watcher.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "flowlog-%d"
+
+  target_resource_id = azurerm_network_interface.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
+
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
+}
+`, r.prerequisites(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetworkWatcherFlowLogResource) requiresImport(data acceptance.TestData) string {
