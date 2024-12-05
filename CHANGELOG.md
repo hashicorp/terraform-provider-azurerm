@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_cognitive_deployment` - add support for the `dynamic_throttling_enabled` property [GH-28100]
+* `azurerm_key_vault_managed_hardware_security_module_key` - `key_type` now supports `oct-HSM` [GH-28171]
 * `azurerm_machine_learning_datastore_datalake_gen2` - can now be used with storage account in a different subscription [GH-28123]
 * `azurerm_network_watcher_flow_log` - `target_resource_id` supports subnets and network interfaces [GH-28177]
 
