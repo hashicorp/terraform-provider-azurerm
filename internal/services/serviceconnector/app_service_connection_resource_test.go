@@ -568,7 +568,7 @@ resource "azurerm_app_service_connection" "test" {
     }
   }
   public_network_solution {
-    action = "enable"
+    action = "optOut"
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
