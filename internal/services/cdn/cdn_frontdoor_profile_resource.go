@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,7 +36,7 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorProfileID(id)
+			_, err := profiles.ParseProfileID(id)
 			return err
 		}),
 
@@ -86,15 +85,9 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	profileId := profiles.ProfileId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ProfileName:       id.ProfileName,
-	}
-
-	existing, err := client.Get(ctx, profileId)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -125,7 +118,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		props.Identity = i
 	}
 
-	err = client.CreateThenPoll(ctx, profileId, props)
+	err = client.CreateThenPoll(ctx, id, props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -139,18 +132,12 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	profileId := profiles.ProfileId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ProfileName:       id.ProfileName,
-	}
-
-	resp, err := client.Get(ctx, profileId)
+	resp, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -160,7 +147,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.ProfileName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	model := resp.Model
 
@@ -203,15 +190,9 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	profileId := profiles.ProfileId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ProfileName:       id.ProfileName,
 	}
 
 	props := profiles.ProfileUpdateParameters{
@@ -232,7 +213,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 		props.Identity = i
 	}
 
-	err = client.UpdateThenPoll(ctx, profileId, props)
+	err = client.UpdateThenPoll(ctx, pointer.From(id), props)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -245,18 +226,12 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	profileId := profiles.ProfileId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroup,
-		ProfileName:       id.ProfileName,
-	}
-
-	err = client.DeleteThenPoll(ctx, profileId)
+	err = client.DeleteThenPoll(ctx, pointer.From(id))
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
