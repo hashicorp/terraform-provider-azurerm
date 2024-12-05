@@ -78,8 +78,10 @@ type StorageDisk struct {
 	VhdType              string `tfschema:"vhd_type"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualMachineInstanceResource{}
+)
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceResource struct{}
 
