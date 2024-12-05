@@ -567,9 +567,6 @@ resource "azurerm_app_service_connection" "test" {
       app_configuration_id = azurerm_app_configuration.test.id
     }
   }
-  public_network_solution {
-    action = "optOut"
-  }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
