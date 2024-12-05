@@ -16,7 +16,7 @@ func SystemCenterVirtualMachineManagerVirtualMachineInstanceComputerName(i inter
 	}
 
 	if !regexp.MustCompile("^[a-zA-Z0-9]{1,}$").MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q may contain alphanumeric characters", k))
+		errors = append(errors, fmt.Errorf("%q must only contain alphanumeric characters", k))
 	}
 
 	return warnings, errors
