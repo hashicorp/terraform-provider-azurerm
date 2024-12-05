@@ -56,9 +56,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.example.name
   name                 = "example-log"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
