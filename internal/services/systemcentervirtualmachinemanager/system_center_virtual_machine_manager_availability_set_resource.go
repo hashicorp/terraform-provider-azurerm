@@ -30,8 +30,10 @@ type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
 	Tags                                      map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+)
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 

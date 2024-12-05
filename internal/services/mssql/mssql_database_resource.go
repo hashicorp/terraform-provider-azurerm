@@ -29,7 +29,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -286,7 +288,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %s", elasticId, err)
+			return fmt.Errorf("retrieving %s: %v", elasticId, err)
 		}
 
 		if elasticPool.Model != nil {
@@ -598,33 +600,35 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return nil
 	}
 
-	securityAlertPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
+	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
+	if longTermRetentionPolicyProps != nil {
+		longTermRetentionPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKUs do not support LRP currently
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
+			longTermRetentionPolicyPayload.Properties = longTermRetentionPolicyProps
 		}
 
-		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 		}
 	}
 
-	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if shortTermSecurityAlertPolicyProps != nil {
-		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
+	shortTermRetentionPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
+	if shortTermRetentionPolicyProps != nil {
+		shortTermRetentionPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !isDwSku {
-			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
+			shortTermRetentionPolicyPayload.Properties = shortTermRetentionPolicyProps
 		}
 
 		if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
-			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = nil
+		} else if shortTermRetentionPolicyProps.DiffBackupIntervalInHours == nil || pointer.From(shortTermRetentionPolicyProps.DiffBackupIntervalInHours) == 0 {
+			shortTermRetentionPolicyPayload.Properties.DiffBackupIntervalInHours = pointer.To(backupshorttermretentionpolicies.DiffBackupIntervalInHoursOneTwo)
 		}
 
-		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
+		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, shortTermRetentionPolicyPayload); err != nil {
 			return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -1076,7 +1080,24 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
-			if strings.HasPrefix(skuName, "HS") {
+			elasticPoolSku := ""
+			if elasticPoolId != "" {
+				elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
+				if err != nil {
+					return err
+				}
+
+				elasticPool, err := elasticPoolClient.Get(ctx, *elasticId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %v", elasticId, err)
+				}
+
+				if elasticPool.Model != nil && elasticPool.Model.Sku != nil {
+					elasticPoolSku = elasticPool.Model.Sku.Name
+				}
+			}
+
+			if strings.HasPrefix(skuName, "HS") || strings.HasPrefix(elasticPoolSku, "HS") {
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 
@@ -1121,7 +1142,6 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
-	minCapacity := float64(0)
 	ledgerEnabled := false
 	enclaveType := ""
 
@@ -1129,7 +1149,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
-			minCapacity = pointer.From(props.MinCapacity)
+			minCapacity := pointer.From(props.MinCapacity)
 
 			requestedBackupStorageRedundancy := ""
 			if props.RequestedBackupStorageRedundancy != nil {
@@ -1435,14 +1455,16 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 
 // The following data comes from the results of "az maintenance public-configuration list --query "[?contains(name, `SQL`) && contains(name, `DB`)]".name --output table"
 func resourceMsSqlDatabaseMaintenanceNames() []string {
-	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
+	return []string{
+		"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
 		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
 		"SQL_UKSouth_DB_2", "SQL_WestEurope_DB_2", "SQL_AustraliaSoutheast_DB_1", "SQL_BrazilSouth_DB_1", "SQL_CanadaCentral_DB_1", "SQL_CanadaEast_DB_1", "SQL_CentralUS_DB_1", "SQL_EastAsia_DB_1",
 		"SQL_FranceCentral_DB_1", "SQL_GermanyWestCentral_DB_1", "SQL_CentralIndia_DB_1", "SQL_SouthIndia_DB_1", "SQL_JapanEast_DB_1", "SQL_JapanWest_DB_1", "SQL_NorthCentralUS_DB_1", "SQL_UKWest_DB_1",
 		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
 		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
 		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
-		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2"}
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2",
+	}
 }
 
 type EmailAccountAdminsStatus string
@@ -1460,7 +1482,7 @@ func PossibleValuesForEmailAccountAdminsStatus() []string {
 }
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1801,4 +1823,64 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOhBeta() {
+		atLeastOneOf := []string{
+			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+		}
+		resource["long_term_retention_policy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					"immutable_backups_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }

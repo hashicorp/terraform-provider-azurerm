@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -590,7 +590,7 @@ resource "azurerm_key_vault_certificate" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.test, azurerm_key_vault_access_policy.test2]
 }
-`, data.RandomInteger, "westeurope", data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (FirewallPolicyResource) defaultWorkspaceOnly(data acceptance.TestData) string {

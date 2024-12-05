@@ -1,3 +1,4 @@
+
 AAD B2C
 API Management
 Active Directory Domain Services
@@ -48,6 +49,7 @@ Desktop Virtualization
 Dev Center
 Dev Test
 Digital Twins
+Dynatrace
 Elastic
 Elastic SAN
 Extended Location
@@ -73,13 +75,14 @@ Maps
 Messaging
 Mixed Reality
 Mobile Network
+Mongo Cluster
 Monitor
 NGINX
 NetApp
 Network
 Network Function
 New Relic
-Oracle Database
+Oracle
 Orbital
 Palo Alto
 Policy
@@ -105,6 +108,8 @@ Stream Analytics
 Synapse
 System Center Virtual Machine Manager
 Template
+Trusted Signing
+Video Indexer
 Voice Services
 Web PubSub
 Workloads

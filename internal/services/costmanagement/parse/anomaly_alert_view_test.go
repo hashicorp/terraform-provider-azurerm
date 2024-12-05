@@ -27,7 +27,6 @@ func TestAnomalyAlertViewID(t *testing.T) {
 		Error    bool
 		Expected *AnomalyAlertViewId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -20,7 +20,6 @@ type autoClient struct {
 }
 
 func buildAutoClients(client *autoClient, o *common.ClientOptions) (err error) {
-
 	if client.ChaosStudio, err = chaosstudio.NewClient(o); err != nil {
 		return fmt.Errorf("building client for ChaosStudio: %+v", err)
 	}

@@ -33,8 +33,10 @@ type SystemCenterVirtualMachineManagerServerModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-var _ sdk.Resource = SystemCenterVirtualMachineManagerServerResource{}
-var _ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerServerResource{}
+var (
+	_ sdk.Resource           = SystemCenterVirtualMachineManagerServerResource{}
+	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerServerResource{}
+)
 
 type SystemCenterVirtualMachineManagerServerResource struct{}
 
@@ -203,7 +205,6 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				if v := model.Properties.Credentials; v != nil {
 					state.Username = pointer.From(v.Username)
 				}
-
 			}
 
 			return metadata.Encode(&state)

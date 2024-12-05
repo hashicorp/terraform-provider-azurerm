@@ -27,7 +27,6 @@ func TestResourceGroupPolicyExemptionID(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupPolicyExemptionId
 	}{
-
 		{
 			// empty
 			Input: "",

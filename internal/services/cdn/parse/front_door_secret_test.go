@@ -27,7 +27,6 @@ func TestFrontDoorSecretID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorSecretId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestFrontDoorSecretIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorSecretId
 	}{
-
 		{
 			// empty
 			Input: "",

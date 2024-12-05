@@ -4,7 +4,7 @@ package dbsystemshapes
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DbSystemShapeProperties struct {
-	AvailableCoreCount                 *int64   `json:"availableCoreCount,omitempty"`
+	AvailableCoreCount                 int64    `json:"availableCoreCount"`
 	AvailableCoreCountPerNode          *int64   `json:"availableCoreCountPerNode,omitempty"`
 	AvailableDataStorageInTbs          *int64   `json:"availableDataStorageInTbs,omitempty"`
 	AvailableDataStoragePerServerInTbs *float64 `json:"availableDataStoragePerServerInTbs,omitempty"`

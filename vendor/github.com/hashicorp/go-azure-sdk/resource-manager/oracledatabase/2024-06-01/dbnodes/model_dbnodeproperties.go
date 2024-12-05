@@ -17,34 +17,31 @@ type DbNodeProperties struct {
 	CpuCoreCount               *int64                     `json:"cpuCoreCount,omitempty"`
 	DbNodeStorageSizeInGbs     *int64                     `json:"dbNodeStorageSizeInGbs,omitempty"`
 	DbServerId                 *string                    `json:"dbServerId,omitempty"`
-	DbSystemId                 *string                    `json:"dbSystemId,omitempty"`
+	DbSystemId                 string                     `json:"dbSystemId"`
 	FaultDomain                *string                    `json:"faultDomain,omitempty"`
 	HostIPId                   *string                    `json:"hostIpId,omitempty"`
 	Hostname                   *string                    `json:"hostname,omitempty"`
 	LifecycleDetails           *string                    `json:"lifecycleDetails,omitempty"`
-	LifecycleState             *DbNodeProvisioningState   `json:"lifecycleState,omitempty"`
+	LifecycleState             DbNodeProvisioningState    `json:"lifecycleState"`
 	MaintenanceType            *DbNodeMaintenanceType     `json:"maintenanceType,omitempty"`
 	MemorySizeInGbs            *int64                     `json:"memorySizeInGbs,omitempty"`
-	Ocid                       *string                    `json:"ocid,omitempty"`
+	Ocid                       string                     `json:"ocid"`
 	ProvisioningState          *ResourceProvisioningState `json:"provisioningState,omitempty"`
 	SoftwareStorageSizeInGb    *int64                     `json:"softwareStorageSizeInGb,omitempty"`
-	TimeCreated                *string                    `json:"timeCreated,omitempty"`
+	TimeCreated                string                     `json:"timeCreated"`
 	TimeMaintenanceWindowEnd   *string                    `json:"timeMaintenanceWindowEnd,omitempty"`
 	TimeMaintenanceWindowStart *string                    `json:"timeMaintenanceWindowStart,omitempty"`
 	Vnic2Id                    *string                    `json:"vnic2Id,omitempty"`
-	VnicId                     *string                    `json:"vnicId,omitempty"`
+	VnicId                     string                     `json:"vnicId"`
 }
 
 func (o *DbNodeProperties) GetTimeCreatedAsTime() (*time.Time, error) {
-	if o.TimeCreated == nil {
-		return nil, nil
-	}
-	return dates.ParseAsFormat(o.TimeCreated, "2006-01-02T15:04:05Z07:00")
+	return dates.ParseAsFormat(&o.TimeCreated, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o *DbNodeProperties) SetTimeCreatedAsTime(input time.Time) {
 	formatted := input.Format("2006-01-02T15:04:05Z07:00")
-	o.TimeCreated = &formatted
+	o.TimeCreated = formatted
 }
 
 func (o *DbNodeProperties) GetTimeMaintenanceWindowEndAsTime() (*time.Time, error) {

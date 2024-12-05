@@ -60,7 +60,6 @@ func (r SignalrServiceCustomDomainResource) Exists(ctx context.Context, client *
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(resp.Model != nil), nil
-
 }
 
 func (r SignalrServiceCustomDomainResource) basic(data acceptance.TestData) string {
