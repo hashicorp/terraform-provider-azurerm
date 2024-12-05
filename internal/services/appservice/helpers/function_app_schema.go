@@ -1029,7 +1029,7 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0` and `8.0`.
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS``
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
@@ -1040,7 +1040,7 @@ type ApplicationStackLinuxFunctionApp struct {
 }
 
 type ApplicationStackWindowsFunctionApp struct {
-	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0` and `v8.0`
+	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0` and `v9.0`
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
 	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`
@@ -1071,6 +1071,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"6.0",
 						"7.0",
 						"8.0",
+						"9.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1081,7 +1082,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `3.1`, `6.0` and `7.0`",
+					Description: "The version of .Net. Possible values are `3.1`, `6.0`, `7.0`, `8.0` and `9.0`",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1352,6 +1353,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"v6.0",
 						"v7.0",
 						"v8.0",
+						"v9.0",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
@@ -1360,7 +1362,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.powershell_core_version",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0` and `v7.0`",
+					Description: "The version of .Net. Possible values are `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0` and `v9.0`",
 				},
 
 				"use_dotnet_isolated_runtime": {
@@ -1646,7 +1648,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
-		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
+		if len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)

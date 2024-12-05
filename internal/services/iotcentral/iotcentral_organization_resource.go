@@ -13,14 +13,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type IotCentralOrganizationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotCentralOrganizationResource{}
-)
+var _ sdk.ResourceWithUpdate = IotCentralOrganizationResource{}
 
 type IotCentralOrganizationModel struct {
 	IotCentralApplicationId string `tfschema:"iotcentral_application_id"`

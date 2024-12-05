@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -46,11 +47,11 @@ func ResourceProviderID(input string) (*ResourceProviderId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceProvider == "" {
-		return nil, fmt.Errorf("ID was missing the 'providers' element")
+		return nil, errors.New("ID was missing the 'providers' element")
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {

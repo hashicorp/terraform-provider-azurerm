@@ -44,7 +44,6 @@ func getOidcToken(d *pluginsdk.ResourceData) (*string, error) {
 
 	if path := d.Get("oidc_token_file_path").(string); path != "" {
 		fileTokenRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
 		}
@@ -61,7 +60,6 @@ func getOidcToken(d *pluginsdk.ResourceData) (*string, error) {
 	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
 		path := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
 		fileTokenRaw, err := os.ReadFile(os.Getenv("AZURE_FEDERATED_TOKEN_FILE"))
-
 		if err != nil {
 			return nil, fmt.Errorf("reading OIDC Token from file %q provided by AKS Workload Identity: %v", path, err)
 		}
@@ -83,7 +81,6 @@ func getClientId(d *pluginsdk.ResourceData) (*string, error) {
 
 	if path := d.Get("client_id_file_path").(string); path != "" {
 		fileClientIdRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
 		}
@@ -113,7 +110,6 @@ func getClientSecret(d *pluginsdk.ResourceData) (*string, error) {
 
 	if path := d.Get("client_secret_file_path").(string); path != "" {
 		fileSecretRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
 		}

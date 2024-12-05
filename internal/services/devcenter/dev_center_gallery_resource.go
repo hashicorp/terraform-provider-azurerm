@@ -31,9 +31,11 @@ type DevCenterGalleryResourceSchema struct {
 func (r DevCenterGalleryResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return galleries.ValidateGalleryID
 }
+
 func (r DevCenterGalleryResource) ResourceType() string {
 	return "azurerm_dev_center_gallery"
 }
+
 func (r DevCenterGalleryResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_id": {
@@ -53,9 +55,11 @@ func (r DevCenterGalleryResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
 func (r DevCenterGalleryResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r DevCenterGalleryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -100,6 +104,7 @@ func (r DevCenterGalleryResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r DevCenterGalleryResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -135,6 +140,7 @@ func (r DevCenterGalleryResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r DevCenterGalleryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

@@ -23,6 +23,7 @@ func TestAccCognitiveAccountDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
@@ -40,6 +41,7 @@ func TestAccCognitiveAccountDataSource_identity(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),

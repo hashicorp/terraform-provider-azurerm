@@ -18,12 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
-}
+type PrivateEndpointApplicationSecurityGroupAssociationResource struct{}
 
-var (
-	_ sdk.Resource = PrivateEndpointApplicationSecurityGroupAssociationResource{}
-)
+var _ sdk.Resource = PrivateEndpointApplicationSecurityGroupAssociationResource{}
 
 type PrivateEndpointApplicationSecurityGroupAssociationModel struct {
 	PrivateEndpointId          string `tfschema:"private_endpoint_id"`
