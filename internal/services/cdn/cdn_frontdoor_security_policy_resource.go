@@ -170,7 +170,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_security_policy", id.ID())
 	}
 
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	resp, err := profileClient.Get(ctx, profileId)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve the 'sku_name' from the CDN FrontDoor Profile(Name: %q)': %+v", profile.ProfileName, err)

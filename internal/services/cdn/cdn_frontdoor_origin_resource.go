@@ -180,7 +180,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -329,7 +329,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	workaroundClient := azuresdkhacks.NewCdnFrontDoorOriginsWorkaroundClient(client)
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

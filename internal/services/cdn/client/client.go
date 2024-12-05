@@ -21,7 +21,7 @@ type Client struct {
 	FrontDoorSecurityPoliciesClient       *cdnFrontDoorSdk.SecurityPoliciesClient
 	FrontDoorRoutesClient                 *cdnFrontDoorSdk.RoutesClient
 	FrontDoorRulesClient                  *cdnFrontDoorSdk.RulesClient
-	FrontDoorProfileClient                *profiles.ProfilesClient
+	FrontDoorProfilesClient               *profiles.ProfilesClient
 	FrontDoorSecretsClient                *cdnFrontDoorSdk.SecretsClient
 	FrontDoorRuleSetsClient               *cdnFrontDoorSdk.RuleSetsClient
 	FrontDoorLegacyFirewallPoliciesClient *frontdoor.PoliciesClient
@@ -84,7 +84,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		FrontDoorSecurityPoliciesClient:       &frontDoorPolicySecurityPoliciesClient,
 		FrontDoorRoutesClient:                 &frontDoorRoutesClient,
 		FrontDoorRulesClient:                  &frontDoorRulesClient,
-		FrontDoorProfileClient:                frontDoorProfilesClient,
+		FrontDoorProfilesClient:               frontDoorProfilesClient,
 		FrontDoorSecretsClient:                &frontDoorPolicySecretsClient,
 		FrontDoorRuleSetsClient:               &frontDoorRuleSetsClient,
 		FrontDoorLegacyFirewallPoliciesClient: &frontDoorLegacyFirewallPoliciesClient,

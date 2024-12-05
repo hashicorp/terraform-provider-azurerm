@@ -230,7 +230,7 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 		ProfileName:       id.ProfileName,
 	}
 
-	client := clients.Cdn.FrontDoorProfileClient
+	client := clients.Cdn.FrontDoorProfilesClient
 	resp, err := client.Get(ctx, profileId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
