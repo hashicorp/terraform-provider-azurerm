@@ -1,3 +1,12 @@
+## 4.14.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_linux_function_app` - add support for  preview  value`21` for `java_version` [GH-26304]
+* `azurerm_linux_web_app` - add support for  preview  value`21` for `java_version` [GH-26304]
+* `azurerm_windows_function_app` - add support for  preview  value`21` for `java_version` [GH-26304]
+* `azurerm_windows_web_app` - add support for  preview  value`21` for `java_version` [GH-26304]
+
 ## 4.13.0 (December 05, 2024)
 
 ENHANCEMENTS:
