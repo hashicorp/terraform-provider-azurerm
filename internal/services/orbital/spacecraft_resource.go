@@ -23,6 +23,12 @@ type SpacecraftResource struct{}
 
 var _ sdk.ResourceWithUpdate = SpacecraftResource{}
 
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SpacecraftResource{}
+
+func (r SpacecraftResource) DeprecationMessage() string {
+	return "The `azurerm_orbital_spacecraft` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider."
+}
+
 type SpacecraftResourceModel struct {
 	Name            string                `tfschema:"name"`
 	ResourceGroup   string                `tfschema:"resource_group_name"`
