@@ -108,13 +108,13 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MachineLearning.ManagedNetwork
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model machineLearningWorkspaceOutboundRulePrivateEndpointModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			client := metadata.Client.MachineLearning.ManagedNetwork
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			workspaceId, err := managednetwork.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
@@ -195,31 +195,28 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := machineLearningWorkspaceOutboundRulePrivateEndpointModel{
-				Name: id.OutboundRuleName,
+				Name:        id.OutboundRuleName,
+				WorkspaceId: managednetwork.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 			}
 
-			if props := model.Properties; props != nil {
-				if prop, ok := props.(managednetwork.PrivateEndpointOutboundRule); ok && prop.Destination != nil {
-					if prop.Destination.SparkEnabled != nil {
-						state.SparkEnabled = *prop.Destination.SparkEnabled
-					}
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if prop, ok := props.(managednetwork.PrivateEndpointOutboundRule); ok && prop.Destination != nil {
+						if prop.Destination.SparkEnabled != nil {
+							state.SparkEnabled = *prop.Destination.SparkEnabled
+						}
 
-					if prop.Destination.SubresourceTarget != nil {
-						state.SubresourceTarget = *prop.Destination.SubresourceTarget
-					}
+						if prop.Destination.SubresourceTarget != nil {
+							state.SubresourceTarget = *prop.Destination.SubresourceTarget
+						}
 
-					if prop.Destination.ServiceResourceId != nil {
-						state.ServiceResourceId = *prop.Destination.ServiceResourceId
+						if prop.Destination.ServiceResourceId != nil {
+							state.ServiceResourceId = *prop.Destination.ServiceResourceId
+						}
 					}
 				}
 			}
-			state.WorkspaceId = managednetwork.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID()
 			return metadata.Encode(&state)
 		},
 	}
@@ -236,15 +233,9 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			future, err := client.SettingsRuleDelete(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("deleting Machine Learning Workspace Private Endpoint Network Outbound Rule %q (Resource Group %q, Workspace %q): %+v", id.OutboundRuleName, id.ResourceGroupName, id.WorkspaceName, err)
+			if err = client.SettingsRuleDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
-
-			if err = future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for deletion of Machine Learning Workspace Private Endpoint  Network Outbound Rule %q (Resource Group %q, Workspace %q): %+v", id.OutboundRuleName, id.ResourceGroupName, id.WorkspaceName, err)
-			}
-
 			return nil
 		},
 	}

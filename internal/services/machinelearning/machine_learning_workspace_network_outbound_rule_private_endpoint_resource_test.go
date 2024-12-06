@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/managednetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -123,9 +122,6 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) Exists(ctx context.Cont
 
 	resp, err := maangedNetworkClient.SettingsRuleGet(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
 		return nil, fmt.Errorf("retrieving Machine Learning Workspace Outbound Rule Private Endpoint %q: %+v", state.ID, err)
 	}
 
@@ -191,9 +187,6 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
   }
 }
 
@@ -241,9 +234,6 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
   }
 }
 
@@ -290,9 +280,6 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
     }
   }
 }
@@ -358,9 +345,6 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
   }
 }
 
@@ -412,9 +396,6 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
     }
   }
 }
