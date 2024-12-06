@@ -334,7 +334,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"sentinel_entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"column_name": {

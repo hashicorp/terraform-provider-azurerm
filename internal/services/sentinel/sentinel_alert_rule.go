@@ -237,6 +237,22 @@ func flattenNewAlertRuleIncidentConfiguration(input *newalertrules.IncidentConfi
 	}
 }
 
+func expandAlertRuleEventGroupingSetting(input []interface{}) *alertrules.EventGroupingSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := alertrules.EventGroupingSettings{}
+
+	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
+		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
+		result.AggregationKind = &kind
+	}
+
+	return &result
+}
+
 func expandAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *alertrules.GroupingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -373,6 +389,23 @@ func flattenAlertRuleGrouping(input *alertrules.GroupingConfiguration, withGroup
 			k1:                        groupByEntities,
 			k2:                        groupByAlertDetails,
 			k3:                        groupByCustomDetails,
+		},
+	}
+}
+
+func flattenAlertRuleEventGroupingSetting(input *alertrules.EventGroupingSettings) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var aggregationKind string
+	if input.AggregationKind != nil {
+		aggregationKind = string(*input.AggregationKind)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aggregation_method": aggregationKind,
 		},
 	}
 }

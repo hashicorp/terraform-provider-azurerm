@@ -33,6 +33,21 @@ func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleScheduled_extra(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tenEntity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSentinelAlertRuleScheduled_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 	r := SentinelAlertRuleScheduledResource{}
@@ -193,6 +208,101 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
+func (r SentinelAlertRuleScheduledResource) tenEntity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "TenantId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceSystem"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "TimeGenerated"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "MG"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ManagementGroupName"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceComputed"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ComputerIP"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Computer"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Category"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "OSType"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -236,20 +346,78 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
     }
   }
   entity_mapping {
-    entity_type = "Host"
+    entity_type = "Account"
     field_mapping {
-      identifier  = "FullName"
+      identifier  = "Name"
+      column_name = "TenantId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceSystem"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "TimeGenerated"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "MG"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ManagementGroupName"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceComputed"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ComputerIP"
+    }
+  }
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
       column_name = "Computer"
     }
   }
-  sentinel_entity_mapping {
-    column_name = "Category"
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Category"
+    }
   }
   entity_mapping {
-    entity_type = "IP"
+    entity_type = "Account"
     field_mapping {
-      identifier  = "Address"
-      column_name = "ComputerIP"
+      identifier  = "Name"
+      column_name = "OSType"
     }
   }
   custom_details = {
