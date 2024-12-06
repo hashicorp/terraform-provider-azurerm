@@ -298,7 +298,7 @@ func (r TrustedSigningCertificateProfileResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("identity_validation_id") {
@@ -366,17 +366,13 @@ func (r TrustedSigningCertificateProfileResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
 					state.Certificates = flattenCertificateModelArray(properties.Certificates)
-
 					state.IdentityValidationId = properties.IdentityValidationId
-
 					state.IncludeCity = pointer.From(properties.IncludeCity)
 					state.IncludeCountry = pointer.From(properties.IncludeCountry)
 					state.IncludePostalCode = pointer.From(properties.IncludePostalCode)
 					state.IncludeState = pointer.From(properties.IncludeState)
 					state.IncludeStreetAddress = pointer.From(properties.IncludeStreetAddress)
-
 					state.ProfileType = properties.ProfileType
-
 					state.Status = pointer.From(properties.Status)
 				}
 			}

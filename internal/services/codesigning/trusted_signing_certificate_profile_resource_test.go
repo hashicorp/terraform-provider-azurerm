@@ -8,12 +8,12 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type TrustedSigningCertificateProfileResource struct{}
@@ -30,6 +30,14 @@ func TestAccTrustedSigningCertificateProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -48,6 +56,14 @@ func TestAccTrustedSigningCertificateProfile_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -66,6 +82,14 @@ func TestAcccodesigningCertificateProfile_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -84,6 +108,14 @@ func TestAccTrustedSigningCertificateProfile_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -91,6 +123,14 @@ func TestAccTrustedSigningCertificateProfile_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
+				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
+				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -107,11 +147,11 @@ func (r TrustedSigningCertificateProfileResource) Exists(ctx context.Context, cl
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r TrustedSigningCertificateProfileResource) template(data acceptance.TestData) string {
