@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -116,9 +117,19 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(diagnostic.OperationNameFormatName),
-					string(diagnostic.OperationNameFormatUrl),
+					string(diagnostic.OperationNameFormatURL),
 				}, false),
 			},
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, n := d.GetChange("operation_name_format"); n != "" {
+				if d.Get("identifier") != "applicationinsights" {
+					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -150,8 +161,8 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if d.Get("identifier") == "applicationinsights" {
-		if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+		if d.Get("identifier") == "applicationinsights" {
 			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
 		}
 	}

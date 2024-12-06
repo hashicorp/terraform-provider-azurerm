@@ -529,7 +529,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if respvm.Model.Location == "" {
 		return fmt.Errorf("retrieving %s: `location` is empty", vmId)
 	}
-	sqlVmGroupId := ""
+	var sqlVmGroupId string
 	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
 		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
 		if err != nil {
@@ -847,7 +847,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.RetentionPeriod = utils.Int64(int64(v.(int)))
 		}
 		if v, ok := config["storage_blob_endpoint"]; ok {
-			ret.StorageAccountUrl = utils.String(v.(string))
+			ret.StorageAccountURL = utils.String(v.(string))
 		}
 		if v, ok := config["storage_account_access_key"]; ok {
 			ret.StorageAccessKey = utils.String(v.(string))
@@ -1168,7 +1168,7 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	return &sqlvirtualmachines.KeyVaultCredentialSettings{
 		Enable:                 utils.Bool(true),
 		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
-		AzureKeyVaultUrl:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
+		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
 		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
 		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}
@@ -1366,6 +1366,7 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	return []interface{}{attrs}
 }
+
 func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sqlvirtualmachines.SQLInstanceSettings{}, nil

@@ -47,6 +47,7 @@ func TestAccWebPubsubSharedPrivateLinkResource_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r WebPubsubSharedPrivateLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseSharedPrivateLinkResourceID(state.ID)
 	if err != nil {

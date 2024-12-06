@@ -27,7 +27,6 @@ func TestAutomationID(t *testing.T) {
 		Error    bool
 		Expected *AutomationId
 	}{
-
 		{
 			// empty
 			Input: "",

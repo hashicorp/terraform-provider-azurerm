@@ -46,8 +46,8 @@ func SecretName(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.HasSuffix(v, ".") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character", k))
+	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,251}[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', and must start and end with an alphanumeric character. The length must not be more than 253 characters", k))
 	}
 	return
 }

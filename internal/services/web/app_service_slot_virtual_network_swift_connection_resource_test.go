@@ -189,6 +189,10 @@ func (t AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx cont
 
 func (AppServiceSlotVirtualNetworkSwiftConnectionResource) app_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appservice-%d"
   location = "%s"
@@ -302,6 +306,10 @@ resource "azurerm_app_service_slot_virtual_network_swift_connection" "import" {
 
 func (AppServiceSlotVirtualNetworkSwiftConnectionResource) function_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-functionapp-%d"
   location = "%s"
