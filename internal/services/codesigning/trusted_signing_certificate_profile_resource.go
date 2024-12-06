@@ -403,7 +403,7 @@ func (r TrustedSigningCertificateProfileResource) Delete() sdk.ResourceFunc {
 }
 
 func flattenCertificateModelArray(inputList *[]certificateprofiles.Certificate) []CertificateModel {
-	var outputList []CertificateModel
+	outputList := make([]CertificateModel, 0)
 	if inputList == nil {
 		return outputList
 	}

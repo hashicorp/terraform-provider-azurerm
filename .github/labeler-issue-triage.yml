@@ -339,7 +339,7 @@ service/traffic-manager:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_traffic_manager_((.|\n)*)###'
 
 service/trustedsigning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_trusted_signing_account((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_trusted_signing_((.|\n)*)###'
 
 service/video-indexer:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_video_indexer_account((.|\n)*)###'
