@@ -122,7 +122,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_express_route_connection`
 
-* The deprecated `private_link_fast_path_enabled` property has been removed in favour of not supported by service.
+* The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
 ## Breaking Changes in Data Sources
 
