@@ -30,11 +30,6 @@ resource "azurerm_trusted_signing_certificate_profile" "example" {
   name                       = "example-ccp"
   trusted_signing_account_id = azurerm_trusted_signing_account.example.id
   identity_validation_id     = "00000000-1111-2222-3333-444444444444"
-  include_city               = false
-  include_country            = false
-  include_postal_code        = false
-  include_state              = false
-  include_street_address     = false
   profile_type               = "PublicTrust"
 
 }
@@ -48,19 +43,19 @@ The following arguments are supported:
 
 * `trusted_signing_account_id ` - (Required) Specifies the ID of the Trusted Signing Account. Changing this forces a new Trusted Signing Certificate Profile to be created.
 
-* `identity_validation_id` - (Required) Identity validation id used for the certificate subject name.
+* `identity_validation_id` - (Required) Identity validation id used for the certificate subject name. Changing this forces a new Trusted Signing Certificate Profile to be created.
 
-* `profile_type` - (Required) Profile type of the certificate.
+* `profile_type` - (Required) Profile type of the certificate. Possible values are `PrivateTrust`, `PrivateTrustCIPolicy`, `PublicTrust`, `PublicTrustTest` and `VBSEnclave`. Changing this forces a new Trusted Signing Certificate Profile to be created.
 
-* `include_city` - (Optional) Whether to include L in the certificate subject name. Applicable only for private trust, private trust ci profile types.
+* `include_city` - (Optional) Whether to include L in the certificate subject name? Applicable only for `PrivateTrust` and `PrivateTrustCIPolicy` profile types.
 
-* `include_country` - (Optional) Whether to include C in the certificate subject name. Applicable only for private trust, private trust ci profile types.
+* `include_country` - (Optional) Whether to include C in the certificate subject name? Applicable only for `PrivateTrust` and `PrivateTrustCIPolicy` profile types.
 
-* `include_postal_code` - (Optional) Whether to include PC in the certificate subject name.
+* `include_postal_code` - (Optional) Whether to include PC in the certificate subject name?
 
-* `include_state` - (Optional) Whether to include S in the certificate subject name. Applicable only for private trust, private trust ci profile types.
+* `include_state` - (Optional) Whether to include S in the certificate subject name? Applicable only for `PrivateTrust` and `PrivateTrustCIPolicy` profile types.
 
-* `include_street_address` - (Optional) Whether to include STREET in the certificate subject name.
+* `include_street_address` - (Optional) Whether to include STREET in the certificate subject name?
 
 ## Attributes Reference
 
@@ -114,7 +109,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Trusted Signing Certificate Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Trusted Signing Certificate Profile.
-
+* `update` - (Defaults to 30 minutes) Used when updating the Trusted Signing Certificate Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Trusted Signing Certificate Profile.
 
 ## Import

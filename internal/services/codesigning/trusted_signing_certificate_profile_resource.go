@@ -89,12 +89,14 @@ func (r TrustedSigningCertificateProfileResource) Arguments() map[string]*plugin
 		"identity_validation_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
 		},
 
 		"profile_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(certificateprofiles.ProfileTypePublicTrust),
 				string(certificateprofiles.ProfileTypePrivateTrust),
@@ -197,8 +199,9 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 					},
 
 					"serial_number": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
 					},
 
 					"status": {
@@ -207,13 +210,15 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 					},
 
 					"subject_name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
 					},
 
 					"thumbprint": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
 					},
 				},
 			},
@@ -409,36 +414,16 @@ func flattenCertificateModelArray(inputList *[]certificateprofiles.Certificate) 
 	}
 	for _, input := range *inputList {
 		output := CertificateModel{
-			Revocation: flattenRevocationModel(input.Revocation),
+			Revocation:       flattenRevocationModel(input.Revocation),
+			CreatedDate:      pointer.From(input.CreatedDate),
+			EnhancedKeyUsage: pointer.From(input.EnhancedKeyUsage),
+			ExpiryDate:       pointer.From(input.ExpiryDate),
+			SerialNumber:     pointer.From(input.SerialNumber),
+			Status:           pointer.From(input.Status),
+			SubjectName:      pointer.From(input.SubjectName),
+			Thumbprint:       pointer.From(input.Thumbprint),
 		}
 
-		if input.CreatedDate != nil {
-			output.CreatedDate = *input.CreatedDate
-		}
-
-		if input.EnhancedKeyUsage != nil {
-			output.EnhancedKeyUsage = *input.EnhancedKeyUsage
-		}
-
-		if input.ExpiryDate != nil {
-			output.ExpiryDate = *input.ExpiryDate
-		}
-
-		if input.SerialNumber != nil {
-			output.SerialNumber = *input.SerialNumber
-		}
-
-		if input.Status != nil {
-			output.Status = *input.Status
-		}
-
-		if input.SubjectName != nil {
-			output.SubjectName = *input.SubjectName
-		}
-
-		if input.Thumbprint != nil {
-			output.Thumbprint = *input.Thumbprint
-		}
 		outputList = append(outputList, output)
 	}
 	return outputList
