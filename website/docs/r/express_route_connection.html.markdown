@@ -98,10 +98,6 @@ The following arguments are supported:
 
 * `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
 
-* `private_link_fast_path_enabled` - (Optional) Bypass the Express Route gateway when accessing private-links.
-
-    ~>**Note** `private_link_fast_path_enabled` is not supported by service, do not add it to your configuration to avoid unexpected behavior. 
-
 * `routing` - (Optional) A `routing` block as defined below.
 
 * `routing_weight` - (Optional) The routing weight associated to the Express Route Connection. Possible value is between `0` and `32000`. Defaults to `0`.
