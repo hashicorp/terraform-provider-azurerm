@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlistitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/watchlists"
+	newalertrules "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
@@ -28,6 +29,7 @@ type Client struct {
 	AnalyticsSettingsClient  *securityinsight.SecurityMLAnalyticsSettingsClient
 	ThreatIntelligenceClient *securityinsight.ThreatIntelligenceIndicatorClient
 	MetadataClient           *metadata.MetadataClient
+	NewAlertRulesClient      *newalertrules.AlertRulesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -79,6 +81,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(metadataClient.Client, o.Authorizers.ResourceManager)
 
+	newAlertRulesClient, err := newalertrules.NewAlertRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building New Alert Rules Client: %+v", err)
+	}
+	o.Configure(newAlertRulesClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AlertRulesClient:         alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
@@ -90,5 +98,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AnalyticsSettingsClient:  &analyticsSettingsClient,
 		ThreatIntelligenceClient: &threatIntelligenceClient,
 		MetadataClient:           metadataClient,
+		NewAlertRulesClient:      newAlertRulesClient,
 	}, nil
 }
