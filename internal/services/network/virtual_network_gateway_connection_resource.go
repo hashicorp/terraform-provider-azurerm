@@ -853,7 +853,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		props.IPsecPolicies = expandVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
 
-	if utils.NormaliseNilableBool(props.EnableBgp) {
+	if pointer.From(props.EnableBgp) {
 		if _, ok := d.GetOk("custom_bgp_addresses"); ok {
 			if virtualNetworkGateway.Properties.BgpSettings == nil || virtualNetworkGateway.Properties.BgpSettings.BgpPeeringAddresses == nil {
 				return nil, fmt.Errorf("retrieving BGP peering address from `virtual_network_gateway` %s (%s) failed: get nil", *virtualNetworkGateway.Name, *virtualNetworkGateway.Id)

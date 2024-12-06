@@ -355,7 +355,6 @@ resource "azurerm_container_app_environment" "test" {
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
-
 }
 
 func (r ContainerAppEnvironmentResource) completeMultipleWorkloadProfiles(data acceptance.TestData) string {
@@ -403,7 +402,6 @@ resource "azurerm_container_app_environment" "test" {
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
-
 }
 
 func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {

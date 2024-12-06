@@ -416,10 +416,8 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			if safetyProfile := props.SafetyProfile; safetyProfile != nil {
 				d.Set("deletion_of_replicated_locations_enabled", pointer.From(safetyProfile.AllowDeletionOfReplicatedLocations))
 			}
-
 		}
 		return tags.FlattenAndSet(d, model.Tags)
-
 	}
 	return nil
 }

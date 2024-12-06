@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `agent_setting` - (Optional) A `agent_setting` block as defined below.
 
+~> **NOTE:** Only one of `agent_pool_name` and `agent_setting` can be specified.
+
 * `enabled` - (Optional) Should this Container Registry Task be enabled? Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -93,7 +95,7 @@ The following arguments are supported:
 
 A `agent_setting` block supports the following:
 
-* `cpu` - (Required) The number of cores required for the Container Registry Task.
+* `cpu` - (Required) The number of cores required for the Container Registry Task. Possible value is `2`.
 
 ---
 

@@ -143,6 +143,10 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%[1]d"
   location = "%[2]s"

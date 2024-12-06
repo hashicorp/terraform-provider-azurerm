@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -390,7 +390,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("dapr") {
 				model.Properties.Configuration.Dapr = helpers.ExpandContainerAppDapr(state.Dapr)
-
 			}
 
 			if metadata.ResourceData.HasChange("template") {
@@ -418,7 +417,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
-
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile_name") {
