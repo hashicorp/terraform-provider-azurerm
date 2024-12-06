@@ -165,13 +165,13 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MachineLearning.ManagedNetwork
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model machineLearningWorkspaceServiceTagOutboundRuleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			client := metadata.Client.MachineLearning.ManagedNetwork
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			workspaceId, err := managednetwork.ParseWorkspaceID(model.WorkspaceId)
 			if err != nil {
@@ -215,13 +215,14 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.MachineLearning.ManagedNetwork
+			id, err := managednetwork.ParseOutboundRuleID(metadata.ResourceData.Id())
+
 			var model machineLearningWorkspaceServiceTagOutboundRuleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.MachineLearning.ManagedNetwork
-			id, err := managednetwork.ParseOutboundRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -240,13 +241,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Update() sdk.ResourceFunc {
 			}
 
 			payload := existing.Model
-
-			serviceTagOutboundRule := managednetwork.ServiceTagOutboundRule{
-				Type:        managednetwork.RuleTypeServiceTag,
-				Category:    pointer.To(managednetwork.RuleCategoryUserDefined),
-				Destination: &managednetwork.ServiceTagDestination{},
-			}
-
+			serviceTagOutboundRule := payload.Properties.(managednetwork.ServiceTagOutboundRule)
 			if metadata.ResourceData.HasChange("service_tag") {
 				serviceTagOutboundRule.Destination.ServiceTag = pointer.To(model.ServiceTag)
 			}
@@ -288,31 +283,28 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := machineLearningWorkspaceServiceTagOutboundRuleModel{
-				Name: id.OutboundRuleName,
+				Name:        id.OutboundRuleName,
+				WorkspaceId: managednetwork.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 			}
 
-			if props := model.Properties; props != nil {
-				if prop, ok := props.(managednetwork.ServiceTagOutboundRule); ok && prop.Destination != nil {
-					if prop.Destination.ServiceTag != nil {
-						state.ServiceTag = *prop.Destination.ServiceTag
-					}
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if prop, ok := props.(managednetwork.ServiceTagOutboundRule); ok && prop.Destination != nil {
+						if prop.Destination.ServiceTag != nil {
+							state.ServiceTag = *prop.Destination.ServiceTag
+						}
 
-					if prop.Destination.Protocol != nil {
-						state.Protocol = *prop.Destination.Protocol
-					}
+						if prop.Destination.Protocol != nil {
+							state.Protocol = *prop.Destination.Protocol
+						}
 
-					if prop.Destination.PortRanges != nil {
-						state.PortRanges = *prop.Destination.PortRanges
+						if prop.Destination.PortRanges != nil {
+							state.PortRanges = *prop.Destination.PortRanges
+						}
 					}
 				}
 			}
-			state.WorkspaceId = managednetwork.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID()
 			return metadata.Encode(&state)
 		},
 	}
@@ -329,15 +321,9 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			future, err := client.SettingsRuleDelete(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("deleting Machine Learning Workspace Service Tag Network Outbound Rule %q (Resource Group %q, Workspace %q): %+v", id.OutboundRuleName, id.ResourceGroupName, id.WorkspaceName, err)
+			if err := client.SettingsRuleDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
-
-			if err = future.Poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for deletion of Machine Learning Workspace Service Tag Network Outbound Rule %q (Resource Group %q, Workspace %q): %+v", id.OutboundRuleName, id.ResourceGroupName, id.WorkspaceName, err)
-			}
-
 			return nil
 		},
 	}

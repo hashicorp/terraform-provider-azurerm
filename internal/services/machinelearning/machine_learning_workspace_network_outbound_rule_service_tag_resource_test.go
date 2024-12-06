@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/managednetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WorkspaceNetworkOutboundRuleServiceTagResource struct{}
@@ -85,13 +84,9 @@ func (r WorkspaceNetworkOutboundRuleServiceTagResource) Exists(ctx context.Conte
 
 	resp, err := client.MachineLearning.ManagedNetwork.SettingsRuleGet(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Machine Learning Workspace Outbound Rule Service Tag %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
 	}
-
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTagResource) template(data acceptance.TestData) string {
@@ -154,9 +149,6 @@ provider "azurerm" {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
     }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
   }
 }
 
@@ -195,9 +187,6 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy       = false
       purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
     }
   }
 }

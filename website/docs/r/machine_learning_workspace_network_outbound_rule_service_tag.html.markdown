@@ -3,11 +3,11 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_machine_learning_workspace_network_outbound_rule_service_tag"
 description: |-
-  Manages an Azure Machine Learning Workspace Service Tag Network Outbound Rule .
+  Manages an Azure Machine Learning Workspace Network Outbound Rule Service Tag.
 ---
 # azurerm_machine_learning_workspace_network_outbound_rule_service_tag
 
-Manages an Azure Machine Learning Workspace Service Tag Network Outbound Rule.
+Manages an Azure Machine Learning Workspace Network Outbound Rule Service Tag.
 
 
 ## Example Usage
@@ -77,7 +77,7 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_service_tag" 
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Machine Learning Workspace FQDN Network Outbound Rule. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Machine Learning Workspace Network Outbound Rule Service Tag. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) Specifies the ID of the Machine Learning Workspace. Changing this forces a new resource to be created.
 
@@ -92,20 +92,20 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Machine Learning Workspace Network Outbound Rule.
+* `id` - The ID of the Machine Learning Workspace Network Outbound Rule Service Tag .
 
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace Service Tag Network Outbound Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace Service Tag Network Outbound Rule.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace Service Tag Network Outbound Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace Service Tag Network Outbound Rule.
+* `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace Network Outbound Rule Service Tag.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace Network Outbound Rule Service Tag.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace Network Outbound Rule Service Tag.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace Network Outbound Rule Service Tag.
 
 ## Import
 
-Machine Learning Workspace FQDN Network Outbound Rule can be imported using the `resource id`, e.g.
+Machine Learning Workspace Network Outbound Rule Service Tag can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_machine_learning_workspace_network_outbound_rule_service_tag.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/outboundRules/rule1
