@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// TODO: after all sentinel alert rules updated to new API version, remove the old function and rename this to `importSentinelAlertRule`
+// TODO: after all sentinel alert rules updated to new API version, remove these old functions and rename new funtions.
 func importNewSentinelAlertRule(expectKind newalertrules.AlertRuleKind) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
 		id, err := newalertrules.ParseAlertRuleID(d.Id())
@@ -27,7 +27,7 @@ func importNewSentinelAlertRule(expectKind newalertrules.AlertRuleKind) pluginsd
 		client := meta.(*clients.Client).Sentinel.NewAlertRulesClient
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
+			return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 		}
 
 		if err = assertNewAlertRuleKind(resp.Model, expectKind); err != nil {
@@ -496,16 +496,16 @@ func expandNewAlertRuleAlertDetailsOverride(input []interface{}) *newalertrules.
 	output := &newalertrules.AlertDetailsOverride{}
 
 	if v := b["description_format"]; v != "" {
-		output.AlertDescriptionFormat = utils.String(v.(string))
+		output.AlertDescriptionFormat = pointer.To(v.(string))
 	}
 	if v := b["display_name_format"]; v != "" {
-		output.AlertDisplayNameFormat = utils.String(v.(string))
+		output.AlertDisplayNameFormat = pointer.To(v.(string))
 	}
 	if v := b["severity_column_name"]; v != "" {
-		output.AlertSeverityColumnName = utils.String(v.(string))
+		output.AlertSeverityColumnName = pointer.To(v.(string))
 	}
 	if v := b["tactics_column_name"]; v != "" {
-		output.AlertTacticsColumnName = utils.String(v.(string))
+		output.AlertTacticsColumnName = pointer.To(v.(string))
 	}
 	if v := b["dynamic_property"]; v != nil && len(v.([]interface{})) > 0 {
 		output.AlertDynamicProperties = expandNewAlertRuleAlertDynamicProperties(v.([]interface{}))
@@ -560,26 +560,10 @@ func flattenNewAlertRuleAlertDetailsOverride(input *newalertrules.AlertDetailsOv
 		return []interface{}{}
 	}
 
-	var descriptionFormat string
-	if input.AlertDescriptionFormat != nil {
-		descriptionFormat = *input.AlertDescriptionFormat
-	}
-
-	var displayNameFormat string
-	if input.AlertDisplayNameFormat != nil {
-		displayNameFormat = *input.AlertDisplayNameFormat
-	}
-
-	var severityColumnName string
-	if input.AlertSeverityColumnName != nil {
-		severityColumnName = *input.AlertSeverityColumnName
-	}
-
-	var tacticsColumnName string
-	if input.AlertTacticsColumnName != nil {
-		tacticsColumnName = *input.AlertTacticsColumnName
-	}
-
+	descriptionFormat := pointer.From(input.AlertDescriptionFormat)
+	displayNameFormat := pointer.From(input.AlertDisplayNameFormat)
+	severityColumnName := pointer.From(input.AlertSeverityColumnName)
+	tacticsColumnName := pointer.From(input.AlertTacticsColumnName)
 	var dynamicProperties []interface{}
 	if input.AlertDynamicProperties != nil {
 		dynamicProperties = flattenNewAlertRuleAlertDynamicProperties(input.AlertDynamicProperties)
@@ -625,7 +609,7 @@ func expandNewAlertRuleAlertDynamicProperties(input []interface{}) *[]newalertru
 		property := newalertrules.AlertProperty(b["name"].(string))
 		output = append(output, newalertrules.AlertPropertyMapping{
 			AlertProperty: &property,
-			Value:         utils.String(b["value"].(string)),
+			Value:         pointer.To(b["value"].(string)),
 		})
 	}
 
