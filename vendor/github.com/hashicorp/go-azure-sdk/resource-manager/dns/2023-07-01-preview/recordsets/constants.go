@@ -16,11 +16,14 @@ const (
 	RecordTypeAAAA  RecordType = "AAAA"
 	RecordTypeCAA   RecordType = "CAA"
 	RecordTypeCNAME RecordType = "CNAME"
+	RecordTypeDS    RecordType = "DS"
 	RecordTypeMX    RecordType = "MX"
+	RecordTypeNAPTR RecordType = "NAPTR"
 	RecordTypeNS    RecordType = "NS"
 	RecordTypePTR   RecordType = "PTR"
 	RecordTypeSOA   RecordType = "SOA"
 	RecordTypeSRV   RecordType = "SRV"
+	RecordTypeTLSA  RecordType = "TLSA"
 	RecordTypeTXT   RecordType = "TXT"
 )
 
@@ -30,11 +33,14 @@ func PossibleValuesForRecordType() []string {
 		string(RecordTypeAAAA),
 		string(RecordTypeCAA),
 		string(RecordTypeCNAME),
+		string(RecordTypeDS),
 		string(RecordTypeMX),
+		string(RecordTypeNAPTR),
 		string(RecordTypeNS),
 		string(RecordTypePTR),
 		string(RecordTypeSOA),
 		string(RecordTypeSRV),
+		string(RecordTypeTLSA),
 		string(RecordTypeTXT),
 	}
 }
@@ -58,11 +64,14 @@ func parseRecordType(input string) (*RecordType, error) {
 		"aaaa":  RecordTypeAAAA,
 		"caa":   RecordTypeCAA,
 		"cname": RecordTypeCNAME,
+		"ds":    RecordTypeDS,
 		"mx":    RecordTypeMX,
+		"naptr": RecordTypeNAPTR,
 		"ns":    RecordTypeNS,
 		"ptr":   RecordTypePTR,
 		"soa":   RecordTypeSOA,
 		"srv":   RecordTypeSRV,
+		"tlsa":  RecordTypeTLSA,
 		"txt":   RecordTypeTXT,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

@@ -506,10 +506,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtual
 github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01
-github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns
-github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets
 github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones
+github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview
+github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/dns
+github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/dnssecconfigs
+github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/recordsets
+github.com/hashicorp/go-azure-sdk/resource-manager/dns/2023-07-01-preview/zones
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/forwardingrules
@@ -1782,3 +1784,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/go-azure-sdk/resource-manager => ../go-azure-sdk/resource-manager
