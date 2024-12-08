@@ -1,5 +1,7 @@
 module github.com/hashicorp/terraform-provider-azurerm
 
+replace github.com/hashicorp/go-azure-sdk/resource-manager => ../go-azure-sdk/resource-manager
+
 require (
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.30
@@ -18,7 +20,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.73.0
 	github.com/hashicorp/go-azure-sdk/resource-manager v0.20250617.1143239
-	github.com/hashicorp/go-azure-sdk/sdk v0.20250617.1143239
+	github.com/hashicorp/go-azure-sdk/sdk v0.20250618.1093309
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
