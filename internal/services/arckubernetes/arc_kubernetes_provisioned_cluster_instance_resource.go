@@ -23,25 +23,25 @@ import (
 )
 
 var (
-	_ sdk.Resource           = ArcKubernetesProvisionedClusterResource{}
-	_ sdk.ResourceWithUpdate = ArcKubernetesProvisionedClusterResource{}
+	_ sdk.Resource           = ArcKubernetesProvisionedClusterInstanceResource{}
+	_ sdk.ResourceWithUpdate = ArcKubernetesProvisionedClusterInstanceResource{}
 )
 
-type ArcKubernetesProvisionedClusterResource struct{}
+type ArcKubernetesProvisionedClusterInstanceResource struct{}
 
-func (ArcKubernetesProvisionedClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ArcKubernetesProvisionedClusterID
+func (ArcKubernetesProvisionedClusterInstanceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ArcKubernetesProvisionedClusterInstanceID
 }
 
-func (ArcKubernetesProvisionedClusterResource) ResourceType() string {
-	return "azurerm_arc_kubernetes_provisioned_cluster"
+func (ArcKubernetesProvisionedClusterInstanceResource) ResourceType() string {
+	return "azurerm_arc_kubernetes_provisioned_cluster_instance"
 }
 
-func (ArcKubernetesProvisionedClusterResource) ModelObject() interface{} {
-	return &ArcKubernetesProvisionedClusterResourceModel{}
+func (ArcKubernetesProvisionedClusterInstanceResource) ModelObject() interface{} {
+	return &ArcKubernetesProvisionedClusterInstanceResourceModel{}
 }
 
-type ArcKubernetesProvisionedClusterResourceModel struct {
+type ArcKubernetesProvisionedClusterInstanceResourceModel struct {
 	AgentPoolProfile      []ProvisionedClusterInstanceAgentPoolProfile       `tfschema:"agent_pool_profile"`
 	CloudProviderProfile  []ProvisionedClusterInstanceCloudProviderProfile   `tfschema:"cloud_provider_profile"`
 	ClusterID             string                                             `tfschema:"cluster_id"`
@@ -110,7 +110,7 @@ type ProvisionedClusterInstanceStorageProfile struct {
 	NfsCsiDriverEnabled bool `tfschema:"nfs_csi_driver_enabled"`
 }
 
-func (ArcKubernetesProvisionedClusterResource) Arguments() map[string]*pluginsdk.Schema {
+func (ArcKubernetesProvisionedClusterInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"cluster_id": commonschema.ResourceIDReferenceRequiredForceNew(&connectedclusters.ConnectedClusterId{}),
 
@@ -390,17 +390,17 @@ func (ArcKubernetesProvisionedClusterResource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (ArcKubernetesProvisionedClusterResource) Attributes() map[string]*pluginsdk.Schema {
+func (ArcKubernetesProvisionedClusterInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
+func (r ArcKubernetesProvisionedClusterInstanceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			var config ArcKubernetesProvisionedClusterResourceModel
+			var config ArcKubernetesProvisionedClusterInstanceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -411,7 +411,7 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			scopeId := commonids.NewScopeID(connectedClusterId.ID())
-			provisionedClusterInstanceId := parse.NewArcKubernetesProvisionedClusterID(connectedClusterId.SubscriptionId, connectedClusterId.ResourceGroupName, connectedClusterId.ConnectedClusterName, "default")
+			provisionedClusterInstanceId := parse.NewArcKubernetesProvisionedClusterInstanceID(connectedClusterId.SubscriptionId, connectedClusterId.ResourceGroupName, connectedClusterId.ConnectedClusterName, "default")
 
 			existing, err := client.ProvisionedClusterInstancesGet(ctx, scopeId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -450,13 +450,13 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ArcKubernetesProvisionedClusterResource) Read() sdk.ResourceFunc {
+func (r ArcKubernetesProvisionedClusterInstanceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			id, err := parse.ArcKubernetesProvisionedClusterID(metadata.ResourceData.Id())
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -473,7 +473,7 @@ func (r ArcKubernetesProvisionedClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			schema := ArcKubernetesProvisionedClusterResourceModel{
+			schema := ArcKubernetesProvisionedClusterInstanceResourceModel{
 				ClusterID: connectedClusterId.ID(),
 			}
 
@@ -505,18 +505,18 @@ func (r ArcKubernetesProvisionedClusterResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ArcKubernetesProvisionedClusterResource) Update() sdk.ResourceFunc {
+func (r ArcKubernetesProvisionedClusterInstanceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			var config ArcKubernetesProvisionedClusterResourceModel
+			var config ArcKubernetesProvisionedClusterInstanceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id, err := parse.ArcKubernetesProvisionedClusterID(metadata.ResourceData.Id())
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -558,18 +558,18 @@ func (r ArcKubernetesProvisionedClusterResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ArcKubernetesProvisionedClusterResource) Delete() sdk.ResourceFunc {
+func (r ArcKubernetesProvisionedClusterInstanceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
-			var config ArcKubernetesProvisionedClusterResourceModel
+			var config ArcKubernetesProvisionedClusterInstanceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id, err := parse.ArcKubernetesProvisionedClusterID(metadata.ResourceData.Id())
+			id, err := parse.ArcKubernetesProvisionedClusterInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

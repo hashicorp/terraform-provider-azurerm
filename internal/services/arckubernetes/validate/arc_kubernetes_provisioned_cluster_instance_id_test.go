@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestArcKubernetesProvisionedClusterID(t *testing.T) {
+func TestArcKubernetesProvisionedClusterInstanceID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -80,7 +80,7 @@ func TestArcKubernetesProvisionedClusterID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ArcKubernetesProvisionedClusterID(tc.Input, "test")
+		_, errors := ArcKubernetesProvisionedClusterInstanceID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

@@ -1,12 +1,12 @@
 ---
 subcategory: "ArcKubernetes"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_arc_kubernetes_provisioned_cluster"
+page_title: "Azure Resource Manager: azurerm_arc_kubernetes_provisioned_cluster_instance"
 description: |-
   Manages an Arc Kubernetes Provisioned Cluster Instance.
 ---
 
-# azurerm_arc_kubernetes_provisioned_cluster
+# azurerm_arc_kubernetes_provisioned_cluster_instance
 
 Manages an Arc Kubernetes Provisioned Cluster Instance.
 
@@ -46,18 +46,17 @@ resource "azurerm_stack_hci_logical_network" "example" {
   }
 }
 
-resource "azurerm_arc_kubernetes_cluster" "example" {
+resource "azurerm_arc_kubernetes_provisioned_cluster" "example" {
   name                = "example-akc"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  kind                = "ProvisionedCluster"
   identity {
     type = "SystemAssigned"
   }
 }
 
-resource "azurerm_arc_kubernetes_provisioned_cluster" "example" {
-  cluster_id         = azurerm_arc_kubernetes_cluster.example.id
+resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "example" {
+  cluster_id         = azurerm_arc_kubernetes_provisioned_cluster.example.id
   custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
   kubernetes_version = "1.28.5"
 
@@ -123,7 +122,7 @@ The following arguments are supported:
 
 * `cloud_provider_profile` - (Required) A `cloud_provider_profile` block as defined below. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
-* `cluster_id` - (Required) The ID of the Arc Kubernetes Cluster. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `cluster_id` - (Required) The ID of the Arc Kubernetes Provisioned Cluster. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 * `control_plane_profile` - (Required) A `control_plane_profile` block as defined below.
 
@@ -145,7 +144,7 @@ The following arguments are supported:
 
 ---
 
-A `agent_pool_profile` block supports the following:
+An `agent_pool_profile` block supports the following:
 
 * `name` - (Required) The name which should be used for this Agent Pool. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
@@ -173,7 +172,7 @@ A `agent_pool_profile` block supports the following:
 
 A `cloud_provider_profile` block supports the following:
 
-* `infra_network_profile` - (Required) A `infra_network_profile` block as defined below. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
+* `infra_network_profile` - (Required) An `infra_network_profile` block as defined below. Changing this forces a new Arc Kubernetes Provisioned Cluster Instance to be created.
 
 ---
 
@@ -195,7 +194,7 @@ A `control_plane_profile` block supports the following:
 
 ---
 
-A `infra_network_profile` block supports the following:
+An `infra_network_profile` block supports the following:
 
 * `vnet_subnet_ids` - (Required) Specifies a list of ARM resource IDs for the infrastructure network object with `Microsoft.AzureStackHCI/logicalNetworks` or `Microsoft.HybridContainerService/virtualNetworks` resource type.
 
@@ -257,5 +256,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Arc Kubernetes Provisioned Cluster Instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_arc_kubernetes_provisioned_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default
+terraform import azurerm_arc_kubernetes_provisioned_cluster_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default
 ```
