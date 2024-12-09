@@ -241,6 +241,16 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"bypass": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  cognitiveservicesaccounts.ByPassSelectionNone,
+							ValidateFunc: validation.StringInSlice(
+								cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
+								false,
+							),
+						},
 					},
 				},
 			},
@@ -696,7 +706,10 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		networkRules = append(networkRules, rule)
 	}
 
+	bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
+		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
@@ -803,6 +816,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	return []interface{}{map[string]interface{}{
+		"bypass":                input.Bypass,
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,
