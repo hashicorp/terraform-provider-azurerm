@@ -6,9 +6,9 @@ description: |-
   Manages a Linux Function App Running in Flex Consumption Plan.
 ---
 
-# azurerm_linux_function_app
+# azurerm_linux_function_app_flex_consumption
 
-Manages a Linux Function App.
+Manages a Linux Function App Running In The Flex Consumption Plan.
 
 ## Example Usage
 
@@ -35,7 +35,6 @@ resource "azurerm_storage_container" "example" {
   storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
-
 
 resource "azurerm_service_plan" "example" {
   name                = "example-app-service-plan"

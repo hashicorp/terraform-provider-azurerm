@@ -430,10 +430,6 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				if functionAppFlexConsumption.StorageAccessKey == "" {
 					return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 				}
-				if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-					storageName := endpoint[:storageNameIndex]
-					storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
-				}
 			} else {
 				storageConnStringForFCApp = ""
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
@@ -566,9 +562,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					return err
 				}
 			}
-
 			return nil
-
 		},
 	}
 }

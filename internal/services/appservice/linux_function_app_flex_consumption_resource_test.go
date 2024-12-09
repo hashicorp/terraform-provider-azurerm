@@ -127,6 +127,7 @@ func TestAccLinuxFunctionAppFlexConsumption_appSettings(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccLinuxFunctionAppFlexConsumption_appSettingsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
@@ -165,6 +166,22 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimePython(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.python(data, "3.10"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	r := LinuxFunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.runtimeNode(data, "20"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -244,7 +261,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimePowerShell(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotNet(data, "11"),
+			Config: r.powerShell(data, "7.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -715,9 +732,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) python(data acceptance.TestData
 provider "azurerm" {
   features {}
 }
-
 %s
-
 resource "azurerm_linux_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
@@ -937,7 +952,7 @@ resource "azurerm_linux_function_app_flex_consumption" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) runtimeNode(data acceptance.TestData) string {
+func (r LinuxFunctionAppFlexConsumptionResource) runtimeNode(data acceptance.TestData, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -969,13 +984,13 @@ resource "azurerm_linux_function_app_flex_consumption" "test" {
   storage_authentication_type       = "UserAssignedIdentity"
   storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   runtime_name                      = "node"
-  runtime_version                   = "20"
+  runtime_version                   = "%s"
   maximum_instance_count            = 50
   instance_memory_in_mb             = 2048
 
   site_config {}
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, nodeVersion)
 }
 
 func (LinuxFunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
