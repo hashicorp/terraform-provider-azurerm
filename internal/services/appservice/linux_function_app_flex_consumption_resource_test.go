@@ -148,7 +148,8 @@ func TestAccLinuxFunctionAppFlexConsumption_appSettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"), {
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.appSettingsRemoveKvps(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
