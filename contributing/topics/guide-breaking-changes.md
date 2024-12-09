@@ -340,7 +340,7 @@ This is a breaking change as Terraform should not trigger a plan between minor v
 
 ```go
 func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
-	args := map[string]*pluginsdk.Schema{
+    args := map[string]*pluginsdk.Schema{
         "spark_version": {
             Type:     pluginsdk.TypeString,
             Optional: true,
@@ -353,13 +353,13 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
                "3.4",
                 }, false),
             },
-        }   
+        }
 
-	if !features.FivePointOhBeta() {
-		args["spark_version"].Default = "2.4"
+    if !features.FivePointOhBeta() {
+        args["spark_version"].Default = "2.4"
     }
 	
-	return args
+    return args
 }
 ```
 
