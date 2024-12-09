@@ -4,8 +4,10 @@ ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241206.1180327` [GH-28211]
 * `azurerm_linux_function_app` - add support for  preview  value `21` for `java_version` [GH-26304]
+* `azurerm_linux_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` [GH-28016]
 * `azurerm_linux_web_app` - add support for  preview  value `21` for `java_version` [GH-26304]
 * `azurerm_windows_function_app` - add support for  preview  value `21` for `java_version` [GH-26304]
+* `azurerm_windows_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` [GH-28016]
 * `azurerm_windows_web_app` - add support for  preview  value `21` for `java_version` [GH-26304]
 
 ## 4.13.0 (December 05, 2024)
