@@ -415,7 +415,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			storageAuthType := webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 			endpoint := strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://")
-			storageString := ""
+			var storageString string
 			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
 				storageName := endpoint[:storageNameIndex]
 				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
@@ -710,7 +710,6 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 							state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 							state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
 						}
-
 					}
 
 					state.unpackLinuxFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)

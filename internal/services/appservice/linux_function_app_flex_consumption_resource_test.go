@@ -325,7 +325,6 @@ func TestAccLinuxFunctionAppFlexConsumption_userAssignedIdentityUpdate(t *testin
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
-
 }
 
 func (r LinuxFunctionAppFlexConsumptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
