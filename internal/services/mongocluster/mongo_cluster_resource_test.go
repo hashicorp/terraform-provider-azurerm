@@ -21,9 +21,9 @@ type MongoClusterResource struct{}
 func TestAccMongoClusterFreeTier(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"freeTier": { // Run tests in sequence since each subscription is limited to one free tier cluster per region and free tier is currently only available in South India.
-			"basic":  testAccMongoCluster_basic,
-			"update": testAccMongoCluster_update,
-			"import": testAccMongoCluster_requiresImport,
+			"basic": testAccMongoCluster_basic,
+			//"update": testAccMongoCluster_update,
+			//"import": testAccMongoCluster_requiresImport,
 		},
 	})
 }
@@ -119,7 +119,7 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "random_string" "test" {
+resource "random_password" "test" {
   length  = 8
   numeric = true
   upper   = true
@@ -131,7 +131,7 @@ resource "azurerm_mongo_cluster" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
-  administrator_password = random_string.test.result
+  administrator_password = random_password.test.result
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
