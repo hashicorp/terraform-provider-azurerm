@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
@@ -22,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -157,18 +155,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 
 			"tags": commonschema.TagsForceNew(),
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["location"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			Computed:         true,
-			Deprecated:       "The `azurerm_machine_learning_compute_instance` must be deployed to the same location as the associated `azurerm_machine_learning_workspace` resource, as the `location` fields must be the same the `location` field no longer has any effect and will be removed in version 4.0 of the AzureRM Provider",
-			ValidateFunc:     location.EnhancedValidate,
-			StateFunc:        location.StateFunc,
-			DiffSuppressFunc: location.DiffSuppressFunc,
-		}
 	}
 
 	return &resource

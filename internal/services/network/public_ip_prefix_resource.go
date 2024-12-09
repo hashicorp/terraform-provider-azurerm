@@ -155,7 +155,6 @@ func resourcePublicIpPrefixUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	if d.HasChange("tags") {
-
 		id, err := publicipprefixes.ParsePublicIPPrefixID(d.Id())
 		if err != nil {
 			return err

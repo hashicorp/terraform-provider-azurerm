@@ -4374,7 +4374,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
 
 		if raw["internal_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["internal_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeInternal,
@@ -4384,7 +4383,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		if raw["external_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["external_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeExternal,
@@ -4509,9 +4507,7 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 	}
 
 	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
-
 		for _, value := range *input.Istio.Components.IngressGateways {
-
 			mode := value.Mode
 			enabled := value.Enabled
 
@@ -4552,7 +4548,6 @@ func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateA
 			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
 		},
 	}
-
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {

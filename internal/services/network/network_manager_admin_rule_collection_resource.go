@@ -237,7 +237,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 }
 
 func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollections.NetworkManagerSecurityGroupItem {
-	var outputList []adminrulecollections.NetworkManagerSecurityGroupItem
+	outputList := make([]adminrulecollections.NetworkManagerSecurityGroupItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrulecollections.NetworkManagerSecurityGroupItem{
@@ -251,7 +251,7 @@ func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollecti
 }
 
 func flattenNetworkManagerNetworkGroupIds(inputList []adminrulecollections.NetworkManagerSecurityGroupItem) []string {
-	var outputList []string
+	outputList := make([]string, 0, len(inputList))
 
 	for _, input := range inputList {
 		outputList = append(outputList, input.NetworkGroupId)

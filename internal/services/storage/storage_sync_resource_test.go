@@ -107,6 +107,10 @@ func (r StorageSyncResource) Exists(ctx context.Context, client *clients.Client,
 
 func (r StorageSyncResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ss-%d"
   location = "%s"
@@ -138,6 +142,10 @@ resource "azurerm_storage_sync" "import" {
 
 func (r StorageSyncResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ss-%d"
   location = "%s"

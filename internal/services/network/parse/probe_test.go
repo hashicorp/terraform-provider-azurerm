@@ -27,7 +27,6 @@ func TestProbeID(t *testing.T) {
 		Error    bool
 		Expected *ProbeId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestProbeIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ProbeId
 	}{
-
 		{
 			// empty
 			Input: "",

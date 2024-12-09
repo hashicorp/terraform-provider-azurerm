@@ -27,7 +27,6 @@ func TestCassandraKeyspaceID(t *testing.T) {
 		Error    bool
 		Expected *CassandraKeyspaceId
 	}{
-
 		{
 			// empty
 			Input: "",

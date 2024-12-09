@@ -15,7 +15,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	mongoClustersClient, err := mongoclusters.NewMongoClustersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building MongoClusters client: %+v", err)

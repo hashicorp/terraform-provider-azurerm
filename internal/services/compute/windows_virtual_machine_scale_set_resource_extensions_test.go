@@ -427,10 +427,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionBasic(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -485,10 +481,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionForceUpdateTag(data acceptance.TestData, updateTag string) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -545,10 +537,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -615,10 +603,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionOnlySettings(data accept
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -670,10 +654,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionUpdate(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -724,10 +704,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionsRollingUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -788,10 +764,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsWithHealthExtension(dat
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                     = local.vm_name
   resource_group_name      = azurerm_resource_group.test.name
@@ -844,10 +816,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                     = local.vm_name
@@ -915,10 +883,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionWithTimeBudget(data acce
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -977,10 +941,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionTimeBudgetWithoutExtensi
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -1021,10 +981,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithServiceFabricExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_service_fabric_cluster" "test" {
   name                = local.vm_name
@@ -1114,10 +1070,6 @@ func (r WindowsVirtualMachineScaleSetResource) extensionAutomaticUpgradeEnabled(
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -1165,10 +1117,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionOperationsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -1226,10 +1174,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func (r WindowsVirtualMachineScaleSetResource) extensionOperationsDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -1367,5 +1311,5 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomString, index)
+`, r.templateWithOutProvider(data), data.RandomString, index)
 }

@@ -27,7 +27,6 @@ func TestAppServiceSlotCustomHostnameBindingID(t *testing.T) {
 		Error    bool
 		Expected *AppServiceSlotCustomHostnameBindingId
 	}{
-
 		{
 			// empty
 			Input: "",
