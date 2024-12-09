@@ -24,7 +24,7 @@ func TestAccEphemeralKeyVaultCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -49,7 +49,7 @@ func TestAccEphemeralKeyVaultCertificate_ecdsaPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -72,7 +72,7 @@ func TestAccEphemeralKeyVaultCertificate_ecdsaPEM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -95,7 +95,7 @@ func TestAccEphemeralKeyVaultCertificate_rsaBundlePEM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -119,7 +119,7 @@ func TestAccEphemeralKeyVaultCertificate_rsaSinglePEM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -143,7 +143,7 @@ func TestAccEphemeralKeyVaultCertificate_rsaBundlePFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},

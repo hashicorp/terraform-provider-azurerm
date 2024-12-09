@@ -215,7 +215,7 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			40: 4096,
 			80: 4096,
 		},
-		"PRMS": {
+		"prms": {
 			4:  1024,
 			6:  1536,
 			8:  2048,

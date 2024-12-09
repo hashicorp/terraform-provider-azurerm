@@ -1,22 +1,17 @@
-package nginxconfiguration
+package nginxapikey
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type NginxConfigurationOperationPredicate struct {
-	Id       *string
-	Location *string
-	Name     *string
-	Type     *string
+type NginxDeploymentApiKeyResponseOperationPredicate struct {
+	Id   *string
+	Name *string
+	Type *string
 }
 
-func (p NginxConfigurationOperationPredicate) Matches(input NginxConfiguration) bool {
+func (p NginxDeploymentApiKeyResponseOperationPredicate) Matches(input NginxDeploymentApiKeyResponse) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
-		return false
-	}
-
-	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
