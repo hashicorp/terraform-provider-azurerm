@@ -3,12 +3,12 @@ subcategory: "ArcKubernetes"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_arc_kubernetes_provisioned_cluster"
 description: |-
-  Manages a Arc Kubernetes Provisioned Cluster.
+  Manages an Arc Kubernetes Provisioned Cluster.
 ---
 
 # azurerm_arc_kubernetes_provisioned_cluster
 
-Manages a Arc Kubernetes Provisioned Cluster.
+Manages an Arc Kubernetes Provisioned Cluster.
 
 ## Example Usage
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Arc Kubernetes Provisioned Cluster should exist. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
 
-* `identity` - (Required) A `identity` block as defined below. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
+* `identity` - (Required) An `identity` block as defined below. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
 
 * `location` - (Required) The Azure Region where the Arc Kubernetes Provisioned Cluster should exist. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
 
@@ -61,13 +61,13 @@ The following arguments are supported:
 
 * `arc_agent_desired_version` - (Optional) The version of the Arc agents to be installed on the cluster.
 
-* `azure_active_directory` - (Optional) A `azure_active_directory` block as defined below.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Arc Kubernetes Provisioned Cluster.
 
 ---
 
-A `azure_active_directory` block supports the following:
+An `azure_active_directory` block supports the following:
 
 * `admin_group_object_ids` - (Optional) A list of IDs of Microsoft Entra ID Groups. All members of the specified Microsoft Entra ID Groups have the cluster administrator access to the Kubernetes cluster.
 
@@ -77,7 +77,7 @@ A `azure_active_directory` block supports the following:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) The type of the Managed Identity. The only possible value is `SystemAssigned`. Changing this forces a new Arc Kubernetes Provisioned Cluster to be created.
 
