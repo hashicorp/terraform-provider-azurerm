@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"

@@ -19,6 +19,7 @@ func ReadResourceResponse(ctx context.Context, fw *fwserver.ReadResourceResponse
 	}
 
 	proto6 := &tfprotov6.ReadResourceResponse{
+		Deferred:    ResourceDeferred(fw.Deferred),
 		Diagnostics: Diagnostics(ctx, fw.Diagnostics),
 	}
 

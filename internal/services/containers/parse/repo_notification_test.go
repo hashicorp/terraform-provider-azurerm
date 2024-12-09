@@ -11,7 +11,6 @@ func TestRepositoryNotification(t *testing.T) {
 		Error    bool
 		Expected *RepositoryNotification
 	}{
-
 		{
 			// empty
 			Input: "",

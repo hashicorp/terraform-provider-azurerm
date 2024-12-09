@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -193,24 +192,6 @@ func TestAccContainerAppJob_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccContainerAppJob_completeDeprecated(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipped as `secrets` and `registries` removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
-	r := ContainerAppJobResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1259,104 +1240,6 @@ resource "azurerm_container_app_job" "test" {
     value = azurerm_container_registry.test.admin_password
   }
   registry {
-    server               = azurerm_container_registry.test.login_server
-    username             = azurerm_container_registry.test.admin_username
-    password_secret_name = "registry-password"
-  }
-
-  template {
-    volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
-    }
-    container {
-      args = [
-        "-c",
-        "while true; do echo hello; sleep 10;done",
-      ]
-      command = [
-        "/bin/sh",
-      ]
-      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      name  = "testcontainerappsjob0"
-      readiness_probe {
-        transport = "HTTP"
-        port      = 5000
-      }
-
-      liveness_probe {
-        transport = "HTTP"
-        port      = 5000
-        path      = "/health"
-
-        header {
-          name  = "Cache-Control"
-          value = "no-cache"
-        }
-
-        initial_delay           = 5
-        interval_seconds        = 20
-        timeout                 = 2
-        failure_count_threshold = 1
-      }
-      startup_probe {
-        transport = "TCP"
-        port      = 5000
-      }
-
-      cpu    = 0.5
-      memory = "1Gi"
-      volume_mounts {
-        path = "/appsettings"
-        name = azurerm_container_app_environment_storage.test.name
-      }
-    }
-
-    init_container {
-      name   = "init-cont-%[2]d"
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      cpu    = 0.25
-      memory = "0.5Gi"
-      volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/appsettings"
-      }
-    }
-  }
-  tags = {
-    ENV = "test"
-  }
-}
-`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
-}
-
-func (r ContainerAppJobResource) completeDeprecated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-%[1]s
-
-resource "azurerm_container_app_job" "test" {
-  name                         = "acctest-cajob%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  container_app_environment_id = azurerm_container_app_environment.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  replica_timeout_in_seconds = 10
-  replica_retry_limit        = 10
-  manual_trigger_config {
-    parallelism              = 4
-    replica_completion_count = 1
-  }
-  secrets {
-    name  = "registry-password"
-    value = azurerm_container_registry.test.admin_password
-  }
-  registries {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"

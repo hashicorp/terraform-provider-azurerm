@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
@@ -234,8 +234,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
-		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		sqlDatabaseProperties.ServicePrincipalKey = &secureString
+		if v := d.Get("tenant_id").(string); v != "" {
+			sqlDatabaseProperties.Tenant = pointer.To(v)
+		}
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {

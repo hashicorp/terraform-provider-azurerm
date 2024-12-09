@@ -8,18 +8,17 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
@@ -114,14 +113,6 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["cleanup_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
 	}
 
 	return resource
@@ -280,27 +271,13 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 }
 
 func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	coreCount := int32(d.Get("core_count").(int))
-	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
-
-	cleanup := true
-	if features.FourPointOhBeta() {
-		cleanup = d.Get("cleanup_enabled").(bool)
-	} else {
-		// nolint staticcheck
-		if v, ok := d.GetOkExists("cleanup_enabled"); ok {
-			cleanup = v.(bool)
-		}
-	}
-
 	return &datafactory.IntegrationRuntimeComputeProperties{
-		Location: &location,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
 			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
-			CoreCount:   &coreCount,
-			TimeToLive:  &timeToLiveMin,
-			Cleanup:     utils.Bool(cleanup),
+			CoreCount:   pointer.To(int32(d.Get("core_count").(int))),
+			TimeToLive:  pointer.To(int32(d.Get("time_to_live_min").(int))),
+			Cleanup:     pointer.To(d.Get("cleanup_enabled").(bool)),
 		},
 	}
 }

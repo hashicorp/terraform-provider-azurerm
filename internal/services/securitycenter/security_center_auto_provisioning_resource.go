@@ -42,6 +42,8 @@ func resourceSecurityCenterAutoProvisioning() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_security_center_auto_provisioning` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
+
 		Schema: map[string]*pluginsdk.Schema{
 			"auto_provision": {
 				Type:     pluginsdk.TypeString,

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dashboard
 
 import (
@@ -226,7 +229,6 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 
 			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return err
 			}

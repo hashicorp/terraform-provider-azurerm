@@ -161,7 +161,6 @@ func (r ReplicationPolicyHyperVResource) Read() sdk.ResourceFunc {
 					if detail.RecoveryPointHistoryDurationInHours != nil {
 						state.RecoveryPointRetentionInHours = *detail.RecoveryPointHistoryDurationInHours
 					}
-
 				}
 			}
 			return metadata.Encode(&state)

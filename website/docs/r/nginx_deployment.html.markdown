@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name       = azurerm_resource_group.example.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.example.location
-  managed_resource_group    = "example"
   diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
 
@@ -89,8 +88,6 @@ The following arguments are supported:
 * `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
 
 -> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
-
-* `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
