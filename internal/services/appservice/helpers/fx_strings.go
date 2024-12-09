@@ -63,6 +63,9 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 		if strings.HasPrefix(javaParts[0], "17") {
 			result.JavaVersion = "17"
 		}
+		if strings.HasPrefix(javaParts[0], "21") {
+			result.JavaVersion = "21"
+		}
 		result.JavaServerVersion = javaParts[0]
 
 	case FxStringPrefixTomcat:
@@ -277,6 +280,22 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 			return nil, fmt.Errorf("java 17 is not supported on %s", LinuxJavaServerJboss)
 		default:
 			return pointer.To(fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)), nil
+		}
+	case "21":
+		switch javaServer {
+		case LinuxJavaServerJava:
+			if len(strings.Split(javaServerVersion, ".")) == 3 {
+				return pointer.To(fmt.Sprintf("%s|%s", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|21.0.4"
+			} else {
+				return pointer.To(fmt.Sprintf("%s|%s-java21", LinuxJavaServerJava, javaServerVersion)), nil // "JAVA|21-21"
+			}
+
+		case LinuxJavaServerTomcat:
+			return pointer.To(fmt.Sprintf("%s|%s-java21", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java21 / TOMCAT|10.0.20-java21
+		case LinuxJavaServerJboss:
+			return nil, fmt.Errorf("java 21 is not supported on %s", LinuxJavaServerJboss)
+		default:
+			return pointer.To(fmt.Sprintf("%s|%s-java21", javaServer, javaServerVersion)), nil
 		}
 
 	default:

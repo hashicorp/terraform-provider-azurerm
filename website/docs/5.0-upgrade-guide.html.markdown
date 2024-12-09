@@ -38,6 +38,18 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
+### `azurerm_orbital_spacecraft`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider. 
+
+### `azurerm_orbital_contact`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_orbital_contact_profile`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ## Removed Data Sources
 
 Please follow the format in the example below for adding removed data sources:
