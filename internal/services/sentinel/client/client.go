@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-11-01/sentinelonboardingstates"
@@ -19,7 +18,7 @@ import (
 )
 
 type Client struct {
-	AlertRulesClient         *alertrules.AlertRulesClient
+	AlertRulesClient         *newalertrules.AlertRulesClient
 	AlertRuleTemplatesClient *alertruletemplates.AlertRuleTemplatesClient
 	AutomationRulesClient    *automationrules.AutomationRulesClient
 	DataConnectorsClient     *securityinsight.DataConnectorsClient
@@ -33,7 +32,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	alertRulesClient, err := alertrules.NewAlertRulesClientWithBaseURI(o.Environment.ResourceManager)
+	alertRulesClient, err := newalertrules.NewAlertRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Alert Rules Client: %+v", err)
 	}
