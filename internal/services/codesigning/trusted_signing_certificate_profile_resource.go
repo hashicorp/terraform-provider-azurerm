@@ -16,37 +16,33 @@ import (
 )
 
 type TrustedSigningCertificateProfileModel struct {
-	Name                    string                                       `tfschema:"name"`
-	TrustedSigningAccountId string                                       `tfschema:"trusted_signing_account_id"`
-	IdentityValidationId    string                                       `tfschema:"identity_validation_id"`
-	IncludeCity             bool                                         `tfschema:"include_city"`
-	IncludeCountry          bool                                         `tfschema:"include_country"`
-	IncludePostalCode       bool                                         `tfschema:"include_postal_code"`
-	IncludeState            bool                                         `tfschema:"include_state"`
-	IncludeStreetAddress    bool                                         `tfschema:"include_street_address"`
-	ProfileType             certificateprofiles.ProfileType              `tfschema:"profile_type"`
-	Certificates            []CertificateModel                           `tfschema:"certificates"`
-	Status                  certificateprofiles.CertificateProfileStatus `tfschema:"status"`
+	Name                    string                          `tfschema:"name"`
+	TrustedSigningAccountId string                          `tfschema:"trusted_signing_account_id"`
+	IdentityValidationId    string                          `tfschema:"identity_validation_id"`
+	IncludeCity             bool                            `tfschema:"include_city"`
+	IncludeCountry          bool                            `tfschema:"include_country"`
+	IncludePostalCode       bool                            `tfschema:"include_postal_code"`
+	IncludeState            bool                            `tfschema:"include_state"`
+	IncludeStreetAddress    bool                            `tfschema:"include_street_address"`
+	ProfileType             certificateprofiles.ProfileType `tfschema:"profile_type"`
+	Certificates            []CertificateModel              `tfschema:"certificates"`
 }
 
 type CertificateModel struct {
-	CreatedDate      string                                `tfschema:"created_date"`
-	EnhancedKeyUsage string                                `tfschema:"enhanced_key_usage"`
-	ExpiryDate       string                                `tfschema:"expiry_date"`
-	Revocation       []RevocationModel                     `tfschema:"revocation"`
-	SerialNumber     string                                `tfschema:"serial_number"`
-	Status           certificateprofiles.CertificateStatus `tfschema:"status"`
-	SubjectName      string                                `tfschema:"subject_name"`
-	Thumbprint       string                                `tfschema:"thumbprint"`
+	EnhancedKeyUsage string            `tfschema:"enhanced_key_usage"`
+	ExpiryDate       string            `tfschema:"expiry_date"`
+	Revocation       []RevocationModel `tfschema:"revocation"`
+	SerialNumber     string            `tfschema:"serial_number"`
+	SubjectName      string            `tfschema:"subject_name"`
+	Thumbprint       string            `tfschema:"thumbprint"`
 }
 
 type RevocationModel struct {
-	EffectiveAt   string                               `tfschema:"effective_at"`
-	FailureReason string                               `tfschema:"failure_reason"`
-	Reason        string                               `tfschema:"reason"`
-	Remarks       string                               `tfschema:"remarks"`
-	RequestedAt   string                               `tfschema:"requested_at"`
-	Status        certificateprofiles.RevocationStatus `tfschema:"status"`
+	EffectiveAt   string `tfschema:"effective_at"`
+	FailureReason string `tfschema:"failure_reason"`
+	Reason        string `tfschema:"reason"`
+	Remarks       string `tfschema:"remarks"`
+	RequestedAt   string `tfschema:"requested_at"`
 }
 
 type TrustedSigningCertificateProfileResource struct{}
@@ -145,11 +141,6 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"created_date": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
 					"enhanced_key_usage": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -160,53 +151,10 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 						Computed: true,
 					},
 
-					"revocation": {
-						Type:     pluginsdk.TypeList,
-						Computed: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"effective_at": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"failure_reason": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"reason": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"remarks": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"requested_at": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-
-								"status": {
-									Type:     pluginsdk.TypeString,
-									Computed: true,
-								},
-							},
-						},
-					},
-
 					"serial_number": {
 						Type:      pluginsdk.TypeString,
 						Sensitive: true,
 						Computed:  true,
-					},
-
-					"status": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
 					},
 
 					"subject_name": {
@@ -222,11 +170,6 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 					},
 				},
 			},
-		},
-
-		"status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
 		},
 	}
 }
@@ -378,7 +321,6 @@ func (r TrustedSigningCertificateProfileResource) Read() sdk.ResourceFunc {
 					state.IncludeState = pointer.From(properties.IncludeState)
 					state.IncludeStreetAddress = pointer.From(properties.IncludeStreetAddress)
 					state.ProfileType = properties.ProfileType
-					state.Status = pointer.From(properties.Status)
 				}
 			}
 
@@ -414,12 +356,9 @@ func flattenCertificateModelArray(inputList *[]certificateprofiles.Certificate) 
 	}
 	for _, input := range *inputList {
 		output := CertificateModel{
-			Revocation:       flattenRevocationModel(input.Revocation),
-			CreatedDate:      pointer.From(input.CreatedDate),
 			EnhancedKeyUsage: pointer.From(input.EnhancedKeyUsage),
 			ExpiryDate:       pointer.From(input.ExpiryDate),
 			SerialNumber:     pointer.From(input.SerialNumber),
-			Status:           pointer.From(input.Status),
 			SubjectName:      pointer.From(input.SubjectName),
 			Thumbprint:       pointer.From(input.Thumbprint),
 		}
@@ -427,37 +366,4 @@ func flattenCertificateModelArray(inputList *[]certificateprofiles.Certificate) 
 		outputList = append(outputList, output)
 	}
 	return outputList
-}
-
-func flattenRevocationModel(input *certificateprofiles.Revocation) []RevocationModel {
-	var outputList []RevocationModel
-	if input == nil {
-		return outputList
-	}
-	output := RevocationModel{}
-	if input.EffectiveAt != nil {
-		output.EffectiveAt = *input.EffectiveAt
-	}
-
-	if input.FailureReason != nil {
-		output.FailureReason = *input.FailureReason
-	}
-
-	if input.Reason != nil {
-		output.Reason = *input.Reason
-	}
-
-	if input.Remarks != nil {
-		output.Remarks = *input.Remarks
-	}
-
-	if input.RequestedAt != nil {
-		output.RequestedAt = *input.RequestedAt
-	}
-
-	if input.Status != nil {
-		output.Status = *input.Status
-	}
-
-	return append(outputList, output)
 }
