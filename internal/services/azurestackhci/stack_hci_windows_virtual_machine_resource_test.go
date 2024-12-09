@@ -33,7 +33,7 @@ func TestAccStackHCIWindowsVirtualMachine_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
@@ -52,7 +52,7 @@ func TestAccStackHCIWindowsVirtualMachine_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.admin_password", "http_proxy_configuration.0.http_proxy", "http_proxy_configuration.0.https_proxy"),
 	})
 }
 
@@ -71,28 +71,21 @@ func TestAccStackHCIWindowsVirtualMachine_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.admin_password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
-		{
-			Config: r.updateTag(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.admin_password", "http_proxy_configuration.0.http_proxy", "http_proxy_configuration.0.https_proxy"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("os_profile.0.admin_password"),
 	})
 }
 
@@ -142,13 +135,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_stack_hci_windows_virtual_machine" "test" {
-  arc_machine_id = azurerm_arc_machine.test.id
+  arc_machine_id     = azurerm_arc_machine.test.id
   custom_location_id = %[3]q
 
   hardware_profile {
-    vm_size = "Custom"
+    vm_size          = "Custom"
     processor_number = 2
-    memory_mb = 8192
+    memory_mb        = 8192
   }
 
   network_profile {
@@ -158,72 +151,98 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
   os_profile {
     admin_username = "adminuser"
     admin_password = "!password!@#$"
-    computer_name  = "1a"
+    computer_name  = "testvm"
   }
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    //image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
   }
 
   depends_on = [azurerm_role_assignment.test]
+
+  lifecycle {
+    ignore_changes = [storage_profile.0.vm_config_storage_path_id]
+  }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-vhd-%s"
+resource "tls_private_key" "rsa-4096-example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "azurerm_stack_hci_virtual_hard_disk" "test2" {
+  name                = "acctest-vhd2-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
+  custom_location_id  = %[3]q
   disk_size_in_gb     = 2
-
-  tags = {
-    foo = "bar"
-  }
 
   lifecycle {
     ignore_changes = [storage_path_id]
+    create_before_destroy = true
   }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
-}
 
-func (r StackHCIWindowsVirtualMachineResource) updateTag(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-vhd-%s"
+resource "azurerm_stack_hci_network_interface" "test2" {
+  name                = "acctest-ni2-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = %q
-  disk_size_in_gb     = 2
+  custom_location_id  = %[3]q
 
-  tags = {
-    env = "test"
-    foo = "bar"
+  ip_configuration {
+    subnet_id = azurerm_stack_hci_logical_network.test.id
   }
 
   lifecycle {
-    ignore_changes = [storage_path_id]
+    ignore_changes = [mac_address, ip_configuration.0.private_ip_address]
+    create_before_destroy = true
   }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+
+resource "azurerm_stack_hci_windows_virtual_machine" "test" {
+  arc_machine_id      = azurerm_arc_machine.test.id
+  custom_location_id  = %[3]q
+
+  hardware_profile {
+    vm_size          = "Custom"
+    processor_number = 2
+    memory_mb        = 8192
+  }
+
+  network_profile {
+    network_interface_ids = [azurerm_stack_hci_network_interface.test.id, azurerm_stack_hci_network_interface.test2.id]
+  }
+
+  os_profile {
+    admin_username                    = "adminuser"
+    admin_password                    = "!password!@#$"
+    computer_name                     = "testvm"
+  }
+
+  storage_profile {
+    data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id, azurerm_stack_hci_virtual_hard_disk.test2.id]
+    //image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+
+  lifecycle {
+    ignore_changes = [storage_profile.0.vm_config_storage_path_id]
+  }
+}
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) complete(data acceptance.TestData) string {
@@ -235,34 +254,103 @@ provider "azurerm" {
   features {}
 }
 
+resource "tls_private_key" "rsa-4096-example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 resource "azurerm_stack_hci_storage_path" "test" {
-  name                = "acctest-sp-%[2]s"
+  name                = "acctest-sp-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
-  path                = "C:\\ClusterStorage\\UserStorage_2\\sp-%[2]s"
+  path                = "C:\\ClusterStorage\\UserStorage_2\\sp2-%[4]s"
 }
 
-resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                     = "acctest-vhd-%[2]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  custom_location_id       = %[3]q
-  disk_size_in_gb          = 2
-  dynamic_enabled          = false
-  hyperv_generation        = "V2"
-  physical_sector_in_bytes = 4096
-  logical_sector_in_bytes  = 512
-  block_size_in_bytes      = 1024
-  disk_file_format         = "vhdx"
-  storage_path_id          = azurerm_stack_hci_storage_path.test.id
+resource "azurerm_stack_hci_virtual_hard_disk" "test2" {
+  name                = "acctest-vhd2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  disk_size_in_gb     = 2
 
-  tags = {
-    foo = "bar"
-    env = "test"
+  lifecycle {
+    ignore_changes = [storage_path_id]
   }
 }
-`, template, data.RandomString, os.Getenv(customLocationIdEnv))
+
+resource "azurerm_stack_hci_network_interface" "test2" {
+  name                = "acctest-ni2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = %[3]q
+  dns_servers         = ["192.168.1.254"]
+
+  ip_configuration {
+    private_ip_address = "192.168.1.18"
+    subnet_id          = azurerm_stack_hci_logical_network.test.id
+  }
+
+  lifecycle {
+    ignore_changes = [mac_address]
+  }
+}
+
+resource "azurerm_stack_hci_windows_virtual_machine" "test" {
+  arc_machine_id      = azurerm_arc_machine.test.id
+  custom_location_id  = %[3]q
+  tpm_enabled         = true
+  secure_boot_enabled = true
+
+  hardware_profile {
+    vm_size          = "Custom"
+    processor_number = 2
+    memory_mb        = 8192
+    dynamic_memory {
+      maximum_memory_mb    = 8192
+      minimum_memory_mb    = 512
+      target_memory_buffer = 20
+    }
+  }
+
+  network_profile {
+    network_interface_ids = [azurerm_stack_hci_network_interface.test.id, azurerm_stack_hci_network_interface.test2.id]
+  }
+
+  os_profile {
+    admin_username                    = "adminuser"
+    admin_password                    = "!password!@#$"
+    computer_name                     = "testvm2"
+   automatic_update_enabled          = true
+   time_zone                         = "UTC"
+   provision_vm_agent_enabled        = true
+   provision_vm_config_agent_enabled = true
+   ssh_public_key {
+     path     = "C:\\Users\\adminuser\\.ssh\\rsa.pub"
+     key_data = tls_private_key.rsa-4096-example.public_key_openssh
+   }
+  }
+
+  storage_profile {
+    data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
+    //image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    vm_config_storage_path_id = azurerm_stack_hci_storage_path.test.id
+  }
+
+  http_proxy_configuration {
+    http_proxy  = "http://proxy.example.com:3128"
+    https_proxy = "http://proxy.example.com:3128"
+    no_proxy = [
+      "localhost",
+      "127.0.0.1",
+      "mcr.microsoft.com"
+    ]
+    trusted_ca = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVMyZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVFNUTR3REFZRFZRUUtFd1ZGVGtOUFRUQWUKRncwd09URXhNVEF5TXpBd01EQmFGdzB4TURBMU1Ea3lNekF3TURCYU1CQXhEakFNQmdOVkJBb1RCVVZPUTA5TgpNSUdiTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFqQTRHR0FBUUJBcUN1Um94NU4zTVRVOHdUdUllSUJYRjdpTW5oCm50cW1HVktRMGhmUUZEUUd2K0x5ZHVvN0pQcUZwL1kyamxYU2ROckFkejVXeGJyWStrRHhJcGtCUXRJQWtJREQKWlZtVHVlcTNaREFmY0dkRU5uek5KVkNhUGxIWEpMdkVFSU5jb0prVU8rK2NWeXl3ZHJlVkpjNjd2aE54MVRkWApWM3BwN2YrUmJPbU5LYm5WUkJ5ak5UQXpNQTRHQTFVZER3RUIvd1FFQXdJSGdEQVRCZ05WSFNVRUREQUtCZ2dyCkJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQW9HQ0NxR1NNNDlCQU1FQTRHTUFEQ0JpQUpDQWJiYjdzdkkKNXR1aEN5QTNqUVRTZ0E4enB2azBZV05Ya1owN3h6ZFY4amRNTXVtQ2FXOXljRUlxSjVLU3F1dVBoVXc5b2VregpCNTFkYXliVjFWUVhWVmRWQWtJQStrTU1TSnp3dHpIcU5BVVRtaVpQY2c3SDh2MUFTbDR0UjZscEtUcFVQWTJYCmxYT0N0MllmNGRzRnNpanV2emJKQmR4NzVkNEVmNVRSSFBjZytQSE5aZ2c9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv), data.RandomString)
 }
 
 func (r StackHCIWindowsVirtualMachineResource) requiresImport(data acceptance.TestData) string {
@@ -284,34 +372,44 @@ resource "azurerm_stack_hci_virtual_hard_disk" "import" {
 func (r StackHCIWindowsVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-hci-vm-%[2]s"
+  name     = "acctest-hci-vm-%[2]d"
   location = %[1]q
 }
 
 resource "azurerm_stack_hci_logical_network" "test" {
-  name                = "acctest-ln-%[2]s"
+  name                = "acctest-ln-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   virtual_switch_name = "ConvergedSwitch(managementcompute)"
+  dns_servers         = ["192.168.1.254"]
 
   subnet {
-    ip_allocation_method = "Dynamic"
+    ip_allocation_method = "Static"
+    address_prefix       = "192.168.1.0/24"
+    ip_pool {
+      start = "192.168.1.0"
+      end   = "192.168.1.255"
+    }
+
+    route {
+      address_prefix      = "0.0.0.0/0"
+      next_hop_ip_address = "192.168.1.1"
+    }
   }
 }
 
 resource "azurerm_stack_hci_network_interface" "test" {
-  name                = "acctest-ni-%[2]s"
+  name                = "acctest-ni-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
+  dns_servers         = ["192.168.1.254"]
+  mac_address         = "02:ec:01:0c:00:08"
 
   ip_configuration {
-    subnet_id = azurerm_stack_hci_logical_network.test.id
-  }
-
-  lifecycle {
-    ignore_changes = [mac_address]
+    private_ip_address = "192.168.1.15"
+    subnet_id          = azurerm_stack_hci_logical_network.test.id
   }
 }
 
@@ -327,7 +425,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 //resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
-//  name                = "acctest-mgi-%[2]s"
+//  name                = "acctest-mgi-%[2]d"
 //  resource_group_name = azurerm_resource_group.test.name
 //  location            = azurerm_resource_group.test.location
 //  custom_location_id  = %[3]q
@@ -344,16 +442,11 @@ resource "azurerm_role_assignment" "test" {
 //}
 
 resource "azurerm_stack_hci_virtual_hard_disk" "test" {
-  name                = "acctest-vhd-%[2]s"
+  name                = "acctest-vhd-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   custom_location_id  = %[3]q
   disk_size_in_gb     = 2
-
-  tags = {
-    env = "test"
-    foo = "bar"
-  }
 
   lifecycle {
     ignore_changes = [storage_path_id]
@@ -361,14 +454,14 @@ resource "azurerm_stack_hci_virtual_hard_disk" "test" {
 }
 
 resource "azurerm_arc_machine" "test" {
-  name                = "acctest-hcivm-%[2]s"
+  name                = "acctest-hcivm-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "HCI"
 
-  //identity {
-  //  type = "SystemAssigned"
-  //}
+  identity {
+    type = "SystemAssigned"
+  }
 }
-`, data.Locations.Primary, data.RandomString, os.Getenv(customLocationIdEnv))
+`, data.Locations.Primary, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }
