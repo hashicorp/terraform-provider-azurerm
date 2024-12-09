@@ -241,7 +241,7 @@ The following example follows a fictional resource that will have the following 
    
    ### `azurerm_example_resource`
    
-   * The deprecated `scaling_enabled` property has been removed in favour of the `scaling_enabled` property.
+   * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
    * The property `version` now defaults to `2`.
    ```
    
@@ -354,7 +354,7 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
                 }, false),
             },
         }   
-    }
+
 	if !features.FivePointOhBeta() {
 		args["spark_version"].Default = "2.4"
     }
