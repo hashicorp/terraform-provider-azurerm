@@ -30,14 +30,10 @@ func TestAccTrustedSigningCertificateProfile_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -56,14 +52,10 @@ func TestAccTrustedSigningCertificateProfile_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -82,14 +74,10 @@ func TestAcccodesigningCertificateProfile_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -108,14 +96,10 @@ func TestAccTrustedSigningCertificateProfile_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -123,14 +107,10 @@ func TestAccTrustedSigningCertificateProfile_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("certificates.0.created_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.enhanced_key_usage").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.expiry_date").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.serial_number").Exists(),
-				check.That(data.ResourceName).Key("certificates.0.status").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.subject_name").Exists(),
 				check.That(data.ResourceName).Key("certificates.0.thumbprint").Exists(),
-				check.That(data.ResourceName).Key("status").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -180,12 +160,12 @@ func (r TrustedSigningCertificateProfileResource) basic(data acceptance.TestData
 				%s
 
 resource "azurerm_trusted_signing_certificate_profile" "test" {
-  name                       = "acctest-ccp-%d"
+  name                       = "acctest-%s"
   trusted_signing_account_id = azurerm_trusted_signing_account.test.id
   identity_validation_id     = "%s"
   profile_type               = "PrivateTrust"
 }
-`, template, data.RandomInteger, identityId)
+`, template, data.RandomString, identityId)
 }
 
 func (r TrustedSigningCertificateProfileResource) requiresImport(data acceptance.TestData) string {
@@ -209,7 +189,7 @@ func (r TrustedSigningCertificateProfileResource) complete(data acceptance.TestD
 			%s
 
 resource "azurerm_trusted_signing_certificate_profile" "test" {
-  name                       = "acctest-ccp-%d"
+  name                       = "acctest-%s"
   trusted_signing_account_id = azurerm_trusted_signing_account.test.id
   identity_validation_id     = "%s"
   include_city               = true
@@ -220,7 +200,7 @@ resource "azurerm_trusted_signing_certificate_profile" "test" {
   profile_type               = "PrivateTrust"
 
 }
-`, template, data.RandomInteger, identityId)
+`, template, data.RandomString, identityId)
 }
 
 func (r TrustedSigningCertificateProfileResource) update(data acceptance.TestData) string {
@@ -230,7 +210,7 @@ func (r TrustedSigningCertificateProfileResource) update(data acceptance.TestDat
 			%s
 
 resource "azurerm_trusted_signing_certificate_profile" "test" {
-  name                       = "acctest-ccp-%d"
+  name                       = "acctest-%s"
   trusted_signing_account_id = azurerm_trusted_signing_account.test.id
   identity_validation_id     = "%s"
   include_city               = false
@@ -241,5 +221,5 @@ resource "azurerm_trusted_signing_certificate_profile" "test" {
   profile_type               = "PrivateTrust"
 
 }
-`, template, data.RandomInteger, identityId)
+`, template, data.RandomString, identityId)
 }

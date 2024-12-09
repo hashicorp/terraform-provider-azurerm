@@ -29,20 +29,10 @@ type TrustedSigningCertificateProfileModel struct {
 }
 
 type CertificateModel struct {
-	EnhancedKeyUsage string            `tfschema:"enhanced_key_usage"`
-	ExpiryDate       string            `tfschema:"expiry_date"`
-	Revocation       []RevocationModel `tfschema:"revocation"`
-	SerialNumber     string            `tfschema:"serial_number"`
-	SubjectName      string            `tfschema:"subject_name"`
-	Thumbprint       string            `tfschema:"thumbprint"`
-}
-
-type RevocationModel struct {
-	EffectiveAt   string `tfschema:"effective_at"`
-	FailureReason string `tfschema:"failure_reason"`
-	Reason        string `tfschema:"reason"`
-	Remarks       string `tfschema:"remarks"`
-	RequestedAt   string `tfschema:"requested_at"`
+	EnhancedKeyUsage string `tfschema:"enhanced_key_usage"`
+	SerialNumber     string `tfschema:"serial_number"`
+	SubjectName      string `tfschema:"subject_name"`
+	Thumbprint       string `tfschema:"thumbprint"`
 }
 
 type TrustedSigningCertificateProfileResource struct{}
@@ -142,11 +132,6 @@ func (r TrustedSigningCertificateProfileResource) Attributes() map[string]*plugi
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enhanced_key_usage": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"expiry_date": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -357,7 +342,6 @@ func flattenCertificateModelArray(inputList *[]certificateprofiles.Certificate) 
 	for _, input := range *inputList {
 		output := CertificateModel{
 			EnhancedKeyUsage: pointer.From(input.EnhancedKeyUsage),
-			ExpiryDate:       pointer.From(input.ExpiryDate),
 			SerialNumber:     pointer.From(input.SerialNumber),
 			SubjectName:      pointer.From(input.SubjectName),
 			Thumbprint:       pointer.From(input.Thumbprint),
