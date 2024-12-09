@@ -939,11 +939,12 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "None"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
@@ -952,7 +953,6 @@ resource "azurerm_cognitive_account" "test" {
       subnet_id                            = azurerm_subnet.test_b.id
       ignore_missing_vnet_service_endpoint = true
     }
-
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
@@ -965,11 +965,12 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "AzureServices"
     default_action = "Allow"
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {
