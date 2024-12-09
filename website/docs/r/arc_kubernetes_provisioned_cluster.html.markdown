@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Arc Kubernetes Provisioned Cluster.
 
-* `agent_version` - Version of the agent running on the cluster resource.
+* `agent_version` - The version of the agent running on the cluster resource.
 
 * `distribution` - The distribution running on this Arc Kubernetes Provisioned Cluster.
 
@@ -99,9 +99,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `offering` - The cluster offering.
 
-* `total_core_count` - Number of CPU cores present in the cluster resource.
+* `total_core_count` - The number of CPU cores present in the cluster resource.
 
-* `total_node_count` - Number of nodes present in the cluster resource.
+* `total_node_count` - The number of nodes present in the cluster resource.
 
 ---
 
