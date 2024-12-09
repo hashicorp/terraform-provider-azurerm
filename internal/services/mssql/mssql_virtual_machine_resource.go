@@ -77,9 +77,10 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"encryption_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:       pluginsdk.TypeBool,
+							Optional:   true,
+							Default:    false,
+							Deprecated: "This argument is no longer used. Encryption is enabled when encryption_password is set; otherwise disabled.",
 						},
 
 						"encryption_password": {
@@ -479,17 +480,6 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 		return d.ForceNew("auto_backup")
 	}
 
-	encryptionEnabled := d.Get("auto_backup.0.encryption_enabled")
-	v, ok := d.GetOk("auto_backup.0.encryption_password")
-
-	if encryptionEnabled.(bool) && (!ok || v.(string) == "") {
-		return fmt.Errorf("auto_backup: `encryption_password` is required when `encryption_enabled` is true")
-	}
-
-	if !encryptionEnabled.(bool) && ok && v.(string) != "" {
-		return fmt.Errorf("auto_backup: `encryption_enabled` must be true when `encryption_password` is set")
-	}
-
 	return nil
 }
 
@@ -853,11 +843,11 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.StorageAccessKey = utils.String(v.(string))
 		}
 
-		v, ok := config["encryption_enabled"]
-		enableEncryption := ok && v.(bool)
-		ret.EnableEncryption = utils.Bool(enableEncryption)
-		if v, ok := config["encryption_password"]; enableEncryption && ok {
+		if v, ok := config["encryption_password"]; ok {
+			ret.EnableEncryption = utils.Bool(true)
 			ret.Password = utils.String(v.(string))
+		} else {
+			ret.EnableEncryption = utils.Bool(false)
 		}
 
 		if v, ok := config["system_databases_backup_enabled"]; ok {
@@ -940,13 +930,17 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 
 	// Password, StorageAccessKey, StorageAccountURL are not returned, so we try to copy them
 	// from existing config as a best effort.
-	encryptionPassword := d.Get("auto_backup.0.encryption_password").(string)
 	storageKey := d.Get("auto_backup.0.storage_account_access_key").(string)
 	blobEndpoint := d.Get("auto_backup.0.storage_blob_endpoint").(string)
+	encryptionPassword := ""
+
+	// When encryption is enabled, assign password from existing config; otherwise empty
+	if autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption {
+		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
+	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"encryption_enabled":              autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
 			"encryption_password":             encryptionPassword,
 			"manual_schedule":                 manualSchedule,
 			"retention_period_in_days":        retentionPeriod,

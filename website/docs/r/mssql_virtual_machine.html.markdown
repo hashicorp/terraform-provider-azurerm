@@ -77,7 +77,7 @@ The following arguments are supported:
 
 The `auto_backup` block supports the following:
 
-* `encryption_enabled` - (Optional) Enable or disable encryption for backups. Defaults to `false`.
+* `encryption_enabled` - (Deprecated) This argument is no longer used. Encryption is enabled when `encryption_password` is set; otherwise disabled.
 
 * `encryption_password` - (Optional) Encryption password to use. Must be specified when encryption is enabled.
 
