@@ -1,5 +1,12 @@
 ## 4.14.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* `nginx` - update api version to `2024-09-01-preview`, this API no longer supports certain properties which have had to be removed from the provider for the upgrade [GH-27776]
+* Data Source: `azurerm_nginx_configuration` - the property `protected_file.content` will not be populated and has been deprecated [GH-27776]
+* Data Source: `azurerm_nginx_deployment` - the property `managed_resource_group` will not be populated and has been deprecated [GH-27776]
+* `azurerm_nginx_deployment` - the property `managed_resource_group` is no longer supported and has been deprecated [GH-27776]
+
 ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241206.1180327` [GH-28211]
