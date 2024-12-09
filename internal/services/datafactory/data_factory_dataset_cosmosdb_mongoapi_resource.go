@@ -21,19 +21,36 @@ var _ sdk.Resource = DataFactoryDatasetCosmosDbMongoDbResource{}
 type DataFactoryDatasetCosmosDbMongoDbResource struct{}
 
 type DataFactoryDatasetCosmosDbMongoDbResourceModel struct {
-	AdditionalProperties map[string]interface{} `tfschema:"additional_properties"`
-	Annotations          []string               `tfschema:"annotations"`
-	CollectionName       string                 `tfschema:"collection_name"`
-	DataFactoryId        string                 `tfschema:"data_factory_id"`
-	Description          string                 `tfschema:"description"`
-	Folder               string                 `tfschema:"folder"`
-	LinkedServiceName    string                 `tfschema:"linked_service_name"`
-	Name                 string                 `tfschema:"name"`
-	Parameters           map[string]interface{} `tfschema:"parameters"`
+	AdditionalProperties map[string]string `tfschema:"additional_properties"`
+	Annotations          []string          `tfschema:"annotations"`
+	CollectionName       string            `tfschema:"collection_name"`
+	DataFactoryId        string            `tfschema:"data_factory_id"`
+	Description          string            `tfschema:"description"`
+	Folder               string            `tfschema:"folder"`
+	LinkedServiceName    string            `tfschema:"linked_service_name"`
+	Name                 string            `tfschema:"name"`
+	Parameters           map[string]string `tfschema:"parameters"`
 }
 
 func (DataFactoryDatasetCosmosDbMongoDbResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LinkedServiceDatasetName,
+		},
+		"data_factory_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: factories.ValidateFactoryID,
+		},
+		"linked_service_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 		"additional_properties": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
@@ -53,12 +70,6 @@ func (DataFactoryDatasetCosmosDbMongoDbResource) Arguments() map[string]*plugins
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"data_factory_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: factories.ValidateFactoryID,
-		},
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -68,17 +79,6 @@ func (DataFactoryDatasetCosmosDbMongoDbResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"linked_service_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.LinkedServiceDatasetName,
 		},
 		"parameters": {
 			Type:     pluginsdk.TypeMap,
@@ -141,11 +141,11 @@ func (r DataFactoryDatasetCosmosDbMongoDbResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.AdditionalProperties != nil {
-				datasetProperties.AdditionalProperties = config.AdditionalProperties
+				datasetProperties.AdditionalProperties = expandAdditionalProperties(&config.AdditionalProperties)
 			}
 
 			if config.Annotations != nil {
-				datasetProperties.Annotations = expandDataFactoryAnnotations(&config.Annotations)
+				datasetProperties.Annotations = pointer.To(utils.FlattenStringSlice(&config.Annotations))
 			}
 
 			if config.Description != "" {
@@ -159,7 +159,7 @@ func (r DataFactoryDatasetCosmosDbMongoDbResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.Parameters != nil {
-				datasetProperties.Parameters = expandDataSetParameters(config.Parameters)
+				datasetProperties.Parameters = expandDataSetParametersString(&config.Parameters)
 			}
 
 			dataset := datafactory.DatasetResource{
@@ -205,11 +205,11 @@ func (r DataFactoryDatasetCosmosDbMongoDbResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("additional_properties") {
-				datasetProperties.AdditionalProperties = config.AdditionalProperties
+				datasetProperties.AdditionalProperties = expandAdditionalProperties(&config.AdditionalProperties)
 			}
 
 			if metadata.ResourceData.HasChange("annotations") {
-				datasetProperties.Annotations = expandDataFactoryAnnotations(&config.Annotations)
+				datasetProperties.Annotations = pointer.To(utils.FlattenStringSlice(&config.Annotations))
 			}
 
 			if metadata.ResourceData.HasChange("collection_name") {
@@ -234,7 +234,7 @@ func (r DataFactoryDatasetCosmosDbMongoDbResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("parameters") {
-				datasetProperties.Parameters = expandDataSetParameters(config.Parameters)
+				datasetProperties.Parameters = expandDataSetParametersString(&config.Parameters)
 			}
 
 			dataset.Properties = datasetProperties
@@ -276,7 +276,7 @@ func (DataFactoryDatasetCosmosDbMongoDbResource) Read() sdk.ResourceFunc {
 
 			state := DataFactoryDatasetCosmosDbMongoDbResourceModel{}
 
-			state.AdditionalProperties = datasetProperties.AdditionalProperties
+			state.AdditionalProperties = flattenAdditionalProperties(&datasetProperties.AdditionalProperties)
 
 			if datasetProperties.Annotations != nil {
 				state.Annotations = flattenDataFactoryAnnotations(datasetProperties.Annotations)
@@ -306,7 +306,7 @@ func (DataFactoryDatasetCosmosDbMongoDbResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.Name
 
-			state.Parameters = flattenDataSetParameters(datasetProperties.Parameters)
+			state.Parameters = flattenDataSetParametersString(&datasetProperties.Parameters)
 
 			return metadata.Encode(&state)
 		},

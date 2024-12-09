@@ -32,9 +32,9 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "example" {
 }
 
 resource "azurerm_data_factory_dataset_cosmosdb_mongoapi" "example" {
-  name = "example"
-  collection_name = "bar"
-  data_factory_id = azurerm_data_factory.example.id
+  name                = "example"
+  collection_name     = "bar"
+  data_factory_id     = azurerm_data_factory.example.id
   linked_service_name = azurerm_data_factory_linked_service_cosmosdb_mongoapi.example.name
 }
 ```

@@ -97,18 +97,6 @@ func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecifi
 	return output
 }
 
-func expandDataFactoryAnnotations(input *[]string) *[]interface{} {
-	annotations := make([]interface{}, 0)
-	if input == nil {
-		return &annotations
-	}
-
-	for _, annotation := range *input {
-		annotations = append(annotations, annotation)
-	}
-	return &annotations
-}
-
 func flattenDataFactoryAnnotations(input *[]interface{}) []string {
 	annotations := make([]string, 0)
 	if input == nil {
@@ -150,6 +138,36 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 			}
 
 			output[k] = val
+		}
+	}
+
+	return output
+}
+
+func expandAdditionalProperties(input *map[string]string) map[string]interface{} {
+	if input == nil {
+		return nil
+	}
+
+	output := make(map[string]interface{})
+	for k, v := range *input {
+		output[k] = v
+	}
+
+	return output
+}
+
+func flattenAdditionalProperties(input *map[string]interface{}) map[string]string {
+	if input == nil {
+		return nil
+	}
+
+	output := make(map[string]string)
+	for k, v := range *input {
+		if strVal, ok := v.(string); ok {
+			output[k] = strVal
+		} else {
+			log.Printf("[DEBUG] Skipping property %q since it's not a string", k)
 		}
 	}
 

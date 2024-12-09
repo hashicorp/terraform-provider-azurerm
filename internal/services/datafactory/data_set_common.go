@@ -39,3 +39,33 @@ func flattenDataSetParameters(input map[string]*datafactory.ParameterSpecificati
 
 	return output
 }
+
+func expandDataSetParametersString(input *map[string]string) map[string]*datafactory.ParameterSpecification {
+	output := make(map[string]*datafactory.ParameterSpecification)
+
+	for k, v := range *input {
+		output[k] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterTypeString,
+			DefaultValue: v,
+		}
+	}
+
+	return output
+}
+
+func flattenDataSetParametersString(parameterSpecification *map[string]*datafactory.ParameterSpecification) map[string]string {
+	output := make(map[string]string)
+
+	for k, v := range *parameterSpecification {
+		if v != nil {
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since its default value is not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}
