@@ -553,7 +553,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   location            = azurerm_resource_group.test.location
 
   license_type                 = "BasePrice"
-  minimum_tls_version          = "1.0"
+  minimum_tls_version          = "1.2"
   proxy_override               = "Proxy"
   public_data_endpoint_enabled = true
   sku_name                     = "GP_Gen5"
