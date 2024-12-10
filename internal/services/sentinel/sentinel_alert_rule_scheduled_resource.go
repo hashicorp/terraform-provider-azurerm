@@ -33,7 +33,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := alertrules.ParseAlertRuleID(id)
 			return err
-		}, importNewSentinelAlertRule(alertrules.AlertRuleKindScheduled)),
+		}, importSentinelAlertRule(alertrules.AlertRuleKindScheduled)),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -352,7 +352,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 }
 
 func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.NewAlertRulesClient
+	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -398,13 +398,13 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	incident := expandNewAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false)
+	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false)
 
 	param := alertrules.ScheduledAlertRule{
 		Properties: &alertrules.ScheduledAlertRuleProperties{
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           d.Get("display_name").(string),
-			Tactics:               expandNewAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
+			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			IncidentConfiguration: incident,
 			Severity:              pointer.To(alertrules.AlertSeverity(d.Get("severity").(string))),
@@ -429,7 +429,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Properties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
-		param.Properties.AlertDetailsOverride = expandNewAlertRuleAlertDetailsOverride(v.([]interface{}))
+		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("custom_details"); ok {
 		param.Properties.CustomDetails = utils.ExpandPtrMapStringString(v.(map[string]interface{}))
@@ -438,11 +438,11 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 	entityMappingCount := 0
 	sentinelEntityMappingCount := 0
 	if v, ok := d.GetOk("entity_mapping"); ok {
-		param.Properties.EntityMappings = expandNewAlertRuleEntityMapping(v.([]interface{}))
+		param.Properties.EntityMappings = expandAlertRuleEntityMapping(v.([]interface{}))
 		entityMappingCount = len(*param.Properties.EntityMappings)
 	}
 	if v, ok := d.GetOk("sentinel_entity_mapping"); ok {
-		param.Properties.SentinelEntitiesMappings = expandNewAlertRuleSentinelEntityMapping(v.([]interface{}))
+		param.Properties.SentinelEntitiesMappings = expandAlertRuleSentinelEntityMapping(v.([]interface{}))
 		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
 	}
 
@@ -457,7 +457,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 			return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q: %+v", id, err)
 		}
 
-		if err := assertNewAlertRuleKind(resp.Model, alertrules.AlertRuleKindScheduled); err != nil {
+		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindScheduled); err != nil {
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 	}
@@ -472,7 +472,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.NewAlertRulesClient
+	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -492,7 +492,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q: %+v", id, err)
 	}
 
-	if err := assertNewAlertRuleKind(resp.Model, alertrules.AlertRuleKindScheduled); err != nil {
+	if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindScheduled); err != nil {
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 
@@ -506,14 +506,14 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 			if prop := rule.Properties; prop != nil {
 				d.Set("description", prop.Description)
 				d.Set("display_name", prop.DisplayName)
-				if err := d.Set("tactics", flattenNewAlertRuleTactics(prop.Tactics)); err != nil {
+				if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
 					return fmt.Errorf("setting `tactics`: %+v", err)
 				}
 				if err := d.Set("techniques", prop.Techniques); err != nil {
 					return fmt.Errorf("setting `techniques`: %+v", err)
 				}
 
-				if err := d.Set("incident", flattenNewAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
+				if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
 					return fmt.Errorf("setting `incident`: %+v", err)
 				}
 
@@ -532,16 +532,16 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 				if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
 					return fmt.Errorf("setting `event_grouping`: %+v", err)
 				}
-				if err := d.Set("alert_details_override", flattenNewAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
+				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
 					return fmt.Errorf("setting `alert_details_override`: %+v", err)
 				}
 				if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
 					return fmt.Errorf("setting `custom_details`: %+v", err)
 				}
-				if err := d.Set("entity_mapping", flattenNewAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
+				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
 					return fmt.Errorf("setting `entity_mapping`: %+v", err)
 				}
-				if err := d.Set("sentinel_entity_mapping", flattenNewAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+				if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
 					return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
 				}
 			}
@@ -552,7 +552,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sentinel.NewAlertRulesClient
+	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

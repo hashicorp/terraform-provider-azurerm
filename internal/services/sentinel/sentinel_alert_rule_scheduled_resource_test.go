@@ -179,7 +179,7 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.NewAlertRulesClient.Get(ctx, *id)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
 	}

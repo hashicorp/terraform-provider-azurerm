@@ -7,35 +7,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
-	newalertrules "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-// TODO: after all sentinel alert rules updated to new API version, remove these old functions and rename new funtions.
-func importNewSentinelAlertRule(expectKind newalertrules.AlertRuleKind) pluginsdk.ImporterFunc {
-	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
-		id, err := newalertrules.ParseAlertRuleID(d.Id())
-		if err != nil {
-			return nil, err
-		}
-
-		client := meta.(*clients.Client).Sentinel.NewAlertRulesClient
-		resp, err := client.Get(ctx, *id)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving %q: %+v", id, err)
-		}
-
-		if err = assertNewAlertRuleKind(resp.Model, expectKind); err != nil {
-			return nil, err
-		}
-		return []*pluginsdk.ResourceData{d}, nil
-	}
-}
 
 func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.ImporterFunc {
 	return func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (data []*pluginsdk.ResourceData, err error) {
@@ -103,26 +80,6 @@ func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertR
 	return nil
 }
 
-func assertNewAlertRuleKind(rule newalertrules.AlertRule, expectKind newalertrules.AlertRuleKind) error {
-	if rule == nil {
-		return fmt.Errorf("model was nil")
-	}
-
-	var kind newalertrules.AlertRuleKind
-	switch rule.(type) {
-	case newalertrules.ScheduledAlertRule:
-		kind = newalertrules.AlertRuleKindScheduled
-	case newalertrules.FusionAlertRule:
-		kind = newalertrules.AlertRuleKindFusion
-	case newalertrules.MicrosoftSecurityIncidentCreationAlertRule:
-		kind = newalertrules.AlertRuleKindMicrosoftSecurityIncidentCreation
-	}
-	if expectKind != kind {
-		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)
-	}
-	return nil
-}
-
 func expandAlertRuleTactics(input []interface{}) *[]alertrules.AttackTactic {
 	result := make([]alertrules.AttackTactic, 0)
 
@@ -133,31 +90,7 @@ func expandAlertRuleTactics(input []interface{}) *[]alertrules.AttackTactic {
 	return &result
 }
 
-func expandNewAlertRuleTactics(input []interface{}) *[]newalertrules.AttackTactic {
-	result := make([]newalertrules.AttackTactic, 0)
-
-	for _, e := range input {
-		result = append(result, newalertrules.AttackTactic(e.(string)))
-	}
-
-	return &result
-}
-
 func flattenAlertRuleTactics(input *[]alertrules.AttackTactic) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, e := range *input {
-		output = append(output, string(e))
-	}
-
-	return output
-}
-
-func flattenNewAlertRuleTactics(input *[]newalertrules.AttackTactic) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -196,21 +129,6 @@ func expandAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey
 	return output
 }
 
-func expandNewAlertRuleIncidentConfiguration(input []interface{}, createIncidentKey string, withGroupByPrefix bool) *newalertrules.IncidentConfiguration {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	output := &newalertrules.IncidentConfiguration{
-		CreateIncident:        raw[createIncidentKey].(bool),
-		GroupingConfiguration: expandNewAlertRuleGrouping(raw["grouping"].([]interface{}), withGroupByPrefix),
-	}
-
-	return output
-}
-
 func flattenAlertRuleIncidentConfiguration(input *alertrules.IncidentConfiguration, createIncidentKey string, withGroupByPrefix bool) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -220,19 +138,6 @@ func flattenAlertRuleIncidentConfiguration(input *alertrules.IncidentConfigurati
 		map[string]interface{}{
 			createIncidentKey: input.CreateIncident,
 			"grouping":        flattenAlertRuleGrouping(input.GroupingConfiguration, withGroupByPrefix),
-		},
-	}
-}
-
-func flattenNewAlertRuleIncidentConfiguration(input *newalertrules.IncidentConfiguration, createIncidentKey string, withGroupByPrefix bool) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			createIncidentKey: input.CreateIncident,
-			"grouping":        flattenNewAlertRuleGrouping(input.GroupingConfiguration, withGroupByPrefix),
 		},
 	}
 }
@@ -286,51 +191,6 @@ func expandAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *alertru
 	groupByAlertDetails := make([]alertrules.AlertDetail, len(groupByAlertDetailsList))
 	for idx, t := range groupByAlertDetailsList {
 		groupByAlertDetails[idx] = alertrules.AlertDetail(t.(string))
-	}
-	output.GroupByAlertDetails = &groupByAlertDetails
-
-	key = "by_custom_details"
-	if withGroupPrefix {
-		key = "group_" + key
-	}
-	output.GroupByCustomDetails = utils.ExpandStringSlice(raw[key].([]interface{}))
-
-	return output
-}
-
-func expandNewAlertRuleGrouping(input []interface{}, withGroupPrefix bool) *newalertrules.GroupingConfiguration {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	output := &newalertrules.GroupingConfiguration{
-		Enabled:              raw["enabled"].(bool),
-		ReopenClosedIncident: raw["reopen_closed_incidents"].(bool),
-		LookbackDuration:     raw["lookback_duration"].(string),
-		MatchingMethod:       newalertrules.MatchingMethod(raw["entity_matching_method"].(string)),
-	}
-
-	key := "by_entities"
-	if withGroupPrefix {
-		key = "group_" + key
-	}
-	groupByEntitiesList := raw[key].([]interface{})
-	groupByEntities := make([]newalertrules.EntityMappingType, len(groupByEntitiesList))
-	for idx, t := range groupByEntitiesList {
-		groupByEntities[idx] = newalertrules.EntityMappingType(t.(string))
-	}
-	output.GroupByEntities = &groupByEntities
-
-	key = "by_alert_details"
-	if withGroupPrefix {
-		key = "group_" + key
-	}
-	groupByAlertDetailsList := raw[key].([]interface{})
-	groupByAlertDetails := make([]newalertrules.AlertDetail, len(groupByAlertDetailsList))
-	for idx, t := range groupByAlertDetailsList {
-		groupByAlertDetails[idx] = newalertrules.AlertDetail(t.(string))
 	}
 	output.GroupByAlertDetails = &groupByAlertDetails
 
@@ -410,56 +270,6 @@ func flattenAlertRuleEventGroupingSetting(input *alertrules.EventGroupingSetting
 	}
 }
 
-func flattenNewAlertRuleGrouping(input *newalertrules.GroupingConfiguration, withGroupPrefix bool) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var groupByEntities []interface{}
-	if input.GroupByEntities != nil {
-		for _, entity := range *input.GroupByEntities {
-			groupByEntities = append(groupByEntities, string(entity))
-		}
-	}
-
-	var groupByAlertDetails []interface{}
-	if input.GroupByAlertDetails != nil {
-		for _, detail := range *input.GroupByAlertDetails {
-			groupByAlertDetails = append(groupByAlertDetails, string(detail))
-		}
-	}
-
-	var groupByCustomDetails []interface{}
-	if input.GroupByCustomDetails != nil {
-		for _, detail := range *input.GroupByCustomDetails {
-			groupByCustomDetails = append(groupByCustomDetails, detail)
-		}
-	}
-
-	var (
-		k1 = "by_entities"
-		k2 = "by_alert_details"
-		k3 = "by_custom_details"
-	)
-
-	if withGroupPrefix {
-		k1 = "group_" + k1
-		k2 = "group_" + k2
-		k3 = "group_" + k3
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":                 input.Enabled,
-			"lookback_duration":       input.LookbackDuration,
-			"reopen_closed_incidents": input.ReopenClosedIncident,
-			"entity_matching_method":  string(input.MatchingMethod),
-			k1:                        groupByEntities,
-			k2:                        groupByAlertDetails,
-			k3:                        groupByCustomDetails,
-		},
-	}
-}
-
 func expandAlertRuleAlertDetailsOverride(input []interface{}) *alertrules.AlertDetailsOverride {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -482,33 +292,6 @@ func expandAlertRuleAlertDetailsOverride(input []interface{}) *alertrules.AlertD
 	}
 	if v := b["dynamic_property"]; v != nil && len(v.([]interface{})) > 0 {
 		output.AlertDynamicProperties = expandAlertRuleAlertDynamicProperties(v.([]interface{}))
-	}
-
-	return output
-}
-
-func expandNewAlertRuleAlertDetailsOverride(input []interface{}) *newalertrules.AlertDetailsOverride {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	b := input[0].(map[string]interface{})
-	output := &newalertrules.AlertDetailsOverride{}
-
-	if v := b["description_format"]; v != "" {
-		output.AlertDescriptionFormat = pointer.To(v.(string))
-	}
-	if v := b["display_name_format"]; v != "" {
-		output.AlertDisplayNameFormat = pointer.To(v.(string))
-	}
-	if v := b["severity_column_name"]; v != "" {
-		output.AlertSeverityColumnName = pointer.To(v.(string))
-	}
-	if v := b["tactics_column_name"]; v != "" {
-		output.AlertTacticsColumnName = pointer.To(v.(string))
-	}
-	if v := b["dynamic_property"]; v != nil && len(v.([]interface{})) > 0 {
-		output.AlertDynamicProperties = expandNewAlertRuleAlertDynamicProperties(v.([]interface{}))
 	}
 
 	return output
@@ -555,31 +338,6 @@ func flattenAlertRuleAlertDetailsOverride(input *alertrules.AlertDetailsOverride
 	}
 }
 
-func flattenNewAlertRuleAlertDetailsOverride(input *newalertrules.AlertDetailsOverride) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	descriptionFormat := pointer.From(input.AlertDescriptionFormat)
-	displayNameFormat := pointer.From(input.AlertDisplayNameFormat)
-	severityColumnName := pointer.From(input.AlertSeverityColumnName)
-	tacticsColumnName := pointer.From(input.AlertTacticsColumnName)
-	var dynamicProperties []interface{}
-	if input.AlertDynamicProperties != nil {
-		dynamicProperties = flattenNewAlertRuleAlertDynamicProperties(input.AlertDynamicProperties)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"description_format":   descriptionFormat,
-			"display_name_format":  displayNameFormat,
-			"severity_column_name": severityColumnName,
-			"tactics_column_name":  tacticsColumnName,
-			"dynamic_property":     dynamicProperties,
-		},
-	}
-}
-
 func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.AlertPropertyMapping {
 	if len(input) == 0 || input[0] == nil {
 		return nil
@@ -598,45 +356,7 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 	return &output
 }
 
-func expandNewAlertRuleAlertDynamicProperties(input []interface{}) *[]newalertrules.AlertPropertyMapping {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	output := make([]newalertrules.AlertPropertyMapping, 0, len(input))
-	for _, v := range input {
-		b := v.(map[string]interface{})
-		property := newalertrules.AlertProperty(b["name"].(string))
-		output = append(output, newalertrules.AlertPropertyMapping{
-			AlertProperty: &property,
-			Value:         pointer.To(b["value"].(string)),
-		})
-	}
-
-	return &output
-}
-
 func flattenAlertRuleAlertDynamicProperties(input *[]alertrules.AlertPropertyMapping) []interface{} {
-	if input == nil || len(*input) == 0 {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0, len(*input))
-	for _, i := range *input {
-		name := ""
-		if i.AlertProperty != nil {
-			name = string(*i.AlertProperty)
-		}
-		output = append(output, map[string]interface{}{
-			"name":  name,
-			"value": i.Value,
-		})
-	}
-
-	return output
-}
-
-func flattenNewAlertRuleAlertDynamicProperties(input *[]newalertrules.AlertPropertyMapping) []interface{} {
 	if input == nil || len(*input) == 0 {
 		return []interface{}{}
 	}
@@ -674,24 +394,6 @@ func expandAlertRuleEntityMapping(input []interface{}) *[]alertrules.EntityMappi
 	return &result
 }
 
-func expandNewAlertRuleEntityMapping(input []interface{}) *[]newalertrules.EntityMapping {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]newalertrules.EntityMapping, 0, len(input))
-	for _, e := range input {
-		b := e.(map[string]interface{})
-		mappingType := newalertrules.EntityMappingType(b["entity_type"].(string))
-		result = append(result, newalertrules.EntityMapping{
-			EntityType:    &mappingType,
-			FieldMappings: expandNewAlertRuleFieldMapping(b["field_mapping"].([]interface{})),
-		})
-	}
-
-	return &result
-}
-
 func flattenAlertRuleEntityMapping(input *[]alertrules.EntityMapping) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -706,26 +408,6 @@ func flattenAlertRuleEntityMapping(input *[]alertrules.EntityMapping) []interfac
 		output = append(output, map[string]interface{}{
 			"entity_type":   entityType,
 			"field_mapping": flattenAlertRuleFieldMapping(e.FieldMappings),
-		})
-	}
-
-	return output
-}
-
-func flattenNewAlertRuleEntityMapping(input *[]newalertrules.EntityMapping) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0, len(*input))
-	for _, e := range *input {
-		entityType := ""
-		if e.EntityType != nil {
-			entityType = string(*e.EntityType)
-		}
-		output = append(output, map[string]interface{}{
-			"entity_type":   entityType,
-			"field_mapping": flattenNewAlertRuleFieldMapping(e.FieldMappings),
 		})
 	}
 
@@ -749,50 +431,7 @@ func expandAlertRuleFieldMapping(input []interface{}) *[]alertrules.FieldMapping
 	return &result
 }
 
-func expandNewAlertRuleFieldMapping(input []interface{}) *[]newalertrules.FieldMapping {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]newalertrules.FieldMapping, 0, len(input))
-	for _, e := range input {
-		b := e.(map[string]interface{})
-		result = append(result, newalertrules.FieldMapping{
-			Identifier: pointer.To(b["identifier"].(string)),
-			ColumnName: pointer.To(b["column_name"].(string)),
-		})
-	}
-
-	return &result
-}
-
 func flattenAlertRuleFieldMapping(input *[]alertrules.FieldMapping) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0, len(*input))
-	for _, e := range *input {
-		var identifier string
-		if e.Identifier != nil {
-			identifier = *e.Identifier
-		}
-
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
-		output = append(output, map[string]interface{}{
-			"identifier":  identifier,
-			"column_name": columnName,
-		})
-	}
-
-	return output
-}
-
-func flattenNewAlertRuleFieldMapping(input *[]newalertrules.FieldMapping) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -834,43 +473,7 @@ func expandAlertRuleSentinelEntityMapping(input []interface{}) *[]alertrules.Sen
 	return &result
 }
 
-func expandNewAlertRuleSentinelEntityMapping(input []interface{}) *[]newalertrules.SentinelEntityMapping {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := make([]newalertrules.SentinelEntityMapping, 0, len(input))
-	for _, e := range input {
-		b := e.(map[string]interface{})
-		result = append(result, newalertrules.SentinelEntityMapping{
-			ColumnName: utils.String(b["column_name"].(string)),
-		})
-	}
-
-	return &result
-}
-
 func flattenAlertRuleSentinelEntityMapping(input *[]alertrules.SentinelEntityMapping) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0, len(*input))
-	for _, e := range *input {
-		var columnName string
-		if e.ColumnName != nil {
-			columnName = *e.ColumnName
-		}
-
-		output = append(output, map[string]interface{}{
-			"column_name": columnName,
-		})
-	}
-
-	return output
-}
-
-func flattenNewAlertRuleSentinelEntityMapping(input *[]newalertrules.SentinelEntityMapping) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
