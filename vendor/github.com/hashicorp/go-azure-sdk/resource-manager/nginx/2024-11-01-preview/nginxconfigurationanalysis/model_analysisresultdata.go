@@ -4,5 +4,6 @@ package nginxconfigurationanalysis
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AnalysisResultData struct {
-	Errors *[]AnalysisDiagnostic `json:"errors,omitempty"`
+	Diagnostics *[]DiagnosticItem     `json:"diagnostics,omitempty"`
+	Errors      *[]AnalysisDiagnostic `json:"errors,omitempty"`
 }
