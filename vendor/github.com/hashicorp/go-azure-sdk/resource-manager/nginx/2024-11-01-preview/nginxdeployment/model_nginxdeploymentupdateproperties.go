@@ -7,6 +7,7 @@ type NginxDeploymentUpdateProperties struct {
 	AutoUpgradeProfile       *AutoUpgradeProfile                             `json:"autoUpgradeProfile,omitempty"`
 	EnableDiagnosticsSupport *bool                                           `json:"enableDiagnosticsSupport,omitempty"`
 	Logging                  *NginxLogging                                   `json:"logging,omitempty"`
+	NetworkProfile           *NginxNetworkProfile                            `json:"networkProfile,omitempty"`
 	NginxAppProtect          *NginxDeploymentUpdatePropertiesNginxAppProtect `json:"nginxAppProtect,omitempty"`
 	ScalingProperties        *NginxDeploymentScalingProperties               `json:"scalingProperties,omitempty"`
 	UserProfile              *NginxDeploymentUserProfile                     `json:"userProfile,omitempty"`
