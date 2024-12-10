@@ -10,6 +10,7 @@ BREAKING CHANGES:
 ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241206.1180327` [GH-28211]
+* `nginx` - update api version to `2024-11-01-preview` [GH-28227]
 * `azurerm_linux_function_app` - add support for  preview  value `21` for `java_version` [GH-26304]
 * `azurerm_linux_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` [GH-28016]
 * `azurerm_linux_web_app` - add support for  preview  value `21` for `java_version` [GH-26304]
