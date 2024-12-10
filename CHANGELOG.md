@@ -7,6 +7,10 @@ BREAKING CHANGES:
 * Data Source: `azurerm_nginx_deployment` - the property `managed_resource_group` will not be populated and has been deprecated [GH-27776]
 * `azurerm_nginx_deployment` - the property `managed_resource_group` is no longer supported and has been deprecated [GH-27776]
 
+FEATURES:
+
+* **New Resource**: `azurerm_fabric_capacity` [GH-28080]
+
 ENHANCEMENTS:
 
 * dependencies - update `go-azure-sdk` to `v0.20241206.1180327` [GH-28211]
