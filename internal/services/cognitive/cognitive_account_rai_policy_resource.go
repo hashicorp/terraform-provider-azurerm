@@ -41,7 +41,6 @@ type AccountRaiPolicyResourceModel struct {
 	CustomBlockList []AccountRaiPolicyCustomBlock   `tfschema:"custom_blocklist"`
 	Mode            string                          `tfschema:"mode"`
 	Tags            map[string]string               `tfschema:"tags"`
-	Type            string                          `tfschema:"type"`
 }
 
 func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -134,10 +133,6 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 
 func (r CognitiveAccountRaiPolicyResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
@@ -158,7 +153,7 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 
 			var model AccountRaiPolicyResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			cognitiveAccountId, err := raipolicies.ParseAccountID(model.AccountId)
@@ -168,8 +163,10 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 
 			id := raipolicies.NewRaiPolicyID(subscriptionId, cognitiveAccountId.ResourceGroupName, cognitiveAccountId.AccountName, model.Name)
 			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -221,11 +218,12 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := AccountRaiPolicyResourceModel{}
+			state := AccountRaiPolicyResourceModel{
+				Name: id.Name,
+				AccountId: cognitiveAccountId.ID(),
+			}
 
 			if model := resp.Model; model != nil {
-				state.Name = pointer.From(model.Name)
-				state.AccountId = cognitiveAccountId.ID()
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
@@ -260,9 +258,6 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
@@ -362,11 +357,12 @@ func expandCustomBlockLists(list []AccountRaiPolicyCustomBlock) *[]raipolicies.C
 }
 
 func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig) []AccountRaiPolicyCustomBlock {
+	customBlockLists := make([]AccountRaiPolicyCustomBlock, 0)
 	if blocklists == nil {
-		return nil
+		return customBlockLists
 	}
 
-	customBlockLists := make([]AccountRaiPolicyCustomBlock, 0, len(*blocklists))
+	
 	for _, block := range *blocklists {
 		customBlockLists = append(customBlockLists, AccountRaiPolicyCustomBlock{
 			Name:         pointer.From(block.BlocklistName),
@@ -378,11 +374,12 @@ func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig)
 }
 
 func flattenRaiPolicyContentFilters(filters *[]raipolicies.RaiPolicyContentFilter) []AccountRaiPolicyContentFilter {
+	contentFilters := make([]AccountRaiPolicyContentFilter, 0)
 	if filters == nil {
-		return nil
+		return contentFilters
 	}
 
-	contentFilters := make([]AccountRaiPolicyContentFilter, 0, len(*filters))
+	
 	for _, filter := range *filters {
 		contentFilters = append(contentFilters, AccountRaiPolicyContentFilter{
 			Name:              pointer.From(filter.Name),

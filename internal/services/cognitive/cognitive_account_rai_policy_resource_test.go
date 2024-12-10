@@ -62,7 +62,7 @@ func (r RaiPolicyTestResource) Exists(ctx context.Context, client *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r RaiPolicyTestResource) basicConfig(data acceptance.TestData) string {
+func (r RaiPolicyTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

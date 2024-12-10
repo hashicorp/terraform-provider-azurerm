@@ -33,7 +33,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	raiPoliciesClient, err := raipolicies.NewRaiPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building RaiPolicies client: %+v", err)
+		return nil, fmt.Errorf("building Rai Policies client: %+v", err)
 	}
 	o.Configure(raiPoliciesClient.Client, o.Authorizers.ResourceManager)
 
