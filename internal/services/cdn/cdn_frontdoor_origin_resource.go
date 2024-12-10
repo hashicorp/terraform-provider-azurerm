@@ -131,6 +131,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 								"blob",
 								"blob_secondary",
 								"sites",
+								"managedEnvironments",
 								"web",
 							}, false),
 						},
