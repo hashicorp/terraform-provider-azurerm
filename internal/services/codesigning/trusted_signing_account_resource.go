@@ -41,7 +41,7 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(3, 24),
 				validation.StringMatch(
-					regexp.MustCompile("^[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*$"),
+					regexp.MustCompile("^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$"),
 					"An account's name must be between 3-24 alphanumeric characters. The name must begin with a letter, end with a letter or digit, and not contain consecutive hyphens.",
 				),
 			),
