@@ -132,8 +132,7 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 }
 
 func (r CognitiveAccountRaiPolicyResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r CognitiveAccountRaiPolicyResource) ModelObject() interface{} {
@@ -178,12 +177,18 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 			raiPolicy := raipolicies.RaiPolicy{
 				Name: pointer.To(model.Name),
 				Properties: &raipolicies.RaiPolicyProperties{
-					BasePolicyName:   pointer.To(model.BasePolicyName),
-					ContentFilters:   expandRaiPolicyContentFilters(model.ContentFilter),
-					CustomBlocklists: expandCustomBlockLists(model.CustomBlockList),
-					Mode:             pointer.To(raipolicies.RaiPolicyMode(model.Mode)),
+					BasePolicyName: pointer.To(model.BasePolicyName),
+					ContentFilters: expandRaiPolicyContentFilters(model.ContentFilter),
 				},
 				Tags: pointer.To(model.Tags),
+			}
+
+			if model.CustomBlockList != nil {
+				raiPolicy.Properties.CustomBlocklists = expandCustomBlockLists(model.CustomBlockList)
+			}
+
+			if model.Mode != "" {
+				raiPolicy.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, raiPolicy); err != nil {
@@ -219,7 +224,7 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 			}
 
 			state := AccountRaiPolicyResourceModel{
-				Name: id.Name,
+				Name:      id.RaiPolicyName,
 				AccountId: cognitiveAccountId.ID(),
 			}
 
@@ -231,7 +236,6 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 					state.ContentFilter = flattenRaiPolicyContentFilters(props.ContentFilters)
 					state.CustomBlockList = flattenRaiCustomBlockLists(props.CustomBlocklists)
 					state.Mode = string(pointer.From(props.Mode))
-					state.Type = string(pointer.From(props.Type))
 				}
 			}
 
@@ -256,9 +260,17 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			cognitiveAccountId := raipolicies.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName)
@@ -266,25 +278,25 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 			locks.ByID(cognitiveAccountId.ID())
 			defer locks.UnlockByID(cognitiveAccountId.ID())
 
-			props := resp.Model
+			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("content_filter") {
-				props.Properties.ContentFilters = expandRaiPolicyContentFilters(model.ContentFilter)
+				payload.Properties.ContentFilters = expandRaiPolicyContentFilters(model.ContentFilter)
 			}
 
 			if metadata.ResourceData.HasChange("custom_blocklist") {
-				props.Properties.CustomBlocklists = expandCustomBlockLists(model.CustomBlockList)
+				payload.Properties.CustomBlocklists = expandCustomBlockLists(model.CustomBlockList)
 			}
 
 			if metadata.ResourceData.HasChange("mode") {
-				props.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
+				payload.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				props.Tags = pointer.To(model.Tags)
+				payload.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *props); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -362,7 +374,6 @@ func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig)
 		return customBlockLists
 	}
 
-	
 	for _, block := range *blocklists {
 		customBlockLists = append(customBlockLists, AccountRaiPolicyCustomBlock{
 			Name:         pointer.From(block.BlocklistName),
@@ -379,7 +390,6 @@ func flattenRaiPolicyContentFilters(filters *[]raipolicies.RaiPolicyContentFilte
 		return contentFilters
 	}
 
-	
 	for _, filter := range *filters {
 		contentFilters = append(contentFilters, AccountRaiPolicyContentFilter{
 			Name:              pointer.From(filter.Name),

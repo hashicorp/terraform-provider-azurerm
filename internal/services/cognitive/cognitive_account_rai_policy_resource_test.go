@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -19,7 +20,12 @@ func TestCognitiveAccountRaiPolicy_basic(t *testing.T) {
 	r := RaiPolicyTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.ApplyStep(r.basicConfig, r),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -29,21 +35,45 @@ func TestCognitiveAccountRaiPolicy_requiresImport(t *testing.T) {
 	r := RaiPolicyTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.ApplyStep(r.basicConfig, r),
-		data.RequiresImportErrorStep(r.requiresImportConfig),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_cognitive_account_rai_policy"),
+		},
 	})
 }
 
-func TestCognitiveAccountRaiPolicy_complete(t *testing.T) {
+func TestCognitiveAccountRaiPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_policy", "test")
 	r := RaiPolicyTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		data.ApplyStep(r.completeConfig, r),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
-		data.ApplyStep(r.basicConfig, r),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mode").HasValue("Asynchronous_filter"),
+			),
+		},
 		data.ImportStep(),
-		data.ApplyStep(r.completeConfig, r),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -96,7 +126,7 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r RaiPolicyTestResource) completeConfig(data acceptance.TestData) string {
+func (r RaiPolicyTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -134,8 +164,8 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
-func (r RaiPolicyTestResource) requiresImportConfig(data acceptance.TestData) string {
-	template := r.basicConfig(data)
+func (r RaiPolicyTestResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 

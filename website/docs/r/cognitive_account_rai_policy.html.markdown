@@ -92,16 +92,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cognitive Service Account RAI Policy.
 
-* `type` - The type of the Cognitive Service Account RAI Policy. Possible values are `SystemManaged` or `UserManaged`.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
+* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account RAI Policy.
+
+* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account RAI Policy.
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account RAI Policy.
+
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account RAI Policy.
 
 ## Import
 
