@@ -852,7 +852,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.StorageAccessKey = utils.String(v.(string))
 		}
 
-		if v, ok := config["encryption_password"]; ok {
+		if v, ok := config["encryption_password"]; ok && v.(string) != "" {
 			ret.EnableEncryption = utils.Bool(true)
 			ret.Password = utils.String(v.(string))
 		} else {
