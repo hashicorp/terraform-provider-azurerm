@@ -169,13 +169,13 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ArcKubernetesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ArcKubernetesProvisionedClusterModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := arckubernetes.NewConnectedClusterID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.ConnectedClusterGet(ctx, id)
@@ -222,6 +222,7 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
