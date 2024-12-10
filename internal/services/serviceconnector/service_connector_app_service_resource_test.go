@@ -557,7 +557,7 @@ resource "azurerm_app_service_connection" "test" {
   app_service_id     = azurerm_linux_web_app.test.id
   target_resource_id = azurerm_cosmosdb_sql_database.test.id
   client_type        = "java"
-  vnet_solution      = "serviceEndpoint"
+
   authentication {
     type = "systemAssignedIdentity"
   }
