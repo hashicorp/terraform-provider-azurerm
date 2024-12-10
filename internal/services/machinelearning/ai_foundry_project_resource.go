@@ -28,7 +28,6 @@ type AIFoundryProjectModel struct {
 	AIServicesHubId           string                                     `tfschema:"ai_services_hub_id"`
 	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	HighBusinessImpactEnabled bool                                       `tfschema:"high_business_impact_enabled"`
-	ImageBuildComputeName     string                                     `tfschema:"image_build_compute_name"`
 	Description               string                                     `tfschema:"description"`
 	FriendlyName              string                                     `tfschema:"friendly_name"`
 	ProjectId                 string                                     `tfschema:"project_id"`
@@ -101,12 +100,6 @@ func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 			// NOTE: O+C creating a project that has encryption enabled with system assigned identity will set this property to true
 			Computed: true,
 			ForceNew: true,
-		},
-
-		"image_build_compute_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"description": {
@@ -193,10 +186,6 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 				payload.Properties.HbiWorkspace = pointer.To(model.HighBusinessImpactEnabled)
 			}
 
-			if model.ImageBuildComputeName != "" {
-				payload.Properties.ImageBuildCompute = pointer.To(model.ImageBuildComputeName)
-			}
-
 			if err = client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -245,10 +234,6 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 			payload.Properties.ContainerRegistry = nil
 			payload.Properties.ApplicationInsights = nil
 			payload.Properties.Encryption = nil
-
-			if metadata.ResourceData.HasChange("image_build_compute_name") {
-				payload.Properties.ImageBuildCompute = pointer.To(state.ImageBuildComputeName)
-			}
 
 			if metadata.ResourceData.HasChange("description") {
 				payload.Properties.Description = pointer.To(state.Description)
@@ -324,7 +309,6 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 					hub.Description = pointer.From(props.Description)
 					hub.FriendlyName = pointer.From(props.FriendlyName)
 					hub.HighBusinessImpactEnabled = pointer.From(props.HbiWorkspace)
-					hub.ImageBuildComputeName = pointer.From(props.ImageBuildCompute)
 					hub.ProjectId = pointer.From(props.WorkspaceId)
 				}
 			}

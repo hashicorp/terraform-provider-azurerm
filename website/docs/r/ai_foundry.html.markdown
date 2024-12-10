@@ -104,8 +104,6 @@ The following arguments are supported:
 
 -> **Note:** `high_business_impact_enabled` will be enabled by default when creating an AI Foundry Hub with `encryption` enabled.
 
-* `image_build_compute_name` - (Optional) The compute name for image build of the AI Foundry Hub.
-
 * `managed_network` - (Optional) A `managed_network` block as defined below.
 
 * `primary_user_assigned_identity` - (Optional) The user assigned identity ID that represents the AI Foundry Hub identity. This must be set when enabling encryption with a user assigned identity.

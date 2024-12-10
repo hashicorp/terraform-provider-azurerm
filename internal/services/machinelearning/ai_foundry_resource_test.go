@@ -205,7 +205,6 @@ resource "azurerm_ai_foundry" "test" {
   container_registry_id          = azurerm_container_registry.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
   public_network_access          = "Disabled"
-  image_build_compute_name       = "buildtest"
   description                    = "AI Hub created by Terraform"
   friendly_name                  = "AI Hub"
   high_business_impact_enabled   = true
@@ -279,7 +278,6 @@ resource "azurerm_ai_foundry" "test" {
   container_registry_id          = azurerm_container_registry.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test2.id
   public_network_access          = "Enabled"
-  image_build_compute_name       = "buildtestupdated"
   description                    = "AI Hub for Projects"
   friendly_name                  = "AI Hub for OS models"
   high_business_impact_enabled   = true

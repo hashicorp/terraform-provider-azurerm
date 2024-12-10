@@ -121,7 +121,6 @@ resource "azurerm_ai_foundry_project" "test" {
   location           = azurerm_ai_foundry.test.location
   ai_services_hub_id = azurerm_ai_foundry.test.id
 
-  image_build_compute_name     = "projectbuild"
   description                  = "AI Project created by Terraform"
   friendly_name                = "AI Project"
   high_business_impact_enabled = false
@@ -152,7 +151,6 @@ resource "azurerm_ai_foundry_project" "test" {
   location           = azurerm_ai_foundry.test.location
   ai_services_hub_id = azurerm_ai_foundry.test.id
 
-  image_build_compute_name     = "projectbuildupdate"
   description                  = "AI Project updated by Terraform"
   friendly_name                = "AI Project for OS models"
   high_business_impact_enabled = false

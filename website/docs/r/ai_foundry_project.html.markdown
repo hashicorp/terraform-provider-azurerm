@@ -98,8 +98,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `image_build_compute_name` - (Optional) The compute name for image build of the AI Foundry Project.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the AI Foundry Project.
 
 ---

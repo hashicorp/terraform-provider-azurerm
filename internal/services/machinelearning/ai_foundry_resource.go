@@ -42,7 +42,6 @@ type AIFoundryModel struct {
 	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
 	HighBusinessImpactEnabled   bool                                       `tfschema:"high_business_impact_enabled"`
-	ImageBuildComputeName       string                                     `tfschema:"image_build_compute_name"`
 	Description                 string                                     `tfschema:"description"`
 	FriendlyName                string                                     `tfschema:"friendly_name"`
 	DiscoveryUrl                string                                     `tfschema:"discovery_url"`
@@ -200,12 +199,6 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
-		"image_build_compute_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -316,10 +309,6 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				payload.Properties.HbiWorkspace = pointer.To(model.HighBusinessImpactEnabled)
 			}
 
-			if model.ImageBuildComputeName != "" {
-				payload.Properties.ImageBuildCompute = pointer.To(model.ImageBuildComputeName)
-			}
-
 			if model.PrimaryUserAssignedIdentity != "" {
 				userAssignedId, err := commonids.ParseUserAssignedIdentityID(model.PrimaryUserAssignedIdentity)
 				if err != nil {
@@ -394,10 +383,6 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("public_network_access") {
 				payload.Properties.PublicNetworkAccess = pointer.To(workspaces.PublicNetworkAccess(state.PublicNetworkAccess))
-			}
-
-			if metadata.ResourceData.HasChange("image_build_compute_name") {
-				payload.Properties.ImageBuildCompute = pointer.To(state.ImageBuildComputeName)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -508,7 +493,6 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 					hub.Description = pointer.From(props.Description)
 					hub.FriendlyName = pointer.From(props.FriendlyName)
 					hub.HighBusinessImpactEnabled = pointer.From(props.HbiWorkspace)
-					hub.ImageBuildComputeName = pointer.From(props.ImageBuildCompute)
 					hub.PublicNetworkAccess = string(*props.PublicNetworkAccess)
 					hub.DiscoveryUrl = pointer.From(props.DiscoveryURL)
 					hub.WorkspaceId = pointer.From(props.WorkspaceId)
