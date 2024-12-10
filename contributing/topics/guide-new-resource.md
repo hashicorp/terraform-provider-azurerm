@@ -739,7 +739,7 @@ func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupExampleTestResource) basicConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -764,7 +764,7 @@ resource "azurerm_resource_group_example" "import" {
 `, template)
 }
 
-func (ResourceGroupExampleTestResource) completeConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
