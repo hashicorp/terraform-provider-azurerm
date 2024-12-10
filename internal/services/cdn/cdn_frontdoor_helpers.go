@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn"             // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
@@ -108,64 +109,61 @@ func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
 	return input == cdn.HTTPSRedirectEnabled
 }
 
-func expandFrontDoorTags(tagMap *map[string]string) map[string]*string {
-	t := make(map[string]*string)
-
-	if tagMap != nil {
-		for k, v := range *tagMap {
-			tagKey := k
-			tagValue := v
-			t[tagKey] = &tagValue
-		}
-	}
-
-	return t
-}
-
-func flattenFrontDoorTags(tagMap map[string]*string) *map[string]string {
+func expandFrontDoorTagsPointer(tagMap map[string]interface{}) *map[string]string {
 	t := make(map[string]string)
 
 	for k, v := range tagMap {
 		tagKey := k
 		tagValue := v
-		if tagValue == nil {
-			continue
-		}
-		t[tagKey] = *tagValue
+		t[tagKey] = tagValue.(string)
 	}
 
-	return &t
+	return pointer.To(t)
 }
 
-func flattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
+func flattenFrontDoorTags(tagMap *map[string]string) map[string]interface{} {
+	if tagMap == nil {
+		return make(map[string]interface{}, 0)
+	}
+
+	t := make(map[string]interface{}, len(*tagMap))
+
+	for k, v := range *tagMap {
+		if v == "" {
+			continue
+		}
+
+		t[k] = v
+	}
+
+	return t
+}
+
+func flattenTransformSlice(input *[]waf.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
 
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, string(item))
-		}
+	for _, item := range *input {
+		result = append(result, string(item))
 	}
 
 	return result
 }
 
-func flattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
+func flattenFrontendEndpointLinkSlice(input *[]waf.FrontendEndpointLink) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return result
 	}
 
-	if input != nil {
-		for _, item := range *input {
-			if item.ID == nil {
-				continue
-			}
-
-			result = append(result, *item.ID)
+	for _, item := range *input {
+		if item.Id == nil {
+			continue
 		}
+
+		result = append(result, *item.Id)
 	}
 
 	return result

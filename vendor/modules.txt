@@ -309,6 +309,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilities
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilitytypes
@@ -544,6 +546,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidre
 github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers
 github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors
+github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13
 github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods
 github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments

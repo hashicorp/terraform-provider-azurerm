@@ -120,9 +120,10 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 
 	if !features.FivePointOhBeta() {
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Default:    string(cdn.AfdMinimumTLSVersionTLS12),
+			Deprecated: "As of March 1, 2025, support for 'TLS10' will be retired from Azure Front Door, therefore the 'TLS10' property value will be removed in v5.0 of the provider.",
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cdn.AfdMinimumTLSVersionTLS12),
 				string(cdn.AfdMinimumTLSVersionTLS10),
