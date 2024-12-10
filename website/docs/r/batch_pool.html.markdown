@@ -507,13 +507,13 @@ A `task_scheduling_policy` block supports the following:
 ---
 A `security_profile` block supports the following:
 
-* `host_encryption_enabled` - (Optional) Whether to enable host encryption for the virtual machine or virtual machine scale set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. Possible values are `true` and `false`.
+* `host_encryption_enabled` - (Optional) Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. Possible values are `true` and `false`.
 
-* `security_type` - (Optional) The security type of the virtual machine. Possible values are `confidentialVM` and `trustedLaunch`.
+* `security_type` - (Optional) The security type of the Virtual Machine. Possible values are `confidentialVM` and `trustedLaunch`.
 
-* `secure_boot_enabled` - (Optional) Whether to enable secure boot for the virtual machine or virtual machine scale set. Possible values are `true` and `false`.
+* `secure_boot_enabled` - (Optional) Whether to enable secure boot for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`.
 
-* `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the virtual machine or virtual machine scale set. Possible values are `true` and `false`.
+* `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`.
 
 ~> **NOTE:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
 

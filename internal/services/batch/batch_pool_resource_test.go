@@ -2677,12 +2677,12 @@ func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
+  name                = "acctestbatch%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
+  name                = "acctestpool%s"
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
