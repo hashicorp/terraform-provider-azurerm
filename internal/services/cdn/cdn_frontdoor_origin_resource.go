@@ -130,8 +130,8 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"blob",
 								"blob_secondary",
-								"sites",
 								"managedEnvironments",
+								"sites",
 								"web",
 							}, false),
 						},
