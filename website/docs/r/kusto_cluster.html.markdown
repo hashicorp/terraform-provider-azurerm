@@ -70,8 +70,6 @@ The following arguments are supported:
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.
 
-~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state forces a new resource to be created.
-
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
 
 ~> **NOTE:** In `v4.0.0` and later version of the AzureRM Provider, `language_extensions` will be changed to a list of `language_extension` block. In each block, `name` and `image` are required. `name` is the name of the language extension, possible values are `PYTHON`, `R`. `image` is the image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
@@ -100,11 +98,13 @@ A `sku` block supports the following:
 
 A `virtual_network_configuration` block supports the following:
 
-* `subnet_id` - (Required) The subnet resource id.
+~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. Restoring the `virtual_network_configuration` with the same configuration will set the `virtual_network_configuration` to `Enabled` state.
 
-* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
+* `subnet_id` - (Required) The subnet resource id. This property could not be changed after the cluster is created.
 
-* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id. This property could not be changed after the cluster is created.
+
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id. This property could not be changed after the cluster is created.
 
 ---
 
