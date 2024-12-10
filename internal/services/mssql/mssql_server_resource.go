@@ -156,7 +156,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0: Switch this field to use None pattern...
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -300,7 +299,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
 	}
 
-	// TODO 4.0: Switch this field to use None pattern...
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
 	}
