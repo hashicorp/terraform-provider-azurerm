@@ -60,7 +60,7 @@ func (r TrustedSigningCertificateProfileResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(3, 24),
 				validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*(?:-[a-zA-Z0-9]+)*[a-zA-Z0-9]$"),
+					regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*(?:-[a-zA-Z0-9]+)*$"),
 					"A certificate profile's name must be between 3-24 alphanumeric characters. The name must begin with a letter, end with a letter or digit, and not contain consecutive hyphens.",
 				)),
 		},
