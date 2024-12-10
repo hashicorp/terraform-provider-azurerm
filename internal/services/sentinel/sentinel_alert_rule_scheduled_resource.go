@@ -426,7 +426,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Properties.TemplateVersion = utils.String(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
-		param.Properties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
 		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
@@ -529,7 +529,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 				d.Set("alert_rule_template_version", prop.TemplateVersion)
 
-				if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+				if err := d.Set("event_grouping", flattenAlertRuleEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
 					return fmt.Errorf("setting `event_grouping`: %+v", err)
 				}
 				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
@@ -566,37 +566,4 @@ func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func expandAlertRuleScheduledEventGroupingSetting(input []interface{}) *alertrules.EventGroupingSettings {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	result := alertrules.EventGroupingSettings{}
-
-	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
-		result.AggregationKind = &kind
-	}
-
-	return &result
-}
-
-func flattenAlertRuleScheduledEventGroupingSetting(input *alertrules.EventGroupingSettings) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var aggregationKind string
-	if input.AggregationKind != nil {
-		aggregationKind = string(*input.AggregationKind)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"aggregation_method": aggregationKind,
-		},
-	}
 }
