@@ -94,7 +94,6 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 	client := clients.Cdn.FrontDoorProfilesClient
 	resp, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
-
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
