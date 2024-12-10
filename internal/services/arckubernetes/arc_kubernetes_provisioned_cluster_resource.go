@@ -198,7 +198,7 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := &arckubernetes.ConnectedCluster{
-				Identity: *expandedIdentity,
+				Identity: pointer.From(expandedIdentity),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Kind:     pointer.To(arckubernetes.ConnectedClusterKindProvisionedCluster),
