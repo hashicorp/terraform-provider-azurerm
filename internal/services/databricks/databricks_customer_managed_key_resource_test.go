@@ -20,8 +20,8 @@ import (
 type DatabricksWorkspaceCustomerManagedKeyResource struct{}
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Resource no longer exists in 4.0")
+	if features.FivePointOhBeta() {
+		t.Skip("Resource no longer exists in 5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
@@ -43,8 +43,8 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Resource no longer exists in 4.0")
+	if features.FivePointOhBeta() {
+		t.Skip("Resource no longer exists in 5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
@@ -73,8 +73,8 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Resource no longer exists in 4.0")
+	if features.FivePointOhBeta() {
+		t.Skip("Resource no longer exists in 5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
@@ -94,8 +94,8 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Resource no longer exists in 4.0")
+	if features.FivePointOhBeta() {
+		t.Skip("Resource no longer exists in 5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")

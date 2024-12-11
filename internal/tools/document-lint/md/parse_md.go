@@ -355,7 +355,7 @@ func (m *Mark) buildStruct() {
 }
 
 func (m *Mark) BuildResourceDoc() *model.ResourceDoc {
-	var doc = model.NewResourceDoc()
+	doc := model.NewResourceDoc()
 	for _, f := range m.Fields {
 		if f.Pos == model.PosArgs {
 			doc.Args.AddField(f)

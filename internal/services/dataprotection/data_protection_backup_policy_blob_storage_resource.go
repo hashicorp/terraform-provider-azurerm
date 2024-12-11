@@ -528,7 +528,7 @@ func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []backuppo
 
 	for _, item := range input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+			if len(retentionRule.Lifecycles) > 0 {
 				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
 					if (retentionRule.Lifecycles)[0].SourceDataStore.DataStoreType == dsType {
 						return deleteOption.Duration

@@ -60,9 +60,11 @@ type MsSqlManagedInstanceModel struct {
 	Tags                         map[string]string                   `tfschema:"tags"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceResource{}
-var _ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+var (
+	_ sdk.Resource                  = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithUpdate        = MsSqlManagedInstanceResource{}
+	_ sdk.ResourceWithCustomizeDiff = MsSqlManagedInstanceResource{}
+)
 
 type MsSqlManagedInstanceResource struct{}
 
@@ -484,7 +486,6 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			model := MsSqlManagedInstanceModel{}
 
 			if existing.Model != nil {
-
 				model = MsSqlManagedInstanceModel{
 					Name:              id.ManagedInstanceName,
 					Location:          location.NormalizeNilable(&existing.Model.Location),
@@ -589,7 +590,7 @@ func (r MsSqlManagedInstanceResource) flattenIdentity(input *identity.LegacySyst
 		return nil
 	}
 
-	var identityIds = make([]string, 0)
+	identityIds := make([]string, 0)
 	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {

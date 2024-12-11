@@ -62,6 +62,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Bastion Host.
 
+* `zones` - A list of Availability Zones in which this Bastion Host is located.
+
 ---
 
 A `ip_configuration` block supports the following:

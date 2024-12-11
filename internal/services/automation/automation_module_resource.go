@@ -4,6 +4,7 @@
 package automation
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -160,7 +161,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 						provisioningState = string(*props.ProvisioningState)
 					}
 					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-						return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+						return resp, provisioningState, errors.New(*props.Error.Message)
 					}
 					return resp, provisioningState, nil
 				}

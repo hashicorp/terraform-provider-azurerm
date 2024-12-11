@@ -27,7 +27,6 @@ func TestSqlVirtualMachineID(t *testing.T) {
 		Error    bool
 		Expected *SqlVirtualMachineId
 	}{
-
 		{
 			// empty
 			Input: "",

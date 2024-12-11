@@ -434,7 +434,6 @@ func FlattenEstimatedPatchingTimes(estimatedPatchingTime *cloudexadatainfrastruc
 	estimatedPatchingTimes := make([]EstimatedPatchingTimeModel, 0)
 	if estimatedPatchingTime != nil {
 		return append(estimatedPatchingTimes, EstimatedPatchingTimeModel{
-
 			EstimatedDbServerPatchingTime:        pointer.From(estimatedPatchingTime.EstimatedDbServerPatchingTime),
 			EstimatedNetworkSwitchesPatchingTime: pointer.From(estimatedPatchingTime.EstimatedNetworkSwitchesPatchingTime),
 			EstimatedStorageServerPatchingTime:   pointer.From(estimatedPatchingTime.EstimatedStorageServerPatchingTime),
