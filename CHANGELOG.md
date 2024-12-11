@@ -3,9 +3,10 @@
 BREAKING CHANGES:
 
 * `nginx` - update api version to `2024-09-01-preview`, this API no longer supports certain properties which have had to be removed from the provider for the upgrade [GH-27776]
-* Data Source: `azurerm_nginx_configuration` - the property `protected_file.content` will not be populated and has been deprecated [GH-27776]
-* Data Source: `azurerm_nginx_deployment` - the property `managed_resource_group` will not be populated and has been deprecated [GH-27776]
-* `azurerm_nginx_deployment` - the property `managed_resource_group` is no longer supported and has been deprecated [GH-27776]
+* Data Source: `azurerm_nginx_configuration` - the `protected_file.content` property will not be populated and has been deprecated [GH-27776]
+* Data Source: `azurerm_nginx_deployment` - the `managed_resource_group` property will not be populated and has been deprecated [GH-27776]
+* `azurerm_network_function_collector_policy` - the API doesn't preserve the ordering of the `ipfx_ingestion.source_resource_ids` property causing non-empty plans after apply, this property's type has been changed from a list to a set to prevent Terraform from continually trying to recreate this resource. If this property is being referenced anywhere you will need to update your config to convert it to a list before referencing it [GH-27915]
+* `azurerm_nginx_deployment` - the `managed_resource_group` property is no longer supported and has been deprecated [GH-27776]
 
 FEATURES:
 
