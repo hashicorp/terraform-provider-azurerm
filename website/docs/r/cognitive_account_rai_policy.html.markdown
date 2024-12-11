@@ -80,7 +80,7 @@ A `content_filter` block supports the following:
 
 A `custom_blocklist` block supports the following:
 
-* `id` - (Required) The ARM resource ID of the custom blocklist.
+* `rai_blocklist_id` - (Required) The ARM resource ID of the custom blocklist.
 
 * `block_enabled` - (Required) Whether the custom blocklist should block content. Possible values are `true` or `false`.
 

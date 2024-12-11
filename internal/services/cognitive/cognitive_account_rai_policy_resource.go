@@ -29,7 +29,7 @@ type AccountRaiPolicyContentFilter struct {
 }
 
 type AccountRaiPolicyCustomBlock struct {
-	Id           string `tfschema:"id"`
+	Id           string `tfschema:"rai_blocklist_id"`
 	BlockEnabled bool   `tfschema:"block_enabled"`
 	Source       string `tfschema:"source"`
 }
@@ -104,7 +104,7 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"id": {
+					"rai_blocklist_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: raiblocklists.ValidateRaiBlocklistID,
