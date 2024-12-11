@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raiblocklists"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +29,7 @@ type AccountRaiPolicyContentFilter struct {
 }
 
 type AccountRaiPolicyCustomBlock struct {
-	Name         string `tfschema:"name"`
+	Id           string `tfschema:"id"`
 	BlockEnabled bool   `tfschema:"block_enabled"`
 	Source       string `tfschema:"source"`
 }
@@ -103,10 +104,10 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"name": {
+					"id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: raiblocklists.ValidateRaiBlocklistID,
 					},
 					"block_enabled": {
 						Type:     pluginsdk.TypeBool,
@@ -234,7 +235,7 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.BasePolicyName = pointer.From(props.BasePolicyName)
 					state.ContentFilter = flattenRaiPolicyContentFilters(props.ContentFilters)
-					state.CustomBlockList = flattenRaiCustomBlockLists(props.CustomBlocklists)
+					state.CustomBlockList = flattenRaiCustomBlockLists(props.CustomBlocklists, cognitiveAccountId)
 					state.Mode = string(pointer.From(props.Mode))
 				}
 			}
@@ -359,8 +360,13 @@ func expandCustomBlockLists(list []AccountRaiPolicyCustomBlock) *[]raipolicies.C
 
 	customBlockLists := make([]raipolicies.CustomBlocklistConfig, 0, len(list))
 	for _, block := range list {
+		customBlockId, err := raiblocklists.ParseRaiBlocklistID(block.Id)
+		if err != nil {
+			continue
+		}
+
 		customBlockLists = append(customBlockLists, raipolicies.CustomBlocklistConfig{
-			BlocklistName: pointer.To(block.Name),
+			BlocklistName: pointer.To(customBlockId.RaiBlocklistName),
 			Blocking:      pointer.To(block.BlockEnabled),
 			Source:        pointer.To(raipolicies.RaiPolicyContentSource(block.Source)),
 		})
@@ -368,7 +374,7 @@ func expandCustomBlockLists(list []AccountRaiPolicyCustomBlock) *[]raipolicies.C
 	return &customBlockLists
 }
 
-func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig) []AccountRaiPolicyCustomBlock {
+func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig, accountId raipolicies.AccountId) []AccountRaiPolicyCustomBlock {
 	customBlockLists := make([]AccountRaiPolicyCustomBlock, 0)
 	if blocklists == nil {
 		return customBlockLists
@@ -376,7 +382,7 @@ func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig)
 
 	for _, block := range *blocklists {
 		customBlockLists = append(customBlockLists, AccountRaiPolicyCustomBlock{
-			Name:         pointer.From(block.BlocklistName),
+			Id:           raiblocklists.NewRaiBlocklistID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, *block.BlocklistName).ID(),
 			BlockEnabled: pointer.From(block.Blocking),
 			Source:       string(pointer.From(block.Source)),
 		})
