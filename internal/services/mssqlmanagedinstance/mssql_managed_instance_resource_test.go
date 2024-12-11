@@ -560,7 +560,6 @@ resource "azurerm_mssql_managed_instance" "test" {
   storage_account_type         = "ZRS"
   storage_size_in_gb           = 64
   subnet_id                    = azurerm_subnet.test.id
-  timezone_id                  = "Pacific Standard Time"
   vcores                       = 8
   zone_redundant_enabled       = true
 
