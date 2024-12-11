@@ -1378,6 +1378,7 @@ github.com/hashicorp/yamux
 # github.com/jackofallops/kermit v0.20241010.1180132
 ## explicit; go 1.22
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
+github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation
 github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch
 github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice
@@ -1448,10 +1449,6 @@ github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
-# github.com/tombuildsstuff/kermit v0.20240122.1123108
-## explicit; go 1.18
-github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
-github.com/tombuildsstuff/kermit/version
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
