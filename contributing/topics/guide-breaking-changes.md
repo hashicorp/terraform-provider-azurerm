@@ -166,7 +166,7 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
-      if !features.FivePointOhBeta {
+      if !features.FivePointOhBeta() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:     pluginsdk.TypeBool,
             Optional: true,
@@ -241,7 +241,7 @@ The following example follows a fictional resource that will have the following 
    
    ### `azurerm_example_resource`
    
-   * The deprecated `scaling_enabled` property has been removed in favour of the `scaling_enabled` property.
+   * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
    * The property `version` now defaults to `2`.
    ```
    
@@ -336,11 +336,11 @@ Terraform will perform the following actions:
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
-This is a breaking change as Terraform should not trigger a plan between minor version upgrades. Instead, what we can do is add a TODO next to the `Default` tag to update the default value in the next major version of the provider or mark the field as Required if that default value is going to continue to change in the future:
+This is a breaking change as Terraform should not trigger a plan between minor version upgrades. Instead, what we can do is use the major release feature flag as shown in the example below or mark the field as Required if that default value is going to continue to change in the future:
 
 ```go
 func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
-	args := map[string]*pluginsdk.Schema{
+    args := map[string]*pluginsdk.Schema{
         "spark_version": {
             Type:     pluginsdk.TypeString,
             Optional: true,
@@ -353,13 +353,13 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
                "3.4",
                 }, false),
             },
-        }   
-    }
-	if !features.FivePointOhBeta() {
-		args["spark_version"].Default = "2.4"
+        }
+
+    if !features.FivePointOhBeta() {
+        args["spark_version"].Default = "2.4"
     }
 	
-	return args
+    return args
 }
 ```
 
