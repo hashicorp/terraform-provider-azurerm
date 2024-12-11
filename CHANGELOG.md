@@ -23,6 +23,10 @@ ENHANCEMENTS:
 * `azurerm_windows_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` [GH-28016]
 * `azurerm_windows_web_app` - add support for  preview  value `21` for `java_version` [GH-26304]
 
+BUG FIXES:
+
+* `azurerm_management_group` - fix regression where subscription ID can't be parsed correctly anymore [GH-28228]
+
 ## 4.13.0 (December 05, 2024)
 
 ENHANCEMENTS:
