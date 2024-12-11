@@ -930,14 +930,13 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 		}
 
 		ruleId := rule["rule_id"].(string)
-		actionTypeRaw := rule["action"].(string)
-		action := waf.ActionType(actionTypeRaw)
+		action := waf.ActionType(rule["action"].(string))
 
 		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring' or 'Log'. Issues 19088 and 19561
 		// This will still work for bot rules as well since it will be the default value of 1.0
-		if version < 2.0 && actionTypeRaw == string(waf.ActionTypeAnomalyScoring) {
+		if version < 2.0 && action == waf.ActionTypeAnomalyScoring {
 			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %q", versionRaw)
-		} else if version >= 2.0 && actionTypeRaw != string(waf.ActionTypeAnomalyScoring) && actionTypeRaw != "Log" {
+		} else if version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog {
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
 		}
 
@@ -961,10 +960,9 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 
 	results := make([]interface{}, 0)
 	for _, v := range *input.Rules {
-		action := ""
-		if v.Action != "" {
-			action = string(v.Action)
-		}
+		action := string(v.Action)
+		priority := int(v.Priority)
+		ruleType := string(v.RuleType)
 
 		enabled := false
 		if v.EnabledState != nil {
@@ -976,11 +974,6 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 			name = *v.Name
 		}
 
-		priority := 0
-		if v.Priority != 0 {
-			priority = int(v.Priority)
-		}
-
 		rateLimitDurationInMinutes := 0
 		if v.RateLimitDurationInMinutes != nil {
 			rateLimitDurationInMinutes = int(*v.RateLimitDurationInMinutes)
@@ -989,11 +982,6 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 		rateLimitThreshold := 0
 		if v.RateLimitThreshold != nil {
 			rateLimitThreshold = int(*v.RateLimitThreshold)
-		}
-
-		ruleType := ""
-		if v.RuleType != "" {
-			ruleType = string(v.RuleType)
 		}
 
 		results = append(results, map[string]interface{}{
@@ -1048,20 +1036,9 @@ func flattenCdnFrontDoorFirewallManagedRules(input *waf.ManagedRuleSetList) []in
 
 	results := make([]interface{}, 0)
 	for _, r := range *input.ManagedRuleSets {
-		ruleSetType := ""
-		if r.RuleSetType != "" {
-			ruleSetType = r.RuleSetType
-		}
-
-		ruleSetVersion := ""
-		if r.RuleSetVersion != "" {
-			ruleSetVersion = r.RuleSetVersion
-		}
-
-		ruleSetAction := ""
-		if r.RuleSetAction != nil {
-			ruleSetAction = string(pointer.From(r.RuleSetAction))
-		}
+		ruleSetType := r.RuleSetType
+		ruleSetVersion := r.RuleSetVersion
+		ruleSetAction := string(pointer.From(r.RuleSetAction))
 
 		results = append(results, map[string]interface{}{
 			"exclusion": flattenCdnFrontDoorFirewallExclusions(r.Exclusions),

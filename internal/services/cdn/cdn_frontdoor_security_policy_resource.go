@@ -173,11 +173,7 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("profileModel is 'nil'")
 	}
 
-	if profileModel.Properties == nil {
-		return fmt.Errorf("profileModel.Properties is 'nil'")
-	}
-
-	var isStandardSku bool
+	isStandardSku := true
 	if profileModel.Sku.Name != nil {
 		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
 	}
@@ -353,7 +349,7 @@ func expandSecurityPoliciesActivatedResourceReference(input []interface{}) *[]se
 
 		if id := v["cdn_frontdoor_domain_id"].(string); id != "" {
 			results = append(results, securitypolicies.ActivatedResourceReference{
-				Id: utils.String(id),
+				Id: pointer.To(id),
 			})
 		}
 	}
@@ -379,13 +375,8 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 			}
 		}
 
-		active := false
-		if item.IsActive != nil {
-			active = *item.IsActive
-		}
-
 		results = append(results, map[string]interface{}{
-			"active":                  active,
+			"active":                  pointer.From(item.IsActive),
 			"cdn_frontdoor_domain_id": frontDoorDomainId,
 		})
 	}

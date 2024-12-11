@@ -88,14 +88,11 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 	if model := result.Model; model != nil {
 		d.SetId(id.ID())
 
-		skuName := ""
-		if sku := model.Sku; sku != nil {
-			skuName = string(pointer.From(model.Sku.Name))
-		}
-
 		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 		d.Set("resource_group_name", id.ResourceGroupName)
-		d.Set("sku_name", skuName)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", string(pointer.From(sku.Name)))
+		}
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {

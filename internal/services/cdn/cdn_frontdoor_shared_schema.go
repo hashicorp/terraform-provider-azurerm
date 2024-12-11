@@ -4,23 +4,11 @@
 package cdn
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-)
-
-// NOTE: These const were taken from the 2021-06-01 API to remove the dependency on the legacy API.
-// SslProtocol enumerates the values for ssl protocol.
-type SslProtocol string
-
-const (
-	// SslProtocolTLSv1 ...
-	SslProtocolTLSv1 SslProtocol = "TLSv1"
-	// SslProtocolTLSv11 ...
-	SslProtocolTLSv11 SslProtocol = "TLSv1.1"
-	// SslProtocolTLSv12 ...
-	SslProtocolTLSv12 SslProtocol = "TLSv1.2"
 )
 
 func schemaCdnFrontDoorOperator() *pluginsdk.Schema {
@@ -114,9 +102,9 @@ func schemaCdnFrontDoorSslProtocolMatchValues() *pluginsdk.Schema {
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(SslProtocolTLSv1),
-				string(SslProtocolTLSv11),
-				string(SslProtocolTLSv12),
+				string(rules.SslProtocolTLSvOne),
+				string(rules.SslProtocolTLSvOnePointOne),
+				string(rules.SslProtocolTLSvOnePointTwo),
 			}, false),
 		},
 	}

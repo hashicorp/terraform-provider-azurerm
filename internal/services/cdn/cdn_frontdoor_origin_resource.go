@@ -350,10 +350,6 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("profileModel is 'nil'")
 		}
 
-		if profileModel.Properties == nil {
-			return fmt.Errorf("profileModel.Properties is 'nil'")
-		}
-
 		if profileModel.Sku.Name == nil {
 			return fmt.Errorf("retrieving parent %s: 'profileModel.Sku.Name' was 'nil'", profileId)
 		}
