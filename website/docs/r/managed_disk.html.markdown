@@ -132,8 +132,6 @@ The following arguments are supported:
 
 * `performance_plus_enabled` - (Optional) Specifies whether Performance Plus is enabled for this Managed Disk. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **Note:** `performance_plus_enabled` can only be set to `true` when using a Managed Disk with an Ultra SSD.
-
 * `os_type` - (Optional) Specify a value when the source of an `Import`, `ImportSecure` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 
 * `source_resource_id` - (Optional) The ID of an existing Managed Disk or Snapshot to copy when `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`. Changing this forces a new resource to be created.
