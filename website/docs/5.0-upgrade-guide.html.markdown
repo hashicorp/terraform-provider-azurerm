@@ -128,6 +128,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_postgresql_server`
+
+* The deprecated `ssl_enforcement_enabled` property has been removed.
+* The property `ssl_minimal_tls_version_enforced` property no longer accepts `TLSEnforcementDisabled`, `TLS1_0` or `TLS1_1` as a value.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
