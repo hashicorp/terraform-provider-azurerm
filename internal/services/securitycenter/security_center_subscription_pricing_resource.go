@@ -226,8 +226,7 @@ func resourceSecurityCenterSubscriptionPricingRead(d *pluginsdk.ResourceData, me
 		if properties := resp.Model.Properties; properties != nil {
 			d.Set("tier", properties.PricingTier)
 			d.Set("subplan", properties.SubPlan)
-			extension := flattenExtensions(properties.Extensions)
-			err = d.Set("extension", extension)
+			err = d.Set("extension", flattenExtensions(properties.Extensions))
 			if err != nil {
 				return fmt.Errorf("setting `extension`: %+v", err)
 			}
