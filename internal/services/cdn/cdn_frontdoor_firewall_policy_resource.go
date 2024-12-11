@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -555,7 +556,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	result, err := client.PoliciesGet(ctx, pointer.From(id))
+	result, err := client.PoliciesGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -564,10 +565,6 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	if model == nil {
 		return fmt.Errorf("retrieving %s: 'model' was nil", *id)
-	}
-
-	if model.Sku == nil {
-		return fmt.Errorf("retrieving %s: 'model.Sku' was nil", *id)
 	}
 
 	if model.Properties == nil {
@@ -610,6 +607,10 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("managed_rule") {
+		if model.Sku == nil {
+			return fmt.Errorf("retrieving %s: 'model.Sku' was nil", *id)
+		}
+
 		managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding managed_rule: %+v", err)
@@ -660,10 +661,6 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: 'model' was nil", *id)
 	}
 
-	if model.Sku == nil {
-		return fmt.Errorf("retrieving %s: 'model.Sku' was nil", *id)
-	}
-
 	if model.Properties == nil {
 		return fmt.Errorf("retrieving %s: 'model.Properties' was nil", *id)
 	}
@@ -671,11 +668,9 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	skuName := ""
 	if sku := model.Sku; sku != nil {
-		skuName = string(pointer.From(sku.Name))
+		d.Set("sku_name", string(pointer.From(sku.Name)))
 	}
-	d.Set("sku_name", skuName)
 
 	if props := model.Properties; props != nil {
 		if policy := props.PolicySettings; policy != nil {
@@ -782,13 +777,13 @@ func expandCdnFrontDoorFirewallMatchConditions(input []interface{}) []waf.MatchC
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
 		negateCondition := match["negation_condition"].(bool)
-		matchValues := match["match_values"].([]string)
+		matchValues := utils.ExpandStringSlice(match["match_values"].([]interface{}))
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := waf.MatchCondition{
 			Operator:        waf.Operator(operator),
 			NegateCondition: &negateCondition,
-			MatchValue:      matchValues,
+			MatchValue:      *matchValues,
 			Transforms:      expandCdnFrontDoorFirewallTransforms(transforms),
 		}
 
@@ -1004,7 +999,7 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 		results = append(results, map[string]interface{}{
 			"action":                         action,
 			"enabled":                        enabled,
-			"match_condition":                flattenCdnFrontDoorFirewallMatchConditions(pointer.To(v.MatchConditions)),
+			"match_condition":                flattenCdnFrontDoorFirewallMatchConditions(v.MatchConditions),
 			"rate_limit_duration_in_minutes": rateLimitDurationInMinutes,
 			"rate_limit_threshold":           rateLimitThreshold,
 			"priority":                       priority,
@@ -1016,13 +1011,13 @@ func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interfa
 	return results
 }
 
-func flattenCdnFrontDoorFirewallMatchConditions(input *[]waf.MatchCondition) []interface{} {
+func flattenCdnFrontDoorFirewallMatchConditions(input []waf.MatchCondition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
-	for _, v := range *input {
+	for _, v := range input {
 		selector := ""
 		if v.Selector != nil {
 			selector = *v.Selector
@@ -1087,20 +1082,9 @@ func flattenCdnFrontDoorFirewallExclusions(input *[]waf.ManagedRuleExclusion) []
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		matchVariable := ""
-		if v.MatchVariable != "" {
-			matchVariable = string(v.MatchVariable)
-		}
-
-		operator := ""
-		if v.SelectorMatchOperator != "" {
-			operator = string(v.SelectorMatchOperator)
-		}
-
-		selector := ""
-		if v.Selector != "" {
-			selector = v.Selector
-		}
+		matchVariable := string(v.MatchVariable)
+		operator := string(v.SelectorMatchOperator)
+		selector := v.Selector
 
 		results = append(results, map[string]interface{}{
 			"match_variable": matchVariable,
@@ -1119,10 +1103,7 @@ func flattenCdnFrontDoorFirewallOverrides(input *[]waf.ManagedRuleGroupOverride)
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		ruleGroupName := ""
-		if v.RuleGroupName != "" {
-			ruleGroupName = v.RuleGroupName
-		}
+		ruleGroupName := v.RuleGroupName
 
 		results = append(results, map[string]interface{}{
 			"rule_group_name": ruleGroupName,
@@ -1145,16 +1126,8 @@ func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interf
 		if v.Action != nil {
 			action = pointer.From(v.Action)
 		}
-
-		enabled := false
-		if v.EnabledState != nil {
-			enabled = pointer.From(v.EnabledState) == waf.ManagedRuleEnabledStateEnabled
-		}
-
-		ruleId := ""
-		if v.RuleId != "" {
-			ruleId = v.RuleId
-		}
+		enabled := pointer.From(v.EnabledState) == waf.ManagedRuleEnabledStateEnabled
+		ruleId := v.RuleId
 
 		results = append(results, map[string]interface{}{
 			"action":    action,

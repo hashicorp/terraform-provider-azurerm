@@ -125,7 +125,7 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, pointer.From(id))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -137,29 +137,21 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	model := resp.Model
+	if model := resp.Model; model != nil {
+		if skuName := model.Sku.Name; skuName != nil {
+			d.Set("sku_name", string(pointer.From(skuName)))
+		}
 
-	if model == nil {
-		return fmt.Errorf("model is 'nil'")
+		if props := model.Properties; props != nil {
+			d.Set("response_timeout_seconds", int(pointer.From(props.OriginResponseTimeoutSeconds)))
+
+			// whilst this is returned in the API as FrontDoorID other resources refer to
+			// this as the Resource GUID, so we will for consistency
+			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+		}
+
+		d.Set("tags", flattenFrontDoorTags(model.Tags))
 	}
-
-	if model.Properties == nil {
-		return fmt.Errorf("model.Properties is 'nil'")
-	}
-
-	d.Set("response_timeout_seconds", int(pointer.From(model.Properties.OriginResponseTimeoutSeconds)))
-
-	// whilst this is returned in the API as FrontDoorID other resources refer to
-	// this as the Resource GUID, so we will for consistency
-	d.Set("resource_guid", pointer.From(model.Properties.FrontDoorId))
-
-	skuName := ""
-	if model.Sku.Name != nil {
-		skuName = string(pointer.From(model.Sku.Name))
-	}
-
-	d.Set("sku_name", skuName)
-	d.Set("tags", flattenFrontDoorTags(model.Tags))
 
 	return nil
 }

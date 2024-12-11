@@ -177,11 +177,10 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("profileModel.Properties is 'nil'")
 	}
 
-	if profileModel.Sku.Name == nil {
-		return fmt.Errorf("profileModel.Sku.Name is 'nil'")
+	var isStandardSku bool
+	if profileModel.Sku.Name != nil {
+		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
 	}
-
-	isStandardSku := strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
 
 	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
 	if err != nil {
@@ -225,60 +224,54 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", id.SecurityPolicyName)
 	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.ProfileName).ID())
 
-	model := resp.Model
-
-	if model == nil {
-		return fmt.Errorf("model is 'nil'")
-	}
-
-	if model.Properties == nil {
-		return fmt.Errorf("model.Properties is 'nil'")
-	}
-
-	if model.Properties.Parameters.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
-		return fmt.Errorf("'model.Properties.Parameters.Type' of %q is unexpected, want security policy 'Type' of 'WebApplicationFirewall': %s", model.Properties.Parameters.SecurityPolicyPropertiesParameters().Type, id)
-	}
-
-	// we know it's a firewall policy at this point,
-	// create the objects to hold the policy data
-	waf := model.Properties.Parameters.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
-	associations := make([]interface{}, 0)
-	wafPolicyId := ""
-
-	if waf.WafPolicy != nil && waf.WafPolicy.Id != nil {
-		parsedId, err := securitypolicies.ParseSecurityPolicyIDInsensitively(*waf.WafPolicy.Id)
-		if err != nil {
-			return fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
-		}
-		wafPolicyId = parsedId.ID()
-	}
-
-	if waf.Associations != nil {
-		for _, item := range *waf.Associations {
-			domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
-			if err != nil {
-				return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.Parameters.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
+				return fmt.Errorf("'model.Properties.Parameters.Type' of %q is unexpected, want security policy 'Type' of 'WebApplicationFirewall': %s", props.Parameters.SecurityPolicyPropertiesParameters().Type, id)
 			}
 
-			associations = append(associations, map[string]interface{}{
-				"domain":            domain,
-				"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
-			})
+			// we know it's a firewall policy at this point,
+			// create the objects to hold the policy data
+			waf := props.Parameters.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
+			associations := make([]interface{}, 0)
+			wafPolicyId := ""
+
+			if waf.WafPolicy != nil && waf.WafPolicy.Id != nil {
+				parsedId, err := securitypolicies.ParseSecurityPolicyIDInsensitively(*waf.WafPolicy.Id)
+				if err != nil {
+					return fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
+				}
+				wafPolicyId = parsedId.ID()
+			}
+
+			if waf.Associations != nil {
+				for _, item := range *waf.Associations {
+					domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
+					if err != nil {
+						return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)
+					}
+
+					associations = append(associations, map[string]interface{}{
+						"domain":            domain,
+						"patterns_to_match": utils.FlattenStringSlice(item.PatternsToMatch),
+					})
+				}
+			}
+
+			securityPolicy := []interface{}{
+				map[string]interface{}{
+					"firewall": []interface{}{
+						map[string]interface{}{
+							"association":                      associations,
+							"cdn_frontdoor_firewall_policy_id": wafPolicyId,
+						},
+					},
+				},
+			}
+
+			d.Set("security_policies", securityPolicy)
 		}
 	}
-
-	securityPolicy := []interface{}{
-		map[string]interface{}{
-			"firewall": []interface{}{
-				map[string]interface{}{
-					"association":                      associations,
-					"cdn_frontdoor_firewall_policy_id": wafPolicyId,
-				},
-			},
-		},
-	}
-
-	d.Set("security_policies", securityPolicy)
 
 	return nil
 }

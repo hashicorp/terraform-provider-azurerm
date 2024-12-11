@@ -85,40 +85,29 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	model := result.Model
+	if model := result.Model; model != nil {
+		d.SetId(id.ID())
 
-	if model == nil {
-		return fmt.Errorf("retrieving %s: 'model' was nil", id)
-	}
+		skuName := ""
+		if sku := model.Sku; sku != nil {
+			skuName = string(pointer.From(model.Sku.Name))
+		}
 
-	if model.Sku == nil {
-		return fmt.Errorf("retrieving %s: 'model.Sku' was nil", id)
-	}
+		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+		d.Set("sku_name", skuName)
 
-	if model.Properties == nil {
-		return fmt.Errorf("retrieving %s: 'model.Properties' was nil", id)
-	}
+		if props := model.Properties; props != nil {
+			if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {
+				return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+			}
 
-	props := model.Properties
-
-	skuName := ""
-	if sku := model.Sku; sku != nil {
-		skuName = string(pointer.From(model.Sku.Name))
-	}
-
-	d.SetId(id.ID())
-	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("sku_name", skuName)
-
-	if policy := props.PolicySettings; policy != nil {
-		d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
-		d.Set("mode", pointer.From(policy.Mode))
-		d.Set("redirect_url", policy.RedirectURL)
-	}
-
-	if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {
-		return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+			if policy := props.PolicySettings; policy != nil {
+				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
+				d.Set("mode", pointer.From(policy.Mode))
+				d.Set("redirect_url", policy.RedirectURL)
+			}
+		}
 	}
 
 	return nil

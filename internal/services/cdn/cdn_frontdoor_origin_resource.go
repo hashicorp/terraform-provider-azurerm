@@ -358,10 +358,8 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("retrieving parent %s: 'profileModel.Sku.Name' was 'nil'", profileId)
 		}
 
-		skuName := pointer.From(profileModel.Sku.Name)
-
 		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileModel.Sku.Name), enableCertNameCheck)
 		if err != nil {
 			return err
 		}
