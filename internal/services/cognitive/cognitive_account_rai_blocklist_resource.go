@@ -56,12 +56,13 @@ func (c CognitiveRaiBlocklistResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Cognitive.RaiBlocklistsClient
+
 			var model cognitiveRaiBlocklistModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cognitive.RaiBlocklistsClient
 			accountId, err := raiblocklists.ParseAccountID(model.CognitiveAccountId)
 			if err != nil {
 				return err
@@ -80,15 +81,15 @@ func (c CognitiveRaiBlocklistResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(c.ResourceType(), id)
 			}
 
-			properties := &raiblocklists.RaiBlocklist{
+			payload := &raiblocklists.RaiBlocklist{
 				Properties: &raiblocklists.RaiBlocklistProperties{},
 			}
 
 			if model.Description != "" {
-				properties.Properties.Description = &model.Description
+				payload.Properties.Description = &model.Description
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, *properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, *payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -102,12 +103,13 @@ func (c CognitiveRaiBlocklistResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Cognitive.RaiBlocklistsClient
+
 			var model cognitiveRaiBlocklistModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Cognitive.RaiBlocklistsClient
 			accountId, err := raiblocklists.ParseAccountID(model.CognitiveAccountId)
 			if err != nil {
 				return err
@@ -122,17 +124,25 @@ func (c CognitiveRaiBlocklistResource) Update() sdk.ResourceFunc {
 			}
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			properties := existing.Model
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("description") {
-				properties.Properties.Description = pointer.To(model.Description)
+				payload.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -193,19 +203,17 @@ func (c CognitiveRaiBlocklistResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := existing.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
-			}
-
 			state := cognitiveRaiBlocklistModel{
 				Name:               id.RaiBlocklistName,
 				CognitiveAccountId: raiblocklists.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 			}
 
-			if properties := model.Properties; properties != nil {
-				state.Description = pointer.From(properties.Description)
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Description = pointer.From(props.Description)
+				}
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
