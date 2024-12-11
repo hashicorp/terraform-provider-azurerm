@@ -411,6 +411,31 @@ func flattenBatchPoolIdentityReferenceToIdentityID(ref *pool.ComputeNodeIdentity
 	return ""
 }
 
+func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
+	securityProfile := make([]interface{}, 0)
+	securityConfig := make(map[string]interface{})
+
+	if configProfile.EncryptionAtHost != nil {
+		securityConfig["host_encryption_enabled"] = *configProfile.EncryptionAtHost
+	}
+
+	if configProfile.SecurityType != nil {
+		securityConfig["security_type"] = string(*configProfile.SecurityType)
+	}
+
+	if configProfile.UefiSettings != nil {
+		if configProfile.UefiSettings.SecureBootEnabled != nil {
+			securityConfig["secure_boot_enabled"] = pointer.ToBool(configProfile.UefiSettings.SecureBootEnabled)
+		}
+		if configProfile.UefiSettings.VTpmEnabled != nil {
+			securityConfig["vtpm_enabled"] = pointer.ToBool(configProfile.UefiSettings.VTpmEnabled)
+		}
+	}
+
+	securityProfile = append(securityProfile, securityConfig)
+	return securityProfile
+}
+
 func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAccount) map[string]interface{} {
 	userAccount := make(map[string]interface{})
 	userAccount["name"] = account.Name

@@ -727,6 +727,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 			"security_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1275,25 +1276,17 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
 					}
+
 					osDiskPlacement := ""
 					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+
 					if config.SecurityProfile != nil {
-						securityProfile := make([]interface{}, 0)
-						securityConfig := make(map[string]interface{})
-						securityConfig["host_encryption_enabled"] = pointer.ToBool(config.SecurityProfile.EncryptionAtHost)
-						if config.SecurityProfile.SecurityType != nil {
-							securityConfig["security_type"] = string(*config.SecurityProfile.SecurityType)
-						}
-						if config.SecurityProfile.UefiSettings != nil {
-							securityConfig["secure_boot_enabled"] = pointer.ToBool(config.SecurityProfile.UefiSettings.SecureBootEnabled)
-							securityConfig["vtpm_enabled"] = pointer.ToBool(config.SecurityProfile.UefiSettings.VTpmEnabled)
-						}
-						securityProfile = append(securityProfile, securityConfig)
-						d.Set("security_profile", securityProfile)
+						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
 					}
+
 					if config.WindowsConfiguration != nil {
 						windowsConfig := []interface{}{
 							map[string]interface{}{
