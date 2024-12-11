@@ -275,6 +275,7 @@ QUERY
       column_name = "SourceComputerId"
     }
   }
+
   entity_mapping {
     entity_type = "Account"
     field_mapping {
@@ -282,6 +283,7 @@ QUERY
       column_name = "ComputerIP"
     }
   }
+
   entity_mapping {
     entity_type = "Account"
     field_mapping {
@@ -289,6 +291,7 @@ QUERY
       column_name = "Computer"
     }
   }
+
   entity_mapping {
     entity_type = "Account"
     field_mapping {
@@ -296,6 +299,7 @@ QUERY
       column_name = "Category"
     }
   }
+
   entity_mapping {
     entity_type = "Account"
     field_mapping {
@@ -323,30 +327,39 @@ QUERY
   sentinel_entity_mapping {
     column_name = "VMUUID"
   }
+
   sentinel_entity_mapping {
     column_name = "SourceSystem"
   }
+
   sentinel_entity_mapping {
     column_name = "TimeGenerated"
   }
+
   sentinel_entity_mapping {
     column_name = "MG"
   }
+
   sentinel_entity_mapping {
     column_name = "ManagementGroupName"
   }
+
   sentinel_entity_mapping {
     column_name = "SourceComputerId"
   }
+
   sentinel_entity_mapping {
     column_name = "ComputerIP"
   }
+
   sentinel_entity_mapping {
     column_name = "Computer"
   }
+
   sentinel_entity_mapping {
     column_name = "Category"
   }
+
   sentinel_entity_mapping {
     column_name = "OSType"
   }
