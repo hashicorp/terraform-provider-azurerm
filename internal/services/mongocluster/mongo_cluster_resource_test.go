@@ -92,7 +92,29 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.geoReplica(data),
+			Config: r.geoReplica(data, r.previewFeature(data)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location"),
+	})
+}
+
+func TestAccMongoCluster_geoReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.geoReplica(data, r.update(data)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -169,7 +191,7 @@ resource "azurerm_mongo_cluster" "test" {
   shard_count            = "1"
   compute_tier           = "M30"
   high_availability_mode = "ZoneRedundantPreferred"
-  public_network_access  = "Disabled"
+  public_network_access  = "Enabled"
   storage_size_in_gb     = "64"
   version                = "7.0"
 
@@ -219,7 +241,7 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MongoClusterResource) geoReplica(data acceptance.TestData) string {
+func (r MongoClusterResource) geoReplica(data acceptance.TestData, source string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -235,7 +257,7 @@ resource "azurerm_mongo_cluster" "geo_replica" {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
-`, r.previewFeature(data), data.RandomInteger, data.Locations.Secondary)
+`, source, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {
