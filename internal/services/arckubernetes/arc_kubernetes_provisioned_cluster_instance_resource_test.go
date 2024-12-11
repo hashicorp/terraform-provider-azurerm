@@ -135,6 +135,10 @@ func (r ArcKubernetesProvisionedClusterInstanceResource) Exists(ctx context.Cont
 func (r ArcKubernetesProvisionedClusterInstanceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
@@ -225,6 +229,10 @@ resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "import" {
 func (r ArcKubernetesProvisionedClusterInstanceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_arc_kubernetes_provisioned_cluster_instance" "test" {
