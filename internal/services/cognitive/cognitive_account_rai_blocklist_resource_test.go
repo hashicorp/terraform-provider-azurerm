@@ -28,7 +28,7 @@ func TestAccCognitiveRaiBlocklistSequential(t *testing.T) {
 }
 
 func TestAccCognitiveRaiBlocklist_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_rai_blocklist", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
 	tRaiBlocklist := CognitiveRaiBlocklistTestResource{}
 
 	data.ResourceSequentialTest(t, tRaiBlocklist, []acceptance.TestStep{
@@ -43,7 +43,7 @@ func TestAccCognitiveRaiBlocklist_basic(t *testing.T) {
 }
 
 func TestAccCognitiveRaiBlocklist_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_rai_blocklist", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
 	tRaiBlocklist := CognitiveRaiBlocklistTestResource{}
 
 	data.ResourceSequentialTest(t, tRaiBlocklist, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func TestAccCognitiveRaiBlocklist_requiresImport(t *testing.T) {
 }
 
 func TestAccCognitiveRaiBlocklist_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_rai_blocklist", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
 	tRaiBlocklist := CognitiveRaiBlocklistTestResource{}
 
 	data.ResourceSequentialTest(t, tRaiBlocklist, []acceptance.TestStep{
@@ -73,7 +73,7 @@ func TestAccCognitiveRaiBlocklist_complete(t *testing.T) {
 }
 
 func TestAccCognitiveRaiBlocklist_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_rai_blocklist", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_rai_blocklist", "test")
 	tRaiBlocklist := CognitiveRaiBlocklistTestResource{}
 
 	data.ResourceSequentialTest(t, tRaiBlocklist, []acceptance.TestStep{
@@ -136,7 +136,7 @@ func (c CognitiveRaiBlocklistTestResource) basicConfig(data acceptance.TestData)
 	template := c.template(data)
 	return fmt.Sprintf(`
 		%s
-		resource "azurerm_cognitive_rai_blocklist" "test" {
+		resource "azurerm_cognitive_account_rai_blocklist" "test" {
 			name                 = "acctest-crb-%d"
 			cognitive_account_id = azurerm_cognitive_account.test.id
 			description          = "Acceptance test data new azurerm resource"
@@ -148,8 +148,8 @@ func (c CognitiveRaiBlocklistTestResource) requiresImportConfig(data acceptance.
 	config := c.basicConfig(data)
 	return fmt.Sprintf(`
 		%s
-		resource "azurerm_cognitive_rai_blocklist" "import" {
-			name                 = azurerm_cognitive_rai_blocklist.test.name
+		resource "azurerm_cognitive_account_rai_blocklist" "import" {
+			name                 = azurerm_cognitive_account_rai_blocklist.test.name
 			cognitive_account_id = azurerm_cognitive_account.test.id
 			description          = "Acceptance test data new azurerm resource"
 		}
@@ -160,7 +160,7 @@ func (c CognitiveRaiBlocklistTestResource) completeConfig(data acceptance.TestDa
 	template := c.template(data)
 	return fmt.Sprintf(`
 		%s
-		resource "azurerm_cognitive_rai_blocklist" "test" {
+		resource "azurerm_cognitive_account_rai_blocklist" "test" {
 			name                 = "acctest-crb-%d"
 			cognitive_account_id = azurerm_cognitive_account.test.id
 			description          = "Acceptance test data new azurerm resource"

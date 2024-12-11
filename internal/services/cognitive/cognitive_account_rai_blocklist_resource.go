@@ -212,5 +212,5 @@ func (c CognitiveRaiBlocklistResource) Read() sdk.ResourceFunc {
 }
 
 func (c CognitiveRaiBlocklistResource) ResourceType() string {
-	return "azurerm_cognitive_rai_blocklist"
+	return "azurerm_cognitive_account_rai_blocklist"
 }
