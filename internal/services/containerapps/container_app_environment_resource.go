@@ -24,6 +24,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const (
+	LogsDestinationLogAnalytics string = "log-analytics"
+	LogsDestinationAzureMonitor string = "azure-monitor"
+)
+
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
@@ -97,11 +102,14 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"logs_destination": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"log-analytics", "azure-monitor"}, false),
-			Description:  "The destination for the application logs. Possible values are `log-analytics` or `azure-monitor`.",
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				LogsDestinationLogAnalytics,
+				LogsDestinationAzureMonitor,
+			}, false),
+			Description: "The destination for the application logs. Possible values are `log-analytics` or `azure-monitor`.",
 		},
 
 		"infrastructure_resource_group_name": {
@@ -353,7 +361,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					}
 
 					if appLogsConfig := props.AppLogsConfiguration; appLogsConfig != nil {
-						state.LogsDestination = *appLogsConfig.Destination
+						state.LogsDestination = pointer.From(appLogsConfig.Destination)
 					}
 
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
@@ -530,12 +538,16 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if env.LogsDestination == "log-analytics" && env.LogAnalyticsWorkspaceId == "" {
-				return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
-			}
+			switch env.LogsDestination {
+			case LogsDestinationLogAnalytics:
+				if env.LogAnalyticsWorkspaceId == "" {
+					return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+				}
+			default:
+				if env.LogAnalyticsWorkspaceId != "" {
+					return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
+				}
 
-			if env.LogAnalyticsWorkspaceId != "" && env.LogsDestination != "" && env.LogsDestination != "log-analytics" {
-				return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
 			}
 
 			return nil
