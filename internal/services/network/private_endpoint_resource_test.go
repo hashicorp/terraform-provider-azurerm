@@ -350,6 +350,35 @@ func TestAccPrivateEndpoint_multipleIpConfigurations(t *testing.T) {
 	})
 }
 
+func TestAccPrivateEndpoint_subnetCaseInsensitivity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	subnetId := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-privatelink-%d/providers/Microsoft.Network/virtualNetworks/acctestvnet-%d/subnets/acctestsnetendpoint-%d", data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+	fmt.Println(subnetId)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("subnet_id").HasValue(subnetId),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.subnetNameUpperCase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").Exists(),
+				check.That(data.ResourceName).Key("subnet_id").HasValue(subnetId),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (PrivateEndpointResource) template(data acceptance.TestData, seviceCfg string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -985,6 +1014,35 @@ resource "azurerm_private_endpoint" "test" {
       subresource_name   = "AzureSiteRecovery"
       member_name        = ip_configuration.key
     }
+  }
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func (r PrivateEndpointResource) subnetNameUpperCase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  new_subnet_id = join(
+    "/",
+    concat(
+      slice(split("/", azurerm_subnet.endpoint.id), 0, length(split("/", azurerm_subnet.endpoint.id)) - 1),
+      [upper(element(split("/", azurerm_subnet.endpoint.id), length(split("/",azurerm_subnet.endpoint.id)) - 1))]
+    )
+  )
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = local.new_subnet_id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
