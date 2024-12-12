@@ -839,15 +839,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("vnet_subnet_id") {
-		var subnetID *commonids.SubnetId
 		if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
-			subnetID, err = commonids.ParseSubnetID(subnetIDValue.(string))
+			subnetID, err := commonids.ParseSubnetID(subnetIDValue.(string))
 			if err != nil {
 				return err
 			}
-			if subnetID != nil {
-				props.VnetSubnetID = pointer.To(subnetID.ID())
-			}
+			props.VnetSubnetID = pointer.To(subnetID.ID())
 		}
 	}
 
