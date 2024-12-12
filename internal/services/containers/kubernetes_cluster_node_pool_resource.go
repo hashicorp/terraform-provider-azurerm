@@ -741,7 +741,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 			return err
 		}
 		props.LinuxOSConfig = linuxOSConfig
-
 	}
 
 	if d.HasChange("max_count") || enableAutoScaling {
@@ -976,7 +975,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
-
 		log.Printf("[DEBUG] Updating existing %s..", *id)
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
