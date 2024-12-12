@@ -67,6 +67,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DnsZoneDataResource{},
 		DnsDSRecordDataResource{},
+		DnsTLSARecordDataResource{},
 	}
 }
 
@@ -75,5 +76,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DnsZoneResource{},
 		DnsDSRecordResource{},
+		DnsTLSARecordResource{},
 	}
 }
