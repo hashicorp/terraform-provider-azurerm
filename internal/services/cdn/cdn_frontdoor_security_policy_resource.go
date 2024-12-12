@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
@@ -228,20 +229,20 @@ func resourceCdnFrontdoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta inte
 
 			// we know it's a firewall policy at this point,
 			// create the objects to hold the policy data
-			waf := props.Parameters.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
+			wafParams := props.Parameters.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
 			associations := make([]interface{}, 0)
 			wafPolicyId := ""
 
-			if waf.WafPolicy != nil && waf.WafPolicy.Id != nil {
-				parsedId, err := securitypolicies.ParseSecurityPolicyIDInsensitively(*waf.WafPolicy.Id)
+			if wafParams.WafPolicy != nil && wafParams.WafPolicy.Id != nil {
+				parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(*wafParams.WafPolicy.Id)
 				if err != nil {
 					return fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
 				}
 				wafPolicyId = parsedId.ID()
 			}
 
-			if waf.Associations != nil {
-				for _, item := range *waf.Associations {
+			if wafParams.Associations != nil {
+				for _, item := range *wafParams.Associations {
 					domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
 					if err != nil {
 						return fmt.Errorf("flattening `ActivatedResourceReference`: %+v", err)

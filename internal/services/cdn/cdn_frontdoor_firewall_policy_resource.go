@@ -597,7 +597,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 			props.PolicySettings.CustomBlockResponseBody = pointer.To(body)
 		}
 
-		if statusCode := d.Get("custom_block_response_status_code").(int64); statusCode > 0 {
+		if statusCode := int64(d.Get("custom_block_response_status_code").(int)); statusCode > 0 {
 			props.PolicySettings.CustomBlockResponseStatusCode = pointer.To(statusCode)
 		}
 	}
@@ -678,7 +678,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("mode", string(pointer.From(policy.Mode)))
 			d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
 			d.Set("redirect_url", policy.RedirectURL)
-			d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
+			d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 		}
 
