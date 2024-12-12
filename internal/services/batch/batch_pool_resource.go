@@ -733,21 +733,25 @@ func resourceBatchPool() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"host_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
+							ForceNew: true,
 							Optional: true,
 						},
 						"security_type": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityTypes(), false),
 						},
 						"secure_boot_enabled": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
+							ForceNew:     true,
 							RequiredWith: []string{"security_profile.0.security_type"},
 						},
 						"vtpm_enabled": {
 							Type:         pluginsdk.TypeBool,
 							Optional:     true,
+							ForceNew:     true,
 							RequiredWith: []string{"security_profile.0.security_type"},
 						},
 					},

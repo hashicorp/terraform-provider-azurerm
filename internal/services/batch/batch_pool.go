@@ -415,21 +415,12 @@ func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []inte
 	securityProfile := make([]interface{}, 0)
 	securityConfig := make(map[string]interface{})
 
-	if configProfile.EncryptionAtHost != nil {
-		securityConfig["host_encryption_enabled"] = *configProfile.EncryptionAtHost
-	}
-
-	if configProfile.SecurityType != nil {
-		securityConfig["security_type"] = string(*configProfile.SecurityType)
-	}
+	securityConfig["host_encryption_enabled"] = pointer.From(configProfile.EncryptionAtHost)
+	securityConfig["security_type"] = string(pointer.From(configProfile.SecurityType))
 
 	if configProfile.UefiSettings != nil {
-		if configProfile.UefiSettings.SecureBootEnabled != nil {
-			securityConfig["secure_boot_enabled"] = pointer.ToBool(configProfile.UefiSettings.SecureBootEnabled)
-		}
-		if configProfile.UefiSettings.VTpmEnabled != nil {
-			securityConfig["vtpm_enabled"] = pointer.ToBool(configProfile.UefiSettings.VTpmEnabled)
-		}
+		securityConfig["secure_boot_enabled"] = pointer.From(configProfile.UefiSettings.SecureBootEnabled)
+		securityConfig["vtpm_enabled"] = pointer.From(configProfile.UefiSettings.VTpmEnabled)
 	}
 
 	securityProfile = append(securityProfile, securityConfig)
@@ -838,7 +829,7 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	}
 
 	if v, ok := item["host_encryption_enabled"]; ok {
-		securityProfile.EncryptionAtHost = pointer.FromBool(v.(bool))
+		securityProfile.EncryptionAtHost = pointer.To(v.(bool))
 	}
 
 	if v, ok := item["security_type"]; ok {
@@ -846,11 +837,11 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	}
 
 	if v, ok := item["secure_boot_enabled"]; ok {
-		securityProfile.UefiSettings.SecureBootEnabled = pointer.FromBool(v.(bool))
+		securityProfile.UefiSettings.SecureBootEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := item["vtpm_enabled"]; ok {
-		securityProfile.UefiSettings.VTpmEnabled = pointer.FromBool(v.(bool))
+		securityProfile.UefiSettings.VTpmEnabled = pointer.To(v.(bool))
 	}
 
 	return securityProfile
