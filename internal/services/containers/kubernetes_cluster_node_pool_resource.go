@@ -727,22 +727,21 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("kubelet_config") {
-		if kubeletConfig := d.Get("kubelet_config").([]interface{}); len(kubeletConfig) > 0 {
-			props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfig)
-		}
+		kubeletConfigRaw := d.Get("kubelet_config").([]interface{})
+		props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfigRaw)
 	}
 
 	if d.HasChange("linux_os_config") {
-		if linuxOSConfig := d.Get("linux_os_config").([]interface{}); len(linuxOSConfig) > 0 {
-			if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
-				return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
-			}
-			linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfig)
-			if err != nil {
-				return err
-			}
-			props.LinuxOSConfig = linuxOSConfig
+		linuxOSConfigRaw := d.Get("linux_os_config").([]interface{})
+		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
+			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
 		}
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfigRaw)
+		if err != nil {
+			return err
+		}
+		props.LinuxOSConfig = linuxOSConfig
+
 	}
 
 	if d.HasChange("max_count") || enableAutoScaling {
