@@ -719,11 +719,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("fips_enabled") {
-		props.EnableFIPS = utils.Bool(d.Get("fips_enabled").(bool))
+		props.EnableFIPS = pointer.To(d.Get("fips_enabled").(bool))
 	}
 
 	if d.HasChange("host_encryption_enabled") {
-		props.EnableEncryptionAtHost = utils.Bool(d.Get("host_encryption_enabled").(bool))
+		props.EnableEncryptionAtHost = pointer.To(d.Get("host_encryption_enabled").(bool))
 	}
 
 	if d.HasChange("kubelet_config") {
@@ -750,7 +750,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("max_pods") {
-		props.MaxPods = utils.Int64(int64(d.Get("max_pods").(int)))
+		props.MaxPods = pointer.To(int64(d.Get("max_pods").(int)))
 	}
 
 	if d.HasChange("mode") {
@@ -767,11 +767,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("node_public_ip_enabled") {
-		props.EnableNodePublicIP = utils.Bool(d.Get("node_public_ip_enabled").(bool))
+		props.EnableNodePublicIP = pointer.To(d.Get("node_public_ip_enabled").(bool))
 	}
 
 	if d.HasChange("node_public_ip_prefix_id") {
-		props.NodePublicIPPrefixID = utils.String(d.Get("node_public_ip_prefix_id").(string))
+		props.NodePublicIPPrefixID = pointer.To(d.Get("node_public_ip_prefix_id").(string))
 	}
 
 	if d.HasChange("orchestrator_version") {
@@ -803,7 +803,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("os_disk_size_gb") {
-		props.OsDiskSizeGB = utils.Int64(int64(d.Get("os_disk_size_gb").(int)))
+		props.OsDiskSizeGB = pointer.To(int64(d.Get("os_disk_size_gb").(int)))
 	}
 
 	if d.HasChange("os_sku") {
@@ -811,11 +811,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if d.HasChange("pod_subnet_id") {
-		props.PodSubnetID = utils.String(d.Get("pod_subnet_id").(string))
+		props.PodSubnetID = pointer.To(d.Get("pod_subnet_id").(string))
 	}
 
 	if d.HasChange("ultra_ssd_enabled") {
-		props.EnableUltraSSD = utils.Bool(d.Get("ultra_ssd_enabled").(bool))
+		props.EnableUltraSSD = pointer.To(d.Get("ultra_ssd_enabled").(bool))
 	}
 
 	if d.HasChange("upgrade_settings") {
@@ -830,12 +830,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("snapshot_id") {
 		props.CreationData = &agentpools.CreationData{
-			SourceResourceId: utils.String(d.Get("snapshot_id").(string)),
+			SourceResourceId: pointer.To(d.Get("snapshot_id").(string)),
 		}
 	}
 
 	if d.HasChange("vm_size") {
-		props.VMSize = utils.String(d.Get("vm_size").(string))
+		props.VMSize = pointer.To(d.Get("vm_size").(string))
 	}
 
 	if d.HasChange("vnet_subnet_id") {
@@ -846,7 +846,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 				return err
 			}
 			if subnetID != nil {
-				props.VnetSubnetID = utils.String(subnetID.ID())
+				props.VnetSubnetID = pointer.To(subnetID.ID())
 			}
 		}
 	}
