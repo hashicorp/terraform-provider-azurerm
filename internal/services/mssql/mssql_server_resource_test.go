@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -52,6 +53,9 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 }
 
 func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
@@ -389,7 +393,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "1.1"
+  minimum_tls_version          = "1.2"
 
   identity {
     type = "SystemAssigned"
@@ -564,7 +568,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "1.0"
+  minimum_tls_version          = "1.2"
 
   public_network_access_enabled     = false
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
@@ -575,7 +579,8 @@ resource "azurerm_mssql_server" "test" {
   }
 
   tags = {
-    DB = "NotProd"
+    update = "true"
+    DB     = "NotProd"
   }
 }
 
