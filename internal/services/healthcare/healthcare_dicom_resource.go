@@ -264,7 +264,7 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 		parameters.Properties.CorsConfiguration = cors
 	}
 
-	if v, ok := d.GetOk("encryption_key_url"); ok {
+	if v, ok := d.GetOk("encryption_key_url"); ok && v.(string) != "" {
 		parameters.Properties.Encryption = &dicomservices.Encryption{
 			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
 				KeyEncryptionKeyURL: pointer.To(v.(string)),
