@@ -27,7 +27,6 @@ func TestWorkspaceExtendedAuditingPolicyID(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceExtendedAuditingPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

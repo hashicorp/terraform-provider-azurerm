@@ -27,7 +27,6 @@ func TestSubscriptionTemplateDeploymentID(t *testing.T) {
 		Error    bool
 		Expected *SubscriptionTemplateDeploymentId
 	}{
-
 		{
 			// empty
 			Input: "",

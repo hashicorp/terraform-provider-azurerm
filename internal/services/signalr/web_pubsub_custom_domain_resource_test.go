@@ -60,7 +60,6 @@ func (r WebPubsubCustomDomainResource) Exists(ctx context.Context, client *clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(resp.Model != nil), nil
-
 }
 
 func (r WebPubsubCustomDomainResource) basic(data acceptance.TestData) string {

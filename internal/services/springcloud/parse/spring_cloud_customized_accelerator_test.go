@@ -27,7 +27,6 @@ func TestSpringCloudCustomizedAcceleratorID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudCustomizedAcceleratorId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -152,7 +151,6 @@ func TestSpringCloudCustomizedAcceleratorIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudCustomizedAcceleratorId
 	}{
-
 		{
 			// empty
 			Input: "",

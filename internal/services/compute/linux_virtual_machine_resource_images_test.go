@@ -137,6 +137,10 @@ locals {
   admin_password    = "Password1234!%[1]d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
