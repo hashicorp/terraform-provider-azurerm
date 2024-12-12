@@ -161,7 +161,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -283,7 +283,7 @@ A `worker_node` block supports the following:
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -317,7 +317,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -331,7 +331,7 @@ A `edge_node` block supports the following:
 
 * `https_endpoints` - (Optional) The HTTPS Connectivity Endpoint for this HDInsight Hadoop Cluster. One or more `https_endpoints` blocks as defined below.
 
-* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below.
+* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
