@@ -867,9 +867,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("zones") {
 		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			props.AvailabilityZones = &zones
-		}
+		props.AvailabilityZones = &zones
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
