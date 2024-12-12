@@ -53,15 +53,13 @@ The following arguments are supported:
 
 ---
 
-* `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Dataset.
-
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Dataset.
 
 * `description` - (Optional) The description for the Data Factory Dataset.
 
 * `folder` - (Optional) The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Dataset.
+* `parameters` - (Optional) A map of string key-value pairs of parameters to associate with the Data Factory Dataset. Only string parameter type is supported at the moment.
 
 ## Attributes Reference
 

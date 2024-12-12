@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DatasetCosmosDbMongoDbResource struct{}
+type DatasetCosmosDbMongoDbApiResource struct{}
 
-func TestAccDataFactoryDatasetCosmosDbMongoDb_basic(t *testing.T) {
+func TestAccDataFactoryDatasetCosmosDbMongoDbApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_mongoapi", "test")
-	r := DatasetCosmosDbMongoDbResource{}
+	r := DatasetCosmosDbMongoDbApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccDataFactoryDatasetCosmosDbMongoDb_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetCosmosDbMongoDb_requiresImport(t *testing.T) {
+func TestAccDataFactoryDatasetCosmosDbMongoDbApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_mongoapi", "test")
-	r := DatasetCosmosDbMongoDbResource{}
+	r := DatasetCosmosDbMongoDbApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,9 +47,9 @@ func TestAccDataFactoryDatasetCosmosDbMongoDb_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetCosmosDbMongoDb_complete(t *testing.T) {
+func TestAccDataFactoryDatasetCosmosDbMongoDbApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_mongoapi", "test")
-	r := DatasetCosmosDbMongoDbResource{}
+	r := DatasetCosmosDbMongoDbApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -59,9 +59,9 @@ func TestAccDataFactoryDatasetCosmosDbMongoDb_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryDatasetCosmosDbMongoDb_update(t *testing.T) {
+func TestAccDataFactoryDatasetCosmosDbMongoDbApi_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_mongoapi", "test")
-	r := DatasetCosmosDbMongoDbResource{}
+	r := DatasetCosmosDbMongoDbApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccDataFactoryDatasetCosmosDbMongoDb_update(t *testing.T) {
 	})
 }
 
-func (t DatasetCosmosDbMongoDbResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DatasetCosmosDbMongoDbApiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb_mongoapi" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DatasetCosmosDbMongoDbResource) basic(data acceptance.TestData) string {
+func (DatasetCosmosDbMongoDbApiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -142,7 +142,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_mongoapi" "test" {
 	`, commonConfig(data))
 }
 
-func (r DatasetCosmosDbMongoDbResource) requiresImport(data acceptance.TestData) string {
+func (r DatasetCosmosDbMongoDbApiResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,14 +155,11 @@ resource "azurerm_data_factory_dataset_cosmosdb_mongoapi" "import" {
 	`, r.basic(data))
 }
 
-func (DatasetCosmosDbMongoDbResource) complete(data acceptance.TestData) string {
+func (DatasetCosmosDbMongoDbApiResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_factory_dataset_cosmosdb_mongoapi" "test" {
-  additional_properties = {
-    "additionalProp1" = "value1"
-  }
   annotations         = ["annotation1"]
   collection_name     = "collection-1"
   data_factory_id     = azurerm_data_factory.test.id

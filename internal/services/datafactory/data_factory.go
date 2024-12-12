@@ -144,36 +144,6 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 	return output
 }
 
-func expandAdditionalProperties(input *map[string]string) map[string]interface{} {
-	if input == nil {
-		return nil
-	}
-
-	output := make(map[string]interface{})
-	for k, v := range *input {
-		output[k] = v
-	}
-
-	return output
-}
-
-func flattenAdditionalProperties(input *map[string]interface{}) map[string]string {
-	if input == nil {
-		return nil
-	}
-
-	output := make(map[string]string)
-	for k, v := range *input {
-		if strVal, ok := v.(string); ok {
-			output[k] = strVal
-		} else {
-			log.Printf("[DEBUG] Skipping property %q since it's not a string", k)
-		}
-	}
-
-	return output
-}
-
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset
 type DatasetColumn struct {
 	Name        string `json:"name,omitempty"        tfschema:"name"`

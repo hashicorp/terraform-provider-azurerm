@@ -6,6 +6,7 @@ package datafactory
 import (
 	"log"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/datasets"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
@@ -22,8 +23,26 @@ func expandDataSetParameters(input map[string]interface{}) map[string]*datafacto
 	return output
 }
 
+func expandDataSetParametersGoAzureSdk(input *map[string]string) *map[string]datasets.ParameterSpecification {
+	output := make(map[string]datasets.ParameterSpecification)
+
+	for k, v := range *input {
+		var value interface{} = v
+		output[k] = datasets.ParameterSpecification{
+			Type:         datasets.ParameterTypeString,
+			DefaultValue: &value,
+		}
+	}
+
+	return &output
+}
+
 func flattenDataSetParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
 	output := make(map[string]interface{})
+
+	if input == nil {
+		return output
+	}
 
 	for k, v := range input {
 		if v != nil {
@@ -40,27 +59,19 @@ func flattenDataSetParameters(input map[string]*datafactory.ParameterSpecificati
 	return output
 }
 
-func expandDataSetParametersString(input *map[string]string) map[string]*datafactory.ParameterSpecification {
-	output := make(map[string]*datafactory.ParameterSpecification)
-
-	for k, v := range *input {
-		output[k] = &datafactory.ParameterSpecification{
-			Type:         datafactory.ParameterTypeString,
-			DefaultValue: v,
-		}
-	}
-
-	return output
-}
-
-func flattenDataSetParametersString(parameterSpecification *map[string]*datafactory.ParameterSpecification) map[string]string {
+func flattenDataSetParametersGoAzureSdk(input *map[string]datasets.ParameterSpecification) map[string]string {
 	output := make(map[string]string)
 
-	for k, v := range *parameterSpecification {
-		if v != nil {
-			val, ok := v.DefaultValue.(string)
+	if input == nil {
+		return output
+	}
+
+	for k, v := range *input {
+		if v.DefaultValue != nil {
+			val, ok := (*v.DefaultValue).(string)
 			if !ok {
 				log.Printf("[DEBUG] Skipping parameter %q since its default value is not a string", k)
+				continue
 			}
 
 			output[k] = val
