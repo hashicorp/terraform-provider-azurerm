@@ -10,6 +10,7 @@ BREAKING CHANGES:
 
 FEATURES:
 
+* **New Resource**: `azurerm_cognitive_account_rai_blocklist` [GH-28043]
 * **New Resource**: `azurerm_fabric_capacity` [GH-28080]
 
 ENHANCEMENTS:
