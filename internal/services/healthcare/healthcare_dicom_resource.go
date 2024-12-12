@@ -246,41 +246,35 @@ func resourceHealthcareApisDicomServiceCreate(d *pluginsdk.ResourceData, meta in
 
 	t := d.Get("tags").(map[string]interface{})
 
-	var enableDataPartitions *bool
+	parameters := dicomservices.DicomService{
+		Identity: i,
+		Properties: &dicomservices.DicomServiceProperties{
+			PublicNetworkAccess: pointer.To(dicomservices.PublicNetworkAccessEnabled),
+		},
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(t),
+	}
+
 	if v, ok := d.GetOk("data_partitions_enabled"); ok {
-		enableDataPartitions = pointer.To(v.(bool))
+		parameters.Properties.EnableDataPartitions = pointer.To(v.(bool))
 	}
 
-	var corsConfiguration *dicomservices.CorsConfiguration
-	if v, ok := d.GetOk("cors"); ok {
-		corsConfiguration = expandDicomServiceCorsConfiguration(v.([]interface{}))
+	cors := expandDicomServiceCorsConfiguration(d.Get("cors").([]interface{}))
+	if cors != nil {
+		parameters.Properties.CorsConfiguration = cors
 	}
 
-	var encryption *dicomservices.Encryption
 	if v, ok := d.GetOk("encryption_key_url"); ok {
-		encryption = &dicomservices.Encryption{
+		parameters.Properties.Encryption = &dicomservices.Encryption{
 			CustomerManagedKeyEncryption: &dicomservices.EncryptionCustomerManagedKeyEncryption{
 				KeyEncryptionKeyURL: pointer.To(v.(string)),
 			},
 		}
 	}
 
-	var storageConfiguration *dicomservices.StorageConfiguration
-	if v, ok := d.GetOk("storage"); ok {
-		storageConfiguration = expandStorageConfiguration(v.([]interface{}))
-	}
-
-	parameters := dicomservices.DicomService{
-		Identity: i,
-		Properties: &dicomservices.DicomServiceProperties{
-			CorsConfiguration:    corsConfiguration,
-			EnableDataPartitions: enableDataPartitions,
-			Encryption:           encryption,
-			PublicNetworkAccess:  pointer.To(dicomservices.PublicNetworkAccessEnabled),
-			StorageConfiguration: storageConfiguration,
-		},
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(t),
+	storage := expandStorageConfiguration(d.Get("storage").([]interface{}))
+	if storage != nil {
+		parameters.Properties.StorageConfiguration = storage
 	}
 
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
