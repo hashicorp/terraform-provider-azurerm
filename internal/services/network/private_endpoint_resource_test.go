@@ -1028,7 +1028,7 @@ locals {
     "/",
     concat(
       slice(split("/", azurerm_subnet.endpoint.id), 0, length(split("/", azurerm_subnet.endpoint.id)) - 1),
-      [upper(element(split("/", azurerm_subnet.endpoint.id), length(split("/",azurerm_subnet.endpoint.id)) - 1))]
+      [upper(element(split("/", azurerm_subnet.endpoint.id), length(split("/", azurerm_subnet.endpoint.id)) - 1))]
     )
   )
 }
