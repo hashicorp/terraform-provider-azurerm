@@ -87,6 +87,7 @@ func TestAccContainerAppEnvironment_logsDestinationWithoutWorkspaceShouldFail(t 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.logsDestinationWithoutWorkspaceShouldFail(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`"),
 		},
 	})
@@ -99,6 +100,7 @@ func TestAccContainerAppEnvironment_logsAzureMonitorWithWorkspaceShouldFail(t *t
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.logsAzureMonitorWithWorkspaceShouldFail(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`"),
 		},
 	})
@@ -268,11 +270,12 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment" "test" {
-  name                     = "acctest-CAEnv%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  logs_destination         = "azure-monitor"
-  infrastructure_subnet_id = azurerm_subnet.control.id
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
@@ -471,12 +474,11 @@ resource "azurerm_log_analytics_workspace" "second" {
 }
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  logs_destination           = "log-analytics"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  infrastructure_subnet_id   = azurerm_subnet.control.id
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  logs_destination         = "azure-monitor"
+  infrastructure_subnet_id = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true

@@ -241,6 +241,9 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				Location: containerAppEnvironment.Location,
 				Name:     pointer.To(containerAppEnvironment.Name),
 				Properties: &managedenvironments.ManagedEnvironmentProperties{
+					AppLogsConfiguration: &managedenvironments.AppLogsConfiguration{
+						Destination: pointer.To(containerAppEnvironment.LogsDestination),
+					},
 					VnetConfiguration: &managedenvironments.VnetConfiguration{},
 					ZoneRedundant:     pointer.To(containerAppEnvironment.ZoneRedundant),
 					PeerAuthentication: &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
@@ -265,13 +268,11 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.InfrastructureResourceGroup = pointer.To(containerAppEnvironment.InfrastructureResourceGroup)
 			}
 
-			if containerAppEnvironment.LogsDestination != "" && containerAppEnvironment.LogsDestination != "log-analytics" {
-				managedEnvironment.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
-					Destination: pointer.To(containerAppEnvironment.LogsDestination),
-				}
-			}
-
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
+				if containerAppEnvironment.LogsDestination == LogsDestinationAzureMonitor {
+					return fmt.Errorf("cannot set `log_analytics_workspace_id` when `logs_destination` is %s", LogsDestinationAzureMonitor)
+				}
+
 				logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
 				if err != nil {
 					return err
@@ -297,12 +298,9 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				if keys.Model.PrimarySharedKey == nil {
 					return fmt.Errorf("reading shared key for %s in %s", logAnalyticsId, id)
 				}
-				managedEnvironment.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
-					Destination: pointer.To("log-analytics"),
-					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
-						CustomerId: workspace.Model.Properties.CustomerId,
-						SharedKey:  keys.Model.PrimarySharedKey,
-					},
+				managedEnvironment.Properties.AppLogsConfiguration.LogAnalyticsConfiguration = &managedenvironments.LogAnalyticsConfiguration{
+					CustomerId: workspace.Model.Properties.CustomerId,
+					SharedKey:  keys.Model.PrimarySharedKey,
 				}
 			}
 
@@ -325,7 +323,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 35 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
@@ -515,11 +513,6 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			var env ContainerAppEnvironmentModel
-			if err := metadata.DecodeDiff(&env); err != nil {
-				return err
-			}
-
 			if metadata.ResourceDiff.HasChange("workload_profile") {
 				oldProfiles, newProfiles := metadata.ResourceDiff.GetChange("workload_profile")
 
@@ -538,16 +531,21 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			switch env.LogsDestination {
-			case LogsDestinationLogAnalytics:
-				if env.LogAnalyticsWorkspaceId == "" {
-					return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
-				}
-			default:
-				if env.LogAnalyticsWorkspaceId != "" {
-					return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
-				}
+			// Note: this only protects at plan time against updates - Create with the wrong configuration will fail with an error on Apply
+			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
+				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
+				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+				switch logsDestination {
+				case LogsDestinationLogAnalytics:
+					if logAnalyticsWorkspaceID == "" {
+						return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+					}
 
+				default:
+					if logAnalyticsWorkspaceID != "" {
+						return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
+					}
+				}
 			}
 
 			return nil
