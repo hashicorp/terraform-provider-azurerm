@@ -69,30 +69,16 @@ func TestAccPrivateEndpoint_updateTag(t *testing.T) {
 	})
 }
 
-func TestAccPrivateEndpoint_updateNicName(t *testing.T) {
+func TestAccPrivateEndpoint_customNicName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withCustomNicName(data, "acctest-privatelink-custom-nic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withCustomNicName(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_network_interface_name").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_network_interface_name").HasValue("acctest-privatelink-custom-nic"),
 			),
 		},
 		data.ImportStep(),
@@ -511,7 +497,7 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
 
-func (r PrivateEndpointResource) withCustomNicName(data acceptance.TestData) string {
+func (r PrivateEndpointResource) withCustomNicName(data acceptance.TestData, customNicName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -520,7 +506,7 @@ resource "azurerm_private_endpoint" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   location                      = azurerm_resource_group.test.location
   subnet_id                     = azurerm_subnet.endpoint.id
-  custom_network_interface_name = "acctest-privatelink-%d-nic"
+  custom_network_interface_name = "%s"
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
@@ -528,7 +514,7 @@ resource "azurerm_private_endpoint" "test" {
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, customNicName)
 }
 
 func (r PrivateEndpointResource) requestMessage(data acceptance.TestData, msg string) string {
@@ -771,7 +757,7 @@ resource "azurerm_private_dns_zone" "sales" {
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acceptance.privatelink.%d"
+  name                = "acctest-privatelink-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id
