@@ -1,3 +1,9 @@
+## 4.15.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
+
 ## 4.14.0 (December 12, 2024)
 
 BREAKING CHANGES:
