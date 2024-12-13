@@ -488,10 +488,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`administrator_username` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 
-				if state.AdministratorPassword == "" {
-					return fmt.Errorf("`administrator_password` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
-				}
-
 				if state.ComputeTier == "" {
 					return fmt.Errorf("`compute_tier` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
