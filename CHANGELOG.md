@@ -1,3 +1,36 @@
+## 4.14.0 (December 12, 2024)
+
+BREAKING CHANGES:
+
+* `nginx` - update api version to `2024-09-01-preview`, this API no longer supports certain properties which have had to be deprecated in the provider for the upgrade ([#27776](https://github.com/hashicorp/terraform-provider-azurerm/issues/27776))
+* Data Source: `azurerm_nginx_configuration` - the `protected_file.content` property will not be populated and has been deprecated ([#27776](https://github.com/hashicorp/terraform-provider-azurerm/issues/27776))
+* Data Source: `azurerm_nginx_deployment` - the `managed_resource_group` property will not be populated and has been deprecated ([#27776](https://github.com/hashicorp/terraform-provider-azurerm/issues/27776))
+* `azurerm_network_function_collector_policy` - the API doesn't preserve the ordering of the `ipfx_ingestion.source_resource_ids` property causing non-empty plans after apply, this property's type has been changed from a list to a set to prevent Terraform from continually trying to recreate this resource. If this property is being referenced anywhere you will need to update your config to convert it to a list before referencing it ([#27915](https://github.com/hashicorp/terraform-provider-azurerm/issues/27915))
+* `azurerm_nginx_deployment` - the `managed_resource_group` property is no longer supported and has been deprecated ([#27776](https://github.com/hashicorp/terraform-provider-azurerm/issues/27776))
+
+FEATURES:
+
+* **New Resource**: `azurerm_cognitive_account_rai_blocklist` ([#28043](https://github.com/hashicorp/terraform-provider-azurerm/issues/28043))
+* **New Resource**: `azurerm_fabric_capacity` ([#28080](https://github.com/hashicorp/terraform-provider-azurerm/issues/28080))
+
+ENHANCEMENTS:
+
+* dependencies - update `go-azure-sdk` to `v0.20241206.1180327` ([#28211](https://github.com/hashicorp/terraform-provider-azurerm/issues/28211))
+* `nginx` - update api version to `2024-11-01-preview` ([#28227](https://github.com/hashicorp/terraform-provider-azurerm/issues/28227))
+* `azurerm_linux_function_app` - add support for  preview  value `21` for `java_version` ([#26304](https://github.com/hashicorp/terraform-provider-azurerm/issues/26304))
+* `azurerm_linux_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` ([#28016](https://github.com/hashicorp/terraform-provider-azurerm/issues/28016))
+* `azurerm_linux_web_app` - add support for  preview  value `21` for `java_version` ([#26304](https://github.com/hashicorp/terraform-provider-azurerm/issues/26304))
+* `azurerm_orchestrated_virtual_machine_scale_set` - support hot patching for `2025-datacenter-azure-edition-core-smalldisk` ([#28160](https://github.com/hashicorp/terraform-provider-azurerm/issues/28160))
+* `azurerm_search_service` - add support for the `network_rule_bypass_option` property ([#28139](https://github.com/hashicorp/terraform-provider-azurerm/issues/28139))
+* `azurerm_windows_function_app` - add support for  preview  value `21` for `java_version` ([#26304](https://github.com/hashicorp/terraform-provider-azurerm/issues/26304))
+* `azurerm_windows_function_app_slot` - support `1.3` for `site_config.minimum_tls_version` and `site_config.scm_minimum_tls_version` ([#28016](https://github.com/hashicorp/terraform-provider-azurerm/issues/28016))
+* `azurerm_windows_virtual_machine` - support hot patching for `2025-datacenter-azure-edition-core-smalldisk` ([#28160](https://github.com/hashicorp/terraform-provider-azurerm/issues/28160))
+* `azurerm_windows_web_app` - add support for  preview  value `21` for `java_version` ([#26304](https://github.com/hashicorp/terraform-provider-azurerm/issues/26304))
+
+BUG FIXES:
+
+* `azurerm_management_group` - fix regression where subscription ID can't be parsed correctly anymore ([#28228](https://github.com/hashicorp/terraform-provider-azurerm/issues/28228))
+
 ## 4.13.0 (December 05, 2024)
 
 ENHANCEMENTS:
