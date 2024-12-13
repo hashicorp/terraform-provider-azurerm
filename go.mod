@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.71.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241128.1112539
-	github.com/hashicorp/go-azure-sdk/sdk v0.20241128.1112539
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20241206.1180327
+	github.com/hashicorp/go-azure-sdk/sdk v0.20241206.1180327
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -35,7 +35,6 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/tombuildsstuff/giovanni v0.27.0
-	github.com/tombuildsstuff/kermit v0.20240122.1123108
 	golang.org/x/crypto v0.29.0
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 	gopkg.in/yaml.v3 v3.0.1
@@ -68,6 +67,7 @@ require (
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect

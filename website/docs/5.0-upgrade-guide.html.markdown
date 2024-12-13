@@ -101,6 +101,8 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+* The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -114,9 +116,17 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
 
+### `azurerm_mssql_server`
+
+* The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
+
 ## `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `managed_resource_group` property has been removed.
 
 ### `azurerm_sentinel_alert_rule_fusion`
 
@@ -124,14 +134,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_storage_account`
 
-* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource. 
-* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource. 
+* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
+* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
 
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
- 
+
 ### `azurerm_storage_share`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
@@ -152,11 +162,19 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
+### `azurerm_nginx_configuration`
+
+* The deprecated `protected_file.content` property has been removed.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `managed_resource_group` property has been removed.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
-* 
+
 ### `azurerm_storage_share`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.

@@ -681,46 +681,58 @@ In Go tests are expected to be in a file name in the format `{original_file_name
 package resource_test
 
 import (
-    "context"
-    "fmt"
-    "testing"
+	"context"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupExampleTestResource struct{}
 
 func TestAccResourceGroupExample_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)
+			),
+		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.RequiresImportErrorStep(testResource.requiresImportConfig),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_resource_group_example"),
+		},
 	})
 }
 
 func TestAccResourceGroupExample_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.completeConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.completeConfig, testResource),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -739,7 +751,7 @@ func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupExampleTestResource) basicConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -752,8 +764,8 @@ resource "azurerm_resource_group_example" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ResourceGroupExampleTestResource) requiresImportConfig(data acceptance.TestData) string {
-	template := r.basicConfig(data)
+func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -764,7 +776,7 @@ resource "azurerm_resource_group_example" "import" {
 `, template)
 }
 
-func (ResourceGroupExampleTestResource) completeConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
