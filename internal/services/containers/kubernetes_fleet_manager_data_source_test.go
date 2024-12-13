@@ -35,22 +35,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  location = %q
-  name = "acctestrg-%d"
+  location = "%s"
+  name     = "acctestrg-%d"
 }
 
 resource "azurerm_kubernetes_fleet_manager" "test" {
-  location = azurerm_resource_group.test.location
-  name = "acctestkfm-%s"
+  location            = azurerm_resource_group.test.location
+  name                = "acctestkfm-%s"
   resource_group_name = azurerm_resource_group.test.name
   tags = {
     environment = "terraform-acctests"
-    some_key = "some-value"
+    some_key    = "some-value"
   }
 }
 
 data "azurerm_kubernetes_fleet_manager" "test" {
-  name = azurerm_kubernetes_fleet_manager.test.name
+  name                = azurerm_kubernetes_fleet_manager.test.name
   resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Kubernetes Fleet Ma
 
 ```hcl
 data "azurerm_kubernetes_fleet_manager" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example-resource-group"
 }
 
