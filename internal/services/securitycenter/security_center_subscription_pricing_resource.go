@@ -344,7 +344,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			// set the default value to false, then turn on the extension that appear in the template
 			extensionStatuses[backendExtension.Name] = false
 			if backendExtension.AdditionalExtensionProperties != nil {
-				extensionProperties[backendExtension.Name] = *backendExtension.AdditionalExtensionProperties
+				extensionProperties[backendExtension.Name] = *(backendExtension.AdditionalExtensionProperties)
 			}
 		}
 	}
@@ -357,11 +357,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 		}
 		extensionStatuses[input["name"].(string)] = true
 		if vAdditional, ok := input["additional_extension_properties"]; ok {
-			if v, ok := vAdditional.(map[string]interface{}); ok {
-				if len(v) > 0 {
-					extensionProperties[input["name"].(string)] = v
-				}
-			}
+			extensionProperties[input["name"].(string)] = &vAdditional
 		}
 	}
 
@@ -374,6 +370,7 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			Name:      extensionName,
 			IsEnabled: isEnabled,
 		}
+
 		// The service will return HTTP 500 if the payload contains extensionProperties and `IsEnabled==false`
 		// `AdditionalProperties of Extension 'xxx' can't be updated while the extension is disabled (IsEnabled = False)`
 		if vAdditional, ok := extensionProperties[extensionName]; ok && toBeEnabled {
