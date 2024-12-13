@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -351,17 +350,10 @@ func (r ArcKubernetesProvisionedClusterResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ArcKubernetesClient
-			provisionedClusterInstanceClient := metadata.Client.ArcKubernetes.ProvisionedClusterInstancesClient
 
 			id, err := arckubernetes.ParseConnectedClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
-			}
-
-			// workaround for Deleted cluster still visible https://learn.microsoft.com/en-us/azure/aks/hybrid/deleted-cluster-visible#workaround
-			scopeId := commonids.NewScopeID(id.ID())
-			if err := provisionedClusterInstanceClient.ProvisionedClusterInstancesDeleteThenPoll(ctx, scopeId); err != nil {
-				return fmt.Errorf("deleting child Provisioned Cluster Instance: %+v", err)
 			}
 
 			if err := client.ConnectedClusterDeleteThenPoll(ctx, *id); err != nil {

@@ -39,6 +39,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // App Service Plans for Linux are currently unavailable in WestUS2
         "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
 
+        // Arc Kubernetes Provisioned Cluster is only available in certain locations
+        "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
