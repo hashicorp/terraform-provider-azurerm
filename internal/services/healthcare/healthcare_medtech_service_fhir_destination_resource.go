@@ -266,7 +266,6 @@ func resourceHealthcareApisMedTechServiceFhirDestinationDelete(d *pluginsdk.Reso
 func healthcareApiMedTechServiceFhirDestinationStateCodeRefreshFunc(ctx context.Context, client *iotconnectors.IotConnectorsClient, id iotconnectors.FhirDestinationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.IotConnectorFhirDestinationGet(ctx, id)
-
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "Deleted", nil

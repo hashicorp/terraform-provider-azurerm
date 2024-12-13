@@ -147,7 +147,7 @@ func (f *Fixer) WriteBack() (err error) {
 		log.Printf("%s no content to write back, skip", f.MDFile)
 		return
 	}
-	fd, err := os.OpenFile(f.MDFile, os.O_TRUNC|os.O_RDWR, 066)
+	fd, err := os.OpenFile(f.MDFile, os.O_TRUNC|os.O_RDWR, 0o66)
 	if err != nil {
 		log.Printf("open %s: %v", f.MDFile, err)
 		return err

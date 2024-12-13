@@ -120,7 +120,6 @@ func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, clie
 		Expand:       pointer.To(managementgroups.ExpandChildren),
 		Recurse:      pointer.FromBool(false),
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Management Group to check for Subscription Association: %+v", err)
 	}

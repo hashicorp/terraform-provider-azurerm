@@ -13,15 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-const defaultCapacity = 20 // TODO: remove this in v4.0
 
 type FrontendPrivate struct {
 	IpAddress        string `tfschema:"ip_address"`
@@ -68,7 +65,7 @@ type DeploymentModel struct {
 	NginxVersion           string                                     `tfschema:"nginx_version"`
 	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Sku                    string                                     `tfschema:"sku"`
-	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
+	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group,removedInNextMajorVersion"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
@@ -110,14 +107,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"managed_resource_group": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
 
 		"location": commonschema.Location(),
 
@@ -264,75 +253,13 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource["capacity"].Default = defaultCapacity
-
-		resource["configuration"] = &pluginsdk.Schema{
-			Deprecated: "The `configuration` block has been superseded by the `azurerm_nginx_configuration` resource and will be removed in v4.0 of the AzureRM Provider.",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"config_file": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						AtLeastOneOf: []string{"configuration.0.config_file", "configuration.0.package_data"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"content": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsBase64,
-								},
-
-								"virtual_path": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-
-					"protected_file": {
-						Type:         pluginsdk.TypeSet,
-						Optional:     true,
-						RequiredWith: []string{"configuration.0.config_file"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"content": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									Sensitive:    true,
-									ValidateFunc: validation.StringIsBase64,
-								},
-
-								"virtual_path": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
-								},
-							},
-						},
-					},
-
-					"package_data": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ValidateFunc:  validation.StringIsNotEmpty,
-						AtLeastOneOf:  []string{"configuration.0.config_file", "configuration.0.package_data"},
-						ConflictsWith: []string{"configuration.0.protected_file", "configuration.0.config_file"},
-					},
-
-					"root_file": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
+	if !features.FivePointOhBeta() {
+		resource["managed_resource_group"] = &pluginsdk.Schema{
+			Deprecated:   "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		}
 	}
 
@@ -394,7 +321,6 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
-			prop.ManagedResourceGroup = pointer.To(model.ManagedResourceGroup)
 
 			if len(model.LoggingStorageAccount) > 0 {
 				prop.Logging = &nginxdeployment.NginxLogging{
@@ -439,29 +365,17 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
-			if !features.FourPointOhBeta() {
-				if isBasicSKU && (model.Capacity != defaultCapacity || len(model.AutoScaleProfile) > 0) {
-					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-				}
+			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
+			if isBasicSKU && hasScaling {
+				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+			if !isBasicSKU && !hasScaling {
+				return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
+			}
 
-				if model.Capacity > 0 && !isBasicSKU {
-					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-						Capacity: pointer.FromInt64(model.Capacity),
-					}
-				}
-			} else {
-				hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
-				if isBasicSKU && hasScaling {
-					return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
-				}
-				if !isBasicSKU && !hasScaling {
-					return fmt.Errorf("scaling is required for `sku` '%s', please provide `capacity` or `auto_scale_profiles`", model.Sku)
-				}
-
-				if model.Capacity > 0 {
-					prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-						Capacity: pointer.FromInt64(model.Capacity),
-					}
+			if model.Capacity > 0 {
+				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					Capacity: pointer.FromInt64(model.Capacity),
 				}
 			}
 
@@ -507,18 +421,6 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
-			if !features.FourPointOhBeta() {
-				if len(model.Configuration) > 0 {
-					// update configuration
-					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
-
-					configProp := expandConfiguration(model.Configuration[0])
-					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-						return fmt.Errorf("update default configuration of %q: %v", configID, err)
-					}
-				}
-			}
-
 			meta.SetID(id)
 			return nil
 		},
@@ -557,7 +459,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.ManagedResourceGroup = pointer.ToString(props.ManagedResourceGroup)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
@@ -631,48 +532,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("flattening `identity`: %v", err)
 					}
 					output.Identity = *flattenedIdentity
-				}
-			}
-
-			if !features.FourPointOhBeta() {
-				if v := meta.ResourceData.Get("configuration"); len(v.([]interface{})) != 0 {
-					// read configuration
-					configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
-					if err != nil && !response.WasNotFound(configResp.HttpResponse) {
-						return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
-					}
-					if model := configResp.Model; model != nil {
-						if prop := model.Properties; prop != nil {
-							var files []ConfigureFile
-							if prop.Files != nil {
-								for _, file := range *prop.Files {
-									files = append(files, ConfigureFile{
-										Content:     pointer.From(file.Content),
-										VirtualPath: pointer.From(file.VirtualPath),
-									})
-								}
-							}
-
-							var protectedFiles []ConfigureFile
-							if prop.ProtectedFiles != nil {
-								for _, file := range *prop.ProtectedFiles {
-									protectedFiles = append(protectedFiles, ConfigureFile{
-										Content:     pointer.From(file.Content),
-										VirtualPath: pointer.From(file.VirtualPath),
-									})
-								}
-							}
-
-							output.Configuration = []Configuration{
-								{
-									ConfigureFile: files,
-									ProtectedFile: protectedFiles,
-									PackageData:   pointer.From(pointer.From(prop.Package).Data),
-									RootFile:      pointer.From(prop.RootFile),
-								},
-							}
-						}
-					}
 				}
 			}
 
@@ -769,17 +628,6 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
-			if !features.FourPointOhBeta() {
-				if meta.ResourceData.HasChange("configuration") {
-					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
-
-					configProp := expandConfiguration(model.Configuration[0])
-					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
-						return fmt.Errorf("update default configuration of %q: %v", configID, err)
-					}
-				}
-			}
-
 			return nil
 		},
 	}
@@ -807,44 +655,4 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
-}
-
-func expandConfiguration(model Configuration) nginxconfiguration.NginxConfiguration {
-	result := nginxconfiguration.NginxConfiguration{
-		Properties: &nginxconfiguration.NginxConfigurationProperties{},
-	}
-
-	if len(model.ConfigureFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ConfigureFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.Files = &files
-	}
-
-	if len(model.ProtectedFile) > 0 {
-		var files []nginxconfiguration.NginxConfigurationFile
-		for _, file := range model.ProtectedFile {
-			files = append(files, nginxconfiguration.NginxConfigurationFile{
-				Content:     pointer.To(file.Content),
-				VirtualPath: pointer.To(file.VirtualPath),
-			})
-		}
-		result.Properties.ProtectedFiles = &files
-	}
-
-	if model.PackageData != "" {
-		result.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
-			Data: pointer.To(model.PackageData),
-		}
-	}
-
-	if model.RootFile != "" {
-		result.Properties.RootFile = pointer.To(model.RootFile)
-	}
-
-	return result
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -170,14 +170,11 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	shouldUpdate := false
 	update := capacitypools.CapacityPoolPatch{
 		Properties: &capacitypools.PoolPatchProperties{},
 	}
 
 	if d.HasChange("size_in_tb") {
-		shouldUpdate = true
-
 		sizeInTB := int64(d.Get("size_in_tb").(int))
 		sizeInMB := sizeInTB * 1024 * 1024
 		sizeInBytes := sizeInMB * 1024 * 1024
@@ -186,26 +183,22 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("qos_type") {
-		shouldUpdate = true
 		qosType := capacitypools.QosType(d.Get("qos_type").(string))
 		update.Properties.QosType = &qosType
 	}
 
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	if shouldUpdate {
-		if err = client.PoolsUpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id.ID(), err)
-		}
+	if err = client.PoolsUpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id.ID(), err)
+	}
 
-		// Wait for pool to complete update
-		if err = waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
-		}
+	// Wait for pool to complete update
+	if err = waitForPoolCreateOrUpdate(ctx, client, *id); err != nil {
+		return err
 	}
 
 	return resourceNetAppPoolRead(d, meta)

@@ -106,7 +106,7 @@ func (r NetworkFunctionCollectorPolicyResource) Arguments() map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"source_resource_ids": {
-						Type:     pluginsdk.TypeList,
+						Type:     pluginsdk.TypeSet,
 						Required: true,
 						ForceNew: true,
 						MinItems: 1,

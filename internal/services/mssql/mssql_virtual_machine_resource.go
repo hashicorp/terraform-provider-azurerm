@@ -1366,6 +1366,7 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	return []interface{}{attrs}
 }
+
 func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sqlvirtualmachines.SQLInstanceSettings{}, nil

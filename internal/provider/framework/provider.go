@@ -468,6 +468,20 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"netapp": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+									},
+									"prevent_volume_destruction": schema.BoolAttribute{
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Optional:    true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -488,6 +502,7 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 
 		response.ResourceData = v
 		response.DataSourceData = v
+		response.EphemeralResourceData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -73,19 +72,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return true
-				}(),
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"health_probes_enabled"}
-					}
-					return []string{}
-				}(),
+				Default:  true,
 			},
 
 			"http_port": {
@@ -160,18 +147,6 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		// The API comments about this properties function is incorrect, it does
-		// not disable the health probes it disabled the origin resource itself
-		resource.Schema["health_probes_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`health_probes_enabled` will be removed in favour of the `enabled` property in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"enabled"},
-		}
-	}
-
 	return resource
 }
 
@@ -219,9 +194,6 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	skuName := profile.Sku.Name
 
 	var enabled bool
-	if !features.FourPointOhBeta() {
-		enabled = d.Get("health_probes_enabled").(bool)
-	}
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
 		enabled = d.Get("enabled").(bool)
 	}
@@ -292,9 +264,6 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		d.Set("certificate_name_check_enabled", props.EnforceCertificateNameCheck)
-		if !features.FourPointOhBeta() {
-			d.Set("health_probes_enabled", flattenEnabledBool(props.EnabledState))
-		}
 		d.Set("enabled", flattenEnabledBool(props.EnabledState))
 		d.Set("host_name", props.HostName)
 		d.Set("http_port", props.HTTPPort)
@@ -323,12 +292,6 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("certificate_name_check_enabled") {
 		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("health_probes_enabled") {
-			params.EnabledState = expandEnabledBool(d.Get("health_probes_enabled").(bool))
-		}
 	}
 
 	if d.HasChange("enabled") {

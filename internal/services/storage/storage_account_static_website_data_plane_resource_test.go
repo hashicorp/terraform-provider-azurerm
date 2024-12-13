@@ -32,6 +32,7 @@ func TestAccountStaticWebsiteResource_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccountStaticWebsiteResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := AccountStaticWebsiteResource{}
@@ -165,6 +166,10 @@ resource "azurerm_storage_account_static_website" "test" {
 
 func (r AccountStaticWebsiteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"

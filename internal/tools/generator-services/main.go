@@ -251,7 +251,8 @@ func (websiteCategoriesGenerator) run(outputFileName string, _ map[string]struct
 	// sort them
 	sort.Strings(websiteCategories)
 
-	fileContents := strings.Join(websiteCategories, "\n")
+	// the file needs to start with an empty line to allow documentation without any subcategory e.g. provider function docs
+	fileContents := "\n" + strings.Join(websiteCategories, "\n")
 	return writeToFile(outputFileName, fileContents)
 }
 

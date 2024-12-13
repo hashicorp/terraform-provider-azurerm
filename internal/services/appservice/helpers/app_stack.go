@@ -88,7 +88,9 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"v5.0",
 					"v6.0",
 					"v7.0",
-					"v8.0"}, false),
+					"v8.0",
+					"v9.0",
+				}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
@@ -464,6 +466,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"6.0",
 					"7.0",
 					"8.0",
+					"9.0",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -535,6 +538,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"8",
 					"11",
 					"17",
+					"21",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 				RequiredWith: []string{

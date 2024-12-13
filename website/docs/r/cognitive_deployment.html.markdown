@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `dynamic_throttling_enabled` - (Optional) Whether dynamic throttling is enabled.
+
 * `rai_policy_name` - (Optional) The name of RAI policy.
 
 * `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`.

@@ -23,7 +23,7 @@ const (
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
-	var sasSignedVersion = "2017-07-29"
+	sasSignedVersion := "2017-07-29"
 	if features.FourPointOhBeta() {
 		// TODO: Update the document as well
 		sasSignedVersion = "2022-11-02"

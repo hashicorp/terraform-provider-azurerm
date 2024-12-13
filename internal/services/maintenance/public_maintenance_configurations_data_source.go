@@ -19,8 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-const recurMondayToThursday = "Monday-Thursday"
-const recurFridayToSunday = "Friday-Sunday"
+const (
+	recurMondayToThursday = "Monday-Thursday"
+	recurFridayToSunday   = "Friday-Sunday"
+)
 
 func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -31,7 +33,6 @@ func dataSourcePublicMaintenanceConfigurations() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"location": {
 				Type:      pluginsdk.TypeString,
 				Optional:  true,
