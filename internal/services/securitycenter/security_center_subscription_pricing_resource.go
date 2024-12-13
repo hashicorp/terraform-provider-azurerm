@@ -25,7 +25,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSubscriptionPricingCreate,
 		Read:   resourceSecurityCenterSubscriptionPricingRead,
-		Update: resourceSecurityCenterSubscriptionPricingCreate,
+		Update: resourceSecurityCenterSubscriptionPricingUpdate,
 		Delete: resourceSecurityCenterSubscriptionPricingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -54,6 +54,7 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 					string(security.PricingTierStandard),
 				}, false),
 			},
+
 			"resource_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
