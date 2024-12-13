@@ -3,6 +3,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -436,6 +437,10 @@ func (r StackHCIWindowsVirtualMachineResource) Create() sdk.ResourceFunc {
 
 			if err := client.CreateOrUpdateThenPoll(ctx, scopeId, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if err := resourceVirtualMachineWaitForCreated(ctx, *client, id); err != nil {
+				return err
 			}
 
 			metadata.SetID(id)
@@ -916,5 +921,47 @@ func flattenVirtualMachineStorageProfileWindows(input *virtualmachineinstances.V
 			OsDiskId:              osDiskId,
 			VmConfigStoragePathId: pointer.From(input.VMConfigStoragePathId),
 		},
+	}
+}
+
+func resourceVirtualMachineWaitForCreated(ctx context.Context, client virtualmachineinstances.VirtualMachineInstancesClient, id parse.StackHCIVirtualMachineId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Found"},
+		Refresh:                   resourceVirtualMachineRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceVirtualMachineRefreshFunc(ctx context.Context, client virtualmachineinstances.VirtualMachineInstancesClient, id parse.StackHCIVirtualMachineId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking status for %s ..", id)
+
+		arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroup, id.MachineName)
+		scopeId := commonids.NewScopeID(arcMachineId.ID())
+
+		resp, err := client.Get(ctx, scopeId)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, "Found", nil
 	}
 }

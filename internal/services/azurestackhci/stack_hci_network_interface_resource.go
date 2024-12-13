@@ -6,6 +6,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -181,6 +182,10 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			if err := resourceNetworkInterfaceWaitForCreated(ctx, *client, id); err != nil {
+				return err
+			}
+
 			metadata.SetID(id)
 
 			return nil
@@ -351,4 +356,43 @@ func flattenStackHCINetworkInterfaceIPConfiguration(input *[]networkinterfaces.I
 	}
 
 	return results, nil
+}
+
+func resourceNetworkInterfaceWaitForCreated(ctx context.Context, client networkinterfaces.NetworkInterfacesClient, id networkinterfaces.NetworkInterfaceId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Found"},
+		Refresh:                   resourceNetworkInterfaceRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceNetworkInterfaceRefreshFunc(ctx context.Context, client networkinterfaces.NetworkInterfacesClient, id networkinterfaces.NetworkInterfaceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking status for %s ..", id)
+
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, "Found", nil
+	}
 }
