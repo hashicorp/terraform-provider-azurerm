@@ -1,4 +1,4 @@
-package databases
+package privateendpointconnections
 
 import (
 	"context"
@@ -14,25 +14,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type UpgradeDBRedisVersionOperationResponse struct {
+type PutOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateEndpointConnection
 }
 
-// UpgradeDBRedisVersion ...
-func (c DatabasesClient) UpgradeDBRedisVersion(ctx context.Context, id DatabaseId) (result UpgradeDBRedisVersionOperationResponse, err error) {
+// Put ...
+func (c PrivateEndpointConnectionsClient) Put(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) (result PutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusAccepted,
+			http.StatusCreated,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/upgradeDBRedisVersion", id.ID()),
+		HttpMethod: http.MethodPut,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -54,15 +59,15 @@ func (c DatabasesClient) UpgradeDBRedisVersion(ctx context.Context, id DatabaseI
 	return
 }
 
-// UpgradeDBRedisVersionThenPoll performs UpgradeDBRedisVersion then polls until it's completed
-func (c DatabasesClient) UpgradeDBRedisVersionThenPoll(ctx context.Context, id DatabaseId) error {
-	result, err := c.UpgradeDBRedisVersion(ctx, id)
+// PutThenPoll performs Put then polls until it's completed
+func (c PrivateEndpointConnectionsClient) PutThenPoll(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) error {
+	result, err := c.Put(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing UpgradeDBRedisVersion: %+v", err)
+		return fmt.Errorf("performing Put: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after UpgradeDBRedisVersion: %+v", err)
+		return fmt.Errorf("polling after Put: %+v", err)
 	}
 
 	return nil

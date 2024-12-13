@@ -1,4 +1,4 @@
-package redisenterprise
+package privateendpointconnections
 
 import (
 	"context"
@@ -14,21 +14,23 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DatabasesUpgradeDBRedisVersionOperationResponse struct {
+type DeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// DatabasesUpgradeDBRedisVersion ...
-func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersion(ctx context.Context, id DatabaseId) (result DatabasesUpgradeDBRedisVersionOperationResponse, err error) {
+// Delete ...
+func (c PrivateEndpointConnectionsClient) Delete(ctx context.Context, id PrivateEndpointConnectionId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
+			http.StatusNoContent,
+			http.StatusOK,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/upgradeDBRedisVersion", id.ID()),
+		HttpMethod: http.MethodDelete,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -54,15 +56,15 @@ func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersion(ctx context.Contex
 	return
 }
 
-// DatabasesUpgradeDBRedisVersionThenPoll performs DatabasesUpgradeDBRedisVersion then polls until it's completed
-func (c RedisEnterpriseClient) DatabasesUpgradeDBRedisVersionThenPoll(ctx context.Context, id DatabaseId) error {
-	result, err := c.DatabasesUpgradeDBRedisVersion(ctx, id)
+// DeleteThenPoll performs Delete then polls until it's completed
+func (c PrivateEndpointConnectionsClient) DeleteThenPoll(ctx context.Context, id PrivateEndpointConnectionId) error {
+	result, err := c.Delete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing DatabasesUpgradeDBRedisVersion: %+v", err)
+		return fmt.Errorf("performing Delete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after DatabasesUpgradeDBRedisVersion: %+v", err)
+		return fmt.Errorf("polling after Delete: %+v", err)
 	}
 
 	return nil
