@@ -213,15 +213,7 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -236,15 +228,7 @@ func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -259,30 +243,14 @@ func TestAccApiManagementApi_importSwaggerWithServiceUrl(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 		{
 			Config: r.importSwaggerWithServiceUrlUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -297,15 +265,7 @@ func TestAccApiManagementApi_importWsdl(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -320,15 +280,7 @@ func TestAccApiManagementApi_importWsdlWithSelector(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -377,6 +329,28 @@ func TestAccApiManagementApi_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApi_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -774,6 +748,42 @@ resource "azurerm_api_management_api" "test" {
   }
 
   terms_of_service_url = "https://example:8080/service"
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "Butter Parser Update"
+  path                = "butter-parser-update"
+  protocols           = ["https"]
+  revision            = "3"
+  description         = "What is my purpose? You parse butter update."
+  service_url         = "https://example.com/foo/bar/update"
+
+  subscription_key_parameter_names {
+    header = "X-Butter-Robot-API-Key"
+    query  = "location-update"
+  }
+
+  contact {
+    email = "test-update@test.com"
+    name  = "test-update"
+    url   = "https://example-update:8080"
+  }
+
+  license {
+    name = "test-license-update"
+    url  = "https://example:8080/license-update"
+  }
+
+  terms_of_service_url = "https://example:8080/service-update"
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
