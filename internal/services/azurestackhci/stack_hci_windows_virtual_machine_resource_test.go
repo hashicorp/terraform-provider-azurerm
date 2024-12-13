@@ -472,7 +472,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   custom_location_id  = %[3]q
   hyperv_generation   = "V2"
   os_type             = "Windows"
-  version             = "20348.2762.241204"
+  version             = "20348.2655.240810"
   identifier {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"

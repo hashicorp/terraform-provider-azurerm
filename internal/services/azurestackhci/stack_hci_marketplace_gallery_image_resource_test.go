@@ -224,6 +224,8 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
     offer     = "WindowsServer"
     sku       = "2022-datacenter-azure-edition-core"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
@@ -262,6 +264,8 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
   tags = {
     foo = "bar"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
@@ -301,6 +305,8 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
     foo = "bar"
     env = "test"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
 }
@@ -311,8 +317,6 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-hci-mgi-%s"
   location = "%s"
 }
-
-data "azurerm_client_config" "test" {}
 
 // service principal of 'Microsoft.AzureStackHCI Resource Provider'
 data "azuread_service_principal" "hciRp" {
