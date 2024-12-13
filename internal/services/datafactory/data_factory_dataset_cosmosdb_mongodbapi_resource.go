@@ -244,46 +244,46 @@ func (DataFactoryDatasetCosmosDbMongoDbApiResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			dataset, err := client.Get(ctx, *id, datasets.DefaultGetOperationOptions())
+			resp, err := client.Get(ctx, *id, datasets.DefaultGetOperationOptions())
 			if err != nil {
-				if response.WasNotFound(dataset.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			datasetProperties, ok := dataset.Model.Properties.(datasets.CosmosDbMongoDbApiCollectionDataset)
+			dataset, ok := resp.Model.Properties.(datasets.CosmosDbMongoDbApiCollectionDataset)
 			if !ok {
 				return fmt.Errorf("dataset %s is not a CosmosDbMongoDbAPICollectionDataset", id)
 			}
 
 			state := DataFactoryDatasetCosmosDbMongoDbApiResourceModel{}
 
-			if datasetProperties.Annotations != nil {
-				state.Annotations = flattenDataFactoryAnnotations(datasetProperties.Annotations)
+			if dataset.Annotations != nil {
+				state.Annotations = flattenDataFactoryAnnotations(dataset.Annotations)
 			}
 
-			state.CollectionName = datasetProperties.TypeProperties.Collection
+			state.CollectionName = dataset.TypeProperties.Collection
 
 			state.DataFactoryId = datasets.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID()
 
-			if datasetProperties.Description != nil {
-				state.Description = *datasetProperties.Description
+			if dataset.Description != nil {
+				state.Description = *dataset.Description
 			}
 
-			if datasetProperties.Folder != nil {
-				if datasetProperties.Folder.Name != nil {
-					state.Folder = *datasetProperties.Folder.Name
+			if dataset.Folder != nil {
+				if dataset.Folder.Name != nil {
+					state.Folder = *dataset.Folder.Name
 				}
 			}
 
-			state.LinkedServiceName = datasetProperties.LinkedServiceName.ReferenceName
+			state.LinkedServiceName = dataset.LinkedServiceName.ReferenceName
 
 			state.Name = id.DatasetName
 
-			if datasetProperties.Parameters != nil {
-				state.Parameters = flattenDataSetParametersGoAzureSdk(datasetProperties.Parameters)
+			if dataset.Parameters != nil {
+				state.Parameters = flattenDataSetParametersGoAzureSdk(dataset.Parameters)
 			}
 
 			return metadata.Encode(&state)
