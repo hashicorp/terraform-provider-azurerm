@@ -16,7 +16,6 @@ import (
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,7 +31,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorFirewallPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorFirewallPolicyID(id)
+			_, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(id)
 			return err
 		}),
 
@@ -503,8 +502,6 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("the 'managed_rule' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
 	payload := waf.WebApplicationFirewallPolicy{
 		Location: pointer.To(location.Normalize("Global")),
 		Sku: &waf.Sku{
@@ -518,7 +515,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if managedRules != nil {
@@ -626,13 +623,12 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
-		model.Tags = tags.Expand(t)
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	model.Properties = pointer.To(props)
 
-	err = client.PoliciesCreateOrUpdateThenPoll(ctx, pointer.From(id), pointer.From(model))
+	err = client.PoliciesCreateOrUpdateThenPoll(ctx, *id, *model)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -650,75 +646,63 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	result, err := client.PoliciesGet(ctx, pointer.From(id))
+	result, err := client.PoliciesGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	model := result.Model
-
-	if model == nil {
-		return fmt.Errorf("retrieving %s: 'model' was nil", *id)
-	}
-
-	if model.Properties == nil {
-		return fmt.Errorf("retrieving %s: 'model.Properties' was nil", *id)
 	}
 
 	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if sku := model.Sku; sku != nil {
-		d.Set("sku_name", string(pointer.From(sku.Name)))
-	}
-
-	if props := model.Properties; props != nil {
-		if policy := props.PolicySettings; policy != nil {
-			d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
-			d.Set("mode", string(pointer.From(policy.Mode)))
-			d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
-			d.Set("redirect_url", policy.RedirectURL)
-			d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
-			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
+	if model := result.Model; model != nil {
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", string(pointer.From(sku.Name)))
 		}
 
-		if err := d.Set("custom_rule", flattenCdnFrontDoorFirewallCustomRules(props.CustomRules)); err != nil {
-			return fmt.Errorf("flattening 'custom_rule': %+v", err)
+		if props := model.Properties; props != nil {
+			if err := d.Set("custom_rule", flattenCdnFrontDoorFirewallCustomRules(props.CustomRules)); err != nil {
+				return fmt.Errorf("flattening 'custom_rule': %+v", err)
+			}
+
+			if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {
+				return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+			}
+
+			if err := d.Set("managed_rule", flattenCdnFrontDoorFirewallManagedRules(props.ManagedRules)); err != nil {
+				return fmt.Errorf("flattening 'managed_rule': %+v", err)
+			}
+
+			if policy := props.PolicySettings; policy != nil {
+				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
+				d.Set("mode", string(pointer.From(policy.Mode)))
+				d.Set("request_body_check_enabled", pointer.From(policy.RequestBodyCheck) == waf.PolicyRequestBodyCheckEnabled)
+				d.Set("redirect_url", policy.RedirectURL)
+				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
+				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
+			}
 		}
 
-		if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
-
-		if err := d.Set("managed_rule", flattenCdnFrontDoorFirewallManagedRules(props.ManagedRules)); err != nil {
-			return fmt.Errorf("flattening 'managed_rule': %+v", err)
-		}
-	}
-
-	if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-		return err
 	}
 
 	return nil
 }
 
 func resourceCdnFrontDoorFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorFirewallPolicyID(d.Id())
+	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	err = client.PoliciesDeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

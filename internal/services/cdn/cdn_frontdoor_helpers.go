@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -107,36 +106,6 @@ func flattenEnabledBool(input cdn.EnabledState) bool {
 
 func flattenHttpsRedirectToBool(input cdn.HTTPSRedirect) bool {
 	return input == cdn.HTTPSRedirectEnabled
-}
-
-func expandFrontDoorTagsPointer(tagMap map[string]interface{}) *map[string]string {
-	t := make(map[string]string)
-
-	for k, v := range tagMap {
-		tagKey := k
-		tagValue := v
-		t[tagKey] = tagValue.(string)
-	}
-
-	return pointer.To(t)
-}
-
-func flattenFrontDoorTags(tagMap *map[string]string) map[string]interface{} {
-	if tagMap == nil {
-		return make(map[string]interface{}, 0)
-	}
-
-	t := make(map[string]interface{}, len(*tagMap))
-
-	for k, v := range *tagMap {
-		if v == "" {
-			continue
-		}
-
-		t[k] = v
-	}
-
-	return t
 }
 
 func flattenTransformSlice(input *[]waf.TransformType) []interface{} {

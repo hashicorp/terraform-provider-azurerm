@@ -338,10 +338,10 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 		profileResp, err := profileClient.Get(ctx, profileId)
 		if err != nil {
 			if response.WasNotFound(profileResp.HttpResponse) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("retrieving parent %s: not found", profileId)
 			}
-			return fmt.Errorf("retrieving %s: %+v", profileId, err)
+
+			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 		}
 
 		profileModel := profileResp.Model

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,7 +104,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		Sku: profiles.Sku{
 			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
 		},
-		Tags: expandFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	err = client.CreateThenPoll(ctx, id, props)
@@ -150,7 +151,9 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
 		}
 
-		d.Set("tags", flattenFrontDoorTags(model.Tags))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -167,7 +170,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	props := profiles.ProfileUpdateParameters{
-		Tags:       expandFrontDoorTagsPointer(d.Get("tags").(map[string]interface{})),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &profiles.ProfilePropertiesUpdateParameters{},
 	}
 

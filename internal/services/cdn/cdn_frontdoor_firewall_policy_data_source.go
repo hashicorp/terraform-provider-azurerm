@@ -85,9 +85,9 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if model := result.Model; model != nil {
-		d.SetId(id.ID())
+	d.SetId(id.ID())
 
+	if model := result.Model; model != nil {
 		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		if sku := model.Sku; sku != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -70,8 +71,9 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	if model := resp.Model; model != nil {
-		d.SetId(id.ID())
 		d.Set("name", id.ProfileName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -87,7 +89,9 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
 		}
 
-		d.Set("tags", flattenFrontDoorTags(model.Tags))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
