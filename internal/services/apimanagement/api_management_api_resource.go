@@ -26,9 +26,9 @@ import (
 
 func resourceApiManagementApi() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceApiManagementApiCreateUpdate,
+		Create: resourceApiManagementApiCreate,
 		Read:   resourceApiManagementApiRead,
-		Update: resourceApiManagementApiCreateUpdate,
+		Update: resourceApiManagementApiUpdate,
 		Delete: resourceApiManagementApiDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := api.ParseApiID(id)
@@ -339,7 +339,7 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -355,8 +355,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 	sourceApiId := d.Get("source_api_id").(string)
 
-	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
-
 	if version != "" && versionSetId == "" {
 		return errors.New("setting `version` without the required `version_set_id`")
 	}
@@ -365,35 +363,26 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
-	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, newId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of an existing %s: %+v", newId, err)
-			}
-		}
+	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api", newId.ID())
+			return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
 	}
 
 	apiType := api.ApiTypeHTTP
 	if v, ok := d.GetOk("api_type"); ok {
 		apiType = api.ApiType(v.(string))
 	}
-
-	soapApiType := map[api.ApiType]api.SoapApiType{
-		api.ApiTypeGraphql:   api.SoapApiTypeGraphql,
-		api.ApiTypeHTTP:      api.SoapApiTypeHTTP,
-		api.ApiTypeSoap:      api.SoapApiTypeSoap,
-		api.ApiTypeWebsocket: api.SoapApiTypeWebsocket,
-	}[apiType]
+	soapApiType := soapApiTypeFromApiType(apiType)
 
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
-	if vs, hasImport := d.GetOk("import"); hasImport {
-		importVs := vs.([]interface{})
+	if importVs := d.Get("import").([]interface{}); len(importVs) > 0 {
 		importV := importVs[0].(map[string]interface{})
 		contentFormat := importV["content_format"].(string)
 		contentValue := importV["content_value"].(string)
@@ -433,7 +422,7 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if versionSetId != "" {
 			apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, newId, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
 	}
@@ -498,7 +487,147 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		params.Properties.TermsOfServiceURL = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, newId, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceApiManagementApiRead(d, meta)
+}
+
+func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	revision := d.Get("revision").(string)
+	path := d.Get("path").(string)
+	apiId := fmt.Sprintf("%s;rev=%s", d.Get("name").(string), revision)
+	version := d.Get("version").(string)
+	versionSetId := d.Get("version_set_id").(string)
+	displayName := d.Get("display_name").(string)
+	protocolsRaw := d.Get("protocols").(*pluginsdk.Set).List()
+	protocols := expandApiManagementApiProtocols(protocolsRaw)
+	sourceApiId := d.Get("source_api_id").(string)
+	serviceUrl := d.Get("service_url").(string)
+
+	if version != "" && versionSetId == "" {
+		return errors.New("setting `version` without the required `version_set_id`")
+	}
+
+	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
+		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
+	}
+
+	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+
+	apiType := api.ApiTypeHTTP
+	if v, ok := d.GetOk("api_type"); ok {
+		apiType = api.ApiType(v.(string))
+	}
+	soapApiType := soapApiTypeFromApiType(apiType)
+
+	// If import is used, we need to send properties to Azure API in two operations.
+	// First we execute import and then updated the other props.
+	if d.HasChange("import") {
+		if vs, hasImport := d.GetOk("import"); hasImport {
+			apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
+				path, serviceUrl, version, versionSetId)
+
+			if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			}
+		}
+	}
+
+	prop := &api.ApiCreateOrUpdateProperties{
+		Path: path,
+	}
+
+	if d.HasChange("protocols") {
+		prop.Protocols = protocols
+	}
+
+	if d.HasChange("api_type") {
+		prop.Type = pointer.To(apiType)
+		prop.ApiType = pointer.To(soapApiType)
+	}
+
+	if d.HasChange("service_url") {
+		prop.ServiceURL = pointer.To(serviceUrl)
+	}
+
+	if d.HasChange("description") {
+		prop.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("revision_description") {
+		prop.ApiRevisionDescription = pointer.To(d.Get("revision_description").(string))
+	}
+
+	if d.HasChange("version_description") {
+		prop.ApiVersionDescription = pointer.To(d.Get("version_description").(string))
+	}
+	if d.HasChange("subscription_required") {
+		prop.SubscriptionRequired = pointer.To(d.Get("subscription_required").(bool))
+	}
+
+	if d.HasChange("subscription_key_parameter_names") {
+		subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
+		prop.SubscriptionKeyParameterNames = expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
+	}
+
+	authenticationSettings := &api.AuthenticationSettingsContract{}
+	if d.HasChange("oauth2_authorization") {
+		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
+		oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
+		authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+		prop.AuthenticationSettings = authenticationSettings
+	}
+
+	if d.HasChange("openid_authentication") {
+		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
+		openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
+		authenticationSettings.Openid = openIDAuthorizationSettings
+		prop.AuthenticationSettings = authenticationSettings
+	}
+
+	if d.HasChange("contact") {
+		contactInfoRaw := d.Get("contact").([]interface{})
+		prop.Contact = expandApiManagementApiContact(contactInfoRaw)
+	}
+
+	if d.HasChange("license") {
+		licenseInfoRaw := d.Get("license").([]interface{})
+		prop.License = expandApiManagementApiLicense(licenseInfoRaw)
+	}
+
+	if d.HasChange("source_api_id") {
+		prop.SourceApiId = pointer.To(sourceApiId)
+	}
+
+	if d.HasChange("display_name") {
+		prop.DisplayName = pointer.To(displayName)
+	}
+
+	if d.HasChange("version") {
+		prop.ApiVersion = pointer.To(version)
+	}
+
+	if d.HasChange("version_set_id") {
+		prop.ApiVersionSetId = &versionSetId
+	}
+
+	if d.HasChange("terms_of_service_url") {
+		prop.TermsOfServiceURL = pointer.To(d.Get("terms_of_service_url").(string))
+	}
+
+	params := api.ApiCreateOrUpdateParameter{
+		Properties: prop,
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -597,6 +726,56 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func soapApiTypeFromApiType(apiType api.ApiType) api.SoapApiType {
+	return map[api.ApiType]api.SoapApiType{
+		api.ApiTypeGraphql:   api.SoapApiTypeGraphql,
+		api.ApiTypeHTTP:      api.SoapApiTypeHTTP,
+		api.ApiTypeSoap:      api.SoapApiTypeSoap,
+		api.ApiTypeWebsocket: api.SoapApiTypeWebsocket,
+	}[apiType]
+}
+
+func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string) api.ApiCreateOrUpdateParameter {
+	importV := importVs[0].(map[string]interface{})
+	contentFormat := importV["content_format"].(string)
+	contentValue := importV["content_value"].(string)
+
+	apiParams := api.ApiCreateOrUpdateParameter{
+		Properties: &api.ApiCreateOrUpdateProperties{
+			Type:    pointer.To(apiType),
+			ApiType: pointer.To(soapApiType),
+			Format:  pointer.To(api.ContentFormat(contentFormat)),
+			Value:   pointer.To(contentValue),
+			Path:    path,
+		},
+	}
+
+	wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+	if len(wsdlSelectorVs) > 0 {
+		wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
+		wSvcName := wsdlSelectorV["service_name"].(string)
+		wEndpName := wsdlSelectorV["endpoint_name"].(string)
+
+		apiParams.Properties.WsdlSelector = &api.ApiCreateOrUpdatePropertiesWsdlSelector{
+			WsdlServiceName:  pointer.To(wSvcName),
+			WsdlEndpointName: pointer.To(wEndpName),
+		}
+	}
+	if serviceUrl != "" {
+		apiParams.Properties.ServiceURL = pointer.To(serviceUrl)
+	}
+
+	if version != "" {
+		apiParams.Properties.ApiVersion = pointer.To(version)
+	}
+
+	if versionSetId != "" {
+		apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
+	}
+
+	return apiParams
 }
 
 func expandApiManagementApiProtocols(input []interface{}) *[]api.Protocol {
