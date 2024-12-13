@@ -21,9 +21,10 @@ type MongoClusterResource struct{}
 func TestAccMongoClusterFreeTier(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"freeTier": { // Run tests in sequence since each subscription is limited to one free tier cluster per region and free tier is currently only available in South India.
-			"basic":  testAccMongoCluster_basic,
-			"update": testAccMongoCluster_update,
-			"import": testAccMongoCluster_requiresImport,
+			"basic":      testAccMongoCluster_basic,
+			"geoReplica": testAccMongoCluster_geoReplica,
+			"update":     testAccMongoCluster_update,
+			"import":     testAccMongoCluster_requiresImport,
 		},
 	})
 }
@@ -34,6 +35,21 @@ func testAccMongoCluster_basic(t *testing.T) {
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func testAccMongoCluster_geoReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplica(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
