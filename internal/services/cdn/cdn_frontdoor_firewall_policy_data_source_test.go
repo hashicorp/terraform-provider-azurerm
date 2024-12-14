@@ -27,13 +27,38 @@ func TestAccCdnFrontDoorFirewallPolicyDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicyJsChallengeDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_firewall_policy", "test")
+	d := CdnFrontDoorFirewallPolicyDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.basicJsChallenge(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("redirect_url").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_firewall_policy.test").Key("redirect_url")),
+			),
+		},
+	})
+}
+
 func (CdnFrontDoorFirewallPolicyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = azurerm_cdn_frontdoor_firewall_policy.test.name
+  name                = "accTestDataSourceBasic-%d"
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorFirewallPolicyResource{}.complete(data))
+`, CdnFrontDoorFirewallPolicyResource{}.basic(data), data.RandomInteger)
+}
+
+func (CdnFrontDoorFirewallPolicyDataSource) basicJsChallenge(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestDataSourceJsChallenge-%d"
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+}
+`, CdnFrontDoorFirewallPolicyResource{}.basicJsChallenge(data), data.RandomInteger)
 }

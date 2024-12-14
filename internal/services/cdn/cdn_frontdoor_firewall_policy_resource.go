@@ -77,6 +77,15 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			// NOTE: This cannot have a default value as that would always set the js challenge expiration
+			// value meaning you could not remove that policy from the WAF and would be a breaking change
+			// to pre-existing resources...
+			"js_challenge_cookie_expiration_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(5, 1440),
+			},
+
 			"redirect_url": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -490,6 +499,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	sku := d.Get("sku_name").(string)
 	mode := waf.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
+	jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
@@ -516,6 +526,10 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if jsChallengeExpirationInMinutes > 0 {
+		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(jsChallengeExpirationInMinutes)
 	}
 
 	if managedRules != nil {
@@ -570,7 +584,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled") {
+	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -580,10 +594,15 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		if d.Get("request_body_check_enabled").(bool) {
 			requestBodyCheck = waf.PolicyRequestBodyCheckEnabled
 		}
+
 		props.PolicySettings = &waf.PolicySettings{
 			EnabledState:     pointer.To(enabled),
 			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
 			RequestBodyCheck: pointer.To(requestBodyCheck),
+		}
+
+		if jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int)); jsChallengeExpirationInMinutes > 0 {
+			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(jsChallengeExpirationInMinutes)
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -679,6 +698,10 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
+
+				if policy.JavascriptChallengeExpirationInMinutes != nil {
+					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
 			}
 		}
 

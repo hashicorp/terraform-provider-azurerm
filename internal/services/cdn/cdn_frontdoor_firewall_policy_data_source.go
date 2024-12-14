@@ -49,6 +49,11 @@ func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"js_challenge_cookie_expiration_in_minutes": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"redirect_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -103,6 +108,10 @@ func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta in
 				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
 				d.Set("mode", pointer.From(policy.Mode))
 				d.Set("redirect_url", policy.RedirectURL)
+
+				if policy.JavascriptChallengeExpirationInMinutes != nil {
+					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
 			}
 		}
 	}

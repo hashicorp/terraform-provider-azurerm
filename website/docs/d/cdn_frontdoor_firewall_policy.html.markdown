@@ -37,6 +37,8 @@ The following attributes are exported:
 
 * `frontend_endpoint_ids` - The Front Door Profiles frontend endpoints associated with this Front Door Firewall Policy.
 
+* `js_challenge_cookie_expiration_in_minutes` - The Front Door Firewall Policy JavaScript challenge cookie lifetime in minutes.
+
 * `mode` - The Front Door Firewall Policy mode.
 
 * `redirect_url` - The redirect URL for the client.
