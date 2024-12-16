@@ -268,7 +268,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
