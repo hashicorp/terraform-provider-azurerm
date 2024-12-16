@@ -93,6 +93,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   name                   = "example-ngfwvh"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
+  marketplace_offer_id   = "pan_swfw_cloud_ngfw"
+  plan_id                = "panw-cloud-ngfw-payg"
   panorama_base64_config = "e2RnbmFtZTogY25nZnctYXotZXhhbXBsZSwgdHBsbmFtZTogY25nZnctZXhhbXBsZS10ZW1wbGF0ZS1zdGFjaywgZXhhbXBsZS1wYW5vcmFtYS1zZXJ2ZXI6IDE5Mi4xNjguMC4xLCB2bS1hdXRoLWtleTogMDAwMDAwMDAwMDAwMDAwLCBleHBpcnk6IDIwMjQvMDcvMzF9Cg=="
 
   network_profile {
@@ -120,6 +122,10 @@ The following arguments are supported:
 * `panorama_base64_config` - (Required) The base64 encoded configuration registration string as defined by your Panorama Server for your Cloud Device Group.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Palo Alto Next Generation Firewall Virtual Network Panorama should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Panorama to be created.
+
+* `marketplace_offer_id` - (Required) The marketplace offer ID.
+
+* `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
 
 ---
 
