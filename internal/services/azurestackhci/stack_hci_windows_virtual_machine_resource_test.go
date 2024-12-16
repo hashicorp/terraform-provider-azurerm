@@ -16,6 +16,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// https://learn.microsoft.com/en-us/azure/azure-local/manage/virtual-machine-image-azure-marketplace?tabs=azurecli
+// Provisioning a VM requires an image. We support downloading an image using the `azurerm_stack_hci_marketplace_gallery_image` resource;
+// however, downloading an image takes more than one hour.
+// To speed up testing, we reuse a pre-downloaded image.
+const (
+	vmImageIdEnv = "ARM_TEST_STACK_HCI_VM_IMAGE_ID"
+)
+
 type StackHCIWindowsVirtualMachineResource struct{}
 
 func TestAccStackHCIWindowsVirtualMachine(t *testing.T) {
@@ -41,6 +49,10 @@ func testAccStackHCIWindowsVirtualMachine_basic(t *testing.T) {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
+	if os.Getenv(vmImageIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", vmImageIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_windows_virtual_machine", "test")
 	r := StackHCIWindowsVirtualMachineResource{}
 
@@ -60,6 +72,10 @@ func testAccStackHCIWindowsVirtualMachine_complete(t *testing.T) {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
+	if os.Getenv(vmImageIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", vmImageIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_windows_virtual_machine", "test")
 	r := StackHCIWindowsVirtualMachineResource{}
 
@@ -77,6 +93,10 @@ func testAccStackHCIWindowsVirtualMachine_complete(t *testing.T) {
 func testAccStackHCIWindowsVirtualMachine_update(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
+	if os.Getenv(vmImageIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", vmImageIdEnv)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_windows_virtual_machine", "test")
@@ -110,6 +130,10 @@ func testAccStackHCIWindowsVirtualMachine_update(t *testing.T) {
 func testAccStackHCIWindowsVirtualMachine_requiresImport(t *testing.T) {
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
+	if os.Getenv(vmImageIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", vmImageIdEnv)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_windows_virtual_machine", "test")
@@ -465,23 +489,6 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azuread_service_principal.hciRp.object_id
 }
 
-resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
-  name                = "acctest-mgi-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  custom_location_id  = %[3]q
-  hyperv_generation   = "V2"
-  os_type             = "Windows"
-  version             = "20348.2762.241204"
-  identifier {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2022-datacenter-azure-edition-core"
-  }
-
-  depends_on = [azurerm_role_assignment.test]
-}
-
 resource "azurerm_stack_hci_virtual_hard_disk" "test" {
   name                = "acctest-vhd-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -503,6 +510,8 @@ resource "azurerm_arc_machine" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.Locations.Primary, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }

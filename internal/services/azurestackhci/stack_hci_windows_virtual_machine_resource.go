@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/galleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/marketplacegalleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/storagecontainers"
@@ -321,10 +322,13 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"image_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: marketplacegalleryimages.ValidateMarketplaceGalleryImageID,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.Any(
+							marketplacegalleryimages.ValidateMarketplaceGalleryImageID,
+							galleryimages.ValidateGalleryImageID,
+						),
 					},
 
 					"os_disk_id": {
