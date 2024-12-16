@@ -137,9 +137,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
-  name                = "acctest-ngfwvh-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvh-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -154,12 +156,16 @@ func (r NextGenerationFirewallVWanResource) requiresImport(data acceptance.TestD
 	return fmt.Sprintf(`
 
 
+
+
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "import" {
-  name                = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.name
-  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.resource_group_name
-  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.rulestack_id
+  name                 = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.name
+  resource_group_name  = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.resource_group_name
+  rulestack_id         = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.rulestack_id
+  marketplace_offer_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.marketplace_offer_id
+  plan_id              = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.plan_id
 
   network_profile {
     virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.virtual_hub_id
@@ -179,9 +185,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
-  name                = "acctest-ngfwvh-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvh-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -233,9 +241,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
-  name                = "acctest-ngfwvh-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvh-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id

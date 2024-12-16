@@ -52,9 +52,11 @@ resource "azurerm_palo_alto_virtual_network_appliance" "example" {
   virtual_hub_id = azurerm_virtual_hub.example.id
 }
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "example" {
-  name                = "example-ngfwvn"
-  resource_group_name = azurerm_resource_group.example.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.example.id
+  name                 = "example-ngfwvn"
+  resource_group_name  = azurerm_resource_group.example.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.example.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     public_ip_address_ids        = [azurerm_public_ip.example.id]
@@ -75,6 +77,10 @@ The following arguments are supported:
 * `rulestack_id` - (Required) The ID of the Local Rulestack to be used for this Next Generation Firewall.
 
 * `network_profile` - (Required) A `network_profile` block as defined below.
+
+* `marketplace_offer_id` - (Required) The marketplace offer ID.
+
+* `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
 
 ---
 
