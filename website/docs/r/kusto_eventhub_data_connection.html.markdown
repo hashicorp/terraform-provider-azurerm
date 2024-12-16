@@ -67,8 +67,9 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   cluster_name        = azurerm_kusto_cluster.cluster.name
   database_name       = azurerm_kusto_database.database.name
 
-  eventhub_id    = azurerm_eventhub.eventhub.id
-  consumer_group = azurerm_eventhub_consumer_group.consumer_group.name
+  eventhub_id           = azurerm_eventhub.eventhub.id
+  consumer_group        = azurerm_eventhub_consumer_group.consumer_group.name
+  retrieval_start_date  = "2024-11-25T04:44:44Z"
 
   table_name        = "my-table"         #(Optional)
   mapping_rule_name = "my-table-mapping" #(Optional)
@@ -103,6 +104,8 @@ The following arguments are supported:
 * `identity_id` - (Optional) The resource ID of a managed identity (system or user assigned) to be used to authenticate with event hub.
 
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
+
+* `retrieval_start_date` - (Optional) When defined, the data connection retrieves existing Event hub events created since the Retrieval start date. It can only retrieve events retained by the Event hub, based on its retention period.
 
 * `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `APACHEAVRO`, `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `ORC`, `PARQUET`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSVE`, `TSV`, `TXT`, and `W3CLOGFILE`.
 
