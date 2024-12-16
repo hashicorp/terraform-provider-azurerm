@@ -1440,6 +1440,20 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
+
+	// Validate required fields before expanding customer_managed_key
+	identityType := d.Get("identity").(string)
+	cmkCount := d.Get("customer_managed_key.#").(int)
+
+	// If the identity is "SystemAssigned" and customer_managed_key is defined,
+	// ensure that user_assigned_identity_id is specified.
+	if identityType == "UserAssigned" && cmkCount > 0 {
+		userAssignedIdentityID := d.Get("customer_managed_key.0.user_assigned_identity_id").(string)
+		if userAssignedIdentityID == "" {
+			return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
+		}
+	}
+
 	encryptionRaw := d.Get("customer_managed_key").([]interface{})
 	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 	if err != nil {
