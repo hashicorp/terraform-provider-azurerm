@@ -1445,9 +1445,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	identityType := d.Get("identity").(string)
 	cmkCount := d.Get("customer_managed_key.#").(int)
 
-	// If the identity is "SystemAssigned" and customer_managed_key is defined,
+	// If the identity is "UserAssigned" and customer_managed_key is defined,
 	// ensure that user_assigned_identity_id is specified.
-	if identityType == "UserAssigned" && cmkCount > 0 {
+	if strings.Contains(identityType, "UserAssigned") && cmkCount > 0 {
 		userAssignedIdentityID := d.Get("customer_managed_key.0.user_assigned_identity_id").(string)
 		if userAssignedIdentityID == "" {
 			return fmt.Errorf("`customer_managed_key.0.user_assigned_identity_id` must be specified when `identity` is `UserAssigned`")
