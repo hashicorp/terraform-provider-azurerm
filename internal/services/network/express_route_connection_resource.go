@@ -158,7 +158,7 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 		resource.Schema["private_link_fast_path_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
-			Deprecated: "'private_link_fast_path_enabled' has been deprecated as it is no longer supported by the resource and will be removed in v5",
+			Deprecated: "'private_link_fast_path_enabled' has been deprecated as it is no longer supported by the resource and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
