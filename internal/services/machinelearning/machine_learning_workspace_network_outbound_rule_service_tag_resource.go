@@ -19,7 +19,7 @@ import (
 
 var _ sdk.ResourceWithUpdate = WorkspaceNetworkOutboundRuleServiceTag{}
 
-type machineLearningWorkspaceServiceTagOutboundRuleModel struct {
+type MachineLearningWorkspaceServiceTagOutboundRuleModel struct {
 	Name        string `tfschema:"name"`
 	WorkspaceId string `tfschema:"workspace_id"`
 	ServiceTag  string `tfschema:"service_tag"`
@@ -36,7 +36,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) ResourceType() string {
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) ModelObject() interface{} {
-	return &machineLearningWorkspaceServiceTagOutboundRuleModel{}
+	return &MachineLearningWorkspaceServiceTagOutboundRuleModel{}
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTag) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -168,7 +168,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Create() sdk.ResourceFunc {
 			client := metadata.Client.MachineLearning.ManagedNetwork
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model machineLearningWorkspaceServiceTagOutboundRuleModel
+			var model MachineLearningWorkspaceServiceTagOutboundRuleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -218,7 +218,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Update() sdk.ResourceFunc {
 			client := metadata.Client.MachineLearning.ManagedNetwork
 			id, err := managednetwork.ParseOutboundRuleID(metadata.ResourceData.Id())
 
-			var model machineLearningWorkspaceServiceTagOutboundRuleModel
+			var model MachineLearningWorkspaceServiceTagOutboundRuleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -283,7 +283,7 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := machineLearningWorkspaceServiceTagOutboundRuleModel{
+			state := MachineLearningWorkspaceServiceTagOutboundRuleModel{
 				Name:        id.OutboundRuleName,
 				WorkspaceId: managednetwork.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID(),
 			}
@@ -291,17 +291,9 @@ func (r WorkspaceNetworkOutboundRuleServiceTag) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if prop, ok := props.(managednetwork.ServiceTagOutboundRule); ok && prop.Destination != nil {
-						if prop.Destination.ServiceTag != nil {
-							state.ServiceTag = *prop.Destination.ServiceTag
-						}
-
-						if prop.Destination.Protocol != nil {
-							state.Protocol = *prop.Destination.Protocol
-						}
-
-						if prop.Destination.PortRanges != nil {
-							state.PortRanges = *prop.Destination.PortRanges
-						}
+						state.ServiceTag = pointer.From(prop.Destination.ServiceTag)
+						state.Protocol = pointer.From(prop.Destination.Protocol)
+						state.PortRanges = pointer.From(prop.Destination.PortRanges)
 					}
 				}
 			}
