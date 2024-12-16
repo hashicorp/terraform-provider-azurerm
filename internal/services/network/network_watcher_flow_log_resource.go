@@ -79,6 +79,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(
 					networksecuritygroups.ValidateNetworkSecurityGroupID,
 					commonids.ValidateVirtualNetworkID,
+					commonids.ValidateSubnetID,
+					commonids.ValidateNetworkInterfaceID,
 				),
 			},
 
@@ -422,6 +424,10 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				targetIsNSG = true
 			} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = vnetId.ID()
+			} else if subnetId, err := commonids.ParseSubnetIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = subnetId.ID()
+			} else if nicId, err := commonids.ParseNetworkInterfaceIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = nicId.ID()
 			}
 
 			if !features.FivePointOhBeta() && targetIsNSG {

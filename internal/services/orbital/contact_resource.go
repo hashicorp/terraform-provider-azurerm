@@ -19,6 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var _ sdk.ResourceWithDeprecationAndNoReplacement = ContactResource{}
+
+func (r ContactResource) DeprecationMessage() string {
+	return "The `azurerm_orbital_contact` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider."
+}
+
 type ContactResource struct{}
 
 type ContactResourceModel struct {
