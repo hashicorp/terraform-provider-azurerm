@@ -82,7 +82,9 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 			"subplan": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
+
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -177,9 +179,6 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 	}
 
 	// after turning on the bundle, we have now the extensions list
-	// When `subplan` changed, there might be `extension` enabled by default on the service side, the value under the `subplan` is kept till next time set to it.
-	// It also requires an additional update.
-	// E.g: change `subplan` from `PerStorageAccount` to `DefenderForStorageV2`,`OnUploadMalwareScanning` extension will be enabled by default.
 	extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 	pricing.Properties.Extensions = extensions
 
@@ -263,7 +262,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	// When `subplan` changed, there might be `extension` enabled by default on the service side, the value under the `subplan` is kept till next time set to it.
 	// It also requires an additional update.
 	// E.g: change `subplan` from `PerStorageAccount` to `DefenderForStorageV2`,`OnUploadMalwareScanning` extension will be enabled by default.
-	if isCurrentlyInFree || d.HasChange("subplan") {
+	if isCurrentlyInFree {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		pricing.Properties.Extensions = extensions
 		_, updateErr := client.Update(ctx, *id, pricing)
