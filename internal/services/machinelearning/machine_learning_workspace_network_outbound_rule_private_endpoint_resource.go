@@ -133,7 +133,7 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Create() sdk.ResourceFunc {
 
 			resId, err := resourceids.ParseAzureResourceID(model.ServiceResourceId)
 			if err != nil {
-				return fmt.Errorf(" parsing resource ID: %+v", err)
+				return err
 			}
 
 			supportType := false

@@ -121,7 +121,7 @@ func (r WorkspaceNetworkOutboundPrivateEndpointResource) Exists(ctx context.Cont
 
 	resp, err := client.MachineLearning.ManagedNetwork.SettingsRuleGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Machine Learning Workspace Outbound Rule Private Endpoint %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", state.ID, err)
 	}
 
 	return pointer.To(resp.Model.Properties != nil), nil
