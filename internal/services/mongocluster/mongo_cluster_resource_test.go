@@ -119,12 +119,19 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "random_password" "test" {
+  length  = 8
+  numeric = true
+  upper   = true
+  lower   = true
+}
+
 resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
+  administrator_password = random_password.test.result
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"

@@ -55,8 +55,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the NGINX Deployment exists.
 
-* `logging_storage_account` - A `logging_storage_account` block as defined below.
-
 * `network_interface` - A `network_interface` block as defined below.
 
 * `nginx_version` - NGINX version of the Deployment.
@@ -90,14 +88,6 @@ A `identity` block exports the following:
 * `identity_ids` - List of identities attached to the NGINX Deployment.
 
 * `type` - Type of identity attached to the NGINX Deployment.
-
----
-
-A `logging_storage_account` block exports the following:
-
-* `container_name` - The container name of Storage Account for logging.
-
-* `name` - The account name of the StorageAccount for logging.
 
 ---
 
