@@ -20,18 +20,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NextGenerationFirewallVNetLocalRulestackResource struct{}
 
 type NextGenerationFirewallVnetLocalRulestackModel struct {
-	Name              string                      `tfschema:"name"`
-	ResourceGroupName string                      `tfschema:"resource_group_name"`
-	NetworkProfile    []schema.NetworkProfileVnet `tfschema:"network_profile"`
-	RuleStackId       string                      `tfschema:"rulestack_id"`
-	DNSSettings       []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd          []schema.DestinationNAT     `tfschema:"destination_nat"`
-	Tags              map[string]interface{}      `tfschema:"tags"`
+	Name               string                      `tfschema:"name"`
+	ResourceGroupName  string                      `tfschema:"resource_group_name"`
+	NetworkProfile     []schema.NetworkProfileVnet `tfschema:"network_profile"`
+	RuleStackId        string                      `tfschema:"rulestack_id"`
+	DNSSettings        []schema.DNSSettings        `tfschema:"dns_settings"`
+	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
+	PlanId             string                      `tfschema:"plan_id"`
+	Tags               map[string]interface{}      `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVNetLocalRulestackResource{}
@@ -63,6 +66,18 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 		"dns_settings": schema.DNSSettingsSchema(),
 
 		"destination_nat": schema.DestinationNATSchema(),
+
+		"marketplace_offer_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
+		"plan_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -122,13 +137,13 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 					},
 					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
 					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw", // TODO - Will just supplying the offer ID `panw-cloud-ngfw-payg` work?
+						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
+						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
@@ -184,6 +199,10 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
+
+				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
+
+				state.PlanId = props.PlanData.PlanId
 
 				state.Tags = tags.Flatten(existing.Model.Tags)
 			}
@@ -272,6 +291,14 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("marketplace_offer_id") {
+				props.MarketplaceDetails.OfferId = model.MarketplaceOfferId
+			}
+
+			if metadata.ResourceData.HasChange("plan_id") {
+				props.PlanData.PlanId = model.PlanId
 			}
 
 			firewall.Properties = props
