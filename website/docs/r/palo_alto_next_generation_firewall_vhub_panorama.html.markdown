@@ -53,9 +53,11 @@ resource "azurerm_palo_alto_virtual_network_appliance" "example" {
 }
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                 = "example"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     public_ip_address_ids        = [azurerm_public_ip.example.id]
@@ -80,6 +82,10 @@ The following arguments are supported:
 * `panorama_base64_config` - (Required) The Base64 Encoded configuration value for connecting to the Panorama Configuration server.
 
 * `network_profile` - (Required) A `network_profile` block as defined below.
+
+* `marketplace_offer_id` - (Required) The marketplace offer ID.
+
+* `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
 
 ---
 

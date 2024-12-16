@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NextGenerationFirewallVHubPanoramaResource struct{}
@@ -31,6 +32,8 @@ type NextGenerationFirewallVHubPanoramaResourceModel struct {
 	NetworkProfile       []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceOfferId   string                      `tfschema:"marketplace_offer_id"`
+	PlanId               string                      `tfschema:"plan_id"`
 	Tags                 map[string]interface{}      `tfschema:"tags"`
 
 	// Computed
@@ -76,6 +79,18 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 		"destination_nat": schema.DestinationNATSchema(),
 
+		"marketplace_offer_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
+		"plan_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -119,13 +134,13 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumTRUE),
 					DnsSettings:       schema.ExpandDNSSettings(model.DNSSettings),
 					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw",
+						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
+						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
@@ -192,6 +207,10 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
 					}}
 				}
+
+				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
+
+				state.PlanId = props.PlanData.PlanId
 
 				state.Tags = tags.Flatten(model.Tags)
 			}
@@ -260,6 +279,14 @@ func (r NextGenerationFirewallVHubPanoramaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("marketplace_offer_id") {
+				props.MarketplaceDetails.OfferId = model.MarketplaceOfferId
+			}
+
+			if metadata.ResourceData.HasChange("plan_id") {
+				props.PlanData.PlanId = model.PlanId
 			}
 
 			firewall.Properties = props
