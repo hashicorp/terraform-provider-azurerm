@@ -22,12 +22,13 @@ func TestAccCdnFrontDoorFirewallPolicyDataSource_basic(t *testing.T) {
 			Config: d.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("redirect_url").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_firewall_policy.test").Key("redirect_url")),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 	})
 }
 
-func TestAccCdnFrontDoorFirewallPolicyJsChallengeDataSource_basic(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicyDataSourceJsChallenge_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_firewall_policy", "test")
 	d := CdnFrontDoorFirewallPolicyDataSource{}
 
@@ -36,6 +37,7 @@ func TestAccCdnFrontDoorFirewallPolicyJsChallengeDataSource_basic(t *testing.T) 
 			Config: d.basicJsChallenge(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("redirect_url").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_firewall_policy.test").Key("redirect_url")),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
 			),
 		},
 	})
@@ -46,10 +48,10 @@ func (CdnFrontDoorFirewallPolicyDataSource) basic(data acceptance.TestData) stri
 %s
 
 data "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestDataSourceBasic-%d"
-  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+  name                = azurerm_cdn_frontdoor_firewall_policy.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
-`, CdnFrontDoorFirewallPolicyResource{}.basic(data), data.RandomInteger)
+`, CdnFrontDoorFirewallPolicyResource{}.basic(data))
 }
 
 func (CdnFrontDoorFirewallPolicyDataSource) basicJsChallenge(data acceptance.TestData) string {
@@ -57,8 +59,8 @@ func (CdnFrontDoorFirewallPolicyDataSource) basicJsChallenge(data acceptance.Tes
 %s
 
 data "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestDataSourceJsChallenge-%d"
-  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+  name                = azurerm_cdn_frontdoor_firewall_policy.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
-`, CdnFrontDoorFirewallPolicyResource{}.basicJsChallenge(data), data.RandomInteger)
+`, CdnFrontDoorFirewallPolicyResource{}.basicJsChallenge(data))
 }

@@ -9,10 +9,11 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,6 +28,7 @@ func TestAccCdnFrontDoorFirewallPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -41,7 +43,7 @@ func TestAccCdnFrontDoorFirewallPolicyJsChallenge_basic(t *testing.T) {
 			Config: r.basicJsChallenge(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
 			),
 		},
 		data.ImportStep(),
@@ -98,8 +100,7 @@ func TestAccCdnFrontDoorFirewallPolicyJsChallenge_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("request_body_check_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").DoesNotExist(),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -107,7 +108,7 @@ func TestAccCdnFrontDoorFirewallPolicyJsChallenge_update(t *testing.T) {
 			Config: r.basicJsChallenge(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
 			),
 		},
 		data.ImportStep(),
@@ -123,8 +124,7 @@ func TestAccCdnFrontDoorFirewallPolicyJsChallenge_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("request_body_check_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").DoesNotExist(),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -310,14 +310,14 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorFirewallPolicyID(state.ID)
+	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cdn.FrontDoorLegacyFirewallPoliciesClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	result, err := clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -370,7 +370,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 
-  js_challenge_cookie_expiration_in_minutes = 30
+  js_challenge_cookie_expiration_in_minutes = 45
 }
 `, tmp, data.RandomInteger)
 }
