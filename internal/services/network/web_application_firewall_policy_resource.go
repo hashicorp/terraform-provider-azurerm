@@ -515,17 +515,12 @@ func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta 
 	managedRules := d.Get("managed_rules").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
-	expandedManagedRules, err := expandWebApplicationFirewallPolicyManagedRulesDefinition(managedRules, d)
-	if err != nil {
-		return err
-	}
-
 	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
 		Location: utils.String(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
 			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
-			ManagedRules:   pointer.From(expandedManagedRules),
+			ManagedRules:   pointer.From(expandWebApplicationFirewallPolicyManagedRulesDefinition(managedRules)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -570,11 +565,7 @@ func resourceWebApplicationFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if d.HasChange("managed_rules") {
-		expandedManagedRules, err := expandWebApplicationFirewallPolicyManagedRulesDefinition(d.Get("managed_rules").([]interface{}), d)
-		if err != nil {
-			return err
-		}
-		model.Properties.ManagedRules = pointer.From(expandedManagedRules)
+		model.Properties.ManagedRules = pointer.From(expandWebApplicationFirewallPolicyManagedRulesDefinition(d.Get("managed_rules").([]interface{})))
 	}
 
 	if d.HasChange("tags") {
@@ -748,12 +739,12 @@ func expandWebApplicationFirewallPolicyLogScrubbing(input []interface{}) *webapp
 	}
 	res.State = &state
 
-	res.ScrubbingRules = expanedWebApplicationPolicyScrubbingRules(v["rule"].([]interface{}))
+	res.ScrubbingRules = expandWebApplicationPolicyScrubbingRules(v["rule"].([]interface{}))
 
 	return &res
 }
 
-func expanedWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules {
+func expandWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules {
 	if len(input) == 0 {
 		return nil
 	}
@@ -778,24 +769,21 @@ func expanedWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplic
 	return &res
 }
 
-func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{}, d *pluginsdk.ResourceData) (*webapplicationfirewallpolicies.ManagedRulesDefinition, error) {
+func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{}) *webapplicationfirewallpolicies.ManagedRulesDefinition {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 	v := input[0].(map[string]interface{})
 
 	exclusions := v["exclusion"].([]interface{})
 	managedRuleSets := v["managed_rule_set"].([]interface{})
 
-	expandedManagedRuleSets, err := expandWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets, d)
-	if err != nil {
-		return nil, err
-	}
+	expandedManagedRuleSets := expandWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets)
 
 	return &webapplicationfirewallpolicies.ManagedRulesDefinition{
 		Exclusions:      expandWebApplicationFirewallPolicyExclusions(exclusions),
 		ManagedRuleSets: *expandedManagedRuleSets,
-	}, nil
+	}
 }
 
 func expandWebApplicationFirewallPolicyExclusionManagedRules(input []interface{}) *[]webapplicationfirewallpolicies.ExclusionManagedRule {
@@ -876,10 +864,10 @@ func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]webapp
 	return &results
 }
 
-func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pluginsdk.ResourceData) (*[]webapplicationfirewallpolicies.ManagedRuleSet, error) {
+func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleSet {
 	results := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
 
-	for i, item := range input {
+	for _, item := range input {
 		v := item.(map[string]interface{})
 		ruleSetType := v["type"].(string)
 		ruleSetVersion := v["version"].(string)
@@ -888,10 +876,7 @@ func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pl
 			ruleGroupOverrides = value.([]interface{})
 		}
 
-		expandedRuleGroupOverrides, err := expandWebApplicationFirewallPolicyRuleGroupOverrides(ruleGroupOverrides, d, i)
-		if err != nil {
-			return nil, err
-		}
+		expandedRuleGroupOverrides := expandWebApplicationFirewallPolicyRuleGroupOverrides(ruleGroupOverrides)
 
 		result := webapplicationfirewallpolicies.ManagedRuleSet{
 			RuleSetType:        ruleSetType,
@@ -901,10 +886,10 @@ func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pl
 
 		results = append(results, result)
 	}
-	return &results, nil
+	return &results
 }
 
-func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d *pluginsdk.ResourceData, managedRuleSetIndex int) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {
+func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride {
 	results := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -922,7 +907,7 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleOverride {

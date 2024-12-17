@@ -290,18 +290,6 @@ func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandVpnGatewayNatRuleAddressSpaceMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
-	results := make([]virtualwans.VpnNatRuleMapping, 0)
-
-	for _, v := range input {
-		results = append(results, virtualwans.VpnNatRuleMapping{
-			AddressSpace: pointer.To(v.(string)),
-		})
-	}
-
-	return &results
-}
-
 func expandVpnGatewayNatRuleMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
 	results := make([]virtualwans.VpnNatRuleMapping, 0)
 
@@ -343,21 +331,6 @@ func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []
 			"address_space": addressSpace,
 			"port_range":    portRange,
 		})
-	}
-
-	return results
-}
-
-func flattenVpnGatewayNatRuleAddressSpaceMappings(input *[]virtualwans.VpnNatRuleMapping) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if item.AddressSpace != nil {
-			results = append(results, *item.AddressSpace)
-		}
 	}
 
 	return results
