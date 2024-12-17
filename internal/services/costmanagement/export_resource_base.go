@@ -205,9 +205,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 					if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(&props.Definition)); err != nil {
 						return fmt.Errorf("setting `export_data_options`: %+v", err)
 					}
-					if format := props.Format; format != nil {
-						metadata.ResourceData.Set("file_format", string(pointer.From(format)))
-					}
+					metadata.ResourceData.Set("file_format", string(pointer.From(props.Format)))
 				}
 			}
 
