@@ -121,7 +121,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   marketplace_offer_id   = "pan_swfw_cloud_ngfw"
-  plan_id                = "panw-cloud-ngfw-payg"
+  plan_id                = "panw-cngfw-payg"
   panorama_base64_config = "%[3]s"
 
   network_profile {
@@ -150,7 +150,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   resource_group_name    = azurerm_resource_group.test.name
   location               = "%[3]s"
   marketplace_offer_id   = "pan_swfw_cloud_ngfw"
-  plan_id                = "panw-cloud-ngfw-payg"
+  plan_id                = "panw-cngfw-payg"
   panorama_base64_config = "%[4]s"
 
   network_profile {

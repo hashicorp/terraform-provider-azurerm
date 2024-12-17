@@ -141,7 +141,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cloud-ngfw-payg"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -189,7 +189,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cloud-ngfw-payg"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -245,7 +245,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cloud-ngfw-payg"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
