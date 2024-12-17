@@ -497,25 +497,9 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("repository_url") {
-				// If the repository URL is being changes to nothing, make sure the branch and token are also empty
-				if config.RepositoryUrl == "" && (config.RepositoryBranch != "" || config.RepositoryToken != "") {
-					return fmt.Errorf("repository_url cannot be empty if repository_branch or repository_token are set")
-				}
+			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
 				model.Properties.RepositoryUrl = pointer.To(config.RepositoryUrl)
-			}
-
-			if metadata.ResourceData.HasChange("repository_branch") {
-				if config.RepositoryBranch == "" && (config.RepositoryUrl != "" || config.RepositoryToken != "") {
-					return fmt.Errorf("repository_branch cannot be empty if repository_url or repository_token are set")
-				}
 				model.Properties.Branch = pointer.To(config.RepositoryBranch)
-			}
-
-			if metadata.ResourceData.HasChange("repository_token") {
-				if config.RepositoryToken == "" && (config.RepositoryBranch != "" || config.RepositoryUrl != "") {
-					return fmt.Errorf("repository_token cannot be empty if repository_branch or repository_url are set")
-				}
 				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
