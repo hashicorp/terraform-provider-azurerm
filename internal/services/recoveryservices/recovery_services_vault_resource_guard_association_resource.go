@@ -23,6 +23,7 @@ import (
 const (
 	VaultGuardResourceType           = "Microsoft.RecoveryServices/vaults/backupResourceGuardProxies"
 	VaultGuardProxyDeleteRequestName = "default" // this name does not matter, this value comes from Portal.
+	VaultProxyName                   = "VaultProxy"
 )
 
 type VaultGuardProxyResource struct{}
@@ -76,8 +77,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing vault id %w", err)
 			}
 
-			name := "VaultProxy"
-			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, name)
+			id := resourceguardproxy.NewBackupResourceGuardProxyID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, VaultProxyName)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/resourceguardproxy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationnetworkmappings"
@@ -56,6 +57,7 @@ type Client struct {
 	ReplicationRecoveryPlansClient            *replicationrecoveryplans.ReplicationRecoveryPlansClient
 	ReplicationNetworksClient                 *replicationnetworks.ReplicationNetworksClient
 	ResourceGuardProxyClient                  *resourceguardproxy.ResourceGuardProxyClient
+	ResourceGuardProxiesClient                *resourceguardproxies.ResourceGuardProxiesClient
 	VMWareMachinesClient                      *vmwaremachines.MachinesClient
 	VMWareRunAsAccountsClient                 *vmwarerunasaccounts.RunAsAccountsClient
 }
@@ -157,6 +159,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	resourceGuardProxyClient := resourceguardproxy.NewResourceGuardProxyClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
 
+	resourceGuardProxiesClient := resourceguardproxies.NewResourceGuardProxiesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
+
 	vmwareMachinesClient, err := vmwaremachines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMWare Machine client: %+v", err)
@@ -192,6 +197,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ReplicationRecoveryPlansClient:            replicationRecoveryPlanClient,
 		ReplicationNetworksClient:                 replicationNetworksClient,
 		ResourceGuardProxyClient:                  &resourceGuardProxyClient,
+		ResourceGuardProxiesClient:                &resourceGuardProxiesClient,
 		VMWareMachinesClient:                      vmwareMachinesClient,
 		VMWareRunAsAccountsClient:                 vmwareRunAsAccountsClient,
 	}, nil
