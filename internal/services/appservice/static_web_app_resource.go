@@ -124,16 +124,16 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"repository_token": {
-			Type:      pluginsdk.TypeString,
-			Optional:  true,
-			Sensitive: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"repository_url", "repository_branch"},
 		},
 
 		"repository_branch": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"repository_url", "repository_token"},
 		},
@@ -227,6 +227,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 				props.Branch = pointer.To(model.RepositoryBranch)
 				props.RepositoryUrl = pointer.To(model.RepositoryUrl)
 				props.RepositoryToken = pointer.To(model.RepositoryToken)
+			}
 
 			if !model.PublicNetworkAccess {
 				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
