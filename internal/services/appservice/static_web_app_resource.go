@@ -231,7 +231,6 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			if !model.PublicNetworkAccess {
 				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-
 			}
 
 			envelope.Properties = props
@@ -323,7 +322,6 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					}
 
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-
 				}
 
 				if sku := model.Sku; sku != nil {
