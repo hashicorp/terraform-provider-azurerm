@@ -116,12 +116,17 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
 
+### `azurerm_mssql_server`
+
+* The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
+
 ## `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 
 ### `azurerm_nginx_deployment`
 
+* The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
 
 ### `azurerm_sentinel_alert_rule_fusion`
@@ -164,6 +169,7 @@ Please follow the format in the example below for listing breaking changes in da
 
 ### `azurerm_nginx_deployment`
 
+* The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
 
 ### `azurerm_storage_container`

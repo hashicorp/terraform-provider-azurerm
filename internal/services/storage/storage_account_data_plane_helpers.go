@@ -124,5 +124,5 @@ func connectionError(e error) bool {
 		return true
 	}
 
-	return regexp.MustCompile(`dial tcp .*:`).MatchString(e.Error()) || regexp.MustCompile(`EOF$`).MatchString(e.Error())
+	return regexp.MustCompile(`dial tcp`).MatchString(e.Error()) || regexp.MustCompile(`EOF$`).MatchString(e.Error())
 }

@@ -54,6 +54,7 @@ var services = mapOf(
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "extendedlocation" to "ExtendedLocation",
+        "fabric" to "Fabric",
         "firewall" to "Firewall",
         "fluidrelay" to "Fluid Relay",
         "frontdoor" to "FrontDoor",
