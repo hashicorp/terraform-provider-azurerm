@@ -15,7 +15,7 @@ type ManagedEnvironmentsClient struct {
 }
 
 func NewManagedEnvironmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedEnvironmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedenvironments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedenvironments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedEnvironmentsClient: %+v", err)
 	}

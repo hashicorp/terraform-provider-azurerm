@@ -15,7 +15,7 @@ type SAPDatabaseInstancesClient struct {
 }
 
 func NewSAPDatabaseInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPDatabaseInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapdatabaseinstances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapdatabaseinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPDatabaseInstancesClient: %+v", err)
 	}

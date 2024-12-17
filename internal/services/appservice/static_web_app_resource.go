@@ -40,6 +40,7 @@ type StaticWebAppResourceModel struct {
 	ConfigFileChanges   bool                                       `tfschema:"configuration_file_changes_enabled"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
+	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
@@ -72,6 +73,12 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"preview_environments_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
@@ -208,6 +215,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			props := &staticsites.StaticSite{
 				AllowConfigFileUpdates:   pointer.To(model.ConfigFileChanges),
 				StagingEnvironmentPolicy: pointer.To(staticsites.StagingEnvironmentPolicyEnabled),
+				PublicNetworkAccess:      pointer.To(helpers.PublicNetworkAccessEnabled),
 			}
 
 			if !model.PreviewEnvironments {
@@ -219,6 +227,10 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 				props.Branch = pointer.To(model.RepositoryBranch)
 				props.RepositoryUrl = pointer.To(model.RepositoryUrl)
 				props.RepositoryToken = pointer.To(model.RepositoryToken)
+
+			if !model.PublicNetworkAccess {
+				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+
 			}
 
 			envelope.Properties = props
@@ -300,6 +312,7 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+
 					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
 					state.RepositoryBranch = pointer.From(props.Branch)
 
@@ -307,6 +320,9 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
 						state.RepositoryToken = repositoryToken.(string)
 					}
+
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -320,10 +336,7 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 				}
 
 				if secProps := sec.Model.Properties; secProps != nil {
-					propsMap := pointer.From(secProps)
-					apiKey := ""
-					apiKey = propsMap["apiKey"]
-					state.ApiKey = apiKey
+					state.ApiKey = pointer.From(secProps)["apiKey"]
 				}
 			}
 
@@ -432,6 +445,14 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 					model.Properties.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 				} else {
 					model.Properties.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyEnabled)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if !config.PublicNetworkAccess {
+					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				} else {
+					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
 				}
 			}
 

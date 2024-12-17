@@ -37,6 +37,7 @@ func (o RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions) ToHe
 
 func (o RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

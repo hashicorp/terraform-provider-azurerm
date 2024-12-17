@@ -45,7 +45,6 @@ func (c SavedSearchesClient) Get(ctx context.Context, id SavedSearchId) (result 
 
 	var model SavedSearch
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

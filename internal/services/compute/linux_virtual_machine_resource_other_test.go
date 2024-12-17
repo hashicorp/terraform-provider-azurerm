@@ -387,7 +387,7 @@ func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 			Config: r.otherLicenseType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("license_type").HasValue("SLES_BYOS"),
+				check.That(data.ResourceName).Key("license_type").HasValue("UBUNTU_PRO"),
 			),
 		},
 		data.ImportStep(),
@@ -1611,6 +1611,10 @@ func (r LinuxVirtualMachineResource) otherEdgeZone(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1977,7 +1981,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherLicenseType(data acceptance.TestData) string {
@@ -1990,7 +1994,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  license_type        = "SLES_BYOS"
+  license_type        = "UBUNTU_PRO"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -2333,7 +2337,7 @@ resource "azurerm_key_vault_certificate" "second" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomString)
 }
 
 func (r LinuxVirtualMachineResource) otherSecret(data acceptance.TestData) string {

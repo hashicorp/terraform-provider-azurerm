@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -119,9 +120,19 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				Default:  string(apidiagnostic.OperationNameFormatName),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apidiagnostic.OperationNameFormatName),
-					string(apidiagnostic.OperationNameFormatUrl),
+					string(apidiagnostic.OperationNameFormatURL),
 				}, false),
 			},
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, n := d.GetChange("operation_name_format"); n != "" {
+				if d.Get("identifier") != "applicationinsights" {
+					return fmt.Errorf("`operation_name_format` cannot be set when `identifier` is not `applicationinsights`")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -187,9 +198,14 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 
 	parameters := apidiagnostic.DiagnosticContract{
 		Properties: &apidiagnostic.DiagnosticContractProperties{
-			LoggerId:            d.Get("api_management_logger_id").(string),
-			OperationNameFormat: pointer.To(apidiagnostic.OperationNameFormat(d.Get("operation_name_format").(string))),
+			LoggerId: d.Get("api_management_logger_id").(string),
 		},
+	}
+
+	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+		if d.Get("identifier") == "applicationinsights" {
+			parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(operationNameFormat.(string)))
+		}
 	}
 
 	samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]

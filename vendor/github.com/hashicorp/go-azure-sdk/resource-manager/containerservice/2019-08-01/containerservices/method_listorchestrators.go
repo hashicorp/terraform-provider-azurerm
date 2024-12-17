@@ -34,6 +34,7 @@ func (o ListOrchestratorsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOrchestratorsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c ContainerServicesClient) ListOrchestrators(ctx context.Context, id Locat
 
 	var model OrchestratorVersionProfileListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -183,7 +183,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		cache.Properties.EncryptionSettings = &caches.CacheEncryptionSettings{
 			KeyEncryptionKey: &caches.KeyVaultKeyReference{
-				KeyUrl: keyVaultKeyId,
+				KeyURL: keyVaultKeyId,
 				SourceVault: caches.KeyVaultKeyReferenceSourceVault{
 					Id: pointer.To(keyVaultDetails.keyVaultId),
 				},
@@ -332,7 +332,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			autoKeyRotationEnabled := false
 			if eprops := props.EncryptionSettings; eprops != nil {
 				if eprops.KeyEncryptionKey != nil {
-					keyVaultKeyId = eprops.KeyEncryptionKey.KeyUrl
+					keyVaultKeyId = eprops.KeyEncryptionKey.KeyURL
 				}
 
 				if eprops.RotationToLatestKeyVersionEnabled != nil {
@@ -399,7 +399,7 @@ func flattenStorageCacheNfsDefaultAccessPolicy(input caches.NfsAccessPolicy) ([]
 }
 
 func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRule {
-	var out []caches.NfsAccessRule
+	out := make([]caches.NfsAccessRule, 0, len(input))
 	for _, accessRuleRaw := range input {
 		b := accessRuleRaw.(map[string]interface{})
 		out = append(out, caches.NfsAccessRule{
@@ -417,9 +417,8 @@ func expandStorageCacheNfsAccessRules(input []interface{}) []caches.NfsAccessRul
 }
 
 func flattenStorageCacheNfsAccessRules(input []caches.NfsAccessRule) ([]interface{}, error) {
-	var rules []interface{}
+	rules := make([]interface{}, 0, len(input))
 	for _, accessRule := range input {
-
 		anonymousUID := 0
 		if accessRule.AnonymousUID != nil {
 			var err error

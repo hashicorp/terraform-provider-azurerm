@@ -15,7 +15,7 @@ type ReplicationRecoveryPlansClient struct {
 }
 
 func NewReplicationRecoveryPlansClientWithBaseURI(sdkApi sdkEnv.Api) (*ReplicationRecoveryPlansClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "replicationrecoveryplans", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "replicationrecoveryplans", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ReplicationRecoveryPlansClient: %+v", err)
 	}

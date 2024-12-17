@@ -15,7 +15,7 @@ type MetricAlertsClient struct {
 }
 
 func NewMetricAlertsClientWithBaseURI(sdkApi sdkEnv.Api) (*MetricAlertsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "metricalerts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "metricalerts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MetricAlertsClient: %+v", err)
 	}

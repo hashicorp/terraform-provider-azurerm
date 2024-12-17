@@ -94,14 +94,13 @@ func (t DataShareDataSetBlobStorageResource) Exists(ctx context.Context, clients
 	}
 
 	if model := resp.Model; model != nil {
-		ds := *model
-		if _, ok := ds.(dataset.BlobDataSet); ok {
+		if _, ok := model.(dataset.BlobDataSet); ok {
 			return utils.Bool(true), nil
 		}
-		if _, ok := ds.(dataset.BlobFolderDataSet); ok {
+		if _, ok := model.(dataset.BlobFolderDataSet); ok {
 			return utils.Bool(true), nil
 		}
-		if _, ok := ds.(dataset.BlobContainerDataSet); ok {
+		if _, ok := model.(dataset.BlobContainerDataSet); ok {
 			return utils.Bool(true), nil
 		}
 	}

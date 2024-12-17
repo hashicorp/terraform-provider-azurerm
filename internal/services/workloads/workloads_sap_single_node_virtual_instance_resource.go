@@ -5,6 +5,7 @@ package workloads
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -405,7 +406,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 			if v := rd.Get("single_server_configuration.0.disk_volume_configuration"); v != nil {
 				diskVolumes := v.(*pluginsdk.Set).List()
 				if hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(diskVolumes) {
-					return fmt.Errorf("`volume_name` cannot be duplicated")
+					return errors.New("`volume_name` cannot be duplicated")
 				}
 			}
 

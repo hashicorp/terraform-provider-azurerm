@@ -44,7 +44,7 @@ func ParseConnectedEnvironmentCertificateID(input string) (*ConnectedEnvironment
 	}
 
 	id := ConnectedEnvironmentCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseConnectedEnvironmentCertificateIDInsensitively(input string) (*Connect
 	}
 
 	id := ConnectedEnvironmentCertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ConnectedEnvironmentCertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticConnectedEnvironments", "connectedEnvironments", "connectedEnvironments"),
-		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentName"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
-		resourceids.UserSpecifiedSegment("certificateName", "certificateValue"),
+		resourceids.UserSpecifiedSegment("certificateName", "certificateName"),
 	}
 }
 

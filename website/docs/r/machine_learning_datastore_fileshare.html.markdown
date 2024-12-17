@@ -67,10 +67,10 @@ resource "azurerm_storage_share" "example" {
 }
 
 resource "azurerm_machine_learning_datastore_fileshare" "example" {
-  name                  = "example-datastore"
-  workspace_id          = azurerm_machine_learning_workspace.example.id
-  storage_filesahare_id = azurerm_storage_share.test.resource_manager_id
-  account_key           = azurerm_storage_account.example.primary_access_key
+  name                 = "example-datastore"
+  workspace_id         = azurerm_machine_learning_workspace.example.id
+  storage_fileshare_id = azurerm_storage_share.example.resource_manager_id
+  account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
 

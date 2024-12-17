@@ -6,14 +6,17 @@ package authorization
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
+	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -111,9 +114,16 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:    true,
 			ForceNew:    true,
 			ValidateFunc: validation.Any(
+				// Elevated access for a global admin is needed to assign roles in this scope:
+				// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
+				// It seems only user account is allowed to be elevated access.
+				validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
+
+				billingValidate.EnrollmentID,
 				commonids.ValidateManagementGroupID,
-				commonids.ValidateResourceGroupID,
 				commonids.ValidateSubscriptionID,
+				commonids.ValidateResourceGroupID,
+				azure.ValidateResourceID,
 			),
 		},
 
@@ -453,122 +463,133 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 					}
 
 					for _, r := range *prop.Rules {
-						rule := r.(rolemanagementpolicies.RawRoleManagementPolicyRuleImpl)
-						switch rule.Values["id"].(string) {
-						case "AuthenticationContext_EndUser_Assignment":
-							if claimValue, ok := rule.Values["claimValue"].(string); ok && claimValue != "" {
-								state.ActivationRules[0].RequireConditionalAccessContext = claimValue
+						switch rule := r.(type) {
+						case rolemanagementpolicies.RoleManagementPolicyAuthenticationContextRule:
+							if rule.Id != nil && *rule.Id == "AuthenticationContext_EndUser_Assignment" {
+								if rule.ClaimValue != nil && *rule.ClaimValue != "" {
+									state.ActivationRules[0].RequireConditionalAccessContext = *rule.ClaimValue
+								}
 							}
-
-						case "Approval_EndUser_Assignment":
-							if settings, ok := rule.Values["setting"].(map[string]interface{}); ok {
-								state.ActivationRules[0].RequireApproval = settings["isApprovalRequired"].(bool)
-
-								if approvalStages, ok := settings["approvalStages"].([]interface{}); ok {
-									state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
-									approvalStage := approvalStages[0].(map[string]interface{})
-
-									if primaryApprovers, ok := approvalStage["primaryApprovers"].([]interface{}); ok && len(primaryApprovers) > 0 {
-										state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers = make([]RoleManagementPolicyApprover, len(primaryApprovers))
-
-										for ia, pa := range primaryApprovers {
-											approver := pa.(map[string]interface{})
-											state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
-												ID:   approver["id"].(string),
-												Type: approver["userType"].(string),
+						case rolemanagementpolicies.RoleManagementPolicyApprovalRule:
+							if rule.Id != nil && *rule.Id == "Approval_EndUser_Assignment" {
+								if rule.Setting != nil {
+									settings := *rule.Setting
+									state.ActivationRules[0].RequireApproval = pointer.From(settings.IsApprovalRequired)
+									if settings.ApprovalStages != nil {
+										approvalStages := *settings.ApprovalStages
+										state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
+										approvalStage := approvalStages[0]
+										if primaryApprovers := approvalStage.PrimaryApprovers; primaryApprovers != nil && len(*primaryApprovers) > 0 {
+											state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers = make([]RoleManagementPolicyApprover, len(*primaryApprovers))
+											for ia, pa := range *primaryApprovers {
+												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
+													ID:   pointer.From(pa.Id),
+													Type: string(pointer.From(pa.UserType)),
+												}
 											}
 										}
 									}
 								}
 							}
+						case rolemanagementpolicies.RoleManagementPolicyEnablementRule:
+							if rule.Id != nil && *rule.Id == "Enablement_Admin_Assignment" {
+								state.ActiveAssignmentRules[0].RequireMultiFactorAuth = false
+								state.ActiveAssignmentRules[0].RequireJustification = false
 
-						case "Enablement_Admin_Assignment":
-							state.ActiveAssignmentRules[0].RequireMultiFactorAuth = false
-							state.ActiveAssignmentRules[0].RequireJustification = false
-
-							if enabledRules, ok := rule.Values["enabledRules"].([]interface{}); ok {
-								for _, enabledRule := range enabledRules {
-									switch enabledRule.(string) {
-									case "MultiFactorAuthentication":
-										state.ActiveAssignmentRules[0].RequireMultiFactorAuth = true
-									case "Justification":
-										state.ActiveAssignmentRules[0].RequireJustification = true
+								if rule.EnabledRules != nil {
+									for _, enabledRule := range *rule.EnabledRules {
+										switch enabledRule {
+										case rolemanagementpolicies.EnablementRulesMultiFactorAuthentication:
+											state.ActiveAssignmentRules[0].RequireMultiFactorAuth = true
+										case rolemanagementpolicies.EnablementRulesJustification:
+											state.ActiveAssignmentRules[0].RequireJustification = true
+										}
 									}
 								}
 							}
 
-						case "Enablement_EndUser_Assignment":
-							state.ActivationRules[0].RequireMultiFactorAuth = false
-							state.ActivationRules[0].RequireJustification = false
-							state.ActivationRules[0].RequireTicketInfo = false
+							if rule.Id != nil && *rule.Id == "Enablement_EndUser_Assignment" {
+								state.ActivationRules[0].RequireMultiFactorAuth = false
+								state.ActivationRules[0].RequireJustification = false
+								state.ActivationRules[0].RequireTicketInfo = false
 
-							if enabledRules, ok := rule.Values["enabledRules"].([]interface{}); ok {
-								for _, enabledRule := range enabledRules {
-									switch enabledRule.(string) {
-									case "MultiFactorAuthentication":
-										state.ActivationRules[0].RequireMultiFactorAuth = true
-									case "Justification":
-										state.ActivationRules[0].RequireJustification = true
-									case "Ticketing":
-										state.ActivationRules[0].RequireTicketInfo = true
+								if rule.EnabledRules != nil {
+									for _, enabledRule := range *rule.EnabledRules {
+										switch enabledRule {
+										case rolemanagementpolicies.EnablementRulesMultiFactorAuthentication:
+											state.ActivationRules[0].RequireMultiFactorAuth = true
+										case rolemanagementpolicies.EnablementRulesJustification:
+											state.ActivationRules[0].RequireJustification = true
+										case rolemanagementpolicies.EnablementRulesTicketing:
+											state.ActivationRules[0].RequireTicketInfo = true
+										}
 									}
 								}
 							}
 
-						case "Expiration_Admin_Eligibility":
-							state.EligibleAssignmentRules[0].ExpirationRequired = rule.Values["isExpirationRequired"].(bool)
-							state.EligibleAssignmentRules[0].ExpireAfter = rule.Values["maximumDuration"].(string)
+						case rolemanagementpolicies.RoleManagementPolicyExpirationRule:
+							if rule.Id != nil {
+								switch *rule.Id {
+								case "Expiration_Admin_Eligibility":
+									state.EligibleAssignmentRules[0].ExpirationRequired = pointer.From(rule.IsExpirationRequired)
+									state.EligibleAssignmentRules[0].ExpireAfter = pointer.From(rule.MaximumDuration)
 
-						case "Expiration_Admin_Assignment":
-							state.ActiveAssignmentRules[0].ExpirationRequired = rule.Values["isExpirationRequired"].(bool)
-							state.ActiveAssignmentRules[0].ExpireAfter = rule.Values["maximumDuration"].(string)
+								case "Expiration_Admin_Assignment":
+									state.ActiveAssignmentRules[0].ExpirationRequired = pointer.From(rule.IsExpirationRequired)
+									state.ActiveAssignmentRules[0].ExpireAfter = pointer.From(rule.MaximumDuration)
 
-						case "Expiration_EndUser_Assignment":
-							state.ActivationRules[0].MaximumDuration = rule.Values["maximumDuration"].(string)
-
-						case "Notification_Admin_Admin_Assignment":
-							state.NotificationRules[0].ActiveAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
+								case "Expiration_EndUser_Assignment":
+									state.ActivationRules[0].MaximumDuration = pointer.From(rule.MaximumDuration)
+								}
 							}
+						case rolemanagementpolicies.RoleManagementPolicyNotificationRule:
+							if rule.Id != nil {
+								switch *rule.Id {
+								case "Notification_Admin_Admin_Assignment":
+									state.NotificationRules[0].ActiveAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Admin_Admin_Eligibility":
-							state.NotificationRules[0].EligibleAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Admin_Admin_Eligibility":
+									state.NotificationRules[0].EligibleAssignments[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Admin_EndUser_Assignment":
-							state.NotificationRules[0].EligibleActivations[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Admin_EndUser_Assignment":
+									state.NotificationRules[0].EligibleActivations[0].AdminNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Approver_Admin_Assignment":
-							state.NotificationRules[0].ActiveAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Approver_Admin_Assignment":
+									state.NotificationRules[0].ActiveAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Approver_Admin_Eligibility":
-							state.NotificationRules[0].EligibleAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Approver_Admin_Eligibility":
+									state.NotificationRules[0].EligibleAssignments[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Approver_EndUser_Assignment":
-							state.NotificationRules[0].EligibleActivations[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Approver_EndUser_Assignment":
+									state.NotificationRules[0].EligibleActivations[0].ApproverNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Requestor_Admin_Assignment":
-							state.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Requestor_Admin_Assignment":
+									state.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Requestor_Admin_Eligibility":
-							state.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
-							}
+								case "Notification_Requestor_Admin_Eligibility":
+									state.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
 
-						case "Notification_Requestor_EndUser_Assignment":
-							state.NotificationRules[0].EligibleActivations[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
-								*flattenNotificationSettings(rule.Values),
+								case "Notification_Requestor_EndUser_Assignment":
+									state.NotificationRules[0].EligibleActivations[0].AssigneeNotifications = []RoleManagementPolicyNotificationSettings{
+										*flattenNotificationSettings(rule),
+									}
+								}
 							}
 						}
 					}

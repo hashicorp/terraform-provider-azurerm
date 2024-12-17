@@ -195,7 +195,7 @@ resource "azurerm_function_app" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb). 
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftweb).
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Function App. Changing this forces a new resource to be created.
 
@@ -297,9 +297,9 @@ The `site_config` block supports the following:
 
 ~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
 
-* `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`. 
+* `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`.
 
--> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
+-> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
 
 * `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
 
@@ -431,7 +431,7 @@ A `ip_restriction` block supports the following:
 
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, the priority is set to 65000 if not specified.
 
-* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.
 
 * `headers` - (Optional) The `headers` block for this specific `ip_restriction` as defined below.
 
@@ -449,7 +449,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `name` - (Optional) The name for this IP Restriction.
 
-* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified. 
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
 * `action` - (Optional) Allow or Deny access for this IP range. Defaults to `Allow`.
 

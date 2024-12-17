@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package helpers
 
 import (
@@ -61,7 +64,7 @@ func (e isNotResourceAction) CheckPlan(ctx context.Context, req plancheck.CheckP
 			}
 		case plancheck.ResourceActionReplace:
 			if rc.Change.Actions.Replace() {
-				resp.Error = fmt.Errorf("'%s' - expected action to not be %s", rc.Address, e.actionType)
+				resp.Error = fmt.Errorf("'%s' - expected action to not be %s, path: %v tried to update a value that is ForceNew", rc.Address, e.actionType, rc.Change.ReplacePaths)
 				return
 			}
 		default:

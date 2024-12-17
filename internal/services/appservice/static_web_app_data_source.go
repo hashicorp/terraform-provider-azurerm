@@ -38,6 +38,7 @@ type StaticWebAppDataSourceModel struct {
 	DefaultHostName     string                                     `tfschema:"default_host_name"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
+	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
@@ -68,6 +69,11 @@ func (s StaticWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"preview_environments_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -165,6 +171,7 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
 					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
 					state.RepositoryBranch = pointer.From(props.Branch)
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -178,10 +185,7 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if secProps := sec.Model.Properties; secProps != nil {
-					propsMap := pointer.From(secProps)
-					apiKey := ""
-					apiKey = propsMap["apiKey"]
-					state.ApiKey = apiKey
+					state.ApiKey = pointer.From(secProps)["apiKey"]
 				}
 			}
 

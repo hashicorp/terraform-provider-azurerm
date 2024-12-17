@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `preview_environments_enabled` - (Optional) Are Preview (Staging) environments enabled. Defaults to `true`.
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Static Web App. Defaults to `true`.
+
 * `sku_tier` - (Optional) Specifies the SKU tier of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
 * `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.

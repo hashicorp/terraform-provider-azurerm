@@ -172,22 +172,18 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 
 			accountKey := model.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := model.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
 				}
 			}
@@ -241,22 +237,18 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 
 			accountKey := state.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := state.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
 				}
 			}

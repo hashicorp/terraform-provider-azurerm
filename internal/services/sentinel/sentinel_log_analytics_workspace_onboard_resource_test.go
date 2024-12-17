@@ -49,7 +49,6 @@ func TestAccSecurityInsightsSentinelOnboardingState_basicWithName(t *testing.T) 
 }
 
 func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.T) {
-
 	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
 		return
@@ -142,8 +141,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name      = azurerm_log_analytics_workspace.test.name
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

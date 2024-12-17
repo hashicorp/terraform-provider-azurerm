@@ -50,7 +50,6 @@ func (c PrivateLinkScopesAPIsClient) PrivateLinkScopesCreateOrUpdate(ctx context
 
 	var model AzureMonitorPrivateLinkScope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
