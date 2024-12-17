@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -187,32 +186,6 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("This test can be removed since it will be a duplicate of the update test in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	r := NetworkSecurityGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.singleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.deleteRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),

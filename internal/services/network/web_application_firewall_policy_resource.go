@@ -27,7 +27,7 @@ import (
 )
 
 func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceWebApplicationFirewallPolicyCreate,
 		Read:   resourceWebApplicationFirewallPolicyRead,
 		Update: resourceWebApplicationFirewallPolicyUpdate,
@@ -303,7 +303,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 												"rule": {
 													Type:     pluginsdk.TypeList,
 													Optional: true,
-													Computed: !features.FourPointOhBeta(),
 													Elem: &pluginsdk.Resource{
 														Schema: map[string]*pluginsdk.Schema{
 															"id": {
@@ -315,13 +314,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 															"enabled": {
 																Type:     pluginsdk.TypeBool,
 																Optional: true,
-																Default: func() interface{} {
-																	if !features.FourPointOhBeta() {
-																		return nil
-																	}
-
-																	return false
-																}(),
+																Default:  false,
 															},
 
 															"action": {
@@ -496,20 +489,6 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["managed_rules"].Elem.(*pluginsdk.Resource).Schema["managed_rule_set"].Elem.(*pluginsdk.Resource).Schema["rule_group_override"].Elem.(*pluginsdk.Resource).Schema["disabled_rules"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`disabled_rules` will be removed in favour of the `rule` property in version 4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -927,7 +906,7 @@ func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}, d *pl
 
 func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d *pluginsdk.ResourceData, managedRuleSetIndex int) (*[]webapplicationfirewallpolicies.ManagedRuleGroupOverride, error) {
 	results := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
-	for i, item := range input {
+	for _, item := range input {
 		v := item.(map[string]interface{})
 
 		ruleGroupName := v["rule_group_name"].(string)
@@ -936,56 +915,14 @@ func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}, d
 			RuleGroupName: ruleGroupName,
 		}
 
-		if !features.FourPointOhBeta() {
-			// `disabled_rules` will be deprecated from 4.0. In 3.x, `rule` and `disabled_rules` point to the same properties of Azure REST API and conflict with each other in the configuration.
-			// Since both properties will be set in the flatten method, need to use `GetRawConfig` to check which one of these two properties is configured in the configuration file.
-			managedRuleSetList := d.GetRawConfig().AsValueMap()["managed_rules"].AsValueSlice()[0].AsValueMap()["managed_rule_set"].AsValueSlice()
-			if managedRuleSetIndex >= len(managedRuleSetList) {
-				return nil, fmt.Errorf("managed rule set index %d exceeds raw config length %d", managedRuleSetIndex, len(managedRuleSetList))
-			}
-
-			ruleGroupOverrideList := managedRuleSetList[managedRuleSetIndex].AsValueMap()["rule_group_override"].AsValueSlice()
-			if i >= len(ruleGroupOverrideList) {
-				return nil, fmt.Errorf("rule group override index %d exceeds raw config length %d", i, len(ruleGroupOverrideList))
-			}
-
-			// Since ConflictsWith cannot be used on these properties and the properties are optional and computed, Have to check the configuration with GetRawConfig
-			if !ruleGroupOverrideList[i].AsValueMap()["rule"].IsNull() && len(ruleGroupOverrideList[i].AsValueMap()["rule"].AsValueSlice()) > 0 && !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
-				return nil, fmt.Errorf("`disabled_rules` cannot be set when `rule` is set under `rule_group_override`")
-			}
-
-			if disabledRules := v["disabled_rules"].([]interface{}); !ruleGroupOverrideList[i].AsValueMap()["disabled_rules"].IsNull() {
-				result.Rules = expandWebApplicationFirewallPolicyRules(disabledRules)
-			}
-
-			if rules := v["rule"].([]interface{}); !ruleGroupOverrideList[i].AsValueMap()["rule"].IsNull() && len(ruleGroupOverrideList[i].AsValueMap()["rule"].AsValueSlice()) > 0 {
-				result.Rules = expandWebApplicationFirewallPolicyOverrideRules(rules)
-			}
-		} else {
-			if rules := v["rule"].([]interface{}); len(rules) > 0 {
-				result.Rules = expandWebApplicationFirewallPolicyOverrideRules(rules)
-			}
+		if rules := v["rule"].([]interface{}); len(rules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyOverrideRules(rules)
 		}
 
 		results = append(results, result)
 	}
 
 	return &results, nil
-}
-
-func expandWebApplicationFirewallPolicyRules(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleOverride {
-	results := make([]webapplicationfirewallpolicies.ManagedRuleOverride, 0)
-	for _, item := range input {
-		ruleID := item.(string)
-
-		result := webapplicationfirewallpolicies.ManagedRuleOverride{
-			RuleId: ruleID,
-			State:  pointer.To(webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled),
-		}
-
-		results = append(results, result)
-	}
-	return &results
 }
 
 func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleOverride {
@@ -1248,29 +1185,10 @@ func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]webapplicati
 
 		v["rule_group_name"] = item.RuleGroupName
 
-		if !features.FourPointOhBeta() {
-			v["disabled_rules"] = flattenWebApplicationFirewallPolicyRules(item.Rules)
-		}
-
 		v["rule"] = flattenWebApplicationFirewallPolicyOverrideRules(item.Rules)
 
 		results = append(results, v)
 	}
-	return results
-}
-
-func flattenWebApplicationFirewallPolicyRules(input *[]webapplicationfirewallpolicies.ManagedRuleOverride) []string {
-	results := make([]string, 0)
-	if input == nil || len(*input) == 0 {
-		return results
-	}
-
-	for _, item := range *input {
-		if item.State == nil || *item.State == webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled {
-			results = append(results, item.RuleId)
-		}
-	}
-
 	return results
 }
 
