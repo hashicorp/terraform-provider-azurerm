@@ -113,17 +113,22 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			RequiredWith: []string{"repository_token", "repository_branch"},
 		},
 
 		"repository_token": {
 			Type:      pluginsdk.TypeString,
 			Optional:  true,
 			Sensitive: true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_branch"},
 		},
 
 		"repository_branch": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_token"},
 		},
 
 		"tags": tags.Schema(),
