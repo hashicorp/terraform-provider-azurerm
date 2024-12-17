@@ -10,6 +10,7 @@ BUG FIXES:
 * `azurerm_storage_account` - fix error handling for `static_website` and `queue_properties` availability checks [GH-28279]
 * `azurerm_mongo_cluster` - valdation updated so the resource now creates successfully when using `create_mode` `GeoReplica` [GH-28269]
 * `azurerm_log_analytics_data_export_rule` - now creates successfully without returning 404 [GH-27876]
+* `azurerm_batch_pool` - support for new block `security_profile` [GH-28069]
 
 ## 4.14.0 (December 12, 2024)
 
