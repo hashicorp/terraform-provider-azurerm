@@ -1,5 +1,9 @@
 ## 4.15.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_kubernetes_fleet_manager_data_source` [GH-28278]
+
 ENHANCEMENTS:
 
 * dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
