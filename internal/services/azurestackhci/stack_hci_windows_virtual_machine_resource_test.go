@@ -198,7 +198,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    image_id = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -207,7 +207,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
     ignore_changes = [storage_profile.0.vm_config_storage_path_id]
   }
 }
-`, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv), os.Getenv(vmImageIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) requiresImport(data acceptance.TestData) string {
@@ -237,7 +237,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "import" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    image_id = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -246,7 +246,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "import" {
     ignore_changes = [storage_profile.0.vm_config_storage_path_id]
   }
 }
-`, config, data.RandomInteger, os.Getenv(customLocationIdEnv))
+`, config, data.RandomInteger, os.Getenv(customLocationIdEnv), os.Getenv(vmImageIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) update(data acceptance.TestData) string {
@@ -314,7 +314,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id, azurerm_stack_hci_virtual_hard_disk.test2.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    image_id = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -323,7 +323,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
     ignore_changes = [storage_profile.0.vm_config_storage_path_id]
   }
 }
-`, template, data.RandomInteger, os.Getenv(customLocationIdEnv))
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv), os.Getenv(vmImageIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) complete(data acceptance.TestData) string {
@@ -414,7 +414,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.test.id
+    image_id = %[5]q
     vm_config_storage_path_id = azurerm_stack_hci_storage_path.test.id
   }
 
@@ -431,7 +431,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, template, data.RandomInteger, os.Getenv(customLocationIdEnv), data.RandomString)
+`, template, data.RandomInteger, os.Getenv(customLocationIdEnv), data.RandomString, os.Getenv(vmImageIdEnv))
 }
 
 func (r StackHCIWindowsVirtualMachineResource) template(data acceptance.TestData) string {
@@ -510,8 +510,6 @@ resource "azurerm_arc_machine" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  depends_on = [azurerm_role_assignment.test]
 }
 `, data.Locations.Primary, data.RandomInteger, os.Getenv(customLocationIdEnv))
 }

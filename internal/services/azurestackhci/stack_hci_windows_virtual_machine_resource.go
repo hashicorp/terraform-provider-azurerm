@@ -936,7 +936,7 @@ func resourceVirtualMachineWaitForCreated(ctx context.Context, client virtualmac
 
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 2,
+		ContinuousTargetOccurence: 3,
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Found"},
 		Refresh:                   resourceVirtualMachineRefreshFunc(ctx, client, id),
