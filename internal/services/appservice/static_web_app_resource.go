@@ -225,7 +225,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			// Check if repository URL, branch, or token are set
 			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
 				props.Branch = pointer.To(model.RepositoryBranch)
-				props.RepositoryUrl = pointer.To(model.RepositoryUrl)
+				props.RepositoryURL = pointer.To(model.RepositoryUrl)
 				props.RepositoryToken = pointer.To(model.RepositoryToken)
 			}
 
@@ -314,7 +314,7 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
 
-					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
 					state.RepositoryBranch = pointer.From(props.Branch)
 
 					// Token isn't returned in the response, so we need to grab it from the config
@@ -499,7 +499,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
-				model.Properties.RepositoryUrl = pointer.To(config.RepositoryUrl)
+				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
 				model.Properties.Branch = pointer.To(config.RepositoryBranch)
 				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}

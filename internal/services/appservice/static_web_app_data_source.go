@@ -169,7 +169,7 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
-					state.RepositoryUrl = pointer.From(props.RepositoryUrl)
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
 					state.RepositoryBranch = pointer.From(props.Branch)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
