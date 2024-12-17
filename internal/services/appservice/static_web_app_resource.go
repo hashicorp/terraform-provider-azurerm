@@ -216,10 +216,6 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 
 			// Check if repository URL, branch, or token are set
 			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
-				// Make sure all three are set or throw an error
-				if model.RepositoryUrl == "" || model.RepositoryBranch == "" || model.RepositoryToken == "" {
-					return fmt.Errorf("repository_url, repository_branch, and repository_token must all be set")
-				}
 				props.Branch = pointer.To(model.RepositoryBranch)
 				props.RepositoryUrl = pointer.To(model.RepositoryUrl)
 				props.RepositoryToken = pointer.To(model.RepositoryToken)
