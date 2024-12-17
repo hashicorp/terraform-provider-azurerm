@@ -14,10 +14,10 @@ import (
 )
 
 type Client struct {
-	AccountsClient    *cognitiveservicesaccounts.CognitiveServicesAccountsClient
-	DeploymentsClient *deployments.DeploymentsClient
+	AccountsClient      *cognitiveservicesaccounts.CognitiveServicesAccountsClient
+	DeploymentsClient   *deployments.DeploymentsClient
 	RaiBlocklistsClient *raiblocklists.RaiBlocklistsClient
-	RaiPoliciesClient *raipolicies.RaiPoliciesClient
+	RaiPoliciesClient   *raipolicies.RaiPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -39,7 +39,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(raiPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-
 	raiBlobklistsClient, err := raiblocklists.NewRaiBlocklistsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Rai Blocklists client: %+v", err)
@@ -50,6 +49,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AccountsClient:      accountsClient,
 		DeploymentsClient:   deploymentsClient,
 		RaiBlocklistsClient: raiBlobklistsClient,
-		RaiPoliciesClient: raiPoliciesClient,
+		RaiPoliciesClient:   raiPoliciesClient,
 	}, nil
 }
