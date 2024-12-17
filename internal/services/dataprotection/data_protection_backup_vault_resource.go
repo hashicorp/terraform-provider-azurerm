@@ -114,12 +114,12 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 
-			// Once `immutability` is enabled it cannot be disabled.
+			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && new.(bool) != old.(bool)
 			}),
 
-			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
+			// Once `immutability` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaults.ImmutabilityStateLocked) && new.(string) != string(backupvaults.ImmutabilityStateLocked)
 			}),
