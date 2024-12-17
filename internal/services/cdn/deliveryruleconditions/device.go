@@ -6,10 +6,10 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func Device() *pluginsdk.Resource {
@@ -18,10 +18,9 @@ func Device() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Equal",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Equal",
-				}, false),
+				Default:  string(rules.IsDeviceOperatorEqual),
+				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceOperator(),
+					false),
 			},
 
 			"negate_condition": {
@@ -36,28 +35,26 @@ func Device() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Desktop",
-						"Mobile",
-					}, false),
+					ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(),
+						false),
 				},
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointConditionDevice(input []interface{}) []cdn.BasicDeliveryRuleCondition {
-	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionDevice(input []interface{}) []rules.DeliveryRuleCondition {
+	output := make([]rules.DeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		output = append(output, cdn.DeliveryRuleIsDeviceCondition{
-			Name: cdn.NameHTTPVersion,
-			Parameters: &cdn.IsDeviceMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleIsDeviceConditionParameters"),
-				Operator:        utils.String(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+		output = append(output, rules.DeliveryRuleIsDeviceCondition{
+			Name: rules.MatchVariableIsDevice,
+			Parameters: rules.IsDeviceMatchConditionParameters{
+				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters,
+				Operator:        rules.IsDeviceOperator(item["operator"].(string)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+				MatchValues:     ExpandIsDeviceMatchValue(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -65,8 +62,8 @@ func ExpandArmCdnEndpointConditionDevice(input []interface{}) []cdn.BasicDeliver
 	return output
 }
 
-func FlattenArmCdnEndpointConditionDevice(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := input.AsDeliveryRuleIsDeviceCondition()
+func FlattenArmCdnEndpointConditionDevice(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := AsDeliveryRuleIsDeviceCondition(input)
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule device condition")
 	}
@@ -74,17 +71,15 @@ func FlattenArmCdnEndpointConditionDevice(input cdn.BasicDeliveryRuleCondition) 
 	operator := ""
 	matchValues := make([]interface{}, 0)
 	negateCondition := false
-	if params := condition.Parameters; params != nil {
-		if params.Operator != nil {
-			operator = *params.Operator
-		}
+	if params := condition; params != nil {
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
 			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = FlattenIsDeviceMatchValue(params.MatchValues)
 		}
 	}
 
