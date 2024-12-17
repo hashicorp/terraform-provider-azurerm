@@ -889,12 +889,13 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
     default_action = "Deny"
+    bypass         = "None"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
     }
@@ -913,12 +914,13 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
     default_action = "Allow"
+    bypass         = "AzureServices"
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id

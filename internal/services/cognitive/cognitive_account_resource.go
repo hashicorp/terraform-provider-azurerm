@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -209,6 +210,13 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
 							}, false),
 						},
+
+						"bypass": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(cognitiveservicesaccounts.PossibleValuesForByPassSelection(), false),
+						},
+
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -671,6 +679,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 
 	v := input[0].(map[string]interface{})
 
+	bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
 	defaultAction := cognitiveservicesaccounts.NetworkRuleAction(v["default_action"].(string))
 
 	ipRulesRaw := v["ip_rules"].(*pluginsdk.Set)
@@ -697,6 +706,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
+		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
@@ -779,6 +789,8 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 		return []interface{}{}
 	}
 
+	bypass := string(pointer.From(input.Bypass))
+
 	ipRules := make([]interface{}, 0)
 	if input.IPRules != nil {
 		for _, v := range *input.IPRules {
@@ -803,6 +815,7 @@ func flattenCognitiveAccountNetworkAcls(input *cognitiveservicesaccounts.Network
 	}
 
 	return []interface{}{map[string]interface{}{
+		"bypass":                bypass,
 		"default_action":        input.DefaultAction,
 		"ip_rules":              pluginsdk.NewSet(pluginsdk.HashString, ipRules),
 		"virtual_network_rules": virtualNetworkRules,
