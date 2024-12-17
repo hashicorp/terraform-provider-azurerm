@@ -805,7 +805,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if errorMessage := props.Error; errorMessage != nil {
-					state.ErrorMeesage = pointer.From(errorMessage.Message)
+					state.ErrorMessage = pointer.From(errorMessage.Message)
 				}
 			}
 
