@@ -79,7 +79,6 @@ func TestAccBackupProtectedVm_separateResourceGroups(t *testing.T) {
 }
 
 func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
-	virtualMachine := "azurerm_virtual_machine.test"
 	fBackupPolicyResourceName := "azurerm_backup_policy_vm.test"
 	sBackupPolicyResourceName := "azurerm_backup_policy_vm.test_change_backup"
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
@@ -107,16 +106,6 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			// Azure API is quite sensitive, adding the step to control resource cleanup order
 			ResourceName: fBackupPolicyResourceName,
 			Config:       r.withBasePolicy(data),
-		},
-		{
-			// Then VM can be removed
-			ResourceName: virtualMachine,
-			Config:       r.withBasePolicy(data),
-		},
-		{
-			// Remove backup policies and vault
-			ResourceName: data.ResourceName,
-			Config:       r.basePolicyTest(data),
 		},
 	})
 }
@@ -1105,6 +1094,8 @@ resource "azurerm_backup_protected_vm" "test" {
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 
   include_disk_luns = [0]
+
+  depends_on = [azurerm_recovery_services_vault_resource_guard_association.test]
 }
 
 resource "azurerm_data_protection_resource_guard" "test" {
