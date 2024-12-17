@@ -94,9 +94,8 @@ func testAccNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	})
 }
 
-// todo remove for 4.0
 func testAccNetworkPacketCapture_withFilters(t *testing.T) {
-	if features.FourPointOhBeta() {
+	if features.FivePointOhBeta() {
 		t.Skip("Skipping since `azure_network_packet_capture` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
