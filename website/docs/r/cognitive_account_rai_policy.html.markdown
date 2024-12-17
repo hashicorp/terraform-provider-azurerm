@@ -56,8 +56,6 @@ The following arguments are supported:
 
 * `content_filter` - (Required) A `content_filter` block as defined below.
 
-* `custom_blocklist` - (Optional) A `custom_blocklist` block as defined below.
-
 * `mode` - (Optional) The mode of the RAI Policy. Possible values are `Default`, `Deferred`, `Blocking` or `Asynchronous_filter`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -73,16 +71,6 @@ A `content_filter` block supports the following:
 * `block_enabled` - (Required) Whether the filter should block content. Possible values are `true` or `false`.
 
 * `severity_threshold` - (Required) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
-
-* `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
-
----
-
-A `custom_blocklist` block supports the following:
-
-* `rai_blocklist_id` - (Required) The ARM resource ID of the custom blocklist.
-
-* `block_enabled` - (Required) Whether the custom blocklist should block content. Possible values are `true` or `false`.
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
 

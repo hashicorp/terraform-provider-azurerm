@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raiblocklists"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -35,13 +34,12 @@ type AccountRaiPolicyCustomBlock struct {
 }
 
 type AccountRaiPolicyResourceModel struct {
-	Name            string                          `tfschema:"name"`
-	AccountId       string                          `tfschema:"cognitive_account_id"`
-	BasePolicyName  string                          `tfschema:"base_policy_name"`
-	ContentFilter   []AccountRaiPolicyContentFilter `tfschema:"content_filter"`
-	CustomBlockList []AccountRaiPolicyCustomBlock   `tfschema:"custom_blocklist"`
-	Mode            string                          `tfschema:"mode"`
-	Tags            map[string]string               `tfschema:"tags"`
+	Name           string                          `tfschema:"name"`
+	AccountId      string                          `tfschema:"cognitive_account_id"`
+	BasePolicyName string                          `tfschema:"base_policy_name"`
+	ContentFilter  []AccountRaiPolicyContentFilter `tfschema:"content_filter"`
+	Mode           string                          `tfschema:"mode"`
+	Tags           map[string]string               `tfschema:"tags"`
 }
 
 func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -89,29 +87,6 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
-					},
-					"source": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForRaiPolicyContentSource(), false),
-					},
-				},
-			},
-		},
-
-		"custom_blocklist": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"rai_blocklist_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: raiblocklists.ValidateRaiBlocklistID,
-					},
-					"block_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
 					},
 					"source": {
 						Type:         pluginsdk.TypeString,
@@ -184,10 +159,6 @@ func (r CognitiveAccountRaiPolicyResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if model.CustomBlockList != nil {
-				raiPolicy.Properties.CustomBlocklists = expandCustomBlockLists(model.CustomBlockList)
-			}
-
 			if model.Mode != "" {
 				raiPolicy.Properties.Mode = pointer.To(raipolicies.RaiPolicyMode(model.Mode))
 			}
@@ -235,7 +206,6 @@ func (r CognitiveAccountRaiPolicyResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.BasePolicyName = pointer.From(props.BasePolicyName)
 					state.ContentFilter = flattenRaiPolicyContentFilters(props.ContentFilters)
-					state.CustomBlockList = flattenRaiCustomBlockLists(props.CustomBlocklists, cognitiveAccountId)
 					state.Mode = string(pointer.From(props.Mode))
 				}
 			}
@@ -283,10 +253,6 @@ func (r CognitiveAccountRaiPolicyResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("content_filter") {
 				payload.Properties.ContentFilters = expandRaiPolicyContentFilters(model.ContentFilter)
-			}
-
-			if metadata.ResourceData.HasChange("custom_blocklist") {
-				payload.Properties.CustomBlocklists = expandCustomBlockLists(model.CustomBlockList)
 			}
 
 			if metadata.ResourceData.HasChange("mode") {
@@ -351,43 +317,6 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 		})
 	}
 	return &contentFilters
-}
-
-func expandCustomBlockLists(list []AccountRaiPolicyCustomBlock) *[]raipolicies.CustomBlocklistConfig {
-	if list == nil {
-		return nil
-	}
-
-	customBlockLists := make([]raipolicies.CustomBlocklistConfig, 0, len(list))
-	for _, block := range list {
-		customBlockId, err := raiblocklists.ParseRaiBlocklistID(block.Id)
-		if err != nil {
-			continue
-		}
-
-		customBlockLists = append(customBlockLists, raipolicies.CustomBlocklistConfig{
-			BlocklistName: pointer.To(customBlockId.RaiBlocklistName),
-			Blocking:      pointer.To(block.BlockEnabled),
-			Source:        pointer.To(raipolicies.RaiPolicyContentSource(block.Source)),
-		})
-	}
-	return &customBlockLists
-}
-
-func flattenRaiCustomBlockLists(blocklists *[]raipolicies.CustomBlocklistConfig, accountId raipolicies.AccountId) []AccountRaiPolicyCustomBlock {
-	customBlockLists := make([]AccountRaiPolicyCustomBlock, 0)
-	if blocklists == nil {
-		return customBlockLists
-	}
-
-	for _, block := range *blocklists {
-		customBlockLists = append(customBlockLists, AccountRaiPolicyCustomBlock{
-			Id:           raiblocklists.NewRaiBlocklistID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, *block.BlocklistName).ID(),
-			BlockEnabled: pointer.From(block.Blocking),
-			Source:       string(pointer.From(block.Source)),
-		})
-	}
-	return customBlockLists
 }
 
 func flattenRaiPolicyContentFilters(filters *[]raipolicies.RaiPolicyContentFilter) []AccountRaiPolicyContentFilter {

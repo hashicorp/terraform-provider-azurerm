@@ -149,6 +149,7 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
   name                 = "acctestraip-%s"
   cognitive_account_id = azurerm_cognitive_account.test.id
   base_policy_name     = "Microsoft.Default"
+
   content_filter {
     name               = "Hate"
     filter_enabled     = true
@@ -156,6 +157,7 @@ resource "azurerm_cognitive_account_rai_policy" "test" {
     severity_threshold = "High"
     source             = "Prompt"
   }
+
   mode = "Asynchronous_filter"
   tags = {
     Environment = "Test"
