@@ -366,7 +366,7 @@ func resourceNetworkInterfaceWaitForCreated(ctx context.Context, client networki
 
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 3,
+		ContinuousTargetOccurence: 4,
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Found"},
 		Refresh:                   resourceNetworkInterfaceRefreshFunc(ctx, client, id),

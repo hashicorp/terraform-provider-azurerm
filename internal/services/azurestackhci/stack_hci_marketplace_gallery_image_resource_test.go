@@ -165,6 +165,10 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "test" {
     sku       = "2022-datacenter-azure-edition-core"
   }
 
+  lifecycle {
+    ignore_changes = [storage_path_id]
+  }
+
   depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv), r.imageVersion)
@@ -188,6 +192,10 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "import" {
     publisher = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.publisher
     offer     = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.offer
     sku       = azurerm_stack_hci_marketplace_gallery_image.test.identifier.0.sku
+  }
+
+  lifecycle {
+    ignore_changes = [storage_path_id]
   }
 }
 `, config)

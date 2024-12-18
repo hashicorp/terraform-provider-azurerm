@@ -48,6 +48,7 @@ resource "azurerm_stack_hci_marketplace_gallery_image" "example" {
     foo = "bar"
     env = "example"
   }
+  depends_on = [azurerm_role_assignment.example]
 }
 ```
 
@@ -74,6 +75,8 @@ The following arguments are supported:
 ---
 
 * `storage_path_id` - (Optional) The ID of the Azure Stack HCI Storage Path used for this Marketplace Gallery Image. Changing this forces a new Azure Stack HCI Virtual Hard Disk to be created.
+
+-> **Note:** If `storage_path_id` is not specified, it will be assigned by the server. If you experience a diff you may need to add this to `ignore_changes`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Stack HCI Marketplace Gallery Image.
 

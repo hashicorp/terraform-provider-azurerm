@@ -54,7 +54,7 @@ type StackHCIWindowsVirtualMachineResourceModel struct {
 	OsProfile              []StackHCIVirtualMachineOsProfileWindows       `tfschema:"os_profile"`
 	StorageProfile         []StackHCIVirtualMachineStorageProfile         `tfschema:"storage_profile"`
 
-	// securityProfile
+	// securityProfile is flattened, since it is always returned from API
 	SecureBootEnabled bool   `tfschema:"secure_boot_enabled"`
 	SecurityType      string `tfschema:"security_type"`
 	TpmEnabled        bool   `tfschema:"tpm_enabled"`

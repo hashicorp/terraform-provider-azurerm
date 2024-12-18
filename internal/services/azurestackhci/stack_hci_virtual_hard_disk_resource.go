@@ -333,7 +333,7 @@ func resourceVirtualHardDiskWaitForCreated(ctx context.Context, client virtualha
 
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 3,
+		ContinuousTargetOccurence: 4,
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Found"},
 		Refresh:                   resourceVirtualHardDiskRefreshFunc(ctx, client, id),
