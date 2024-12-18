@@ -2414,10 +2414,10 @@ func (r MsSqlDatabaseResource) maxSizeGB(data acceptance.TestData, maxSizeGb flo
 %[1]s
 
 resource "azurerm_mssql_database" "test" {
-  name      = "acctest-db-%[2]d"
-  server_id = azurerm_mssql_server.test.id
-  sku_name       = "Basic"
-  max_size_gb    = %[3]f
+  name        = "acctest-db-%[2]d"
+  server_id   = azurerm_mssql_server.test.id
+  sku_name    = "Basic"
+  max_size_gb = %[3]f
 }
 `, r.template(data), data.RandomInteger, maxSizeGb)
 }
