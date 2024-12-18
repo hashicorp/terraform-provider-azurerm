@@ -229,6 +229,16 @@ func (r NetAppVolumeGroupOracleDataSource) Attributes() map[string]*pluginsdk.Sc
 							},
 						},
 					},
+
+					"encryption_key_source": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
