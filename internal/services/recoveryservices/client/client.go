@@ -160,7 +160,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
 
 	resourceGuardProxiesClient := resourceguardproxies.NewResourceGuardProxiesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&resourceGuardProxyClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&resourceGuardProxiesClient.Client, o.ResourceManagerAuthorizer)
 
 	vmwareMachinesClient, err := vmwaremachines.NewMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
