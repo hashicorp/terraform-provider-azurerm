@@ -497,13 +497,10 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 
 func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
-	apiId := fmt.Sprintf("%s;rev=%s", d.Get("name").(string), revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
 	displayName := d.Get("display_name").(string)
@@ -520,8 +517,12 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
-	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+	idPtr, err := api.ParseApiID(d.Id())
+	if err != nil {
+		return err
+	}
 
+	id := *idPtr
 	apiType := api.ApiTypeHTTP
 	if v, ok := d.GetOk("api_type"); ok {
 		apiType = api.ApiType(v.(string))
