@@ -27,7 +27,6 @@ func TestStackHCIVirtualMachineID(t *testing.T) {
 		Error    bool
 		Expected *StackHCIVirtualMachineId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestStackHCIVirtualMachineIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *StackHCIVirtualMachineId
 	}{
-
 		{
 			// empty
 			Input: "",
