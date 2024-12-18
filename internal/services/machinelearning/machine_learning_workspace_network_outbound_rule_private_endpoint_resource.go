@@ -203,17 +203,9 @@ func (r WorkspaceNetworkOutboundRulePrivateEndpoint) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if prop, ok := props.(managednetwork.PrivateEndpointOutboundRule); ok && prop.Destination != nil {
-						if prop.Destination.SparkEnabled != nil {
-							state.SparkEnabled = *prop.Destination.SparkEnabled
-						}
-
-						if prop.Destination.SubresourceTarget != nil {
-							state.SubresourceTarget = *prop.Destination.SubresourceTarget
-						}
-
-						if prop.Destination.ServiceResourceId != nil {
-							state.ServiceResourceId = *prop.Destination.ServiceResourceId
-						}
+						state.SparkEnabled = pointer.From(prop.Destination.SparkEnabled)
+						state.SubresourceTarget = pointer.From(prop.Destination.SubresourceTarget)
+						state.ServiceResourceId = pointer.From(prop.Destination.ServiceResourceId)
 					}
 				}
 			}

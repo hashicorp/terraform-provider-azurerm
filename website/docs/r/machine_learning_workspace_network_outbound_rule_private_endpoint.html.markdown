@@ -115,7 +115,6 @@ The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace Network Outbound Rule Private Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace Network Outbound Rule Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace Network Outbound Rule Private Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace Network Outbound Rule Private Endpoint.
 
