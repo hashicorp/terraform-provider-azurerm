@@ -198,7 +198,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = %[4]q
+    image_id      = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -237,7 +237,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "import" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = %[4]q
+    image_id      = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -271,7 +271,7 @@ resource "azurerm_stack_hci_virtual_hard_disk" "test2" {
   disk_size_in_gb     = 2
 
   lifecycle {
-    ignore_changes = [storage_path_id]
+    ignore_changes        = [storage_path_id]
     create_before_destroy = true
   }
 }
@@ -287,14 +287,14 @@ resource "azurerm_stack_hci_network_interface" "test2" {
   }
 
   lifecycle {
-    ignore_changes = [mac_address, ip_configuration.0.private_ip_address]
+    ignore_changes        = [mac_address, ip_configuration.0.private_ip_address]
     create_before_destroy = true
   }
 }
 
 resource "azurerm_stack_hci_windows_virtual_machine" "test" {
-  arc_machine_id      = azurerm_arc_machine.test.id
-  custom_location_id  = %[3]q
+  arc_machine_id     = azurerm_arc_machine.test.id
+  custom_location_id = %[3]q
 
   hardware_profile {
     vm_size          = "Custom"
@@ -307,14 +307,14 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
   }
 
   os_profile {
-    admin_username                    = "adminuser"
-    admin_password                    = "!password!@#$"
-    computer_name                     = "testvm"
+    admin_username = "adminuser"
+    admin_password = "!password!@#$"
+    computer_name  = "testvm"
   }
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id, azurerm_stack_hci_virtual_hard_disk.test2.id]
-    image_id = %[4]q
+    image_id      = %[4]q
   }
 
   depends_on = [azurerm_role_assignment.test]
@@ -402,19 +402,19 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
     admin_username                    = "adminuser"
     admin_password                    = "!password!@#$"
     computer_name                     = "testvm2"
-   automatic_update_enabled          = true
-   time_zone                         = "UTC"
-   provision_vm_agent_enabled        = true
-   provision_vm_config_agent_enabled = true
-   ssh_public_key {
-     path     = "C:\\Users\\adminuser\\.ssh\\rsa.pub"
-     key_data = tls_private_key.rsa-4096-example.public_key_openssh
-   }
+    automatic_update_enabled          = true
+    time_zone                         = "UTC"
+    provision_vm_agent_enabled        = true
+    provision_vm_config_agent_enabled = true
+    ssh_public_key {
+      path     = "C:\\Users\\adminuser\\.ssh\\rsa.pub"
+      key_data = tls_private_key.rsa-4096-example.public_key_openssh
+    }
   }
 
   storage_profile {
-    data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.test.id]
-    image_id = %[5]q
+    data_disk_ids             = [azurerm_stack_hci_virtual_hard_disk.test.id]
+    image_id                  = %[5]q
     vm_config_storage_path_id = azurerm_stack_hci_storage_path.test.id
   }
 

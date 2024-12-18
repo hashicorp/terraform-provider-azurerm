@@ -111,7 +111,7 @@ resource "azurerm_arc_machine" "example" {
 
 resource "azurerm_stack_hci_windows_virtual_machine" "example" {
   arc_machine_id     = azurerm_stack_hci_windows_virtual_machine.example.arc_machine_id
-  custom_location_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
+  custom_location_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ExtendedLocation/customLocations/cl1"
 
   hardware_profile {
     vm_size          = "Custom"
@@ -131,7 +131,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "example" {
 
   storage_profile {
     data_disk_ids = [azurerm_stack_hci_virtual_hard_disk.example.id]
-    image_id = azurerm_stack_hci_marketplace_gallery_image.example.id
+    image_id      = azurerm_stack_hci_marketplace_gallery_image.example.id
   }
 
   lifecycle {
