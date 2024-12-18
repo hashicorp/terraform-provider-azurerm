@@ -109,14 +109,18 @@ func (p ParseResourceIDFunction) Run(ctx context.Context, request function.RunRe
 	for k, v := range s {
 		switch v.Type {
 		case resourceids.ResourceGroupSegmentType:
-			output["resource_group_name"] = types.StringValue(parsed.Parsed[v.Name])
+			resourceGroupName := types.StringValue(parsed.Parsed[v.Name])
+			output["resource_group_name"] = resourceGroupName
+			output["resource_name"] = resourceGroupName
 
 		case resourceids.ResourceProviderSegmentType:
 			output["resource_provider"] = types.StringPointerValue(v.FixedValue)
 			fullResourceType = pointer.From(v.FixedValue)
 
 		case resourceids.SubscriptionIdSegmentType:
-			output["subscription_id"] = types.StringValue(parsed.Parsed["subscriptionId"])
+			subscriptionId := types.StringValue(parsed.Parsed["subscriptionId"])
+			output["subscription_id"] = subscriptionId
+			output["resource_name"] = subscriptionId
 
 		case resourceids.StaticSegmentType:
 			switch {

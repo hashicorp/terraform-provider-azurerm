@@ -42,6 +42,54 @@ func TestProviderFunctionParseResourceID_basic(t *testing.T) {
 	})
 }
 
+func TestProviderFunctionParseResourceID_subscription(t *testing.T) {
+	t.Parallel()
+
+	resource.UnitTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: testParseSubscriptionResourceIdOutput("/subscriptions/12345678-1234-9876-4563-123456789012"),
+				Check: acceptance.ComposeTestCheckFunc(
+					acceptance.TestCheckOutput("subscription_id", "12345678-1234-9876-4563-123456789012"),
+					acceptance.TestCheckOutput("resource_group_name", ""),
+					acceptance.TestCheckOutput("resource_type", "subscriptions"),
+					acceptance.TestCheckOutput("resource_name", "12345678-1234-9876-4563-123456789012"),
+					acceptance.TestCheckOutput("resource_scope", ""),
+					acceptance.TestCheckOutput("full_resource_type", "/subscriptions"),
+				),
+			},
+		},
+	})
+}
+
+func TestProviderFunctionParseResourceID_resourceGroup(t *testing.T) {
+	t.Parallel()
+
+	resource.UnitTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.8.0-beta1"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: testParseResourceGroupResourceIdOutput("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1"),
+				Check: acceptance.ComposeTestCheckFunc(
+					acceptance.TestCheckOutput("subscription_id", "12345678-1234-9876-4563-123456789012"),
+					acceptance.TestCheckOutput("resource_group_name", "resGroup1"),
+					acceptance.TestCheckOutput("resource_type", "resourceGroups"),
+					acceptance.TestCheckOutput("resource_name", "resGroup1"),
+					acceptance.TestCheckOutput("resource_scope", ""),
+					acceptance.TestCheckOutput("full_resource_type", "/resourceGroups"),
+				),
+			},
+		},
+	})
+}
+
 func TestProviderFunctionParseResourceID_scopedAtSubscription(t *testing.T) {
 	t.Parallel()
 
@@ -136,6 +184,78 @@ output "full_resource_type" {
 }
 
 
+`, id)
+}
+
+func testParseSubscriptionResourceIdOutput(id string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  parsed_id = provider::azurerm::parse_resource_id("%s")
+}
+
+output "resource_name" {
+  value = local.parsed_id["resource_name"]
+}
+
+output "resource_scope" {
+  value = local.parsed_id["resource_scope"]
+}
+
+output "resource_group_name" {
+  value = local.parsed_id["resource_group_name"]
+}
+
+output "resource_type" {
+  value = local.parsed_id["resource_type"]
+}
+
+output "subscription_id" {
+  value = local.parsed_id["subscription_id"]
+}
+
+output "full_resource_type" {
+  value = local.parsed_id["full_resource_type"]
+}
+`, id)
+}
+
+func testParseResourceGroupResourceIdOutput(id string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  parsed_id = provider::azurerm::parse_resource_id("%s")
+}
+
+output "resource_name" {
+  value = local.parsed_id["resource_name"]
+}
+
+output "resource_scope" {
+  value = local.parsed_id["resource_scope"]
+}
+
+output "resource_group_name" {
+  value = local.parsed_id["resource_group_name"]
+}
+
+output "resource_type" {
+  value = local.parsed_id["resource_type"]
+}
+
+output "subscription_id" {
+  value = local.parsed_id["subscription_id"]
+}
+
+output "full_resource_type" {
+  value = local.parsed_id["full_resource_type"]
+}
 `, id)
 }
 
