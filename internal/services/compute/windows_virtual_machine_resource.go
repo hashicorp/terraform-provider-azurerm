@@ -598,7 +598,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 
 	// hot patching can only be enabled if the patch_mode is set to "AutomaticByPlatform"
 	// and if the image reference is using one of the following skus:
-	// 2022-datacenter-azure-edition-core or 2022-datacenter-azure-edition-core-smalldisk
+	// 2022-datacenter-azure-edition-core, 2022-datacenter-azure-edition-core-smalldisk, 2022-datacenter-azure-edition-hotpatch, 2022-datacenter-azure-edition-hotpatch-smalldisk,
+	// 2025-datacenter-azure-edition, 2025-datacenter-azure-edition-smalldisk, 2025-datacenter-azure-edition-core, 2025-datacenter-azure-edition-core-smalldisk
 	if hotPatch {
 		if patchMode != string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform) {
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "hotpatching_enabled", "true", "patch_mode", patchMode)
@@ -613,7 +614,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
 			}
 
-			return fmt.Errorf("%q is currently only supported on %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk")
+			return fmt.Errorf("%q is currently only supported on %q, %q, %q, %q, %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk", "2025-datacenter-azure-edition", "2025-datacenter-azure-edition-smalldisk", "2025-datacenter-azure-edition-core", "2025-datacenter-azure-edition-core-smalldisk")
 		}
 	}
 

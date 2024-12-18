@@ -1,8 +1,12 @@
 # Guide: Breaking Changes and Deprecations
 
-To keep up with and accommodate the changing pace of Azure, the provider needs to be able to introduce and handle breaking changes. We can safely introduce breaking changes into the provider using the major release feature flag, for the next major release that would the `features.FivePointOhBeta` flag which is available in the provider today.
+To keep up with and accommodate the changing pace of Azure, the provider needs to be able to gracefully introduce and handle breaking changes. A "breaking change" within the provider is considered to be anything that requires an end user to modify previously valid terraform configuration after a provider upgrade to either deploy new resources or to maintain existing deployments. Even if a change does not affect the user's current deployment, it is still considered a breaking change if it requires the user to modify their configuration to deploy new resources. 
 
-This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API.
+The `azurerm` provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.
+
+Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOhBeta()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
+
+Types of breaking changes covered are:
 
 - [Removing Resources or Data Sources](#removing-resources-or-data-sources)
 - [Breaking Schema Changes](#breaking-schema-changes-and-deprecations)
@@ -166,7 +170,7 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
-      if !features.FivePointOhBeta {
+      if !features.FivePointOhBeta() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:     pluginsdk.TypeBool,
             Optional: true,
@@ -241,7 +245,7 @@ The following example follows a fictional resource that will have the following 
    
    ### `azurerm_example_resource`
    
-   * The deprecated `scaling_enabled` property has been removed in favour of the `scaling_enabled` property.
+   * The deprecated `enable_scaling` property has been removed in favour of the `scaling_enabled` property.
    * The property `version` now defaults to `2`.
    ```
    
@@ -336,11 +340,11 @@ Terraform will perform the following actions:
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
-This is a breaking change as Terraform should not trigger a plan between minor version upgrades. Instead, what we can do is add a TODO next to the `Default` tag to update the default value in the next major version of the provider or mark the field as Required if that default value is going to continue to change in the future:
+This is a breaking change as Terraform should not trigger a plan between minor version upgrades. Instead, what we can do is use the major release feature flag as shown in the example below or mark the field as Required if that default value is going to continue to change in the future:
 
 ```go
 func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
-	args := map[string]*pluginsdk.Schema{
+    args := map[string]*pluginsdk.Schema{
         "spark_version": {
             Type:     pluginsdk.TypeString,
             Optional: true,
@@ -353,13 +357,13 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
                "3.4",
                 }, false),
             },
-        }   
-    }
-	if !features.FivePointOhBeta() {
-		args["spark_version"].Default = "2.4"
+        }
+
+    if !features.FivePointOhBeta() {
+        args["spark_version"].Default = "2.4"
     }
 	
-	return args
+    return args
 }
 ```
 

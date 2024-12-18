@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
