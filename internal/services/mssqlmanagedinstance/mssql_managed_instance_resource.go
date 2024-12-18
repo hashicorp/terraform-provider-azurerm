@@ -181,7 +181,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedInstanceID,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,

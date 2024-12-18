@@ -1,23 +1,24 @@
 terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "3.108.0"
-    }
-  }
+  # required_providers {
+  #   azurerm = {
+  #     source  = "hashicorp/azurerm"
+  #     version = "3.108.0"
+  #   }
+  # }
 }
 
 provider "azurerm" {
   features {}
+  subscription_id = "1a6092a6-137e-4025-9a7c-ef77f76f2c02"
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "wyatt-test"
+  name     = "acctest-mssql-managed-instance"
   location = "eastus"
 }
 
 resource "azurerm_network_security_group" "example" {
-  name                = "wyatt-test"
+  name                = "acctest-mssql-managed-instance"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -30,7 +31,7 @@ resource "azurerm_network_security_rule" "allow_management_inbound" {
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_ranges     = ["9000", "9003", "1438", "1440", "1452"]
+  destination_port_ranges = ["9000", "9003", "1438", "1440", "1452"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.example.name
@@ -95,12 +96,12 @@ resource "azurerm_network_security_rule" "deny_all_inbound" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound" {
   name                        = "allow_management_outbound"
-  priority                    = 102
+  priority                    = 106
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_ranges     = ["80", "443", "12000"]
+  destination_port_ranges = ["80", "443", "12000"]
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.example.name
@@ -138,22 +139,27 @@ resource "azurerm_network_security_rule" "deny_all_outbound" {
 resource "azurerm_virtual_network" "example" {
   name                = "vnet-mi"
   resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.0.0.0/16"]
+  address_space = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "subnet-mi"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.0.0/24"]
+  name                              = "subnet-mi"
+  resource_group_name               = azurerm_resource_group.example.name
+  virtual_network_name              = azurerm_virtual_network.example.name
+  private_endpoint_network_policies = "Enabled"
+  address_prefixes = ["10.0.0.0/24"]
 
   delegation {
     name = "managedinstancedelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+      name = "Microsoft.Sql/managedInstances"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+      ]
     }
   }
 }
@@ -164,10 +170,10 @@ resource "azurerm_subnet_network_security_group_association" "example" {
 }
 
 resource "azurerm_route_table" "example" {
-  name                          = "routetable-mi"
-  location                      = azurerm_resource_group.example.location
-  resource_group_name           = azurerm_resource_group.example.name
-  disable_bgp_route_propagation = false
+  name     = "routetable-mi"
+  location = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  # disable_bgp_route_propagation = false
   depends_on = [
     azurerm_subnet.example,
   ]
@@ -189,11 +195,29 @@ resource "azurerm_mssql_managed_instance" "example" {
   subnet_id          = azurerm_subnet.example.id
   vcores             = 4
 
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id
+    ]
+  }
+
   administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
+  administrator_login_password = ";ljkhsdf98HSND*UFBNojkfn42p9if23hngklf"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.example,
     azurerm_subnet_route_table_association.example,
   ]
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = "UAIexample"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+import {
+  id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctest-mssql-managed-instance/providers/Microsoft.Sql/managedInstances/managedsqlinstance"
+  to = azurerm_mssql_managed_instance.example
 }
