@@ -48,13 +48,14 @@ func ExpandArmCdnEndpointConditionDevice(input []interface{}) []rules.DeliveryRu
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
+
 		output = append(output, rules.DeliveryRuleIsDeviceCondition{
 			Name: rules.MatchVariableIsDevice,
 			Parameters: rules.IsDeviceMatchConditionParameters{
 				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleIsDeviceConditionParameters,
 				Operator:        rules.IsDeviceOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
-				MatchValues:     ExpandIsDeviceMatchValue(item["match_values"].(*pluginsdk.Set).List()),
+				MatchValues:     expandIsDeviceMatchValue(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -71,6 +72,7 @@ func FlattenArmCdnEndpointConditionDevice(input rules.DeliveryRuleCondition) (*m
 	operator := ""
 	matchValues := make([]interface{}, 0)
 	negateCondition := false
+
 	if params := condition; params != nil {
 		operator = string(params.Operator)
 
@@ -79,7 +81,7 @@ func FlattenArmCdnEndpointConditionDevice(input rules.DeliveryRuleCondition) (*m
 		}
 
 		if params.MatchValues != nil {
-			matchValues = FlattenIsDeviceMatchValue(params.MatchValues)
+			matchValues = flattenIsDeviceMatchValue(params.MatchValues)
 		}
 	}
 

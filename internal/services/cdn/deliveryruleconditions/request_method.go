@@ -6,10 +6,10 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func RequestMethod() *pluginsdk.Resource {
@@ -19,9 +19,8 @@ func RequestMethod() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "Equal",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Equal",
-				}, false),
+				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodOperator(),
+					false),
 			},
 
 			"negate_condition": {
@@ -36,32 +35,27 @@ func RequestMethod() *pluginsdk.Resource {
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"DELETE",
-						"GET",
-						"HEAD",
-						"OPTIONS",
-						"POST",
-						"PUT",
-					}, false),
+					ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodMatchValue(),
+						false),
 				},
 			},
 		},
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestMethod(input []interface{}) []cdn.BasicDeliveryRuleCondition {
-	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionRequestMethod(input []interface{}) []rules.DeliveryRuleCondition {
+	output := make([]rules.DeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		output = append(output, cdn.DeliveryRuleRequestMethodCondition{
-			Name: cdn.NameRequestMethod,
-			Parameters: &cdn.RequestMethodMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestMethodConditionParameters"),
-				Operator:        utils.String(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
-				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+
+		output = append(output, rules.DeliveryRuleRequestMethodCondition{
+			Name: rules.MatchVariableRequestMethod,
+			Parameters: rules.RequestMethodMatchConditionParameters{
+				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestMethodConditionParameters,
+				Operator:        rules.RequestMethodOperator(item["operator"].(string)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+				MatchValues:     expandRequestMethodMatchValue(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
 	}
@@ -69,8 +63,8 @@ func ExpandArmCdnEndpointConditionRequestMethod(input []interface{}) []cdn.Basic
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestMethod(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := input.AsDeliveryRuleRequestMethodCondition()
+func FlattenArmCdnEndpointConditionRequestMethod(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := AsDeliveryRuleRequestMethodCondition(input)
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request method condition")
 	}
@@ -78,17 +72,16 @@ func FlattenArmCdnEndpointConditionRequestMethod(input cdn.BasicDeliveryRuleCond
 	operator := ""
 	negateCondition := false
 	matchValues := make([]interface{}, 0)
-	if params := condition.Parameters; params != nil {
-		if params.Operator != nil {
-			operator = *params.Operator
-		}
+
+	if params := condition; params != nil {
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
 			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			matchValues = utils.FlattenStringSlice(params.MatchValues)
+			matchValues = flattenRequestMethodMatchValue(params.MatchValues)
 		}
 	}
 

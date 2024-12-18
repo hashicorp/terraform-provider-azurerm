@@ -6,7 +6,8 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,17 +19,8 @@ func RequestURI() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.RequestURIOperatorAny),
-					string(cdn.RequestURIOperatorBeginsWith),
-					string(cdn.RequestURIOperatorContains),
-					string(cdn.RequestURIOperatorEndsWith),
-					string(cdn.RequestURIOperatorEqual),
-					string(cdn.RequestURIOperatorGreaterThan),
-					string(cdn.RequestURIOperatorGreaterThanOrEqual),
-					string(cdn.RequestURIOperatorLessThan),
-					string(cdn.RequestURIOperatorLessThanOrEqual),
-				}, false),
+				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestUriOperator(),
+					false),
 			},
 
 			"negate_condition": {
@@ -53,8 +45,8 @@ func RequestURI() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
+						string(rules.TransformLowercase),
+						string(rules.TransformUppercase),
 					}, false),
 				},
 			},
@@ -62,27 +54,20 @@ func RequestURI() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDeliveryRuleCondition {
-	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []rules.DeliveryRuleCondition {
+	output := make([]rules.DeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-		requestURICondition := cdn.DeliveryRuleRequestURICondition{
-			Name: cdn.NameRequestURI,
-			Parameters: &cdn.RequestURIMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestUriConditionParameters"),
-				Operator:        cdn.RequestURIOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+		requestURICondition := rules.DeliveryRuleRequestUriCondition{
+			Name: rules.MatchVariableRequestUri,
+			Parameters: rules.RequestUriMatchConditionParameters{
+				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestUriConditionParameters,
+				Operator:        rules.RequestUriOperator(item["operator"].(string)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
-		}
-
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
-			transforms := make([]cdn.Transform, 0)
-			for _, t := range rawTransforms {
-				transforms = append(transforms, cdn.Transform(t.(string)))
-			}
-			requestURICondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, requestURICondition)
@@ -91,8 +76,8 @@ func ExpandArmCdnEndpointConditionRequestURI(input []interface{}) []cdn.BasicDel
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := input.AsDeliveryRuleRequestURICondition()
+func FlattenArmCdnEndpointConditionRequestURI(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := AsDeliveryRuleRequestUriCondition(input)
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request uri condition")
 	}
@@ -101,7 +86,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
-	if params := condition.Parameters; params != nil {
+	if params := condition; params != nil {
 		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
@@ -113,9 +98,7 @@ func FlattenArmCdnEndpointConditionRequestURI(input cdn.BasicDeliveryRuleConditi
 		}
 
 		if params.Transforms != nil {
-			for _, transform := range *params.Transforms {
-				transforms = append(transforms, string(transform))
-			}
+			transforms = flattenTransforms(params.Transforms)
 		}
 	}
 

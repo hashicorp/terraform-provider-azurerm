@@ -74,15 +74,8 @@ func ExpandArmCdnEndpointConditionPostArg(input []interface{}) []rules.DeliveryR
 				Operator:        rules.PostArgsOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
-		}
-
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
-			transforms := make([]rules.Transform, 0)
-			for _, t := range rawTransforms {
-				transforms = append(transforms, rules.Transform(t.(string)))
-			}
-			condition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, condition)
@@ -119,9 +112,7 @@ func FlattenArmCdnEndpointConditionPostArg(input rules.DeliveryRuleCondition) (*
 		}
 
 		if params.Transforms != nil {
-			for _, transform := range *params.Transforms {
-				transforms = append(transforms, string(transform))
-			}
+			transforms = flattenTransforms(params.Transforms)
 		}
 	}
 

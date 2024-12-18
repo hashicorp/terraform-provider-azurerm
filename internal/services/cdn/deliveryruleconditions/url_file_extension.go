@@ -6,7 +6,8 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,17 +19,8 @@ func URLFileExtension() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.URLFileExtensionOperatorAny),
-					string(cdn.URLFileExtensionOperatorBeginsWith),
-					string(cdn.URLFileExtensionOperatorContains),
-					string(cdn.URLFileExtensionOperatorEndsWith),
-					string(cdn.URLFileExtensionOperatorEqual),
-					string(cdn.URLFileExtensionOperatorGreaterThan),
-					string(cdn.URLFileExtensionOperatorGreaterThanOrEqual),
-					string(cdn.URLFileExtensionOperatorLessThan),
-					string(cdn.URLFileExtensionOperatorLessThanOrEqual),
-				}, false),
+				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForURLFileExtensionOperator(),
+					false),
 			},
 
 			"negate_condition": {
@@ -53,8 +45,8 @@ func URLFileExtension() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(cdn.TransformLowercase),
-						string(cdn.TransformUppercase),
+						string(rules.TransformLowercase),
+						string(rules.TransformUppercase),
 					}, false),
 				},
 			},
@@ -62,28 +54,21 @@ func URLFileExtension() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionURLFileExtension(input []interface{}) []cdn.BasicDeliveryRuleCondition {
-	output := make([]cdn.BasicDeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionURLFileExtension(input []interface{}) []rules.DeliveryRuleCondition {
+	output := make([]rules.DeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		requestURICondition := cdn.DeliveryRuleURLFileExtensionCondition{
-			Name: cdn.NameURLFileExtension,
-			Parameters: &cdn.URLFileExtensionMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFileExtensionMatchConditionParameters"),
-				Operator:        cdn.URLFileExtensionOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+		requestURICondition := rules.DeliveryRuleURLFileExtensionCondition{
+			Name: rules.MatchVariableURLFileExtension,
+			Parameters: rules.URLFileExtensionMatchConditionParameters{
+				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleURLFileExtensionMatchConditionParameters,
+				Operator:        rules.URLFileExtensionOperator(item["operator"].(string)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
-		}
-
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
-			transforms := make([]cdn.Transform, 0)
-			for _, t := range rawTransforms {
-				transforms = append(transforms, cdn.Transform(t.(string)))
-			}
-			requestURICondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, requestURICondition)
@@ -92,8 +77,8 @@ func ExpandArmCdnEndpointConditionURLFileExtension(input []interface{}) []cdn.Ba
 	return output
 }
 
-func FlattenArmCdnEndpointConditionURLFileExtension(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := input.AsDeliveryRuleURLFileExtensionCondition()
+func FlattenArmCdnEndpointConditionURLFileExtension(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := AsDeliveryRuleURLFileExtensionCondition(input)
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file extension condition")
 	}
@@ -102,7 +87,8 @@ func FlattenArmCdnEndpointConditionURLFileExtension(input cdn.BasicDeliveryRuleC
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
-	if params := condition.Parameters; params != nil {
+
+	if params := condition; params != nil {
 		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
@@ -114,9 +100,7 @@ func FlattenArmCdnEndpointConditionURLFileExtension(input cdn.BasicDeliveryRuleC
 		}
 
 		if params.Transforms != nil {
-			for _, transform := range *params.Transforms {
-				transforms = append(transforms, string(transform))
-			}
+			transforms = flattenTransforms(params.Transforms)
 		}
 	}
 

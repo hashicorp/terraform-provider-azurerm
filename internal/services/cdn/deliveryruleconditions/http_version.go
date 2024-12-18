@@ -53,6 +53,7 @@ func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []rules.Deliv
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
+
 		output = append(output, rules.DeliveryRuleHTTPVersionCondition{
 			Name: rules.MatchVariableHTTPVersion,
 			Parameters: rules.HTTPVersionMatchConditionParameters{
@@ -76,6 +77,7 @@ func FlattenArmCdnEndpointConditionHTTPVersion(input rules.DeliveryRuleCondition
 	operator := ""
 	matchValues := make([]interface{}, 0)
 	negateCondition := false
+
 	if params := condition; params != nil {
 		operator = string(params.Operator)
 

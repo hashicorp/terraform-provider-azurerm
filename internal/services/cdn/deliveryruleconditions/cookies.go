@@ -25,7 +25,6 @@ func Cookies() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-
 				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForCookiesOperator(),
 					false),
 			},
@@ -65,6 +64,7 @@ func ExpandArmCdnEndpointConditionCookies(input []interface{}) []rules.DeliveryR
 	output := make([]rules.DeliveryRuleCondition, 0)
 	for _, v := range input {
 		item := v.(map[string]interface{})
+
 		cookiesCondition := rules.DeliveryRuleCookiesCondition{
 			Name: rules.MatchVariableCookies,
 			Parameters: rules.CookiesMatchConditionParameters{
@@ -73,15 +73,8 @@ func ExpandArmCdnEndpointConditionCookies(input []interface{}) []rules.DeliveryR
 				Operator:        rules.CookiesOperator(item["operator"].(string)),
 				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
+				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
-		}
-
-		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
-			transforms := make([]rules.Transform, 0)
-			for _, t := range rawTransforms {
-				transforms = append(transforms, rules.Transform(t.(string)))
-			}
-			cookiesCondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, cookiesCondition)
@@ -118,9 +111,7 @@ func FlattenArmCdnEndpointConditionCookies(input rules.DeliveryRuleCondition) (*
 		}
 
 		if params.Transforms != nil {
-			for _, transform := range *params.Transforms {
-				transforms = append(transforms, string(transform))
-			}
+			transforms = flattenTransforms(params.Transforms)
 		}
 	}
 
