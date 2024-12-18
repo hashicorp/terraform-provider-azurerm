@@ -69,7 +69,9 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 
 		"marketplace_offer_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "pan_swfw_cloud_ngfw",
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
@@ -291,10 +293,6 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
-			}
-
-			if metadata.ResourceData.HasChange("marketplace_offer_id") {
-				props.MarketplaceDetails.OfferId = model.MarketplaceOfferId
 			}
 
 			if metadata.ResourceData.HasChange("plan_id") {

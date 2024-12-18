@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Palo Alto Next Generation Firewall Virtual Network Panorama should exist. Changing this forces a new Palo Alto Next Generation Firewall Virtual Network Panorama to be created.
 
-* `marketplace_offer_id` - (Required) The marketplace offer ID.
+* `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
 * `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
 
