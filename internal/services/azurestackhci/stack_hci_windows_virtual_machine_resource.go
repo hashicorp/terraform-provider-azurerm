@@ -443,8 +443,9 @@ func (r StackHCIWindowsVirtualMachineResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/31876
 			if err := resourceVirtualMachineWaitForCreated(ctx, *client, id); err != nil {
-				return err
+				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
 			}
 
 			metadata.SetID(id)

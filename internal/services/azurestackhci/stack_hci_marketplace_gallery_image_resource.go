@@ -194,6 +194,7 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/31876
 			if err := resourceMarketplaceGalleryImageWaitForCreated(ctx, *client, id); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
 			}

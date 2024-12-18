@@ -182,8 +182,9 @@ func (r StackHCINetworkInterfaceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/31876
 			if err := resourceNetworkInterfaceWaitForCreated(ctx, *client, id); err != nil {
-				return err
+				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
 			}
 
 			metadata.SetID(id)
