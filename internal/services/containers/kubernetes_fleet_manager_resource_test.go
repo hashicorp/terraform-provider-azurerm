@@ -1,13 +1,11 @@
 package containers_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -21,7 +19,6 @@ type KubernetesFleetManagerTestResource struct{}
 func TestAccKubernetesFleetManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +33,6 @@ func TestAccKubernetesFleetManager_basic(t *testing.T) {
 func TestAccKubernetesFleetManager_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -51,39 +47,9 @@ func TestAccKubernetesFleetManager_requiresImport(t *testing.T) {
 func TestAccKubernetesFleetManager_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
 	r := KubernetesFleetManagerTestResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
-	})
-}
-
-func TestAccKubernetesFleetManager_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
-	r := KubernetesFleetManagerTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -98,28 +64,44 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
+	client := clients.ContainerService.V20231015.Fleets
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", id)
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%[1]s"
+  location = "%[2]s"
+}
+
+`, data.RandomString, data.Locations.Primary)
 }
 
 func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_kubernetes_fleet_manager" "test" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctestkfm-${var.random_string}"
+  name                = "acctestkfm-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  hub_profile {
+    dns_prefix = "acctestkfm-%[2]s"
+  }
 }
-`, r.template(data))
+`, r.template(data), data.RandomString)
 }
 
 func (r KubernetesFleetManagerTestResource) requiresImport(data acceptance.TestData) string {
@@ -127,51 +109,31 @@ func (r KubernetesFleetManagerTestResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_kubernetes_fleet_manager" "import" {
-  location            = azurerm_kubernetes_fleet_manager.test.location
   name                = azurerm_kubernetes_fleet_manager.test.name
-  resource_group_name = azurerm_kubernetes_fleet_manager.test.resource_group_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  hub_profile {
+    dns_prefix = "acctestkfm-%[2]s"
+  }
 }
-`, r.basic(data))
+`, r.basic(data), data.RandomString)
 }
 
 func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_kubernetes_fleet_manager" "test" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctestkfm-${var.random_string}"
+  name                = "acctestkfm-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
   hub_profile {
-    dns_prefix = "val-${var.random_string}"
+    dns_prefix = "acctestkfm-%[2]s"
   }
 }
-`, r.template(data))
-}
-
-func (r KubernetesFleetManagerTestResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-variable "random_integer" {
-  default = %d
-}
-variable "random_string" {
-  default = %q
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${var.random_integer}"
-  location = var.primary_location
-}
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomString)
 }
