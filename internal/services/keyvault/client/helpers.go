@@ -27,8 +27,8 @@ type keyVaultDetails struct {
 
 func getCachedKeyVaule(key string) (keyVaultDetails, bool) {
 	keysmith.RLock()
-	defer keysmith.RUnlock()
 	v, ok := keyVaultsCache[key]
+	keysmith.RUnlock()
 	return v, ok
 }
 
