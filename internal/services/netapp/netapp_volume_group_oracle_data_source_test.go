@@ -38,5 +38,5 @@ data "azurerm_netapp_volume_group_oracle" "test" {
   resource_group_name = azurerm_netapp_volume_group_oracle.test.resource_group_name
   account_name        = azurerm_netapp_volume_group_oracle.test.account_name
 }
-`, NetAppVolumeGroupOracleResource{}.basic(data))
+`, NetAppVolumeGroupOracleResource{}.basicAvailabilityZone(data))
 }

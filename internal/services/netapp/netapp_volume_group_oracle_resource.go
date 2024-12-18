@@ -252,6 +252,22 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 							},
 						},
 					},
+
+					"encryption_key_source": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
 				},
 			},
 		},
@@ -267,8 +283,6 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
-			//replicationClient := metadata.Client.NetApp.VolumeReplicationClient
-
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model netAppModels.NetAppVolumeGroupOracleModel

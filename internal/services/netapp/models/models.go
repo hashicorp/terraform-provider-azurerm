@@ -81,6 +81,8 @@ type NetAppVolumeGroupOracleVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
 	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
 }
 
 type NetAppVolumeGroupOracleModel struct {

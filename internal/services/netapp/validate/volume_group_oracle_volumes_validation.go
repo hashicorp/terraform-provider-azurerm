@@ -62,6 +62,7 @@ func PossibleValuesForProtocolTypeVolumeGroupOracle() []string {
 func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGroupVolumeProperties) []error {
 	errors := make([]error, 0)
 	expectedZone := ""
+	expectedPpgId := ""
 	volumeSpecRepeatCount := make(map[string]int)
 	applicationType := string(volumegroups.ApplicationTypeORACLE)
 
@@ -103,14 +104,6 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 			errors = append(errors, fmt.Errorf("'protocol %v is invalid for Oracle'", protocolType))
 		}
 
-		// TODO: // Can't be nfsv3 on data, log and share volumes
-		// if strings.EqualFold(protocolType, string(ProtocolTypeNfsV3)) &&
-		// 	(strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleData)) ||
-		// 		strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleShared)) ||
-		// 		strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog))) {
-		// 	errors = append(errors, fmt.Errorf("'nfsv3 on data, log and shared volumes for %v is not supported on volume %v'", applicationType, pointer.From(volume.Name)))
-		// }
-
 		// Validating export policies
 		if volume.Properties.ExportPolicy != nil {
 			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
@@ -138,21 +131,6 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 			errors = append(errors, fmt.Errorf("'zone and proximity_placement_group_id cannot be specified together on volume %v'", pointer.From(volume.Name)))
 		}
 
-		// TODO: // Validating that data-backup and log-backup don't have PPG defined
-		// if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleDataBackup)) ||
-		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLogBackup))) &&
-		// 	pointer.From(volume.Properties.ProximityPlacementGroup) != "" {
-		// 	errors = append(errors, fmt.Errorf("'%v volume spec type cannot have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
-		// }
-
-		// TODO: // Validating that data, log and shared have PPG defined.
-		// if (strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleData)) ||
-		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog)) ||
-		// 	strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleShared))) &&
-		// 	pointer.From(volume.Properties.ProximityPlacementGroup) == "" {
-		// 	errors = append(errors, fmt.Errorf("'%v volume spec type must have PPG defined for %v on volume %v'", pointer.From(volume.Properties.VolumeSpecName), applicationType, pointer.From(volume.Name)))
-		// }
-
 		// Getting the first zone for validations, all volumes must be in the same zone
 		if expectedZone == "" {
 			if volume.Zones != nil && len(pointer.From(volume.Zones)) > 0 {
@@ -163,6 +141,24 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		// Validating that all volumes are in the same zone
 		if volume.Zones != nil && len(pointer.From(volume.Zones)) > 0 && pointer.From(volume.Zones)[0] != expectedZone {
 			errors = append(errors, fmt.Errorf("'zone must be the same on all volumes of this volume group, volume %v zone is %v'", pointer.From(volume.Name), pointer.From(volume.Zones)[0]))
+		}
+
+		// Getting the first PPG for validations, all volumes must be in the same PPG
+		if expectedPpgId == "" {
+			if volume.Properties.ProximityPlacementGroup != nil {
+				expectedPpgId = pointer.From(volume.Properties.ProximityPlacementGroup)
+			}
+		}
+
+		// Validating that all volumes are in the same PPG
+		if volume.Properties.ProximityPlacementGroup != nil && pointer.From(volume.Properties.ProximityPlacementGroup) != expectedPpgId {
+			errors = append(errors, fmt.Errorf("'proximity_placement_group_id must be the same on all volumes of this volume group, volume %v ppg id is %v'", pointer.From(volume.Name), pointer.From(volume.Properties.ProximityPlacementGroup)))
+		}
+
+		// Validating that encryption_key_source and key_vault_private_endpoint_id are only specified together
+		if (pointer.From(volume.Properties.EncryptionKeySource) != "" && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) == "") ||
+			(pointer.From(volume.Properties.EncryptionKeySource) == "" && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) != "") {
+			errors = append(errors, fmt.Errorf("'encryption_key_source and key_vault_private_endpoint_id must be specified together on volume %v'", pointer.From(volume.Name)))
 		}
 
 		// Adding volume spec name to hashmap for post volume loop check

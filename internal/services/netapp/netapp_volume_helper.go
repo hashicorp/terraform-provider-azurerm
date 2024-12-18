@@ -195,11 +195,19 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		}
 
 		if v := item.ProximityPlacementGroupId; v != "" {
-			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(v)
 		}
 
 		if v := item.Zone; v != "" {
 			volumeProperties.Zones = pointer.To([]string{v})
+		}
+
+		if v := item.EncryptionKeySource; v != "" {
+			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+		}
+
+		if v := item.KeyVaultPrivateEndpointId; v != "" {
+			volumeProperties.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(v)
 		}
 
 		results = append(results, *volumeProperties)
@@ -478,6 +486,14 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 
 		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
 			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+		}
+
+		if props.EncryptionKeySource != nil {
+			volumeGroupVolume.EncryptionKeySource = pointer.From((*string)(props.EncryptionKeySource))
+		}
+
+		if props.KeyVaultPrivateEndpointResourceId != nil {
+			volumeGroupVolume.KeyVaultPrivateEndpointId = pointer.From(props.KeyVaultPrivateEndpointResourceId)
 		}
 
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
