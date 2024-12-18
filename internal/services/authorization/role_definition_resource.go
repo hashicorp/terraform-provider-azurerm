@@ -348,7 +348,7 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 			// "Updating" a role definition actually creates a new one and these get consolidated a few seconds later
 			// where the "create date" and "update date" match for the newly created record
 			// but eventually switch to being the old create date and the new update date
-			// ergo we can can for the old create date and the new updated date
+			// ergo we can for the old create date and the new updated date
 			log.Printf("[DEBUG] Waiting for %s to settle down..", stateId)
 			deadline, ok := ctx.Deadline()
 			if !ok {

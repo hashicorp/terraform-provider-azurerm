@@ -42,7 +42,7 @@ func ParseCommunicationServiceID(input string) (*CommunicationServiceId, error) 
 	}
 
 	id := CommunicationServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCommunicationServiceIDInsensitively(input string) (*CommunicationServi
 	}
 
 	id := CommunicationServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CommunicationServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCommunication", "Microsoft.Communication", "Microsoft.Communication"),
 		resourceids.StaticSegment("staticCommunicationServices", "communicationServices", "communicationServices"),
-		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceValue"),
+		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceName"),
 	}
 }
 

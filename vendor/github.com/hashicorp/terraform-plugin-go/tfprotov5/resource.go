@@ -65,26 +65,6 @@ type ResourceServer interface {
 	MoveResourceState(context.Context, *MoveResourceStateRequest) (*MoveResourceStateResponse, error)
 }
 
-// ResourceServerWithMoveResourceState is a temporary interface for servers
-// to implement MoveResourceState RPC handling.
-//
-// Deprecated: This interface will be removed in a future version. Use
-// ResourceServer instead.
-type ResourceServerWithMoveResourceState interface {
-	ResourceServer
-
-	// MoveResourceState is called when Terraform is asked to change a resource
-	// type for an existing resource. The provider must accept the change as
-	// valid by ensuring the source resource type, schema version, and provider
-	// address are compatible to convert the source state into the target
-	// resource type and latest state version.
-	//
-	// This functionality is only supported in Terraform 1.8 and later. The
-	// provider must have enabled the MoveResourceState server capability to
-	// enable these requests.
-	MoveResourceState(context.Context, *MoveResourceStateRequest) (*MoveResourceStateResponse, error)
-}
-
 // ValidateResourceTypeConfigRequest is the request Terraform sends when it
 // wants to validate a resource's configuration.
 type ValidateResourceTypeConfigRequest struct {

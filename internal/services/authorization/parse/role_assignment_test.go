@@ -255,6 +255,30 @@ func TestRoleAssignmentID(t *testing.T) {
 				TenantId:         "34567812-3456-7653-6742-345678901234",
 			},
 		},
+		{
+			Input: "/providers/Microsoft.Capacity/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:   "",
+				ResourceGroup:    "",
+				ResourceProvider: "Microsoft.Capacity",
+				ResourceScope:    "",
+				ManagementGroup:  "",
+				Name:             "23456781-2349-8764-5631-234567890121",
+				TenantId:         "34567812-3456-7653-6742-345678901234",
+			},
+		},
+		{
+			Input: "/providers/Microsoft.Authorization/roleAssignments/23456781-2349-8764-5631-234567890121",
+			Expected: &RoleAssignmentId{
+				SubscriptionID:   "",
+				ResourceGroup:    "",
+				ResourceProvider: "",
+				ResourceScope:    "",
+				ManagementGroup:  "",
+				Name:             "23456781-2349-8764-5631-234567890121",
+				TenantId:         "34567812-3456-7653-6742-345678901234",
+			},
+		},
 	}
 
 	for _, v := range testData {
@@ -308,6 +332,5 @@ func TestRoleAssignmentID(t *testing.T) {
 		if actual.SubscriptionAlias != v.Expected.SubscriptionAlias {
 			t.Fatalf("Expected %q but got %q for Role Assignment SubscriptionAlias", v.Expected.SubscriptionAlias, actual.SubscriptionAlias)
 		}
-
 	}
 }

@@ -27,7 +27,6 @@ func TestHostPoolRegistrationInfoID(t *testing.T) {
 		Error    bool
 		Expected *HostPoolRegistrationInfoId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestHostPoolRegistrationInfoIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *HostPoolRegistrationInfoId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -46,7 +46,6 @@ func (c ApplicationsClient) ListAllowedUpgradePlans(ctx context.Context, id Appl
 
 	var model AllowedUpgradePlansResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

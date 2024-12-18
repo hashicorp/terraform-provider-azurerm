@@ -14,7 +14,16 @@ type AutomationRuleRunPlaybookAction struct {
 	ActionConfiguration *PlaybookActionProperties `json:"actionConfiguration,omitempty"`
 
 	// Fields inherited from AutomationRuleAction
-	Order int64 `json:"order"`
+
+	ActionType ActionType `json:"actionType"`
+	Order      int64      `json:"order"`
+}
+
+func (s AutomationRuleRunPlaybookAction) AutomationRuleAction() BaseAutomationRuleActionImpl {
+	return BaseAutomationRuleActionImpl{
+		ActionType: s.ActionType,
+		Order:      s.Order,
+	}
 }
 
 var _ json.Marshaler = AutomationRuleRunPlaybookAction{}
@@ -28,9 +37,10 @@ func (s AutomationRuleRunPlaybookAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AutomationRuleRunPlaybookAction: %+v", err)
 	}
+
 	decoded["actionType"] = "RunPlaybook"
 
 	encoded, err = json.Marshal(decoded)

@@ -15,7 +15,7 @@ type IntegrationAccountMapsClient struct {
 }
 
 func NewIntegrationAccountMapsClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationAccountMapsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationaccountmaps", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "integrationaccountmaps", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationAccountMapsClient: %+v", err)
 	}

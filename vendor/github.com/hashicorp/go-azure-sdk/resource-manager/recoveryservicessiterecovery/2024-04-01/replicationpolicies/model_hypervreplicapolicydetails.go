@@ -23,6 +23,14 @@ type HyperVReplicaPolicyDetails struct {
 	ReplicationPort                               *int64  `json:"replicationPort,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaPolicyDetails) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return BasePolicyProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaPolicyDetails{}
@@ -36,9 +44,10 @@ func (s HyperVReplicaPolicyDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaPolicyDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplica2012"
 
 	encoded, err = json.Marshal(decoded)

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -245,13 +246,6 @@ func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data, "trial"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -404,6 +398,96 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 			),
 		},
 		data.ImportStep("managed_disk_cmk_key_vault_id"),
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutStandards(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enhancedSecurityCompliance(data, "premium", true, true, []string{}, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandards(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"NONE"}, true),
+			ExpectError: regexp.MustCompile(`expected .* to be one of .*, got NONE`),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidStandardSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "standard", true, true, []string{"PCI_DSS", "HIPAA"}, true),
+			ExpectError: regexp.MustCompile("enhanced_security_compliance.*are only available with a `premium`"),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutEnhancedSecurityMonitoring(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, true, []string{"PCI_DSS", "HIPAA"}, false),
+			ExpectError: regexp.MustCompile("`enhanced_security_monitoring_enabled` must be set to true when `compliance_security_profile_enabled` is set to true"),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithoutAutomaticClusterUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "premium", false, true, []string{"PCI_DSS", "HIPAA"}, true),
+			ExpectError: regexp.MustCompile("`automatic_cluster_update_enabled` .* must be set to true when `compliance_security_profile_enabled` is set to true"),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceSecurityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.enhancedSecurityCompliance(data, "premium", true, false, []string{"PCI_DSS", "HIPAA"}, true),
+			ExpectError: regexp.MustCompile("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is false"),
+		},
 	})
 }
 
@@ -2786,4 +2870,36 @@ resource "azurerm_key_vault_access_policy" "managed" {
   ]
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+}
+
+func (DatabricksWorkspaceResource) enhancedSecurityCompliance(data acceptance.TestData, sku string, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, complianceSecurityProfileStandards []string, enhancedSecurityMonitoringEnabled bool) string {
+	complianceSecurityProfileStandardsStr := ""
+	if len(complianceSecurityProfileStandards) > 0 {
+		complianceSecurityProfileStandardsStr = fmt.Sprintf(`"%s"`, strings.Join(complianceSecurityProfileStandards, `", "`))
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+
+  enhanced_security_compliance {
+    automatic_cluster_update_enabled      = %t
+    compliance_security_profile_enabled   = %t
+    compliance_security_profile_standards = [%s]
+    enhanced_security_monitoring_enabled  = %t
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
 }

@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -242,7 +242,6 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 				if configs := props.IPConfigurations; configs != nil {
 					for _, config := range *props.IPConfigurations {
 						if configProps := config.Properties; configProps != nil {
-
 							if configProps.PublicIPAddress == nil {
 								continue
 							}

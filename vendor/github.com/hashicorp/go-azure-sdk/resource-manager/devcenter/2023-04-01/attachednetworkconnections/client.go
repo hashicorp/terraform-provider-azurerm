@@ -15,7 +15,7 @@ type AttachedNetworkConnectionsClient struct {
 }
 
 func NewAttachedNetworkConnectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*AttachedNetworkConnectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "attachednetworkconnections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "attachednetworkconnections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AttachedNetworkConnectionsClient: %+v", err)
 	}

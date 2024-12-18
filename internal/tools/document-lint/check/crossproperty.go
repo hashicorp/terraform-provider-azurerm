@@ -63,11 +63,11 @@ func shouldSkipDocProp(rt, path string) bool {
 func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Checker) {
 	// skip deprecated property
 	if shouldSkipDocProp(rt, path) {
-		return
+		return res
 	}
 
 	if isSkipProp(rt, path) {
-		return
+		return res
 	}
 
 	if f == nil {
@@ -93,7 +93,7 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 	case *schema2.Resource:
 		if f.Subs == nil {
 			res = append(res, newMissBlockDeclare(path, f))
-			return
+			return res
 		}
 		for key, val := range ele.Schema {
 			subField := f.Subs[key]
@@ -120,10 +120,10 @@ func shouldSkipCodeProp(rt, path string) bool {
 
 func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Checker) {
 	if shouldSkipCodeProp(rt, path) {
-		return
+		return res
 	}
 	if isSkipProp(rt, path) {
-		return
+		return res
 	}
 
 	if f != nil && f.FormatErr != "" {
@@ -139,7 +139,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		} else {
 			res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
 		}
-		return
+		return res
 	}
 
 	if s == nil {
@@ -223,7 +223,7 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 
 	// check forceNew attribute
 	if s.ForceNew != f.ForceNew && f.Name != "resource_group_name" {
-		var forceNew = ForceNewDefault
+		forceNew := ForceNewDefault
 		if s.ForceNew && !f.ForceNew {
 			forceNew = ShouldBeForceNew
 		} else if f.ForceNew && !s.ForceNew {

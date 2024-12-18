@@ -47,7 +47,6 @@ func (c SolutionClient) ListBySubscription(ctx context.Context, id commonids.Sub
 
 	var model SolutionPropertiesList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c ObjectDataTypesClient) ListFieldsByType(ctx context.Context, id ObjectDa
 
 	var model TypeFieldListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

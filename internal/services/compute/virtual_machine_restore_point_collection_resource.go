@@ -22,8 +22,10 @@ import (
 // VirtualMachineRestorePointCollectionResource remove this in 4.0, the resource is renamed
 type VirtualMachineRestorePointCollectionResource struct{}
 
-var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
+var (
+	_ sdk.ResourceWithUpdate                = VirtualMachineRestorePointCollectionResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
+)
 
 func (r VirtualMachineRestorePointCollectionResource) DeprecatedInFavourOfResource() string {
 	return "azurerm_virtual_machine_restore_point_collection"

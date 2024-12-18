@@ -49,7 +49,6 @@ func (c LocalUsersClient) CreateOrUpdate(ctx context.Context, id LocalUserId, in
 
 	var model LocalUser
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

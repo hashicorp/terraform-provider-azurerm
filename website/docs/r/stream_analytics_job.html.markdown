@@ -29,6 +29,7 @@ resource "azurerm_stream_analytics_job" "example" {
   events_out_of_order_policy               = "Adjust"
   output_error_policy                      = "Drop"
   streaming_units                          = 3
+  sku_name                                 = "StandardV2"
 
   tags = {
     environment = "Example"
@@ -75,7 +76,7 @@ The following arguments are supported:
 
 * `output_error_policy` - (Optional) Specifies the policy which should be applied to events which arrive at the output and cannot be written to the external storage due to being malformed (such as missing column values, column values of wrong type or size). Possible values are `Drop` and `Stop`. Default is `Drop`.
 
-* `streaming_units` - (Optional) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
+* `streaming_units` - (Optional) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`. A conversion table for V2 streaming units can be found [here](https://learn.microsoft.com/azure/stream-analytics/stream-analytics-streaming-unit-consumption#understand-streaming-unit-conversions-and-where-they-apply)
 
 -> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
 

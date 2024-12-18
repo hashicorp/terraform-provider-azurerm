@@ -45,7 +45,6 @@ func (c SiteClient) Get(ctx context.Context, id SiteId) (result GetOperationResp
 
 	var model Site
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

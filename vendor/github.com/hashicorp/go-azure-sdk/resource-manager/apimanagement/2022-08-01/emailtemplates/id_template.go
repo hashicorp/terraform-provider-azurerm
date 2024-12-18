@@ -44,7 +44,7 @@ func ParseTemplateID(input string) (*TemplateId, error) {
 	}
 
 	id := TemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTemplateIDInsensitively(input string) (*TemplateId, error) {
 	}
 
 	id := TemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +129,7 @@ func (id TemplateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticTemplates", "templates", "templates"),
 		resourceids.ConstantSegment("templateName", PossibleValuesForTemplateName(), "accountClosedDeveloper"),
 	}

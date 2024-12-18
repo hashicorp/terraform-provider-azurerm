@@ -51,7 +51,6 @@ func (c AppsClient) CheckSubdomainAvailability(ctx context.Context, id commonids
 
 	var model AppAvailabilityInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
