@@ -1197,6 +1197,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("license_type", d.Get("license_type").(string))
 			}
 
+			// Get it from config as the API returns not the specified value but the maximum value.
 			d.Set("max_size_gb", d.Get("max_size_gb").(float64))
 
 			if props.CurrentServiceObjectiveName != nil {
