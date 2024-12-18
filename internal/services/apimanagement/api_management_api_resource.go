@@ -517,12 +517,11 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
-	idPtr, err := api.ParseApiID(d.Id())
+	id, err := api.ParseApiID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id := *idPtr
 	apiType := api.ApiTypeHTTP
 	if v, ok := d.GetOk("api_type"); ok {
 		apiType = api.ApiType(v.(string))
@@ -536,8 +535,8 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 			apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
 				path, serviceUrl, version, versionSetId)
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", *id, err)
 			}
 		}
 	}
@@ -628,8 +627,8 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: prop,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
