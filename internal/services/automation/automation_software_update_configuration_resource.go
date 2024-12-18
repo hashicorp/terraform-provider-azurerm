@@ -117,7 +117,6 @@ type SoftwareUpdateConfigurationModel struct {
 	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
-	ErrorMeesage          string       `tfschema:"error_meesage,removedInNextMajorVersion"`
 	ErrorMessage          string       `tfschema:"error_message"`
 	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
@@ -806,7 +805,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if errorMessage := props.Error; errorMessage != nil {
-					state.ErrorMeesage = pointer.From(errorMessage.Message)
+					state.ErrorMessage = pointer.From(errorMessage.Message)
 				}
 			}
 

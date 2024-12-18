@@ -10,6 +10,10 @@ description: |-
 
 Manages a Linux Function App.
 
+> [!NOTE]
+> This Terraform resource is limited to creating the Function App resource. To package and deploy your code logic to the Function App, you can use a separate tool, such as [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local).
+
+
 ## Example Usage
 
 ```hcl
