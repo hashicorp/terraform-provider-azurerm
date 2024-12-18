@@ -26,7 +26,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		Create:             resourceNetworkPacketCaptureCreate,
 		Read:               resourceNetworkPacketCaptureRead,
 		Delete:             resourceNetworkPacketCaptureDelete,
-		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 4.0 of the AzureRM Provider.",
+		DeprecationMessage: "The `azurerm_network_packet_capture` resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 5.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := packetcaptures.ParsePacketCaptureID(id)
