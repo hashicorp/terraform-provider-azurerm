@@ -380,6 +380,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   storage_size_in_gb   = 32
   subnet_id            = azurerm_subnet.test.id
   vcores               = 4
+  timezone_id          = "Pacific Standard Time"
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
