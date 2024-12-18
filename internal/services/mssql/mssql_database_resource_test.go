@@ -38,6 +38,35 @@ func TestAccMsSqlDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_maxSizeGB(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maxSizeGB(data, 0.1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+		{
+			Config: r.maxSizeGB(data, 0.5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+		{
+			Config: r.maxSizeGB(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
 func TestAccMsSqlDatabase_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -97,7 +126,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "max_size_gb"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -109,7 +138,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Staging"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "max_size_gb"),
 	})
 }
 
@@ -450,56 +479,56 @@ func TestAccMsSqlDatabase_scaleReplicaSet(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "P2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "BC_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "GP_Gen5_2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "S2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "Basic"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 		{
 			Config: r.scaleReplicaSet(data, "S1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("sample_name", "license_type"),
+		data.ImportStep("sample_name", "license_type", "max_size_gb"),
 	})
 }
 
@@ -517,7 +546,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("max_size_gb"),
 		{
 			Config: r.scaleReplicaSetWithFailovergroup(data, "GP_Gen5_8", 25),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -527,7 +556,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_8"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("max_size_gb"),
 		{
 			Config: r.scaleReplicaSetWithFailovergroup(data, "GP_Gen5_2", 5),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -537,7 +566,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("max_size_gb"),
 	})
 }
 
@@ -609,7 +638,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.email_account_admins").HasValue("Enabled"),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key", "max_size_gb"),
 		{
 			Config: r.threatDetectionPolicy(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -618,7 +647,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.state").HasValue("Disabled"),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key", "max_size_gb"),
 	})
 }
 
@@ -636,7 +665,7 @@ func TestAccMsSqlDatabase_threatDetectionPolicyNoStorage(t *testing.T) {
 				check.That(data.ResourceName).Key("threat_detection_policy.0.storage_endpoint").IsEmpty(),
 			),
 		},
-		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key", "max_size_gb"),
 		{
 			Config: r.threatDetectionPolicy(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -2378,4 +2407,17 @@ resource "azurerm_mssql_database" "test" {
 
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) maxSizeGB(data acceptance.TestData, maxSizeGb float64) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name       = "Basic"
+  max_size_gb    = %[3]f
+}
+`, r.template(data), data.RandomInteger, maxSizeGb)
 }
