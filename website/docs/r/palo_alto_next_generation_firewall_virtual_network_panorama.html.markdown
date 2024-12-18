@@ -93,8 +93,6 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
   name                   = "example-ngfwvh"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
-  marketplace_offer_id   = "pan_swfw_cloud_ngfw"
-  plan_id                = "panw-cngfw-payg"
   panorama_base64_config = "e2RnbmFtZTogY25nZnctYXotZXhhbXBsZSwgdHBsbmFtZTogY25nZnctZXhhbXBsZS10ZW1wbGF0ZS1zdGFjaywgZXhhbXBsZS1wYW5vcmFtYS1zZXJ2ZXI6IDE5Mi4xNjguMC4xLCB2bS1hdXRoLWtleTogMDAwMDAwMDAwMDAwMDAwLCBleHBpcnk6IDIwMjQvMDcvMzF9Cg=="
 
   network_profile {
@@ -125,7 +123,7 @@ The following arguments are supported:
 
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
-* `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 ---
 

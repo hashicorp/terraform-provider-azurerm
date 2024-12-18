@@ -131,11 +131,9 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
-  name                 = "acctest-ngfwvn-%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
-  marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cngfw-payg"
+  name                = "acctest-ngfwvn-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.test.id]
@@ -156,14 +154,16 @@ func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestD
 
 
 
+
+
+
+
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
-  name                 = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
-  resource_group_name  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
-  rulestack_id         = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
-  marketplace_offer_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.marketplace_offer_id
-  plan_id              = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.plan_id
+  name                = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
+  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
 
   network_profile {
     public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
@@ -191,7 +191,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   resource_group_name  = azurerm_resource_group.test.name
   rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
   marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cngfw-payg"
+  plan_id              = "panw-cloud-ngfw-payg"
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]

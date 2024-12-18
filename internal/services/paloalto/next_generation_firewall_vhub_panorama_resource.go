@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -55,7 +56,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) ResourceType() string {
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -89,12 +90,19 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 		"plan_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Default:      "panw-cngfw-payg",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOhBeta() {
+		args["plan_id"].Default = "panw-cloud-ngfw-payg"
+	}
+
+	return args
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Attributes() map[string]*pluginsdk.Schema {

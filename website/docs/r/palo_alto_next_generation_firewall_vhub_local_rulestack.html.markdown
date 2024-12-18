@@ -52,11 +52,9 @@ resource "azurerm_palo_alto_virtual_network_appliance" "example" {
   virtual_hub_id = azurerm_virtual_hub.example.id
 }
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "example" {
-  name                 = "example-ngfwvn"
-  resource_group_name  = azurerm_resource_group.example.name
-  rulestack_id         = azurerm_palo_alto_local_rulestack.example.id
-  marketplace_offer_id = "pan_swfw_cloud_ngfw"
-  plan_id              = "panw-cngfw-payg"
+  name                = "example-ngfwvn"
+  resource_group_name = azurerm_resource_group.example.name
+  rulestack_id        = azurerm_palo_alto_local_rulestack.example.id
 
   network_profile {
     public_ip_address_ids        = [azurerm_public_ip.example.id]
@@ -80,7 +78,7 @@ The following arguments are supported:
 
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
-* `plan_id` - (Required) The billing plan ID as published by Liftr.PAN.
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
 
 ---
 
