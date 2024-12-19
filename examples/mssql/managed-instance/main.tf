@@ -5,6 +5,12 @@ terraform {
   #     version = "3.108.0"
   #   }
   # }
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = "3.6.2"
+    }
+  }
 }
 
 provider "azurerm" {
@@ -13,7 +19,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "acctest-mssql-managed-instance"
+  name     = "acctest-mssql-managed-instance" # TODO add "Wyatt"
   location = "eastus"
 }
 
@@ -164,8 +170,34 @@ resource "azurerm_subnet" "example" {
   }
 }
 
+resource "azurerm_subnet" "another_example" {
+  name                              = "${random_pet.example.id}-subnet-mi"
+  resource_group_name               = azurerm_resource_group.example.name
+  virtual_network_name              = azurerm_virtual_network.example.name
+  private_endpoint_network_policies = "Enabled"
+  address_prefixes = ["10.0.1.0/24"]
+
+  delegation {
+    name = "managedinstancedelegation"
+
+    service_delegation {
+      name = "Microsoft.Sql/managedInstances"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+      ]
+    }
+  }
+}
+
 resource "azurerm_subnet_network_security_group_association" "example" {
   subnet_id                 = azurerm_subnet.example.id
+  network_security_group_id = azurerm_network_security_group.example.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "another_example" {
+  subnet_id                 = azurerm_subnet.another_example.id
   network_security_group_id = azurerm_network_security_group.example.id
 }
 
@@ -184,15 +216,21 @@ resource "azurerm_subnet_route_table_association" "example" {
   route_table_id = azurerm_route_table.example.id
 }
 
+resource "azurerm_subnet_route_table_association" "another_example" {
+  subnet_id      = azurerm_subnet.another_example.id
+  route_table_id = azurerm_route_table.example.id
+}
+
+resource "random_pet" "example" {}
+
 resource "azurerm_mssql_managed_instance" "example" {
-  name                = "managedsqlinstance"
+  name                = "${random_pet.example.id}-managedsqlinstance"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-
   license_type       = "BasePrice"
   sku_name           = "GP_Gen5"
   storage_size_in_gb = 32
-  subnet_id          = azurerm_subnet.example.id
+  subnet_id          = azurerm_subnet.another_example.id
   vcores             = 4
 
   identity {
@@ -203,11 +241,13 @@ resource "azurerm_mssql_managed_instance" "example" {
   }
 
   administrator_login          = "mradministrator"
-  administrator_login_password = ";ljkhsdf98HSND*UFBNojkfn42p9if23hngklf"
+  administrator_login_password = "UPPERlower123!SixteenCharacters"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.example,
     azurerm_subnet_route_table_association.example,
+    azurerm_subnet_network_security_group_association.another_example,
+    azurerm_subnet_route_table_association.another_example,
   ]
 }
 
@@ -218,6 +258,6 @@ resource "azurerm_user_assigned_identity" "example" {
 }
 
 import {
-  id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctest-mssql-managed-instance/providers/Microsoft.Sql/managedInstances/managedsqlinstance"
+  id = "/subscriptions/1a6092a6-137e-4025-9a7c-ef77f76f2c02/resourceGroups/acctest-mssql-managed-instance/providers/Microsoft.Sql/managedInstances/${random_pet.example.id}-managedsqlinstance"
   to = azurerm_mssql_managed_instance.example
 }
