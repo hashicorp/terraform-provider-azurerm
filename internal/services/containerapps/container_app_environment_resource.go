@@ -547,9 +547,7 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				if env.LogAnalyticsWorkspaceId != "" {
 					return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
 				}
-
 			}
-
 			return nil
 		},
 	}
