@@ -724,6 +724,40 @@ func resourceBatchPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"security_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							ForceNew: true,
+							Optional: true,
+						},
+						"security_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityTypes(), false),
+						},
+						"secure_boot_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+						"vtpm_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+					},
+				},
+			},
+
 			"target_node_communication_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -1246,11 +1280,17 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
 					}
+
 					osDiskPlacement := ""
 					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+
+					if config.SecurityProfile != nil {
+						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
+					}
+
 					if config.WindowsConfiguration != nil {
 						windowsConfig := []interface{}{
 							map[string]interface{}{

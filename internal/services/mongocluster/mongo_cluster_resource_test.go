@@ -101,6 +101,21 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 	})
 }
 
+func TestAccMongoCluster_geoReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location"),
+	})
+}
+
 func (r MongoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongoclusters.ParseMongoClusterID(state.ID)
 	if err != nil {
