@@ -63,6 +63,8 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 	errors := make([]error, 0)
 	expectedZone := ""
 	expectedPpgId := ""
+	expectedKeyVaultPrivateEndpointResourceId := ""
+	expectedEncryptionKeySource := ""
 	volumeSpecRepeatCount := make(map[string]int)
 	applicationType := string(volumegroups.ApplicationTypeORACLE)
 
@@ -155,10 +157,43 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 			errors = append(errors, fmt.Errorf("'proximity_placement_group_id must be the same on all volumes of this volume group, volume %v ppg id is %v'", pointer.From(volume.Name), pointer.From(volume.Properties.ProximityPlacementGroup)))
 		}
 
-		// Validating that encryption_key_source and key_vault_private_endpoint_id are only specified together
-		if (pointer.From(volume.Properties.EncryptionKeySource) != "" && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) == "") ||
-			(pointer.From(volume.Properties.EncryptionKeySource) == "" && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) != "") {
-			errors = append(errors, fmt.Errorf("'encryption_key_source and key_vault_private_endpoint_id must be specified together on volume %v'", pointer.From(volume.Name)))
+		// Validating that encryption_key_source when key source is AKV has  key_vault_private_endpoint_id specified
+		if pointer.From(volume.Properties.EncryptionKeySource) == volumegroups.EncryptionKeySourceMicrosoftPointKeyVault && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) == "" {
+			errors = append(errors, fmt.Errorf("'encryption_key_source as microsoft.keyvault must have key_vault_private_endpoint_id specified on volume %v'", pointer.From(volume.Name)))
+		}
+
+		// Validating that encryption_key_source is set when key_vault_private_endpoint_id is specified
+		if pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) != "" && pointer.From(volume.Properties.EncryptionKeySource) == "" {
+			errors = append(errors, fmt.Errorf("'encryption_key_source must be set when key_vault_private_endpoint_id is specified on volume %v'", pointer.From(volume.Name)))
+		}
+
+		// Getting the first KeyVaultPrivateEndpointResourceId for validations, all volumes must have the same KeyVaultPrivateEndpointResourceId
+		if expectedKeyVaultPrivateEndpointResourceId == "" {
+			if volume.Properties.KeyVaultPrivateEndpointResourceId != nil {
+				expectedKeyVaultPrivateEndpointResourceId = pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId)
+			}
+		}
+
+		// Validating that all volumes have the same KeyVaultPrivateEndpointResourceId
+		if volume.Properties.KeyVaultPrivateEndpointResourceId != nil && pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId) != expectedKeyVaultPrivateEndpointResourceId {
+			errors = append(errors, fmt.Errorf("'key_vault_private_endpoint_id must be the same on all volumes of this volume group, volume %v key vault private endpoint id is %v'", pointer.From(volume.Name), pointer.From(volume.Properties.KeyVaultPrivateEndpointResourceId)))
+		}
+
+		// Getting the first EncryptionKeySource for validations, all volumes must have the same EncryptionKeySource
+		if expectedEncryptionKeySource == "" {
+			if volume.Properties.EncryptionKeySource != nil {
+				expectedEncryptionKeySource = string(pointer.From(volume.Properties.EncryptionKeySource))
+			}
+		}
+
+		// Validating that all volumes have the same EncryptionKeySource
+		if volume.Properties.EncryptionKeySource != nil && pointer.From(volume.Properties.EncryptionKeySource) != volumegroups.EncryptionKeySource(expectedEncryptionKeySource) {
+			errors = append(errors, fmt.Errorf("'encryption_key_source must be the same on all volumes of this volume group, volume %v encryption key source is %v'", pointer.From(volume.Name), pointer.From(volume.Properties.EncryptionKeySource)))
+		}
+
+		// Validate that volume networkFeature is set to standard when volume.Properties.EncryptionKeySource == "Microsoft.KeyVault"
+		if volume.Properties.EncryptionKeySource != nil && pointer.From(volume.Properties.EncryptionKeySource) == volumegroups.EncryptionKeySourceMicrosoftPointKeyVault && pointer.From(volume.Properties.NetworkFeatures) != volumegroups.NetworkFeaturesStandard {
+			errors = append(errors, fmt.Errorf("'network_feature must be set to standard when encryption_key_source is set to Microsoft.KeyVault on volume %v, current value is %v'", pointer.From(volume.Name), pointer.From(volume.Properties.NetworkFeatures)))
 		}
 
 		// Adding volume spec name to hashmap for post volume loop check

@@ -239,6 +239,11 @@ func (r NetAppVolumeGroupOracleDataSource) Attributes() map[string]*pluginsdk.Sc
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
+					"network_features": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},

@@ -268,6 +268,12 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Computed:     true,
 						ValidateFunc: azure.ValidateResourceID,
 					},
+
+					"network_features": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
+					},
 				},
 			},
 		},

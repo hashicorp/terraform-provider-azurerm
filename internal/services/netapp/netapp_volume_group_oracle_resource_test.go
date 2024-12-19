@@ -665,6 +665,15 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {
 }
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%[1]d"
+  location = "%[3]s"
+
+  tags     = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
 resource "azurerm_key_vault" "test" {
   name                            = "anfakv%[1]d"
   location                        = azurerm_resource_group.test.location
@@ -808,6 +817,7 @@ resource "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
   size_in_tb          = 4
+  qos_type            = "Manual"
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -832,7 +842,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     volume_path                   = "my-unique-file-ora-path-1-%[1]d"
     service_level                 = "Standard"
     capacity_pool_id              = azurerm_netapp_pool.test.id
-    subnet_id                     = azurerm_subnet.test.id
+    subnet_id                     = azurerm_subnet.test-delegated.id
     zone                          = "1"
     volume_spec_name              = "ora-data1"
     storage_quota_in_gb           = 1024
@@ -842,6 +852,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     snapshot_directory_visible    = false
     encryption_key_source         = "Microsoft.KeyVault"
     key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
+    network_features              = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -859,7 +870,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     volume_path                   = "my-unique-file-oralog-path-%[1]d"
     service_level                 = "Standard"
     capacity_pool_id              = azurerm_netapp_pool.test.id
-    subnet_id                     = azurerm_subnet.test.id
+    subnet_id                     = azurerm_subnet.test-delegated.id
     zone                          = "1"
     volume_spec_name              = "ora-log"
     storage_quota_in_gb           = 1024
@@ -869,6 +880,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     snapshot_directory_visible    = false
     encryption_key_source         = "Microsoft.KeyVault"
     key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
+    network_features              = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -881,7 +893,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 }
-`, data.RandomInteger, tenantID)
+`, data.RandomInteger, tenantID, "eastus")
 }
 
 func (NetAppVolumeGroupOracleResource) templatePpgOracle(data acceptance.TestData) string {
@@ -907,10 +919,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%[1]d"
   location = "%[2]s"
 
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true",
-    "SkipNRMSNSG"      = "true"
+  tags     = {
+    "SkipNRMSNSG" = "true"
   }
 }
 
@@ -1081,7 +1091,7 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
-  size_in_tb          = 8
+  size_in_tb          = 4
   qos_type            = "Manual"
 
   tags = {
@@ -1153,7 +1163,7 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
-  size_in_tb          = 18
+  size_in_tb          = 4
   qos_type            = "Manual"
 }
 `, data.RandomInteger, "westus3")

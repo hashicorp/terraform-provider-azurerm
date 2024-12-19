@@ -172,6 +172,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
+		networkFeatures := item.NetworkFeatures
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
 			Name: utils.String(name),
@@ -187,6 +188,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
+				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(networkFeatures)),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Snapshot: dataProtectionSnapshotPolicy.Snapshot,
 				},
@@ -479,6 +481,7 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
+		volumeGroupVolume.NetworkFeatures = string(pointer.From(props.NetworkFeatures))
 
 		if props.ProximityPlacementGroup != nil {
 			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)

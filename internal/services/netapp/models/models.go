@@ -83,6 +83,7 @@ type NetAppVolumeGroupOracleVolume struct {
 	Zone                         string                         `tfschema:"zone"`
 	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
 	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
 }
 
 type NetAppVolumeGroupOracleModel struct {
