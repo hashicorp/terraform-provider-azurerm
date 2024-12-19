@@ -704,6 +704,9 @@ resource "azurerm_key_vault" "test" {
   	tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
   	object_id    = data.azurerm_client_config.current.object_id
 
+    certificate_permissions = []
+	secret_permissions = []
+	storage_permissions = []
 	key_permissions = [
 	  "Get",
 	  "Create",
@@ -719,6 +722,9 @@ resource "azurerm_key_vault" "test" {
     tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
     object_id    = azurerm_netapp_account.test.identity.0.principal_id
 
+    certificate_permissions = []
+	secret_permissions = []
+	storage_permissions = []
     key_permissions = [
       "Get",
       "Encrypt",
