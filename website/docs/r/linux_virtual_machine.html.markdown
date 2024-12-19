@@ -386,7 +386,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as documented below.
 
-* `os_disk` - An `os_disk` block as defined below.
+* `os_disk` - An `os_disk` block as documented below.
 
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
