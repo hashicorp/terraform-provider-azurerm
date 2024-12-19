@@ -34,6 +34,8 @@ func resourceMapsCreator() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_maps_creator` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := creators.ParseCreatorID(id)
 			return err
