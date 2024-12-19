@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_postgresql_flexible_server` change example SKU and Tier to a less expensive option [GH-28311]
 * `azurerm_automation_software_update_configuration` remove deprecated misspelled attribute `error_meesage` [GH-28312]
 * `azurerm_batch_pool` - support for new block `security_profile` [GH-28069]
 * `azurerm_log_analytics_data_export_rule` - now creates successfully without returning 404 [GH-27876]
