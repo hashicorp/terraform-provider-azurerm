@@ -311,9 +311,9 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
   cluster_name        = azurerm_kusto_cluster.test.name
   database_name       = azurerm_kusto_database.test.name
 
-  eventhub_id    	   	= azurerm_eventhub.test.id
-  consumer_group		= azurerm_eventhub_consumer_group.test.name
-  retrieval_start_date 	= "2024-11-16T11:12:11Z"
+  eventhub_id          = azurerm_eventhub.test.id
+  consumer_group       = azurerm_eventhub_consumer_group.test.name
+  retrieval_start_date = "2024-11-16T11:12:11Z"
 
   identity_id = azurerm_kusto_cluster.test.id
 
