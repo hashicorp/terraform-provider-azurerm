@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
@@ -432,26 +431,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabledWithExtensionDisable
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipped the 'scale_in_policy' property has been deprecated in the 4.0 provider.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherScaleInPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_otherScaleIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -502,38 +481,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		// turn termination notification on again
-		{
-			Config: r.otherTerminationNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
-func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("removing in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// old: terminate_notification
-		{
-			Config: r.otherTerminateNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// new: termination_notification
 		{
 			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
