@@ -17,6 +17,10 @@ BUG FIXES:
 * `azurerm_mongo_cluster` - valdation updated so the resource now creates successfully when using `create_mode` `GeoReplica` [GH-28269]
 * `azurerm_storage_account` - fix error handling for `static_website` and `queue_properties` availability checks [GH-28279]
 
+FEATURES:
+
+* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint` [GH-27874]
+
 ## 4.14.0 (December 12, 2024)
 
 BREAKING CHANGES:
