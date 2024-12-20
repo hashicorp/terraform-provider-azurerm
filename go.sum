@@ -235,8 +235,6 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/tombuildsstuff/giovanni v0.27.0 h1:3CDNjauK78FIhvvCp0SAHlvNcPTcofR6zQXvxwhk4zY=
 github.com/tombuildsstuff/giovanni v0.27.0/go.mod h1:SviBdlwdVn2HyArdRABBqMUODBJ2adQHi+RFEVaO05I=
-github.com/tombuildsstuff/kermit v0.20240122.1123108 h1:icQaxsv/ANv/KC4Sr0V1trrWA/XIL+3QAVBDpiSTgj8=
-github.com/tombuildsstuff/kermit v0.20240122.1123108/go.mod h1:T3YBVFhRV4qA7SbnRaNE6eapIMpKDA9rG/V7Ocsjlno=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=

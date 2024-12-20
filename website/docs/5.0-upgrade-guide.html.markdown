@@ -34,13 +34,9 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
-### `azurerm_security_center_auto_provisioning`
+### `azurerm_network_packet_capture`
 
-* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
-
-### `azurerm_orbital_spacecraft`
-
-* This deprecated resource has been retired and has been removed from the Azure Provider. 
+* This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
 
 ### `azurerm_orbital_contact`
 
@@ -49,6 +45,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_orbital_contact_profile`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_orbital_spacecraft`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_security_center_auto_provisioning`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ## Removed Data Sources
 
@@ -130,6 +134,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_nginx_deployment`
 
+* The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
 
 ### `azurerm_sentinel_alert_rule_fusion`
@@ -172,6 +177,7 @@ Please follow the format in the example below for listing breaking changes in da
 
 ### `azurerm_nginx_deployment`
 
+* The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
 
 ### `azurerm_storage_container`
