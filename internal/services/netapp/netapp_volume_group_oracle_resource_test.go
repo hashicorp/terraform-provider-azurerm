@@ -1135,7 +1135,7 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "westus3")
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (NetAppVolumeGroupOracleResource) templateAvailabilityZoneOracle(data acceptance.TestData) string {
@@ -1202,5 +1202,5 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
   qos_type            = "Manual"
 }
-`, data.RandomInteger, "westus3")
+`, data.RandomInteger, data.Locations.Primary)
 }

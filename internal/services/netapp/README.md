@@ -13,6 +13,8 @@ This document gives insights into who is maintaining this service and includes d
 
 - New tests failing should not be accepted.
 
+- For Azure NetApp Files, some features are highly dependent on specific regions, that's why for some acceptance tests, we will see regions defined there instead of for example `data.Locations.Primary` within the templates, this is expected and should not be changed. 
+
 ## Polling functions
 
 - Some Netapp resources requires an extra type of polling mechanism. For example:
