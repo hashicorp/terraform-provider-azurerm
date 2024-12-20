@@ -198,6 +198,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
+    
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
   }
 
   volume {
@@ -222,6 +227,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_only      = false
       unix_read_write     = true
       root_access_enabled = false
+    }
+    
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
     }
   }
 }
@@ -264,6 +274,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
+    
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
   }
 
   volume {
@@ -288,6 +303,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_only      = false
       unix_read_write     = true
       root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
     }
   }
 
@@ -335,6 +355,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
   }
 
   volume {
@@ -359,6 +384,11 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_only      = false
       unix_read_write     = true
       root_access_enabled = false
+    }
+    
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
     }
   }
 }

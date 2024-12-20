@@ -214,6 +214,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
       "SkipASMAzSecPack" = "true"
     }
   }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-%[2]d"
+    volume_path                  = "my-unique-file-path-3-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
   
   depends_on = [
     azurerm_linux_virtual_machine.test,
@@ -354,6 +384,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     }
   }
 
+  volume {
+    name                         = "acctest-NetAppVolume-6-%[2]d"
+    volume_path                  = "my-unique-file-path-6-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test
@@ -455,6 +515,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
 
     data_protection_snapshot_policy {
       snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-%[2]d"
+    volume_path                  = "my-unique-file-path-3-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
     }
 
     tags = {
@@ -572,6 +662,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     }
   }
 
+  volume {
+    name                         = "acctest-NetAppVolume-3-%[2]d"
+    volume_path                  = "my-unique-file-path-3-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test
@@ -640,6 +760,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
     export_policy_rule {
       rule_index          = 1
       allowed_clients     = "10.0.0.0/8"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-%[2]d"
+    volume_path                  = "my-unique-file-path-3-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
       nfsv3_enabled       = false
       nfsv41_enabled      = true
       unix_read_only      = false
@@ -734,6 +884,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
     }
   }
 
+  volume {
+    name                         = "acctest-NetAppVolume-3-Primary-%[2]d"
+    volume_path                  = "my-unique-file-path-3-Primary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+    volume_spec_name             = "shared"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test
@@ -793,6 +973,36 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     subnet_id                    = azurerm_subnet.test_secondary.id
     proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
     volume_spec_name             = "log"
+    storage_quota_in_gb          = 1024
+    throughput_in_mibps          = 24
+    protocols                    = ["NFSv4.1"]
+    security_style               = "unix"
+    snapshot_directory_visible   = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                         = "acctest-NetAppVolume-3-Secondary-%[2]d"
+    volume_path                  = "my-unique-file-path-3-Secondary-%[2]d"
+    service_level                = "Standard"
+    capacity_pool_id             = azurerm_netapp_pool.test_secondary.id
+    subnet_id                    = azurerm_subnet.test_secondary.id
+    proximity_placement_group_id = azurerm_proximity_placement_group.test_secondary.id
+    volume_spec_name             = "shared"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
     protocols                    = ["NFSv4.1"]
