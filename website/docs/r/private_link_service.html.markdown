@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `auto_approval_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
 
-* `destination_ip_address` - (Optional) The destination IP address of the Private Link Service. Changing this forces a new resource to be created.
+* `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
 
 * `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
 

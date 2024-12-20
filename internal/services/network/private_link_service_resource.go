@@ -156,7 +156,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"destination_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
 
