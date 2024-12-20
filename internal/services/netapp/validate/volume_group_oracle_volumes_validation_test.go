@@ -1269,6 +1269,7 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleData1)),
 						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
 						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 				{ // log
@@ -1280,6 +1281,7 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleLog)),
 						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
 						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 			},
@@ -1296,6 +1298,7 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
 						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
 						EncryptionKeySource:     pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+						NetworkFeatures:         pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 				{ // log
@@ -1306,6 +1309,7 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
 						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleLog)),
 						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 			},
@@ -1323,6 +1327,7 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleData1)),
 						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
 						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 				{ // data2
@@ -1344,10 +1349,11 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleLog)),
 						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
 						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE1"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 			},
-			Errors: 10,
+			Errors: 2,
 		},
 		{
 			Name: "ValidatePlatformManagedKey",
@@ -1370,6 +1376,65 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
 						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
 						EncryptionKeySource:     pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointNetApp),
+					},
+				},
+			},
+			Errors: 0,
+		},
+		{
+			Name: "ValidateCustomerManagedKeyFailsOnBasicNetworkFeatures",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data1
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup:           pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleData1)),
+						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesBasic),
+					},
+				},
+				{ // log
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup:           pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleLog)),
+						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+					},
+				},
+			},
+			Errors: 2,
+		},
+		{
+			Name: "ValidateCustomerManagedKeyPassOnStandardNetworkFeatures",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data1
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup:           pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleData1)),
+						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
+					},
+				},
+				{ // log
+					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup:           pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameOracleLog)),
+						EncryptionKeySource:               pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/myResourceGroup/providers/Microsoft.Network/privateEndpoints/myKeyvaultPE"),
+						NetworkFeatures:                   pointer.To(volumegroups.NetworkFeaturesStandard),
 					},
 				},
 			},
