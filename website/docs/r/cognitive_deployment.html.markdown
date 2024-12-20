@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `dynamic_throttling_enabled` - (Optional) Whether dynamic throttling is enabled.
+
 * `rai_policy_name` - (Optional) The name of RAI policy.
 
 * `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`.
@@ -72,7 +74,7 @@ A `model` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU. Possible values include `Standard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
+* `name` - (Required) The name of the SKU. Possible values include `Standard`, `DataZoneStandard`, `GlobalBatch`, `GlobalStandard` and `ProvisionedManaged`.
 
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
 

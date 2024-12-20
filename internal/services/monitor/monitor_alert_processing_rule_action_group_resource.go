@@ -88,7 +88,8 @@ func (r AlertProcessingRuleActionGroupResource) Create() sdk.ResourceFunc {
 					Actions: []alertprocessingrules.Action{
 						alertprocessingrules.AddActionGroups{
 							ActionGroupIds: model.AddActionGroupIds,
-						}},
+						},
+					},
 					Conditions:  expandAlertProcessingRuleConditions(model.Condition),
 					Description: utils.String(model.Description),
 					Enabled:     utils.Bool(model.Enabled),
@@ -141,7 +142,8 @@ func (r AlertProcessingRuleActionGroupResource) Update() sdk.ResourceFunc {
 				model.Properties.Actions = []alertprocessingrules.Action{
 					alertprocessingrules.AddActionGroups{
 						ActionGroupIds: resourceModel.AddActionGroupIds,
-					}}
+					},
+				}
 			}
 
 			if metadata.ResourceData.HasChange("condition") {
@@ -241,6 +243,7 @@ func (r AlertProcessingRuleActionGroupResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AlertProcessingRuleActionGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

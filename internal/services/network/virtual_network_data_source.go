@@ -135,7 +135,6 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("vnet_peerings_addresses", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
 				return fmt.Errorf("setting `vnet_peerings_addresses`: %v", err)
 			}
-
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
@@ -171,7 +170,6 @@ func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[str
 					continue
 				}
 				value = *props.RemoteVirtualNetwork.Id
-
 			}
 			key := *vnetPeering.Name
 			output[key] = value

@@ -661,12 +661,11 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 }
 
 func flattenServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
-	var output []ServerNameItem
-
 	if input == nil {
-		return output
+		return []ServerNameItem{}
 	}
 
+	output := make([]ServerNameItem, 0, len(*input))
 	for _, v := range *input {
 		output = append(output, ServerNameItem{
 			FullyQualifiedDomainName: *v.FullyQualifiedDomainName,

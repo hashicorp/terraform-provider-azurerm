@@ -42,6 +42,11 @@ func dataSourcePublicIpPrefix() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"prefix_length": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -82,6 +87,7 @@ func dataSourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku_tier", string(pointer.From(sku.Tier)))
 		}
 		if props := model.Properties; props != nil {
 			d.Set("prefix_length", props.PrefixLength)

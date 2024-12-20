@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -148,25 +147,6 @@ func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
 			Config:      r.premiumMessagingPartition(data),
 			ExpectError: regexp.MustCompile("service bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
 		},
-	})
-}
-
-func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipped as 'zone_redundant' property is deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	r := ServiceBusNamespaceResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.zoneRedundant(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -489,30 +469,6 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
   capacity            = 2
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// TODO: Remove in v4.0
-func (ServiceBusNamespaceResource) zoneRedundant(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                         = "acctestservicebusnamespace-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku                          = "Premium"
-  premium_messaging_partitions = 1
-  capacity                     = 1
-  zone_redundant               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

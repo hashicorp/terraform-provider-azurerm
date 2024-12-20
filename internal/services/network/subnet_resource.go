@@ -30,6 +30,7 @@ var SubnetResourceName = "azurerm_subnet"
 
 var subnetDelegationServiceNames = []string{
 	"GitHub.Network/networkSettings",
+	"Informatica.DataManagement/organizations",
 	"Microsoft.ApiManagement/service",
 	"Microsoft.Apollo/npu",
 	"Microsoft.App/environments",
@@ -91,9 +92,9 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Web/hostingEnvironments",
 	"Microsoft.Web/serverFarms",
 	"NGINX.NGINXPLUS/nginxDeployments",
+	"Oracle.Database/networkAttachments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
 	"Qumulo.Storage/fileSystems",
-	"Oracle.Database/networkAttachments",
 }
 
 func resourceSubnet() *pluginsdk.Resource {
@@ -871,7 +872,7 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 		return nil
 	}
 
-	var output []interface{}
+	output := make([]interface{}, 0, len(*input))
 	for _, policy := range *input {
 		id := ""
 		if policy.Id != nil {

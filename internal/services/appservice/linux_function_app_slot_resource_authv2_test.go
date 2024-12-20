@@ -276,7 +276,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 
 func (r LinuxFunctionAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

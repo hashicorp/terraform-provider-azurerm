@@ -450,7 +450,6 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 
 								case "Expiration_EndUser_Assignment":
 									state.ActivationRules[0].MaximumDuration = pointer.From(rule.MaximumDuration)
-
 								}
 							}
 						case rolemanagementpolicies.RoleManagementPolicyNotificationRule:

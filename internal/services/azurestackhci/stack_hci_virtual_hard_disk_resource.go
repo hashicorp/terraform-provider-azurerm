@@ -64,8 +64,8 @@ func (StackHCIVirtualHardDiskResource) Arguments() map[string]*pluginsdk.Schema 
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9][-._a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
-				"name must be between 2 and 64 characters and can only contain alphanumberic characters, hyphen, dot and underline",
+				regexp.MustCompile(`^[a-zA-Z0-9][\-\.\_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`),
+				"name must begin and end with an alphanumeric character, be between 2 and 64 characters in length and can only contain alphanumeric characters, hyphens, periods or underscores.",
 			),
 		},
 

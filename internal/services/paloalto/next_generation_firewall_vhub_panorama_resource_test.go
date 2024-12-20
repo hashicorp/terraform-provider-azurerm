@@ -56,7 +56,6 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testi
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing.T) {
@@ -90,7 +89,6 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

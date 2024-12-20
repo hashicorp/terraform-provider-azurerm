@@ -315,7 +315,6 @@ func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta int
 			}
 		}
 		props.Routes = &newRoutes
-
 	}
 
 	routeTable.Model.Properties = props

@@ -49,7 +49,6 @@ func TestAccSecurityInsightsSentinelOnboardingState_basicWithName(t *testing.T) 
 }
 
 func TestAccSecurityInsightsSentinelOnboardingState_ToggleCmkEnabled(t *testing.T) {
-
 	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
 		return

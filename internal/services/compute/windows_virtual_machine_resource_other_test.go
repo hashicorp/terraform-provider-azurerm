@@ -1973,6 +1973,10 @@ func (r WindowsVirtualMachineResource) otherEdgeZone(data acceptance.TestData) s
 	data.Locations.Primary = "westus"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[2]d"
   location = "%[1]s"
@@ -2342,7 +2346,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data))
+`, r.templateWithOutProvider(data))
 }
 
 func (r WindowsVirtualMachineResource) otherLicenseTypeDefault(data acceptance.TestData) string {

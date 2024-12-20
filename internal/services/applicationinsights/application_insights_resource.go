@@ -316,7 +316,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 							return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
 						}
 					}
-
 				}
 			}
 

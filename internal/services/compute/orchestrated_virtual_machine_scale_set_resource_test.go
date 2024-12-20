@@ -652,7 +652,6 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 				}
 			}
 		}
-
 	}
 
 	return fmt.Errorf("application gateway configuration was missing")

@@ -405,7 +405,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 }
 
 func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminrules.AddressPrefixItem {
-	var outputList []adminrules.AddressPrefixItem
+	outputList := make([]adminrules.AddressPrefixItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrules.AddressPrefixItem{
@@ -423,11 +423,11 @@ func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminru
 }
 
 func flattenAddressPrefixItemModel(inputList *[]adminrules.AddressPrefixItem) []AddressPrefixItemModel {
-	var outputList []AddressPrefixItemModel
 	if inputList == nil {
-		return outputList
+		return []AddressPrefixItemModel{}
 	}
 
+	outputList := make([]AddressPrefixItemModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := AddressPrefixItemModel{}
 

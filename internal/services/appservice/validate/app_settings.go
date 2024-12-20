@@ -6,8 +6,6 @@ package validate
 import (
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 var UnmanagedSettings = []string{
@@ -24,6 +22,7 @@ var UnmanagedSettings = []string{
 	"spring.datasource.username",
 	"WEBSITE_HEALTHCHECK_MAXPINGFAILURES",
 }
+
 var UnmanagedSettingsDeprecated = []string{
 	"DIAGNOSTICS_AZUREBLOBCONTAINERSASURL",
 	"DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS",
@@ -39,17 +38,9 @@ var UnmanagedSettingsDeprecated = []string{
 func AppSettings(input interface{}, key string) (warnings []string, errors []error) {
 	if appSettings, ok := input.(map[string]interface{}); ok {
 		for k := range appSettings {
-			if !features.FourPointOhBeta() {
-				for _, f := range UnmanagedSettingsDeprecated {
-					if strings.EqualFold(k, f) {
-						errors = append(errors, fmt.Errorf("cannot set a value for %s in %s", k, key))
-					}
-				}
-			} else {
-				for _, f := range UnmanagedSettings {
-					if strings.EqualFold(k, f) {
-						errors = append(errors, fmt.Errorf("cannot set a value for %s in %s", k, key))
-					}
+			for _, f := range UnmanagedSettings {
+				if strings.EqualFold(k, f) {
+					errors = append(errors, fmt.Errorf("cannot set a value for %s in %s", k, key))
 				}
 			}
 		}

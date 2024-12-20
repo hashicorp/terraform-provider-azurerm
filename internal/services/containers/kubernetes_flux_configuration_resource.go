@@ -104,9 +104,7 @@ type ManagedIdentityDefinitionModel struct {
 
 type KubernetesFluxConfigurationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = KubernetesFluxConfigurationResource{}
-)
+var _ sdk.ResourceWithUpdate = KubernetesFluxConfigurationResource{}
 
 func (r KubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
@@ -920,7 +918,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.SecretKey != "" {
 		configSettings["bucketSecretKey"] = input.SecretKey
 	}
@@ -971,7 +969,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.HttpsKey != "" {
 		configSettings["httpsKey"] = input.HttpsKey
 	}
