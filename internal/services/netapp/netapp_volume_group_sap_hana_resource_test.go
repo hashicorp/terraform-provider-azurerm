@@ -1414,7 +1414,7 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
-  size_in_tb          = 6
+  size_in_tb          = 8
   qos_type            = "Manual"
 
   tags = {
