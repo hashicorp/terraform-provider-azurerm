@@ -1019,6 +1019,13 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       root_access_enabled = false
     }
 
+	data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[2].id
+      replication_frequency     = "10minutes"
+    }
+
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
