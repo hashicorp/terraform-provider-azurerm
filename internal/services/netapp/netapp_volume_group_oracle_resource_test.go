@@ -538,7 +538,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    zone                         = "2"
+    zone                         = "1"
     volume_spec_name             = "ora-data1"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -572,7 +572,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
-    zone                         = "2"
+    zone                         = "1"
     volume_spec_name             = "ora-log"
     storage_quota_in_gb          = 1024
     throughput_in_mibps          = 24
@@ -609,11 +609,11 @@ func (NetAppVolumeGroupOracleResource) updateVolumes(data acceptance.TestData) s
 %[1]s
 
 resource "azurerm_netapp_volume_group_oracle" "test" {
-  name                   = "acctest-NetAppVolumeGroup-%[2]d"
+  name                   = "acctest-NetAppVolumeGroupOracle-%[2]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test.name
-  group_description      = "Test volume group"
+  group_description      = "Test volume group for Oracle"
   application_identifier = "TST"
 
   volume {
@@ -648,7 +648,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
 
   volume {
     name                         = "acctest-NetAppVolume-OraLog-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-2-%[2]d"
+    volume_path                  = "my-unique-file-oralog-path-%[2]d"
     service_level                = "Standard"
     capacity_pool_id             = azurerm_netapp_pool.test.id
     subnet_id                    = azurerm_subnet.test.id
