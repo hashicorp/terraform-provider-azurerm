@@ -956,11 +956,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = pointer.To(v)
 	}
 
-	if v := raw["data_persistence_authentication_method"].(string); v != "" {
-		output.PreferredDataPersistenceAuthMethod = pointer.To(v)
-	} else {
-		output.PreferredDataPersistenceAuthMethod = pointer.To("")
-	}
+	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
 	// nolint : staticcheck
