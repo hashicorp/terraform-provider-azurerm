@@ -83,6 +83,17 @@ func resourceRouteServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"hub_routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualwans.HubRoutingPreferenceASPath),
+					string(virtualwans.HubRoutingPreferenceExpressRoute),
+					string(virtualwans.HubRoutingPreferenceVpnGateway),
+				}, false),
+			},
+
 			"virtual_router_ips": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -132,6 +143,7 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &virtualwans.VirtualHubProperties{
 			Sku:                        pointer.To(d.Get("sku").(string)),
 			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
+			HubRoutingPreference:       (*virtualwans.HubRoutingPreference)(pointer.To(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -209,6 +221,14 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
 	}
 
+	if d.HasChange("hub_routing_preference") {
+		if v, ok := d.GetOk("hub_routing_preference"); ok {
+			payload.Properties.HubRoutingPreference = (*virtualwans.HubRoutingPreference)(pointer.To(v.(string)))
+		} else {
+			payload.Properties.HubRoutingPreference = nil
+		}
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -271,6 +291,9 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("virtual_router_ips", virtualRouterIps)
 			if props.AllowBranchToBranchTraffic != nil {
 				d.Set("branch_to_branch_traffic_enabled", props.AllowBranchToBranchTraffic)
+			}
+			if props.HubRoutingPreference != nil {
+				d.Set("hub_routing_preference", props.HubRoutingPreference)
 			}
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
