@@ -695,6 +695,19 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 	}
 
+	// Disassociating volume from snapshot policy if present
+	if existing.Model.Properties.DataProtection != nil && existing.Model.Properties.DataProtection.Snapshot != nil {
+		if err = client.UpdateThenPoll(ctx, pointer.From(id), volumes.VolumePatch{
+			Properties: &volumes.VolumePatchProperties{
+				DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+					Snapshot: &volumes.VolumeSnapshotProperties{},
+				},
+			},
+		}); err != nil {
+			return fmt.Errorf("dissociating snapshot policy from %s: %+v", pointer.From(id), err)
+		}
+	}
+
 	// Deleting volume and waiting for it to fully complete the operation
 	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
