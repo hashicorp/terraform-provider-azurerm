@@ -1804,6 +1804,26 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 	}
 }
 
+func VirtualMachineScaleSetOsImageNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"timeout": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"PT15M",
+					}, false),
+					Default: "PT15M",
+				},
+			},
+		},
+	}
+}
+
 // TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
 func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -1859,7 +1879,23 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *virtualmachinescalesets.ScheduledEventsProfile {
+func ExpandVirtualMachineScaleSetOsImageNotificationProfile(input []interface{}) *virtualmachinescalesets.OSImageNotificationProfile {
+	if len(input) == 0 {
+		return &virtualmachinescalesets.OSImageNotificationProfile{
+			Enable: pointer.To(false),
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	timeout := raw["timeout"].(string)
+
+	return &virtualmachinescalesets.OSImageNotificationProfile{
+		Enable:           pointer.To(true),
+		NotBeforeTimeout: &timeout,
+	}
+}
+
+func ExpandVirtualMachineScaleSetTerminateNotificationProfile(input []interface{}) *virtualmachinescalesets.TerminateNotificationProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -1868,26 +1904,41 @@ func ExpandVirtualMachineScaleSetScheduledEventsProfile(input []interface{}) *vi
 	enabled := raw["enabled"].(bool)
 	timeout := raw["timeout"].(string)
 
-	return &virtualmachinescalesets.ScheduledEventsProfile{
-		TerminateNotificationProfile: &virtualmachinescalesets.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+	return &virtualmachinescalesets.TerminateNotificationProfile{
+		Enable:           &enabled,
+		NotBeforeTimeout: &timeout,
+	}
+}
+
+func FlattenVirtualMachineScaleSetOsImageNotificationProfile(input *virtualmachinescalesets.OSImageNotificationProfile) []interface{} {
+	if input == nil || !pointer.From(input.Enable) {
+		return nil
+	}
+
+	timeout := "PT15M"
+	if input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"timeout": timeout,
 		},
 	}
 }
 
-func FlattenVirtualMachineScaleSetScheduledEventsProfile(input *virtualmachinescalesets.ScheduledEventsProfile) []interface{} {
-	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
+func FlattenVirtualMachineScaleSetTerminateNotificationProfile(input *virtualmachinescalesets.TerminateNotificationProfile) []interface{} {
+	// if enabled is set to false, there will be no TerminateNotificationProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
 	enabled := false
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
-		enabled = *input.TerminateNotificationProfile.Enable
+	if input != nil && input.Enable != nil {
+		enabled = *input.Enable
 	}
 
 	timeout := "PT5M"
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
-		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	if input != nil && input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
 	}
 
 	return []interface{}{
