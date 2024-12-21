@@ -293,7 +293,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				d.Set("branch_to_branch_traffic_enabled", props.AllowBranchToBranchTraffic)
 			}
 			if props.HubRoutingPreference != nil {
-				d.Set("hub_routing_preference", props.HubRoutingPreference)
+				d.Set("hub_routing_preference", string(*props.HubRoutingPreference))
 			}
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
