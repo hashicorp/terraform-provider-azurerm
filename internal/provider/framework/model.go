@@ -58,6 +58,7 @@ type Features struct {
 	MachineLearning          types.List `tfsdk:"machine_learning"`
 	RecoveryService          types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
+	NetApp                   types.List `tfsdk:"netapp"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -80,6 +81,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
 	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
 	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
+	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
 }
 
 type APIManagement struct {
@@ -254,4 +256,14 @@ type RecoveryServiceVaults struct {
 
 var RecoveryServiceVaultsAttributes = map[string]attr.Type{
 	"recover_soft_deleted_backup_protected_vm": types.BoolType,
+}
+
+type NetApp struct {
+	DeleteBackupsOnBackupVaultDestroy types.Bool `tfsdk:"delete_backups_on_backup_vault_destroy"`
+	PreventVolumeDestruction          types.Bool `tfsdk:"prevent_volume_destruction"`
+}
+
+var NetAppAttributes = map[string]attr.Type{
+	"delete_backups_on_backup_vault_destroy": types.BoolType,
+	"prevent_volume_destruction":             types.BoolType,
 }

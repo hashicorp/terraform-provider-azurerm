@@ -47,6 +47,7 @@ func TestAccKubernetesClusterTrustedAccessRoleBinding_requiresImport(t *testing.
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := trustedaccess.ParseTrustedAccessRoleBindingID(state.ID)
 	if err != nil {
@@ -60,6 +61,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx contex
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

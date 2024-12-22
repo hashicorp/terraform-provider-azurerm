@@ -169,7 +169,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 			}
 
 			metadata.ResourceData.Set("name", id.ExportName)
-			//lintignore:R001
+			// lintignore:R001
 			metadata.ResourceData.Set(scopeFieldName, id.Scope)
 
 			if model := resp.Model; model != nil {

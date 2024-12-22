@@ -78,7 +78,6 @@ func (r ManagerScopeConnectionResource) Arguments() map[string]*pluginsdk.Schema
 
 func (r ManagerScopeConnectionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"connection_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
-	containerregistry_v2023_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
+	containerregistry "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
@@ -25,10 +25,10 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient                            *agentpools.AgentPoolsClient
-	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
-	CacheRulesClient                            *cacherules.CacheRulesClient
-	ContainerRegistryClient_v2023_06_01_preview *containerregistry_v2023_06_01_preview.Client
+	AgentPoolsClient        *agentpools.AgentPoolsClient
+	ContainerInstanceClient *containerinstance.ContainerInstanceClient
+	CacheRulesClient        *cacherules.CacheRulesClient
+	ContainerRegistryClient *containerregistry.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
@@ -56,7 +56,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
-	containerRegistryClient_v2023_06_01_preview, err := containerregistry_v2023_06_01_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	containerRegistryClient, err := containerregistry.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
 		CacheRulesClient:                            cacheRulesClient,
-		ContainerRegistryClient_v2023_06_01_preview: containerRegistryClient_v2023_06_01_preview,
+		ContainerRegistryClient:                     containerRegistryClient,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,

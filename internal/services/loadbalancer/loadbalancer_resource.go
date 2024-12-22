@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -392,12 +391,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 		"sku": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default: func() interface{} {
-				if !features.FourPointOhBeta() {
-					return string(loadbalancers.LoadBalancerSkuNameBasic)
-				}
-				return string(loadbalancers.LoadBalancerSkuNameStandard)
-			}(),
+			Default:  string(loadbalancers.LoadBalancerSkuNameStandard),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(loadbalancers.LoadBalancerSkuNameBasic),

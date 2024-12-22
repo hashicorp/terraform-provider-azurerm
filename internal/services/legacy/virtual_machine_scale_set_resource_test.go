@@ -830,7 +830,6 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 				}
 			}
 		}
-
 	}
 
 	return fmt.Errorf("load balancer configuration was missing")

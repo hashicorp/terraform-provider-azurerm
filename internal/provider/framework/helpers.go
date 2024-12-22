@@ -31,7 +31,6 @@ func getClientSecret(d *ProviderModel) (*string, error) {
 
 	if path := d.ClientSecretFilePath.ValueString(); path != "" {
 		fileSecretRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
 		}
@@ -53,7 +52,6 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 
 	if path := getEnvStringOrDefault(d.OIDCTokenFilePath, "ARM_OIDC_TOKEN_FILE_PATH", ""); path != "" {
 		fileTokenRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
 		}
@@ -70,7 +68,6 @@ func getOidcToken(d *ProviderModel) (*string, error) {
 	if getEnvBoolIfValueAbsent(d.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY") && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
 		path := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
 		fileTokenRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading OIDC Token from file %q provided by AKS Workload Identity: %v", path, err)
 		}
@@ -92,7 +89,6 @@ func getClientId(d *ProviderModel) (*string, error) {
 
 	if path := getEnvStringIfValueAbsent(d.ClientIdFilePath, ""); path != "" {
 		fileClientIdRaw, err := os.ReadFile(path)
-
 		if err != nil {
 			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
 		}

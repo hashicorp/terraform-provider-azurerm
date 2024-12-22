@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -88,8 +87,6 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 
 	result := make([]managedenvironments.WorkloadProfile, 0)
 
-	consumptionDefined := false
-
 	for _, v := range input {
 		r := managedenvironments.WorkloadProfile{
 			Name: v.Name,
@@ -101,17 +98,9 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 			r.MinimumCount = pointer.To(v.MinimumCount)
 		} else {
 			r.WorkloadProfileType = string(WorkloadProfileSkuConsumption)
-			consumptionDefined = true
 		}
 
 		result = append(result, r)
-	}
-
-	if !features.FourPointOhBeta() && !consumptionDefined {
-		result = append(result, managedenvironments.WorkloadProfile{
-			Name:                string(WorkloadProfileSkuConsumption),
-			WorkloadProfileType: string(WorkloadProfileSkuConsumption),
-		})
 	}
 
 	return &result

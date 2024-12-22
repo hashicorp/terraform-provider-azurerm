@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -160,6 +162,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -272,6 +276,11 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
 	}
 
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		parameters.Zones = pointer.To(zones)
+	}
+
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		if sku != bastionhosts.BastionHostSkuNameDeveloper {
 			return fmt.Errorf("`virtual_network_id` is only supported when `sku` is `Developer`")
@@ -379,7 +388,10 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
 
+	if d.HasChange("zones") {
+		payload.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -420,6 +432,8 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(*sku.Name))
 		}
+
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {
 			d.Set("dns_name", props.DnsName)

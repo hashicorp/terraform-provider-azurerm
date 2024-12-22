@@ -366,7 +366,6 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					if properties.Settings != nil && *properties.Settings != nil {
-
 						settingsValue, err := json.Marshal(*properties.Settings)
 						if err != nil {
 							return err
@@ -387,7 +386,6 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-
 			}
 
 			return metadata.Encode(&state)

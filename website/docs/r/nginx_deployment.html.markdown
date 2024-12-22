@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name       = azurerm_resource_group.example.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.example.location
-  managed_resource_group    = "example"
   diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
 
@@ -90,8 +89,6 @@ The following arguments are supported:
 
 -> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
-* `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
-
 ---
 
 * `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
@@ -109,8 +106,6 @@ The following arguments are supported:
 * `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
 * `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new NGINX Deployment to be created.
-
-* `logging_storage_account` - (Optional) One or more `logging_storage_account` blocks as defined below.
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
@@ -143,14 +138,6 @@ A `frontend_private` block supports the following:
 A `frontend_public` block supports the following:
 
 * `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
-
----
-
-A `logging_storage_account` block supports the following:
-
-* `container_name` - (Optional) Specify the container name in the Storage Account for logging.
-
-* `name` - (Optional) The name of the StorageAccount for NGINX Logging.
 
 ---
 

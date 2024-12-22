@@ -172,6 +172,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -1035,7 +1036,6 @@ func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Se
 			}
 			result.LoginParameters = loginParams
 		}
-
 	}
 
 	if validation := input.Validation; validation != nil {
@@ -1782,7 +1782,6 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 				Scopes: pointer.To(google.LoginScopes),
 			},
 		}
-
 	}
 
 	return &webapps.Google{

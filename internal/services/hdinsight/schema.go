@@ -702,6 +702,7 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 		},
 	}
 }
+
 func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -732,11 +733,9 @@ func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.Resou
 		username = v
 	}
 
-	password := ""
+	password := d.Get("gateway.0.password").(string)
 	if v, exists := input["restAuthCredential.password"]; exists {
 		password = v
-	} else {
-		password = d.Get("gateway.0.password").(string)
 	}
 
 	out := map[string]interface{}{

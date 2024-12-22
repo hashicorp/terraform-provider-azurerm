@@ -69,7 +69,6 @@ func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProp
 		keyVaultCertificateVaultId := ""
 		keyVaultCertificateSecretName := ""
 		keyVaultCertificateSecretVersion := ""
-		provisioningState := ""
 		provisioningSubstate := ""
 
 		if config.CertificateSource == frontdoors.FrontDoorCertificateSourceAzureKeyVault {
@@ -91,7 +90,7 @@ func flattenCustomHttpsConfiguration(properties *frontdoors.FrontendEndpointProp
 		}
 
 		if properties.CustomHTTPSProvisioningState != nil && *properties.CustomHTTPSProvisioningState != "" {
-			provisioningState = string(*properties.CustomHTTPSProvisioningState)
+			provisioningState := string(*properties.CustomHTTPSProvisioningState)
 			if properties.CustomHTTPSProvisioningState != nil && *properties.CustomHTTPSProvisioningState == frontdoors.CustomHTTPSProvisioningStateEnabled || *properties.CustomHTTPSProvisioningState == frontdoors.CustomHTTPSProvisioningStateEnabling {
 				result.CustomHTTPSProvisioningEnabled = true
 

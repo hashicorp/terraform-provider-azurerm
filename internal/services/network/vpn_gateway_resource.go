@@ -267,7 +267,6 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		props := resp.Model.Properties
 
 		if props.BgpSettings != nil && props.BgpSettings.BgpPeeringAddresses != nil {
-
 			val := bgpSettingsRaw[0].(map[string]interface{})
 			input0 := val["instance_0_bgp_peering_address"].([]interface{})
 			input1 := val["instance_1_bgp_peering_address"].([]interface{})

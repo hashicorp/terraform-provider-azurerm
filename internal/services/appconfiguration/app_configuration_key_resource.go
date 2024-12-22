@@ -6,11 +6,13 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -161,7 +163,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
@@ -302,19 +304,19 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 
 			model := KeyResourceModel{
 				ConfigurationStoreId: configurationStoreId.ID(),
-				Key:                  utils.NormalizeNilableString(kv.Key),
-				ContentType:          utils.NormalizeNilableString(kv.ContentType),
-				Etag:                 utils.NormalizeNilableString(kv.Etag),
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Key:                  pointer.From(kv.Key),
+				ContentType:          pointer.From(kv.ContentType),
+				Etag:                 pointer.From(kv.Etag),
+				Label:                pointer.From(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
-			if utils.NormalizeNilableString(kv.ContentType) != VaultKeyContentType {
+			if pointer.From(kv.ContentType) != VaultKeyContentType {
 				model.Type = KeyTypeKV
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			} else {
 				var ref VaultKeyReference
-				refBytes := []byte(utils.NormalizeNilableString(kv.Value))
+				refBytes := []byte(pointer.From(kv.Value))
 				err := json.Unmarshal(refBytes, &ref)
 				if err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
@@ -323,7 +325,7 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				model.Type = KeyTypeVault
 				model.VaultKeyReference = ref.URI
 				model.ContentType = VaultKeyContentType
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			}
 
 			if kv.Locked != nil {

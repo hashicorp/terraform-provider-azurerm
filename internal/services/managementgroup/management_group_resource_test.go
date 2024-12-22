@@ -182,6 +182,13 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
 		},
+		{
+			Config: r.withSubscriptions(subscriptionID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("1"),
+			),
+		},
 	})
 }
 
@@ -191,7 +198,7 @@ func (ManagementGroupResource) Exists(ctx context.Context, clients *clients.Clie
 		return nil, err
 	}
 	resp, err := clients.ManagementGroups.GroupsClient.Get(ctx, *id, managementgroups.GetOperationOptions{
-		CacheControl: pointer.FromString("no-cache"),
+		CacheControl: pointer.To("no-cache"),
 		Expand:       pointer.To(managementgroups.ExpandChildren),
 		Recurse:      pointer.FromBool(false),
 	})

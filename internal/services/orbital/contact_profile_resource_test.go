@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type ContactProfileResource struct{}
 
 func TestAccContactProfile_basic(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
 
@@ -35,6 +39,9 @@ func TestAccContactProfile_basic(t *testing.T) {
 }
 
 func TestAccContactProfile_multipleChannels(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
 
@@ -50,6 +57,9 @@ func TestAccContactProfile_multipleChannels(t *testing.T) {
 }
 
 func TestAccContactProfile_addChannel(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
 
@@ -72,6 +82,9 @@ func TestAccContactProfile_addChannel(t *testing.T) {
 }
 
 func TestAccContactProfile_update(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
 
@@ -93,6 +106,9 @@ func TestAccContactProfile_update(t *testing.T) {
 }
 
 func TestAccContactProfile_complete(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
 

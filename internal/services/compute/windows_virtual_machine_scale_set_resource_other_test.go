@@ -979,7 +979,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 					}
 
 					return nil
-
 				}, data.ResourceName),
 			),
 		},
@@ -1374,6 +1373,10 @@ locals {
   vm_name = "%[1]s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1518,7 +1521,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.templateWithOutProvider(data))
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherEnableAutomaticUpdatesDisabled(data acceptance.TestData) string {

@@ -22,13 +22,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -269,27 +269,6 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
-			ForceNew:   true,
-		}
-
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(namespaces.TlsVersionOnePointZero),
-				string(namespaces.TlsVersionOnePointOne),
-				string(namespaces.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
 	return resource
 }
 
@@ -343,10 +322,6 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			PublicNetworkAccess: &publicNetworkEnabled,
 		},
 		Tags: expandTags(t),
-	}
-
-	if !features.FourPointOhBeta() {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
@@ -450,10 +425,6 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 			if props := model.Properties; props != nil {
 				d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
-
-				if !features.FourPointOhBeta() {
-					d.Set("zone_redundant", props.ZoneRedundant)
-				}
 
 				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
 					d.Set("customer_managed_key", customerManagedKey)
@@ -706,15 +677,13 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 
 	// only set network rule set if the values are different than what they are defaulted to during namespace creation
 	// this has to wait until 4.0 due to `azurerm_servicebus_namespace_network_rule_set` which forces `network_rule_set` to be Optional/Computed
-	if features.FourPointOhBeta() {
-		if defaultAction == string(namespaces.DefaultActionAllow) &&
-			publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
-			!trustedServiceEnabled &&
-			len(networkRules) == 0 &&
-			len(ipRules) == 0 {
 
-			return []interface{}{}
-		}
+	if defaultAction == string(namespaces.DefaultActionAllow) &&
+		publicNetworkAccess == namespaces.PublicNetworkAccessFlagEnabled &&
+		!trustedServiceEnabled &&
+		len(networkRules) == 0 &&
+		len(ipRules) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{map[string]interface{}{
@@ -724,4 +693,89 @@ func flattenServiceBusNamespaceNetworkRuleSet(networkRuleSet namespaces.NetworkR
 		"network_rules":                 pluginsdk.NewSet(networkRuleHash, networkRules),
 		"ip_rules":                      ipRules,
 	}}
+}
+
+func networkRuleHash(input interface{}) int {
+	v := input.(map[string]interface{})
+
+	// we are just taking subnet_id into the hash function and ignore the ignore_missing_vnet_service_endpoint to ensure there would be no duplicates of subnet id
+	// the service returns this ID with segment resourceGroup and resource group name all in lower cases, to avoid unnecessary diff, we extract this ID and reconstruct this hash code
+	return set.HashStringIgnoreCase(v["subnet_id"])
+}
+
+func expandServiceBusNamespaceVirtualNetworkRules(input []interface{}) *[]namespaces.NWRuleSetVirtualNetworkRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]namespaces.NWRuleSetVirtualNetworkRules, 0)
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+		result = append(result, namespaces.NWRuleSetVirtualNetworkRules{
+			Subnet: &namespaces.Subnet{
+				Id: raw["subnet_id"].(string),
+			},
+			IgnoreMissingVnetServiceEndpoint: pointer.To(raw["ignore_missing_vnet_service_endpoint"].(bool)),
+		})
+	}
+
+	return &result
+}
+
+func flattenServiceBusNamespaceVirtualNetworkRules(input *[]namespaces.NWRuleSetVirtualNetworkRules) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(*input))
+	for _, v := range *input {
+		subnetId := ""
+		if v.Subnet != nil && v.Subnet.Id != "" {
+			subnetId = v.Subnet.Id
+		}
+
+		ignore := false
+		if v.IgnoreMissingVnetServiceEndpoint != nil {
+			ignore = *v.IgnoreMissingVnetServiceEndpoint
+		}
+
+		result = append(result, map[string]interface{}{
+			"subnet_id":                            subnetId,
+			"ignore_missing_vnet_service_endpoint": ignore,
+		})
+	}
+
+	return result
+}
+
+func expandServiceBusNamespaceIPRules(input []interface{}) *[]namespaces.NWRuleSetIPRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	action := namespaces.NetworkRuleIPActionAllow
+	result := make([]namespaces.NWRuleSetIPRules, 0, len(input))
+	for _, v := range input {
+		result = append(result, namespaces.NWRuleSetIPRules{
+			IPMask: pointer.To(v.(string)),
+			Action: &action,
+		})
+	}
+
+	return &result
+}
+
+func flattenServiceBusNamespaceIPRules(input *[]namespaces.NWRuleSetIPRules) []interface{} {
+	if input == nil || len(*input) == 0 {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(*input))
+	for _, v := range *input {
+		if v.IPMask != nil {
+			result = append(result, *v.IPMask)
+		}
+	}
+
+	return result
 }

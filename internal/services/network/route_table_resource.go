@@ -157,12 +157,6 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	bgpRoutePropagationEnabled := d.Get("bgp_route_propagation_enabled").(bool)
 
-	if !features.FourPointOhBeta() {
-		// need to set default back to true for 3.x, this triggers ineffassign linter, so ignoring for now
-		bgpRoutePropagationEnabled = true // nolint: ineffassign
-		bgpRoutePropagationEnabled = !d.Get("disable_bgp_route_propagation").(bool)
-	}
-
 	routeSet := routetables.RouteTable{
 		Name:     &id.RouteTableName,
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
