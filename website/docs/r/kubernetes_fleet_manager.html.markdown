@@ -42,7 +42,7 @@ The following arguments are supported:
 
 A `hub_profile` block supports the following:
 
-* `dns_prefix` - (Required) DNS prefix used to create the FQDN for the Fleet hub.
+* `dns_prefix` - (Required) DNS prefix used to create the FQDN for the Fleet hub. Changing this forces a new Kubernetes Fleet Manager to be created.
 
 ## Attributes Reference
 
