@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -64,13 +63,9 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	client := clients.ContainerService.V20231015.Fleets
-	resp, err := client.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("%s does not exist", id)
-		}
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return utils.Bool(resp.Model != nil), nil
 }
@@ -97,9 +92,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   name                = "acctestkfm-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  hub_profile {
-    dns_prefix = "acctestkfm-%[2]s"
-  }
 }
 `, r.template(data), data.RandomString)
 }
@@ -112,11 +104,8 @@ resource "azurerm_kubernetes_fleet_manager" "import" {
   name                = azurerm_kubernetes_fleet_manager.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  hub_profile {
-    dns_prefix = "acctestkfm-%[2]s"
-  }
 }
-`, r.basic(data), data.RandomString)
+`, r.basic(data))
 }
 
 func (r KubernetesFleetManagerTestResource) complete(data acceptance.TestData) string {
@@ -127,12 +116,11 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   name                = "acctestkfm-%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  tags = {
-    environment = "terraform-acctests"
-    some_key    = "some-value"
-  }
   hub_profile {
     dns_prefix = "acctestkfm-%[2]s"
+  }
+  tags = {
+    environment = "terraform-acctests"
   }
 }
 `, r.template(data), data.RandomString)

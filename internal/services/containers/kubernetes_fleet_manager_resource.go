@@ -62,13 +62,13 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 
 		"hub_profile": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"dns_prefix": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ForceNew: true,
 						ValidateFunc: validation.All(
 							validation.StringLenBetween(1, 54),
@@ -256,10 +256,7 @@ func expandFleetHubProfileModel(inputList []FleetHubProfileModel) *fleets.FleetH
 
 	input := inputList[0]
 	output := &fleets.FleetHubProfile{
-		DnsPrefix:         pointer.To(input.DnsPrefix),
-		Fqdn:              pointer.To(input.Fqdn),
-		KubernetesVersion: pointer.To(input.KubernetesVersion),
-		PortalFqdn:        pointer.To(input.PortalFqdn),
+		DnsPrefix: pointer.To(input.DnsPrefix),
 	}
 
 	return output
