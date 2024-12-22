@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Kubernetes Fleet Manager should exist. Changing this forces a new Kubernetes Fleet Manager to be created.
 
-* `hub_profile` - (Optional) A hub_profile block as defined below.
+* `hub_profile` - (Optional) A hub_profile block as defined below. Changing this forces a new Kubernetes Fleet Manager to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Kubernetes Fleet Manager.
 
