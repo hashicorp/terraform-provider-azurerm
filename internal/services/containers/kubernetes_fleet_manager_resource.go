@@ -63,6 +63,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		"hub_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -170,10 +171,6 @@ func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 			}
 			if resp.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("hub_profile") {
-				properties.Properties.HubProfile = expandFleetHubProfileModel(model.HubProfile)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
