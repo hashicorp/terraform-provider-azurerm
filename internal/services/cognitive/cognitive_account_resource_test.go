@@ -896,7 +896,7 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
@@ -920,7 +920,7 @@ resource "azurerm_cognitive_account" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  kind                  = "Face"
+  kind                  = "OpenAI"
   sku_name              = "S0"
   custom_subdomain_name = "acctestcogacc-%d"
 
