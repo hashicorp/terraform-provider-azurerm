@@ -6,6 +6,7 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -36,6 +37,7 @@ type OutputCosmosDBResourceModel struct {
 	ContainerName      string `tfschema:"container_name"`
 	DocumentID         string `tfschema:"document_id"`
 	PartitionKey       string `tfschema:"partition_key"`
+	AuthenticationMode string `tfschema:"authentication_mode"`
 }
 
 func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
@@ -83,6 +85,16 @@ func (r OutputCosmosDBResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"authentication_mode": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(outputs.AuthenticationModeConnectionString),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(outputs.AuthenticationModeConnectionString),
+				string(outputs.AuthenticationModeMsi),
+			}, false),
 		},
 	}
 }
@@ -138,6 +150,7 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 				CollectionNamePattern: utils.String(model.ContainerName),
 				DocumentId:            utils.String(model.DocumentID),
 				PartitionKey:          utils.String(model.PartitionKey),
+				AuthenticationMode:    pointer.To(outputs.AuthenticationMode(model.AuthenticationMode)),
 			}
 
 			props := outputs.Output{
@@ -214,6 +227,8 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 						partitionKey = *v
 					}
 					state.PartitionKey = partitionKey
+
+					state.AuthenticationMode = string(*output.Properties.AuthenticationMode)
 
 					return metadata.Encode(&state)
 				}
