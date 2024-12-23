@@ -834,6 +834,10 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 
 	v := input[0].(map[string]interface{})
 	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	if keyId == nil {
+		return nil
+	}
+
 	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
 
 	var identity string
