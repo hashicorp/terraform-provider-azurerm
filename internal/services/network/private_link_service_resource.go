@@ -283,10 +283,6 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{}))
 	}
 
-	if d.HasChange("load_balancer_frontend_ip_configuration_ids") {
-		payload.Properties.LoadBalancerFrontendIPConfigurations = expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List())
-	}
-
 	if d.HasChange("destination_ip_address") {
 		payload.Properties.DestinationIPAddress = pointer.To(d.Get("destination_ip_address").(string))
 	}
