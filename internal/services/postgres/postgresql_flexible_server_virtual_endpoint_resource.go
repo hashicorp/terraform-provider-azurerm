@@ -126,68 +126,79 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Postgres.VirtualEndpointClient
-			flexibleServerClient := metadata.Client.Postgres.FlexibleServersClient
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Postgres.VirtualEndpointClient
+            flexibleServerClient := metadata.Client.Postgres.FlexibleServersClient
 
-			state := PostgresqlFlexibleServerVirtualEndpointModel{}
+            state := PostgresqlFlexibleServerVirtualEndpointModel{}
 
-			id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+            id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
+            resp, err := client.Get(ctx, *id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
+                    return metadata.MarkAsGone(id)
+                }
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
 
-			state.Name = id.VirtualEndpointName
+            state.Name = id.VirtualEndpointName
 
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					state.Type = string(pointer.From(props.EndpointType))
+            if model := resp.Model; model != nil {
+                if props := model.Properties; props != nil {
+                    state.Type = string(pointer.From(props.EndpointType))
 
-					if props.Members == nil || len(*props.Members) != 2 {
-						// if members list is nil, this is an endpoint that was previously deleted
-						log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", id.ID())
-						return metadata.MarkAsGone(id)
-					}
+                    if props.Members == nil || len(*props.Members) != 2 {
+                        log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", id.ID())
+                        return metadata.MarkAsGone(id)
+                    }
 
-					// Model.Properties.Members is a tuple => [source_server_id, replication_server_name]
-					sourceServerName := (*props.Members)[0]
-					replicaServerName := (*props.Members)[1]
+                    // Extract the members
+                    sourceServerName := (*props.Members)[0]
+                    replicaServerName := (*props.Members)[1]
 
-					sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
+                    sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
 
-					replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, replicaServerName, sourceServerId)
-					if err != nil {
-						return err
-					}
+                    replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, replicaServerName, sourceServerId)
+                    if err != nil {
+                        return err
+                    }
 
-					state.SourceServerId = sourceServerId
+                    // Handle failover scenario
+                    if replicaServer != nil {
+                        replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
+                        if err != nil {
+                            return err
+                        }
 
-					if replicaServer != nil {
-						replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
-						if err != nil {
-							return err
-						}
+                        // Check both configurations
+                        if sourceServerId == state.SourceServerId && replicaId.ID() == state.ReplicaServerId {
+                            state.SourceServerId = sourceServerId
+                            state.ReplicaServerId = replicaId.ID()
+                        } else if sourceServerId == state.ReplicaServerId && replicaId.ID() == state.SourceServerId {
+                            // Handle swapped roles
+                            state.SourceServerId = replicaId.ID()
+                            state.ReplicaServerId = sourceServerId
+                        } else {
+                            log.Printf("[WARN] Unexpected server configuration for virtual endpoint %q, attempting to update state", id.ID())
+                            state.SourceServerId = sourceServerId
+                            state.ReplicaServerId = replicaId.ID()
+                        }
+                    }
+                }
+            }
 
-						state.ReplicaServerId = replicaId.ID()
-					}
-				}
-			}
-
-			return metadata.Encode(&state)
-		},
-	}
+            return metadata.Encode(&state)
+        },
+    }
 }
+
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
