@@ -107,6 +107,9 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *accountID)
+			}
 
 			supportLevel := availableFunctionalityForAccount(accountDetails.Kind, accountTier, accountReplicationType)
 
@@ -158,7 +161,7 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 			state.StorageAccountId = id.ID()
 
 			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil {
+			if err != nil || accountDetails == nil {
 				return metadata.MarkAsGone(id)
 			}
 
@@ -194,7 +197,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 			}
 
 			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil {
+			if err != nil || accountDetails == nil {
 				// If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 				return nil
 			}
@@ -237,6 +240,9 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 			if err != nil {
 				return err
+			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *id)
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())

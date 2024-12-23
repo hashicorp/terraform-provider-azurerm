@@ -572,6 +572,9 @@ func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %+v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
+	if account == nil {
+		return utils.Bool(true), nil
+	}
 	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)

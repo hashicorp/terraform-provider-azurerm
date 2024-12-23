@@ -301,6 +301,9 @@ func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *accountID)
+			}
 
 			supportLevel := availableFunctionalityForAccount(accountDetails.Kind, accountTier, accountReplicationType)
 
