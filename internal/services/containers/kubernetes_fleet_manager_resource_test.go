@@ -57,6 +57,27 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesFleetManager_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_fleet_manager", "test")
+	r := KubernetesFleetManagerTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
@@ -121,6 +142,24 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   }
   tags = {
     environment = "terraform-acctests"
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r KubernetesFleetManagerTestResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_fleet_manager" "test" {
+  name                = "acctestkfm-%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  hub_profile {
+    dns_prefix = "acctestkfm-%[2]s"
+  }
+  tags = {
+    new_environment = "terraform-acctests-updated"
   }
 }
 `, r.template(data), data.RandomString)
