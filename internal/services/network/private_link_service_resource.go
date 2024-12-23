@@ -144,7 +144,8 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"alias": {
@@ -156,6 +157,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsIPv4Address,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"tags": commonschema.Tags(),
