@@ -83,7 +83,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment_managed_certificate" "test" {
-  name = "acctest-cacert%[2]d"
+  name                         = "acctest-cacert%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   subject_name                   = azurerm_container_app_custom_domain.test.name
@@ -101,7 +101,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_container_app_environment_managed_certificate" "test" {
-  name = "acctest-cacert%[2]d"
+  name                         = "acctest-cacert%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   subject_name                   = azurerm_container_app_custom_domain.test.name
@@ -120,7 +120,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) requiresImport(data a
 %[1]s
 
 resource "azurerm_container_app_environment_managed_certificate" "import" {
-  name = azurerm_container_app_environment_managed_certificate.test.name
+  name                         = azurerm_container_app_environment_managed_certificate.test.name
   container_app_environment_id = azurerm_container_app_environment_managed_certificate.test.container_app_environment_id
 
   subject_name                   = azurerm_container_app_environment_managed_certificate.test.subject_name
@@ -135,6 +135,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) template(data accepta
 
 	return fmt.Sprintf(`
 
+
 data "azurerm_dns_zone" "test" {
   name                = "%[3]s"
   resource_group_name = "%[4]s"
@@ -146,9 +147,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_app_environment" "test" {
-  name                       = "acctest-CAEnv%[1]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
+  name                = "acctest-CAEnv%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_container_app" "test" {
@@ -208,6 +209,7 @@ resource "azurerm_container_app_custom_domain" "test" {
 
   depends_on = [azurerm_dns_cname_record.test, azurerm_dns_txt_record.test]
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, dnsZone, dataResourceGroup)
 }
