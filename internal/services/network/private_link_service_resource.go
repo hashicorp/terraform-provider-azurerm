@@ -136,10 +136,9 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				},
 			},
 
-			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
