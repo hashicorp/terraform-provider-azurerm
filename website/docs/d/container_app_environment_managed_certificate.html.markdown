@@ -30,13 +30,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container Apps Managed Certificate. Changing this forces a new resource to be created.
 
-* `container_app_environment_id` - (Required) The ID of the Container App Environment to configure this Certificate on. Changing this forces a new resource to be created.
+* `container_app_environment_id` - (Required) The ID of the Container App Environment to configure this Managed Certificate on. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Container App Environment Certificate
+* `id` - The ID of the Container App Environment Managed Certificate
 
 * `subject_name` - The Subject Name for the Certificate.
 

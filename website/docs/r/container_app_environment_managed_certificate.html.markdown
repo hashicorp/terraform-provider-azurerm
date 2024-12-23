@@ -70,9 +70,9 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The Container App Managed Environment ID to configure this Certificate on. Changing this forces a new resource to be created.
 
-* `subject_name` - (Required) Type of domain control validation. Possible values include `CNAME`, `HTTP` and `TXT`.
+* `domain_control_validation_type` - (Required) Type of domain control validation. Possible values include `CNAME`, `HTTP` and `TXT`. Changing this forces a new resource to be created.
 
-* `domain_control_validation_type` - (Required) The subject name of the certificate.
+* `subject_name` - (Required) The subject name of the certificate. Changing this forces a new resource to be created.
 
 ---
 
@@ -83,9 +83,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container App Environment Managed Certificate
-
-* `subject_name` - The Subject Name for the Managed Certificate.
-
 
 ## Timeouts
 
