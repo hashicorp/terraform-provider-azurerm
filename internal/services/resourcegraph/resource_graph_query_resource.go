@@ -34,7 +34,7 @@ type ResourceGraphQueryResource struct{}
 var _ sdk.ResourceWithUpdate = ResourceGraphQueryResource{}
 
 func (r ResourceGraphQueryResource) ResourceType() string {
-	return "azurerm_log_analytics_query_pack_query"
+	return "azurerm_resource_graph_query"
 }
 
 func (r ResourceGraphQueryResource) ModelObject() interface{} {
@@ -84,12 +84,11 @@ func (r ResourceGraphQueryResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			
 			client := metadata.Client.ResourceGraph.ResourceGraphQueryClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := graphquery.NewQueryID(subscriptionId, model.ResourceGroupName, model.Name)
-			
+
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -100,7 +99,7 @@ func (r ResourceGraphQueryResource) Create() sdk.ResourceFunc {
 			}
 
 			properties := &graphquery.GraphQueryResource{
-				Name: &model.Name,
+				Name:     &model.Name,
 				Location: &(model.Location),
 				Properties: &graphquery.GraphQueryProperties{
 					Query: model.Query,
@@ -126,7 +125,7 @@ func (r ResourceGraphQueryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			
+
 			client := metadata.Client.ResourceGraph.ResourceGraphQueryClient
 
 			id, err := graphquery.ParseQueryID(metadata.ResourceData.Id())
@@ -167,7 +166,7 @@ func (r ResourceGraphQueryResource) Update() sdk.ResourceFunc {
 
 			return nil
 		},
-	}		
+	}
 }
 
 func (r ResourceGraphQueryResource) Read() sdk.ResourceFunc {
@@ -202,10 +201,10 @@ func (r ResourceGraphQueryResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ResourceGraphQueryModel{
-				Name: id.QueryName,
+				Name:              id.QueryName,
 				ResourceGroupName: id.ResourceGroupName,
-				Location: location.Normalize(*model.Location),
-				Query: props.Query,
+				Location:          location.Normalize(*model.Location),
+				Query:             props.Query,
 			}
 
 			if props.Description != nil {
@@ -226,7 +225,7 @@ func (r ResourceGraphQueryResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ResourceGraph.ResourceGraphQueryClient
-			
+
 			id, err := graphquery.ParseQueryID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
