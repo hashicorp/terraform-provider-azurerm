@@ -77,6 +77,7 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
 	// Deprecated: remove in next major version
 	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
 	Tags          map[string]string `tfschema:"tags"`
@@ -277,6 +278,10 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"dataplane_api_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -462,6 +467,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output.IpAddress = pointer.ToString(props.IPAddress)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
 					if !features.FivePointOhBeta() {
