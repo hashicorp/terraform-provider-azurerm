@@ -72,14 +72,12 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
-	maintenance_configuration_name := ""
+	maintenance_configuration_name := "SQL_Default"
 	switch data.Locations.Primary {
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
 		maintenance_configuration_name = "SQL_FranceCentral_DB_1"
-	default:
-		maintenance_configuration_name = "SQL_Default"
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1110,14 +1108,12 @@ resource "azurerm_mssql_database" "import" {
 }
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
-	configName := ""
+	configName := "SQL_Default"
 	switch data.Locations.Primary {
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":
 		configName = "SQL_FranceCentral_DB_1"
-	default:
-		configName = "SQL_Default"
 	}
 
 	return fmt.Sprintf(`

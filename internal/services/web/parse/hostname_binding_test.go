@@ -27,7 +27,6 @@ func TestHostnameBindingID(t *testing.T) {
 		Error    bool
 		Expected *HostnameBindingId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -90,6 +90,8 @@ A `subnet` block supports the following:
 
 * `ip_pool` - (Optional) One or more `ip_pool` block as defined above. Changing this forces a new resource to be created.
 
+-> **Note:** If `ip_pool` is not specified, it will be assigned by the server. If you experience a diff you may need to add this to `ignore_changes`.
+
 * `route` - (Optional) A `route` block as defined above. Changing this forces a new resource to be created.
 
 * `vlan_id` - (Optional) The VLAN ID for the Logical Network. Changing this forces a new resource to be created.

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorMicrosoftThreatIntelligenceResource struct{}
@@ -58,7 +58,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Arguments() map[string
 			ValidateFunc: validation.IsUUID,
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"microsoft_emerging_threat_feed_lookback_date": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,

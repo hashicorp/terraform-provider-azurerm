@@ -133,7 +133,6 @@ func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx conte
 
 	if err := client.Network.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Network Security Group Association for %s: %+v", id.First, err)
-
 	}
 
 	return nil

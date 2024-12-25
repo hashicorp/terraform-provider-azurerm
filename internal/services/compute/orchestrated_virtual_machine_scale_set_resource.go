@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -169,17 +168,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return true
-				}(),
-				Computed: !features.FourPointOhBeta(),
+				Default:  true,
 				ForceNew: true,
 			},
 
-			// Due to bug in RP extensions cannot curretntly be supported in Terraform ETA for full support is mid Jan 2022
+			// Due to bug in RP extensions cannot currently be supported in Terraform ETA for full support is mid Jan 2022
 			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
 			"extensions_time_budget": {
@@ -548,12 +541,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					}
 
 					if !hasHealthExtension {
-						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always always contain a 'application health extension'", patchMode)
+						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always contain a 'application health extension'", patchMode)
 					}
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch' or '2022-datacenter-azure-edition-hotpatch-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core' or '2025-datacenter-azure-edition-core-smalldisk'")
 				}
 			}
 		}
@@ -601,19 +594,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
 
-	if !features.FourPointOhBeta() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
-			if virtualMachineProfile.OsProfile == nil {
-				virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-			}
-			virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
-		}
-	} else {
-		if virtualMachineProfile.OsProfile == nil {
-			virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+	if virtualMachineProfile.OsProfile == nil {
+		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	}
+	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))

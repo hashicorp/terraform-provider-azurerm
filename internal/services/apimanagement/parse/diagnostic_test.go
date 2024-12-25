@@ -27,7 +27,6 @@ func TestDiagnosticID(t *testing.T) {
 		Error    bool
 		Expected *DiagnosticId
 	}{
-
 		{
 			// empty
 			Input: "",

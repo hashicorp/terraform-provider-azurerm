@@ -161,7 +161,6 @@ func (s VMWareReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-
 					policyId := ""
 					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24751
 					if prop.PolicyId != nil && *prop.PolicyId != "" {

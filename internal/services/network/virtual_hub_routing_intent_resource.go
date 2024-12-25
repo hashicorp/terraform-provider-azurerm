@@ -254,11 +254,11 @@ func expandRoutingPolicy(input []RoutingPolicy) *[]virtualwans.RoutingPolicy {
 }
 
 func flattenRoutingPolicy(input *[]virtualwans.RoutingPolicy) []RoutingPolicy {
-	var result []RoutingPolicy
 	if input == nil {
-		return result
+		return []RoutingPolicy{}
 	}
 
+	result := make([]RoutingPolicy, 0, len(*input))
 	for _, v := range *input {
 		routingPolicy := RoutingPolicy{
 			Destinations: v.Destinations,

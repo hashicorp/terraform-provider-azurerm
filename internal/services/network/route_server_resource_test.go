@@ -82,6 +82,7 @@ func TestAccRouteServer_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r RouteServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualwans.ParseVirtualHubID(state.ID)
 	if err != nil {

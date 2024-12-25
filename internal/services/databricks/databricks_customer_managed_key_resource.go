@@ -38,7 +38,7 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		DeprecationMessage: "The resource `azurerm_databricks_workspace_customer_managed_key` will be removed in v4.0 of the AzureRM Provider in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource.",
+		DeprecationMessage: "The resource `azurerm_databricks_workspace_customer_managed_key` will be removed in v5.0 of the AzureRM Provider in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource.",
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := workspaces.ParseWorkspaceID(id)
@@ -196,7 +196,6 @@ func databricksWorkspaceCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta i
 	if model := resp.Model; model != nil {
 		if model.Properties.Parameters != nil {
 			if props := model.Properties.Parameters.Encryption; props != nil {
-
 				if props.Value.KeySource != nil {
 					keySource = string(*props.Value.KeySource)
 				}

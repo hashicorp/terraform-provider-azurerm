@@ -27,7 +27,6 @@ func TestGremlinDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *GremlinDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

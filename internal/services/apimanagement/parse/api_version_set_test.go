@@ -27,7 +27,6 @@ func TestApiVersionSetID(t *testing.T) {
 		Error    bool
 		Expected *ApiVersionSetId
 	}{
-
 		{
 			// empty
 			Input: "",

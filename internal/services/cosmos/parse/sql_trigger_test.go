@@ -27,7 +27,6 @@ func TestSqlTriggerID(t *testing.T) {
 		Error    bool
 		Expected *SqlTriggerId
 	}{
-
 		{
 			// empty
 			Input: "",

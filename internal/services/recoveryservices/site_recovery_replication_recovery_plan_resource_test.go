@@ -489,7 +489,6 @@ resource "azurerm_site_recovery_replication_recovery_plan" "test" {
 
 }
 `, r.template(data), data.RandomInteger)
-
 }
 
 func (r SiteRecoveryReplicationRecoveryPlan) withMultiActions(data acceptance.TestData) string {

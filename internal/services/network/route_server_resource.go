@@ -194,7 +194,6 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
-
 	}
 
 	payload := existing.Model

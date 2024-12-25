@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -43,44 +42,6 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole(t *te
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customRole(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyBuiltInRole(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("This test isn't applicable in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacyBuiltInRole(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("This test isn't applicable in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacyCustomRole(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,47 +91,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) customRole(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-locals {
-  assignmentTestName = "1e243909-064c-6ac3-84e9-1c8bf8d6ad52"
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = local.assignmentTestName
-  scope              = "/keys"
-  role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
-  principal_id       = data.azurerm_client_config.current.object_id
-}
-`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
-}
-
-func (r KeyVaultManagedHSMRoleAssignmentResource) legacyBuiltInRole(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-locals {
-  assignmentOfficerName = "706c03c7-69ad-33e5-2796-b3380d3a6e1a"
-}
-
-data "azurerm_key_vault_managed_hardware_security_module_role_definition" "officer" {
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
-  name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
-  name               = local.assignmentOfficerName
-  scope              = "/keys"
-  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.officer.resource_manager_id
-  principal_id       = data.azurerm_client_config.current.object_id
-}
-`, KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3))
-}
-
-func (r KeyVaultManagedHSMRoleAssignmentResource) legacyCustomRole(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

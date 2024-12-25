@@ -1478,7 +1478,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 		return []IpRestriction{}
 	}
 
-	var ipRestrictions []IpRestriction
+	ipRestrictions := make([]IpRestriction, 0, len(*ipRestrictionsList))
 	for _, v := range *ipRestrictionsList {
 		ipRestriction := IpRestriction{}
 

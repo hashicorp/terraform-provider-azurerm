@@ -26,6 +26,27 @@ func dataSourceMissingError(typeName string) *tfprotov5.Diagnostic {
 	}
 }
 
+func ephemeralResourceDuplicateError(typeName string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Invalid Provider Server Combination",
+		Detail: "The combined provider has multiple implementations of the same ephemeral resource type across underlying providers. " +
+			"Ephemeral resource types must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate ephemeral resource type: " + typeName,
+	}
+}
+
+func ephemeralResourceMissingError(typeName string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Ephemeral Resource Not Implemented",
+		Detail: "The combined provider does not implement the requested ephemeral resource type. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing ephemeral resource type: " + typeName,
+	}
+}
+
 func diagnosticsHasError(diagnostics []*tfprotov5.Diagnostic) bool {
 	for _, diagnostic := range diagnostics {
 		if diagnostic == nil {

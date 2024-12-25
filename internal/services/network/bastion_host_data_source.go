@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -104,6 +105,8 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"tags": commonschema.TagsDataSource(),
+
+			"zones": commonschema.ZonesMultipleComputed(),
 		},
 	}
 }
@@ -133,6 +136,7 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			skuName = string(*sku.Name)
 		}
 		d.Set("sku", skuName)
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		if props := model.Properties; props != nil {
 			d.Set("dns_name", props.DnsName)

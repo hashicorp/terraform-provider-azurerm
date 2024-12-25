@@ -264,7 +264,6 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 					GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
 					LocalGitSCM:               pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeLocalGit,
 				}
-
 			}
 
 			return metadata.Encode(&state)

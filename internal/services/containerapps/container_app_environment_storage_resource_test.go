@@ -89,7 +89,6 @@ func (r ContainerAppEnvironmentStorageResource) Exists(ctx context.Context, clie
 	}
 
 	return pointer.To(true), nil
-
 }
 
 func (r ContainerAppEnvironmentStorageResource) basic(data acceptance.TestData) string {

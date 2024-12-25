@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,15 +80,6 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 		data.ImportStep(),
 	}
 
-	if !features.FourPointOhBeta() {
-		testcases = append(testcases, []acceptance.TestStep{{
-			Config: r.cfg("SENTINEL", true),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		}, {
-			Config: r.cfg("SENTINEL", false),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		}}...)
-	}
 	data.ResourceSequentialTest(t, r, testcases)
 }
 
