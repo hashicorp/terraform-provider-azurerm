@@ -26,6 +26,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_availability_set":          dataSourceAvailabilitySet(),
+		"azurerm_compute_skus":              dataSourceComputeSkus(),
 		"azurerm_dedicated_host":            dataSourceDedicatedHost(),
 		"azurerm_dedicated_host_group":      dataSourceDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":       dataSourceDiskEncryptionSet(),
