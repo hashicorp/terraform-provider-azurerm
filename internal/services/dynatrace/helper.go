@@ -36,6 +36,32 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	})
 }
 
+func FlattenDynatraceEnvironmentProperties(input *monitors.DynatraceEnvironmentProperties) []EnvironmentProperties {
+	if input == nil {
+		return []EnvironmentProperties{}
+	}
+
+	environmentInfo := FlattenDynatraceEnvironmentInfo(input.EnvironmentInfo)
+
+	return []EnvironmentProperties{
+		{
+			EnvironmentInfo: environmentInfo,
+		},
+	}
+}
+
+func FlattenDynatraceEnvironmentInfo(input *monitors.EnvironmentInfo) []EnvironmentInfo {
+	if input == nil {
+		return []EnvironmentInfo{}
+	}
+
+	return []EnvironmentInfo{
+		{
+			EnvironmentId: pointer.From(input.EnvironmentId),
+		},
+	}
+}
+
 func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	if input == nil {
 		return []PlanData{}

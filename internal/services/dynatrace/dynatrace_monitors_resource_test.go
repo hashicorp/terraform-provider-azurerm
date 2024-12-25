@@ -155,11 +155,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "%s"
-    last_name    = "%s"
-    email        = "%s"
-    phone_number = "%s"
-    country      = "%s"
+    first_name   = "Alice"
+    last_name    = "Bobab"
+    email        = "agarwald@microsoft.com"
+    phone_number = "123456"
+    country      = "westus"
   }
 
   plan {
@@ -172,7 +172,7 @@ resource "azurerm_dynatrace_monitor" "test" {
     environment = "Dev"
   }
 }
-`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+`, template, data.RandomInteger)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {
