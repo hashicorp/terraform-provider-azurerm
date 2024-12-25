@@ -948,6 +948,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databas
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules

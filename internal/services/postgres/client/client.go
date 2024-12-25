@@ -22,10 +22,12 @@ import (
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules"
 	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	flexibleservervirtualendpoints "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	BackupsClient                       *backups.BackupsClient
 	ConfigurationsClient                *configurations.ConfigurationsClient
 	DatabasesClient                     *databases.DatabasesClient
 	FirewallRulesClient                 *firewallrules.FirewallRulesClient
@@ -45,6 +47,12 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	backupsClient, err := backups.NewBackupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Backups client: %+v", err)
+	}
+	o.Configure(backupsClient.Client, o.Authorizers.ResourceManager)
+
 	configurationsClient, err := configurations.NewConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Configurations client: %+v", err)
@@ -142,6 +150,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(virtualEndpointClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
+		BackupsClient:                       backupsClient,
 		ConfigurationsClient:                configurationsClient,
 		DatabasesClient:                     databasesClient,
 		FirewallRulesClient:                 firewallRulesClient,
