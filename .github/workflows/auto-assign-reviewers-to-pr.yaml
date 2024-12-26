@@ -8,7 +8,9 @@ on:
 jobs:
   assign_reviewer:
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: Assign the reviewer as assignee
         uses: actions/github-script@v6
