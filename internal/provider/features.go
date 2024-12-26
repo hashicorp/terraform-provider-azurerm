@@ -424,6 +424,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
