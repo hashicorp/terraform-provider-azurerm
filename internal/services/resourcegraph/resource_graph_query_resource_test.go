@@ -30,13 +30,26 @@ func TestResourceGraphQuery_basic(t *testing.T) {
 	})
 }
 
+func TestResourceGraphQuery_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_graph_query", "test")
+	r := ResourceGraphQuery{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.update(data),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestResourceGraphQuery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_graph_query", "test")
 	r := ResourceGraphQuery{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.basic(data),
+			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError(data.ResourceType),
 		},
 		data.ImportStep(),
