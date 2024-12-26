@@ -1,12 +1,6 @@
 package resourcegraph
 
 import (
-	// "fmt"
-	// "log"
-	// "sort"
-	// "strings"
-	// "time"
-
 	"context"
 	"fmt"
 	"time"
@@ -31,7 +25,10 @@ type ResourceGraphQueryModel struct {
 
 type ResourceGraphQueryResource struct{}
 
-var _ sdk.ResourceWithUpdate = ResourceGraphQueryResource{}
+var (
+	_ sdk.Resource = ResourceGraphQueryResource{}
+	_ sdk.ResourceWithUpdate = ResourceGraphQueryResource{}
+)
 
 func (r ResourceGraphQueryResource) ResourceType() string {
 	return "azurerm_resource_graph_query"
