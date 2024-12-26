@@ -26,7 +26,7 @@ type ResourceGraphQueryModel struct {
 type ResourceGraphQueryResource struct{}
 
 var (
-	_ sdk.Resource = ResourceGraphQueryResource{}
+	_ sdk.Resource           = ResourceGraphQueryResource{}
 	_ sdk.ResourceWithUpdate = ResourceGraphQueryResource{}
 )
 
