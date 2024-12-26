@@ -65,7 +65,7 @@ resource "azurerm_resource_graph_query" "test" {
   name                = "acctest-rgq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  
+
   query = <<QUERY
 		resources 
 		| limit 1
@@ -79,13 +79,13 @@ func (r ResourceGraphQuery) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_resource_graph_query" "import" {
-  name          		  = azurerm_resource_graph_query.test.name
+  name                = azurerm_resource_graph_query.test.name
   resource_group_name = azurerm_resource_graph_query.test.resource_group_name
-  location 						= azurerm_resource_graph_query.test.location
+  location            = azurerm_resource_graph_query.test.location
 
-	query         			= azurerm_resource_graph_query.test.query
+  query = azurerm_resource_graph_query.test.query
 
-  
+
 }
 `, r.basic(data))
 }
@@ -98,11 +98,12 @@ resource "azurerm_resource_graph_query" "test" {
   name                = "acctest-rgq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  
+
   query = <<QUERY
 		resources
 		| limit 2
 	QUERY
+}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -141,8 +142,8 @@ resource "azurerm_resource_graph_query" "test" {
   name                = "acctest-rgq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-	display_name        = "acctest-rgq"
-	description 				= "test rgq"
+  display_name        = "acctest-rgq"
+  description         = "test rgq"
 
   query = <<QUERY
 		resources 
