@@ -15,8 +15,8 @@ Manages a Resource Graph Query Example.
 ```hcl
 resource "azurerm_resource_graph_query" "example" {
   resource_group_name = "example"
-  location = "West Europe"
-  query = "TODO"
+  location            = "West Europe"
+  query               = "\nresources\n| summarize count() by type, location"
 }
 ```
 
