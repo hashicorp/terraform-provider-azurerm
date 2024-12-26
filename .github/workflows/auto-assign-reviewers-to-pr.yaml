@@ -1,0 +1,25 @@
+name: Auto Assign Reviewers as Assignees
+
+on:
+  pull_request:
+    types:
+      - review_requested
+      - review_request_removed
+      - reopened
+      - edited
+      - synchronize
+
+jobs:
+  auto_assign_reviewers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get reviewers and assign them
+        uses: peter-evans/review-assign-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          reviewers: reviewers
+          assignees: reviewers
