@@ -1,29 +1,27 @@
 package resourcegraph_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2022-10-01/graphquery"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"testing"
-
-// 	"github.com/hashicorp/go-azure-helpers/lang/response"
-// )
-
-type ResourceGraphQueryResource struct{}
+type ResourceGraphQuery struct{}
 
 func TestResourceGraphQuery_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert_v2", "test")
-	r := ResourceGraphQueryResource{}
+	data := acceptance.BuildTestData(t, "azurerm_resource_graph_query", "test")
+	r := ResourceGraphQuery{}
+	
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -32,12 +30,39 @@ func TestResourceGraphQuery_basic(t *testing.T) {
 	})
 }
 
-func (r ResourceGraphQueryResource) basic(data acceptance.TestData) string {
+func TestResourceGraphQuery_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_graph_query", "test")
+	r := ResourceGraphQuery{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestResourceGraphQuery_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+	r := ResourceGraphQuery{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ResourceGraphQuery) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_resource_graph_query" "test" {
-  name                = "acctestrgq-%[2]d"
+  name                = "acctest-rgq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   
@@ -49,7 +74,7 @@ resource "azurerm_resource_graph_query" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ResourceGraphQueryResource) requiresImport(data acceptance.TestData) string {
+func (r ResourceGraphQuery) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -65,12 +90,12 @@ resource "azurerm_resource_graph_query" "import" {
 `, r.basic(data))
 }
 
-func (r ResourceGraphQueryResource) update(data acceptance.TestData) string {
+func (r ResourceGraphQuery) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_resource_graph_query" "test" {
-  name                = "acctestrgq-%[2]d"
+  name                = "acctest-rgq-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   
@@ -81,7 +106,7 @@ resource "azurerm_resource_graph_query" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ResourceGraphQueryResource) template(data acceptance.TestData) string {
+func (r ResourceGraphQuery) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -92,4 +117,41 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (t ResourceGraphQuery) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := graphquery.ParseQueryID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.ResourceGraph.ResourceGraphQueryClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
+}
+
+func (r ResourceGraphQuery) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_graph_query" "test" {
+  name                = "acctest-rgq-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+	display_name        = "acctest-rgq"
+	description 				= "test rgq"
+
+  query = <<QUERY
+		resources 
+		| limit 1
+	QUERY
+
+  tags = {
+    key = "value"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
