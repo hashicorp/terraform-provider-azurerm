@@ -8,11 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2022-10-01/graphqueries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2022-10-01/graphquery"
-
-	// "github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2024-04-01/graphqueries"
-	// "github.com/hashicorp/go-azure-sdk/resource-manager/resourcegraph/2024-04-01/graphquery"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	// "github.com/hashicorp/terraform-provider-azurerm/internal/services/resourcegraph"
 )
 
 type Client struct {
