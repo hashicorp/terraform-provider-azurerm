@@ -122,7 +122,6 @@ func (r ResourceGraphQueryResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.ResourceGraph.ResourceGraphQueryClient
 
 			id, err := graphquery.ParseQueryID(metadata.ResourceData.Id())

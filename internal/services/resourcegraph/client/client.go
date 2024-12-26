@@ -21,7 +21,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	graphQueryClient, err := graphquery.NewGraphQueryClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Providers client: %+v", err)
