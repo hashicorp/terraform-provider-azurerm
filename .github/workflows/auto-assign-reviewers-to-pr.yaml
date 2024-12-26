@@ -1,25 +1,30 @@
 name: Auto Assign Reviewers as Assignees
 
 on:
-  pull_request:
+  pull_request_review:
     types:
-      - review_requested
-      - review_request_removed
-      - reopened
+      - submitted
       - edited
-      - synchronize
+      - dismissed
 
 jobs:
   auto_assign_reviewers:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Get reviewers and assign them
-        uses: peter-evans/review-assign-action@v1
+      - name: Assign the reviewer
+        uses: actions/github-script@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          reviewers: reviewers
-          assignees: reviewers
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const reviewer = context.payload.review.user.login;
+            const prNumber = context.payload.pull_request.number;
+            
+            console.log(`Assigning reviewer: ${reviewer} to PR #${prNumber}`);
+            
+            await github.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              assignees: [reviewer],
+            });
