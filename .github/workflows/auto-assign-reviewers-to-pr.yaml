@@ -5,26 +5,31 @@ on:
     types:
       - submitted
 
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   assign_reviewer:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
     steps:
-      - name: Assign the reviewer as assignee
+      - name: Assign the reviewer as assignee when changes are requested
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const reviewer = context.payload.review.user.login;
             const prNumber = context.payload.pull_request.number;
+            const reviewState = context.payload.review.state;
 
-            console.log(`Assigning reviewer: ${reviewer} to PR #${prNumber}`);
-
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              assignees: [reviewer],
-            });
+            if (reviewState === 'changes_requested') {
+              console.log(`Assigning reviewer: ${reviewer} to PR #${prNumber} as changes were requested.`);
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                assignees: [reviewer],
+              });
+            } else {
+              console.log(`No action taken. Review state is '${reviewState}'.`);
+            }
