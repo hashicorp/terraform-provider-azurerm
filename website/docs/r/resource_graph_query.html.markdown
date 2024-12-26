@@ -3,7 +3,7 @@ subcategory: "Resource Graph"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_graph_query"
 description: |-
-  Manages a Resource Graph Query Example.
+  Manages a Resource Graph Query.
 ---
 
 # azurerm_resource_graph_query
