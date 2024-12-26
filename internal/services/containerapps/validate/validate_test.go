@@ -99,6 +99,10 @@ func TestValidateSecretNames(t *testing.T) {
 			Valid: false,
 		},
 		{
+			Input: "no.dots.allowed",
+			Valid: false,
+		},
+		{
 			Input: "a",
 			Valid: true,
 		},

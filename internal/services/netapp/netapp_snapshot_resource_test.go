@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -128,7 +128,15 @@ resource "azurerm_netapp_snapshot" "test" {
 func (NetAppSnapshotResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {

@@ -171,7 +171,6 @@ func getPrivateIpAddress(ctx context.Context, client *networkinterfaces.NetworkI
 				}
 			}
 		}
-
 	}
 
 	return privateIpAddress

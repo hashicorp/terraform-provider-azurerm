@@ -27,6 +27,7 @@ func TestAccMongoClusterFreeTier(t *testing.T) {
 		},
 	})
 }
+
 func testAccMongoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
@@ -100,6 +101,21 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 	})
 }
 
+func TestAccMongoCluster_geoReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location"),
+	})
+}
+
 func (r MongoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := mongoclusters.ParseMongoClusterID(state.ID)
 	if err != nil {
@@ -118,12 +134,19 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "random_password" "test" {
+  length  = 8
+  numeric = true
+  upper   = true
+  lower   = true
+}
+
 resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
+  administrator_password = random_password.test.result
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"

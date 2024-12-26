@@ -58,7 +58,7 @@ func resourceServiceBusNamespaceAuthorizationRuleSchema() map[string]*pluginsdk.
 			ForceNew:     true,
 			ValidateFunc: validate.AuthorizationRuleName(),
 		},
-		//lintignore: S013
+		// lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

@@ -412,7 +412,6 @@ func resourceExpressRouteCircuitPeeringUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if d.HasChange("ipv4_enabled") {
-
 		ipv4Enabled := d.Get("ipv4_enabled").(bool)
 		if ipv4Enabled {
 			payload.Properties.State = pointer.To(expressroutecircuitpeerings.ExpressRoutePeeringStateEnabled)

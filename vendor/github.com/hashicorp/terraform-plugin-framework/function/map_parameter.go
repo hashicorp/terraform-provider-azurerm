@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -135,14 +134,21 @@ func (p MapParameter) GetType() attr.Type {
 // errors or panics. This logic runs during the GetProviderSchema RPC and
 // should never include false positives.
 func (p MapParameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
-	if p.CustomType == nil && fwtype.ContainsCollectionWithDynamic(p.GetType()) {
-		var diag diag.Diagnostic
-		if req.ParameterPosition != nil {
-			diag = fwtype.ParameterCollectionWithDynamicTypeDiag(*req.ParameterPosition, req.Name)
-		} else {
-			diag = fwtype.VariadicParameterCollectionWithDynamicTypeDiag(req.Name)
+	if p.CustomType == nil {
+		if fwtype.ContainsCollectionWithDynamic(p.GetType()) {
+			if req.ParameterPosition != nil {
+				resp.Diagnostics.Append(fwtype.ParameterCollectionWithDynamicTypeDiag(*req.ParameterPosition, p.GetName()))
+			} else {
+				resp.Diagnostics.Append(fwtype.VariadicParameterCollectionWithDynamicTypeDiag(p.GetName()))
+			}
 		}
 
-		resp.Diagnostics.Append(diag)
+		if fwtype.ContainsMissingUnderlyingType(p.GetType()) {
+			resp.Diagnostics.Append(fwtype.ParameterMissingUnderlyingTypeDiag(p.GetName(), req.ParameterPosition))
+		}
+	}
+
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
 	}
 }

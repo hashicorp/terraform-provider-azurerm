@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ContainerRegistryAgentPoolResource struct {
-}
+type ContainerRegistryAgentPoolResource struct{}
 
 func TestAccContainerRegistryAgentPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_agent_pool", "test")

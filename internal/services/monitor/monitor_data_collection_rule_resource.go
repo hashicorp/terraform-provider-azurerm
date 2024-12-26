@@ -1861,7 +1861,7 @@ func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrule
 		result = append(result, PerfCounter{
 			Name:                       flattenStringPtr(v.Name),
 			CounterSpecifiers:          flattenStringSlicePtr(v.CounterSpecifiers),
-			SamplingFrequencyInSeconds: utils.NormaliseNilableInt64(v.SamplingFrequencyInSeconds),
+			SamplingFrequencyInSeconds: pointer.From(v.SamplingFrequencyInSeconds),
 			Streams:                    flattenDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
 	}

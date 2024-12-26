@@ -6,6 +6,7 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -215,7 +216,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
@@ -383,7 +384,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
@@ -392,9 +393,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
-				Key:                  strings.TrimPrefix(utils.NormalizeNilableString(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
+				Key:                  strings.TrimPrefix(pointer.From(kv.Key), FeatureKeyPrefix+"/"),
 				Name:                 fv.ID,
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Label:                pointer.From(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
@@ -444,7 +445,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}

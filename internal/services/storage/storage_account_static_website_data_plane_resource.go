@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -192,8 +195,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 
 			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 			if err != nil {
-				// If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
-				return nil
+				return nil // lint:ignore nilerr If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 			}
 
 			properties := accounts.StorageServiceProperties{

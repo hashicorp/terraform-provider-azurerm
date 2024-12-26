@@ -21,6 +21,7 @@ type UserFeatures struct {
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
+	NetApp                   NetAppFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -109,4 +110,9 @@ type RecoveryServiceFeatures struct {
 	VMBackupStopProtectionAndRetainDataOnDestroy    bool
 	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
 	PurgeProtectedItemsFromVaultOnDestroy           bool
+}
+
+type NetAppFeatures struct {
+	DeleteBackupsOnBackupVaultDestroy bool
+	PreventVolumeDestruction          bool
 }

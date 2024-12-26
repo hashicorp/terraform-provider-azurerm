@@ -23,6 +23,14 @@ resource "azurerm_arc_machine" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   kind                = "SCVMM"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "example"
+  }
 }
 ```
 
@@ -38,11 +46,31 @@ The following arguments are supported:
 
 * `kind` - (Required) The kind of the Arc Machine. Possible values are `AVS`, `AWS`, `EPS`, `GCP`, `HCI`, `SCVMM` and `VMware`. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the Arc Machine.
+
+---
+
+* An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Machine. At this time the only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Arc Machine.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 
@@ -50,6 +78,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating this Arc Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving this Arc Machine.
+* `update` - (Defaults to 30 minutes) Used when updating this Arc Machine.
 * `delete` - (Defaults to 30 minutes) Used when deleting this Arc Machine.
 
 ## Import

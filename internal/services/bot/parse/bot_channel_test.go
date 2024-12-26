@@ -27,7 +27,6 @@ func TestBotChannelID(t *testing.T) {
 		Error    bool
 		Expected *BotChannelId
 	}{
-
 		{
 			// empty
 			Input: "",

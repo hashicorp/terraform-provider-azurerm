@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -1118,10 +1119,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					if _, ok := d.GetOk("queue_properties"); ok {
-						return fmt.Errorf("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
+						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 					if _, ok := d.GetOk("static_website"); ok {
-						return fmt.Errorf("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
+						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 				}
 
@@ -2197,18 +2198,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.set(d); err != nil {
-		return err
-	}
+	endpoints.set(d)
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.set(d); err != nil {
-		return err
-	}
+	keysAndConnectionStrings.set(d)
 
 	blobProperties := make([]interface{}, 0)
 	if supportLevel.supportBlob {

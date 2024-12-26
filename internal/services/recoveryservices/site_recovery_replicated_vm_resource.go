@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -364,14 +363,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		out.Schema["is_primary"] = &pluginsdk.Schema{
-			Deprecated: "this property is not used and will be removed in version 4.0 of the provider",
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Default:    false,
-		}
-	}
 	return out
 }
 
@@ -465,41 +456,30 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVMManagedDiskInputDetails
-
-	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
+	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
+	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskInputDetails, 0, len(managedDisksGet))
+	for _, raw := range managedDisksGet {
 		diskInput := raw.(map[string]interface{})
-		diskId := diskInput["disk_id"].(string)
-		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
-		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
-		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
-		targetDiskType := diskInput["target_disk_type"].(string)
-		targetEncryptionDiskSetID := diskInput["target_disk_encryption_set_id"].(string)
-
 		managedDisks = append(managedDisks, replicationprotecteditems.A2AVMManagedDiskInputDetails{
-			DiskId:                              diskId,
-			PrimaryStagingAzureStorageAccountId: primaryStagingAzureStorageAccountID,
-			RecoveryResourceGroupId:             recoveryResourceGroupId,
-			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
-			RecoveryTargetDiskAccountType:       &targetDiskType,
-			RecoveryDiskEncryptionSetId:         &targetEncryptionDiskSetID,
+			DiskId:                              diskInput["disk_id"].(string),
+			PrimaryStagingAzureStorageAccountId: diskInput["staging_storage_account_id"].(string),
+			RecoveryResourceGroupId:             diskInput["target_resource_group_id"].(string),
+			RecoveryReplicaDiskAccountType:      pointer.To(diskInput["target_replica_disk_type"].(string)),
+			RecoveryTargetDiskAccountType:       pointer.To(diskInput["target_disk_type"].(string)),
+			RecoveryDiskEncryptionSetId:         pointer.To(diskInput["target_disk_encryption_set_id"].(string)),
 			DiskEncryptionInfo:                  expandDiskEncryption(diskInput["target_disk_encryption"].([]interface{})),
 		})
 	}
 
-	var vmDisks []replicationprotecteditems.A2AVMDiskInputDetails
-	for _, raw := range d.Get("unmanaged_disk").(*pluginsdk.Set).List() {
+	vmDisksGet := d.Get("unmanaged_disk").(*pluginsdk.Set).List()
+	vmDisks := make([]replicationprotecteditems.A2AVMDiskInputDetails, 0, len(vmDisksGet))
+	for _, raw := range vmDisksGet {
 		diskInput := raw.(map[string]interface{})
-		diskUri := diskInput["disk_uri"].(string)
-		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
-		recoveryAzureStorageAccountId := diskInput["target_storage_account_id"].(string)
-
 		vmDisks = append(vmDisks, replicationprotecteditems.A2AVMDiskInputDetails{
-			DiskUri:                             diskUri,
-			PrimaryStagingAzureStorageAccountId: primaryStagingAzureStorageAccountID,
-			RecoveryAzureStorageAccountId:       recoveryAzureStorageAccountId,
+			DiskUri:                             diskInput["disk_uri"].(string),
+			PrimaryStagingAzureStorageAccountId: diskInput["staging_storage_account_id"].(string),
+			RecoveryAzureStorageAccountId:       diskInput["target_storage_account_id"].(string),
 		})
-
 	}
 
 	parameters := replicationprotecteditems.EnableProtectionInput{
@@ -511,11 +491,11 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				RecoveryResourceGroupId:            &targetResourceGroupId,
 				RecoveryAvailabilitySetId:          targetAvailabilitySetID,
 				RecoveryAvailabilityZone:           targetAvailabilityZone,
-				MultiVMGroupName:                   utils.String(d.Get("multi_vm_group_name").(string)),
-				RecoveryProximityPlacementGroupId:  utils.String(d.Get("target_proximity_placement_group_id").(string)),
-				RecoveryBootDiagStorageAccountId:   utils.String(d.Get("target_boot_diagnostic_storage_account_id").(string)),
-				RecoveryCapacityReservationGroupId: utils.String(d.Get("target_capacity_reservation_group_id").(string)),
-				RecoveryVirtualMachineScaleSetId:   utils.String(d.Get("target_virtual_machine_scale_set_id").(string)),
+				MultiVMGroupName:                   pointer.To(d.Get("multi_vm_group_name").(string)),
+				RecoveryProximityPlacementGroupId:  pointer.To(d.Get("target_proximity_placement_group_id").(string)),
+				RecoveryBootDiagStorageAccountId:   pointer.To(d.Get("target_boot_diagnostic_storage_account_id").(string)),
+				RecoveryCapacityReservationGroupId: pointer.To(d.Get("target_capacity_reservation_group_id").(string)),
+				RecoveryVirtualMachineScaleSetId:   pointer.To(d.Get("target_virtual_machine_scale_set_id").(string)),
 				VMManagedDisks:                     &managedDisks,
 				VMDisks:                            &vmDisks,
 				RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
@@ -569,8 +549,8 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetAvailabilitySetID = nil
 	}
 
-	var vmNics []replicationprotecteditems.VMNicInputDetails
 	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
+	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
@@ -602,8 +582,9 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		})
 	}
 
-	var managedDisks []replicationprotecteditems.A2AVMManagedDiskUpdateDetails
-	for _, raw := range d.Get("managed_disk").(*pluginsdk.Set).List() {
+	managedDisksGet := d.Get("managed_disk").(*pluginsdk.Set).List()
+	managedDisks := make([]replicationprotecteditems.A2AVMManagedDiskUpdateDetails, 0, len(managedDisksGet))
+	for _, raw := range managedDisksGet {
 		diskInput := raw.(map[string]interface{})
 		diskId := diskInput["disk_id"].(string)
 		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)

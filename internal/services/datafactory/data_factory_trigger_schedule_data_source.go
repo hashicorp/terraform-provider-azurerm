@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 type TriggerScheduleDataSource struct{}
@@ -256,7 +256,6 @@ func (d TriggerScheduleDataSource) Read() sdk.ResourceFunc {
 				if scheduleTriggerProps.Description != nil {
 					model.Description = *scheduleTriggerProps.Description
 				}
-
 			}
 			if err := metadata.Encode(&model); err != nil {
 				return fmt.Errorf("encoding: %+v", err)

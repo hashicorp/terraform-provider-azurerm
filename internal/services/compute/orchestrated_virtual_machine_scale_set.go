@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -192,7 +191,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 }
 
 func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -268,15 +267,6 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema.Elem.(*pluginsdk.Resource).Schema["failure_suppression_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		}
-	}
-
-	return schema
 }
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -664,7 +654,8 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
 									string(virtualmachinescalesets.DiffDiskPlacementResourceDisk),
 								}, false),
-							}},
+							},
+						},
 					},
 				},
 
@@ -1626,7 +1617,6 @@ func FlattenOrchestratedVirtualMachineScaleSetIPConfiguration(input virtualmachi
 		applicationGatewayBackendAddressPoolIds = flattenSubResourcesToIDs(props.ApplicationGatewayBackendAddressPools)
 		applicationSecurityGroupIds = flattenSubResourcesToIDs(props.ApplicationSecurityGroups)
 		loadBalancerBackendAddressPoolIds = flattenSubResourcesToIDs(props.LoadBalancerBackendAddressPools)
-
 	}
 
 	return map[string]interface{}{
@@ -1686,7 +1676,6 @@ func FlattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input virtualmachi
 		if input.Sku != nil && input.Sku.Name != nil && input.Sku.Tier != nil {
 			sku = flattenOrchestratedVirtualMachineScaleSetPublicIPSku(input.Sku)
 		}
-
 	}
 
 	return map[string]interface{}{
@@ -1855,7 +1844,6 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 					ipConfigurations = append(ipConfigurations, config)
 				}
 			}
-
 		}
 
 		results = append(results, map[string]interface{}{
@@ -2025,7 +2013,6 @@ func FlattenOrchestratedVirtualMachineScaleSetScheduledEventsProfile(input *virt
 }
 
 func FlattenOrchestratedVirtualMachineScaleSetPriorityMixPolicy(input *virtualmachinescalesets.PriorityMixPolicy) []interface{} {
-
 	baseRegularPriorityCount := int64(0)
 	if input != nil && input.BaseRegularPriorityCount != nil {
 		baseRegularPriorityCount = *input.BaseRegularPriorityCount

@@ -27,7 +27,6 @@ func TestEndpointEventhubID(t *testing.T) {
 		Error    bool
 		Expected *EndpointEventhubId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestEndpointEventhubIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointEventhubId
 	}{
-
 		{
 			// empty
 			Input: "",
