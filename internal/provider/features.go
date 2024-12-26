@@ -378,13 +378,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						ExactlyOneOf: []string{"vm_backup_stop_protection_and_retain_data_on_destroy", "vm_backup_suspend_protection_and_retain_data_on_destroy"},
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						ExactlyOneOf: []string{"vm_backup_stop_protection_and_retain_data_on_destroy", "vm_backup_suspend_protection_and_retain_data_on_destroy"},
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
