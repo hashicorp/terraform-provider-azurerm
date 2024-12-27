@@ -7,9 +7,11 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
+* `azurerm_linux_virtual_machine` - export `os_disk.0.id` attribute [GH-28352]
+* `azurerm_windows_virtual_machine` - export `os_disk.0.id` attribute [GH-28352]
 
 BUG FIXES:
-
+1
 * `azurerm_automation_software_update_configuration` remove deprecated misspelled attribute `error_meesage` [GH-28312]
 * `azurerm_batch_pool` - support for new block `security_profile` [GH-28069]
 * `azurerm_log_analytics_data_export_rule` - now creates successfully without returning 404 [GH-27876]
