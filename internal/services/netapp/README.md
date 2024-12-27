@@ -89,3 +89,35 @@ features {
     }
   }
 ```
+
+## Azure NetApp Files has features that requires disassociation, e.g. BackupPolicyId and SnapshotPolicyIds
+
+- For cases where a property must have its content removed, mostly Ids (BackupPolicyId or SnapshotPolicyIds), instead of using `nil`, use `pointer.To("")`, this will trigger ANF RP to update the resource and set the value to empty string, setting as `nil` won't trigger any action within ANF RP.
+
+E.g.
+
+```golang
+// Removing SnapshotId
+update := volumes.VolumePatch{
+    Properties: &volumes.VolumePatchProperties{
+        DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+            Snapshot: &volumes.VolumeSnapshotProperties{
+                SnapshotPolicyId: pointer.To(""),
+            },
+        },
+    },
+}
+```
+
+```golang
+// Removing BackupPolicyId
+backupPolicyIdRemoval := volumes.VolumePatch{
+    Properties: &volumes.VolumePatchProperties{
+        DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+            Backup: &volumes.VolumeBackupProperties{
+                BackupPolicyId: pointer.To(""),
+            },
+        },
+    },
+}
+```

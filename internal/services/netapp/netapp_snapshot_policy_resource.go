@@ -11,13 +11,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -338,8 +342,100 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
+// func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+// 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
+// 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+// 	defer cancel()
+
+// 	id, err := snapshotpolicy.ParseSnapshotPolicyID(d.Id())
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Deleting snapshot policy and waiting for it fo fully complete the operation
+// 	if err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id); err != nil {
+// 		return fmt.Errorf("deleting %s: %+v", id, err)
+// 	}
+
+// 	log.Printf("[DEBUG] Waiting for %s to be deleted", id)
+// 	if err := waitForSnapshotPolicyDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+// func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+// 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
+// 	volumeClient := meta.(*clients.Client).NetApp.VolumeClient
+// 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+// 	defer cancel()
+
+// 	id, err := snapshotpolicy.ParseSnapshotPolicyID(d.Id())
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Try to delete the snapshot policy
+// 	result, err := client.SnapshotPoliciesDelete(ctx, *id)
+
+// 	if err != nil {
+// 		// Check if error is 409 with message about being used by volumes
+// 		if result.HttpResponse != nil && result.HttpResponse.StatusCode == 409 && strings.Contains(err.Error(), "SnapshotPolicy is used") {
+// 			// Get all volumes in the account that might be using this snapshot policy
+// 			volumeIds, err := findVolumesUsingSnapshotPolicy(ctx, meta.(*clients.Client), *id)
+// 			if err != nil {
+// 				return fmt.Errorf("finding volumes using snapshot policy %s: %+v", *id, err)
+// 			}
+
+// 			// Disassociate snapshot policy from each volume
+// 			for _, volumeId := range volumeIds {
+// 				volId, err := volumes.ParseVolumeID(volumeId)
+// 				if err != nil {
+// 					return fmt.Errorf("parsing volume ID %q: %+v", volumeId, err)
+// 				}
+
+// 				// Update volume to remove snapshot policy
+// 				update := volumes.VolumePatch{
+// 					Properties: &volumes.VolumePatchProperties{
+// 						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+// 							Snapshot: &volumes.VolumeSnapshotProperties{
+// 								SnapshotPolicyId: nil,
+// 							},
+// 						},
+// 					},
+// 				}
+
+// 				if err = volumeClient.UpdateThenPoll(ctx, *volId, update); err != nil {
+// 					return fmt.Errorf("removing snapshot policy from volume %s: %+v", *volId, err)
+// 				}
+
+// 				// Wait for the update to complete
+// 				if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *volId); err != nil {
+// 					return fmt.Errorf("waiting for snapshot policy removal from volume %s: %+v", *volId, err)
+// 				}
+// 			}
+
+// 			// Try deleting the snapshot policy again using DeleteThenPoll
+// 			if err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id); err != nil {
+// 				return fmt.Errorf("deleting %s after volume disassociation: %+v", *id, err)
+// 			}
+// 		} else {
+// 			return fmt.Errorf("deleting %s: %+v", *id, err)
+// 		}
+// 	}
+
+// 	log.Printf("[DEBUG] Waiting for %s to be deleted", *id)
+// 	if err := waitForSnapshotPolicyDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
 func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotPoliciesClient
+	volumeClient := meta.(*clients.Client).NetApp.VolumeClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -348,17 +444,134 @@ func resourceNetAppSnapshotPolicyDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	// Deleting snapshot policy and waiting for it fo fully complete the operation
-	if err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	log.Printf("[INFO] Attempting to delete Snapshot Policy %s", *id)
+	// Try to delete the snapshot policy using DeleteThenPoll
+	err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id)
+	if err != nil {
+		// Check if error is about snapshot policy being in use
+		if strings.Contains(err.Error(), "SnapshotPolicy is used") {
+			log.Printf("[INFO] Snapshot Policy %s is in use, finding volumes using this policy...", *id)
+
+			// Get all volumes in the account that might be using this snapshot policy
+			volumeIds, err := findVolumesUsingSnapshotPolicy(ctx, meta.(*clients.Client), *id)
+			if err != nil {
+				return fmt.Errorf("finding volumes using snapshot policy %s: %+v", *id, err)
+			}
+
+			log.Printf("[INFO] Found %d volumes using Snapshot Policy %s", len(volumeIds), *id)
+
+			// Disassociate snapshot policy from each volume
+			for i, volumeId := range volumeIds {
+				log.Printf("[INFO] Processing volume %d of %d: %s", i+1, len(volumeIds), volumeId)
+
+				volId, err := volumes.ParseVolumeID(volumeId)
+				if err != nil {
+					return fmt.Errorf("parsing volume ID %q: %+v", volumeId, err)
+				}
+
+				log.Printf("[INFO] Removing snapshot policy from volume %s", *volId)
+				// Update volume to remove snapshot policy
+				update := volumes.VolumePatch{
+					Properties: &volumes.VolumePatchProperties{
+						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+							Snapshot: &volumes.VolumeSnapshotProperties{
+								SnapshotPolicyId: pointer.To(""),
+							},
+						},
+					},
+				}
+
+				locks.ByID(volumeId)
+
+				if err = volumeClient.UpdateThenPoll(ctx, *volId, update); err != nil {
+					locks.UnlockByID(volumeId)
+					return fmt.Errorf("removing snapshot policy from volume %s: %+v", *volId, err)
+				}
+
+				log.Printf("[INFO] Waiting for snapshot policy removal to complete for volume %s", *volId)
+				// Wait for the update to complete
+				if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, *volId); err != nil {
+					locks.UnlockByID(volumeId)
+					return fmt.Errorf("waiting for snapshot policy removal from volume %s: %+v", *volId, err)
+				}
+
+				locks.UnlockByID(volumeId)
+			}
+
+			log.Printf("[INFO] All volumes processed, attempting to delete Snapshot Policy %s again", *id)
+			// Try deleting the snapshot policy again
+			if err = client.SnapshotPoliciesDeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s after volume disassociation: %+v", *id, err)
+			}
+		} else {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
+		}
 	}
 
-	log.Printf("[DEBUG] Waiting for %s to be deleted", id)
+	log.Printf("[INFO] Waiting for final confirmation of deletion for Snapshot Policy %s", *id)
 	if err := waitForSnapshotPolicyDeletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutDelete)); err != nil {
 		return err
 	}
 
+	log.Printf("[INFO] Successfully deleted Snapshot Policy %s", *id)
 	return nil
+}
+
+func findVolumesUsingSnapshotPolicy(ctx context.Context, client *clients.Client, snapshotPolicyId snapshotpolicy.SnapshotPolicyId) ([]string, error) {
+	const logPrefix = "[findVolumesUsingSnapshotPolicy]"
+	log.Printf("[INFO] %s Starting search for volumes using snapshot policy %s", logPrefix, snapshotPolicyId.ID())
+
+	volumeIds := make([]string, 0)
+
+	poolClient := client.NetApp.PoolClient
+	accountId := capacitypools.NewNetAppAccountID(snapshotPolicyId.SubscriptionId, snapshotPolicyId.ResourceGroupName, snapshotPolicyId.NetAppAccountName)
+
+	log.Printf("[INFO] %s Listing capacity pools in account %s", logPrefix, snapshotPolicyId.NetAppAccountName)
+	poolsResult, err := poolClient.PoolsList(ctx, accountId)
+	if err != nil {
+		return nil, fmt.Errorf("listing capacity pools in account %s: %+v", snapshotPolicyId.NetAppAccountName, err)
+	}
+
+	if model := poolsResult.Model; model != nil {
+		volumeClient := client.NetApp.VolumeClient
+		log.Printf("[INFO] %s Found %d pools to check", logPrefix, len(*model))
+
+		for i, pool := range *model {
+			if pool.Name == nil {
+				continue
+			}
+
+			poolNameParts := strings.Split(pointer.From(pool.Name), "/")
+			poolName := poolNameParts[len(poolNameParts)-1]
+
+			log.Printf("[INFO] %s Processing pool %d of %d: %s", logPrefix, i+1, len(*model), poolName)
+
+			volumeId := volumes.NewCapacityPoolID(snapshotPolicyId.SubscriptionId, snapshotPolicyId.ResourceGroupName, snapshotPolicyId.NetAppAccountName, poolName)
+			volumesResult, err := volumeClient.List(ctx, volumeId)
+			if err != nil {
+				return nil, fmt.Errorf("listing volumes in pool %s: %+v", poolName, err)
+			}
+
+			if volumesModel := volumesResult.Model; volumesModel != nil {
+				log.Printf("[INFO] %s Found %d volumes in pool %s", logPrefix, len(*volumesModel), poolName)
+
+				for _, volume := range *volumesModel {
+					if volume.Id == nil || volume.Properties.DataProtection == nil ||
+						volume.Properties.DataProtection.Snapshot == nil || volume.Properties.DataProtection.Snapshot.SnapshotPolicyId == nil {
+						continue
+					}
+
+					if strings.EqualFold(*volume.Properties.DataProtection.Snapshot.SnapshotPolicyId, snapshotPolicyId.ID()) {
+						log.Printf("[INFO] %s Found volume using the snapshot policy: %s", logPrefix, *volume.Id)
+						volumeIds = append(volumeIds, *volume.Id)
+					}
+				}
+			}
+		}
+	}
+
+	log.Printf("[INFO] %s Completed search, found %d volumes using the snapshot policy", logPrefix, len(volumeIds))
+	return volumeIds, nil
 }
 
 func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *snapshotpolicy.HourlySchedule {

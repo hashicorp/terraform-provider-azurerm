@@ -6,6 +6,7 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -322,7 +323,11 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 
 func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
 	if len(input) == 0 {
-		return &volumes.VolumePatchPropertiesDataProtection{}
+		return &volumes.VolumePatchPropertiesDataProtection{
+			Snapshot: &volumes.VolumeSnapshotProperties{
+				SnapshotPolicyId: pointer.To(""),
+			},
+		}
 	}
 
 	snapshotObject := volumes.VolumeSnapshotProperties{}
@@ -696,19 +701,29 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 	}
 
 	// Disassociating volume from snapshot policy if present
-	if existing.Model.Properties.DataProtection != nil && existing.Model.Properties.DataProtection.Snapshot != nil {
+	if existing.Model.Properties.DataProtection != nil && existing.Model.Properties.DataProtection.Snapshot != nil && existing.Model.Properties.DataProtection.Snapshot.SnapshotPolicyId != nil && existing.Model.Properties.DataProtection.Snapshot.SnapshotPolicyId != pointer.To("") {
+		log.Printf("[INFO] Disassociating volume from snapshot policy")
 		if err = client.UpdateThenPoll(ctx, pointer.From(id), volumes.VolumePatch{
 			Properties: &volumes.VolumePatchProperties{
 				DataProtection: &volumes.VolumePatchPropertiesDataProtection{
-					Snapshot: &volumes.VolumeSnapshotProperties{},
+					Snapshot: &volumes.VolumeSnapshotProperties{
+						SnapshotPolicyId: pointer.To(""),
+					},
 				},
 			},
 		}); err != nil {
 			return fmt.Errorf("dissociating snapshot policy from %s: %+v", pointer.From(id), err)
 		}
+
+		// Wait for the volume update to complete
+		log.Printf("[INFO] Wait for the volume update to complete after unsetting snapshot policy")
+		if err := waitForVolumeCreateOrUpdate(ctx, client, volumes.VolumeId(pointer.From(id))); err != nil {
+			return fmt.Errorf("waiting for volume to reflect snapshotPolicyId unset from %q: %+v", pointer.From(id), err)
+		}
 	}
 
 	// Deleting volume and waiting for it to fully complete the operation
+	log.Printf("[INFO] Deleting volume %s", id.String())
 	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {

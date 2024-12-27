@@ -495,6 +495,10 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       "SkipASMAzSecPack" = "true"
     }
   }
+
+  depends_on = [
+    azurerm_netapp_snapshot_policy.test
+  ]
 }
 `, template, data.RandomInteger)
 }
@@ -556,10 +560,6 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       root_access_enabled = false
     }
 
-    data_protection_snapshot_policy {
-      snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
-    }
-
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
@@ -590,15 +590,15 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       root_access_enabled = false
     }
 
-    data_protection_snapshot_policy {
-      snapshot_policy_id = azurerm_netapp_snapshot_policy.test.id
-    }
-
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
+
+  depends_on = [
+    azurerm_netapp_snapshot_policy.test
+  ]
 }
 `, template, data.RandomInteger)
 }
