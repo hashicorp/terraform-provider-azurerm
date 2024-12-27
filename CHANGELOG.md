@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New Data Source**: `azurerm_kubernetes_fleet_manager_data_source` [GH-28278]
+* **New Data Source**: `azurerm_kubernetes_fleet_manager` [GH-28278]
 
 ENHANCEMENTS:
 
