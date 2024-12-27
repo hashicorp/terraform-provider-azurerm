@@ -274,6 +274,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "Basic",
+						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
 					},
 				},
