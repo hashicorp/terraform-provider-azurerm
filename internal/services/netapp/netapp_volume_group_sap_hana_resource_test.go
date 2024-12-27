@@ -244,7 +244,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
       "SkipASMAzSecPack" = "true"
     }
   }
-  
+
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test
@@ -552,11 +552,11 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
       "SkipASMAzSecPack" = "true"
     }
   }
-  
+
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test,
-	azurerm_netapp_snapshot_policy.test
+    azurerm_netapp_snapshot_policy.test
   ]
 }
 `, template, data.RandomInteger)
@@ -688,7 +688,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test" {
   depends_on = [
     azurerm_linux_virtual_machine.test,
     azurerm_proximity_placement_group.test,
-	azurerm_netapp_snapshot_policy.test
+    azurerm_netapp_snapshot_policy.test
   ]
 }
 `, template, data.RandomInteger)
@@ -1013,7 +1013,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       root_access_enabled = false
     }
 
-	data_protection_replication {
+    data_protection_replication {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
       remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[2].id
@@ -1031,6 +1031,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
     azurerm_proximity_placement_group.test_secondary,
   ]
 }
+
 
 `, template, data.RandomInteger, "westus2")
 }

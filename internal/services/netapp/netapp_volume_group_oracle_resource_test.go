@@ -176,18 +176,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora1-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-Ora1-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -198,7 +198,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
-    
+
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
@@ -228,7 +228,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
-    
+
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
@@ -274,7 +274,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
-    
+
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
@@ -333,18 +333,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora1-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv3"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-Ora1-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv3"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -385,7 +385,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
       unix_read_write     = true
       root_access_enabled = false
     }
-    
+
     tags = {
       "CreatedOnDate"    = "2022-07-08T23:50:21Z",
       "SkipASMAzSecPack" = "true"
@@ -429,18 +429,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora1-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-Ora1-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -463,18 +463,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   }
 
   volume {
-    name                         = "acctest-NetAppVolume-OraLog-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-2-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-log"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-OraLog-%[2]d"
+    volume_path                = "my-unique-file-ora-path-2-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -537,18 +537,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora1-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-Ora1-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -567,18 +567,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   }
 
   volume {
-    name                         = "acctest-NetAppVolume-OraLog-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-2-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-log"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-OraLog-%[2]d"
+    volume_path                = "my-unique-file-ora-path-2-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -617,18 +617,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-Ora1-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1200
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-Ora1-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1200
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -647,18 +647,18 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
   }
 
   volume {
-    name                         = "acctest-NetAppVolume-OraLog-%[2]d"
-    volume_path                  = "my-unique-file-oralog-path-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    zone                         = "1"
-    volume_spec_name             = "ora-log"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-OraLog-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
 
     export_policy_rule {
       rule_index          = 1
@@ -687,7 +687,7 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
     netapp {
-      prevent_volume_destruction             = false
+      prevent_volume_destruction = false
     }
   }
 }
@@ -699,8 +699,8 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%[1]d"
   location = "%[3]s"
 
-  tags     = {
-    "SkipNRMSNSG" = "true",
+  tags = {
+    "SkipNRMSNSG"   = "true",
     "CreatedOnDate" = "2022-07-08T23:50:21Z"
   }
 }
@@ -728,33 +728,33 @@ resource "azurerm_key_vault" "test" {
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
   tenant_id                       = "%[2]s"
-  sku_name = "standard"
+  sku_name                        = "standard"
 
   access_policy {
-  	tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
-  	object_id    = data.azurerm_client_config.current.object_id
+    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = []
-	secret_permissions = []
-	storage_permissions = []
-	key_permissions = [
-	  "Get",
-	  "Create",
-	  "Delete",
-	  "WrapKey",
-	  "UnwrapKey",
-	  "GetRotationPolicy",
-	  "SetRotationPolicy",
+    secret_permissions      = []
+    storage_permissions     = []
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
     ]
   }
 
   access_policy {
-    tenant_id    = azurerm_netapp_account.test.identity.0.tenant_id
-    object_id    = azurerm_netapp_account.test.identity.0.principal_id
+    tenant_id = azurerm_netapp_account.test.identity.0.tenant_id
+    object_id = azurerm_netapp_account.test.identity.0.principal_id
 
     certificate_permissions = []
-	secret_permissions = []
-	storage_permissions = []
+    secret_permissions      = []
+    storage_permissions     = []
     key_permissions = [
       "Get",
       "Encrypt",
@@ -784,9 +784,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_netapp_account_encryption" "test" {
-  netapp_account_id = azurerm_netapp_account.test.id
+  netapp_account_id                     = azurerm_netapp_account.test.id
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
-  encryption_key = azurerm_key_vault_key.test.versionless_id
+  encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -936,8 +936,7 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
     netapp {
-      prevent_volume_destruction             = false
-      delete_backups_on_backup_vault_destroy = true
+      prevent_volume_destruction = false
     }
   }
 }
@@ -951,7 +950,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%[1]d"
   location = "%[2]s"
 
-  tags     = {
+  tags = {
     "SkipNRMSNSG" = "true"
   }
 }
@@ -962,7 +961,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
   }
 }
 
@@ -1146,7 +1145,7 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
     netapp {
-      prevent_volume_destruction             = false
+      prevent_volume_destruction = false
     }
   }
 }
@@ -1155,7 +1154,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%[1]d"
   location = "%[2]s"
 
-  tags     = {
+  tags = {
     "SkipNRMSNSG" = "true"
   }
 }
