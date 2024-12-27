@@ -121,3 +121,21 @@ backupPolicyIdRemoval := volumes.VolumePatch{
     },
 }
 ```
+
+## `Computed` attribute of a few configuration items
+
+- Azure NetApp Files resources are complex enough on the backend and a few configuration items must remain in `computed = true` state and not changed under any circumstance, otherwise, if it is a `ForceNew = true` type of configuration, it may result in data loss. The best example of this is the configuration called `network_features`, this must be `computed = true` at all times, Azure NetApp Files team will soon make changes to networking that will make the property `network_features` be changed from `basic` to `standard` and to prevent data loss, this configuration should stay as is, with `computed = true` set.
+
+```golang
+"network_features": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    Computed: true,
+    Default:  string(volumes.NetworkFeaturesBasic),
+    ValidateFunc: validation.StringInSlice([]string{
+        string(volumes.NetworkFeaturesBasic),
+        string(volumes.NetworkFeaturesStandard),
+    }, false),
+},
+```
+
