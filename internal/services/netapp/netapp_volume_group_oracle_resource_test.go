@@ -188,6 +188,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     protocols                  = ["NFSv4.1"]
     security_style             = "unix"
     snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -218,6 +219,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     protocols                  = ["NFSv4.1"]
     security_style             = "unix"
     snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -264,6 +266,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     protocols                    = ["NFSv4.1"]
     security_style               = "unix"
     snapshot_directory_visible   = false
+    network_features             = "Basic"
 
     export_policy_rule {
       rule_index          = 1
@@ -294,6 +297,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     protocols                    = ["NFSv4.1"]
     security_style               = "unix"
     snapshot_directory_visible   = false
+    network_features             = "Basic"
 
     export_policy_rule {
       rule_index          = 1
