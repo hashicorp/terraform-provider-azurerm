@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -138,6 +139,12 @@ func SetResponseErrorDiagnostic(resp interface{}, summary string, detail interfa
 	case *resource.DeleteResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *resource.ReadResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *ephemeral.OpenResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *ephemeral.RenewResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *ephemeral.CloseResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
 	}
 }

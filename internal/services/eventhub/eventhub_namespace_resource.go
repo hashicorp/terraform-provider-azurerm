@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -204,8 +205,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.TlsVersionOnePointZero),
-					string(namespaces.TlsVersionOnePointOne),
 					string(namespaces.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -270,6 +269,18 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 		),
 	}
 
+	if !features.FivePointOhBeta() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(namespaces.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
 	return resource
 }
 

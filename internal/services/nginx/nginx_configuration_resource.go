@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,8 +36,8 @@ type ProtectedFile struct {
 	VirtualPath string `tfschema:"virtual_path"`
 }
 
-func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
-	return nginxconfiguration.NginxConfigurationFile{
+func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationProtectedFileRequest {
+	return nginxconfiguration.NginxConfigurationProtectedFileRequest{
 		Content:     pointer.To(c.Content),
 		VirtualPath: pointer.To(c.VirtualPath),
 	}
@@ -59,12 +59,11 @@ func (c ConfigurationModel) toSDKFiles() *[]nginxconfiguration.NginxConfiguratio
 	return &files
 }
 
-func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxConfigurationFile {
+func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxConfigurationProtectedFileRequest {
 	if len(c.ProtectedFile) == 0 {
 		return nil
 	}
-
-	files := make([]nginxconfiguration.NginxConfigurationFile, 0, len(c.ProtectedFile))
+	files := []nginxconfiguration.NginxConfigurationProtectedFileRequest{}
 	for _, file := range c.ProtectedFile {
 		files = append(files, file.toSDKModel())
 	}
@@ -72,10 +71,10 @@ func (c ConfigurationModel) toSDKProtectedFiles() *[]nginxconfiguration.NginxCon
 }
 
 // ToSDKModel used in both Create and Update
-func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfiguration {
-	req := nginxconfiguration.NginxConfiguration{
+func (c ConfigurationModel) ToSDKModel() nginxconfiguration.NginxConfigurationRequest {
+	req := nginxconfiguration.NginxConfigurationRequest{
 		Name: pointer.To(defaultConfigurationName),
-		Properties: &nginxconfiguration.NginxConfigurationProperties{
+		Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
 			RootFile: pointer.To(c.RootFile),
 		},
 	}
@@ -238,7 +237,7 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			var output ConfigurationModel
-			// protected files field not return by API so decode from state
+			// protected files content field not return by API so decode from state
 			if err := meta.Decode(&output); err != nil {
 				return err
 			}
@@ -254,21 +253,37 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 				}
 
 				if files := prop.Files; files != nil {
+					configs := []ConfigFile{}
 					for _, file := range *files {
-						output.ConfigFile = append(output.ConfigFile, ConfigFile{
-							Content:     pointer.ToString(file.Content),
-							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						if pointer.From(file.Content) != "" {
+							configs = append(configs, ConfigFile{
+								Content:     pointer.ToString(file.Content),
+								VirtualPath: pointer.ToString(file.VirtualPath),
+							})
+						}
+					}
+					if len(configs) > 0 {
+						output.ConfigFile = configs
 					}
 				}
 
-				// GET does not return protected files
+				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
+					configs := []ProtectedFile{}
 					for _, file := range *files {
-						output.ProtectedFile = append(output.ProtectedFile, ProtectedFile{
-							Content:     pointer.ToString(file.Content),
+						config := ProtectedFile{
 							VirtualPath: pointer.ToString(file.VirtualPath),
-						})
+						}
+						for _, protectedFile := range output.ProtectedFile {
+							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
+								config.Content = protectedFile.Content
+								break
+							}
+						}
+						configs = append(configs, config)
+					}
+					if len(configs) > 0 {
+						output.ProtectedFile = configs
 					}
 				}
 			}
@@ -302,8 +317,14 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil for %v", *id)
 			}
 
-			upd := existing.Model
-			// root file is required in update
+			upd := nginxconfiguration.NginxConfigurationRequest{
+				Name: pointer.To(defaultConfigurationName),
+				Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
+					// root file is required in update
+					RootFile: existing.Model.Properties.RootFile,
+				},
+			}
+
 			if meta.ResourceData.HasChange("root_file") {
 				upd.Properties.RootFile = pointer.To(model.RootFile)
 			}
@@ -321,7 +342,7 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, *upd); err != nil {
+			if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 

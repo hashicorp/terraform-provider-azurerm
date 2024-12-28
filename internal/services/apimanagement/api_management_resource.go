@@ -814,9 +814,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 			return errors.New("`zones` is only supported when sku type is `Premium`")
 		}
 
-		if publicIpAddressId == "" {
-			return errors.New("`public_ip_address` must be specified when `zones` are provided")
-		}
 		zones := zones.ExpandUntyped(v)
 		properties.Zones = &zones
 	}
@@ -1078,9 +1075,6 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 				return errors.New("`zones` is only supported when sku type is `Premium`")
 			}
 
-			if d.Get("public_ip_address_id").(string) == "" {
-				return errors.New("`public_ip_address` must be specified when `zones` are provided")
-			}
 			zones := zones.ExpandUntyped(v)
 			payload.Zones = &zones
 		}

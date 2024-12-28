@@ -55,6 +55,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
@@ -168,10 +169,12 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
 		domainservices.Registration{},
-		elasticsan.Registration{},
 		dynatrace.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
 		hybridcompute.Registration{},
@@ -337,6 +340,7 @@ func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		keyvault.Registration{},
 	}
 
 	return services

@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/replications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/operation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -141,8 +141,8 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
-	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Operation
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
+	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Operation
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -266,7 +266,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -441,7 +441,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku string, id registries.RegistryId) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -460,7 +460,7 @@ func applyContainerRegistrySku(d *pluginsdk.ResourceData, meta interface{}, sku 
 }
 
 func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registryId registries.RegistryId, oldGeoReplications []replications.Replication, newGeoReplications []replications.Replication) error {
-	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Replications
+	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
 	log.Printf("[INFO] preparing to apply geo-replications for Container Registry.")
 
 	oldReplications := map[string]replications.Replication{}
@@ -589,8 +589,8 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 }
 
 func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
-	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Replications
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
+	replicationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Replications
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -722,7 +722,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceContainerRegistryDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
