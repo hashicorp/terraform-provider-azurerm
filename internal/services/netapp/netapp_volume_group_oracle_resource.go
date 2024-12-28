@@ -230,6 +230,13 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						ForceNew: true,
 					},
 
+					"network_features": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
+					},
+
 					"mount_ip_addresses": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -268,13 +275,6 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						ForceNew:     true,
 						Computed:     true,
 						ValidateFunc: azure.ValidateResourceID,
-					},
-
-					"network_features": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
 					},
 				},
 			},
