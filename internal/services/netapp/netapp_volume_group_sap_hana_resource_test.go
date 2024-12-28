@@ -1062,7 +1062,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   name                = "acctest-VirtualNetwork-Secondary-%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1074,7 +1074,7 @@ resource "azurerm_subnet" "test_secondary" {
   name                 = "acctest-DelegatedSubnet-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1090,7 +1090,7 @@ resource "azurerm_subnet" "test1_secondary" {
   name                 = "acctest-HostsSubnet-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test_secondary" {
@@ -1270,7 +1270,7 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1282,7 +1282,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-DelegatedSubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1298,7 +1298,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctest-HostsSubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "public" {
