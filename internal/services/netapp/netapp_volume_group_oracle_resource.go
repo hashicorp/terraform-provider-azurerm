@@ -273,7 +273,6 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 					"network_features": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						Default:      "Basic",
 						Computed:     true,
 						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
 					},
@@ -369,9 +368,7 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Updating %s", id)
 
 			if metadata.ResourceData.HasChange("volume") {
-				// Iterating over each volume and performing individual patch
 				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
-
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
 

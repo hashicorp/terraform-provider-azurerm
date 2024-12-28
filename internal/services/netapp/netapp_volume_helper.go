@@ -717,7 +717,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 		// Wait for the volume update to complete
 		log.Printf("[INFO] Wait for the volume update to complete after unsetting snapshot policy")
-		if err := waitForVolumeCreateOrUpdate(ctx, client, volumes.VolumeId(pointer.From(id))); err != nil {
+		if err := waitForVolumeCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
 			return fmt.Errorf("waiting for volume to reflect snapshotPolicyId unset from %q: %+v", pointer.From(id), err)
 		}
 	}
