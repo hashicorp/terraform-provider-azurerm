@@ -1,12 +1,16 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package deliveryruleconditions
+package frontdoordeliveryruleconditiondiscriminator
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 )
+
+type FrontDoorDeliveryRuleCondition interface {
+	Evaluate(input string, Parameters map[string]interface{}) bool
+}
 
 func AsDeliveryRuleCookiesCondition(input rules.DeliveryRuleCondition) (*rules.CookiesMatchConditionParameters, bool) {
 	if input.DeliveryRuleCondition().Name != rules.MatchVariableCookies {
@@ -132,4 +136,51 @@ func AsDeliveryRuleURLPathCondition(input rules.DeliveryRuleCondition) (*rules.U
 
 	urlPathParameter := rules.URLPathMatchConditionParameters{}
 	return pointer.To(urlPathParameter), true
+}
+
+func AsDeliveryRuleSslProtocolCondition(input rules.DeliveryRuleCondition) (*rules.SslProtocolMatchConditionParameters, bool) {
+	if input.DeliveryRuleCondition().Name != rules.MatchVariableSslProtocol {
+		return nil, false
+	}
+
+	sslProtocolParameter := rules.SslProtocolMatchConditionParameters{}
+	return pointer.To(sslProtocolParameter), true
+}
+
+func AsDeliveryRuleSocketAddrCondition(input rules.DeliveryRuleCondition) (*rules.SocketAddrMatchConditionParameters, bool) {
+	if input.DeliveryRuleCondition().Name != rules.MatchVariableSocketAddr {
+		return nil, false
+	}
+
+	socketAddrParameter := rules.SocketAddrMatchConditionParameters{}
+	return pointer.To(socketAddrParameter), true
+}
+
+func AsDeliveryRuleClientPortCondition(input rules.DeliveryRuleCondition) (*rules.ClientPortMatchConditionParameters, bool) {
+	// The input here has the data...
+	if input.DeliveryRuleCondition().Name != rules.MatchVariableClientPort {
+		return nil, false
+	}
+
+	// need to pull the values out here...
+	clientPortParameter := rules.ClientPortMatchConditionParameters{}
+	return pointer.To(clientPortParameter), true
+}
+
+func AsDeliveryRuleServerPortCondition(input rules.DeliveryRuleCondition) (*rules.ServerPortMatchConditionParameters, bool) {
+	if input.DeliveryRuleCondition().Name != rules.MatchVariableServerPort {
+		return nil, false
+	}
+
+	serverPortParameter := rules.ServerPortMatchConditionParameters{}
+	return pointer.To(serverPortParameter), true
+}
+
+func AsDeliveryRuleHostNameCondition(input rules.DeliveryRuleCondition) (*rules.HostNameMatchConditionParameters, bool) {
+	if input.DeliveryRuleCondition().Name != rules.MatchVariableHostName {
+		return nil, false
+	}
+
+	hostNametParameter := rules.HostNameMatchConditionParameters{}
+	return pointer.To(hostNametParameter), true
 }

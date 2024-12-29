@@ -6,8 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,9 +18,10 @@ func HTTPVersion() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(rules.HTTPVersionOperatorEqual),
-				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForHTTPVersionOperator(),
-					false),
+				Default:  "Equal",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Equal",
+				}, false),
 			},
 
 			"negate_condition": {
@@ -48,18 +48,17 @@ func HTTPVersion() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []rules.DeliveryRuleCondition {
-	output := make([]rules.DeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-
-		output = append(output, rules.DeliveryRuleHTTPVersionCondition{
-			Name: rules.MatchVariableHTTPVersion,
-			Parameters: rules.HTTPVersionMatchConditionParameters{
-				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleHTTPVersionConditionParameters,
-				Operator:        rules.HTTPVersionOperator(item["operator"].(string)),
-				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+		output = append(output, cdn.DeliveryRuleHTTPVersionCondition{
+			Name: cdn.NameHTTPVersion,
+			Parameters: &cdn.HTTPVersionMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleHttpVersionConditionParameters"),
+				Operator:        utils.String(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -68,8 +67,8 @@ func ExpandArmCdnEndpointConditionHTTPVersion(input []interface{}) []rules.Deliv
 	return output
 }
 
-func FlattenArmCdnEndpointConditionHTTPVersion(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := AsDeliveryRuleHTTPVersionCondition(input)
+func FlattenArmCdnEndpointConditionHTTPVersion(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleHTTPVersionCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule http version condition")
 	}
@@ -77,9 +76,10 @@ func FlattenArmCdnEndpointConditionHTTPVersion(input rules.DeliveryRuleCondition
 	operator := ""
 	matchValues := make([]interface{}, 0)
 	negateCondition := false
-
-	if params := condition; params != nil {
-		operator = string(params.Operator)
+	if params := condition.Parameters; params != nil {
+		if params.Operator != nil {
+			operator = *params.Operator
+		}
 
 		if params.NegateCondition != nil {
 			negateCondition = *params.NegateCondition

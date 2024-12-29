@@ -6,7 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -18,8 +18,11 @@ func RemoteAddress() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRemoteAddressOperator(),
-					false),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.RemoteAddressOperatorAny),
+					string(cdn.RemoteAddressOperatorGeoMatch),
+					string(cdn.RemoteAddressOperatorIPMatch),
+				}, false),
 			},
 
 			"negate_condition": {
@@ -41,17 +44,17 @@ func RemoteAddress() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []rules.DeliveryRuleCondition {
-	output := make([]rules.DeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		output = append(output, rules.DeliveryRuleRemoteAddressCondition{
-			Name: rules.MatchVariableRemoteAddress,
-			Parameters: rules.RemoteAddressMatchConditionParameters{
-				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleRemoteAddressConditionParameters,
-				Operator:        rules.RemoteAddressOperator(item["operator"].(string)),
+		output = append(output, cdn.DeliveryRuleRemoteAddressCondition{
+			Name: cdn.NameRemoteAddress,
+			Parameters: &cdn.RemoteAddressMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRemoteAddressConditionParameters"),
+				Operator:        cdn.RemoteAddressOperator(item["operator"].(string)),
 				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
@@ -61,8 +64,8 @@ func ExpandArmCdnEndpointConditionRemoteAddress(input []interface{}) []rules.Del
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRemoteAddress(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := AsDeliveryRuleRemoteAddressCondition(input)
+func FlattenArmCdnEndpointConditionRemoteAddress(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleRemoteAddressCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule address condition")
 	}
@@ -70,8 +73,7 @@ func FlattenArmCdnEndpointConditionRemoteAddress(input rules.DeliveryRuleConditi
 	operator := ""
 	negateCondition := false
 	matchValues := make([]interface{}, 0)
-
-	if params := condition; params != nil {
+	if params := condition.Parameters; params != nil {
 		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {

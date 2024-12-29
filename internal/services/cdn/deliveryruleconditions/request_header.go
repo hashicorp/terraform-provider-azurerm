@@ -6,8 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,8 +24,17 @@ func RequestHeader() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestHeaderOperator(),
-					false),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.RequestHeaderOperatorAny),
+					string(cdn.RequestHeaderOperatorBeginsWith),
+					string(cdn.RequestHeaderOperatorContains),
+					string(cdn.RequestHeaderOperatorEndsWith),
+					string(cdn.RequestHeaderOperatorEqual),
+					string(cdn.RequestHeaderOperatorGreaterThan),
+					string(cdn.RequestHeaderOperatorGreaterThanOrEqual),
+					string(cdn.RequestHeaderOperatorLessThan),
+					string(cdn.RequestHeaderOperatorLessThanOrEqual),
+				}, false),
 			},
 
 			"negate_condition": {
@@ -51,8 +59,8 @@ func RequestHeader() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(rules.TransformLowercase),
-						string(rules.TransformUppercase),
+						string(cdn.TransformLowercase),
+						string(cdn.TransformUppercase),
 					}, false),
 				},
 			},
@@ -60,22 +68,28 @@ func RequestHeader() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []rules.DeliveryRuleCondition {
-	output := make([]rules.DeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
-
-		requestHeaderCondition := rules.DeliveryRuleRequestHeaderCondition{
-			Name: rules.MatchVariableRequestHeader,
-			Parameters: rules.RequestHeaderMatchConditionParameters{
-				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleRequestHeaderConditionParameters,
-				Selector:        pointer.To(item["selector"].(string)),
-				Operator:        rules.RequestHeaderOperator(item["operator"].(string)),
-				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+		requestHeaderCondition := cdn.DeliveryRuleRequestHeaderCondition{
+			Name: cdn.NameRequestHeader,
+			Parameters: &cdn.RequestHeaderMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleRequestHeaderConditionParameters"),
+				Selector:        utils.String(item["selector"].(string)),
+				Operator:        cdn.RequestHeaderOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
-				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
+		}
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			requestHeaderCondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, requestHeaderCondition)
@@ -84,8 +98,8 @@ func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []rules.Del
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestHeader(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := AsDeliveryRuleRequestHeaderCondition(input)
+func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleRequestHeaderCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule request header condition")
 	}
@@ -95,8 +109,7 @@ func FlattenArmCdnEndpointConditionRequestHeader(input rules.DeliveryRuleConditi
 	matchValues := make([]interface{}, 0)
 	negateCondition := false
 	transforms := make([]string, 0)
-
-	if params := condition; params != nil {
+	if params := condition.Parameters; params != nil {
 		if params.Selector != nil {
 			selector = *params.Selector
 		}
@@ -112,7 +125,9 @@ func FlattenArmCdnEndpointConditionRequestHeader(input rules.DeliveryRuleConditi
 		}
 
 		if params.Transforms != nil {
-			transforms = flattenTransforms(params.Transforms)
+			for _, transform := range *params.Transforms {
+				transforms = append(transforms, string(transform))
+			}
 		}
 	}
 

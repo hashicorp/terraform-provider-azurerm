@@ -309,6 +309,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/origins
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules

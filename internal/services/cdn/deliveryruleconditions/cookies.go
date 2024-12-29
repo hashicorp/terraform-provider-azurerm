@@ -6,8 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -25,8 +24,17 @@ func Cookies() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForCookiesOperator(),
-					false),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.OperatorAny),
+					string(cdn.OperatorBeginsWith),
+					string(cdn.OperatorContains),
+					string(cdn.OperatorEndsWith),
+					string(cdn.OperatorEqual),
+					string(cdn.OperatorGreaterThan),
+					string(cdn.OperatorGreaterThanOrEqual),
+					string(cdn.OperatorLessThan),
+					string(cdn.OperatorLessThanOrEqual),
+				}, false),
 			},
 
 			"negate_condition": {
@@ -51,8 +59,8 @@ func Cookies() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(rules.TransformLowercase),
-						string(rules.TransformUppercase),
+						string(cdn.TransformLowercase),
+						string(cdn.TransformUppercase),
 					}, false),
 				},
 			},
@@ -60,21 +68,27 @@ func Cookies() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionCookies(input []interface{}) []rules.DeliveryRuleCondition {
-	output := make([]rules.DeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionCookies(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 	for _, v := range input {
 		item := v.(map[string]interface{})
-
-		cookiesCondition := rules.DeliveryRuleCookiesCondition{
-			Name: rules.MatchVariableCookies,
-			Parameters: rules.CookiesMatchConditionParameters{
-				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleCookiesConditionParameters,
-				Selector:        pointer.To(item["selector"].(string)),
-				Operator:        rules.CookiesOperator(item["operator"].(string)),
-				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+		cookiesCondition := cdn.DeliveryRuleCookiesCondition{
+			Name: cdn.NameCookies,
+			Parameters: &cdn.CookiesMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleCookiesConditionParameters"),
+				Selector:        utils.String(item["selector"].(string)),
+				Operator:        cdn.CookiesOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
-				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
+		}
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			cookiesCondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, cookiesCondition)
@@ -83,8 +97,8 @@ func ExpandArmCdnEndpointConditionCookies(input []interface{}) []rules.DeliveryR
 	return output
 }
 
-func FlattenArmCdnEndpointConditionCookies(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := AsDeliveryRuleCookiesCondition(input)
+func FlattenArmCdnEndpointConditionCookies(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleCookiesCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule cookie condition")
 	}
@@ -95,12 +109,12 @@ func FlattenArmCdnEndpointConditionCookies(input rules.DeliveryRuleCondition) (*
 	matchValues := make([]interface{}, 0)
 	transforms := make([]string, 0)
 
-	if params := condition; params != nil {
-		operator = string(params.Operator)
-
+	if params := condition.Parameters; params != nil {
 		if params.Selector != nil {
 			selector = *params.Selector
 		}
+
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
 			negateCondition = *params.NegateCondition
@@ -111,7 +125,9 @@ func FlattenArmCdnEndpointConditionCookies(input rules.DeliveryRuleCondition) (*
 		}
 
 		if params.Transforms != nil {
-			transforms = flattenTransforms(params.Transforms)
+			for _, transform := range *params.Transforms {
+				transforms = append(transforms, string(transform))
+			}
 		}
 	}
 

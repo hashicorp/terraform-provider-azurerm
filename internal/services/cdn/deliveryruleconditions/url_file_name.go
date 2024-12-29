@@ -6,8 +6,7 @@ package deliveryruleconditions
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,8 +18,17 @@ func URLFileName() *pluginsdk.Resource {
 			"operator": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice(rules.PossibleValuesForURLFileNameOperator(),
-					false),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.URLFileNameOperatorAny),
+					string(cdn.URLFileNameOperatorBeginsWith),
+					string(cdn.URLFileNameOperatorContains),
+					string(cdn.URLFileNameOperatorEndsWith),
+					string(cdn.URLFileNameOperatorEqual),
+					string(cdn.URLFileNameOperatorGreaterThan),
+					string(cdn.URLFileNameOperatorGreaterThanOrEqual),
+					string(cdn.URLFileNameOperatorLessThan),
+					string(cdn.URLFileNameOperatorLessThanOrEqual),
+				}, false),
 			},
 
 			"negate_condition": {
@@ -45,8 +53,8 @@ func URLFileName() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(rules.TransformLowercase),
-						string(rules.TransformUppercase),
+						string(cdn.TransformLowercase),
+						string(cdn.TransformUppercase),
 					}, false),
 				},
 			},
@@ -54,21 +62,28 @@ func URLFileName() *pluginsdk.Resource {
 	}
 }
 
-func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []rules.DeliveryRuleCondition {
-	output := make([]rules.DeliveryRuleCondition, 0)
+func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []cdn.BasicDeliveryRuleCondition {
+	output := make([]cdn.BasicDeliveryRuleCondition, 0)
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		requestURICondition := rules.DeliveryRuleURLFileNameCondition{
-			Name: rules.MatchVariableURLFileName,
-			Parameters: rules.URLFileNameMatchConditionParameters{
-				TypeName:        rules.DeliveryRuleConditionParametersTypeDeliveryRuleURLFileExtensionMatchConditionParameters,
-				Operator:        rules.URLFileNameOperator(item["operator"].(string)),
-				NegateCondition: pointer.To(item["negate_condition"].(bool)),
+		requestURICondition := cdn.DeliveryRuleURLFileNameCondition{
+			Name: cdn.NameURLFileName,
+			Parameters: &cdn.URLFileNameMatchConditionParameters{
+				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFilenameConditionParameters"),
+				Operator:        cdn.URLFileNameOperator(item["operator"].(string)),
+				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
-				Transforms:      expandTransforms(item["transforms"].([]interface{})),
 			},
+		}
+
+		if rawTransforms := item["transforms"].([]interface{}); len(rawTransforms) != 0 {
+			transforms := make([]cdn.Transform, 0)
+			for _, t := range rawTransforms {
+				transforms = append(transforms, cdn.Transform(t.(string)))
+			}
+			requestURICondition.Parameters.Transforms = &transforms
 		}
 
 		output = append(output, requestURICondition)
@@ -77,8 +92,8 @@ func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []rules.Deliv
 	return output
 }
 
-func FlattenArmCdnEndpointConditionURLFileName(input rules.DeliveryRuleCondition) (*map[string]interface{}, error) {
-	condition, ok := AsDeliveryRuleURLFileNameCondition(input)
+func FlattenArmCdnEndpointConditionURLFileName(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleURLFileNameCondition()
 	if !ok {
 		return nil, fmt.Errorf("expected a delivery rule url file name condition")
 	}
@@ -87,7 +102,7 @@ func FlattenArmCdnEndpointConditionURLFileName(input rules.DeliveryRuleCondition
 	negateCondition := false
 	operator := ""
 	transforms := make([]string, 0)
-	if params := condition; params != nil {
+	if params := condition.Parameters; params != nil {
 		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
