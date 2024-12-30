@@ -1,16 +1,18 @@
-package resource
+package deviceregistry
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = AssetEndpointProfileResource{}
@@ -142,7 +144,7 @@ func (AssetEndpointProfileResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (AssetEndpointProfileResource) ModelObject() interface{} {
-	return &AssetEndpointProfileResourceModel
+	return &AssetEndpointProfileResourceModel{}
 }
 
 func (AssetEndpointProfileResource) ResourceType() string {
