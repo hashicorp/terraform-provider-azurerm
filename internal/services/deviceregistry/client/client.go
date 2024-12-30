@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	AssetClient *assets.AssetsClient
+	AssetClient                *assets.AssetsClient
 	AssetEndpointProfileClient *assetendpointprofiles.AssetEndpointProfilesClient
 }
 
@@ -26,7 +26,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(assetClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AssetClient: assetClient,
+		AssetClient:                assetClient,
 		AssetEndpointProfileClient: assetEndpointProfileClient,
 	}, nil
 }

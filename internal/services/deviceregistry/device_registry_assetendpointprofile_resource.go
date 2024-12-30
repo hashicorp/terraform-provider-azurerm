@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -18,23 +18,23 @@ var _ sdk.Resource = AssetEndpointProfileResource{}
 type AssetEndpointProfileResource struct{}
 
 type AssetEndpointProfileResourceModel struct {
-	Name     string            `tfschema:"name"`
-		ResourceGroupName         string            `tfschema:"resource_group_name"`
-	Location string            `tfschema:"location"`
-	Tags     map[string]string `tfschema:"tags"`
-	ExtendedLocationName string `tfschema:"extended_location_name"`
-	ExtendedLocationType string `tfschema:"extended_location_type"`
-	ProvisioningState string `tfschema:"provisioning_state"`
+	Name                 string            `tfschema:"name"`
+	ResourceGroupName    string            `tfschema:"resource_group_name"`
+	Location             string            `tfschema:"location"`
+	Tags                 map[string]string `tfschema:"tags"`
+	ExtendedLocationName string            `tfschema:"extended_location_name"`
+	ExtendedLocationType string            `tfschema:"extended_location_type"`
+	ProvisioningState    string            `tfschema:"provisioning_state"`
 
-	Uuid string `tfschema:"uuid"`
-	TargetAddress  string  `tfschema:"target_address"`
-	EndpointProfileType string `tfschema:"endpoint_profile_type"`
-	DiscoveredAssetEndpointProfileRef string `tfschema:"discovered_asset_endpoint_profile_ref"`
-	AdditionalConfiguration string `tfschema:"additional_configuration"`
-	AuthenticationMethod string `tfschema:"authentication_method"`
+	Uuid                                          string `tfschema:"uuid"`
+	TargetAddress                                 string `tfschema:"target_address"`
+	EndpointProfileType                           string `tfschema:"endpoint_profile_type"`
+	DiscoveredAssetEndpointProfileRef             string `tfschema:"discovered_asset_endpoint_profile_ref"`
+	AdditionalConfiguration                       string `tfschema:"additional_configuration"`
+	AuthenticationMethod                          string `tfschema:"authentication_method"`
 	UsernamePasswordCredentialsUsernameSecretName string `tfschema:"username_password_credentials_username_secret_name"`
 	UsernamePasswordCredentialsPasswordSecretName string `tfschema:"username_password_credentials_password_secret_name"`
-	X509CredentialsCertificateSecretName string `tfschema:"x509_credentials_certificate_secret_name"`
+	X509CredentialsCertificateSecretName          string `tfschema:"x509_credentials_certificate_secret_name"`
 
 	Status AssetEndpointProfileStatus `tfschema:"status"`
 }
@@ -44,10 +44,9 @@ type AssetEndpointProfileStatus struct {
 }
 
 type StatusError struct {
-	Code int64 `tfschema:"code"`
+	Code    int64  `tfschema:"code"`
 	Message string `tfschema:"message"`
 }
-
 
 func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 	// add the other assetendpointprofile properties
@@ -59,23 +58,23 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"extended_location_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"extended_location_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"target_address": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"endpoint_profile_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"discovered_asset_endpoint_profile_ref": {
@@ -104,7 +103,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"location": commonschema.Location(),
-		"tags": commonschema.Tags(),
+		"tags":     commonschema.Tags(),
 	}
 }
 
@@ -138,8 +137,9 @@ func (AssetEndpointProfileResource) Attributes() map[string]*pluginsdk.Schema {
 							},
 						},
 					},
-				}
-			}
+				},
+			},
+		},
 	}
 }
 
@@ -148,7 +148,7 @@ func (AssetEndpointProfileResource) ModelObject() interface{} {
 }
 
 func (AssetEndpointProfileResource) ResourceType() string {
-	return "azurerm_device_registry_assetendpointprofile"
+	return "azurerm_device_registry_asset_endpoint_profile"
 }
 
 func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
@@ -174,7 +174,7 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 
 			// Convert the TF model to the ARM model
 			param := assetendpointprofiles.AssetEndpointProfile{
-				Name: 	 pointer.To(config.Name),
+				Name:     pointer.To(config.Name),
 				Location: pointer.To(location.Normalize(config.Location)),
 				Tags:     pointer.To(config.Tags),
 				ExtendedLocation: &assetendpointprofiles.ExtendedLocation{
@@ -182,10 +182,10 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 					Type: pointer.To(config.ExtendedLocationType),
 				},
 				Properties: &assetendpointprofiles.AssetEndpointProfileProperties{
-					TargetAddress: pointer.To(config.TargetAddress),
-					EndpointProfileType: pointer.To(config.EndpointProfileType),
+					TargetAddress:                     pointer.To(config.TargetAddress),
+					EndpointProfileType:               pointer.To(config.EndpointProfileType),
 					DiscoveredAssetEndpointProfileRef: pointer.To(config.DiscoveredAssetEndpointProfileRef),
-					AdditionalConfiguration: pointer.To(config.AdditionalConfiguration),
+					AdditionalConfiguration:           pointer.To(config.AdditionalConfiguration),
 				},
 			}
 			populateAuthenticationProperties(&param, config)
@@ -217,7 +217,7 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 
 			// Convert the TF model to the ARM model
 			param := assetendpointprofiles.AssetEndpointProfileUpdate{
-				Properties: &assetendpointprofiles.AssetEndpointProfileUpdateProperties{}
+				Properties: &assetendpointprofiles.AssetEndpointProfileUpdateProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -300,7 +300,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 
 			// Convert the ARM model to the TF model
 			state := AssetEndpointProfileResourceModel{
-				Name: id.Name,
+				Name:              id.Name,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
@@ -370,10 +370,11 @@ func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpoint
 			UsernamePasswordCredentials: &assetendpointprofiles.UsernamePasswordCredentials{
 				UsernameSecretName: pointer.To(config.UsernamePasswordCredentialsUsernameSecretName),
 				PasswordSecretName: pointer.To(config.UsernamePasswordCredentialsPasswordSecretName),
-			}
+			},
 		}
 	default:
 		param.Properties.Authentication = &assetendpointprofiles.Authentication{
 			Method: pointer.To("None"),
 		}
+	}
 }
