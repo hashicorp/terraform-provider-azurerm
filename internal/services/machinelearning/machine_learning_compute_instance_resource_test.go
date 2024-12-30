@@ -186,7 +186,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS3_V2"
   local_auth_enabled            = true
-  node_public_ip_enabled 	    = true
+  node_public_ip_enabled        = true
 
   description = "this is a resource residing in azure"
 
