@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
+	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -62,15 +62,15 @@ type StackHCIWindowsVirtualMachineResourceModel struct {
 
 type StackHCIVirtualMachineHardwareProfile struct {
 	DynamicMemory   []StackHCIVirtualMachineDynamicMemory `tfschema:"dynamic_memory"`
-	MemoryMb        int64                                 `tfschema:"memory_mb"`
+	MemoryInMb      int64                                 `tfschema:"memory_in_mb"`
 	ProcessorNumber int64                                 `tfschema:"processor_number"`
 	VmSize          string                                `tfschema:"vm_size"`
 }
 
 type StackHCIVirtualMachineDynamicMemory struct {
-	MaximumMemoryMb    int64 `tfschema:"maximum_memory_mb"`
-	MinimumMemoryMb    int64 `tfschema:"minimum_memory_mb"`
-	TargetMemoryBuffer int64 `tfschema:"target_memory_buffer"`
+	MaximumMemoryInMb            int64 `tfschema:"maximum_memory_in_mb"`
+	MinimumMemoryInMb            int64 `tfschema:"minimum_memory_in_mb"`
+	TargetMemoryBufferPercentage int64 `tfschema:"target_memory_buffer_percentage"`
 }
 
 type StackHCIVirtualMachineHttpProxyConfiguration struct {
@@ -105,11 +105,8 @@ type StackHCIVirtualMachineSshPublicKey struct {
 type StackHCIVirtualMachineStorageProfile struct {
 	DataDiskIds           []string `tfschema:"data_disk_ids"`
 	ImageId               string   `tfschema:"image_id"`
-	OsDiskId              string   `tfschema:"os_disk_id"`
 	VmConfigStoragePathId string   `tfschema:"vm_config_storage_path_id"`
 }
-
-type StackHCIVirtualMachineOsDisk struct{}
 
 func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -138,7 +135,7 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						ValidateFunc: validation.IntAtLeast(1),
 					},
 
-					"memory_mb": {
+					"memory_in_mb": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ForceNew:     true,
@@ -152,21 +149,21 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"maximum_memory_mb": {
+								"maximum_memory_in_mb": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IntAtLeast(1),
 								},
 
-								"minimum_memory_mb": {
+								"minimum_memory_in_mb": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validation.IntAtLeast(1),
 								},
 
-								"target_memory_buffer": {
+								"target_memory_buffer_percentage": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
 									ForceNew:     true,
@@ -189,10 +186,7 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: networkinterfaces.ValidateNetworkInterfaceID,
-						},
+						Elem:     commonschema.ResourceIDReferenceElem(&networkinterfaces.NetworkInterfaceId{}),
 					},
 				},
 			},
@@ -209,7 +203,7 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: computeValidate.WindowsAdminUsername,
 					},
 
 					"admin_password": {
@@ -217,17 +211,14 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						Optional:     true,
 						ForceNew:     true,
 						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: computeValidate.WindowsAdminPassword,
 					},
 
 					"computer_name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringMatch(
-							regexp.MustCompile(`^[\-a-zA-Z0-9]{0,15}$`),
-							"computer_name must begin and end with an alphanumeric character, be between 2 and 15 characters in length and can only contain alphanumeric characters and hyphens.",
-						),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.WindowsComputerNameFull,
 					},
 
 					"automatic_update_enabled": {
@@ -315,10 +306,7 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						MinItems: 1,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: virtualharddisks.ValidateVirtualHardDiskID,
-						},
+						Elem:     commonschema.ResourceIDReferenceElem(&virtualharddisks.VirtualHardDiskId{}),
 					},
 
 					"image_id": {
@@ -331,19 +319,9 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						),
 					},
 
-					"os_disk_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: virtualharddisks.ValidateVirtualHardDiskID,
-					},
+					"os_disk_id": commonschema.ResourceIDReferenceOptionalForceNew(&virtualharddisks.VirtualHardDiskId{}),
 
-					"vm_config_storage_path_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: storagecontainers.ValidateStorageContainerID,
-					},
+					"vm_config_storage_path_id": commonschema.ResourceIDReferenceOptionalForceNew(&storagecontainers.StorageContainerId{}),
 				},
 			},
 		},
@@ -357,17 +335,15 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 				Schema: map[string]*pluginsdk.Schema{
 					"http_proxy": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
-						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"https_proxy": {
 						Type:         pluginsdk.TypeString,
-						Optional:     true,
+						Required:     true,
 						ForceNew:     true,
-						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -385,6 +361,7 @@ func (StackHCIWindowsVirtualMachineResource) Arguments() map[string]*pluginsdk.S
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
+						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -592,7 +569,7 @@ func expandVirtualMachineHardwareProfile(input []StackHCIVirtualMachineHardwareP
 	v := input[0]
 	output := &virtualmachineinstances.VirtualMachineInstancePropertiesHardwareProfile{
 		DynamicMemoryConfig: expandVirtualMachineDynamicMemory(v.DynamicMemory),
-		MemoryMB:            pointer.To(v.MemoryMb),
+		MemoryMB:            pointer.To(v.MemoryInMb),
 		Processors:          pointer.To(v.ProcessorNumber),
 		VMSize:              pointer.To(virtualmachineinstances.VMSizeEnum(v.VmSize)),
 	}
@@ -608,7 +585,7 @@ func flattenVirtualMachineHardwareProfile(input *virtualmachineinstances.Virtual
 	return []StackHCIVirtualMachineHardwareProfile{
 		{
 			DynamicMemory:   flattenVirtualMachineDynamicMemory(input.DynamicMemoryConfig),
-			MemoryMb:        pointer.From(input.MemoryMB),
+			MemoryInMb:      pointer.From(input.MemoryMB),
 			ProcessorNumber: pointer.From(input.Processors),
 			VmSize:          string(pointer.From(input.VMSize)),
 		},
@@ -622,9 +599,9 @@ func expandVirtualMachineDynamicMemory(input []StackHCIVirtualMachineDynamicMemo
 
 	v := input[0]
 	output := &virtualmachineinstances.VirtualMachineInstancePropertiesHardwareProfileDynamicMemoryConfig{
-		MaximumMemoryMB:    pointer.To(v.MaximumMemoryMb),
-		MinimumMemoryMB:    pointer.To(v.MinimumMemoryMb),
-		TargetMemoryBuffer: pointer.To(v.TargetMemoryBuffer),
+		MaximumMemoryMB:    pointer.To(v.MaximumMemoryInMb),
+		MinimumMemoryMB:    pointer.To(v.MinimumMemoryInMb),
+		TargetMemoryBuffer: pointer.To(v.TargetMemoryBufferPercentage),
 	}
 
 	return output
@@ -642,9 +619,9 @@ func flattenVirtualMachineDynamicMemory(input *virtualmachineinstances.VirtualMa
 
 	return []StackHCIVirtualMachineDynamicMemory{
 		{
-			MaximumMemoryMb:    pointer.From(input.MaximumMemoryMB),
-			MinimumMemoryMb:    pointer.From(input.MinimumMemoryMB),
-			TargetMemoryBuffer: pointer.From(input.TargetMemoryBuffer),
+			MaximumMemoryInMb:            pointer.From(input.MaximumMemoryMB),
+			MinimumMemoryInMb:            pointer.From(input.MinimumMemoryMB),
+			TargetMemoryBufferPercentage: pointer.From(input.TargetMemoryBuffer),
 		},
 	}
 }
@@ -688,7 +665,7 @@ func flattenVirtualMachineHttpProxyConfig(input *virtualmachineinstances.HTTPPro
 
 func expandVirtualMachineNetworkProfileForUpdate(input []StackHCIVirtualMachineNetworkProfile) *virtualmachineinstances.NetworkProfileUpdate {
 	if len(input) == 0 {
-		return nil
+		return &virtualmachineinstances.NetworkProfileUpdate{}
 	}
 
 	networkInterfaces := make([]virtualmachineinstances.NetworkProfileUpdateNetworkInterfacesInlined, 0)
@@ -841,7 +818,7 @@ func expandVirtualMachineSecurityProfile(input StackHCIWindowsVirtualMachineReso
 
 func expandVirtualMachineStorageProfileWindowsForUpdate(input []StackHCIVirtualMachineStorageProfile) *virtualmachineinstances.StorageProfileUpdate {
 	if len(input) == 0 {
-		return nil
+		return &virtualmachineinstances.StorageProfileUpdate{}
 	}
 
 	v := input[0]
@@ -884,10 +861,6 @@ func expandVirtualMachineStorageProfileWindows(input []StackHCIVirtualMachineSto
 		},
 	}
 
-	if v.OsDiskId != "" {
-		output.OsDisk.Id = pointer.To(v.OsDiskId)
-	}
-
 	if v.VmConfigStoragePathId != "" {
 		output.VMConfigStoragePathId = pointer.To(v.VmConfigStoragePathId)
 	}
@@ -914,16 +887,10 @@ func flattenVirtualMachineStorageProfileWindows(input *virtualmachineinstances.V
 		imageId = pointer.From(input.ImageReference.Id)
 	}
 
-	var osDiskId string
-	if input.OsDisk != nil {
-		osDiskId = pointer.From(input.OsDisk.Id)
-	}
-
 	return []StackHCIVirtualMachineStorageProfile{
 		{
 			DataDiskIds:           dataDiskIds,
 			ImageId:               imageId,
-			OsDiskId:              osDiskId,
 			VmConfigStoragePathId: pointer.From(input.VMConfigStoragePathId),
 		},
 	}

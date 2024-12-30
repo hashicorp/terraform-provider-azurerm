@@ -116,7 +116,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "example" {
   hardware_profile {
     vm_size          = "Custom"
     processor_number = 2
-    memory_mb        = 8192
+    memory_in_mb     = 8192
   }
 
   network_profile {
@@ -170,21 +170,21 @@ The following arguments are supported:
 
 A `dynamic_memory` block supports the following:
 
-* `maximum_memory_mb` - (Required) The maximum memory in Megabytes . Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `maximum_memory_in_mb` - (Required) The maximum memory in Megabytes . Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
-* `minimum_memory_mb` - (Required) The minimum memory in Megabytes. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `minimum_memory_in_mb` - (Required) The minimum memory in Megabytes. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
-* `target_memory_buffer` - (Required) The extra memory that should be reserved for a virtual machine instance at runtime. Possible value can be in the range of `5` to `2000`. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `target_memory_buffer_percentage` - (Required) The percentage of total memory to reserve as extra memory for a virtual machine instance during runtime. Possible value can be in the range of `5` to `2000`. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
 ---
 
 A `hardware_profile` block supports the following:
 
-* `memory_mb` - (Required) The memory in Megabytes. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `memory_in_mb` - (Required) The memory in Megabytes. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
 * `processor_number` - (Required) The number of processors. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
-* `vm_size` - (Required) The size of virtual machine. Possible values are 
+* `vm_size` - (Required) The size of virtual machine. Possible values are
 `Custom`, `Default`, `Standard_A4_v2`, `Standard_A2_v2`, `Standard_D8s_v3`, `Standard_D4s_v3`, `Standard_D16s_v3`, `Standard_DS5_v2`, `Standard_DS4_v2`, `Standard_DS13_v2`, `Standard_DS3_v2`, `Standard_DS2_v2`, `Standard_D32s_v3`, `Standard_D2s_v3`, `Standard_K8S5_v1`, `Standard_K8S4_v1`, `Standard_K8S3_v1`, `Standard_K8S2_v1`, `Standard_K8S_v1`, `Standard_NK12`, `Standard_NK6`, `Standard_NV12` and `Standard_NV6`. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
 * `dynamic_memory` - (Optional) A `dynamic_memory` block as defined above. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
@@ -193,9 +193,9 @@ A `hardware_profile` block supports the following:
 
 A `http_proxy_configuration` block supports the following:
 
-* `http_proxy` - (Optional) The HTTP proxy server endpoint. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `http_proxy` - (Required) The HTTP proxy server endpoint. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
-* `https_proxy` - (Optional) The HTTPS proxy server endpoint. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
+* `https_proxy` - (Required) The HTTPS proxy server endpoint. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
 * `no_proxy` - (Optional) Specifies a list of endpoints that should not go through proxy. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
@@ -243,15 +243,13 @@ A `storage_profile` block supports the following:
 
 * `image_id` - (Required) The ID of the Stack HCI VM Image. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
-* `os_disk_id` - (Optional) The ID of the OS disk. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
-
 * `vm_config_storage_path_id` - (Optional) The ID of the Azure Stack HCI Storage Path to host the VM configuration file. Changing this forces a new Azure Stack HCI Windows Virtual Machine to be created.
 
 -> **Note:** If `vm_config_storage_path_id` is not specified, it will be assigned by the server. If you experience a diff you may need to add this to `ignore_changes`.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Stack HCI Windows Virtual Machine.
 

@@ -151,7 +151,6 @@ func testAccStackHCIWindowsVirtualMachine_requiresImport(t *testing.T) {
 }
 
 func (r StackHCIWindowsVirtualMachineResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	clusterClient := client.AzureStackHCI.VirtualMachineInstances
 	id, err := parse.StackHCIVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
@@ -159,7 +158,7 @@ func (r StackHCIWindowsVirtualMachineResource) Exists(ctx context.Context, clien
 
 	arcMachineId := machines.NewMachineID(id.SubscriptionId, id.ResourceGroup, id.MachineName)
 	scopeId := commonids.NewScopeID(arcMachineId.ID())
-	resp, err := clusterClient.Get(ctx, scopeId)
+	resp, err := client.AzureStackHCI.VirtualMachineInstances.Get(ctx, scopeId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -183,7 +182,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
   hardware_profile {
     vm_size          = "Custom"
     processor_number = 2
-    memory_mb        = 8192
+    memory_in_mb     = 8192
   }
 
   network_profile {
@@ -223,7 +222,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "import" {
   hardware_profile {
     vm_size          = "Custom"
     processor_number = 2
-    memory_mb        = 8192
+    memory_in_mb     = 8192
   }
 
   network_profile {
@@ -299,7 +298,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
   hardware_profile {
     vm_size          = "Custom"
     processor_number = 2
-    memory_mb        = 8192
+    memory_in_mb     = 8192
   }
 
   network_profile {
@@ -386,11 +385,11 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
   hardware_profile {
     vm_size          = "Custom"
     processor_number = 2
-    memory_mb        = 8192
+    memory_in_mb     = 8192
     dynamic_memory {
-      maximum_memory_mb    = 8192
-      minimum_memory_mb    = 512
-      target_memory_buffer = 20
+      maximum_memory_in_mb            = 8192
+      minimum_memory_in_mb            = 512
+      target_memory_buffer_percentage = 20
     }
   }
 
