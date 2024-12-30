@@ -1427,7 +1427,7 @@ resource "azurerm_lb" "test" {
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name = "lb-frontend-%[1]d"
+    name      = "lb-frontend-%[1]d"
     subnet_id = azurerm_subnet.test1.id
     zones     = ["1", "2", "3"]
   }
