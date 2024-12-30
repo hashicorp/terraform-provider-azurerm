@@ -163,7 +163,7 @@ resource "azurerm_stack_hci_network_interface" "test" {
   }
 
   lifecycle {
-    ignore_changes = [mac_address, ip_configuration.0.private_ip_address]
+    ignore_changes = [mac_address]
   }
 }
 `, template, data.RandomString, os.Getenv(customLocationIdEnv))
@@ -183,10 +183,6 @@ resource "azurerm_stack_hci_network_interface" "import" {
 
   ip_configuration {
     subnet_id = azurerm_stack_hci_network_interface.test.ip_configuration.0.subnet_id
-  }
-
-  lifecycle {
-    ignore_changes = [mac_address, ip_configuration.0.private_ip_address]
   }
 }
 `, config)
