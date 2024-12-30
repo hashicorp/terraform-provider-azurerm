@@ -11,11 +11,17 @@ var (
 )
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		AssetDataSource{},
+		AssetEndpointProfileDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		AssetResource{},
+		AssetEndpointProfileResource{},
+	}
 }
 
 // Name is the name of this Service
