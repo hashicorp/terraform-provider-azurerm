@@ -12,8 +12,6 @@ var (
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		AssetDataSource{},
-		AssetEndpointProfileDataSource{},
 	}
 }
 

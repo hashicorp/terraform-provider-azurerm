@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -22,6 +23,7 @@ type AssetEndpointProfileResource struct{}
 type AssetEndpointProfileResourceModel struct {
 	Name                                          string                     `tfschema:"name"`
 	ResourceGroupName                             string                     `tfschema:"resource_group_name"`
+	Type                         string                   `tfschema:"type"`
 	Location                                      string                     `tfschema:"location"`
 	Tags                                          map[string]string          `tfschema:"tags"`
 	ExtendedLocationName                          string                     `tfschema:"extended_location_name"`
@@ -88,7 +90,8 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 		"authentication_method": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "Certificate",
+			Default: string(assetendpointprofiles.AuthenticationMethodCertificate),
+			ValidateFunc: validation.StringInSlice(assetendpointprofiles.PossibleValuesForAuthenticationMethod(), false),
 		},
 		"username_password_credentials_username_secret_name": {
 			Type:     pluginsdk.TypeString,
@@ -109,6 +112,10 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (AssetEndpointProfileResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"uuid": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -155,7 +162,7 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config AssetEndpointProfileResourceModel
@@ -173,23 +180,24 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 			}
 
 			// Convert the TF model to the ARM model
+			// Optional ARM resource properties are pointers.
 			param := assetendpointprofiles.AssetEndpointProfile{
-				Name:     pointer.To(config.Name),
-				Location: pointer.To(location.Normalize(config.Location)),
+				Location: location.Normalize(config.Location),
 				Tags:     pointer.To(config.Tags),
-				ExtendedLocation: &assetendpointprofiles.ExtendedLocation{
-					Name: pointer.To(config.ExtendedLocationName),
-					Type: pointer.To(config.ExtendedLocationType),
+				ExtendedLocation: assetendpointprofiles.ExtendedLocation{
+					Name: config.ExtendedLocationName,
+					Type: config.ExtendedLocationType,
 				},
 				Properties: &assetendpointprofiles.AssetEndpointProfileProperties{
-					TargetAddress:                     pointer.To(config.TargetAddress),
-					EndpointProfileType:               pointer.To(config.EndpointProfileType),
+					TargetAddress:                     config.TargetAddress,
+					EndpointProfileType:               config.EndpointProfileType,
 					DiscoveredAssetEndpointProfileRef: pointer.To(config.DiscoveredAssetEndpointProfileRef),
 					AdditionalConfiguration:           pointer.To(config.AdditionalConfiguration),
 				},
 			}
 			populateAuthenticationProperties(&param, config)
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+
+			if _, err := client.CreateOrReplace(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -203,7 +211,7 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Get("id").(string))
 			if err != nil {
@@ -282,7 +290,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -300,28 +308,36 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 
 			// Convert the ARM model to the TF model
 			state := AssetEndpointProfileResourceModel{
-				Name:              id.Name,
+				Name:              id.AssetEndpointProfileName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {
 				state.Location = location.NormalizeNilable(model.Location)
 				state.Tags = pointer.From(model.Tags)
+				state.Type = pointer.From(model.Type)
 				if props := model.Properties; props != nil {
+					state.Uuid = pointer.From(props.Uuid)
 					state.ExtendedLocationName = pointer.From(props.ExtendedLocation.Name)
 					state.ExtendedLocationType = pointer.From(props.ExtendedLocation.Type)
-					state.TargetAddress = pointer.From(props.TargetAddress)
-					state.EndpointProfileType = pointer.From(props.EndpointProfileType)
+					state.ProvisioningState = pointer.From(props.ProvisioningState)
+					state.TargetAddress = props.TargetAddress
+					state.EndpointProfileType = props.EndpointProfileType
 					state.DiscoveredAssetEndpointProfileRef = pointer.From(props.DiscoveredAssetEndpointProfileRef)
 					state.AdditionalConfiguration = pointer.From(props.AdditionalConfiguration)
 					if auth := props.Authentication; auth != nil {
-						state.AuthenticationMethod = pointer.From(auth.Method)
+						state.AuthenticationMethod = auth.Method
 						if x509 := auth.X509Credentials; x509 != nil {
-							state.X509CredentialsCertificateSecretName = pointer.From(x509.CertificateSecretName)
+							state.X509CredentialsCertificateSecretName = x509.CertificateSecretName
 						}
 						if up := auth.UsernamePasswordCredentials; up != nil {
-							state.UsernamePasswordCredentialsUsernameSecretName = pointer.From(up.UsernameSecretName)
-							state.UsernamePasswordCredentialsPasswordSecretName = pointer.From(up.PasswordSecretName)
+							state.UsernamePasswordCredentialsUsernameSecretName = up.UsernameSecretName
+							state.UsernamePasswordCredentialsPasswordSecretName = up.PasswordSecretName
+						}
+					}
+					if status := model.Status; status != nil {
+						state.Status = AssetEndpointProfileStatus{
+							Errors: toTFAssetEndpointProfileErrorStatuses(status.Errors),
 						}
 					}
 				}
@@ -335,7 +351,7 @@ func (AssetEndpointProfileResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -356,25 +372,31 @@ func (AssetEndpointProfileResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpointProfile, config AssetEndpointProfileResourceModel) {
-	switch config.AuthenticationMethod {
-	case "Certificate":
-		param.Properties.Authentication = &assetendpointprofiles.Authentication{
-			Method: pointer.To(config.AuthenticationMethod),
-			X509Credentials: &assetendpointprofiles.X509Credentials{
-				CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
-			},
-		}
-	case "UsernamePassword":
-		param.Properties.Authentication = &assetendpointprofiles.Authentication{
-			Method: pointer.To(config.AuthenticationMethod),
-			UsernamePasswordCredentials: &assetendpointprofiles.UsernamePasswordCredentials{
-				UsernameSecretName: pointer.To(config.UsernamePasswordCredentialsUsernameSecretName),
-				PasswordSecretName: pointer.To(config.UsernamePasswordCredentialsPasswordSecretName),
-			},
-		}
-	default:
-		param.Properties.Authentication = &assetendpointprofiles.Authentication{
-			Method: pointer.To("None"),
+	param.Properties.Authentication = &assetendpointprofiles.Authentication{
+		Method: config.AuthenticationMethod,
+	}
+
+	if config.X509CredentialsCertificateSecretName != "" {
+		param.Properties.Authentication.X509Credentials = &assetendpointprofiles.X509Credentials{
+			CertificateSecretName: config.X509CredentialsCertificateSecretName,
 		}
 	}
+
+	if config.UsernamePasswordCredentialsUsernameSecretName != "" || config.UsernamePasswordCredentialsPasswordSecretName != "" {
+		param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentials{
+			UsernameSecretName: config.UsernamePasswordCredentialsUsernameSecretName,
+			PasswordSecretName: config.UsernamePasswordCredentialsPasswordSecretName,
+		}
+	}
+}
+
+func toTFAssetEndpointProfileErrorStatuses(errors []assetendpointprofiles.StatusError) []StatusError {
+	var tfErrors []StatusError
+	for _, err := range errors {
+		tfErrors = append(tfErrors, StatusError{
+			Code:    err.Code,
+			Message: err.Message,
+		})
+	}
+	return tfErrors
 }
