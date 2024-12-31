@@ -208,7 +208,7 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.importSwagger(data),
+			Config: r.importSwagger(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -295,30 +295,14 @@ func TestAccApiManagementApi_importUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("import"),
 		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
-		{
-			Config: r.importSwagger(data),
+			Config: r.importSwagger(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -581,7 +565,15 @@ resource "azurerm_api_management_api" "import" {
 `, r.basic(data))
 }
 
-func (r ApiManagementApiResource) importSwagger(data acceptance.TestData) string {
+func (r ApiManagementApiResource) importSwagger(data acceptance.TestData, ignoreImported bool) string {
+	ignoreConfig := ""
+	if ignoreImported {
+		ignoreConfig = `lifecycle {
+	ignore_changes = [description, display_name, contact, license]
+}
+`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -598,8 +590,9 @@ resource "azurerm_api_management_api" "test" {
     content_value  = file("testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
+  %s
 }
-`, r.template(data, SkuNameConsumption), data.RandomInteger)
+`, r.template(data, SkuNameConsumption), data.RandomInteger, ignoreConfig)
 }
 
 func (r ApiManagementApiResource) importOpenapi(data acceptance.TestData) string {
@@ -764,7 +757,7 @@ resource "azurerm_api_management_api" "test" {
   path                = "butter-parser-update"
   protocols           = ["https"]
   revision            = "3"
-  description         = "What is my purpose? You parse butter update."
+  description         = "What is my purpose? You parse butter."
   service_url         = "https://example.com/foo/bar/update"
 
   subscription_key_parameter_names {
