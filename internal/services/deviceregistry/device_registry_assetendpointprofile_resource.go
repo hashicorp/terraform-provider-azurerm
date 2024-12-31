@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +22,7 @@ type AssetEndpointProfileResource struct{}
 type AssetEndpointProfileResourceModel struct {
 	Name                                          string                     `tfschema:"name"`
 	ResourceGroupName                             string                     `tfschema:"resource_group_name"`
-	Type                         string                   `tfschema:"type"`
+	Type                                          string                     `tfschema:"type"`
 	Location                                      string                     `tfschema:"location"`
 	Tags                                          map[string]string          `tfschema:"tags"`
 	ExtendedLocationName                          string                     `tfschema:"extended_location_name"`
@@ -88,9 +87,9 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"authentication_method": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default: string(assetendpointprofiles.AuthenticationMethodCertificate),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(assetendpointprofiles.AuthenticationMethodCertificate),
 			ValidateFunc: validation.StringInSlice(assetendpointprofiles.PossibleValuesForAuthenticationMethod(), false),
 		},
 		"username_password_credentials_username_secret_name": {
@@ -245,35 +244,35 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("authentication_method") {
-				param.Properties.Authentication = &assetendpointprofiles.Authentication{
-					Method: pointer.To(config.AuthenticationMethod),
+				param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{
+					Method: pointer.To(assetendpointprofiles.AuthenticationMethod(config.AuthenticationMethod)),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("username_password_credentials_username_secret_name") {
 				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.Authentication{}
+					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
 				}
-				param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentials{
+				param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentialsUpdate{
 					UsernameSecretName: pointer.To(config.UsernamePasswordCredentialsUsernameSecretName),
 				}
 			}
 
 			if metadata.ResourceData.HasChange("username_password_credentials_password_secret_name") {
 				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.Authentication{}
+					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
 				}
 				if param.Properties.Authentication.UsernamePasswordCredentials == nil {
-					param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentials{}
+					param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
 				}
 				param.Properties.Authentication.UsernamePasswordCredentials.PasswordSecretName = pointer.To(config.UsernamePasswordCredentialsPasswordSecretName)
 			}
 
 			if metadata.ResourceData.HasChange("x509_credentials_certificate_secret_name") {
 				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.Authentication{}
+					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
 				}
-				param.Properties.Authentication.X509Credentials = &assetendpointprofiles.X509Credentials{
+				param.Properties.Authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
 					CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
 				}
 			}
@@ -313,20 +312,20 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(model.Location)
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 				state.Type = pointer.From(model.Type)
+				state.ExtendedLocationName = model.ExtendedLocation.Name
+				state.ExtendedLocationType = model.ExtendedLocation.Type
 				if props := model.Properties; props != nil {
 					state.Uuid = pointer.From(props.Uuid)
-					state.ExtendedLocationName = pointer.From(props.ExtendedLocation.Name)
-					state.ExtendedLocationType = pointer.From(props.ExtendedLocation.Type)
-					state.ProvisioningState = pointer.From(props.ProvisioningState)
+					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 					state.TargetAddress = props.TargetAddress
 					state.EndpointProfileType = props.EndpointProfileType
 					state.DiscoveredAssetEndpointProfileRef = pointer.From(props.DiscoveredAssetEndpointProfileRef)
 					state.AdditionalConfiguration = pointer.From(props.AdditionalConfiguration)
 					if auth := props.Authentication; auth != nil {
-						state.AuthenticationMethod = auth.Method
+						state.AuthenticationMethod = string(auth.Method)
 						if x509 := auth.X509Credentials; x509 != nil {
 							state.X509CredentialsCertificateSecretName = x509.CertificateSecretName
 						}
@@ -335,7 +334,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 							state.UsernamePasswordCredentialsPasswordSecretName = up.PasswordSecretName
 						}
 					}
-					if status := model.Status; status != nil {
+					if status := props.Status; status != nil {
 						state.Status = AssetEndpointProfileStatus{
 							Errors: toTFAssetEndpointProfileErrorStatuses(status.Errors),
 						}
@@ -368,12 +367,12 @@ func (AssetEndpointProfileResource) Delete() sdk.ResourceFunc {
 }
 
 func (AssetEndpointProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return assetendpointprofiles.ValidateAssetID
+	return assetendpointprofiles.ValidateAssetEndpointProfileID
 }
 
 func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpointProfile, config AssetEndpointProfileResourceModel) {
 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
-		Method: config.AuthenticationMethod,
+		Method: assetendpointprofiles.AuthenticationMethod(config.AuthenticationMethod),
 	}
 
 	if config.X509CredentialsCertificateSecretName != "" {
@@ -388,14 +387,44 @@ func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpoint
 			PasswordSecretName: config.UsernamePasswordCredentialsPasswordSecretName,
 		}
 	}
+	// switch config.AuthenticationMethod {
+	// case string(assetendpointprofiles.AuthenticationMethodCertificate):
+	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
+	// 		Method: config.AuthenticationMethod,
+	// 		X509Credentials: &assetendpointprofiles.X509Credentials{
+	// 			CertificateSecretName: config.X509CredentialsCertificateSecretName,
+	// 		},
+	// 	}
+	// 	break
+	// case string(assetendpointprofiles.AuthenticationMethodUsernamePassword):
+	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
+	// 		Method: config.AuthenticationMethod,
+	// 		UsernamePasswordCredentials: &assetendpointprofiles.UsernamePasswordCredentials{
+	// 			UsernameSecretName: config.UsernamePasswordCredentialsUsernameSecretName,
+	// 			PasswordSecretName: config.UsernamePasswordCredentialsPasswordSecretName,
+	// 		},
+	// 	}
+	// 	break
+	// case string(assetendpointprofiles.AuthenticationMethodAnonymous):
+	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
+	// 		Method: string(assetendpointprofiles.AuthenticationMethodAnonymous),
+	// 	}
+	// 	break
+	// default:
+	// 	// Do not populate the authentication properties if the authentication method is not set
+	// 	return
+	// }
 }
 
-func toTFAssetEndpointProfileErrorStatuses(errors []assetendpointprofiles.StatusError) []StatusError {
+func toTFAssetEndpointProfileErrorStatuses(errors *[]assetendpointprofiles.AssetEndpointProfileStatusError) []StatusError {
+	if errors == nil {
+		return nil
+	}
 	var tfErrors []StatusError
-	for _, err := range errors {
+	for _, err := range pointer.From(errors) {
 		tfErrors = append(tfErrors, StatusError{
-			Code:    err.Code,
-			Message: err.Message,
+			Code:    pointer.From(err.Code),
+			Message: pointer.From(err.Message),
 		})
 	}
 	return tfErrors

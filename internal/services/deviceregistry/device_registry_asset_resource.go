@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,37 +20,37 @@ var _ sdk.Resource = AssetResource{}
 type AssetResource struct{}
 
 type AssetResourceModel struct {
-	Name                         string                   `tfschema:"name"`
-	ResourceGroupName						 string                   `tfschema:"resource_group_name"`
-	Location                     string                   `tfschema:"location"`
-	Type                         string                   `tfschema:"type"`
-	Tags                         map[string]string        `tfschema:"tags"`
-	ExtendedLocationName         string                   `tfschema:"extended_location_name"`
-	ExtendedLocationType         string                   `tfschema:"extended_location_type"`
-	ProvisioningState            string                   `tfschema:"provisioning_state"`
-	Uuid                         string                   `tfschema:"uuid"`
-	Enabled                      bool                     `tfschema:"enabled"`
-	ExternalAssetId              string                   `tfschema:"external_asset_id"`
-	DisplayName                  string                   `tfschema:"display_name"`
-	Description                  string                   `tfschema:"description"`
-	AssetEndpointProfileRef      string                   `tfschema:"asset_endpoint_profile_ref"`
-	Version                      int64                    `tfschema:"version"`
-	Manufacturer                 string                   `tfschema:"manufacturer"`
-	ManufacturerUri              string                   `tfschema:"manufacturer_uri"`
-	Model                        string                   `tfschema:"model"`
-	ProductCode                  string                   `tfschema:"product_code"`
-	HardwareRevision             string                   `tfschema:"hardware_revision"`
-	SoftwareRevision             string                   `tfschema:"software_revision"`
-	DocumentationUri             string                   `tfschema:"documentation_uri"`
-	SerialNumber                 string                   `tfschema:"serial_number"`
-	Attributes                   map[string]interface{}   `tfschema:"attributes"`
-	DiscoveredAssetRefs          []string                 `tfschema:"discovered_asset_refs"`
-	DefaultDatasetsConfiguration string                   `tfschema:"default_datasets_configuration"`
-	DefaultEventsConfiguration   string                   `tfschema:"default_events_configuration"`
-	DefaultTopic                 Topic                    `tfschema:"default_topic"`
-	Datasets                     []Dataset                `tfschema:"datasets"`
-	Events                       []Event                  `tfschema:"events"`
-	Status                       AssetStatus `tfschema:"status"`
+	Name                         string                 `tfschema:"name"`
+	ResourceGroupName            string                 `tfschema:"resource_group_name"`
+	Location                     string                 `tfschema:"location"`
+	Type                         string                 `tfschema:"type"`
+	Tags                         map[string]string      `tfschema:"tags"`
+	ExtendedLocationName         string                 `tfschema:"extended_location_name"`
+	ExtendedLocationType         string                 `tfschema:"extended_location_type"`
+	ProvisioningState            string                 `tfschema:"provisioning_state"`
+	Uuid                         string                 `tfschema:"uuid"`
+	Enabled                      bool                   `tfschema:"enabled"`
+	ExternalAssetId              string                 `tfschema:"external_asset_id"`
+	DisplayName                  string                 `tfschema:"display_name"`
+	Description                  string                 `tfschema:"description"`
+	AssetEndpointProfileRef      string                 `tfschema:"asset_endpoint_profile_ref"`
+	Version                      int64                  `tfschema:"version"`
+	Manufacturer                 string                 `tfschema:"manufacturer"`
+	ManufacturerUri              string                 `tfschema:"manufacturer_uri"`
+	Model                        string                 `tfschema:"model"`
+	ProductCode                  string                 `tfschema:"product_code"`
+	HardwareRevision             string                 `tfschema:"hardware_revision"`
+	SoftwareRevision             string                 `tfschema:"software_revision"`
+	DocumentationUri             string                 `tfschema:"documentation_uri"`
+	SerialNumber                 string                 `tfschema:"serial_number"`
+	Attributes                   map[string]interface{} `tfschema:"attributes"`
+	DiscoveredAssetRefs          []string               `tfschema:"discovered_asset_refs"`
+	DefaultDatasetsConfiguration string                 `tfschema:"default_datasets_configuration"`
+	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
+	DefaultTopic                 Topic                  `tfschema:"default_topic"`
+	Datasets                     []Dataset              `tfschema:"datasets"`
+	Events                       []Event                `tfschema:"events"`
+	Status                       AssetStatus            `tfschema:"status"`
 }
 
 type Topic struct {
@@ -68,7 +67,7 @@ type Dataset struct {
 
 type DataPoint struct {
 	Name                   string `tfschema:"name"`
-	DataSource               string `tfschema:"data_source"`
+	DataSource             string `tfschema:"data_source"`
 	ObservabilityMode      string `tfschema:"observability_mode"`
 	DataPointConfiguration string `tfschema:"data_point_configuration"`
 }
@@ -118,8 +117,8 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"location": commonschema.Location(),
-		"tags":     commonschema.Tags(),
+		"location":            commonschema.Location(),
+		"tags":                commonschema.Tags(),
 		"extended_location_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -259,9 +258,9 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 									Required: true,
 								},
 								"observability_mode": {
-									Type:     pluginsdk.TypeString,
-									Optional: true,
-									Default: string(assets.DataPointObservabilityModeNone),
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(assets.DataPointObservabilityModeNone),
 									ValidateFunc: validation.StringInSlice(assets.PossibleValuesForDataPointObservabilityMode(), false),
 								},
 								"data_point_configuration": {
@@ -289,9 +288,9 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Required: true,
 					},
 					"observability_mode": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default: string(assets.EventObservabilityModeNone),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(assets.EventObservabilityModeNone),
 						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForEventObservabilityMode(), false),
 					},
 					"event_configuration": {
@@ -467,23 +466,23 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 					Type: config.ExtendedLocationType,
 				},
 				Properties: &assets.AssetProperties{
-					AssetEndpointProfileRef: config.AssetEndpointProfileRef,
-					Enabled: pointer.To(config.Enabled),
-					ExternalAssetId: pointer.To(config.ExternalAssetId),
-					DisplayName: pointer.To(config.DisplayName),
-					Description: pointer.To(config.Description),
-					Manufacturer: pointer.To(config.Manufacturer),
-					ManufacturerUri: pointer.To(config.ManufacturerUri),
-					Model: pointer.To(config.Model),
-					ProductCode: pointer.To(config.ProductCode),
-					HardwareRevision: pointer.To(config.HardwareRevision),
-					SoftwareRevision: pointer.To(config.SoftwareRevision),
-					DocumentationUri: pointer.To(config.DocumentationUri),
-					SerialNumber: pointer.To(config.SerialNumber),
-					Attributes: pointer.To(config.Attributes),
-					DiscoveredAssetRefs: pointer.To(config.DiscoveredAssetRefs),
+					AssetEndpointProfileRef:      config.AssetEndpointProfileRef,
+					Enabled:                      pointer.To(config.Enabled),
+					ExternalAssetId:              pointer.To(config.ExternalAssetId),
+					DisplayName:                  pointer.To(config.DisplayName),
+					Description:                  pointer.To(config.Description),
+					Manufacturer:                 pointer.To(config.Manufacturer),
+					ManufacturerUri:              pointer.To(config.ManufacturerUri),
+					Model:                        pointer.To(config.Model),
+					ProductCode:                  pointer.To(config.ProductCode),
+					HardwareRevision:             pointer.To(config.HardwareRevision),
+					SoftwareRevision:             pointer.To(config.SoftwareRevision),
+					DocumentationUri:             pointer.To(config.DocumentationUri),
+					SerialNumber:                 pointer.To(config.SerialNumber),
+					Attributes:                   pointer.To(config.Attributes),
+					DiscoveredAssetRefs:          pointer.To(config.DiscoveredAssetRefs),
 					DefaultDatasetsConfiguration: pointer.To(config.DefaultDatasetsConfiguration),
-					DefaultEventsConfiguration: pointer.To(config.DefaultEventsConfiguration),
+					DefaultEventsConfiguration:   pointer.To(config.DefaultEventsConfiguration),
 				},
 			}
 
@@ -526,74 +525,79 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 			}
 
 			// Change the properties that can be updated
-			param := assets.AssetUpdate{}
+			param := assets.AssetUpdate{
+				Properties: &assets.AssetUpdateProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("tags") {
 				param.Tags = pointer.To(config.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("attributes") {
-				param.Attributes = pointer.To(config.Attributes)
+				param.Properties.Attributes = pointer.To(config.Attributes)
 			}
 
 			if metadata.ResourceData.HasChange("datasets") {
-				param.Datasets = toAzureDatasets(config.Datasets)
+				param.Properties.Datasets = toAzureDatasets(config.Datasets)
 			}
 
 			if metadata.ResourceData.HasChange("default_datasets_configuration") {
-				param.DefaultDatasetsConfiguration = pointer.To(config.DefaultDatasetsConfiguration)
+				param.Properties.DefaultDatasetsConfiguration = pointer.To(config.DefaultDatasetsConfiguration)
 			}
 
 			if metadata.ResourceData.HasChange("default_events_configuration") {
-				param.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
+				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
 			if metadata.ResourceData.HasChange("default_topic") {
-				param.DefaultTopic = toAzureTopic(config.DefaultTopic)
+				param.Properties.DefaultTopic = &assets.TopicUpdate{
+					Path:   pointer.To(config.DefaultTopic.Path),
+					Retain: pointer.To(assets.TopicRetainType(config.DefaultTopic.Retain)),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				param.Description = pointer.To(config.Description)
+				param.Properties.Description = pointer.To(config.Description)
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				param.DisplayName = pointer.To(config.DisplayName)
+				param.Properties.DisplayName = pointer.To(config.DisplayName)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				param.Enabled = pointer.To(config.Enabled)
+				param.Properties.Enabled = pointer.To(config.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("events") {
-				param.Events = toAzureEvents(config.Events)
+				param.Properties.Events = toAzureEvents(config.Events)
 			}
 
 			if metadata.ResourceData.HasChange("hardware_revision") {
-				param.HardwareRevision = pointer.To(config.HardwareRevision)
+				param.Properties.HardwareRevision = pointer.To(config.HardwareRevision)
 			}
 
 			if metadata.ResourceData.HasChange("manufacturer") {
-				param.Manufacturer = pointer.To(config.Manufacturer)
+				param.Properties.Manufacturer = pointer.To(config.Manufacturer)
 			}
 
 			if metadata.ResourceData.HasChange("manufacturer_uri") {
-				param.ManufacturerUri = pointer.To(config.ManufacturerUri)
+				param.Properties.ManufacturerUri = pointer.To(config.ManufacturerUri)
 			}
 
 			if metadata.ResourceData.HasChange("model") {
-				param.Model = pointer.To(config.Model)
+				param.Properties.Model = pointer.To(config.Model)
 			}
 
 			if metadata.ResourceData.HasChange("product_code") {
-				param.ProductCode = pointer.To(config.ProductCode)
+				param.Properties.ProductCode = pointer.To(config.ProductCode)
 			}
 
 			if metadata.ResourceData.HasChange("serial_number") {
-				param.SerialNumber = pointer.To(config.SerialNumber)
+				param.Properties.SerialNumber = pointer.To(config.SerialNumber)
 			}
 
 			if metadata.ResourceData.HasChange("software_revision") {
-				param.SoftwareRevision = pointer.To(config.SoftwareRevision)
+				param.Properties.SoftwareRevision = pointer.To(config.SoftwareRevision)
 			}
 
 			if _, err := client.Update(ctx, *id, param); err != nil {
@@ -626,19 +630,19 @@ func (AssetResource) Read() sdk.ResourceFunc {
 
 			// Convert the ARM model to the TF model
 			state := AssetResourceModel{
-				Name: id.AssetName,
+				Name:              id.AssetName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(model.Location)
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
+				state.ExtendedLocationName = model.ExtendedLocation.Name
+				state.ExtendedLocationType = model.ExtendedLocation.Type
 				if props := model.Properties; props != nil {
 					state.AssetEndpointProfileRef = props.AssetEndpointProfileRef
 					state.Type = pointer.From(model.Type)
-					state.ExtendedLocationName = pointer.From(props.ExtendedLocation.Name)
-					state.ExtendedLocationType = pointer.From(props.ExtendedLocation.Type)
-					state.ProvisioningState = pointer.From(props.ProvisioningState)
+					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 					state.Uuid = pointer.From(props.Uuid)
 					state.Enabled = pointer.From(props.Enabled)
 					state.ExternalAssetId = pointer.From(props.ExternalAssetId)
@@ -658,7 +662,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 					state.DefaultDatasetsConfiguration = pointer.From(props.DefaultDatasetsConfiguration)
 					state.DefaultEventsConfiguration = pointer.From(props.DefaultEventsConfiguration)
 					state.DefaultTopic = toTFTopic(props.DefaultTopic)
-					
+
 					if datasets := props.Datasets; datasets != nil {
 						state.Datasets = toTFDatasets(datasets)
 					}
@@ -732,7 +736,7 @@ func toAzureDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
 		azureDataPoints[i] = assets.DataPoint{
 			Name:                   dataPoint.Name,
 			DataSource:             dataPoint.DataSource,
-			ObservabilityMode: pointer.To(dataPoint.ObservabilityMode),
+			ObservabilityMode:      pointer.To(assets.DataPointObservabilityMode(dataPoint.ObservabilityMode)),
 			DataPointConfiguration: pointer.To(dataPoint.DataPointConfiguration),
 		}
 	}
@@ -750,8 +754,8 @@ func toAzureEvents(events []Event) *[]assets.Event {
 		azureEvents[i] = assets.Event{
 			Name:               event.Name,
 			EventNotifier:      event.EventNotifier,
-			ObservabilityMode:  pointer.To(event.ObservabilityMode),
 			EventConfiguration: pointer.To(event.EventConfiguration),
+			ObservabilityMode:  pointer.To(assets.EventObservabilityMode(event.ObservabilityMode)),
 			Topic:              toAzureTopic(event.Topic),
 		}
 	}
@@ -764,12 +768,16 @@ func toAzureTopic(topic Topic) *assets.Topic {
 		return nil
 	}
 
-	return &assets.Topic{
+	azureTopic := assets.Topic{
 		Path: topic.Path,
-		Retain: pointer.To(topic.Retain),
 	}
-}
 
+	if topic.Retain != "" {
+		azureTopic.Retain = pointer.To(assets.TopicRetainType(topic.Retain))
+	}
+
+	return &azureTopic
+}
 
 func toTFDatasets(datasets *[]assets.Dataset) []Dataset {
 	if datasets == nil {
@@ -798,8 +806,8 @@ func toTFDataPoints(dataPoints *[]assets.DataPoint) []DataPoint {
 	for i, dataPoint := range *dataPoints {
 		tfDataPoints[i] = DataPoint{
 			Name:                   dataPoint.Name,
-			DataSource: 						 dataPoint.DataSource,
-			ObservabilityMode: pointer.From(dataPoint.ObservabilityMode),
+			DataSource:             dataPoint.DataSource,
+			ObservabilityMode:      string(pointer.From(dataPoint.ObservabilityMode)),
 			DataPointConfiguration: pointer.From(dataPoint.DataPointConfiguration),
 		}
 	}
@@ -817,7 +825,7 @@ func toTFEvents(events *[]assets.Event) []Event {
 		tfEvents[i] = Event{
 			Name:               event.Name,
 			EventNotifier:      event.EventNotifier,
-			ObservabilityMode:  pointer.From(event.ObservabilityMode),
+			ObservabilityMode:  string(pointer.From(event.ObservabilityMode)),
 			EventConfiguration: pointer.From(event.EventConfiguration),
 			Topic:              toTFTopic(event.Topic),
 		}
@@ -832,12 +840,12 @@ func toTFTopic(topic *assets.Topic) Topic {
 	}
 
 	return Topic{
-		Path:  *topic.Path,
-		Retain: pointer.From(topic.Retain),
+		Path:   topic.Path,
+		Retain: string(pointer.From(topic.Retain)),
 	}
 }
 
-func toTFAssetErrorStatuses(errorStatuses *[]assets.ErrorStatus) []ErrorStatus {
+func toTFAssetErrorStatuses(errorStatuses *[]assets.AssetStatusError) []ErrorStatus {
 	if errorStatuses == nil {
 		return nil
 	}
@@ -845,7 +853,7 @@ func toTFAssetErrorStatuses(errorStatuses *[]assets.ErrorStatus) []ErrorStatus {
 	tfErrorStatuses := make([]ErrorStatus, len(*errorStatuses))
 	for i, errorStatus := range *errorStatuses {
 		tfErrorStatuses[i] = ErrorStatus{
-			Code:    pointer.From(errorStatus.Code),
+			Code:    string(pointer.From(errorStatus.Code)),
 			Message: pointer.From(errorStatus.Message),
 		}
 	}
@@ -853,7 +861,7 @@ func toTFAssetErrorStatuses(errorStatuses *[]assets.ErrorStatus) []ErrorStatus {
 	return tfErrorStatuses
 }
 
-func toTFDatasetStatuses(datasetStatuses *[]assets.DatasetStatus) []DatasetStatus {
+func toTFDatasetStatuses(datasetStatuses *[]assets.AssetStatusDataset) []DatasetStatus {
 	if datasetStatuses == nil {
 		return nil
 	}
@@ -869,7 +877,7 @@ func toTFDatasetStatuses(datasetStatuses *[]assets.DatasetStatus) []DatasetStatu
 	return tfDatasetStatuses
 }
 
-func toTFEventStatuses(eventStatuses *[]assets.EventStatus) []EventStatus {
+func toTFEventStatuses(eventStatuses *[]assets.AssetStatusEvent) []EventStatus {
 	if eventStatuses == nil {
 		return nil
 	}
@@ -891,8 +899,8 @@ func toTFMessageSchemaReference(messageSchemaReference *assets.MessageSchemaRefe
 	}
 
 	return MessageSchemaReference{
-		SchemaRegistryNamespace: *messageSchemaReference.SchemaRegistryNamespace,
-		SchemaName:              *messageSchemaReference.SchemaName,
-		SchemaVersion:           *messageSchemaReference.SchemaVersion,
+		SchemaRegistryNamespace: messageSchemaReference.SchemaRegistryNamespace,
+		SchemaName:              messageSchemaReference.SchemaName,
+		SchemaVersion:           messageSchemaReference.SchemaVersion,
 	}
 }
