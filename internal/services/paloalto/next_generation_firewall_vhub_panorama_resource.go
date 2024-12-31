@@ -31,6 +31,8 @@ type NextGenerationFirewallVHubPanoramaResourceModel struct {
 	NetworkProfile       []schema.NetworkProfileVHub `tfschema:"network_profile"`
 	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceDetails   []schema.MarketplaceDetails `tfschema:"marketplace_details"`
+	PlanData             []schema.PlanData           `tfschema:"plan_data"`
 	Tags                 map[string]interface{}      `tfschema:"tags"`
 
 	// Computed
@@ -76,6 +78,10 @@ func (r NextGenerationFirewallVHubPanoramaResource) Arguments() map[string]*plug
 
 		"destination_nat": schema.DestinationNATSchema(),
 
+		"plan_data": schema.PlanDataSchema(),
+
+		"marketplace_details": schema.MarketplaceDetailsSchema(),
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -116,18 +122,12 @@ func (r NextGenerationFirewallVHubPanoramaResource) Create() sdk.ResourceFunc {
 					PanoramaConfig: &firewalls.PanoramaConfig{
 						ConfigString: model.PanoramaBase64Config,
 					},
-					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumTRUE),
-					DnsSettings:       schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw",
-						PublisherId: "paloaltonetworks",
-					},
-					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
-					},
-					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
+					IsPanoramaManaged:  pointer.To(firewalls.BooleanEnumTRUE),
+					DnsSettings:        schema.ExpandDNSSettings(model.DNSSettings),
+					MarketplaceDetails: schema.ExpandMarketplaceDetails(model.MarketplaceDetails),
+					NetworkProfile:     schema.ExpandNetworkProfileVHub(model.NetworkProfile),
+					PlanData:           schema.ExpandPlanData(model.PlanData),
+					FrontEndSettings:   schema.ExpandDestinationNAT(model.FrontEnd),
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -192,6 +192,10 @@ func (r NextGenerationFirewallVHubPanoramaResource) Read() sdk.ResourceFunc {
 						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
 					}}
 				}
+
+				state.PlanData = schema.FlattenPlanData(props.PlanData)
+
+				state.MarketplaceDetails = schema.FlattenMarketplaceDetails(props.MarketplaceDetails)
 
 				state.Tags = tags.Flatten(model.Tags)
 			}
@@ -260,6 +264,14 @@ func (r NextGenerationFirewallVHubPanoramaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("plan_data") {
+				props.PlanData = schema.ExpandPlanData(model.PlanData)
+			}
+
+			if metadata.ResourceData.HasChange("marketplace_details") {
+				props.MarketplaceDetails = schema.ExpandMarketplaceDetails(model.MarketplaceDetails)
 			}
 
 			firewall.Properties = props

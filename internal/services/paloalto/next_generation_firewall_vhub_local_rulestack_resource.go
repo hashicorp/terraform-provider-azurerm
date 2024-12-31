@@ -29,10 +29,12 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	RuleStackId       string `tfschema:"rulestack_id"`
 
-	NetworkProfile []schema.NetworkProfileVHub `tfschema:"network_profile"`
-	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd       []schema.DestinationNAT     `tfschema:"destination_nat"`
-	Tags           map[string]interface{}      `tfschema:"tags"`
+	NetworkProfile     []schema.NetworkProfileVHub `tfschema:"network_profile"`
+	DNSSettings        []schema.DNSSettings        `tfschema:"dns_settings"`
+	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceDetails []schema.MarketplaceDetails `tfschema:"marketplace_details"`
+	PlanData           []schema.PlanData           `tfschema:"plan_data"`
+	Tags               map[string]interface{}      `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
@@ -72,6 +74,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 		"dns_settings": schema.DNSSettingsSchema(),
 
 		"destination_nat": schema.DestinationNATSchema(),
+
+		"plan_data": schema.PlanDataSchema(),
+
+		"marketplace_details": schema.MarketplaceDetailsSchema(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -124,17 +130,11 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 						ResourceId: pointer.To(ruleStackID.ID()),
 						Location:   pointer.To(loc),
 					},
-					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
-					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw",
-						PublisherId: "paloaltonetworks",
-					},
-					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
-					PlanData: firewalls.PlanData{
-						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
-					},
-					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
+					DnsSettings:        schema.ExpandDNSSettings(model.DNSSettings),
+					MarketplaceDetails: schema.ExpandMarketplaceDetails(model.MarketplaceDetails),
+					NetworkProfile:     schema.ExpandNetworkProfileVHub(model.NetworkProfile),
+					PlanData:           schema.ExpandPlanData(model.PlanData),
+					FrontEndSettings:   schema.ExpandDestinationNAT(model.FrontEnd),
 				},
 
 				Tags: tags.Expand(model.Tags),
@@ -193,6 +193,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
+
+				state.PlanData = schema.FlattenPlanData(props.PlanData)
+
+				state.MarketplaceDetails = schema.FlattenMarketplaceDetails(props.MarketplaceDetails)
 
 				state.Tags = tags.Flatten(model.Tags)
 			}
@@ -276,6 +280,14 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("plan_data") {
+				props.PlanData = schema.ExpandPlanData(model.PlanData)
+			}
+
+			if metadata.ResourceData.HasChange("marketplace_details") {
+				props.MarketplaceDetails = schema.ExpandMarketplaceDetails(model.MarketplaceDetails)
 			}
 
 			firewall.Properties = props
