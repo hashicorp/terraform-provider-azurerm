@@ -270,7 +270,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			dataprotection.Registration{},
 			datashare.Registration{},
 			desktopvirtualization.Registration{},
-			deviceregistry.Registration{},
 			devtestlabs.Registration{},
 			digitaltwins.Registration{},
 			dns.Registration{},
