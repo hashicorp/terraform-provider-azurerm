@@ -382,7 +382,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
-	if importVs := d.Get("import").([]interface{}); len(importVs) > 0 {
+	if importVs, ok := d.Get("import").([]interface{}); ok && len(importVs) > 0 {
 		importV := importVs[0].(map[string]interface{})
 		contentFormat := importV["content_format"].(string)
 		contentValue := importV["content_value"].(string)
@@ -541,8 +541,38 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	existing := resp.Model.Properties
 	prop := &api.ApiCreateOrUpdateProperties{
-		Path: path,
+		Path:                          existing.Path,
+		Protocols:                     existing.Protocols,
+		ServiceURL:                    existing.ServiceURL,
+		Description:                   existing.Description,
+		ApiVersionDescription:         existing.ApiVersionDescription,
+		ApiRevisionDescription:        existing.ApiRevisionDescription,
+		SubscriptionRequired:          existing.SubscriptionRequired,
+		SubscriptionKeyParameterNames: existing.SubscriptionKeyParameterNames,
+		AuthenticationSettings:        existing.AuthenticationSettings,
+		Contact:                       existing.Contact,
+		License:                       existing.License,
+		SourceApiId:                   existing.SourceApiId,
+		DisplayName:                   existing.DisplayName,
+		ApiVersion:                    existing.ApiVersion,
+		ApiVersionSetId:               existing.ApiVersionSetId,
+		TermsOfServiceURL:             existing.TermsOfServiceURL,
+		Type:                          existing.Type,
+	}
+
+	if d.HasChange("path") {
+		prop.Path = path
 	}
 
 	if d.HasChange("protocols") {
