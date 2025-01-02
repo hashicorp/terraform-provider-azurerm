@@ -10,8 +10,8 @@ import (
 )
 
 type MarketplaceDetails struct {
-	OfferId     string `json:"offer_id,omitempty"`
-	PublisherId string `json:"publisher_id,omitempty"`
+	OfferId     string `tfschema:"offer_id"`
+	PublisherId string `tfschema:"publisher_id"`
 }
 
 func MarketplaceDetailsSchema() *pluginsdk.Schema {
