@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -83,9 +82,7 @@ func resourceSentinelAlertRuleNrt() *pluginsdk.Resource {
 			// lintignore:S013
 			"event_grouping": {
 				Type:     pluginsdk.TypeList,
-				Required: features.FourPointOhBeta(),
-				Optional: !features.FourPointOhBeta(),
-				Computed: !features.FourPointOhBeta(), // the service will default it to `SingleAlert`.
+				Required: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -406,8 +403,9 @@ func resourceSentinelAlertRuleNrtCreateUpdate(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("asserting %q: %+v", id, err)
 		}
 		if model := resp.Model; model != nil {
-			modelPtr := *model
-			param.Etag = modelPtr.(alertrules.NrtAlertRule).Etag
+			if rule, ok := model.(alertrules.NrtAlertRule); ok {
+				param.Etag = rule.Etag
+			}
 		}
 	}
 
@@ -446,49 +444,48 @@ func resourceSentinelAlertRuleNrtRead(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule := modelPtr.(alertrules.NrtAlertRule)
+		if rule, ok := model.(alertrules.NrtAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
+			if prop := rule.Properties; prop != nil {
+				d.Set("description", prop.Description)
+				d.Set("display_name", prop.DisplayName)
+				if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
+					return fmt.Errorf("setting `tactics`: %+v", err)
+				}
+				if err := d.Set("techniques", prop.Techniques); err != nil {
+					return fmt.Errorf("setting `techniques`: %+v", err)
+				}
+				if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
+					return fmt.Errorf("setting `incident`: %+v", err)
+				}
+				d.Set("severity", string(prop.Severity))
+				d.Set("enabled", prop.Enabled)
+				d.Set("query", prop.Query)
 
-		if prop := rule.Properties; prop != nil {
-			d.Set("description", prop.Description)
-			d.Set("display_name", prop.DisplayName)
-			if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
-				return fmt.Errorf("setting `tactics`: %+v", err)
-			}
-			if err := d.Set("techniques", prop.Techniques); err != nil {
-				return fmt.Errorf("setting `techniques`: %+v", err)
-			}
-			if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
-				return fmt.Errorf("setting `incident`: %+v", err)
-			}
-			d.Set("severity", string(prop.Severity))
-			d.Set("enabled", prop.Enabled)
-			d.Set("query", prop.Query)
+				d.Set("suppression_enabled", prop.SuppressionEnabled)
+				d.Set("suppression_duration", prop.SuppressionDuration)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				d.Set("alert_rule_template_version", prop.TemplateVersion)
 
-			d.Set("suppression_enabled", prop.SuppressionEnabled)
-			d.Set("suppression_duration", prop.SuppressionDuration)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			d.Set("alert_rule_template_version", prop.TemplateVersion)
-
-			if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
-				return fmt.Errorf("setting `event_grouping`: %+v", err)
-			}
-			if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
-				return fmt.Errorf("setting `alert_details_override`: %+v", err)
-			}
-			if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
-				return fmt.Errorf("setting `custom_details`: %+v", err)
-			}
-			if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
-				return fmt.Errorf("setting `entity_mapping`: %+v", err)
-			}
-			if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
-				return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+					return fmt.Errorf("setting `event_grouping`: %+v", err)
+				}
+				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
+					return fmt.Errorf("setting `alert_details_override`: %+v", err)
+				}
+				if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
+					return fmt.Errorf("setting `custom_details`: %+v", err)
+				}
+				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
+					return fmt.Errorf("setting `entity_mapping`: %+v", err)
+				}
+				if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+					return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				}
 			}
 		}
 	}

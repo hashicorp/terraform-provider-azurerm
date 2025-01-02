@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -207,7 +207,7 @@ func TestAccPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	})
 }
 
-func TestAccPrivateEndpoint_statiIpAddress(t *testing.T) {
+func TestAccPrivateEndpoint_staticIpAddress(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 	r := PrivateEndpointResource{}
 

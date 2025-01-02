@@ -45,7 +45,6 @@ func (c FqdnListGlobalRulestackClient) Get(ctx context.Context, id FqdnListId) (
 
 	var model FqdnListGlobalRulestackResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

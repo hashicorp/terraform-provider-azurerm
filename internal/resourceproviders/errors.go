@@ -11,16 +11,14 @@ import (
 
 var ErrNoAuthorization = errors.New("authorization failed")
 
-const registrationErrorFmt = `%s.
-
+const registrationErrorV4Fmt = `%s.
 Terraform automatically attempts to register the Azure Resource Providers it supports, to
 ensure it is able to provision resources.
-
 If you don't have permission to register Resource Providers you may wish to disable this
 functionality by adding the following to the Provider block:
 
 provider "azurerm" {
-  "resource_provider_registrations = "none"
+  resource_provider_registrations = "none"
 }
 
 Please note that if you opt out of Resource Provider Registration and Terraform tries
@@ -33,7 +31,7 @@ Could suggest that the Resource Provider "Microsoft.Foo" requires registration, 
 this could also indicate that this Azure Region doesn't support this API version.
 
 More information on the "resource_provider_registrations" property can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource-provider-registrations
 
 Encountered the following errors:
 
@@ -43,9 +41,9 @@ Encountered the following errors:
 // resource providers.
 func userError(err error) error {
 	if errors.Is(err, ErrNoAuthorization) {
-		return fmt.Errorf(registrationErrorFmt, "Terraform does not have the necessary permissions to register Resource Providers", err)
+		return fmt.Errorf(registrationErrorV4Fmt, "Terraform does not have the necessary permissions to register Resource Providers", err)
 	}
-	return fmt.Errorf(registrationErrorFmt, "Encountered an error whilst ensuring Resource Providers are registered", err)
+	return fmt.Errorf(registrationErrorV4Fmt, "Encountered an error whilst ensuring Resource Providers are registered", err)
 }
 
 // registrationErrors is a container for errors encountered when attempting to register resource providers. It makes

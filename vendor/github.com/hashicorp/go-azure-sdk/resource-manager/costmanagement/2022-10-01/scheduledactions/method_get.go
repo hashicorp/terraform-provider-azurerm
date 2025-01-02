@@ -45,7 +45,6 @@ func (c ScheduledActionsClient) Get(ctx context.Context, id ScheduledActionId) (
 
 	var model ScheduledAction
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

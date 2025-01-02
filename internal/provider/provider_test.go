@@ -206,8 +206,10 @@ func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
 	}
 
 	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
-		"Microsoft.ApiManagement": {},
-		"Microsoft.KeyVault":      {},
+		"Microsoft.ApiManagement":    {},
+		"Microsoft.ContainerService": {},
+		"Microsoft.KeyVault":         {},
+		"Microsoft.Kubernetes":       {},
 	})
 	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
 

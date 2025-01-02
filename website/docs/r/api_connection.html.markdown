@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ---
 
-* `display_name` - (Optional) A display name for this API Connection. Changing this forces a new API Connection to be created.
+* `display_name` - (Optional) A display name for this API Connection. Defaults to `Service Bus`. Changing this forces a new API Connection to be created.
 
 * `parameter_values` - (Optional) A map of parameter values associated with this API Connection. Changing this forces a new API Connection to be created.
 

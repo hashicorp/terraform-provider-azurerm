@@ -42,7 +42,7 @@ func ParseVirtualHubID(input string) (*VirtualHubId, error) {
 	}
 
 	id := VirtualHubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVirtualHubIDInsensitively(input string) (*VirtualHubId, error) {
 	}
 
 	id := VirtualHubId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VirtualHubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualHubs", "virtualHubs", "virtualHubs"),
-		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubValue"),
+		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubName"),
 	}
 }
 

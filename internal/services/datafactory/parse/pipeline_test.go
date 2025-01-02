@@ -27,7 +27,6 @@ func TestPipelineID(t *testing.T) {
 		Error    bool
 		Expected *PipelineId
 	}{
-
 		{
 			// empty
 			Input: "",

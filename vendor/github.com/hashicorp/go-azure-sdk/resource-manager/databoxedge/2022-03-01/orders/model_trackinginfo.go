@@ -7,5 +7,5 @@ type TrackingInfo struct {
 	CarrierName  *string `json:"carrierName,omitempty"`
 	SerialNumber *string `json:"serialNumber,omitempty"`
 	TrackingId   *string `json:"trackingId,omitempty"`
-	TrackingUrl  *string `json:"trackingUrl,omitempty"`
+	TrackingURL  *string `json:"trackingUrl,omitempty"`
 }

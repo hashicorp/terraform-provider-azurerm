@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DeliveryAttributeMapping interface {
+	DeliveryAttributeMapping() BaseDeliveryAttributeMappingImpl
 }
 
-// RawDeliveryAttributeMappingImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DeliveryAttributeMapping = BaseDeliveryAttributeMappingImpl{}
+
+type BaseDeliveryAttributeMappingImpl struct {
+	Name *string                      `json:"name,omitempty"`
+	Type DeliveryAttributeMappingType `json:"type"`
+}
+
+func (s BaseDeliveryAttributeMappingImpl) DeliveryAttributeMapping() BaseDeliveryAttributeMappingImpl {
+	return s
+}
+
+var _ DeliveryAttributeMapping = RawDeliveryAttributeMappingImpl{}
+
+// RawDeliveryAttributeMappingImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDeliveryAttributeMappingImpl struct {
-	Type   string
-	Values map[string]interface{}
+	deliveryAttributeMapping BaseDeliveryAttributeMappingImpl
+	Type                     string
+	Values                   map[string]interface{}
 }
 
-func unmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttributeMapping, error) {
+func (s RawDeliveryAttributeMappingImpl) DeliveryAttributeMapping() BaseDeliveryAttributeMappingImpl {
+	return s.deliveryAttributeMapping
+}
+
+func UnmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttributeMapping, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttr
 		return nil, fmt.Errorf("unmarshaling DeliveryAttributeMapping into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Dynamic") {
@@ -52,10 +70,15 @@ func unmarshalDeliveryAttributeMappingImplementation(input []byte) (DeliveryAttr
 		return out, nil
 	}
 
-	out := RawDeliveryAttributeMappingImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDeliveryAttributeMappingImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDeliveryAttributeMappingImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDeliveryAttributeMappingImpl{
+		deliveryAttributeMapping: parent,
+		Type:                     value,
+		Values:                   temp,
+	}, nil
 
 }

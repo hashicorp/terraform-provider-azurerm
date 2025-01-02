@@ -14,8 +14,18 @@ type ListSelector struct {
 	Targets []TargetReference `json:"targets"`
 
 	// Fields inherited from Selector
-	Filter Filter `json:"filter"`
-	Id     string `json:"id"`
+
+	Filter Filter       `json:"filter"`
+	Id     string       `json:"id"`
+	Type   SelectorType `json:"type"`
+}
+
+func (s ListSelector) Selector() BaseSelectorImpl {
+	return BaseSelectorImpl{
+		Filter: s.Filter,
+		Id:     s.Id,
+		Type:   s.Type,
+	}
 }
 
 var _ json.Marshaler = ListSelector{}
@@ -29,9 +39,10 @@ func (s ListSelector) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ListSelector: %+v", err)
 	}
+
 	decoded["type"] = "List"
 
 	encoded, err = json.Marshal(decoded)
@@ -45,14 +56,18 @@ func (s ListSelector) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &ListSelector{}
 
 func (s *ListSelector) UnmarshalJSON(bytes []byte) error {
-	type alias ListSelector
-	var decoded alias
+	var decoded struct {
+		Targets []TargetReference `json:"targets"`
+		Id      string            `json:"id"`
+		Type    SelectorType      `json:"type"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ListSelector: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
-	s.Id = decoded.Id
 	s.Targets = decoded.Targets
+	s.Id = decoded.Id
+	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -60,11 +75,12 @@ func (s *ListSelector) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["filter"]; ok {
-		impl, err := unmarshalFilterImplementation(v)
+		impl, err := UnmarshalFilterImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Filter' for 'ListSelector': %+v", err)
 		}
 		s.Filter = impl
 	}
+
 	return nil
 }

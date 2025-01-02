@@ -15,7 +15,7 @@ type ManagedVirtualNetworksClient struct {
 }
 
 func NewManagedVirtualNetworksClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedVirtualNetworksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedvirtualnetworks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedvirtualnetworks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedVirtualNetworksClient: %+v", err)
 	}

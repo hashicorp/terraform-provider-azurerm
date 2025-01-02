@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	artifacts "github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 func resourceSynapseLinkedService() *pluginsdk.Resource {

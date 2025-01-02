@@ -502,16 +502,15 @@ func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversi
 	}
 
 	output := make([]ManageAction, 0)
-	if input != nil {
-		obj := ManageAction{
-			Install: input.Install,
-			Remove:  input.Remove,
-		}
-		if input.Update != nil {
-			obj.Update = *input.Update
-		}
-		output = append(output, obj)
+
+	obj := ManageAction{
+		Install: input.Install,
+		Remove:  input.Remove,
 	}
+	if input.Update != nil {
+		obj.Update = *input.Update
+	}
+	output = append(output, obj)
 
 	return output
 }

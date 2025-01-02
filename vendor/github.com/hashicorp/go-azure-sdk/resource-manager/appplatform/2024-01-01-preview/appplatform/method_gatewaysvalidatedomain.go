@@ -50,7 +50,6 @@ func (c AppPlatformClient) GatewaysValidateDomain(ctx context.Context, id Gatewa
 
 	var model CustomDomainValidateResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

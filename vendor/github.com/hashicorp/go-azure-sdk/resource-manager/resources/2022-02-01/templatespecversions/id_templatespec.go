@@ -42,7 +42,7 @@ func ParseTemplateSpecID(input string) (*TemplateSpecId, error) {
 	}
 
 	id := TemplateSpecId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseTemplateSpecIDInsensitively(input string) (*TemplateSpecId, error) {
 	}
 
 	id := TemplateSpecId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id TemplateSpecId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticTemplateSpecs", "templateSpecs", "templateSpecs"),
-		resourceids.UserSpecifiedSegment("templateSpecName", "templateSpecValue"),
+		resourceids.UserSpecifiedSegment("templateSpecName", "templateSpecName"),
 	}
 }
 

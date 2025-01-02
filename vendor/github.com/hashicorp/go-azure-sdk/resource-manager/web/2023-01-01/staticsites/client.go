@@ -15,7 +15,7 @@ type StaticSitesClient struct {
 }
 
 func NewStaticSitesClientWithBaseURI(sdkApi sdkEnv.Api) (*StaticSitesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "staticsites", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "staticsites", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StaticSitesClient: %+v", err)
 	}

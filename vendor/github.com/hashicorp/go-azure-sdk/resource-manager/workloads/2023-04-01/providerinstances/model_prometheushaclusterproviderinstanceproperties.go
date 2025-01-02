@@ -13,12 +13,20 @@ var _ ProviderSpecificProperties = PrometheusHaClusterProviderInstanceProperties
 type PrometheusHaClusterProviderInstanceProperties struct {
 	ClusterName       *string        `json:"clusterName,omitempty"`
 	Hostname          *string        `json:"hostname,omitempty"`
-	PrometheusUrl     *string        `json:"prometheusUrl,omitempty"`
+	PrometheusURL     *string        `json:"prometheusUrl,omitempty"`
 	Sid               *string        `json:"sid,omitempty"`
 	SslCertificateUri *string        `json:"sslCertificateUri,omitempty"`
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s PrometheusHaClusterProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = PrometheusHaClusterProviderInstanceProperties{}
@@ -32,9 +40,10 @@ func (s PrometheusHaClusterProviderInstanceProperties) MarshalJSON() ([]byte, er
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PrometheusHaClusterProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "PrometheusHaCluster"
 
 	encoded, err = json.Marshal(decoded)

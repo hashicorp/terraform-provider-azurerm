@@ -10,7 +10,7 @@ import (
 	healthbot_2022_08_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type Client struct {

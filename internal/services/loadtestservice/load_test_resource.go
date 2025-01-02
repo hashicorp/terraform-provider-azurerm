@@ -21,8 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = LoadTestResource{}
-var _ sdk.ResourceWithUpdate = LoadTestResource{}
+var (
+	_ sdk.Resource           = LoadTestResource{}
+	_ sdk.ResourceWithUpdate = LoadTestResource{}
+)
 
 type LoadTestResource struct{}
 
@@ -54,9 +56,11 @@ type LoadTestEncryptionIdentity struct {
 func (r LoadTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return loadtests.ValidateLoadTestID
 }
+
 func (r LoadTestResource) ResourceType() string {
 	return "azurerm_load_test"
 }
+
 func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -67,7 +71,6 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"description": {
-			ForceNew: true,
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -113,6 +116,7 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 }
+
 func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"data_plane_uri": {
@@ -121,6 +125,7 @@ func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 }
+
 func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -159,6 +164,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r LoadTestResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -185,12 +191,16 @@ func (r LoadTestResource) Read() sdk.ResourceFunc {
 				if err := r.mapLoadTestResourceToLoadTestResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
 				}
+				if property := model.Properties; property != nil {
+					schema.Description = pointer.From(property.Description)
+				}
 			}
 
 			return metadata.Encode(&schema)
 		},
 	}
 }
+
 func (r LoadTestResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -210,6 +220,7 @@ func (r LoadTestResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r LoadTestResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -242,7 +253,6 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 
 // nolint unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
-
 	output.Description = &input.Description
 	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
 
@@ -263,7 +273,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []
 	}
 
 	return &loadtests.EncryptionProperties{
-		KeyUrl:   pointer.To(attr.KeyURL),
+		KeyURL:   pointer.To(attr.KeyURL),
 		Identity: encryptionIdentity,
 	}
 }
@@ -277,7 +287,7 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 		outputEncryption := make([]LoadTestEncryption, 0)
 		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
 		output.Encryption = append(outputEncryption, LoadTestEncryption{
-			KeyURL:   pointer.From(encryption.KeyUrl),
+			KeyURL:   pointer.From(encryption.KeyURL),
 			Identity: outputEncryptionIdentity,
 		})
 		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
@@ -294,7 +304,6 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
-
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -315,7 +324,6 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input Load
 }
 
 func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input loadtests.LoadTestResource, output *LoadTestResourceSchema) error {
-
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -336,7 +344,6 @@ func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input load
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(input LoadTestResourceSchema, output *loadtests.LoadTestResourceUpdate) error {
-
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -344,12 +351,15 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
+
+	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
+		Description: pointer.To(input.Description),
+	}
 	return nil
 }
 
 // nolint: unused
 func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
-
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)

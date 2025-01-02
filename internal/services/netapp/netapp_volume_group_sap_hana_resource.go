@@ -15,10 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -336,16 +336,11 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 					// Modify volumeType as data protection type on main volumeList
 					// so it gets created correctly as data protection volume
 					(pointer.From(volumeList))[i].Properties.VolumeType = utils.String("DataProtection")
 				}
 			}
-
-			// TODO: deploymentSpecId is temporary until the backend is updated and deploymentSpecId is not required anymore,
-			//       it will be handled internally by the RP
-			deploymentSpecId := "20542149-bfca-5618-1879-9863dc6767f1"
 
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
@@ -354,7 +349,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 						GroupDescription:      utils.String(model.GroupDescription),
 						ApplicationType:       pointer.To(volumegroups.ApplicationTypeSAPNegativeHANA),
 						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
-						DeploymentSpecId:      utils.String(deploymentSpecId),
 					},
 					Volumes: volumeList,
 				},
@@ -375,7 +369,6 @@ func (r NetAppVolumeGroupSapHanaResource) Create() sdk.ResourceFunc {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 					capacityPoolId, err := capacitypools.ParseCapacityPoolID(pointer.From(volumeCrr.Properties.CapacityPoolResourceId))
 					if err != nil {
 						return err
@@ -432,16 +425,14 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
 
 			if metadata.ResourceData.HasChange("volume") {
-
 				// Iterating over each volume and performing individual patch
 				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
-
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
 
@@ -451,7 +442,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange(volumeItem) {
-
 						volumeId := volumes.NewVolumeID(id.SubscriptionId,
 							id.ResourceGroupName,
 							id.NetAppAccountName,
@@ -504,7 +494,6 @@ func (r NetAppVolumeGroupSapHanaResource) Update() sdk.ResourceFunc {
 								dataProtectionReplication.Replication != nil &&
 								dataProtectionReplication.Replication.EndpointType != nil &&
 								strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
 							}
 
@@ -539,7 +528,6 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeGroupClient
 
 			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())
@@ -550,7 +538,7 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeGroupSapHanaModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
@@ -561,8 +549,6 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			metadata.SetID(id)
-
 			model := netAppModels.NetAppVolumeGroupSapHanaModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.NetAppAccountName,
@@ -571,8 +557,8 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := existing.Model.Properties; props != nil {
-				model.GroupDescription = utils.NormalizeNilableString(props.GroupMetaData.GroupDescription)
-				model.ApplicationIdentifier = utils.NormalizeNilableString(props.GroupMetaData.ApplicationIdentifier)
+				model.GroupDescription = pointer.From(props.GroupMetaData.GroupDescription)
+				model.ApplicationIdentifier = pointer.From(props.GroupMetaData.ApplicationIdentifier)
 
 				volumes, err := flattenNetAppVolumeGroupVolumes(ctx, props.Volumes, metadata)
 				if err != nil {
@@ -581,6 +567,8 @@ func (r NetAppVolumeGroupSapHanaResource) Read() sdk.ResourceFunc {
 
 				model.Volumes = volumes
 			}
+
+			metadata.SetID(id)
 
 			return metadata.Encode(&model)
 		},
@@ -591,7 +579,6 @@ func (r NetAppVolumeGroupSapHanaResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeGroupClient
 
 			id, err := volumegroups.ParseVolumeGroupID(metadata.ResourceData.Id())

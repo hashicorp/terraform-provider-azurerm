@@ -15,7 +15,7 @@ type EncryptionScopesClient struct {
 }
 
 func NewEncryptionScopesClientWithBaseURI(sdkApi sdkEnv.Api) (*EncryptionScopesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "encryptionscopes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "encryptionscopes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EncryptionScopesClient: %+v", err)
 	}

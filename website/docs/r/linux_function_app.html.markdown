@@ -10,6 +10,10 @@ description: |-
 
 Manages a Linux Function App.
 
+> [!NOTE]
+> This Terraform resource is limited to creating the Function App resource. To package and deploy your code logic to the Function App, you can use a separate tool, such as [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local).
+
+
 ## Example Usage
 
 ```hcl
@@ -35,7 +39,7 @@ resource "azurerm_service_plan" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   os_type             = "Linux"
-  sku_name            = "Y1"
+  sku_name            = "B1"
 }
 
 resource "azurerm_linux_function_app" "example" {
@@ -139,6 +143,10 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `vnet_image_pull_enabled` - (Optional) Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.
+
+~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
@@ -167,11 +175,13 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0` and `8.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`.
+
+~> **NOTE:** The value `21` is currently in Preview for `java_version`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` and `20`.
 
@@ -691,7 +701,7 @@ A `site_config` block supports the following:
 
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
 
@@ -707,7 +717,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 

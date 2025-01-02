@@ -4,7 +4,6 @@
 package cosmos
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -80,10 +79,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cosmosdb_sql_stored_procedure": resourceCosmosDbSQLStoredProcedure(),
 		"azurerm_cosmosdb_sql_trigger":          resourceCosmosDbSQLTrigger(),
 		"azurerm_cosmosdb_table":                resourceCosmosDbTable(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_cosmosdb_notebook_workspace"] = resourceCosmosDbNotebookWorkspace()
 	}
 
 	return resources

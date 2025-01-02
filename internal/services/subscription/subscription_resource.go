@@ -128,7 +128,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	aliasName := ""
+	var aliasName string
 	if aliasNameRaw, ok := d.GetOk("alias"); ok {
 		aliasName = aliasNameRaw.(string)
 	} else {
@@ -163,11 +163,9 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 	}
 
-	subscriptionId := ""
-
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
-		subscriptionId = subscriptionIdRaw.(string)
+		subscriptionId := subscriptionIdRaw.(string)
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 
 		locks.ByID(subscriptionId)

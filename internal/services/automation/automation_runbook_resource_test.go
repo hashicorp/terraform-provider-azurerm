@@ -303,9 +303,6 @@ resource "azurerm_automation_runbook" "test" {
       value     = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
     }
   }
-  lifecycle {
-    ignore_changes = [content]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -395,7 +392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 
@@ -444,7 +441,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 
@@ -502,7 +499,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 

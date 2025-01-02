@@ -176,7 +176,7 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.ProtectedSettings != "" {
-				var protectedSettingsValue interface{}
+				protectedSettingsValue := make(map[string]interface{})
 				err = json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
 				if err != nil {
 					return err
@@ -189,7 +189,7 @@ func (r ArcMachineExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Settings != "" {
-				var settingsValue interface{}
+				settingsValue := make(map[string]interface{})
 				err = json.Unmarshal([]byte(model.Settings), &settingsValue)
 				if err != nil {
 					return err
@@ -254,7 +254,7 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protected_settings") {
-				var protectedSettingsValue interface{}
+				protectedSettingsValue := make(map[string]interface{})
 				err := json.Unmarshal([]byte(model.ProtectedSettings), &protectedSettingsValue)
 				if err != nil {
 					return err
@@ -272,7 +272,7 @@ func (r ArcMachineExtensionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("settings") {
-				var settingsValue interface{}
+				settingsValue := make(map[string]interface{})
 				err := json.Unmarshal([]byte(model.Settings), &settingsValue)
 				if err != nil {
 					return err
@@ -366,7 +366,6 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 					}
 
 					if properties.Settings != nil && *properties.Settings != nil {
-
 						settingsValue, err := json.Marshal(*properties.Settings)
 						if err != nil {
 							return err
@@ -387,7 +386,6 @@ func (r ArcMachineExtensionResource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-
 			}
 
 			return metadata.Encode(&state)

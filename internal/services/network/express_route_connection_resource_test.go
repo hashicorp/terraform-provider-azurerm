@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressrouteconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -148,7 +148,6 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
-  private_link_fast_path_enabled       = true
   express_route_gateway_bypass_enabled = true
 
   routing {
@@ -220,7 +219,6 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
-  private_link_fast_path_enabled       = true
   express_route_gateway_bypass_enabled = true
 
   routing {

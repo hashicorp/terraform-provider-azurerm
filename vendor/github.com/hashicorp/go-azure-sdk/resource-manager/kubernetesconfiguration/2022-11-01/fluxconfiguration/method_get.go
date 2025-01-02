@@ -45,7 +45,6 @@ func (c FluxConfigurationClient) Get(ctx context.Context, id ScopedFluxConfigura
 
 	var model FluxConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

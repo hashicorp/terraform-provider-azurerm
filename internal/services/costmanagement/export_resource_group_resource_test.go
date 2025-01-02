@@ -235,7 +235,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
-    root_folder_path = "root/updated"
+    root_folder_path = "/root/updated"
   }
   export_data_options {
     type         = "Usage"

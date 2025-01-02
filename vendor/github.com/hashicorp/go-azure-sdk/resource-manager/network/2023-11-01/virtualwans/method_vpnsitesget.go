@@ -45,7 +45,6 @@ func (c VirtualWANsClient) VpnSitesGet(ctx context.Context, id VpnSiteId) (resul
 
 	var model VpnSite
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

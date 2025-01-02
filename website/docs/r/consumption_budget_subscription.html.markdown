@@ -116,16 +116,6 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
-* `not` - (Optional) A `not` block as defined below to filter the budget on. This is deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
----
-
-A `not` block supports the following:
-
-* `dimension` - (Optional) One `dimension` block as defined below to filter the budget on. Conflicts with `tag`.
-
-* `tag` - (Optional) One `tag` block as defined below to filter the budget on. Conflicts with `dimension`.
-
 ---
 
 A `notification` block supports the following:
@@ -134,7 +124,7 @@ A `notification` block supports the following:
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 

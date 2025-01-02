@@ -204,7 +204,7 @@ func resourceHealthcareApisDicomServiceRead(d *pluginsdk.ResourceData, meta inte
 		if props := m.Properties; props != nil {
 			d.Set("authentication", flattenDicomAuthentication(props.AuthenticationConfiguration))
 			d.Set("private_endpoint", flattenDicomServicePrivateEndpoint(props.PrivateEndpointConnections))
-			d.Set("service_url", props.ServiceUrl)
+			d.Set("service_url", props.ServiceURL)
 
 			if pna := pointer.From(props.PublicNetworkAccess); pna != "" {
 				d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == dicomservices.PublicNetworkAccessEnabled)
@@ -300,7 +300,6 @@ func resourceHealthcareApisDicomServiceDelete(d *pluginsdk.ResourceData, meta in
 func dicomServiceStateStatusCodeRefreshFunc(ctx context.Context, client *dicomservices.DicomServicesClient, id dicomservices.DicomServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id)
-
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "Deleted", nil

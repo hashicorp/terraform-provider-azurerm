@@ -44,7 +44,7 @@ func ParseRouteMapID(input string) (*RouteMapId, error) {
 	}
 
 	id := RouteMapId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRouteMapIDInsensitively(input string) (*RouteMapId, error) {
 	}
 
 	id := RouteMapId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id RouteMapId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVirtualHubs", "virtualHubs", "virtualHubs"),
-		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubValue"),
+		resourceids.UserSpecifiedSegment("virtualHubName", "virtualHubName"),
 		resourceids.StaticSegment("staticRouteMaps", "routeMaps", "routeMaps"),
-		resourceids.UserSpecifiedSegment("routeMapName", "routeMapValue"),
+		resourceids.UserSpecifiedSegment("routeMapName", "routeMapName"),
 	}
 }
 

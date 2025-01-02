@@ -15,7 +15,7 @@ type ObjectReplicationPoliciesClient struct {
 }
 
 func NewObjectReplicationPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ObjectReplicationPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "objectreplicationpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "objectreplicationpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ObjectReplicationPoliciesClient: %+v", err)
 	}

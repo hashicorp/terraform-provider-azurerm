@@ -4,6 +4,7 @@
 package maintenance
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -264,14 +265,14 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 	if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 		if window == nil {
-			return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+			return errors.New("`window` must be specified when `scope` is `InGuestPatch`")
 		}
 		if installPatches == nil {
-			return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+			return errors.New("`install_patches` must be specified when `scope` is `InGuestPatch`")
 		}
 		if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
 			if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
-				return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
 			}
 			(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
 		}
@@ -323,14 +324,14 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
 		if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
 			if window == nil {
-				return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`window` must be specified when `scope` is `InGuestPatch`")
 			}
 			if installPatches == nil {
-				return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+				return errors.New("`install_patches` must be specified when `scope` is `InGuestPatch`")
 			}
 			if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
 				if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
-					return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+					return errors.New("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
 				}
 				(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
 			}

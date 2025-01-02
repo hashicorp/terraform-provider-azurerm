@@ -17,14 +17,11 @@ func TestAccRedisEnterpriseDatabaseDataSource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseDataSource{}
 
-	resourceGroupName := fmt.Sprintf("acctestRG-redisEnterprise-%d", data.RandomInteger)
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.dataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("default"),
-				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("cluster_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
@@ -37,14 +34,11 @@ func TestAccRedisEnterpriseDatabaseDataSource_geoDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseDataSource{}
 
-	resourceGroupName := fmt.Sprintf("acctestRG-redisEnterprise-%d", data.RandomInteger)
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.dataSourceGeoDatabase(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("default"),
-				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("cluster_id").Exists(),
 				check.That(data.ResourceName).Key("linked_database_id.#").Exists(),
 				check.That(data.ResourceName).Key("linked_database_group_nickname").Exists(),

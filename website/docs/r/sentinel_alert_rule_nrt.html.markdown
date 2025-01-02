@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `display_name` - (Required) The friendly name of this Sentinel NRT Alert Rule.
 
+* `event_grouping` - (Required) A `event_grouping` block as defined below.
+
 * `severity` - (Required) The alert severity of this Sentinel NRT Alert Rule. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
 * `query` - (Required) The query of this Sentinel NRT Alert Rule.
@@ -76,10 +78,6 @@ The following arguments are supported:
 * `enabled` - (Optional) Should the Sentinel NRT Alert Rule be enabled? Defaults to `true`.
 
 * `entity_mapping` - (Optional) A list of `entity_mapping` blocks as defined below.
-
-* `event_grouping` - (Optional) A `event_grouping` block as defined below.
-
--> **NOTE:** `event_grouping` will be required in the next major version of the AzureRM Provider.
 
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 

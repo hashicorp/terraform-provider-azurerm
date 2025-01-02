@@ -126,7 +126,6 @@ resource "azurerm_dev_test_lab" "test" {
   name                = "acctestdtl%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  storage_type        = "Standard"
 
   tags = {
     Hello = "World"

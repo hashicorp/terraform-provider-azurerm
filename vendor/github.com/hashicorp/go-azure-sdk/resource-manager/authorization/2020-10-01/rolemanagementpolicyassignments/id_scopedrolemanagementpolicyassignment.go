@@ -40,7 +40,7 @@ func ParseScopedRoleManagementPolicyAssignmentID(input string) (*ScopedRoleManag
 	}
 
 	id := ScopedRoleManagementPolicyAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedRoleManagementPolicyAssignmentIDInsensitively(input string) (*Sc
 	}
 
 	id := ScopedRoleManagementPolicyAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedRoleManagementPolicyAssignmentId) Segments() []resourceids.Segmen
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticRoleManagementPolicyAssignments", "roleManagementPolicyAssignments", "roleManagementPolicyAssignments"),
-		resourceids.UserSpecifiedSegment("roleManagementPolicyAssignmentName", "roleManagementPolicyAssignmentValue"),
+		resourceids.UserSpecifiedSegment("roleManagementPolicyAssignmentName", "roleManagementPolicyAssignmentName"),
 	}
 }
 

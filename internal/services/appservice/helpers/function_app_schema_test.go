@@ -8,7 +8,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )

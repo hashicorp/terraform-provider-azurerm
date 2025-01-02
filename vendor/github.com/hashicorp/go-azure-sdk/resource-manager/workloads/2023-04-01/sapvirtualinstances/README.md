@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances` Documentation
 
-The `sapvirtualinstances` SDK allows for interaction with the Azure Resource Manager Service `workloads` (API Version `2023-04-01`).
+The `sapvirtualinstances` SDK allows for interaction with Azure Resource Manager `workloads` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 payload := sapvirtualinstances.SAPVirtualInstance{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -116,7 +116,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 payload := sapvirtualinstances.StopRequest{
 	// ...
@@ -133,7 +133,7 @@ if err := client.StopThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapvirtualinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 payload := sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
 	// ...

@@ -15,7 +15,7 @@ type SpacecraftClient struct {
 }
 
 func NewSpacecraftClientWithBaseURI(sdkApi sdkEnv.Api) (*SpacecraftClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "spacecraft", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "spacecraft", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SpacecraftClient: %+v", err)
 	}

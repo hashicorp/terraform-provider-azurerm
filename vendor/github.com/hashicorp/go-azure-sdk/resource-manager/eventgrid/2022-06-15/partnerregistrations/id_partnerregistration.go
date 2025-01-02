@@ -42,7 +42,7 @@ func ParsePartnerRegistrationID(input string) (*PartnerRegistrationId, error) {
 	}
 
 	id := PartnerRegistrationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePartnerRegistrationIDInsensitively(input string) (*PartnerRegistration
 	}
 
 	id := PartnerRegistrationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PartnerRegistrationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerRegistrations", "partnerRegistrations", "partnerRegistrations"),
-		resourceids.UserSpecifiedSegment("partnerRegistrationName", "partnerRegistrationValue"),
+		resourceids.UserSpecifiedSegment("partnerRegistrationName", "partnerRegistrationName"),
 	}
 }
 

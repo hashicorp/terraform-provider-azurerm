@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `default_node_pool` - (Required) A `default_node_pool` block as defined below.
+* `default_node_pool` - (Required) Specifies configuration for "System" mode node pool. A `default_node_pool` block as defined below.
 
 * `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster. Possible values must begin and end with a letter or number, contain only letters, numbers, and hyphens and be between 1 and 54 characters in length. Changing this forces a new resource to be created.
 
@@ -83,7 +83,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block as defined below. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/azure/aks/virtual-nodes-portal).
 
-* `automatic_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
+* `automatic_upgrade_channel` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and its Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/azure/aks/upgrade-cluster#set-auto-upgrade-channel).
 
@@ -101,13 +101,9 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
 
-* `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
-
--> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.
-
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used for the Nodes and Volumes. More information [can be found in the documentation](https://docs.microsoft.com/azure/aks/azure-disk-customer-managed-keys). Changing this forces a new resource to be created.
 
-* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
+* `edge_zone` - (Optional) Specifies the Extended Zone (formerly called Edge Zone) within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
 * `http_application_routing_enabled` - (Optional) Should HTTP Application Routing be enabled?
 
@@ -121,7 +117,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
 
-* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `48`.
+* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `0`.
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
@@ -159,9 +155,9 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `node_os_channel_upgrade` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`.
+* `node_os_upgrade_channel` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`. Defaults to `NodeImage`.
 
--> **Note:** `node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` has been set to `node-image`
+-> **Note:** `node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` has been set to `node-image`
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
@@ -284,19 +280,19 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
-* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
-
-* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? For more details please visit [Use API Server VNet Integration](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration).
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableAPIServerVnetIntegrationPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration#register-the-enableapiservervnetintegrationpreview-preview-feature) for more information.
-
 ---
 
 An `auto_scaler_profile` block supports the following:
 
 * `balance_similar_node_groups` - (Optional) Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
 
+* `daemonset_eviction_for_empty_nodes_enabled` - (Optional) Whether DaemonSet pods will be gracefully terminated from empty nodes. Defaults to `false`.
+
+* `daemonset_eviction_for_occupied_nodes_enabled` - (Optional) Whether DaemonSet pods will be gracefully terminated from non-empty nodes. Defaults to `true`.
+
 * `expander` - (Optional) Expander to use. Possible values are `least-waste`, `priority`, `most-pods` and `random`. Defaults to `random`.
+
+* `ignore_daemonsets_utilization_enabled` - (Optional) Whether DaemonSet pods will be ignored when calculating resource utilization for scale down. Defaults to `false`.
 
 * `max_graceful_termination_sec` - (Optional) Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
 
@@ -332,13 +328,7 @@ An `auto_scaler_profile` block supports the following:
 
 An `azure_active_directory_role_based_access_control` block supports the following:
 
-* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration. Defaults to `false`.
-
--> **Note:** The property `managed` is deprecated and will be defaulted to `true` in v4.0 of the AzureRM provider. Until the property is removed it must be specified with `true` for AKS-managed Entra Integration.
-
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
-
-When `managed` is set to `true` the following properties can be specified:
 
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
@@ -364,7 +354,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `enable_host_encryption`, `enable_node_public_ip`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -372,21 +362,17 @@ A `default_node_pool` block supports the following:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
-
-* `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?
+* `auto_scaling_enabled` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler) be enabled for this Node Pool?
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets`.
 
 -> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `node_count` field.
 
-* `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.
+* `host_encryption_enabled` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.
 
 -> **Note:** This requires that the  Feature `Microsoft.ContainerService/EnableEncryptionAtHost` is enabled and the Resource Provider is registered.
 
-* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
+* `node_public_ip_enabled` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
 
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
@@ -402,11 +388,9 @@ A `default_node_pool` block supports the following:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
-* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
-
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
-* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in the Default Node Pool.
 
@@ -432,7 +416,7 @@ A `default_node_pool` block supports the following:
 
 * `temporary_name_for_rotation` - (Optional) Specifies the name of the temporary node pool used to cycle the default node pool for VM resizing.
 
-* `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
+* `type` - (Optional) The type of Node Pool which should be created. Possible values are `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`. Changing this forces a new resource to be created.
 
 -> **Note:** When creating a cluster that supports multiple node pools, the cluster must use `VirtualMachineScaleSets`. For more information on the limitations of clusters using multiple node pools see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-multiple-node-pools#limitations).
 
@@ -448,15 +432,13 @@ A `default_node_pool` block supports the following:
 
 ~> **Note:** A Route Table must be configured on this Subnet.
 
-* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible values are `OCIContainer` and `KataMshvVmIsolation`.
-
-~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
+* `workload_runtime` - (Optional) Specifies the workload runtime used by the node pool. Possible value is `OCIContainer`.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster should be located. `temporary_name_for_rotation` must be specified when changing this property.
 
 -> **Note:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `standard`.
 
-If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `true`, then the following fields can also be configured:
 
 * `max_count` - (Optional) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
@@ -466,7 +448,7 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 -> **Note:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
--> **Note:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
+-> **Note:** If `auto_scaling_enabled` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
 ---
 
@@ -506,7 +488,7 @@ A `kubelet_config` block supports the following:
 
 * `container_log_max_size_mb` - (Optional) Specifies the maximum size (e.g. 10MB) of container log file before it is rotated.
 
-* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled?
+* `cpu_cfs_quota_enabled` - (Optional) Is CPU CFS quota enforcement for containers enabled? Defaults to `true`.
 
 * `cpu_cfs_quota_period` - (Optional) Specifies the CPU CFS quota period value.
 
@@ -553,8 +535,6 @@ A `node_network_profile` block supports the following:
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
 
 ---
 
@@ -675,17 +655,11 @@ A `network_profile` block supports the following:
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
-* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Changing this forces a new resource to be created.
-
--> **Note:** `docker_bridge_cidr` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
 * `network_data_plane` - (Optional) Specifies the data plane used for building the Kubernetes network. Possible values are `azure` and `cilium`. Defaults to `azure`. Disabling this forces a new resource to be created.
 
 ~> **Note:** When `network_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
 ~> **Note:** When `network_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CiliumDataplanePreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/azure-cni-powered-by-cilium) for more information.
 
 * `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`.
 
@@ -723,6 +697,8 @@ A `load_balancer_profile` block supports the following:
 
 ~> **Note:** The fields `managed_outbound_ip_count`, `outbound_ip_address_ids` and `outbound_ip_prefix_ids` are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `standard`.
 
+* `backend_pool_type` - (Optional) The type of the managed inbound Load Balancer Backend Pool. Possible values are `NodeIP` and `NodeIPConfiguration`. Defaults to `NodeIPConfiguration`. See [the documentation](https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard#change-the-inbound-pool-type) for more information.
+
 * `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `100` inclusive. Defaults to `30`.
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
@@ -745,9 +721,9 @@ A `load_balancer_profile` block supports the following:
 
 A `nat_gateway_profile` block supports the following:
 
-* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the cluster load balancer. Must be between `4` and `120` inclusive. Defaults to `4`.
+* `idle_timeout_in_minutes` - (Optional) Desired outbound flow idle timeout in minutes for the managed nat gateway. Must be between `4` and `120` inclusive. Defaults to `4`.
 
-* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be between `1` and `100` inclusive.
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the managed nat gateway. Must be between `1` and `16` inclusive.
 
 ---
 
@@ -778,6 +754,10 @@ An `ingress_application_gateway` block supports the following:
 A `service_mesh_profile` block supports the following:
 
 * `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
+
+* `revisions` - (Required) Specify 1 or 2 Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `["asm-1-20"]`, or leave it empty (the `revisions` will only be known after apply). To start the canary upgrade, change `revisions` to `["asm-1-20", "asm-1-21"]`. To roll back the canary upgrade, revert to `["asm-1-20"]`. To confirm the upgrade, change to `["asm-1-21"]`.
+
+-> **NOTE:** Upgrading to a new (canary) revision does not affect existing sidecar proxies. You need to apply the canary revision label to selected namespaces and restart pods with kubectl to inject the new sidecar proxy. [Learn more](https://istio.io/latest/docs/setup/upgrade/canary/#data-plane).
 
 * `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled?
 
@@ -815,7 +795,7 @@ A `service_principal` block supports the following:
 
 A `ssh_key` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster.
+* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
 
 ---
 
@@ -824,10 +804,6 @@ A `storage_profile` block supports the following:
 * `blob_driver_enabled` - (Optional) Is the Blob CSI driver enabled? Defaults to `false`.
 
 * `disk_driver_enabled` - (Optional) Is the Disk CSI driver enabled? Defaults to `true`.
-
-* `disk_driver_version` - (Optional) Disk CSI Driver version to be used. Possible values are `v1` and `v2`. Defaults to `v1`.
-
--> **Note:** `Azure Disk CSI driver v2` is currently in [Public Preview](https://azure.microsoft.com/en-us/updates/public-preview-azure-disk-csi-driver-v2-in-aks/) on an opt-in basis. To use it, the feature `EnableAzureDiskCSIDriverV2` for namespace `Microsoft.ContainerService` must be requested.
 
 * `file_driver_enabled` - (Optional) Is the File CSI driver enabled? Defaults to `true`.
 

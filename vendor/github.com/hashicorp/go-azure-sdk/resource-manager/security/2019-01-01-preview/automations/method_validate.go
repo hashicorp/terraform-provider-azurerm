@@ -50,7 +50,6 @@ func (c AutomationsClient) Validate(ctx context.Context, id AutomationId, input 
 
 	var model AutomationValidationStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

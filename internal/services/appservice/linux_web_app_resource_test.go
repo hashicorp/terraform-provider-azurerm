@@ -757,6 +757,21 @@ func TestAccLinuxWebApp_withDotNet80(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withDotNet90(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebApp_withGo18(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1179,6 +1194,38 @@ func TestAccLinuxWebApp_withJava8JBOSSEAP73(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JBOSSEAP|7.3-java8"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_withJre17Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.java(data, "17", "JAVA", "17"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|17-java17"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_withJre21Java(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.java(data, "21", "JAVA", "21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JAVA|21-java21"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1621,14 +1668,16 @@ func TestAccLinuxWebApp_disableDeployBasicAuthUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"), {
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.deployBasicAuthDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep("site_credential.0.password"), {
+		data.ImportStep("site_credential.0.password"),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -2008,7 +2057,6 @@ resource "azurerm_linux_web_app" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     // auto_swap_slot_name = // TODO
-    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -2177,8 +2225,6 @@ resource "azurerm_linux_web_app" "test" {
     }
 
     container_registry_use_managed_identity = true
-
-    auto_heal_enabled = true
 
     auto_heal_setting {
       trigger {
@@ -3298,8 +3344,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3334,8 +3378,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3375,8 +3417,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -3411,8 +3451,6 @@ resource "azurerm_linux_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         slow_request {
@@ -3444,7 +3482,6 @@ resource "azurerm_linux_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
   site_config {
-    auto_heal_enabled = true
     auto_heal_setting {
       trigger {
         slow_request {

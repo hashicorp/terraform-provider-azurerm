@@ -69,7 +69,7 @@ func TestAccComputeCluster_recreateVmSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

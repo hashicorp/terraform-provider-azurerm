@@ -30,8 +30,9 @@ type Versions struct {
 }
 
 type InstallationOptions struct {
-	Timeout time.Duration
-	Dir     string
+	Timeout    time.Duration
+	Dir        string
+	LicenseDir string
 
 	SkipChecksumVerification bool
 
@@ -46,7 +47,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 		return nil, fmt.Errorf("invalid product name: %q", v.Product.Name)
 	}
 
-	if err := validateEnterpriseOptions(v.Enterprise); err != nil {
+	if err := validateEnterpriseOptions(v.Enterprise, v.Install.LicenseDir); err != nil {
 		return nil, err
 	}
 
@@ -85,6 +86,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 			Version:    pv.Version,
 			InstallDir: v.Install.Dir,
 			Timeout:    v.Install.Timeout,
+			LicenseDir: v.Install.LicenseDir,
 
 			ArmoredPublicKey:         v.Install.ArmoredPublicKey,
 			SkipChecksumVerification: v.Install.SkipChecksumVerification,
@@ -92,8 +94,7 @@ func (v *Versions) List(ctx context.Context) ([]src.Source, error) {
 
 		if v.Enterprise != nil {
 			ev.Enterprise = &EnterpriseOptions{
-				Meta:       v.Enterprise.Meta,
-				LicenseDir: v.Enterprise.LicenseDir,
+				Meta: v.Enterprise.Meta,
 			}
 		}
 

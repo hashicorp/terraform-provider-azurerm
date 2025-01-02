@@ -6,6 +6,7 @@ package storage
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -182,7 +183,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving Storage Account %q for Table %q: %v", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -248,6 +249,9 @@ func resourceStorageTableDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if err = client.Delete(ctx, id.TableName); err != nil {
+		if strings.Contains(err.Error(), "unexpected status 404") {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

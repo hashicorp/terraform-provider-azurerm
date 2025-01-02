@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -779,6 +779,21 @@ func TestAccWindowsWebAppSlot_withDotNet8(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withDotNet9(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -1364,8 +1379,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -1396,7 +1409,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
     auto_heal_setting {
       trigger {
         slow_request {
@@ -1440,8 +1452,6 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   site_config {
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {
@@ -1633,7 +1643,6 @@ resource "azurerm_windows_web_app_slot" "test" {
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
     auto_swap_slot_name = "Production"
-    auto_heal_enabled   = true
 
     virtual_application {
       virtual_path  = "/"

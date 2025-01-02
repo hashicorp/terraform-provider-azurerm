@@ -25,6 +25,9 @@ var longRunningOperationCustomStatuses = map[status]pollers.PollingStatus{
 	// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
 	"AuthorizeReplication": pollers.PollingStatusInProgress,
 
+	// VMWare @ 2022-05-01 returns `Building` rather than `InProgress` during creation
+	"Building": pollers.PollingStatusInProgress,
+
 	// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
 	"BreakReplication": pollers.PollingStatusInProgress,
 

@@ -38,7 +38,7 @@ func ParseViewID(input string) (*ViewId, error) {
 	}
 
 	id := ViewId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseViewIDInsensitively(input string) (*ViewId, error) {
 	}
 
 	id := ViewId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id ViewId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticViews", "views", "views"),
-		resourceids.UserSpecifiedSegment("viewName", "viewValue"),
+		resourceids.UserSpecifiedSegment("viewName", "viewName"),
 	}
 }
 

@@ -119,7 +119,31 @@ func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+		},
+	})
+}
+
+func TestAccApiManagementLogger_applicationInsightsConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationInsightsConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.connection_string").Exists(),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }
@@ -145,7 +169,7 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 			ResourceName:            data.ResourceName,
 			ImportState:             true,
 			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key", "application_insights.0.%"},
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.connection_string", "application_insights.0.instrumentation_key", "application_insights.0.%"},
 		},
 	})
 }
@@ -467,6 +491,46 @@ resource "azurerm_api_management_logger" "test" {
 
   application_insights {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ApiManagementLoggerResource) applicationInsightsConnectionString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "other"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  application_insights {
+    connection_string = azurerm_application_insights.test.connection_string
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

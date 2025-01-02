@@ -8,9 +8,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -89,7 +90,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicy() *pluginsdk.Resource {
 }
 
 func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,53 +102,53 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName)
+		existing, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of existing %s: %+v", dbId, err)
 			}
 		}
 
 		// if state is not disabled, we should import it.
-		if existing.ID != nil && *existing.ID != "" && existing.ExtendedDatabaseBlobAuditingPolicyProperties != nil && existing.ExtendedDatabaseBlobAuditingPolicyProperties.State != sql.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.ID)
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+			return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.Model.Id)
 		}
 	}
 
-	params := sql.ExtendedDatabaseBlobAuditingPolicy{
-		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
+	params := blobauditing.ExtendedDatabaseBlobAuditingPolicy{
+		Properties: &blobauditing.ExtendedDatabaseBlobAuditingPolicyProperties{
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
+			RetentionDays:               utils.Int64(int64(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
 	if d.Get("enabled").(bool) {
-		params.ExtendedDatabaseBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateEnabled
+		params.Properties.State = blobauditing.BlobAuditingPolicyStateEnabled
 	} else {
-		params.ExtendedDatabaseBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateDisabled
+		params.Properties.State = blobauditing.BlobAuditingPolicyStateDisabled
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedDatabaseBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName, params); err != nil {
+	if _, err = client.ExtendedDatabaseBlobAuditingPoliciesCreateOrUpdate(ctx, *dbId, params); err != nil {
 		return fmt.Errorf("creating extended auditing policy for %s: %+v", dbId, err)
 	}
 
-	read, err := client.Get(ctx, dbId.ResourceGroupName, dbId.ServerName, dbId.DatabaseName)
+	read, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, *dbId)
 	if err != nil {
 		return fmt.Errorf("retrieving the extended auditing policy for %s: %+v", dbId, err)
 	}
 
-	if read.ID == nil || pointer.From(read.ID) == "" {
+	if read.Model == nil || read.Model.Id == nil || pointer.From(read.Model.Id) == "" {
 		return fmt.Errorf("the extended auditing policy ID for %s is 'nil' or 'empty'", dbId.String())
 	}
 
 	// TODO: update this to use the Database ID - requiring a State Migration
-	readId, err := parse.DatabaseExtendedAuditingPolicyID(pointer.From(read.ID))
+	readId, err := parse.DatabaseExtendedAuditingPolicyID(pointer.From(read.Model.Id))
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resour
 }
 
 func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -167,9 +168,11 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
+	dbId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
+
+	resp, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, dbId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -179,19 +182,21 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, 
 	databaseId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	d.Set("database_id", databaseId.ID())
 
-	if props := resp.ExtendedDatabaseBlobAuditingPolicyProperties; props != nil {
-		d.Set("storage_endpoint", props.StorageEndpoint)
-		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
-		d.Set("retention_in_days", props.RetentionDays)
-		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
-		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("storage_endpoint", props.StorageEndpoint)
+			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
+			d.Set("retention_in_days", props.RetentionDays)
+			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
+		}
 	}
 
 	return nil
 }
 
 func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -200,14 +205,16 @@ func resourceMsSqlDatabaseExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	params := sql.ExtendedDatabaseBlobAuditingPolicy{
-		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-			State: sql.BlobAuditingPolicyStateDisabled,
+	dbId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
+
+	params := blobauditing.ExtendedDatabaseBlobAuditingPolicy{
+		Properties: &blobauditing.ExtendedDatabaseBlobAuditingPolicyProperties{
+			State: blobauditing.BlobAuditingPolicyStateDisabled,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName, params); err != nil {
-		return fmt.Errorf("deleting MsSql Database %q Extended Auditing Policy( MsSql Server %q / Resource Group %q): %+v", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
+	if _, err = client.ExtendedDatabaseBlobAuditingPoliciesCreateOrUpdate(ctx, dbId, params); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil

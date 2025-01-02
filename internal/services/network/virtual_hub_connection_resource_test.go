@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -471,7 +471,7 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
 
   private_endpoint_network_policies             = "Disabled"
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = true
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",

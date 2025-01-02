@@ -14,9 +14,8 @@ Use this data source to access information about an existing Storage Table Entit
 
 ```hcl
 data "azurerm_storage_table_entities" "example" {
-  table_name           = "example-table-name"
-  storage_account_name = "example-storage-account-name"
-  filter               = "PartitionKey eq 'example'"
+  storage_table_id = azurerm_storage_table.example.id
+  filter           = "PartitionKey eq 'example'"
 }
 ```
 
@@ -24,9 +23,7 @@ data "azurerm_storage_table_entities" "example" {
 
 The following arguments are supported:
 
-* `table_name` - The name of the Table.
-
-* `storage_account_name` - The name of the Storage Account where the Table exists.
+* `storage_table_id` - The Storage Table ID where the entities exist.
 
 * `filter` - The filter used to retrieve the entities.
 

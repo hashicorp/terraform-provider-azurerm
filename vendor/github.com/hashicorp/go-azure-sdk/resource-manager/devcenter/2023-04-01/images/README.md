@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/images` Documentation
 
-The `images` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `images` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "galleryValue", "imageValue")
+id := images.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "galleryName", "imageName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := images.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := images.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 // alternatively `client.ListByDevCenter(ctx, id, images.DefaultListByDevCenterOperationOptions())` can be used to do batched pagination
 items, err := client.ListByDevCenterComplete(ctx, id, images.DefaultListByDevCenterOperationOptions())
@@ -57,7 +57,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := images.NewGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "galleryValue")
+id := images.NewGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "galleryName")
 
 // alternatively `client.ListByGallery(ctx, id, images.DefaultListByGalleryOperationOptions())` can be used to do batched pagination
 items, err := client.ListByGalleryComplete(ctx, id, images.DefaultListByGalleryOperationOptions())

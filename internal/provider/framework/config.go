@@ -28,6 +28,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	env := &environments.Environment{}
 	var err error
 
+	subscriptionId := getEnvStringOrDefault(data.SubscriptionId, "ARM_SUBSCRIPTION_ID", "")
+	if subscriptionId == "" {
+		diags.Append(diag.NewErrorDiagnostic("Configuring subscription", "`subscription_id` is a required provider property when performing a plan/apply operation"))
+		return
+	}
+
 	if metadataHost := getEnvStringOrDefault(data.MetaDataHost, "ARM_METADATA_HOSTNAME", ""); metadataHost != "" {
 		env, err = environments.FromEndpoint(ctx, metadataHost)
 		if err != nil {
@@ -98,7 +104,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 
-		AzureCliSubscriptionIDHint: getEnvStringOrDefault(data.SubscriptionId, "ARM_SUBSCRIPTION_ID", ""),
+		AzureCliSubscriptionIDHint: subscriptionId,
 
 		EnableAuthenticatingUsingClientCertificate: true,
 		EnableAuthenticatingUsingClientSecret:      true,
@@ -409,6 +415,19 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.ManagedDisk.ExpandWithoutDowntime = true
 		}
 
+		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
+			var feature []Storage
+			d := features.Storage.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			f.Storage.DataPlaneAvailable = true
+			if !feature[0].DataPlaneAvailable.IsNull() && !feature[0].DataPlaneAvailable.IsUnknown() {
+				f.Storage.DataPlaneAvailable = feature[0].DataPlaneAvailable.ValueBool()
+			}
+		}
+
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
 			d := features.Subscription.ElementsAs(ctx, &feature, true)
@@ -462,6 +481,28 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = false
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 		}
+
+		if !features.NetApp.IsNull() && !features.NetApp.IsUnknown() {
+			var feature []NetApp
+			d := features.NetApp.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			if !feature[0].DeleteBackupsOnBackupVaultDestroy.IsNull() && !feature[0].DeleteBackupsOnBackupVaultDestroy.IsUnknown() {
+				f.NetApp.DeleteBackupsOnBackupVaultDestroy = feature[0].DeleteBackupsOnBackupVaultDestroy.ValueBool()
+			}
+
+			f.NetApp.PreventVolumeDestruction = true
+			if !feature[0].PreventVolumeDestruction.IsNull() && !feature[0].PreventVolumeDestruction.IsUnknown() {
+				f.NetApp.PreventVolumeDestruction = feature[0].PreventVolumeDestruction.ValueBool()
+			}
+		} else {
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			f.NetApp.PreventVolumeDestruction = true
+		}
 	}
 
 	p.clientBuilder.Features = f
@@ -511,11 +552,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		}
 	}
 
-	subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
+	subId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subscriptionId, requiredResourceProviders); err != nil {
+	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
 		diags.AddError("registering resource providers", err.Error())
 		return
 	}

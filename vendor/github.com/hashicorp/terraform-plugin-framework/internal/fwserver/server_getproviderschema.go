@@ -18,13 +18,14 @@ type GetProviderSchemaRequest struct{}
 // GetProviderSchemaResponse is the framework server response for the
 // GetProviderSchema RPC.
 type GetProviderSchemaResponse struct {
-	ServerCapabilities  *ServerCapabilities
-	Provider            fwschema.Schema
-	ProviderMeta        fwschema.Schema
-	ResourceSchemas     map[string]fwschema.Schema
-	DataSourceSchemas   map[string]fwschema.Schema
-	FunctionDefinitions map[string]function.Definition
-	Diagnostics         diag.Diagnostics
+	ServerCapabilities       *ServerCapabilities
+	Provider                 fwschema.Schema
+	ProviderMeta             fwschema.Schema
+	ResourceSchemas          map[string]fwschema.Schema
+	DataSourceSchemas        map[string]fwschema.Schema
+	EphemeralResourceSchemas map[string]fwschema.Schema
+	FunctionDefinitions      map[string]function.Definition
+	Diagnostics              diag.Diagnostics
 }
 
 // GetProviderSchema implements the framework server GetProviderSchema RPC.
@@ -80,4 +81,14 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *GetProviderSchemaRe
 	}
 
 	resp.FunctionDefinitions = functions
+
+	ephemeralResourceSchemas, diags := s.EphemeralResourceSchemas(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.EphemeralResourceSchemas = ephemeralResourceSchemas
 }

@@ -40,6 +40,7 @@ func (o ListByVirtualNetworkOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByVirtualNetworkOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

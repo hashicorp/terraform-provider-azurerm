@@ -50,7 +50,6 @@ func (c AgreementsClient) MarketplaceAgreementsCreate(ctx context.Context, id Of
 
 	var model AgreementTerms
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

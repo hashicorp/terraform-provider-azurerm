@@ -61,11 +61,9 @@ The following arguments are supported:
 
 * `target` - (Required) The FQDN DNS name of the target.
 
-* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`. Defaults to `1`.
 
 * `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint, this must be specified for Profiles using the `Performance` routing method.
-
----
 
 * `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method. Defaults to `false`.
 

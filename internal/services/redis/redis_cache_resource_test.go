@@ -175,11 +175,6 @@ func TestAccRedisCache_BackupDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.aof_storage_connection_string_0` and `redis_configuration.0.aof_storage_connection_string_1` are returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -194,11 +189,6 @@ func TestAccRedisCache_BackupEnabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("redis_configuration.0.rdb_storage_connection_string"),
 	})
@@ -214,11 +204,6 @@ func TestAccRedisCache_BackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/3037
-			ExpectNonEmptyPlan: true,
 		},
 		{
 			Config: r.backupDisabled(data),
@@ -244,7 +229,6 @@ func TestAccRedisCache_AOFBackupEnabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectNonEmptyPlan: true,
 		},
 		data.ImportStep("redis_configuration.0.aof_storage_connection_string_0",
 			"redis_configuration.0.aof_storage_connection_string_1"),
@@ -261,20 +245,12 @@ func TestAccRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.aof_storage_connection_string_0` and `aof_storage_connection_string_1` are returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			ExpectNonEmptyPlan: true,
 		},
 		{
 			Config: r.aofBackupDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			// `redis_configuration.0.rdb_storage_connection_string` is returned as:
-			// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf..."
-			// TODO: remove this once the Bug's been fixed:
-			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -540,24 +516,32 @@ func TestAccRedisCache_identity(t *testing.T) {
 	})
 }
 
-func TestAccRedisCache_SkuDowngrade(t *testing.T) {
+func TestAccRedisCache_AccessKeysAuthenticationEnabledDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 	r := RedisCacheResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.accessKeysAuthentication(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.SkuDowngrade(data),
+			Config: r.accessKeysAuthentication(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.accessKeysAuthentication(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -576,7 +560,6 @@ func (t RedisCacheResource) Exists(ctx context.Context, clients *clients.Client,
 }
 
 func (RedisCacheResource) basic(data acceptance.TestData, requireSSL bool) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1015,7 +998,7 @@ resource "azurerm_redis_cache" "test" {
   name                 = "acctestRedis-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  capacity             = 1
+  capacity             = 3
   family               = "P"
   sku_name             = "Premium"
   non_ssl_port_enabled = false
@@ -1593,4 +1576,32 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RedisCacheResource) accessKeysAuthentication(data acceptance.TestData, accessKeysAuthenticationEnabled bool, activeDirectoryAuthenticationEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                               = "acctestRedis-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  capacity                           = 1
+  family                             = "C"
+  sku_name                           = "Basic"
+  non_ssl_port_enabled               = false
+  minimum_tls_version                = "1.2"
+  access_keys_authentication_enabled = %t
+
+  redis_configuration {
+    active_directory_authentication_enabled = %t
+  }
+}`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, accessKeysAuthenticationEnabled, activeDirectoryAuthenticationEnabled)
 }

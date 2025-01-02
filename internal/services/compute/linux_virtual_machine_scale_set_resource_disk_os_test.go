@@ -812,5 +812,5 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
 }

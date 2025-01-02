@@ -72,17 +72,13 @@ The following arguments are supported:
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group where this Node Pool should exist. Changing this forces a new resource to be created.
 
-* `custom_ca_trust_enabled` - (Optional) Specifies whether to trust a Custom CA.
+* `auto_scaling_enabled` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/CustomCATrustPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/custom-certificate-authority) for more information.
-
-* `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/azure/aks/cluster-autoscaler).
-
-* `enable_host_encryption` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
+* `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this forces a new resource to be created.
 
 ~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
+* `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
@@ -104,15 +100,13 @@ The following arguments are supported:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
-* `message_of_the_day` - (Optional) A base64-encoded string which will be written to /etc/motd after decoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not executed as a script). Changing this forces a new resource to be created.
-
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.
 
 * `node_labels` - (Optional) A map of Kubernetes labels which should be applied to nodes in this Node Pool.
 
-* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `enable_node_public_ip` should be `true`. Changing this forces a new resource to be created.
+* `node_public_ip_prefix_id` - (Optional) Resource ID for the Public IP Addresses Prefix for the nodes in this Node Pool. `node_public_ip_enabled` should be `true`. Changing this forces a new resource to be created.
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
 
@@ -158,17 +152,15 @@ The following arguments are supported:
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
-* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer`, `WasmWasi` and `KataMshvVmIsolation`.
+* `workload_runtime` - (Optional) Used to specify the workload runtime. Allowed values are `OCIContainer` and `WasmWasi`.
 
 ~> **Note:** WebAssembly System Interface node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://docs.microsoft.com/azure/aks/use-wasi-node-pools)
-
-~> **Note:** Pod Sandboxing / KataVM Isolation node pools are in Public Preview - more information and details on how to opt into the preview can be found in [this article](https://learn.microsoft.com/azure/aks/use-pod-sandboxing)
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Kubernetes Cluster Node Pool should be located. Changing this forces a new Kubernetes Cluster Node Pool to be created.
 
 ---
 
-If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `true`, then the following fields can also be configured:
 
 * `max_count` - (Optional) The maximum number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` and must be greater than or equal to `min_count`.
 
@@ -178,7 +170,7 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 -> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
-If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
+If `auto_scaling_enabled` is set to `false`, then the following fields can also be configured:
 
 * `node_count` - (Optional) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` (inclusive) for user pools and between `1` and `1000` (inclusive) for system pools.
 
@@ -227,8 +219,6 @@ A `node_network_profile` block supports the following:
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
 
 ---
 

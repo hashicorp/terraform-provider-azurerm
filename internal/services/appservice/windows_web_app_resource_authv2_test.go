@@ -804,8 +804,6 @@ resource "azurerm_windows_web_app" "test" {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
-    auto_heal_enabled = true
-
     virtual_application {
       virtual_path  = "/"
       physical_path = "site\\wwwroot"

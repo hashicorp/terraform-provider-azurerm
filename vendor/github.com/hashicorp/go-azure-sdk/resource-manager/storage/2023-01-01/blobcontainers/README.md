@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers` Documentation
 
-The `blobcontainers` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `blobcontainers` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.LegalHold{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.BlobContainer{
 	// ...
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.ImmutabilityPolicy{
 	// ...
@@ -88,7 +88,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 read, err := client.DeleteImmutabilityPolicy(ctx, id, blobcontainers.DefaultDeleteImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.ImmutabilityPolicy{
 	// ...
@@ -141,7 +141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -157,7 +157,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 read, err := client.GetImmutabilityPolicy(ctx, id, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -173,7 +173,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.LeaseContainerRequest{
 	// ...
@@ -194,7 +194,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 // alternatively `client.List(ctx, id, blobcontainers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, blobcontainers.DefaultListOperationOptions())
@@ -211,7 +211,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 read, err := client.LockImmutabilityPolicy(ctx, id, blobcontainers.DefaultLockImmutabilityPolicyOperationOptions())
 if err != nil {
@@ -227,7 +227,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 if err := client.ObjectLevelWormThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -239,7 +239,7 @@ if err := client.ObjectLevelWormThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.LegalHold{
 	// ...
@@ -260,7 +260,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue", "containerValue")
+id := commonids.NewStorageContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "containerName")
 
 payload := blobcontainers.BlobContainer{
 	// ...

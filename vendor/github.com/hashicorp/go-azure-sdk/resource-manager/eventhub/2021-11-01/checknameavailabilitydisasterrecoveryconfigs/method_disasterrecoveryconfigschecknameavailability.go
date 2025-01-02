@@ -50,7 +50,6 @@ func (c CheckNameAvailabilityDisasterRecoveryConfigsClient) DisasterRecoveryConf
 
 	var model CheckNameAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

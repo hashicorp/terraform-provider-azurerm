@@ -15,8 +15,18 @@ type QuerySelector struct {
 	SubscriptionIds []string `json:"subscriptionIds"`
 
 	// Fields inherited from Selector
-	Filter Filter `json:"filter"`
-	Id     string `json:"id"`
+
+	Filter Filter       `json:"filter"`
+	Id     string       `json:"id"`
+	Type   SelectorType `json:"type"`
+}
+
+func (s QuerySelector) Selector() BaseSelectorImpl {
+	return BaseSelectorImpl{
+		Filter: s.Filter,
+		Id:     s.Id,
+		Type:   s.Type,
+	}
 }
 
 var _ json.Marshaler = QuerySelector{}
@@ -30,9 +40,10 @@ func (s QuerySelector) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling QuerySelector: %+v", err)
 	}
+
 	decoded["type"] = "Query"
 
 	encoded, err = json.Marshal(decoded)
@@ -46,15 +57,20 @@ func (s QuerySelector) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &QuerySelector{}
 
 func (s *QuerySelector) UnmarshalJSON(bytes []byte) error {
-	type alias QuerySelector
-	var decoded alias
+	var decoded struct {
+		QueryString     string       `json:"queryString"`
+		SubscriptionIds []string     `json:"subscriptionIds"`
+		Id              string       `json:"id"`
+		Type            SelectorType `json:"type"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into QuerySelector: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
-	s.Id = decoded.Id
 	s.QueryString = decoded.QueryString
 	s.SubscriptionIds = decoded.SubscriptionIds
+	s.Id = decoded.Id
+	s.Type = decoded.Type
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -62,11 +78,12 @@ func (s *QuerySelector) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["filter"]; ok {
-		impl, err := unmarshalFilterImplementation(v)
+		impl, err := UnmarshalFilterImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Filter' for 'QuerySelector': %+v", err)
 		}
 		s.Filter = impl
 	}
+
 	return nil
 }

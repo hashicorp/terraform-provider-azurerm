@@ -45,7 +45,6 @@ func (c RunbookClient) Get(ctx context.Context, id RunbookId) (result GetOperati
 
 	var model Runbook
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,6 +28,20 @@ func TestAccNotificationHub_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("apns_credential.#").HasValue("0"),
 				check.That(data.ResourceName).Key("gcm_credential.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNotificationHub_browserCredential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
+	r := NotificationHubResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.browserCredential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -82,12 +96,12 @@ func TestAccNotificationHub_requiresImport(t *testing.T) {
 }
 
 func (NotificationHubResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := notificationhubs.ParseNotificationHubID(state.ID)
+	id, err := hubs.ParseNotificationHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, *id)
+	resp, err := clients.NotificationHubs.HubsClient.NotificationHubsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}
@@ -119,6 +133,44 @@ resource "azurerm_notification_hub" "test" {
   namespace_name      = azurerm_notification_hub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NotificationHubResource) browserCredential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRGpol-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  sku_name            = "Free"
+}
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  browser_credential {
+    subject           = "testSubject"
+    vapid_private_key = "X4X_Awjb4HyD70adCrw6FmFgA4wiu_TTWSZFcayBN6U"
+    vapid_public_key  = "BC1XlIUxB6kQ2a214VqTMT4hnX44LRnhWDaiNxEi5bRtkdE5bFkRClX6gunX4_YWIn0UY8TD20gBGqvOg6T-go4"
+  }
 
   tags = {
     env = "Test"

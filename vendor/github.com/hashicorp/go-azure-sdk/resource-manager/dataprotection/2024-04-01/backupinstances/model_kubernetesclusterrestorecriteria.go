@@ -24,6 +24,14 @@ type KubernetesClusterRestoreCriteria struct {
 	RestoreHookReferences        *[]NamespacedNameResource    `json:"restoreHookReferences,omitempty"`
 
 	// Fields inherited from ItemLevelRestoreCriteria
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s KubernetesClusterRestoreCriteria) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return BaseItemLevelRestoreCriteriaImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = KubernetesClusterRestoreCriteria{}
@@ -37,9 +45,10 @@ func (s KubernetesClusterRestoreCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KubernetesClusterRestoreCriteria: %+v", err)
 	}
+
 	decoded["objectType"] = "KubernetesClusterRestoreCriteria"
 
 	encoded, err = json.Marshal(decoded)

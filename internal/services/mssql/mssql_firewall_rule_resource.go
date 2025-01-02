@@ -8,11 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +28,7 @@ func resourceMsSqlFirewallRule() *pluginsdk.Resource {
 		Delete: resourceMsSqlFirewallRuleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FirewallRuleID(id)
+			_, err := firewallrules.ParseFirewallRuleID(id)
 			return err
 		}),
 
@@ -83,30 +84,30 @@ func resourceMsSqlFirewallRuleCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}
 
-	id := parse.NewFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
+	id := firewallrules.NewFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mssql_firewall_rule", id.ID())
 		}
 	}
 
-	parameters := sql.FirewallRule{
-		ServerFirewallRuleProperties: &sql.ServerFirewallRuleProperties{
+	parameters := firewallrules.FirewallRule{
+		Properties: &firewallrules.ServerFirewallRuleProperties{
 			StartIPAddress: utils.String(d.Get("start_ip_address").(string)),
 			EndIPAddress:   utils.String(d.Get("end_ip_address").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters); err != nil {
-		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -119,28 +120,32 @@ func resourceMsSqlFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] MSSQL %s was not found - removing from state", id.String())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving MSSQL %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.FirewallRuleName)
 
-	d.Set("start_ip_address", resp.StartIPAddress)
-	d.Set("end_ip_address", resp.EndIPAddress)
+	if resp.Model != nil {
+		if resp.Model.Properties != nil {
+			d.Set("start_ip_address", resp.Model.Properties.StartIPAddress)
+			d.Set("end_ip_address", resp.Model.Properties.EndIPAddress)
+		}
+	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
 	return nil
@@ -151,15 +156,15 @@ func resourceMsSqlFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallRuleID(d.Id())
+	id, err := firewallrules.ParseFirewallRuleID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 

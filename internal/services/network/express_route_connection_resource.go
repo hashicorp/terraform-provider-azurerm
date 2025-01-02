@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressrouteconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -78,7 +78,6 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			"private_link_fast_path_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"express_route_gateway_bypass_enabled": {
@@ -183,10 +182,6 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 	}
 
-	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
-		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
-	}
-
 	parameters := expressrouteconnections.ExpressRouteConnection{
 		Name: id.ExpressRouteConnectionName,
 		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
@@ -197,8 +192,15 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
-			EnablePrivateLinkFastPath: pointer.To(d.Get("private_link_fast_path_enabled").(bool)),
 		},
+	}
+
+	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
+	if !privateLinkFastPath.IsNull() {
+		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+		}
+		parameters.Properties.EnablePrivateLinkFastPath = pointer.To(d.Get("private_link_fast_path_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {
@@ -280,9 +282,6 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
-		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
-	}
 	parameters := expressrouteconnections.ExpressRouteConnection{
 		Name: id.ExpressRouteConnectionName,
 		Properties: &expressrouteconnections.ExpressRouteConnectionProperties{
@@ -293,8 +292,15 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             pointer.To(int64(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: pointer.To(d.Get("express_route_gateway_bypass_enabled").(bool)),
-			EnablePrivateLinkFastPath: pointer.To(d.Get("private_link_fast_path_enabled").(bool)),
 		},
+	}
+
+	privateLinkFastPath := d.GetRawConfig().AsValueMap()["private_link_fast_path_enabled"]
+	if !privateLinkFastPath.IsNull() {
+		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+			return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+		}
+		parameters.Properties.EnablePrivateLinkFastPath = pointer.To(d.Get("private_link_fast_path_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_key"); ok {

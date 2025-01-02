@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -780,6 +780,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					}
 				}
 			}
+
+			webAppSiteConfig, err := client.GetConfiguration(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+			}
+			model.Properties.SiteConfig = webAppSiteConfig.Model.Properties
 
 			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)

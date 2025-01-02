@@ -451,7 +451,10 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	input := blobs.DeleteInput{
 		DeleteSnapshots: true,
 	}
-	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+	if resp, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

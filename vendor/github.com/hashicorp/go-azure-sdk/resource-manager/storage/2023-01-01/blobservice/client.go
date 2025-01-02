@@ -15,7 +15,7 @@ type BlobServiceClient struct {
 }
 
 func NewBlobServiceClientWithBaseURI(sdkApi sdkEnv.Api) (*BlobServiceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blobservice", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "blobservice", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlobServiceClient: %+v", err)
 	}

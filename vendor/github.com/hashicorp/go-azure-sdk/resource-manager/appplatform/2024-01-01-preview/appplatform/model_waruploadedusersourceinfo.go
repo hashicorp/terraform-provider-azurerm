@@ -17,7 +17,16 @@ type WarUploadedUserSourceInfo struct {
 	ServerVersion  *string `json:"serverVersion,omitempty"`
 
 	// Fields inherited from UserSourceInfo
+
+	Type    string  `json:"type"`
 	Version *string `json:"version,omitempty"`
+}
+
+func (s WarUploadedUserSourceInfo) UserSourceInfo() BaseUserSourceInfoImpl {
+	return BaseUserSourceInfoImpl{
+		Type:    s.Type,
+		Version: s.Version,
+	}
 }
 
 var _ json.Marshaler = WarUploadedUserSourceInfo{}
@@ -31,9 +40,10 @@ func (s WarUploadedUserSourceInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling WarUploadedUserSourceInfo: %+v", err)
 	}
+
 	decoded["type"] = "War"
 
 	encoded, err = json.Marshal(decoded)

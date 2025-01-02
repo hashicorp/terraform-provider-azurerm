@@ -43,6 +43,10 @@ The following arguments are supported:
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
+* `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
+ 
+-> **Note:** The `cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`. Once `cross_region_restore_enabled` is enabled, it cannot be disabled.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.

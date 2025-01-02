@@ -888,8 +888,6 @@ resource "azurerm_linux_web_app" "test" {
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = azurerm_user_assigned_identity.test.client_id
 
-    auto_heal_enabled = true
-
     auto_heal_setting {
       trigger {
         status_code {

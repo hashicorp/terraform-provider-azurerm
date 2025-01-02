@@ -67,7 +67,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			}
 
 			if disk == nil {
-				return nil, fmt.Errorf("Data Disk %s was not found", *id)
+				return nil, fmt.Errorf("data disk %s was not found", *id)
 			}
 
 			if disk.CreateOption != virtualmachines.DiskCreateOptionTypesAttach && disk.CreateOption != virtualmachines.DiskCreateOptionTypesEmpty {
@@ -224,7 +224,7 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 		disks = append(disks, expandedDisk)
 	} else {
 		if existingIndex == -1 {
-			return fmt.Errorf("Unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
+			return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
 		}
 
 		disks[existingIndex] = expandedDisk
@@ -381,7 +381,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 	resp, err := client.Get(ctx, *parsedId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("Managed Disk %q  was not found!", parsedId.String())
+			return nil, fmt.Errorf("managed disk %q was not found", parsedId.String())
 		}
 
 		return nil, fmt.Errorf("making Read request on Azure Managed Disk %q : %+v", parsedId.String(), err)

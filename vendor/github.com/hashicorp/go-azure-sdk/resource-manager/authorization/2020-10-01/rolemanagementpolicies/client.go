@@ -15,7 +15,7 @@ type RoleManagementPoliciesClient struct {
 }
 
 func NewRoleManagementPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*RoleManagementPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "rolemanagementpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "rolemanagementpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RoleManagementPoliciesClient: %+v", err)
 	}

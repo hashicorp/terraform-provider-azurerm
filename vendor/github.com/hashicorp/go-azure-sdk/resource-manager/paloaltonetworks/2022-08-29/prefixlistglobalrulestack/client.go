@@ -15,7 +15,7 @@ type PrefixListGlobalRulestackClient struct {
 }
 
 func NewPrefixListGlobalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*PrefixListGlobalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "prefixlistglobalrulestack", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "prefixlistglobalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrefixListGlobalRulestackClient: %+v", err)
 	}

@@ -55,9 +55,25 @@ func TestAccRoleManagementPolicyDataSource_subscription(t *testing.T) {
 	})
 }
 
+func TestAccRoleManagementPolicyDataSource_resource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.resource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
+		},
+	})
+}
+
 func (RoleManagementPolicyDataSource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_client_config" "current" {
 }
@@ -80,7 +96,9 @@ data "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyDataSource) resourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"
@@ -101,7 +119,9 @@ data "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyDataSource) subscription(data acceptance.TestData) string {
 	return `
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_subscription" "test" {}
 
@@ -115,4 +135,35 @@ data "azurerm_role_management_policy" "test" {
   scope              = data.azurerm_subscription.test.id
 }
 `
+}
+
+func (RoleManagementPolicyDataSource) resource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accteststg%[1]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+data "azurerm_role_definition" "contributor" {
+  name  = "Contributor"
+  scope = azurerm_resource_group.test.id
+}
+
+data "azurerm_role_management_policy" "test" {
+  role_definition_id = data.azurerm_role_definition.contributor.id
+  scope              = azurerm_storage_account.test.id
+}
+`, data.RandomString, data.Locations.Primary)
 }

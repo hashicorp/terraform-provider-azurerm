@@ -109,7 +109,7 @@ func resourceApplicationInsightsAPIKeyCreate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	for existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
+	if existingAPIKeyList.Model != nil && len(existingAPIKeyList.Model.Value) > 0 {
 		for _, existingAPIKey := range existingAPIKeyList.Model.Value {
 			existingAPIKeyId, err = apikeys.ParseApiKeyIDInsensitively(*existingAPIKey.Id)
 			if err != nil {

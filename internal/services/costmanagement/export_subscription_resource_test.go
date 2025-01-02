@@ -142,7 +142,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_subscription_cost_management_export" "test" {
-  name                         = "accs%d"
+  name                         = "accrg%d"
   subscription_id              = data.azurerm_subscription.test.id
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "%sT00:00:00Z"

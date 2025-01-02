@@ -49,7 +49,6 @@ func (c ObjectReplicationPoliciesClient) CreateOrUpdate(ctx context.Context, id 
 
 	var model ObjectReplicationPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

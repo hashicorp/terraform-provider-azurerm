@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_software_update_configuration
 
-Manages an Automation Software Update Configuraion.
+Manages an Automation Software Update Configuration.
 
 ## Example Usage
 
@@ -52,13 +52,12 @@ CONTENT
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
   automation_account_id = azurerm_automation_account.example.id
-  operating_system      = "Linux"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = "Security"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {
@@ -212,7 +211,7 @@ The `monthly_occurrence` block supports the following:
 
 * `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
-* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `5`. `-1` for last week within the month.
+* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `4`. `-1` for last week within the month.
 
 ## Attributes Reference
 
@@ -222,7 +221,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_code` - The Error code when failed.
 
-* `error_meesage` - The Error message indicating why the operation failed.
+* `error_message` - The Error message indicating why the operation failed.
 
 ## Timeouts
 

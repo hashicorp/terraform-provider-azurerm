@@ -27,9 +27,9 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-  name               = "example-backup-policy"
-  vault_id           = azurerm_data_protection_backup_vault.example.id
-  retention_duration = "P30D"
+  name                                   = "example-backup-policy"
+  vault_id                               = azurerm_data_protection_backup_vault.example.id
+  operational_default_retention_duration = "P30D"
 }
 ```
 
@@ -45,10 +45,6 @@ The following arguments are supported:
 
 * `operational_default_retention_duration` - (Optional) The duration of operational default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `retention_duration` - (Optional) Duration of deletion after given timespan. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
-
--> **Note:** -> `retention_duration` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use the `operational_default_retention_duration` instead.
-
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
 
 -> **Note:** Setting `retention_rule` also requires setting `vault_default_retention_duration`.
@@ -57,7 +53,7 @@ The following arguments are supported:
 
 * `vault_default_retention_duration` - (Optional) The duration of vault default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
 
--> **Note:** Setting `vault_default_retention_duration` also requires setting `backup_repeating_time_intervals`. At least one of `operational_default_retention_duration`, `retention_duration` or `vault_default_retention_duration` must be specified.
+-> **Note:** Setting `vault_default_retention_duration` also requires setting `backup_repeating_time_intervals`. At least one of `operational_default_retention_duration` or `vault_default_retention_duration` must be specified.
 
 ---
 

@@ -15,7 +15,7 @@ type FluxConfigurationClient struct {
 }
 
 func NewFluxConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*FluxConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fluxconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fluxconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FluxConfigurationClient: %+v", err)
 	}

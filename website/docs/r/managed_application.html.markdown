@@ -81,10 +81,6 @@ The following arguments are supported:
 
 * `application_definition_id` - (Optional) The application definition ID to deploy.
 
-* `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
-
-~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in version 4.0 of the provider - please use `parameter_values` instead which supports more parameter types.
-
 * `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a JSON object that allows you to assign parameters to this Managed Application.
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.

@@ -15,7 +15,7 @@ type BlueprintClient struct {
 }
 
 func NewBlueprintClientWithBaseURI(sdkApi sdkEnv.Api) (*BlueprintClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "blueprint", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "blueprint", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BlueprintClient: %+v", err)
 	}

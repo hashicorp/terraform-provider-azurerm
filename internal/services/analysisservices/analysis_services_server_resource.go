@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/analysisservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -86,13 +85,6 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"power_bi_service_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"enable_power_bi_service"}
-					}
-					return []string{}
-				}(),
 			},
 
 			"ipv4_firewall_rule": {
@@ -144,24 +136,7 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-	if !features.FourPointOhBeta() {
-		resource.Schema["querypool_connection_mode"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(servers.ConnectionModeAll),
-				string(servers.ConnectionModeReadOnly),
-			}, false),
-		}
-		resource.Schema["enable_power_bi_service"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "The property `enable_power_bi_service` has been superseded by `power_bi_service_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"power_bi_service_enabled"},
-		}
-	}
+
 	return resource
 }
 
@@ -198,14 +173,6 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("enable_power_bi_service"); ok && !features.FourPointOhBeta() {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
-	}
 	if v, ok := d.GetOk("power_bi_service_enabled"); ok {
 		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
 			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
@@ -266,9 +233,6 @@ func resourceAnalysisServicesServerRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("admin_users", adminUsers)
 
 			enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(props)
-			if !features.FourPointOhBeta() {
-				d.Set("enable_power_bi_service", enablePowerBi)
-			}
 			d.Set("power_bi_service_enabled", enablePowerBi)
 			if err := d.Set("ipv4_firewall_rule", fwRules); err != nil {
 				return fmt.Errorf("setting `ipv4_firewall_rule`: %s", err)
@@ -350,17 +314,6 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("enable_power_bi_service") {
-			if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-				analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-					FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-				}
-			}
-			analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("enable_power_bi_service").(bool))
-		}
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {

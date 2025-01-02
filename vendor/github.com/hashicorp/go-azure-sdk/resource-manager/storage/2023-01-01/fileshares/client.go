@@ -15,7 +15,7 @@ type FileSharesClient struct {
 }
 
 func NewFileSharesClientWithBaseURI(sdkApi sdkEnv.Api) (*FileSharesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fileshares", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fileshares", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FileSharesClient: %+v", err)
 	}

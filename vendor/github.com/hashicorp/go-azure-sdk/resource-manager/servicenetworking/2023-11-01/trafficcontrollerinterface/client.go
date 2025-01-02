@@ -15,7 +15,7 @@ type TrafficControllerInterfaceClient struct {
 }
 
 func NewTrafficControllerInterfaceClientWithBaseURI(sdkApi sdkEnv.Api) (*TrafficControllerInterfaceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "trafficcontrollerinterface", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "trafficcontrollerinterface", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TrafficControllerInterfaceClient: %+v", err)
 	}

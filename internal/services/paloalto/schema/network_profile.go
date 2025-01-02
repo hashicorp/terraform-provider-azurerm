@@ -391,7 +391,6 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 	result.TrustedRanges = trustedRanges
 
 	if v := input.VwanConfiguration; v != nil {
-
 		result.VHubID = pointer.From(v.VHub.ResourceId)
 		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(pointer.From(v.NetworkVirtualApplianceId))
 		if err != nil {

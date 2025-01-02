@@ -75,7 +75,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, target, path)
+	targetFields, err := getStructTags(ctx, target.Type(), path)
 	if err != nil {
 		diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
 			Val:        object,
@@ -120,7 +120,7 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 	// now that we know they match perfectly, fill the struct with the
 	// values in the object
 	result := reflect.New(target.Type()).Elem()
-	for field, structFieldPos := range targetFields {
+	for field, fieldIndex := range targetFields {
 		attrType, ok := attrTypes[field]
 		if !ok {
 			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
@@ -130,7 +130,33 @@ func Struct(ctx context.Context, typ attr.Type, object tftypes.Value, target ref
 			}))
 			return target, diags
 		}
-		structField := result.Field(structFieldPos)
+
+		structField, err := result.FieldByIndexErr(fieldIndex)
+		if err != nil {
+			if len(fieldIndex) > 1 {
+				// The field index that triggered the error is in an embedded struct. The most likely cause for the error
+				// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
+				// error message to nudge provider developers to use a value embedded struct.
+				diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+					Val:        object,
+					TargetType: target.Type(),
+					Err: fmt.Errorf(
+						"%s contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\nError: %s",
+						target.Type(),
+						err,
+					),
+				}))
+				return target, diags
+			}
+
+			diags.Append(diag.WithPath(path, DiagIntoIncompatibleType{
+				Val:        object,
+				TargetType: target.Type(),
+				Err:        fmt.Errorf("error retrieving field index %v in struct %s: %w", fieldIndex, target.Type(), err),
+			}))
+			return target, diags
+		}
+
 		fieldVal, fieldValDiags := BuildValue(ctx, attrType, objectFields[field], structField, opts, path.AtName(field))
 		diags.Append(fieldValDiags...)
 
@@ -156,7 +182,7 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 
 	// collect a map of fields that are defined in the tags of the struct
 	// passed in
-	targetFields, err := getStructTags(ctx, val, path)
+	targetFields, err := getStructTags(ctx, val.Type(), path)
 	if err != nil {
 		err = fmt.Errorf("error retrieving field names from struct tags: %w", err)
 		diags.AddAttributeError(
@@ -211,9 +237,26 @@ func FromStruct(ctx context.Context, typ attr.TypeWithAttributeTypes, val reflec
 		return nil, diags
 	}
 
-	for name, fieldNo := range targetFields {
+	for name, fieldIndex := range targetFields {
 		path := path.AtName(name)
-		fieldValue := val.Field(fieldNo)
+		fieldValue, err := val.FieldByIndexErr(fieldIndex)
+		if err != nil {
+			if len(fieldIndex) > 1 {
+				// The field index that triggered the error is in an embedded struct. The most likely cause for the error
+				// is because the embedded struct is a pointer, which we explicitly don't support. We'll create a more tailored
+				// error message to nudge provider developers to use a value embedded struct.
+				err = fmt.Errorf("%s contains a struct embedded by a pointer which is not supported. Switch any embedded structs to be embedded by value.\n\nError: %s", val.Type(), err)
+			} else {
+				err = fmt.Errorf("error retrieving field index %v in struct %s: %w", fieldIndex, val.Type(), err)
+			}
+
+			diags.AddAttributeError(
+				path,
+				"Value Conversion Error",
+				"An unexpected error was encountered trying to convert from struct value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return nil, diags
+		}
 
 		// If the attr implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
 		// and the attr does not validate then diagnostics will be added here and returned

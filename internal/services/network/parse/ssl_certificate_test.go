@@ -27,7 +27,6 @@ func TestSslCertificateID(t *testing.T) {
 		Error    bool
 		Expected *SslCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSslCertificateIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SslCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

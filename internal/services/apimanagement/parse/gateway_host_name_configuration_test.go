@@ -27,7 +27,6 @@ func TestGatewayHostNameConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *GatewayHostNameConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",
