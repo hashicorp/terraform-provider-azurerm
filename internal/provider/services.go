@@ -55,6 +55,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
@@ -173,6 +174,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
 		hybridcompute.Registration{},

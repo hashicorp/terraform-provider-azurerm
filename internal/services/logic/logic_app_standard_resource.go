@@ -793,8 +793,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointZero),
-						string(webapps.SupportedTlsVersionsOnePointOne),
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
@@ -819,8 +817,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointZero),
-						string(webapps.SupportedTlsVersionsOnePointOne),
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
@@ -916,6 +912,26 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
 		}
 	}
 

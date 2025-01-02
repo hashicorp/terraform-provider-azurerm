@@ -244,6 +244,11 @@ service/extended-location:
   - any-glob-to-any-file:
     - internal/services/extendedlocation/**/*
 
+service/fabric:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/fabric/**/*
+
 service/firewall:
 - changed-files:
   - any-glob-to-any-file:
