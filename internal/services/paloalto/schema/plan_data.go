@@ -11,9 +11,9 @@ import (
 )
 
 type PlanData struct {
-	BillingCycle string `json:"billing_cycle,omitempty"`
-	PlanId       string `json:"plan_id,omitempty"`
-	UsageType    string `json:"usage_type,omitempty"`
+	BillingCycle string `tfschema:"billing_cycle"`
+	PlanId       string `tfschema:"plan_id"`
+	UsageType    string `tfschema:"usage_type"`
 }
 
 func PlanDataSchema() *pluginsdk.Schema {
