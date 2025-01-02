@@ -18,7 +18,7 @@ resource "azurerm_redis_cache" "example" {
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  non_ssl_port_enabled = false
   shard_count         = 3
 
   redis_configuration {

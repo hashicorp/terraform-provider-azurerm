@@ -112,6 +112,7 @@ resource "azurerm_image" "example" {
     blob_uri = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {

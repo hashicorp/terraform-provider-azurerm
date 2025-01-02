@@ -18,7 +18,7 @@ resource "azurerm_virtual_network" "first" {
 
   subnet {
     name           = "subnet1"
-    address_prefix = "10.0.0.0/24"
+    address_prefixes = ["10.0.0.0/24"]
   }
 }
 

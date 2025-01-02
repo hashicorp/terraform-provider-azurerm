@@ -48,15 +48,10 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
 
-  dynamic "log" {
+  dynamic "enabled_log" {
     for_each = data.azurerm_monitor_diagnostic_categories.example.logs
     content {
-      category = log.key
-
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
+      category = enabled_log.key
     }
   }
   dynamic "metric" {
@@ -64,11 +59,6 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 
     content {
       category = metric.key
-
-      retention_policy {
-        enabled = false
-        days    = 0
-      }
     }
   }
 }

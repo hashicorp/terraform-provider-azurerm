@@ -207,7 +207,7 @@ resource "azurerm_route_table" "rt" {
   name                          = "${var.prefix}-mi-rt"
   location                      = var.location
   resource_group_name           = var.resource_group_name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name           = "subnet-to-vnetlocal"

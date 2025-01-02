@@ -28,7 +28,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
 resource "azurerm_servicebus_topic" "source" {
   name                = "${var.prefix}-sbt-source"
   namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
@@ -42,7 +42,7 @@ resource "azurerm_servicebus_topic_authorization_rule" "example" {
 resource "azurerm_servicebus_topic" "destination" {
   name                = "${var.prefix}-sbt-destination"
   namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {

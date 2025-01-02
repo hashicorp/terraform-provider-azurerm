@@ -26,7 +26,7 @@ resource "azurerm_redis_cache" "example" {
   capacity            = 3
   family              = "P"
   sku_name            = "Premium"
-  enable_non_ssl_port = false
+  non_ssl_port_enabled = false
 
   redis_configuration {
     rdb_backup_enabled            = true
