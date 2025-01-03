@@ -140,7 +140,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"subnet_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -181,7 +180,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedInstanceID,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,
@@ -418,6 +417,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType)),
 					VCores:                           pointer.To(state.VCores),
 					ZoneRedundant:                    pointer.To(state.ZoneRedundantEnabled),
+					AdministratorLogin:               pointer.To(state.AdministratorLogin),
+					AdministratorLoginPassword:       pointer.To(state.AdministratorLoginPassword),
+					SubnetId:                         pointer.To(state.SubnetId),
 				},
 				Tags: pointer.To(state.Tags),
 			}

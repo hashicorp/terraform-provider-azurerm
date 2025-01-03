@@ -146,6 +146,24 @@ func TestAccMsSqlManagedInstance_identity(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlManagedInstance_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAndUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlManagedInstance_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
@@ -286,6 +304,28 @@ func TestAccMsSqlManagedInstance_backupRedundancyUpdated(t *testing.T) {
 		data.ImportStep("administrator_login_password"),
 		{
 			Config: r.storageType(data, "GZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_subnetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.subnetUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -522,6 +562,62 @@ resource "azurerm_mssql_managed_instance" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) systemAndUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
   }
 
   tags = {
@@ -1677,6 +1773,78 @@ resource "azurerm_mssql_managed_instance" "test" {
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) subnetUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsubnet2-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "managedinstancedelegation"
+
+    service_delegation {
+      name    = "Microsoft.Sql/managedInstances"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "test2" {
+  subnet_id      = azurerm_subnet.test2.id
+  route_table_id = azurerm_route_table.test.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test2,
+    azurerm_subnet_route_table_association.test2,
   ]
 
   tags = {
