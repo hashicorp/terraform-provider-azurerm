@@ -82,8 +82,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Containers can be imported using the `resource id`, e.g.
+Storage Containers can be imported using the `resource management id`, e.g.
 
 ```shell
-terraform import azurerm_storage_container.container1 https://example.blob.core.windows.net/container
+terraform import azurerm_storage_container.container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer
 ```
