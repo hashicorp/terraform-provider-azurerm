@@ -416,23 +416,23 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "%s"
-  version    = "%s"
+  sku_name   = "%[4]s"
+  version    = "%[5]s"
   storage_mb = 51200
 
-		%s
+		%[6]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
 }
@@ -452,12 +452,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -465,10 +465,10 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name   = "B_Gen5_1"
-  version    = "%s"
+  version    = "%[4]s"
   storage_mb = 51200
 
-		%s
+		%[5]s
 
   identity {
     type = "SystemAssigned"
@@ -496,12 +496,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -509,10 +509,10 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name          = "GP_Gen5_2"
-  version           = "%s"
+  version           = "%[4]s"
   auto_grow_enabled = true
 
-		%s
+		%[5]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, sslEnabledBlock)
 }
@@ -537,7 +537,7 @@ resource "azurerm_postgresql_server" "import" {
   version    = azurerm_postgresql_server.test.version
   storage_mb = azurerm_postgresql_server.test.storage_mb
 
-%s
+%[2]s
 
 }
 `, r.basic(data, "10.0"), sslEnabledBlock)
@@ -589,7 +589,7 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
   ssl_minimal_tls_version_enforced  = "TLS1_2"
-  %s
+  %[3]s
 
   threat_detection_policy {
     enabled                    = true
@@ -648,7 +648,7 @@ resource "azurerm_postgresql_server" "test" {
 
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = true
-  	%s
+  	%[4]s
   ssl_minimal_tls_version_enforced = "TLSEnforcementDisabled"
 
   threat_detection_policy {
@@ -674,22 +674,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "%s"
+  sku_name   = "%[4]s"
   storage_mb = 51200
-  version    = "%s"
-  	%s
+  version    = "%[5]s"
+  	%[6]s
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
