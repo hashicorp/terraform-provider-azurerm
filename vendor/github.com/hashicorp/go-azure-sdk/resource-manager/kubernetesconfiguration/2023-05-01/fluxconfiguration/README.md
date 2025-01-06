@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration` Documentation
 
-The `fluxconfiguration` SDK allows for interaction with Azure Resource Manager`kubernetesconfiguration` (API Version `2023-05-01`).
+The `fluxconfiguration` SDK allows for interaction with Azure Resource Manager `kubernetesconfiguration` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

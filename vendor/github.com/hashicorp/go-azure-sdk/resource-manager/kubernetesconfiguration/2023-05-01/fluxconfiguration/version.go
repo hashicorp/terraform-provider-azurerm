@@ -6,5 +6,5 @@ package fluxconfiguration
 const defaultApiVersion = "2023-05-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/fluxconfiguration/2022-11-01"
+	return "hashicorp/go-azure-sdk/fluxconfiguration/2023-05-01"
 }
