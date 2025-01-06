@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -40,7 +41,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) ResourceType() string {
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return virtualendpoints.ValidateVirtualEndpointID
+	return validate.PostgresqlFlexibleServerVirtualEndpointIDInsensitively
 }
 
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Attributes() map[string]*pluginsdk.Schema {
@@ -134,7 +135,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 
 			state := PostgresqlFlexibleServerVirtualEndpointModel{}
 
-			id, err := virtualendpoints.ParseVirtualEndpointID(metadata.ResourceData.Id())
+			id, err := virtualendpoints.ParseVirtualEndpointIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
