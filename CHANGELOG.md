@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies - update tool Go version and bump `go-git` version to `5.13.0` [GH-28425]
 * dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
 * `azurerm_linux_virtual_machine` - export `os_disk.0.id` attribute [GH-28352]
 * `azurerm_netapp_volume` - `network_features` is  Optional/Computed [GH-28390]
