@@ -1,7 +1,7 @@
 name: Assign Reviewer as Assignee
 
 on:
-  pull_request_review:
+  pull_request_target:
     types:
       - submitted
 
