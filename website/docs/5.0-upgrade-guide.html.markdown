@@ -54,6 +54,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
+### `azurerm_maps_creator`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://aka.ms/AzureMapsCreatorDeprecation).
+
 ## Removed Data Sources
 
 Please follow the format in the example below for adding removed data sources:
