@@ -649,7 +649,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = true
   	%[4]s
-  ssl_minimal_tls_version_enforced = "TLSEnforcementDisabled"
 
   threat_detection_policy {
     enabled              = true
@@ -688,7 +687,7 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name   = "%[4]s"
   storage_mb = 51200
-  version    = "%[5]s"
+  version         = "%[5]s"
   %[6]s
 
 }
