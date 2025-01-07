@@ -687,7 +687,7 @@ resource "azurerm_postgresql_server" "test" {
 
   sku_name   = "%[4]s"
   storage_mb = 51200
-  version         = "%[5]s"
+  version    = "%[5]s"
   %[6]s
 
 }
