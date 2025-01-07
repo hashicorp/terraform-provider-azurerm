@@ -143,7 +143,7 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &virtualwans.VirtualHubProperties{
 			Sku:                        pointer.To(d.Get("sku").(string)),
 			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
-			HubRoutingPreference:       (*virtualwans.HubRoutingPreference)(pointer.To(d.Get("hub_routing_preference").(string))),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
