@@ -1255,14 +1255,14 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 						return err
 					}
 
-					defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
+					originalNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
 
-					resp, err := client.Get(ctx, defaultNodePoolId)
+					resp, err := client.Get(ctx, originalNodePoolId)
 					if err != nil {
-						return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
+						return fmt.Errorf("retrieving %s: %+v", originalNodePoolId, err)
 					}
 					if resp.Model == nil {
-						return fmt.Errorf("retrieving %s: model was nil", defaultNodePoolId)
+						return fmt.Errorf("retrieving %s: model was nil", originalNodePoolId)
 					}
 
 					tempNodePoolName := "temp"
@@ -1283,6 +1283,70 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That("azurerm_kubernetes_cluster_node_pool.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("temporary_name_for_rotation"),
+	})
+}
+
+func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutOriginal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F2s_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// create the temporary node pool and delete the old node pool to simulate the case where resizing fails when trying to bring up the new node pool
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+						defer cancel()
+					}
+
+					client := clients.Containers.AgentPoolsClient
+
+					id, err := commonids.ParseKubernetesClusterID(state.Attributes["kubernetes_cluster_id"])
+					if err != nil {
+						return err
+					}
+
+					originalNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
+
+					resp, err := client.Get(ctx, originalNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", originalNodePoolId, err)
+					}
+					if resp.Model == nil {
+						return fmt.Errorf("retrieving %s: model was nil", originalNodePoolId)
+					}
+
+					tempNodePoolName := "temp"
+					profile := resp.Model
+					profile.Name = &tempNodePoolName
+					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
+
+					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
+					}
+
+					if err := client.DeleteThenPoll(ctx, originalNodePoolId); err != nil {
+						return fmt.Errorf("deleting original %s: %+v", originalNodePoolId, err)
+					}
+
+					return nil
+				}, data.ResourceName),
+			),
+			// the plan will show that the default node pool name has been set to "temp" and we're trying to set it back to "default"
+			ExpectNonEmptyPlan: true,
+		},
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("temporary_name_for_rotation"),
