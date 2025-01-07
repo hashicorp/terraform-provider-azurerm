@@ -237,6 +237,8 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
+~> **NOTE:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`.
 
 * `public_data_endpoint_enabled` - (Optional) Is the public data endpoint enabled? Default value is `false`.

@@ -420,7 +420,6 @@ resource "azurerm_mssql_managed_instance" "test" {
   storage_size_in_gb   = 32
   subnet_id            = azurerm_subnet.test.id
   vcores               = 4
-  timezone_id          = "Pacific Standard Time"
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
@@ -650,14 +649,13 @@ resource "azurerm_mssql_managed_instance" "test" {
   location            = azurerm_resource_group.test.location
 
   license_type                 = "BasePrice"
-  minimum_tls_version          = "1.0"
+  minimum_tls_version          = "1.2"
   proxy_override               = "Proxy"
   public_data_endpoint_enabled = true
   sku_name                     = "GP_Gen5"
   storage_account_type         = "ZRS"
   storage_size_in_gb           = 64
   subnet_id                    = azurerm_subnet.test.id
-  timezone_id                  = "Pacific Standard Time"
   vcores                       = 8
   zone_redundant_enabled       = true
 

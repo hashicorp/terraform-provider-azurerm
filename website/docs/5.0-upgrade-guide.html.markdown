@@ -124,6 +124,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
 
+### `azurerm_mssql_managed_instance`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
 ### `azurerm_mssql_server`
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
