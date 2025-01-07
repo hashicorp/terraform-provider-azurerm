@@ -1,9 +1,11 @@
 name: Assign Reviewer as Assignee
 
 on:
-  pull_request_target:
+  workflow_run:
+    workflows:
+      - "Pull Request Reviewed"
     types:
-      - submitted
+      - completed
 
 permissions:
   issues: write
