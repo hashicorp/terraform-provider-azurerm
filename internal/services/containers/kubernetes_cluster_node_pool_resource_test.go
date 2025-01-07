@@ -1289,7 +1289,7 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 	})
 }
 
-func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutOriginal(t *testing.T) {
+func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempWithoutOriginal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
