@@ -105,6 +105,7 @@ func TestAccMsSqlManagedInstanceTransparentDataEncryption_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (MsSqlManagedInstanceTransparentDataEncryptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ManagedInstanceEncryptionProtectorID(state.ID)
 	if err != nil {

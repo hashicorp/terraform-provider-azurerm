@@ -134,6 +134,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs = 120
   db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
+  domain                      = "ociofakeacctes.com"
   gi_version                  = "23.0.0.0"
   local_backup_enabled        = true
   sparse_diskgroup_enabled    = true
@@ -142,10 +143,13 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   hostname                    = "hostname"
   ssh_public_keys             = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
   subnet_id                   = azurerm_subnet.virtual_network_subnet.id
+  scan_listener_port_tcp      = 1521
+  scan_listener_port_tcp_ssl  = 2484
   tags = {
     test = "testTag1"
   }
   time_zone          = "UTC"
+  zone_id            = "ocid1.dns-zone.oc1.iad.aaaaaaaac7lyw74bnybmlek7nrsd5h3v5kjfv3aiw62menpuuwoder7yhmpa"
   virtual_network_id = azurerm_virtual_network.virtual_network.id
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }

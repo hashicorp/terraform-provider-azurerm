@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type BlobInventoryPolicyV0ToV1 struct {
-}
+type BlobInventoryPolicyV0ToV1 struct{}
 
 func (BlobInventoryPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

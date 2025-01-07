@@ -9,10 +9,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -162,67 +161,61 @@ type Ingress struct {
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
-	r := &pluginsdk.Resource{
-		Schema: map[string]*pluginsdk.Schema{
-			"allow_insecure_connections": {
-				Type:        pluginsdk.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Should this ingress allow insecure connections?",
-			},
-
-			"external_enabled": {
-				Type:        pluginsdk.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Is this an external Ingress.",
-			},
-
-			"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
-
-			"fqdn": {
-				Type:        pluginsdk.TypeString,
-				Computed:    true,
-				Description: "The FQDN of the ingress.",
-			},
-
-			"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
-
-			"target_port": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 65535),
-				Description:  "The target port on the container for the Ingress traffic.",
-			},
-
-			"exposed_port": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 65535),
-				Description:  "The exposed port on the container for the Ingress traffic.",
-			},
-
-			"traffic_weight": ContainerAppIngressTrafficWeight(),
-
-			"transport": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(containerapps.IngressTransportMethodAuto),
-				ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
-				Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
-			},
-		},
-	}
-
-	if !features.FourPointOhBeta() {
-		r.Schema["custom_domain"] = ContainerAppIngressCustomDomainSchema()
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
-		Elem:     r,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allow_insecure_connections": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Should this ingress allow insecure connections?",
+				},
+
+				"external_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is this an external Ingress.",
+				},
+
+				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+				"fqdn": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The FQDN of the ingress.",
+				},
+
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
+
+				"target_port": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The target port on the container for the Ingress traffic.",
+				},
+
+				"exposed_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The exposed port on the container for the Ingress traffic.",
+				},
+
+				"traffic_weight": ContainerAppIngressTrafficWeight(),
+
+				"transport": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      string(containerapps.IngressTransportMethodAuto),
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
+					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+				},
+			},
+		},
 	}
 }
 
@@ -1668,7 +1661,7 @@ func ContainerEnvVarSchemaComputed() *pluginsdk.Schema {
 
 func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -1690,7 +1683,7 @@ func expandInitContainerEnvVar(input BaseContainer) *[]containerapps.Environment
 
 func expandContainerEnvVar(input Container) *[]containerapps.EnvironmentVar {
 	envs := make([]containerapps.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -1734,6 +1727,7 @@ type ContainerAppReadinessProbe struct {
 	Port             int64        `tfschema:"port"`
 	Path             string       `tfschema:"path"`
 	Headers          []HttpHeader `tfschema:"header"`
+	InitialDelay     int64        `tfschema:"initial_delay"`
 	Interval         int64        `tfschema:"interval_seconds"`
 	Timeout          int64        `tfschema:"timeout"`
 	FailureThreshold int64        `tfschema:"failure_count_threshold"`
@@ -1799,6 +1793,14 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -1819,8 +1821,8 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -1885,6 +1887,12 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -1900,7 +1908,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -1916,11 +1924,12 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1957,6 +1966,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 func flattenContainerAppReadinessProbe(input containerapps.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -2070,8 +2080,8 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 60),
-					Description:  "The time in seconds to wait after the container has started before the probe is started.",
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2094,8 +2104,8 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2161,7 +2171,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"initial_delay": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The time in seconds to wait after the container has started before the probe is started.",
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.",
 				},
 
 				"interval_seconds": {
@@ -2179,7 +2189,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2279,6 +2289,7 @@ type ContainerAppStartupProbe struct {
 	Port                   int64        `tfschema:"port"`
 	Path                   string       `tfschema:"path"`
 	Headers                []HttpHeader `tfschema:"header"`
+	InitialDelay           int64        `tfschema:"initial_delay"`
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
@@ -2344,6 +2355,14 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 60),
+					Description:  "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -2364,8 +2383,8 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 10),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 30),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2424,6 +2443,12 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 					},
 				},
 
+				"initial_delay": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.",
+				},
+
 				"interval_seconds": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -2439,7 +2464,7 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
 
 				"termination_grace_period_seconds": {
@@ -2455,10 +2480,11 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
 	probeType := containerapps.TypeStartup
 	result := containerapps.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2495,6 +2521,7 @@ func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapp
 func flattenContainerAppStartupProbe(input containerapps.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),
@@ -2663,7 +2690,6 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 	secretsRaw, _ := metadata.ResourceData.GetChange("secret")
 	result := make([]containerapps.Secret, 0)
 	if secrets, ok := secretsRaw.([]interface{}); ok {
-
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
@@ -2896,6 +2922,7 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

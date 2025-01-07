@@ -157,7 +157,6 @@ func flattenSharedImageVersions(input []galleryimageversions.GalleryImageVersion
 					}
 				}
 			}
-
 		}
 
 		if found {

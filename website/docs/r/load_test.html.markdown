@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Load Test should exist. Changing this forces a new Load Test to be created.
 
-* `description` - (Optional) Description of the resource. Changing this forces a new Load Test to be created.
+* `description` - (Optional) Description of the resource.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
 

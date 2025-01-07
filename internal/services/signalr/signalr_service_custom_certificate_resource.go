@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
@@ -190,7 +191,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
-				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
+				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
 			return metadata.Encode(&state)

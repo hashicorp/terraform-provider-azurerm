@@ -17,8 +17,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = KubernetesFleetManagerResource{}
-var _ sdk.ResourceWithUpdate = KubernetesFleetManagerResource{}
+var (
+	_ sdk.Resource           = KubernetesFleetManagerResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFleetManagerResource{}
+)
 
 type KubernetesFleetManagerResource struct{}
 
@@ -36,9 +38,11 @@ type KubernetesFleetManagerResourceSchema struct {
 func (r KubernetesFleetManagerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fleets.ValidateFleetID
 }
+
 func (r KubernetesFleetManagerResource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_manager"
 }
+
 func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -74,9 +78,11 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 		"tags": commonschema.Tags(),
 	}
 }
+
 func (r KubernetesFleetManagerResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -114,6 +120,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -144,6 +151,7 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -163,6 +171,7 @@ func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

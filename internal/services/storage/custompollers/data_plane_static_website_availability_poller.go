@@ -38,6 +38,11 @@ func NewDataPlaneStaticWebsiteAvailabilityPoller(ctx context.Context, client *st
 func (d *DataPlaneStaticWebsiteAvailabilityPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := d.client.GetServiceProperties(ctx, d.storageAccountId.StorageAccountName)
 	if err != nil {
+		if resp.HttpResponse == nil {
+			return nil, pollers.PollingDroppedConnectionError{
+				Message: err.Error(),
+			}
+		}
 		if !response.WasNotFound(resp.HttpResponse) {
 			return nil, pollers.PollingFailedError{
 				Message: err.Error(),

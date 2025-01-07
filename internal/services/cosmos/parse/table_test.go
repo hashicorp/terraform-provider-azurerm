@@ -27,7 +27,6 @@ func TestTableID(t *testing.T) {
 		Error    bool
 		Expected *TableId
 	}{
-
 		{
 			// empty
 			Input: "",

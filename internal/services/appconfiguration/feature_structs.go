@@ -107,7 +107,7 @@ type PercentageFeatureFilter struct {
 }
 
 type TargetingGroupParameter struct {
-	Name              string `json:"Name" tfschema:"name"`
+	Name              string `json:"Name"              tfschema:"name"`
 	RolloutPercentage int64  `json:"RolloutPercentage" tfschema:"rollout_percentage"`
 }
 
@@ -117,8 +117,8 @@ type TargetingFilterParameters struct {
 
 type TargetingFilterAudience struct {
 	DefaultRolloutPercentage int64                     `json:"DefaultRolloutPercentage" tfschema:"default_rollout_percentage"`
-	Users                    []string                  `json:"Users" tfschema:"users"`
-	Groups                   []TargetingGroupParameter `json:"Groups" tfschema:"groups"`
+	Users                    []string                  `json:"Users"                    tfschema:"users"`
+	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
 }
 
 type TargetingFeatureFilter struct {
@@ -128,7 +128,7 @@ type TargetingFeatureFilter struct {
 
 type TimewindowFilterParameters struct {
 	Start string `json:"Start" tfschema:"start"`
-	End   string `json:"End" tfschema:"end"`
+	End   string `json:"End"   tfschema:"end"`
 }
 
 type TimewindowFeatureFilter struct {

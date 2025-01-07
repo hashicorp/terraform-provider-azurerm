@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 ```
@@ -43,7 +43,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container which should be created within the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 

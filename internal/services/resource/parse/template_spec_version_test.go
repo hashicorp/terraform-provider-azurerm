@@ -27,7 +27,6 @@ func TestTemplateSpecVersionID(t *testing.T) {
 		Error    bool
 		Expected *TemplateSpecVersionId
 	}{
-
 		{
 			// empty
 			Input: "",

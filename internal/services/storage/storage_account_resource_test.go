@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -754,6 +755,10 @@ func TestAccStorageAccount_blobProperties_kindStorageNotSupportLastAccessTimeEna
 }
 
 func TestAccStorageAccount_queueProperties(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -790,6 +795,10 @@ func TestAccStorageAccount_queueProperties(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsiteEnabled(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -820,6 +829,10 @@ func TestAccStorageAccount_staticWebsiteEnabled(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsitePropertiesForStorageV2(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -842,6 +855,10 @@ func TestAccStorageAccount_staticWebsitePropertiesForStorageV2(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsitePropertiesForBlockBlobStorage(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1695,6 +1712,10 @@ func TestAccStorageAccount_StorageV1_blobProperties(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1710,6 +1731,10 @@ func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1725,6 +1750,10 @@ func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesRAGRS(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1781,6 +1810,52 @@ func TestAccStorageAccount_StorageV1_sharePropertiesRAGRS(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_noDataPlane(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noDataPlane(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_noDataPlaneQueueShouldError(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.noDataPlaneExpectQueueError(data),
+			ExpectError: regexp.MustCompile("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'"),
+		},
+	})
+}
+
+func TestAccStorageAccount_noDataPlaneWebsiteShouldError(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skip("test not valid in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.noDataPlaneExpectWebsiteError(data),
+			ExpectError: regexp.MustCompile("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'"),
+		},
 	})
 }
 
@@ -5221,4 +5296,109 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   ]
 }
 `, data.RandomString, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StorageAccountResource) noDataPlane(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_available = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) noDataPlaneExpectQueueError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_available = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  queue_properties {
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) noDataPlaneExpectWebsiteError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    storage {
+      data_plane_available = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  static_website {
+    index_document     = "index.html"
+    error_404_document = "404.html"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

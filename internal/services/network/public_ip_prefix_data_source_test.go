@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -27,6 +28,7 @@ func TestAccDataSourcePublicIPPrefix_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierRegional)),
 				check.That(data.ResourceName).Key("prefix_length").HasValue("31"),
 				check.That(data.ResourceName).Key("ip_prefix").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

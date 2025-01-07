@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 // @tombuildsstuff: these have been ported over from the Azure SDK for Go since the service team has removed them
@@ -146,9 +146,9 @@ func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecifica
 
 // DatasetColumn describes the attributes needed to specify a structure column for a dataset
 type DatasetColumn struct {
-	Name        string `json:"name,omitempty" tfschema:"name"`
+	Name        string `json:"name,omitempty"        tfschema:"name"`
 	Description string `json:"description,omitempty" tfschema:"description"`
-	Type        string `json:"type,omitempty" tfschema:"type"`
+	Type        string `json:"type,omitempty"        tfschema:"type"`
 }
 
 func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
