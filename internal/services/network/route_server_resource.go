@@ -223,7 +223,7 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("hub_routing_preference") {
 		if v, ok := d.GetOk("hub_routing_preference"); ok {
-			payload.Properties.HubRoutingPreference = (*virtualwans.HubRoutingPreference)(pointer.To(v.(string)))
+			payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(v.(string))),
 		} else {
 			payload.Properties.HubRoutingPreference = nil
 		}
