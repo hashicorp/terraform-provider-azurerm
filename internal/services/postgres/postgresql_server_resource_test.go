@@ -432,7 +432,7 @@ resource "azurerm_postgresql_server" "test" {
   version    = "%[5]s"
   storage_mb = 51200
 
-		%[6]s
+  %[6]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
 }
@@ -689,7 +689,7 @@ resource "azurerm_postgresql_server" "test" {
   sku_name   = "%[4]s"
   storage_mb = 51200
   version    = "%[5]s"
-  	%[6]s
+  %[6]s
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
@@ -854,6 +854,10 @@ resource "azurerm_postgresql_server" "restore" {
 }
 
 func (PostgreSQLServerResource) emptyAttrs(data acceptance.TestData, version string) string {
+	sslEnabledBlock := ``
+	if !features.FivePointOhBeta() {
+		sslEnabledBlock = `ssl_enforcement_enabled = true`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -872,12 +876,11 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!updated"
 
-  sku_name   = "GP_Gen5_4"
-  version    = "%[3]s"
-  storage_mb = 640000
-
-  ssl_enforcement_enabled          = false
+  sku_name                         = "GP_Gen5_4"
+  version                          = "%[3]s"
+  storage_mb                       = 640000
   ssl_minimal_tls_version_enforced = "TLS1_2"
+	%[4]s
 
   threat_detection_policy {
     enabled              = true
@@ -886,7 +889,7 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version)
+`, data.RandomInteger, data.Locations.Primary, version, sslEnabledBlock)
 }
 
 func (PostgreSQLServerResource) beforeUpdate(data acceptance.TestData, version string, tlsVersion string) string {

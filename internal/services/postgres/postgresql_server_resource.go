@@ -222,7 +222,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servers.MinimalTlsVersionEnumTLSOneZero),
+					string(servers.MinimalTlsVersionEnumTLSOneTwo),
 				}, false),
 			},
 
