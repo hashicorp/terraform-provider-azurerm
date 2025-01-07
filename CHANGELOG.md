@@ -1,3 +1,9 @@
+## 4.15.0 (Unreleased)
+
+ENHANCEMENTS
+
+* dependencies - update Go version and bump `go-git` version to `5.13.0` [GH-28425]
+
 ## 4.14.0 (December 12, 2024)
 
 BREAKING CHANGES:
