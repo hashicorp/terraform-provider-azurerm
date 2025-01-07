@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
@@ -1227,6 +1228,64 @@ func TestAccKubernetesClusterNodePool_virtualNetworkOwnershipRaceCondition(t *te
 				check.That("azurerm_kubernetes_cluster_node_pool.test3").ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOriginal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F2s_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.test").ExistsInAzure(r),
+				// create the temporary node pool to simulate the case where both old node pool and temp node pool exist
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 1*time.Hour)
+						defer cancel()
+					}
+
+					client := clients.Containers.AgentPoolsClient
+
+					id, err := commonids.ParseKubernetesClusterID(state.Attributes["kubernetes_cluster_id"])
+					if err != nil {
+						return err
+					}
+
+					defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
+
+					resp, err := client.Get(ctx, defaultNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", defaultNodePoolId, err)
+					}
+					if resp.Model == nil {
+						return fmt.Errorf("retrieving %s: model was nil", defaultNodePoolId)
+					}
+
+					tempNodePoolName := "temp"
+					profile := resp.Model
+					profile.Name = &tempNodePoolName
+					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
+
+					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
+					}
+
+					return nil
+				}, data.ResourceName),
+			),
+		},
+		{
+			Config: r.manualScaleVMSkuConfig(data, "Standard_F4s_v2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("temporary_name_for_rotation"),
 	})
 }
 
