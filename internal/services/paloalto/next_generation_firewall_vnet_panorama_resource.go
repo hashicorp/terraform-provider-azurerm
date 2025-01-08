@@ -69,9 +69,9 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 
 		"destination_nat": schema.DestinationNATSchema(),
 
-		"plan_data": schema.PlanDataSchema(),
-
 		"marketplace_details": schema.MarketplaceDetailsSchema(),
+
+		"plan_data": schema.PlanDataSchema(),
 
 		"tags": commonschema.Tags(),
 	}
