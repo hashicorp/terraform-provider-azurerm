@@ -281,7 +281,7 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    url_template       = "https://test.com/api/{hub1}/{event2}"
+    url_template       = "https://test.com/api/hub1/event2"
     user_event_pattern = "*"
     system_events      = ["connect", "connected"]
     auth {
@@ -289,7 +289,7 @@ resource "azurerm_web_pubsub_hub" "test" {
     }
   }
   event_handler {
-    url_template       = "https://test.com/api/{hub2}/{event1}"
+    url_template       = "https://test.com/api/hub2/event1"
     user_event_pattern = "event1, event2"
     system_events      = ["connected"]
     auth {
@@ -362,12 +362,12 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    url_template       = "https://test.com/api/{hub1}/{event2}"
+    url_template       = "https://test.com/api/hub1/event2"
     user_event_pattern = "*"
     system_events      = ["connect", "connected"]
   }
   event_handler {
-    url_template       = "https://test.com/api/{hub2}/{event1}"
+    url_template       = "https://test.com/api/hub2/event1"
     user_event_pattern = "event1, event2"
     system_events      = ["connected"]
     auth {
@@ -392,7 +392,7 @@ resource "azurerm_web_pubsub_hub" "test" {
   name          = "acctestwpsh%d"
   web_pubsub_id = azurerm_web_pubsub.test.id
   event_handler {
-    url_template       = "https://test.com/api/{testhub}/{testevent1}"
+    url_template       = "https://test.com/api/testhub/testevent1"
     user_event_pattern = "event1, event2"
     system_events      = ["disconnected", "connect", "connected"]
     auth {
