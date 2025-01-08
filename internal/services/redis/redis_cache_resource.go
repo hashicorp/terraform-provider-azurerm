@@ -408,7 +408,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				string(redis.TlsVersionOnePointTwo),
 			}, false),
 		}
-
 	}
 
 	return resource
