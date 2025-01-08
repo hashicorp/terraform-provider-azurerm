@@ -1129,7 +1129,7 @@ provider "azurerm" {
 }
 
 %s
-`, r.base(data))
+`, r.baseWithOutProvider(data))
 }
 
 func (r BackupProtectedVmResource) basicWithSoftDelete(data acceptance.TestData, deleted bool) string {
