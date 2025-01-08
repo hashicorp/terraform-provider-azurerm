@@ -495,7 +495,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	parameters := replicationprotecteditems.EnableProtectionInput{
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
-			ProviderSpecificDetails: replicationprotecteditems.ReplicationProviderSpecificSettings{
+			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
 				FabricObjectId:                     sourceVmId,
 				RecoveryContainerId:                &targetProtectionContainerId,
 				RecoveryResourceGroupId:            &targetResourceGroupId,
@@ -648,6 +648,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			},
 		},
 	}
+
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
