@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedinstances"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -81,7 +82,7 @@ func (r MsSqlManagedInstanceResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -140,7 +141,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"subnet_id": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -181,7 +181,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedInstanceID,
 		},
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,
@@ -200,8 +200,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  "1.2",
 			ValidateFunc: validation.StringInSlice([]string{
-				"1.0",
-				"1.1",
 				"1.2",
 			}, false),
 		},
@@ -259,6 +257,20 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": tags.Schema(),
 	}
+
+	if !features.FivePointOhBeta() {
+		args["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "1.2",
+			ValidateFunc: validation.StringInSlice([]string{
+				"1.0",
+				"1.1",
+				"1.2",
+			}, false),
+		}
+	}
+	return args
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
@@ -418,6 +430,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType)),
 					VCores:                           pointer.To(state.VCores),
 					ZoneRedundant:                    pointer.To(state.ZoneRedundantEnabled),
+					AdministratorLogin:               pointer.To(state.AdministratorLogin),
+					AdministratorLoginPassword:       pointer.To(state.AdministratorLoginPassword),
+					SubnetId:                         pointer.To(state.SubnetId),
 				},
 				Tags: pointer.To(state.Tags),
 			}
