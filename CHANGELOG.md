@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies - update tool Go version and bump `go-git` version to `5.13.0` [GH-28425]
 * dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
+* dependencies - `redisenterprise` - supdate to `2024-10-01` and support for new skus [GH-28280]
 * `azurerm_linux_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
 * `azurerm_netapp_volume` - make the `network_features` property Optional/Computed [GH-28390]
 * `azurerm_site_recovery_replicated_vm` - support for the `network_interface.recovery_load_balancer_backend_address_pool_ids` property [GH-28398]
