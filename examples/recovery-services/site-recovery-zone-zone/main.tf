@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "secondary" {
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   resource_group_name = azurerm_resource_group.primary.name
-  address_space       = ["192.168.1.0/24"]
+  address_space = ["192.168.1.0/24"]
   location            = azurerm_resource_group.primary.location
 }
 
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}subnet"
   resource_group_name  = azurerm_resource_group.primary.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["192.168.1.0/24"]
+  address_prefixes = ["192.168.1.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "example" {
 }
 
 resource "azurerm_windows_virtual_machine" "example" {
-  name                = "${var.prefix}-src-vm"
+  name = substr("${var.prefix}-rep-vm", 0, 15)
   resource_group_name = azurerm_resource_group.primary.name
   location            = azurerm_resource_group.primary.location
   size                = "Standard_D2s_v3"
@@ -134,7 +134,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "example" {
-  name                                      = "${var.prefix}-rep-vm"
+  name = substr("${var.prefix}-rep-vm", 0, 15)
   resource_group_name                       = azurerm_resource_group.secondary.name
   recovery_vault_name                       = azurerm_recovery_services_vault.example.name
   source_vm_id                              = azurerm_windows_virtual_machine.example.id
@@ -146,6 +146,8 @@ resource "azurerm_site_recovery_replicated_vm" "example" {
   target_recovery_protection_container_id   = azurerm_site_recovery_protection_container.secondary.id
   target_network_id                         = azurerm_virtual_network.example.id
   target_zone                               = "2"
+  # churn_option                              = "High"
+  # churn_option                              = "Normal"
 
   managed_disk {
     disk_id                    = data.azurerm_managed_disk.os_disk.id

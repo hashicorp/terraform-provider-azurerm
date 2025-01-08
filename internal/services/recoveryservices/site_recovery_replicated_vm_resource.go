@@ -303,6 +303,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Elem:       networkInterfaceResource(),
 			},
 
+			// ONLY available in API version 2023-06-01
 			"churn_option_selected": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
