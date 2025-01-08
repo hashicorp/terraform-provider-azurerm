@@ -422,7 +422,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	}
 
 	if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, operationId); err != nil {
-		return fmt.Errorf("waiting for deleting %s: %+v", id, err)
+		return fmt.Errorf("waiting for deletion %s: %+v", id, err)
 	}
 
 	return nil
