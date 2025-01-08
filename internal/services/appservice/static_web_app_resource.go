@@ -40,7 +40,6 @@ type StaticWebAppResourceModel struct {
 	ConfigFileChanges   bool                                       `tfschema:"configuration_file_changes_enabled"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
-	PublicNetworkAccess bool                                       `tfschema:"public_network_access_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
@@ -77,7 +76,6 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true,
 		},
 
 		"sku_tier": {
@@ -189,15 +187,20 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			props := &staticsites.StaticSite{
 				AllowConfigFileUpdates:   pointer.To(model.ConfigFileChanges),
 				StagingEnvironmentPolicy: pointer.To(staticsites.StagingEnvironmentPolicyEnabled),
-				PublicNetworkAccess:      pointer.To(helpers.PublicNetworkAccessEnabled),
 			}
 
 			if !model.PreviewEnvironments {
 				props.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 			}
 
-			if !model.PublicNetworkAccess {
-				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+			// The public_network_access_enabled has different behavior for null, false and true.
+			// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+			if v := metadata.ResourceData.GetRawConfig().AsValueMap()["public_network_access_enabled"]; !v.IsNull() {
+				if v.False() {
+					props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				} else {
+					props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+				}
 			}
 
 			envelope.Properties = props
@@ -279,7 +282,6 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
-					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
 				if sku := model.Sku; sku != nil {
@@ -321,7 +323,23 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return metadata.Encode(&state)
+			if err := metadata.Encode(&state); err != nil {
+				return err
+			}
+
+			// The public_network_access_enabled has different behavior for null, false and true.
+			// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+			// We need special handling here as the plugin sdk currently doesn't support null setting an attribute.
+			if model := staticSite.Model; model != nil {
+				if props := model.Properties; props != nil {
+					// We don't nil set the property as it is a top level property, and SDKv2 will always give it a concrete value (i.e. false) if we set it explicitly.
+					if props.PublicNetworkAccess != nil {
+						metadata.ResourceData.Set("public_network_access_enabled", strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled))
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -406,10 +424,16 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				if !config.PublicNetworkAccess {
-					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				// The public_network_access_enabled has different behavior for null, false and true.
+				// See: https://learn.microsoft.com/en-us/azure/templates/microsoft.web/staticsites?pivots=deployment-language-bicep#staticsite
+				if v := metadata.ResourceData.GetRawConfig().AsValueMap()["public_network_access_enabled"]; v.IsNull() {
+					model.Properties.PublicNetworkAccess = nil
 				} else {
-					model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+					if v.False() {
+						model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+					} else {
+						model.Properties.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+					}
 				}
 			}
 
