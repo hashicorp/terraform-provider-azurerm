@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - make the `network_features` property Optional/Computed [GH-28390]
 * `azurerm_site_recovery_replicated_vm` - support for the `network_interface.recovery_load_balancer_backend_address_pool_ids` property [GH-28398]
 * `azurerm_windows_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
+* `azurerm_mssql_managed_instance` - support for new property `azure_active_directory_administrator` [GH-24801]
 
 BUG FIXES:
 
