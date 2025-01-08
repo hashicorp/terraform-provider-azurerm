@@ -76,6 +76,8 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the SKU. Possible values include `Standard`, `DataZoneStandard`, `DataZoneProvisionedManaged`, `GlobalBatch`, `GlobalProvisionedManaged`, `GlobalStandard`, and `ProvisionedManaged`.
 
+~> **Note:** For long-term use of `DataZoneProvisionedManaged`, `GlobalProvisionedManaged`, and `ProvisionedManaged` SKUs, it may be necessary to purchase an Azure Reservation from the Azure Portal. Currently, this step cannot be completed using Terraform. For more details, please refer to the [provisioned throughput onboarding documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/provisioned-throughput-onboarding).
+
 * `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. This property is required only when multiple tiers are available with the SKU name. Changing this forces a new resource to be created.
 
 * `size` - (Optional) The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code. Changing this forces a new resource to be created.
