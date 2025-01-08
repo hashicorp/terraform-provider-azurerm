@@ -148,15 +148,15 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) basic(data acceptance.Test
 				%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                  = "acc-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "%s"
+  name                                  = "acc-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  virtual_machine_state = "Running"
+  virtual_machine_state                 = "Running"
 
   elasticity_profile {
-	max_ready_capacity = 10
-	min_ready_capacity = 5
+    max_ready_capacity = 10
+    min_ready_capacity = 5
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
@@ -168,15 +168,15 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) requiresImport(data accept
 			%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "import" {
-  name                  = azurerm_virtual_machine_scale_set_standby_pool.test.name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "%s"
+  name                                  = azurerm_virtual_machine_scale_set_standby_pool.test.name
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_standby_pool.test.attached_virtual_machine_scale_set_id
-  virtual_machine_state = azurerm_virtual_machine_scale_set_standby_pool.test.virtual_machine_state
+  virtual_machine_state                 = azurerm_virtual_machine_scale_set_standby_pool.test.virtual_machine_state
 
   elasticity_profile {
-	max_ready_capacity = 10
-	min_ready_capacity = 5
+    max_ready_capacity = 10
+    min_ready_capacity = 5
   }
 }
 `, config, data.Locations.Primary)
@@ -188,15 +188,15 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) complete(data acceptance.T
 			%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                  = "acc-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "%s"
+  name                                  = "acc-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  virtual_machine_state = "Running"
+  virtual_machine_state                 = "Running"
 
   elasticity_profile {
-	max_ready_capacity = 10
-	min_ready_capacity = 5
+    max_ready_capacity = 10
+    min_ready_capacity = 5
   }
 
   tags = {
@@ -222,15 +222,15 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "update" {
 }
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                  = "acc-%[2]d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "%[3]s"
+  name                                  = "acc-%[2]d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "%[3]s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.update.id
-  virtual_machine_state = "Deallocated"
+  virtual_machine_state                 = "Deallocated"
 
   elasticity_profile {
-	max_ready_capacity = 12
-	min_ready_capacity = 6
+    max_ready_capacity = 12
+    min_ready_capacity = 6
   }
 
   tags = {
@@ -246,15 +246,15 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) minCapacityExceedMaxCapaci
 				%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                  = "acc-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = "%s"
+  name                                  = "acc-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-  virtual_machine_state = "Running"
+  virtual_machine_state                 = "Running"
 
   elasticity_profile {
-	max_ready_capacity = 5
-	min_ready_capacity = 10
+    max_ready_capacity = 5
+    min_ready_capacity = 10
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)

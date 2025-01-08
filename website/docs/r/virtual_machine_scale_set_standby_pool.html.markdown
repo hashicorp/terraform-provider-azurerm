@@ -20,11 +20,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
-  name                = "example-ovmss"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  name                        = "example-ovmss"
+  location                    = azurerm_resource_group.example.location
+  resource_group_name         = azurerm_resource_group.example.name
   platform_fault_domain_count = 1
-  zones = ["1"]
+  zones                       = ["1"]
 }
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "example" {
