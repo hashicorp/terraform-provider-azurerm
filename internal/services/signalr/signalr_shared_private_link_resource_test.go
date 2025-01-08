@@ -156,6 +156,7 @@ resource "azurerm_signalr_shared_private_link_resource" "test" {
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
 func (SignalrSharedPrivateLinkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

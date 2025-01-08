@@ -55,8 +55,10 @@ type SolutionPlanModel struct {
 	Product       string `tfschema:"product"`
 }
 
-var _ sdk.ResourceWithUpdate = LogAnalyticsSolutionResource{}
-var _ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LogAnalyticsSolutionResource{}
+	_ sdk.ResourceWithStateMigration = LogAnalyticsSolutionResource{}
+)
 
 func (s LogAnalyticsSolutionResource) ModelObject() interface{} {
 	return &SolutionResourceModel{}
@@ -133,6 +135,7 @@ func (s LogAnalyticsSolutionResource) Arguments() map[string]*schema.Schema {
 func (s LogAnalyticsSolutionResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (s LogAnalyticsSolutionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -252,7 +255,6 @@ func (s LogAnalyticsSolutionResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
-
 			}
 
 			return metadata.Encode(&state)

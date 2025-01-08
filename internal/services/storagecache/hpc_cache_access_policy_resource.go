@@ -196,15 +196,12 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	}
 	cacheId := caches.NewCacheID(id.SubscriptionId, id.ResourceGroup, id.CacheName)
 
-	clearId := func(msg string) error {
-		log.Printf("[DEBUG] %s - removing from state!", msg)
-		d.SetId("")
-		return nil
-	}
 	resp, err := client.Get(ctx, cacheId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return clearId(fmt.Sprintf("The containing HPC Cache %q was not found", cacheId))
+			log.Printf("[DEBUG] The containing HPC Cache %q was not found- removing from state!", cacheId)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -222,17 +219,23 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 
 	setting := prop.SecuritySettings
 	if setting == nil {
-		return clearId(fmt.Sprintf("The containing HPC Cache %q has nil SecuritySettings", cacheId))
+		log.Printf("[DEBUG] The containing HPC Cache %q has nil SecuritySettings- removing from state!", cacheId)
+		d.SetId("")
+		return nil
 	}
 
 	policies := setting.AccessPolicies
 	if policies == nil {
-		return clearId(fmt.Sprintf("The containing HPC Cache %q has nil AccessPolicies", cacheId))
+		log.Printf("[DEBUG] The containing HPC Cache %q has nil AccessPolicies- removing from state!", cacheId)
+		d.SetId("")
+		return nil
 	}
 
 	p := CacheGetAccessPolicyByName(*policies, id.Name)
 	if p == nil {
-		return clearId(fmt.Sprintf("The %q was not found", id))
+		log.Printf("[DEBUG] The %q was not found- removing from state!", cacheId)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("name", id.Name)

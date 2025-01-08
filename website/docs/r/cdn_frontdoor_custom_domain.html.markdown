@@ -91,7 +91,7 @@ The following arguments are supported:
 
 <!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated Front Door Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
 
-->**NOTE:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App. -->
+->**Note:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App. -->
 
 * `tls` - (Required) A `tls` block as defined below.
 
@@ -101,9 +101,11 @@ A `tls` block supports the following:
 
 * `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values include `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 
-->**NOTE:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
+->**Note:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
 
-* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values include `TLS10` and `TLS12`. Defaults to `TLS12`.
+* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
+  
+~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
 

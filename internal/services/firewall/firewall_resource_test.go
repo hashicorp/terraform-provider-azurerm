@@ -20,8 +20,10 @@ import (
 
 type FirewallResource struct{}
 
-const premium = "Premium"
-const standard = "Standard"
+const (
+	premium  = "Premium"
+	standard = "Standard"
+)
 
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
@@ -508,11 +510,9 @@ func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dn
 		}
 		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
 	}
-	enableProxyStr := ""
+	enableProxyStr := "dns_proxy_enabled = false"
 	if enableProxy {
 		enableProxyStr = "dns_proxy_enabled = true"
-	} else {
-		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`

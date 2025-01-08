@@ -29,8 +29,10 @@ type MsSqlManagedInstanceActiveDirectoryAdministratorModel struct {
 	TenantId                  string `tfschema:"tenant_id"`
 }
 
-var _ sdk.Resource = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
-var _ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+var (
+	_ sdk.Resource           = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+	_ sdk.ResourceWithUpdate = MsSqlManagedInstanceActiveDirectoryAdministratorResource{}
+)
 
 type MsSqlManagedInstanceActiveDirectoryAdministratorResource struct{}
 
@@ -237,12 +239,10 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Read() sdk.Res
 			}
 
 			if result.Model != nil {
-
 				if props := result.Model.Properties; props != nil {
 					model.LoginUsername = props.Login
 					model.ObjectId = props.Sid
 					model.TenantId = pointer.From(props.TenantId)
-
 				}
 			}
 

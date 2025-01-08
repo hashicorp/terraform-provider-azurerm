@@ -20,14 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 type IotHubEndpointCosmosDBAccountResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubEndpointCosmosDBAccountResource{}
 
 type IotHubEndpointCosmosDBAccountModel struct {
 	Name                 string `tfschema:"name"`

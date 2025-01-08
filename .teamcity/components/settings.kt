@@ -39,6 +39,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // App Service Plans for Linux are currently unavailable in WestUS2
         "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
 
+        // Arc Kubernetes Provisioned Cluster is only available in certain locations
+        "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
@@ -124,6 +127,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // MobileNetwork is only available in certain locations
         "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
+
+        // Mongocluster free tier is currently only available in southindia
+        "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
 
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

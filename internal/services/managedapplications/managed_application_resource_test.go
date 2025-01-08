@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -57,65 +56,6 @@ func TestAccManagedApplication_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccManagedApplication_switchBetweenParametersAndParameterValues(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping bacause `parameters` is deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.parameters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedApplication_parameters(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping as `parameters` is deprecated in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.parameters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.parametersUpdated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccManagedApplication_parameterValues(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 	r := ManagedApplicationResource{}
@@ -150,25 +90,6 @@ func TestAccManagedApplication_allSupportedParameterValuesTypes(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccManagedApplication_parametersSecureString(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("skipping because `parameters` is removed in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
-	r := ManagedApplicationResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.parametersSecureString(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("parameters.secureStringParameter", "parameter_values"),
 	})
 }
 
@@ -244,46 +165,6 @@ func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.C
 	}
 
 	return pointer.To(resp.Model != nil), nil
-}
-
-func (r ManagedApplicationResource) parameters(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = ""
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
-}
-
-func (r ManagedApplicationResource) parametersUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_2"
-    secureStringParameter = ""
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
 }
 
 func (r ManagedApplicationResource) requiresImport(data acceptance.TestData) string {
@@ -458,26 +339,6 @@ resource "azurerm_managed_application" "test" {
   })
 }
 `, r.templateAllSupportedParametersTypes(data), data.RandomInteger)
-}
-
-func (r ManagedApplicationResource) parametersSecureString(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_managed_application" "test" {
-  name                        = "acctestManagedApp%[2]d"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  kind                        = "ServiceCatalog"
-  managed_resource_group_name = "infraGroup%[2]d"
-  application_definition_id   = azurerm_managed_application_definition.test.id
-
-  parameters = {
-    stringParameter       = "value_1"
-    secureStringParameter = "secure_value_1"
-  }
-}
-`, r.templateStringParameter(data), data.RandomInteger)
 }
 
 func (r ManagedApplicationResource) parameterValuesSecureString(data acceptance.TestData) string {

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
@@ -106,6 +106,7 @@ func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 		},
 	}
 }
+
 func resourceSpringCloudBuildServiceBuilderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.BuildServiceBuilderClient

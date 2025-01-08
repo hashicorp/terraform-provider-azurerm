@@ -84,6 +84,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
