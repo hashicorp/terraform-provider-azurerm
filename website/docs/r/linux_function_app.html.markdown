@@ -10,6 +10,10 @@ description: |-
 
 Manages a Linux Function App.
 
+> [!NOTE]
+> This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized. With the current toolset, application code deployment must typically be performed individually for each Function App. It is also important to note that after a Terraform deployment, particularly if the `azurerm_linux_function_app` resource is recreated due to changes in critical properties (such as the OS type, runtime stack, or App Service Plan), previously deployed application code may be removed, necessitating redeployment. This process can, however, be streamlined and automated using custom scripts or CI/CD pipelines.
+
+
 ## Example Usage
 
 ```hcl
@@ -139,10 +143,9 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-[//]: # (TODO 4.0 add it in 4.0 provider)
-[//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.)
+* `vnet_image_pull_enabled` - (Optional) Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.
 
-[//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.)
+~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -176,7 +179,9 @@ A `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`.
+
+~> **NOTE:** The value `21` is currently in Preview for `java_version`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18`, `20` and `22`.
 
@@ -712,7 +717,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 

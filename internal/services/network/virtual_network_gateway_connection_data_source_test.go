@@ -81,6 +81,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -161,6 +165,10 @@ variable "random2" {
 
 variable "shared_key" {
   default = "%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test_1" {
@@ -291,6 +299,10 @@ func (VirtualNetworkGatewayConnectionDataSource) ipsecPolicy(data acceptance.Tes
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

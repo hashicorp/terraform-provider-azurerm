@@ -1057,15 +1057,6 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctestIP-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
-  allocation_method   = "Static"
-  domain_name_label   = "acctest-ip-%[1]d"
-}
-
 resource "azurerm_resource_group" "test2" {
   name     = "acctestRG2-%[1]d"
   location = "%[3]s"
@@ -1163,7 +1154,6 @@ resource "azurerm_api_management" "test" {
   publisher_name       = "pub1"
   publisher_email      = "pub1@email.com"
   sku_name             = "Premium_2"
-  public_ip_address_id = azurerm_public_ip.test.id
   virtual_network_type = "Internal"
   zones                = ["1", "2"]
 

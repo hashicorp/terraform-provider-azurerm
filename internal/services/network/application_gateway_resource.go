@@ -4725,9 +4725,17 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 		return fmt.Errorf("The Application Gateway does not support `trusted_client_certificate` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
 	}
 
-	_, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
+	rewriteRuleSet, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
 	if hasRewriteRuleSetConfig {
-		return fmt.Errorf("The Application Gateway does not support `rewrite_rule_set` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+		for _, ruleSet := range rewriteRuleSet.([]interface{}) {
+			rs := ruleSet.(map[string]interface{})
+			for _, rule := range rs["rewrite_rule"].([]interface{}) {
+				r := rule.(map[string]interface{})
+				if len(r["url"].([]interface{})) > 0 {
+					return fmt.Errorf("The Application Gateway does not support `url` inside the `rewrite_rule` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+				}
+			}
+		}
 	}
 
 	return nil
