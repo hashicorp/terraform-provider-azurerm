@@ -302,6 +302,15 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
+
+			"churn_option_selected": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(replicationprotecteditems.ChurnOptionSelectedNormal),
+					string(replicationprotecteditems.ChurnOptionSelectedHigh),
+				}, false),
+			},
 		},
 	}
 }
@@ -485,7 +494,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 	parameters := replicationprotecteditems.EnableProtectionInput{
 		Properties: &replicationprotecteditems.EnableProtectionInputProperties{
 			PolicyId: &policyId,
-			ProviderSpecificDetails: replicationprotecteditems.A2AEnableProtectionInput{
+			ProviderSpecificDetails: replicationprotecteditems.ReplicationProviderSpecificSettings{
 				FabricObjectId:                     sourceVmId,
 				RecoveryContainerId:                &targetProtectionContainerId,
 				RecoveryResourceGroupId:            &targetResourceGroupId,
@@ -499,6 +508,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				VMManagedDisks:                     &managedDisks,
 				VMDisks:                            &vmDisks,
 				RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
+				ChurnOptionSelected:                pointer.To(d.Get("churn_option_selected").(string)),
 			},
 		},
 	}
@@ -637,7 +647,6 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 			},
 		},
 	}
-
 	err = client.UpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("updating replicated vm %s (vault %s): %+v", name, vaultName, err)
