@@ -47,7 +47,6 @@ func (ApiManagementSubscriptionDataSource) Arguments() map[string]*pluginsdk.Sch
 
 func (ApiManagementSubscriptionDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"allow_tracing": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -101,7 +100,6 @@ func (ApiManagementSubscriptionDataSource) ResourceType() string {
 
 func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
