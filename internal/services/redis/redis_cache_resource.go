@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -104,8 +105,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(redis.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.TlsVersionOnePointZero),
-					string(redis.TlsVersionOnePointOne),
 					string(redis.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -396,6 +395,20 @@ func resourceRedisCache() *pluginsdk.Resource {
 				return nil
 			}),
 		),
+	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(redis.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redis.TlsVersionOnePointZero),
+				string(redis.TlsVersionOnePointOne),
+				string(redis.TlsVersionOnePointTwo),
+			}, false),
+		}
+
 	}
 
 	return resource
