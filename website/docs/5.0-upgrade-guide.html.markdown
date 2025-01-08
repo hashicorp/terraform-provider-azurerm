@@ -145,6 +145,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_redis_enterprise_cluster`
+
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
