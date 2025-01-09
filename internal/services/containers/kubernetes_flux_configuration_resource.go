@@ -951,10 +951,10 @@ func expandSubstituteFromDefinitionModel(inputList []SubstituteFromDefinitionMod
 		return nil
 	}
 
-	input := &inputList
+	input := inputList
 	output := make([]fluxconfiguration.SubstituteFromDefinition, 0)
 
-	for _, v := range *input {
+	for _, v := range input {
 		output = append(output, fluxconfiguration.SubstituteFromDefinition{
 			Kind:     &v.Kind,
 			Name:     &v.Name,
