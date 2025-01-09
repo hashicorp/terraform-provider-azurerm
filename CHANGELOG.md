@@ -3,15 +3,27 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_kubernetes_fleet_manager` [GH-28278]
+* **New Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-28216]
+* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint` [GH-27874]
+* **New Resource** `azurerm_machine_learning_workspace_network_outbound_rule_service_tag` [GH-27931]
 
 ENHANCEMENTS:
 
 * dependencies - update tool Go version and bump `go-git` version to `5.13.0` [GH-28425]
+* dependencies - update `hashicorp/go-azure-sdk` to `v0.20241212.1154051` [GH-28360]
 * dependencies - `frontdoor` - partial update to use `2024-02-01` API [GH-28233]
 * dependencies - `redisenterprise` - supdate to `2024-10-01` and support for new skus [GH-28280]
+* Data Source: `azurerm_static_web_app` - add  support for the `repository_url` and `repository_branch` properties [GH-27401]
+* `azurerm_billing_account_cost_management_export` - add support for the `file_format` property [GH-27122]
+* `azurerm_cognitive_deployment` - `DataZoneProvisionedManaged` and `GlobalProvisionedManaged` skus are now supported [GH-28404]
+* `azurerm_databricks_access_connector` - `SystemAssigned,UserAssigned` identity is now supported [GH-28442]
 * `azurerm_linux_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
 * `azurerm_netapp_volume` - make the `network_features` property Optional/Computed [GH-28390]
+* `azurerm_resource_group_cost_management_export` - add support for the `file_format` property [GH-27122]
 * `azurerm_site_recovery_replicated_vm` - support for the `network_interface.recovery_load_balancer_backend_address_pool_ids` property [GH-28398]
+* `azurerm_static_web_app` - add  support for the `repository_url`, `repository_branch` and `repository_token` properties [GH-27401]
+* `azurerm_subscription_cost_management_export` - add support for the `file_format` property [GH-27122]
+* `azurerm_virtual_network` - support for the `private_endpoint_vnet_policies` property [GH-27830]
 * `azurerm_windows_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
 * `azurerm_mssql_managed_instance` - support for new property `azure_active_directory_administrator` [GH-24801]
 
@@ -26,9 +38,7 @@ BUG FIXES:
 * `azurerm_mssql_managed_instance` - allow system and user assigned identities, fix update failure [GH-28319]
 * `azurerm_storage_account` - fix error handling for `static_website` and `queue_properties` availability checks [GH-28279]
 
-FEATURES:
 
-* **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint` [GH-27874]
 
 ## 4.14.0 (December 12, 2024)
 
