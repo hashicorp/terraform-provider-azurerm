@@ -1027,7 +1027,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    bypass = "AzureServices"
+    bypass         = "AzureServices"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
@@ -1054,7 +1054,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    bypass = "None"
+    bypass         = "None"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
@@ -1081,7 +1081,7 @@ resource "azurerm_cognitive_account" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
-    bypass = "AzureServices"
+    bypass         = "AzureServices"
     default_action = "Deny"
     virtual_network_rules {
       subnet_id = azurerm_subnet.test_a.id
