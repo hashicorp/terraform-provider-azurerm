@@ -154,6 +154,7 @@ func TestAccCdnFrontDoorProfileWithSystemIdentity_update(t *testing.T) {
 				check.That(data.ResourceName).Key("response_timeout_seconds").HasValue("240"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -184,6 +185,7 @@ func TestAccCdnFrontDoorProfileWithUserIdentity_update(t *testing.T) {
 				check.That(data.ResourceName).Key("response_timeout_seconds").HasValue("240"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
