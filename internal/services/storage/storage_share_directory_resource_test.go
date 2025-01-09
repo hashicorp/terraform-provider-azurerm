@@ -183,7 +183,7 @@ func (r StorageShareDirectoryResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name             = "dir"
+  name              = "dir"
   storage_share_url = azurerm_storage_share.test.url
 }
 `, template)
@@ -210,13 +210,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "fileshare"
-  storage_account_id   = azurerm_storage_account.test.id
-  quota                = 50
+  name               = "fileshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 50
 }
 
 resource "azurerm_storage_share_directory" "test" {
-  name             = "dir"
+  name              = "dir"
   storage_share_url = azurerm_storage_share.test.url
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -228,7 +228,7 @@ func (r StorageShareDirectoryResource) uppercase(data acceptance.TestData) strin
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name             = "UpperCaseCharacterS"
+  name              = "UpperCaseCharacterS"
   storage_share_url = azurerm_storage_share.test.url
 }
 `, template)
@@ -240,7 +240,7 @@ func (r StorageShareDirectoryResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_storage_share_directory" "import" {
-  name             = azurerm_storage_share_directory.test.name
+  name              = azurerm_storage_share_directory.test.name
   storage_share_url = azurerm_storage_share.test.url
 }
 `, template)
@@ -252,7 +252,7 @@ func (r StorageShareDirectoryResource) complete(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name             = "dir"
+  name              = "dir"
   storage_share_url = azurerm_storage_share.test.url
 
   metadata = {
@@ -268,7 +268,7 @@ func (r StorageShareDirectoryResource) updated(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name             = "dir"
+  name              = "dir"
   storage_share_url = azurerm_storage_share.test.url
 
   metadata = {
@@ -285,22 +285,22 @@ func (r StorageShareDirectoryResource) nested(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name             = "123--parent-dir"
+  name              = "123--parent-dir"
   storage_share_url = azurerm_storage_share.test.url
 }
 
 resource "azurerm_storage_share_directory" "child_one" {
-  name             = "${azurerm_storage_share_directory.parent.name}/child1"
+  name              = "${azurerm_storage_share_directory.parent.name}/child1"
   storage_share_url = azurerm_storage_share.test.url
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-  name             = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
+  name              = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
   storage_share_url = azurerm_storage_share.test.url
 }
 
 resource "azurerm_storage_share_directory" "multiple_child_one" {
-  name             = "${azurerm_storage_share_directory.parent.name}/c"
+  name              = "${azurerm_storage_share_directory.parent.name}/c"
   storage_share_url = azurerm_storage_share.test.url
 }
 `, template)
@@ -312,14 +312,14 @@ func (r StorageShareDirectoryResource) nestedWithBackslashes(data acceptance.Tes
 %s
 
 resource "azurerm_storage_share_directory" "c" {
-  name             = "c"
+  name              = "c"
   storage_share_url = azurerm_storage_share.test.url
 }
 
 resource "azurerm_storage_share_directory" "dos" {
-  name             = "c\\dos"
+  name              = "c\\dos"
   storage_share_url = azurerm_storage_share.test.url
-  depends_on       = [azurerm_storage_share_directory.c]
+  depends_on        = [azurerm_storage_share_directory.c]
 }
 `, template)
 }
@@ -344,9 +344,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "fileshare"
+  name               = "fileshare"
   storage_account_id = azurerm_storage_account.test.id
-  quota                = 50
+  quota              = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

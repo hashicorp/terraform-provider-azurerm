@@ -29,13 +29,13 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
+  name               = "sharename"
   storage_account_id = azurerm_storage_account.example.id
-  quota                = 50
+  quota              = 50
 }
 
 resource "azurerm_storage_share_directory" "example" {
-  name             = "example"
+  name              = "example"
   storage_share_url = azurerm_storage_share.example.url
 }
 ```
