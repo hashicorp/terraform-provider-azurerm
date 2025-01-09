@@ -484,7 +484,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+	if d.HasChange("site_config") || (d.HasChange("public_network_access") && !features.FivePointOhBeta()) { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := webapps.SiteConfigResource{
 			Properties: &siteConfig,
 		}
@@ -1367,9 +1367,9 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 	}
 
 	if !features.FivePointOhBeta() {
-		if v, ok := config["public_network_access_enabled"]; ok {
+		if v, ok := config["public_network_access_enabled"]; ok || d.Get("public_network_access").(string) != "" {
 			pna := helpers.PublicNetworkAccessEnabled
-			if !v.(bool) {
+			if !v.(bool) || d.Get("public_network_access").(string) == helpers.PublicNetworkAccessDisabled {
 				pna = helpers.PublicNetworkAccessDisabled
 			}
 			siteConfig.PublicNetworkAccess = pointer.To(pna)
