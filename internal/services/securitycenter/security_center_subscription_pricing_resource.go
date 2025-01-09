@@ -159,7 +159,7 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	// can not set extensions for free tier
+	// can not set any extension for free tier in the same request.
 	if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		pricing.Properties.Extensions = extensions
@@ -174,11 +174,11 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("setting %s: %+v", id, updateErr)
 	}
 
+	// the extensions from backend might vary after pricing tier changed.
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil && updateResponse.Model.Properties.Extensions != nil {
 		extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 	}
 
-	// after turning on the bundle, we have now the extensions list
 	extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 	pricing.Properties.Extensions = extensions
 
@@ -202,26 +202,15 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	pricing := pricings_v2023_01_01.Pricing{
+	apiResponse, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	update := pricings_v2023_01_01.Pricing{
 		Properties: &pricings_v2023_01_01.PricingProperties{
 			PricingTier: pricings_v2023_01_01.PricingTier(d.Get("tier").(string)),
 		},
-	}
-
-	apiResponse, err := client.Get(ctx, *id)
-
-	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
-	isCurrentlyInFree := false
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
-		if apiResponse.Model.Properties.Extensions != nil {
-			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
-		}
-
-		isCurrentlyInFree = apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree
-	}
-
-	if vSub, okSub := d.GetOk("subplan"); okSub {
-		pricing.Properties.SubPlan = pointer.To(vSub.(string))
 	}
 
 	// When the state file contains an `extension` with `additional_extension_properties`
@@ -235,37 +224,45 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	if d.HasChange("extension") {
-		// can not set extensions for free tier
-		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
-			extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-			pricing.Properties.Extensions = extensions
-		}
-	}
-
-	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+	if len(realCfgExtensions) > 0 && update.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
 		return fmt.Errorf("extensions cannot be enabled when using free tier")
 	}
 
-	updateResponse, updateErr := client.Update(ctx, *id, pricing)
+	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
+	currentlyFreeTier := false
+	if apiResponse.Model != nil && apiResponse.Model.Properties != nil {
+		if apiResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+		}
+
+		currentlyFreeTier = apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree
+	}
+
+	// Update from `free` tier to `Standard`, we need to update it to `standard` tier first without extensions
+	// Then do an additional update for the `extensions`
+	requiredAdditionalUpdate := false
+	if d.HasChange("extension") && update.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
+		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
+		update.Properties.Extensions = extensions
+		requiredAdditionalUpdate = currentlyFreeTier
+	}
+
+	updateResponse, updateErr := client.Update(ctx, *id, update)
 	if updateErr != nil {
 		return fmt.Errorf("setting %s: %+v", id, updateErr)
 	}
 
+	// The extensions list from backend might vary after `tier` changed, thus we need to retire it again.
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil {
 		if updateResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
 		}
 	}
 
-	// after turning on the bundle, we have now the extensions list
-	// When `subplan` changed, there might be `extension` enabled by default on the service side, the value under the `subplan` is kept till next time set to it.
-	// It also requires an additional update.
-	// E.g: change `subplan` from `PerStorageAccount` to `DefenderForStorageV2`,`OnUploadMalwareScanning` extension will be enabled by default.
-	if isCurrentlyInFree {
+	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
-		pricing.Properties.Extensions = extensions
-		_, updateErr := client.Update(ctx, *id, pricing)
+		update.Properties.Extensions = extensions
+		_, updateErr := client.Update(ctx, *id, update)
 		if updateErr != nil {
 			return fmt.Errorf("setting %s: %+v", id, updateErr)
 		}
