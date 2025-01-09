@@ -243,9 +243,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						},
 
 						"bypass": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  cognitiveservicesaccounts.ByPassSelectionNone,
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Description: "Only support for the kind `OpenAI`",
 							ValidateFunc: validation.StringInSlice(
 								cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
 								false,
@@ -353,7 +353,10 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
+	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
+	if err != nil {
+		return err
+	}
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -439,7 +442,10 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
+	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
+	if err != nil {
+		return err
+	}
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -672,11 +678,11 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 	}
 }
 
-func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
+func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string, error) {
 	input := d.Get("network_acls").([]interface{})
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
-		return nil, subnetIds
+		return nil, subnetIds, nil
 	}
 
 	v := input[0].(map[string]interface{})
@@ -706,15 +712,22 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		networkRules = append(networkRules, rule)
 	}
 
-	bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
-		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
 	}
-	return &ruleSet, subnetIds
+
+	kind := d.Get("kind").(string)
+	if kind == "OpenAI" {
+		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		ruleSet.Bypass = &bypass
+	} else {
+		if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
+			return nil, nil, fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
+		}
+	}
+	return &ruleSet, subnetIds, nil
 }
 
 func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesaccounts.UserOwnedStorage {
