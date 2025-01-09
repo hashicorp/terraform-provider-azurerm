@@ -164,6 +164,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_storage_share_directory`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
+### `azurerm_storage_share_file`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
