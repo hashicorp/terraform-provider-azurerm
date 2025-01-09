@@ -58,7 +58,7 @@ func (MsSqlJobResource) ResourceType() string {
 
 func (r MsSqlJobResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.JobsClient
 
@@ -138,7 +138,7 @@ func (MsSqlJobResource) Read() sdk.ResourceFunc {
 
 func (MsSqlJobResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.JobsClient
 
@@ -169,7 +169,7 @@ func (MsSqlJobResource) Update() sdk.ResourceFunc {
 
 func (MsSqlJobResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQL.JobsClient
 
