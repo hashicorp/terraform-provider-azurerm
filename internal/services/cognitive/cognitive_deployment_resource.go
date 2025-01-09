@@ -123,8 +123,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
+							"DataZoneProvisionedManaged",
 							"DataZoneStandard",
 							"GlobalBatch",
+							"GlobalProvisionedManaged",
 							"GlobalStandard",
 							"ProvisionedManaged",
 						}, false),
