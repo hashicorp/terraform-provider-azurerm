@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_nginx_deployment` - add support for the `dataplane_api_endpoint` property [GH-28379] 
 * Data Source: `azurerm_static_web_app` - add  support for the `repository_url` and `repository_branch` properties [GH-27401]
 * `azurerm_billing_account_cost_management_export` - add support for the `file_format` property [GH-27122]
+* `azurerm_cdn_frontdoor_profile` - add support for the `identity` property [GH-28281]
 * `azurerm_cognitive_deployment` - `DataZoneProvisionedManaged` and `GlobalProvisionedManaged` skus are now supported [GH-28404]
 * `azurerm_databricks_access_connector` - `SystemAssigned,UserAssigned` identity is now supported [GH-28442]
 * `azurerm_linux_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
