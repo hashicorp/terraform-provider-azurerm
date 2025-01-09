@@ -28,9 +28,9 @@ const (
 	StorageStringFmt = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 )
 
-type LinuxFunctionAppFlexConsumptionResource struct{}
+type FunctionAppFlexConsumptionResource struct{}
 
-type LinuxFunctionAppFlexConsumptionModel struct {
+type FunctionAppFlexConsumptionModel struct {
 	Name          string `tfschema:"name"`
 	ResourceGroup string `tfschema:"resource_group_name"`
 	Location      string `tfschema:"location"`
@@ -51,18 +51,18 @@ type LinuxFunctionAppFlexConsumptionModel struct {
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 
-	StorageContainerType          string                                              `tfschema:"storage_container_type"`
-	StorageContainerEndpoint      string                                              `tfschema:"storage_container_endpoint"`
-	StorageAuthType               string                                              `tfschema:"storage_authentication_type"`
-	StorageAccessKey              string                                              `tfschema:"storage_access_key"`
-	StorageUserAssignedIdentityID string                                              `tfschema:"storage_user_assigned_identity_id"`
-	RuntimeName                   string                                              `tfschema:"runtime_name"`
-	RuntimeVersion                string                                              `tfschema:"runtime_version"`
-	MaximumInstanceCount          int64                                               `tfschema:"maximum_instance_count"`
-	InstanceMemoryInMB            int64                                               `tfschema:"instance_memory_in_mb"`
-	SiteConfig                    []helpers.SiteConfigLinuxFunctionAppFlexConsumption `tfschema:"site_config"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned          `tfschema:"identity"`
-	Tags                          map[string]string                                   `tfschema:"tags"`
+	StorageContainerType          string                                         `tfschema:"storage_container_type"`
+	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
+	StorageAuthType               string                                         `tfschema:"storage_authentication_type"`
+	StorageAccessKey              string                                         `tfschema:"storage_access_key"`
+	StorageUserAssignedIdentityID string                                         `tfschema:"storage_user_assigned_identity_id"`
+	RuntimeName                   string                                         `tfschema:"runtime_name"`
+	RuntimeVersion                string                                         `tfschema:"runtime_version"`
+	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
+	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
+	Tags                          map[string]string                              `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -76,27 +76,27 @@ type LinuxFunctionAppFlexConsumptionModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-var _ sdk.ResourceWithUpdate = LinuxFunctionAppFlexConsumptionResource{}
+var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
 
-var _ sdk.ResourceWithStateMigration = LinuxFunctionAppFlexConsumptionResource{}
+var _ sdk.ResourceWithStateMigration = FunctionAppFlexConsumptionResource{}
 
-func (r LinuxFunctionAppFlexConsumptionResource) StateUpgraders() sdk.StateUpgradeData {
+func (r FunctionAppFlexConsumptionResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) ModelObject() interface{} {
-	return &LinuxFunctionAppFlexConsumptionModel{}
+func (r FunctionAppFlexConsumptionResource) ModelObject() interface{} {
+	return &FunctionAppFlexConsumptionModel{}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) ResourceType() string {
+func (r FunctionAppFlexConsumptionResource) ResourceType() string {
 	return "azurerm_function_app_flex_consumption"
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r FunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateFunctionAppID
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Schema {
+func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -187,7 +187,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Arguments() map[string]*plugins
 			ValidateFunc: validation.IntBetween(40, 1000),
 		},
 
-		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppFlexConsumption(),
+		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
 
@@ -279,7 +279,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Arguments() map[string]*plugins
 	}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r FunctionAppFlexConsumptionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -332,7 +332,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Attributes() map[string]*plugin
 	}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
+func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -341,7 +341,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
 			}
 
-			var functionAppFlexConsumption LinuxFunctionAppFlexConsumptionModel
+			var functionAppFlexConsumption FunctionAppFlexConsumptionModel
 			if err := metadata.Decode(&functionAppFlexConsumption); err != nil {
 				return err
 			}
@@ -457,7 +457,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -564,7 +564,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
+func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -634,7 +634,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state := LinuxFunctionAppFlexConsumptionModel{
+				state := FunctionAppFlexConsumptionModel{
 					Name:                             id.SiteName,
 					ResourceGroup:                    id.ResourceGroupName,
 					Location:                         location.Normalize(model.Location),
@@ -679,11 +679,11 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
 					}
 
-					siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppFlexConsumption(configResp.Model.Properties)
+					siteConfig, err := helpers.FlattenSiteConfigFunctionAppFlexConsumption(configResp.Model.Properties)
 					if err != nil {
 						return fmt.Errorf("reading Site Config for %s: %+v", id, err)
 					}
-					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppFlexConsumption{*siteConfig}
+					state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
 
 					if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
 						if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
@@ -709,7 +709,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					state.unpackLinuxFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
+					state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
 					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 
@@ -732,7 +732,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
+func (r FunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -756,7 +756,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
+func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -771,7 +771,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state LinuxFunctionAppFlexConsumptionModel
+			var state FunctionAppFlexConsumptionModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -872,7 +872,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
@@ -1010,7 +1010,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m *LinuxFunctionAppFlexConsumptionModel) unpackLinuxFunctionAppFlexConsumptionSettings(input webapps.StringDictionary) {
+func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettings(input webapps.StringDictionary) {
 	if input.Properties == nil {
 		return
 	}

@@ -540,7 +540,7 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 	}
 }
 
-type SiteConfigLinuxFunctionAppFlexConsumption struct {
+type SiteConfigFunctionAppFlexConsumption struct {
 	AppCommandLine                string                      `tfschema:"app_command_line"`
 	ApiDefinition                 string                      `tfschema:"api_definition_url"`
 	ApiManagementConfigId         string                      `tfschema:"api_management_api_id"`
@@ -574,7 +574,7 @@ type SiteConfigLinuxFunctionAppFlexConsumption struct {
 	DetailedErrorLogging          bool                        `tfschema:"detailed_error_logging_enabled"`
 }
 
-func SiteConfigSchemaLinuxFunctionAppFlexConsumption() *pluginsdk.Schema {
+func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -2051,8 +2051,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigLinuxFunctionFlexConsumptionApp(siteConfigLinuxFlexConsumption []SiteConfigLinuxFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
-	if len(siteConfigLinuxFlexConsumption) == 0 {
+func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
+	if len(siteConfigFlexConsumption) == 0 {
 		return nil, nil
 	}
 
@@ -2074,57 +2074,57 @@ func ExpandSiteConfigLinuxFunctionFlexConsumptionApp(siteConfigLinuxFlexConsumpt
 		}
 	}
 
-	linuxFlexConsumptionSiteConfig := siteConfigLinuxFlexConsumption[0]
+	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
 
-	v := strconv.FormatInt(linuxFlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
-	if v == "0" || linuxFlexConsumptionSiteConfig.HealthCheckPath == "" {
+	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
+	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {
 		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, false)
 	}
 
-	if linuxFlexConsumptionSiteConfig.AppInsightsConnectionString == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxFlexConsumptionSiteConfig.AppInsightsConnectionString, true)
+	if FlexConsumptionSiteConfig.AppInsightsConnectionString == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", linuxFlexConsumptionSiteConfig.AppInsightsConnectionString, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "APPLICATIONINSIGHTS_CONNECTION_STRING", FlexConsumptionSiteConfig.AppInsightsConnectionString, false)
 	}
 
-	if linuxFlexConsumptionSiteConfig.AppInsightsInstrumentationKey == "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxFlexConsumptionSiteConfig.AppInsightsInstrumentationKey, true)
+	if FlexConsumptionSiteConfig.AppInsightsInstrumentationKey == "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, true)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", linuxFlexConsumptionSiteConfig.AppInsightsInstrumentationKey, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "APPINSIGHTS_INSTRUMENTATIONKEY", FlexConsumptionSiteConfig.AppInsightsInstrumentationKey, false)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
-			Id: pointer.To(linuxFlexConsumptionSiteConfig.ApiManagementConfigId),
+			Id: pointer.To(FlexConsumptionSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
 		expanded.ApiDefinition = &webapps.ApiDefinitionInfo{
-			Url: pointer.To(linuxFlexConsumptionSiteConfig.ApiDefinition),
+			Url: pointer.To(FlexConsumptionSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = pointer.To(linuxFlexConsumptionSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(FlexConsumptionSiteConfig.AppCommandLine)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_use_managed_identity") {
-		expanded.AcrUseManagedIdentityCreds = pointer.To(linuxFlexConsumptionSiteConfig.UseManagedIdentityACR)
+		expanded.AcrUseManagedIdentityCreds = pointer.To(FlexConsumptionSiteConfig.UseManagedIdentityACR)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
-		expanded.DefaultDocuments = &linuxFlexConsumptionSiteConfig.DefaultDocuments
+		expanded.DefaultDocuments = &FlexConsumptionSiteConfig.DefaultDocuments
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.http2_enabled") {
-		expanded.HTTP20Enabled = pointer.To(linuxFlexConsumptionSiteConfig.Http2Enabled)
+		expanded.HTTP20Enabled = pointer.To(FlexConsumptionSiteConfig.Http2Enabled)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
-		ipRestrictions, err := ExpandIpRestrictions(linuxFlexConsumptionSiteConfig.IpRestriction)
+		ipRestrictions, err := ExpandIpRestrictions(FlexConsumptionSiteConfig.IpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -2132,15 +2132,15 @@ func ExpandSiteConfigLinuxFunctionFlexConsumptionApp(siteConfigLinuxFlexConsumpt
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
-		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(linuxFlexConsumptionSiteConfig.IpRestrictionDefaultAction))
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(FlexConsumptionSiteConfig.IpRestrictionDefaultAction))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_use_main_ip_restriction") {
-		expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxFlexConsumptionSiteConfig.ScmUseMainIpRestriction)
+		expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(FlexConsumptionSiteConfig.ScmUseMainIpRestriction)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
-		scmIpRestrictions, err := ExpandIpRestrictions(linuxFlexConsumptionSiteConfig.ScmIpRestriction)
+		scmIpRestrictions, err := ExpandIpRestrictions(FlexConsumptionSiteConfig.ScmIpRestriction)
 		if err != nil {
 			return nil, err
 		}
@@ -2148,56 +2148,56 @@ func ExpandSiteConfigLinuxFunctionFlexConsumptionApp(siteConfigLinuxFlexConsumpt
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(linuxFlexConsumptionSiteConfig.ScmIpRestrictionDefaultAction))
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(FlexConsumptionSiteConfig.ScmIpRestrictionDefaultAction))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(linuxFlexConsumptionSiteConfig.LoadBalancing))
+		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(FlexConsumptionSiteConfig.LoadBalancing))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(linuxFlexConsumptionSiteConfig.ManagedPipelineMode))
+		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(FlexConsumptionSiteConfig.ManagedPipelineMode))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = pointer.To(linuxFlexConsumptionSiteConfig.RemoteDebugging)
+		expanded.RemoteDebuggingEnabled = pointer.To(FlexConsumptionSiteConfig.RemoteDebugging)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = pointer.To(linuxFlexConsumptionSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(FlexConsumptionSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = pointer.To(linuxFlexConsumptionSiteConfig.WebSockets)
+		expanded.WebSocketsEnabled = pointer.To(FlexConsumptionSiteConfig.WebSockets)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = pointer.To(linuxFlexConsumptionSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(FlexConsumptionSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = pointer.To(linuxFlexConsumptionSiteConfig.WorkerCount)
+		expanded.NumberOfWorkers = pointer.To(FlexConsumptionSiteConfig.WorkerCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxFlexConsumptionSiteConfig.MinTlsVersion))
+		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(FlexConsumptionSiteConfig.MinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxFlexConsumptionSiteConfig.ScmMinTlsVersion))
+		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(FlexConsumptionSiteConfig.ScmMinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		cors := ExpandCorsSettings(linuxFlexConsumptionSiteConfig.Cors)
+		cors := ExpandCorsSettings(FlexConsumptionSiteConfig.Cors)
 		expanded.Cors = cors
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
-		expanded.MinimumElasticInstanceCount = pointer.To(linuxFlexConsumptionSiteConfig.ElasticInstanceMinimum)
+		expanded.MinimumElasticInstanceCount = pointer.To(FlexConsumptionSiteConfig.ElasticInstanceMinimum)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
-		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(linuxFlexConsumptionSiteConfig.RuntimeScaleMonitoring)
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(FlexConsumptionSiteConfig.RuntimeScaleMonitoring)
 	}
 
 	expanded.AppSettings = &appSettings
@@ -2514,12 +2514,12 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 	return result, nil
 }
 
-func FlattenSiteConfigLinuxFunctionAppFlexConsumption(functionAppFlexConsumptionSiteConfig *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppFlexConsumption, error) {
+func FlattenSiteConfigFunctionAppFlexConsumption(functionAppFlexConsumptionSiteConfig *webapps.SiteConfig) (*SiteConfigFunctionAppFlexConsumption, error) {
 	if functionAppFlexConsumptionSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
 
-	result := &SiteConfigLinuxFunctionAppFlexConsumption{
+	result := &SiteConfigFunctionAppFlexConsumption{
 		AppCommandLine:                pointer.From(functionAppFlexConsumptionSiteConfig.AppCommandLine),
 		ContainerRegistryMSI:          pointer.From(functionAppFlexConsumptionSiteConfig.AcrUserManagedIdentityID),
 		Cors:                          FlattenCorsSettings(functionAppFlexConsumptionSiteConfig.Cors),
