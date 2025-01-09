@@ -209,6 +209,7 @@ A `git_repository` block supports the following:
 ---
 
 A `post_build` block supports the following:
+
 * `substitute` - (Optional) Specifies the key/value pairs holding the variables to be substituted in this Kustomization.
 
 * `substitute_from` - (Optional) A `substitute_from` block as defined below.
