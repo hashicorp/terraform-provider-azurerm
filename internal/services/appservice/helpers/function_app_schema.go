@@ -544,7 +544,7 @@ type SiteConfigLinuxFunctionAppFlexConsumption struct {
 	AppCommandLine                string                      `tfschema:"app_command_line"`
 	ApiDefinition                 string                      `tfschema:"api_definition_url"`
 	ApiManagementConfigId         string                      `tfschema:"api_management_api_id"`
-	AppInsightsInstrumentationKey string                      `tfschema:"application_insights_key"` // App Insights Instrumentation Key
+	AppInsightsInstrumentationKey string                      `tfschema:"application_insights_key"`
 	AppInsightsConnectionString   string                      `tfschema:"application_insights_connection_string"`
 	AppServiceLogs                []FunctionAppAppServiceLogs `tfschema:"app_service_logs"`
 	UseManagedIdentityACR         bool                        `tfschema:"container_registry_use_managed_identity"`
@@ -554,14 +554,14 @@ type SiteConfigLinuxFunctionAppFlexConsumption struct {
 	Http2Enabled                  bool                        `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction             `tfschema:"ip_restriction"`
 	IpRestrictionDefaultAction    string                      `tfschema:"ip_restriction_default_action"`
-	LoadBalancing                 string                      `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
+	LoadBalancing                 string                      `tfschema:"load_balancing_mode"`
 	ManagedPipelineMode           string                      `tfschema:"managed_pipeline_mode"`
 	RemoteDebugging               bool                        `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion        string                      `tfschema:"remote_debugging_version"`
 	RuntimeScaleMonitoring        bool                        `tfschema:"runtime_scale_monitoring_enabled"`
 	ScmIpRestriction              []IpRestriction             `tfschema:"scm_ip_restriction"`
 	ScmIpRestrictionDefaultAction string                      `tfschema:"scm_ip_restriction_default_action"`
-	ScmType                       string                      `tfschema:"scm_type"` // Computed?
+	ScmType                       string                      `tfschema:"scm_type"`
 	ScmUseMainIpRestriction       bool                        `tfschema:"scm_use_main_ip_restriction"`
 	Use32BitWorker                bool                        `tfschema:"use_32_bit_worker"`
 	WebSockets                    bool                        `tfschema:"websockets_enabled"`
@@ -754,15 +754,10 @@ func SiteConfigSchemaLinuxFunctionAppFlexConsumption() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The path to be checked for this function app health.",
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Description:  "The path to be checked for this function app health.",
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
@@ -770,12 +765,8 @@ func SiteConfigSchemaLinuxFunctionAppFlexConsumption() *pluginsdk.Schema {
 					Optional:     true,
 					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
+					RequiredWith: []string{"site_config.0.health_check_path"},
+
 					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 

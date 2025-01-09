@@ -64,7 +64,6 @@ type LinuxFunctionAppFlexConsumptionModel struct {
 	Identity                      []identity.ModelSystemAssignedUserAssigned          `tfschema:"identity"`
 	Tags                          map[string]string                                   `tfschema:"tags"`
 
-	// computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
 	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
@@ -90,7 +89,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) ModelObject() interface{} {
 }
 
 func (r LinuxFunctionAppFlexConsumptionResource) ResourceType() string {
-	return "azurerm_linux_function_app_flex_consumption"
+	return "azurerm_function_app_flex_consumption"
 }
 
 func (r LinuxFunctionAppFlexConsumptionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -245,7 +244,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Arguments() map[string]*plugins
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     true,
-			Description: "Is the Linux Function App enabled.",
+			Description: "Is the Function App enabled.",
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -273,7 +272,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Arguments() map[string]*plugins
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
 		"tags": tags.Schema(),
@@ -361,7 +360,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+				return fmt.Errorf("retrieving %s: %+v", servicePlanId, err)
 			}
 
 			var planSKU *string
@@ -383,18 +382,16 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Linux %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			subId := commonids.NewSubscriptionID(subscriptionId)
-
-			checkName, err := resourcesClient.CheckNameAvailability(ctx, subId, availabilityRequest)
+			checkName, err := resourcesClient.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), availabilityRequest)
 			if err != nil {
-				return fmt.Errorf("checking name availability for Linux %s: %+v", id, err)
+				return fmt.Errorf("checking name availability for %s: %+v", id, err)
 			}
 			if model := checkName.Model; model != nil && model.NameAvailable != nil && !*model.NameAvailable {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
@@ -462,7 +459,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
 			if err != nil {
-				return fmt.Errorf("expanding site_config for Linux %s: %+v", id, err)
+				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
 
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppFlexConsumption.AppSettings)
@@ -499,7 +496,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
-				return fmt.Errorf("creating Linux %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -522,38 +519,38 @@ func (r LinuxFunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					Properties: stickySettings,
 				}
 				if _, err := client.UpdateSlotConfigurationNames(ctx, id, stickySettingsUpdate); err != nil {
-					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Sticky Settings for %s: %+v", id, err)
 				}
 			}
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppFlexConsumption.Backup)
 			if err != nil {
-				return fmt.Errorf("expanding backup configuration for Linux %s: %+v", id, err)
+				return fmt.Errorf("expanding backup configuration for %s: %+v", id, err)
 			}
 			if backupConfig.Properties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id, *backupConfig); err != nil {
-					return fmt.Errorf("adding Backup Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("adding Backup Settings for %s: %+v", id, err)
 				}
 			}
 
 			auth := helpers.ExpandAuthSettings(functionAppFlexConsumption.AuthSettings)
 			if auth.Properties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id, *auth); err != nil {
-					return fmt.Errorf("setting Authorisation Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("setting Authorisation Settings for %s: %+v", id, err)
 				}
 			}
 
 			authv2 := helpers.ExpandAuthV2Settings(functionAppFlexConsumption.AuthV2Settings)
 			if authv2.Properties != nil {
 				if _, err = client.UpdateAuthSettingsV2(ctx, id, *authv2); err != nil {
-					return fmt.Errorf("updating AuthV2 settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 settings for %s: %+v", id, err)
 				}
 			}
 
 			connectionStrings := helpers.ExpandConnectionStrings(functionAppFlexConsumption.ConnectionStrings)
 			if connectionStrings.Properties != nil {
 				if _, err := client.UpdateConnectionStrings(ctx, id, *connectionStrings); err != nil {
-					return fmt.Errorf("setting Connection Strings for Linux %s: %+v", id, err)
+					return fmt.Errorf("setting Connection Strings for %s: %+v", id, err)
 				}
 			}
 
@@ -581,22 +578,22 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(functionAppFlexConsumption.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading Linux %s: %+v", id, err)
+				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading App Settings for %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Connection String information for %s: %+v", id, err)
 			}
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, *id)
 			if err != nil || stickySettings.Model == nil {
-				return fmt.Errorf("reading Sticky Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Sticky Settings for %s: %+v", id, err)
 			}
 
 			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
@@ -606,14 +603,14 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 			auth, err := client.GetAuthSettings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for Linux %s: %+v", id, err)
+				return fmt.Errorf("reading Auth Settings for %s: %+v", id, err)
 			}
 
 			var authV2 webapps.SiteAuthSettingsV2
 			if auth.Model != nil && auth.Model.Properties != nil && strings.EqualFold(pointer.From(auth.Model.Properties.ConfigVersion), "v2") {
 				authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
+					return fmt.Errorf("reading authV2 settings for %s: %+v", *id, err)
 				}
 				authV2 = *authV2Resp.Model
 			}
@@ -621,7 +618,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 			backup, err := client.GetBackupConfiguration(ctx, *id)
 			if err != nil {
 				if !response.WasNotFound(backup.HttpResponse) {
-					return fmt.Errorf("reading Backup Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("reading Backup Settings for %s: %+v", id, err)
 				}
 			}
 
@@ -684,7 +681,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 					siteConfig, err := helpers.FlattenSiteConfigLinuxFunctionAppFlexConsumption(configResp.Model.Properties)
 					if err != nil {
-						return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+						return fmt.Errorf("reading Site Config for %s: %+v", id, err)
 					}
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppFlexConsumption{*siteConfig}
 
@@ -745,14 +742,14 @@ func (r LinuxFunctionAppFlexConsumptionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("deleting Linux %s", *id)
+			metadata.Logger.Infof("deleting %s", *id)
 
 			delOptions := webapps.DeleteOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
 			}
 			if _, err = client.Delete(ctx, *id, delOptions); err != nil {
-				return fmt.Errorf("deleting Linux %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 			return nil
 		},
@@ -781,11 +778,16 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Linux %s: %v", id, err)
+				return fmt.Errorf("reading %s: %v", id, err)
 			}
-			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("reading of Linux %s for update", id)
+			if existing.Model == nil {
+				return fmt.Errorf("reading %s: `model` was nil", id)
 			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("reading %s: `properties` was nil", id)
+			}
+
 			model := *existing.Model
 
 			if metadata.ResourceData.HasChange("enabled") {
@@ -872,7 +874,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
 			if err != nil {
-				return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("site_config") {
@@ -893,7 +895,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-				return fmt.Errorf("updating Linux %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
@@ -908,7 +910,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.UpdateConfiguration(ctx, *id, webapps.SiteConfigResource{Properties: model.Properties.SiteConfig}); err != nil {
-				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
+				return fmt.Errorf("updating Site Config for %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
@@ -917,7 +919,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					connectionStringUpdate.Properties = pointer.To(map[string]webapps.ConnStringValueTypePair{})
 				}
 				if _, err := client.UpdateConnectionStrings(ctx, *id, *connectionStringUpdate); err != nil {
-					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Connection Strings for %s: %+v", id, err)
 				}
 			}
 
@@ -941,7 +943,7 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				}
 
 				if _, err := client.UpdateSlotConfigurationNames(ctx, *id, stickySettingsUpdate); err != nil {
-					return fmt.Errorf("updating Sticky Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Sticky Settings for %s: %+v", id, err)
 				}
 			}
 
@@ -962,30 +964,30 @@ func (r LinuxFunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					}
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
-					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating Auth Settings for %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("backup") {
 				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
 				if err != nil {
-					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+					return fmt.Errorf("expanding backup configuration for %s: %+v", *id, err)
 				}
 
 				if backupUpdate.Properties == nil {
 					if _, err := client.DeleteBackupConfiguration(ctx, *id); err != nil {
-						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
+						return fmt.Errorf("removing Backup Settings for %s: %+v", id, err)
 					}
 				} else {
 					if _, err := client.UpdateBackupConfiguration(ctx, *id, *backupUpdate); err != nil {
-						return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
+						return fmt.Errorf("updating Backup Settings for %s: %+v", id, err)
 					}
 				}
 			}

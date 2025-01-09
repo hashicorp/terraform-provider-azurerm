@@ -1,12 +1,12 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_linux_function_app_flex_consumption"
+page_title: "Azure Resource Manager: azurerm_function_app_flex_consumption"
 description: |-
   Manages a Linux Function App Running in Flex Consumption Plan.
 ---
 
-# azurerm_linux_function_app_flex_consumption
+# azurerm_function_app_flex_consumption
 
 Manages a Linux Function App Running In The Flex Consumption Plan.
 
@@ -44,7 +44,7 @@ resource "azurerm_service_plan" "example" {
   os_type             = "Linux"
 }
 
-resource "azurerm_linux_function_app_flex_consumption" "example" {
+resource "azurerm_function_app_flex_consumption" "example" {
   name                = "example-linux-function-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -758,5 +758,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Linux Function Apps can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_function_app_flex_consumption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
+terraform import azurerm_function_app_flex_consumption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```

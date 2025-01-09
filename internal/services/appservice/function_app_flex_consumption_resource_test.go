@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,7 +16,7 @@ import (
 type LinuxFunctionAppFlexConsumptionResource struct{}
 
 func TestAccLinuxFunctionAppFlexConsumption_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,7 +32,7 @@ func TestAccLinuxFunctionAppFlexConsumption_basic(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_connectionString(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +48,7 @@ func TestAccLinuxFunctionAppFlexConsumption_connectionString(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_stickySettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,7 +64,7 @@ func TestAccLinuxFunctionAppFlexConsumption_stickySettings(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_connectionStringUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -97,7 +96,7 @@ func TestAccLinuxFunctionAppFlexConsumption_connectionStringUpdate(t *testing.T)
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -113,7 +112,7 @@ func TestAccLinuxFunctionAppFlexConsumption_complete(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_appSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -129,7 +128,7 @@ func TestAccLinuxFunctionAppFlexConsumption_appSettings(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_appSettingsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -161,7 +160,7 @@ func TestAccLinuxFunctionAppFlexConsumption_appSettingsUpdate(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimePython(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -177,7 +176,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimePython(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -193,7 +192,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimeJava(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -209,7 +208,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimeJava(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimeJavaUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -241,7 +240,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimeJavaUpdate(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimeDotNet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -257,7 +256,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimeDotNet(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_runtimePowerShell(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -273,7 +272,7 @@ func TestAccLinuxFunctionAppFlexConsumption_runtimePowerShell(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_systemAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -289,7 +288,7 @@ func TestAccLinuxFunctionAppFlexConsumption_systemAssignedIdentity(t *testing.T)
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_userAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -305,7 +304,7 @@ func TestAccLinuxFunctionAppFlexConsumption_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccLinuxFunctionAppFlexConsumption_userAssignedIdentityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_flex_consumption", "test")
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := LinuxFunctionAppFlexConsumptionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -336,15 +335,9 @@ func (r LinuxFunctionAppFlexConsumptionResource) Exists(ctx context.Context, cli
 
 	resp, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Linux Function App %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
-	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LinuxFunctionAppFlexConsumptionResource) basic(data acceptance.TestData) string {
@@ -355,8 +348,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -383,8 +376,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -417,8 +410,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -474,8 +467,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -514,8 +507,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -636,8 +629,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -668,8 +661,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -702,8 +695,8 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
-  name                = "xiaxintest-LFA-tf%d"
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -733,7 +726,7 @@ provider "azurerm" {
   features {}
 }
 %s
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -761,7 +754,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -789,7 +782,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -817,7 +810,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -852,7 +845,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -891,7 +884,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -932,7 +925,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -973,7 +966,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_linux_function_app_flex_consumption" "test" {
+resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
