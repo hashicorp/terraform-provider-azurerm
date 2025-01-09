@@ -931,7 +931,7 @@ func expandPostBuildDefinitionModel(inputList []PostBuildDefinitionModel) *fluxc
 		return nil
 	}
 
-	input := &inputList[0]
+	input := inputList[0]
 
 	output := fluxconfiguration.PostBuildDefinition{}
 
