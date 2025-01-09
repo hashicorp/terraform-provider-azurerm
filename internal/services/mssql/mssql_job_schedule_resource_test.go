@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobScheduleTestResource struct{}
+type MsSqlJobScheduleResourceTest struct{}
 
 func TestAccMsSqlJobScheduleResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
-	r := MsSqlJobScheduleTestResource{}
+	r := MsSqlJobScheduleResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMsSqlJobScheduleResource_basic(t *testing.T) {
 
 func TestAccMsSqlJobScheduleResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
-	r := MsSqlJobScheduleTestResource{}
+	r := MsSqlJobScheduleResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccMsSqlJobScheduleResource_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobScheduleResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
-	r := MsSqlJobScheduleTestResource{}
+	r := MsSqlJobScheduleResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func TestAccMsSqlJobScheduleResource_update(t *testing.T) {
 
 func TestAccMsSqlJobScheduleResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
-	r := MsSqlJobScheduleTestResource{}
+	r := MsSqlJobScheduleResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccMsSqlJobScheduleResource_complete(t *testing.T) {
 
 func TestAccMsSqlJobScheduleResource_recurringWithoutInterval(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_schedule", "test")
-	r := MsSqlJobScheduleTestResource{}
+	r := MsSqlJobScheduleResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccMsSqlJobScheduleResource_recurringWithoutInterval(t *testing.T) {
 	})
 }
 
-func (MsSqlJobScheduleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MsSqlJobScheduleResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobs.ParseJobID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (MsSqlJobScheduleTestResource) Exists(ctx context.Context, client *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (MsSqlJobScheduleTestResource) basic(data acceptance.TestData) string {
+func (MsSqlJobScheduleResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,10 +130,10 @@ resource "azurerm_mssql_job_schedule" "test" {
   job_id  = azurerm_mssql_job.test.id
   type    = "Once"
 }
-`, MsSqlJobTestResource{}.basic(data))
+`, MsSqlJobResourceTest{}.basic(data))
 }
 
-func (r MsSqlJobScheduleTestResource) requiresImport(data acceptance.TestData) string {
+func (r MsSqlJobScheduleResourceTest) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -144,7 +144,7 @@ resource "azurerm_mssql_job_schedule" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlJobScheduleTestResource) complete(data acceptance.TestData) string {
+func (r MsSqlJobScheduleResourceTest) complete(data acceptance.TestData) string {
 	now := time.Now()
 	startTime := now.AddDate(0, 0, 5)
 	endTime := now.AddDate(0, 0, 10)
@@ -160,10 +160,10 @@ resource "azurerm_mssql_job_schedule" "test" {
   start_time = "%[3]s"
   type       = "Recurring"
 }
-`, MsSqlJobTestResource{}.basic(data), endTime.Format(time.RFC3339), startTime.Format(time.RFC3339))
+`, MsSqlJobResourceTest{}.basic(data), endTime.Format(time.RFC3339), startTime.Format(time.RFC3339))
 }
 
-func (MsSqlJobScheduleTestResource) recurringWithoutInterval(data acceptance.TestData) string {
+func (MsSqlJobScheduleResourceTest) recurringWithoutInterval(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -172,5 +172,5 @@ resource "azurerm_mssql_job_schedule" "test" {
   job_id  = azurerm_mssql_job.test.id
   type    = "Recurring"
 }
-`, MsSqlJobTestResource{}.basic(data))
+`, MsSqlJobResourceTest{}.basic(data))
 }

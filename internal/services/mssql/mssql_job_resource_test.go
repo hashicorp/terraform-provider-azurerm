@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobTestResource struct{}
+type MsSqlJobResourceTest struct{}
 
 func TestAccMsSqlJobResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job", "test")
-	r := MsSqlJobTestResource{}
+	r := MsSqlJobResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccMsSqlJobResource_basic(t *testing.T) {
 
 func TestAccMsSqlJobResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job", "test")
-	r := MsSqlJobTestResource{}
+	r := MsSqlJobResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccMsSqlJobResource_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job", "test")
-	r := MsSqlJobTestResource{}
+	r := MsSqlJobResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,7 +71,7 @@ func TestAccMsSqlJobResource_update(t *testing.T) {
 
 func TestAccMsSqlJobResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job", "test")
-	r := MsSqlJobTestResource{}
+	r := MsSqlJobResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccMsSqlJobResource_complete(t *testing.T) {
 	})
 }
 
-func (MsSqlJobTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MsSqlJobResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobs.ParseJobID(state.ID)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (MsSqlJobTestResource) Exists(ctx context.Context, client *clients.Client, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlJobTestResource) basic(data acceptance.TestData) string {
+func (r MsSqlJobResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -109,7 +109,7 @@ resource "azurerm_mssql_job" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTestResource) requiresImport(data acceptance.TestData) string {
+func (r MsSqlJobResourceTest) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -120,7 +120,7 @@ resource "azurerm_mssql_job" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlJobTestResource) complete(data acceptance.TestData) string {
+func (r MsSqlJobResourceTest) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -133,7 +133,7 @@ resource "azurerm_mssql_job" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlJobTestResource) template(data acceptance.TestData) string {
+func (MsSqlJobResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
