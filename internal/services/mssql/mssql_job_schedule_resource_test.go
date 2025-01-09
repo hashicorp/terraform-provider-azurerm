@@ -127,8 +127,8 @@ func (MsSqlJobScheduleTestResource) basic(data acceptance.TestData) string {
 
 resource "azurerm_mssql_job_schedule" "test" {
   enabled = true
-  job_id = azurerm_mssql_job.test.id
-  type = "Once"
+  job_id  = azurerm_mssql_job.test.id
+  type    = "Once"
 }
 `, MsSqlJobTestResource{}.basic(data))
 }
@@ -139,7 +139,7 @@ func (r MsSqlJobScheduleTestResource) requiresImport(data acceptance.TestData) s
 
 resource "azurerm_mssql_job_schedule" "import" {
   job_id = azurerm_mssql_job_schedule.test.job_id
-  type = azurerm_mssql_job_schedule.test.type
+  type   = azurerm_mssql_job_schedule.test.type
 }
 `, r.basic(data))
 }
@@ -153,12 +153,12 @@ func (r MsSqlJobScheduleTestResource) complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_mssql_job_schedule" "test" {
-  enabled = true
-  end_time = "%[2]s"
-  interval = "PT15M"
-  job_id = azurerm_mssql_job.test.id
+  enabled    = true
+  end_time   = "%[2]s"
+  interval   = "PT15M"
+  job_id     = azurerm_mssql_job.test.id
   start_time = "%[3]s"
-  type = "Recurring"
+  type       = "Recurring"
 }
 `, MsSqlJobTestResource{}.basic(data), endTime.Format(time.RFC3339), startTime.Format(time.RFC3339))
 }
@@ -169,8 +169,8 @@ func (MsSqlJobScheduleTestResource) recurringWithoutInterval(data acceptance.Tes
 
 resource "azurerm_mssql_job_schedule" "test" {
   enabled = true
-  job_id = azurerm_mssql_job.test.id
-  type = "Recurring"
+  job_id  = azurerm_mssql_job.test.id
+  type    = "Recurring"
 }
 `, MsSqlJobTestResource{}.basic(data))
 }

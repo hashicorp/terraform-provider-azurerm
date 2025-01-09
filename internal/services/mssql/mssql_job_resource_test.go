@@ -103,7 +103,7 @@ func (r MsSqlJobTestResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mssql_job" "test" {
-  name = "acctest-job-%d"
+  name         = "acctest-job-%d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 }
 `, r.template(data), data.RandomInteger)
@@ -114,7 +114,7 @@ func (r MsSqlJobTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mssql_job" "import" {
-  name = azurerm_mssql_job.test.name
+  name         = azurerm_mssql_job.test.name
   job_agent_id = azurerm_mssql_job.test.job_agent_id
 }
 `, r.basic(data))
@@ -125,7 +125,7 @@ func (r MsSqlJobTestResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mssql_job" "test" {
-  name = "acctest-job-%d"
+  name         = "acctest-job-%d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   description = "Acctest Description"
@@ -140,29 +140,29 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_mssql_server" "test" {
-  name = "acctest-server-%[1]d"
-  location = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  version = "12.0"
-  administrator_login = "4dm1n157r470r"
+  name                         = "acctest-server-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_mssql_database" "test" {
-  name = "acctest-db-%[1]d"
+  name      = "acctest-db-%[1]d"
   server_id = azurerm_mssql_server.test.id
   collation = "SQL_Latin1_General_CP1_CI_AS"
-  sku_name = "S1"
+  sku_name  = "S1"
 }
 
 resource "azurerm_mssql_job_agent" "test" {
-  name = "acctest-job-agent-%[1]d"
-  location = azurerm_resource_group.test.location
+  name        = "acctest-job-agent-%[1]d"
+  location    = azurerm_resource_group.test.location
   database_id = azurerm_mssql_database.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)

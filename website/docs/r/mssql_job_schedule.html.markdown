@@ -48,17 +48,17 @@ resource "azurerm_mssql_job_credential" "example" {
 }
 
 resource "azurerm_mssql_job" "example" {
-  name = "example-job"
+  name         = "example-job"
   job_agent_id = azurerm_mssql_job_agent.example.id
 }
 
 resource "azurerm_mssql_job_schedule" "example" {
   job_id = azurerm_mssql_job.example.id
-  
-  type = "Recurring"
-  enabled = true
-  end_time = "2025-12-01T00:00:00Z"
-  interval = "PT5M"
+
+  type       = "Recurring"
+  enabled    = true
+  end_time   = "2025-12-01T00:00:00Z"
+  interval   = "PT5M"
   start_time = "2025-01-01T00:00:00Z"
 }
 ```

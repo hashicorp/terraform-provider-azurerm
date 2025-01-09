@@ -49,9 +49,9 @@ resource "azurerm_mssql_job_credential" "example" {
 }
 
 resource "azurerm_mssql_job" "example" {
-  name = "example-job"
+  name         = "example-job"
   job_agent_id = azurerm_mssql_job_agent.example.id
-  description = "example description"
+  description  = "example description"
 }
 ```
 
