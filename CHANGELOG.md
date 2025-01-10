@@ -6,6 +6,7 @@ FEATURES:
 * **New Resource**: `azurerm_arc_kubernetes_provisioned_cluster` [GH-28216]
 * **New Resource**: `azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint` [GH-27874]
 * **New Resource** `azurerm_machine_learning_workspace_network_outbound_rule_service_tag` [GH-27931]
+* **New Resource** `azurerm_dynatrace_tag_rules` [GH-27985]
 
 ENHANCEMENTS:
 
