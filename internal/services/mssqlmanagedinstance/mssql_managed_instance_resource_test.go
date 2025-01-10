@@ -524,6 +524,53 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, storageAccountType)
 }
 
+func (r MsSqlManagedInstanceResource) withoutAadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -938,6 +985,441 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
   }
 }
 `, r.basic(data), r.templateSecondary(data), r.templateExtraSecondary(data), data.RandomInteger)
+}
+
+func TestAccMsSqlManagedInstance_aadAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func TestAccMsSqlManagedInstance_aadAdminWithAadOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdminWithAadAuthOnlyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.setAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+		{
+			Config: r.withoutAadAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdminWithAadAuthOnlyEnabledUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"administrator_login_password",
+			"azure_active_directory_administrator.#",
+			"azure_active_directory_administrator.0.%",
+			"azure_active_directory_administrator.0.azuread_authentication_only_enabled",
+			"azure_active_directory_administrator.0.login_username",
+			"azure_active_directory_administrator.0.object_id",
+			"azure_active_directory_administrator.0.principal_type",
+			"azure_active_directory_administrator.0.tenant_id",
+		),
+	})
+}
+
+func (r MsSqlManagedInstanceResource) aadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username = azuread_user.test.user_principal_name
+    object_id      = azuread_user.test.object_id
+    principal_type = "User"
+    tenant_id      = data.azurerm_client_config.test.tenant_id
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) grantDirectoryReaderPermission(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+`, r.withoutAadAdmin(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test.user_principal_name
+    object_id                           = azuread_user.test.object_id
+    principal_type                      = "User"
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    azuread_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+  # Changing administrator_login is ignored because API returns the value of administrator_login even if it is not specified in the config when azuread_authentication_only_enabled is set to true
+  lifecycle {
+    ignore_changes = [administrator_login]
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) setAadAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username = azuread_user.test.user_principal_name
+    object_id      = azuread_user.test.object_id
+    principal_type = "User"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabledUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
+      prevent_deletion_if_contains_resources has been added here to allow the test resources to be
+       deleted until this can be properly investigated
+      */
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test.user_principal_name
+    object_id                           = azuread_user.test.object_id
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    principal_type                      = "User"
+    azuread_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
