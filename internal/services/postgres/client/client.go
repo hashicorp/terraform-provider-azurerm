@@ -17,10 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
+	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases"
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules"
-	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 	flexibleservervirtualendpoints "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )

@@ -350,6 +350,50 @@ func parseHighAvailabilityMode(input string) (*HighAvailabilityMode, error) {
 	return &out, nil
 }
 
+type IdentityType string
+
+const (
+	IdentityTypeNone           IdentityType = "None"
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeNone),
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func (s *IdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"none":           IdentityTypeNone,
+		"systemassigned": IdentityTypeSystemAssigned,
+		"userassigned":   IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
+	return &out, nil
+}
+
 type KeyStatusEnum string
 
 const (
