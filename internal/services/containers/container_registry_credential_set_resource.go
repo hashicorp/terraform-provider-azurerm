@@ -60,13 +60,19 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 				},
 			},
 		},
+		// At point in time of the implementation of this resource the API only accept SystemAssigned even though API Spec defines all three identity modes are possible
+		// Error when trying with type UserAssigned:
+		//	code: "CannotSetResourceIdentity"
+		//	message: "The resource identity 'UserAssigned' cannot be set on the resource of type 'Microsoft.ContainerRegistry/registries/credentialSets'."
+		// or with type empty:
+		//	code: "OnlySystemManagedIdentityAllowed"
+		//	message: "Only System Managed Identities are allowed for resources of type 'Microsoft.ContainerRegistry/registries/credentialSets'. For more information, please visit https://aka.ms/acr/cache."
+		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 	}
 }
 
 func (ContainerRegistryCredentialSetResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 type AuthenticationCredential struct {
@@ -123,15 +129,18 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(config.Identity)
+			if err != nil {
+				return err
+			}
+
 			param := credentialsets.CredentialSet{
 				Name: pointer.To(id.CredentialSetName),
 				Properties: &credentialsets.CredentialSetProperties{
 					LoginServer:     pointer.To(config.LoginServer),
 					AuthCredentials: expandAuthCredentials(config.AuthenticationCredential),
 				},
-				Identity: &identity.SystemAndUserAssignedMap{
-					Type: identity.TypeSystemAssigned,
-				},
+				Identity: expandedIdentity,
 			}
 
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
@@ -168,6 +177,13 @@ func (r ContainerRegistryCredentialSetResource) Update() sdk.ResourceFunc {
 			}
 
 			param.Properties = &properties
+
+			if metadata.ResourceData.HasChange("identity") {
+				param.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return err
+				}
+			}
 
 			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)

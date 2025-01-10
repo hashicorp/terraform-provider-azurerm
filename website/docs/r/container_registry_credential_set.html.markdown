@@ -31,6 +31,9 @@ resource "azurerm_container_registry_credential_set" "example" {
   name                  = "exampleCredentialSet"
   container_registry_id = "azurerm_container_registry.example.id"
   login_server          = "docker.io"
+  identity {
+    type = "SystemAssigned"
+  }
   authentication_credentials {
     username_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-name"
     password_secret_id = "https://example-keyvault.vault.azure.net/secrets/example-user-password"
@@ -81,6 +84,9 @@ resource "azurerm_container_registry_credential_set" "example" {
   name                  = "exampleCredentialSet"
   container_registry_id = "azurerm_container_registry.example.id"
   login_server          = "docker.io"
+  identity {
+    type = "SystemAssigned"
+  }
   authentication_credentials {
     username_secret_id = azurerm_key_vault_secret.example_user.resource_versionless_id
     password_secret_id = azurerm_key_vault_secret.example_password.resource_versionless_id
@@ -107,6 +113,8 @@ The following arguments are supported:
 
 * `authentication_credentials` - (Required) A `authentication_credentials` block as defined below.
 
+* `identity` - (Required) An `identity` block as defined below.
+
 ---
 
 A `authentication_credentials` block supports the following:
@@ -117,14 +125,21 @@ A `authentication_credentials` block supports the following:
 
 ~> NOTE: Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
+An `identity` block supports the following:
+
+* `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+~> **NOTE:** The Azure Resource currently only supports `SystemAssigned` Identities.
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Container Registry Credential Set.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Container Registry Credential Set.
-
-* `identity` - A `identity` block as defined below.
 
 ---
 
@@ -133,13 +148,6 @@ A `identity` block exports the following:
 * `principal_id` - The principal ID of the Identity.
 
 * `tenant_id` - The tenant ID of the Identity.
-
-* `type` - The type of the Identity.
-
-* `identity_ids` - A list of User Managed Identity IDs.
-
-~> **Note:** Currently only SystemAssigned Identities are supported.
-
 
 ## Timeouts
 

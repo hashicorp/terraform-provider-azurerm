@@ -109,6 +109,9 @@ resource "azurerm_container_registry_credential_set" "test" {
   name                  = "testacc-acr-credential-set-%d"
   container_registry_id = azurerm_container_registry.test.id
   login_server          = "docker.io"
+  identity {
+    type = "SystemAssigned"
+  }
   authentication_credentials {
     username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name"
     password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
@@ -125,6 +128,9 @@ resource "azurerm_container_registry_credential_set" "import" {
   name                  = azurerm_container_registry_credential_set.test.name
   container_registry_id = azurerm_container_registry_credential_set.test.container_registry_id
   login_server          = azurerm_container_registry_credential_set.test.login_server
+  identity {
+    type = "SystemAssigned"
+  }
   authentication_credentials {
     username_secret_id = azurerm_container_registry_credential_set.test.authentication_credentials[0].username_secret_id
     password_secret_id = azurerm_container_registry_credential_set.test.authentication_credentials[0].password_secret_id
@@ -155,6 +161,9 @@ resource "azurerm_container_registry_credential_set" "test" {
   name                  = "testacc-acr-credential-set-%d"
   container_registry_id = azurerm_container_registry.test.id
   login_server          = "docker.io"
+  identity {
+    type = "SystemAssigned"
+  }
   authentication_credentials {
     username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name-changed"
     password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
