@@ -52,6 +52,11 @@ service/application-insights:
   - any-glob-to-any-file:
     - internal/services/applicationinsights/**/*
 
+service/arc-kubernetes:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/arckubernetes/**/*
+
 service/arc-resource-bridge:
 - changed-files:
   - any-glob-to-any-file:
