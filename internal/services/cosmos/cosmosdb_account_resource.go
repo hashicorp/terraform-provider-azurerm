@@ -1909,13 +1909,13 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkSubnetIds(rules *[]cosmosdb.Virt
 
 	if rules != nil {
 		for _, r := range *rules {
-			if pointer.From(r.IgnoreMissingVNetServiceEndpoint) == false {
+			if !pointer.From(r.IgnoreMissingVNetServiceEndpoint) {
 				result.Add(pointer.From(r.Id))
 			}
 		}
 	}
 
-	return pointer.To(result)
+	return &result
 }
 
 func flattenAzureRmCosmosDBAccountVirtualNetworkSubnetIdsIgnoreMissingVnetServiceEndpoint(rules *[]cosmosdb.VirtualNetworkRule) *pluginsdk.Set {
@@ -1925,13 +1925,13 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkSubnetIdsIgnoreMissingVnetServic
 
 	if rules != nil {
 		for _, r := range *rules {
-			if pointer.From(r.IgnoreMissingVNetServiceEndpoint) == true {
+			if pointer.From(r.IgnoreMissingVNetServiceEndpoint) {
 				result.Add(pointer.From(r.Id))
 			}
 		}
 	}
 
-	return pointer.To(result)
+	return &result
 }
 
 func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
