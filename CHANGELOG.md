@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_cognitive_deployment` - `DataZoneProvisionedManaged` and `GlobalProvisionedManaged` skus are now supported [GH-28404]
 * `azurerm_databricks_access_connector` - `SystemAssigned,UserAssigned` identity is now supported [GH-28442]
 * `azurerm_healthcare_dicom_service` - add support for the `data_partitions_enabled`, `cors`, `encryption_key_url` and `storage` properties [GH-27375]
+* `azurerm_kubernetes_flux_configuration` - add support for the `post_build` and `wait` properties [GH-25695]
 * `azurerm_linux_virtual_machine` - export the `os_disk.0.id` attribute [GH-28352]
 * `azurerm_netapp_volume` - make the `network_features` property Optional/Computed [GH-28390]
 * `azurerm_nginx_deployment` - add support for the `dataplane_api_endpoint` property [GH-28379] 
