@@ -426,7 +426,7 @@ resource "azurerm_storage_share_file" "test" {
   storage_share_id = azurerm_storage_share.test.id
   depends_on       = [azurerm_storage_share_directory.dos]
 }
-`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+`, StorageShareDirectoryResourceDeprecated{}.nestedWithBackslashes(data))
 }
 
 func (r StorageShareFileResourceDeprecated) withPathInNameUsingBackslashes(data acceptance.TestData) string {
@@ -438,5 +438,5 @@ resource "azurerm_storage_share_file" "test" {
   storage_share_id = azurerm_storage_share.test.id
   depends_on       = [azurerm_storage_share_directory.dos]
 }
-`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+`, StorageShareDirectoryResourceDeprecated{}.nestedWithBackslashes(data))
 }
