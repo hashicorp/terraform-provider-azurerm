@@ -172,7 +172,9 @@ The following arguments are supported:
 
 ~> **Note:** In order to use a `Custom Key` from Managed HSM for encryption you must grant Azure Cosmos DB Service access to your Managed HSM. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm)
 
-* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
+* `virtual_network_subnet_ids` - (Optional) The IDs of the subnets allowed to access this CosmosDB account.
+
+* `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint` - (Optional) The IDs of the subnets allowed to access this CosmosDB account.The subnets in this list will be added as virtual network rules even if its CosmosDB service endpoint is not active.
 
 * `multiple_write_locations_enabled` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
@@ -229,13 +231,6 @@ A `capabilities` block Configures the capabilities to be enabled for this Cosmos
 ~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
 
 ~> **Note:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
-
----
-
-The `virtual_network_rule` block Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
-
-* `id` - (Required) The ID of the virtual network subnet.
-* `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
 
 ---
 
