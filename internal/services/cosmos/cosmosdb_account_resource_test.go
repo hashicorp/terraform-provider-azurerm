@@ -983,7 +983,6 @@ func TestAccCosmosDBAccount_vNetFilters(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("is_virtual_network_filter_enabled").HasValue("true"),
-				//check.That(data.ResourceName).Key("virtual_network_rule.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -1729,13 +1728,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet1.id
-  }
-
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -1787,13 +1783,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet1.id
-  }
-
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -1852,13 +1845,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet1.id
-  }
-
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2010,9 +2000,9 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2075,9 +2065,9 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2152,9 +2142,9 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2224,9 +2214,9 @@ resource "azurerm_cosmosdb_account" "test" {
 
   is_virtual_network_filter_enabled = true
 
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2532,11 +2522,11 @@ resource "azurerm_cosmosdb_account" "test" {
   ip_range_filter                   = []
 
   virtual_network_subnet_ids = [
-	azurerm_subnet.subnet2.id
+    azurerm_subnet.subnet2.id
   ]
 
   virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
-	azurerm_subnet.subnet1.id
+    azurerm_subnet.subnet1.id
   ]
 
   geo_location {
@@ -4723,15 +4713,14 @@ resource "azurerm_cosmosdb_account" "test" {
   is_virtual_network_filter_enabled = true
   ip_range_filter                   = ["55.0.1.0/24"]
 
-  virtual_network_rule {
-    id                                   = azurerm_subnet.subnet1.id
-    ignore_missing_vnet_service_endpoint = true
-  }
+  virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
+    azurerm_subnet.subnet1.id
+  ]
 
-  virtual_network_rule {
-    id                                   = azurerm_subnet.subnet2.id
-    ignore_missing_vnet_service_endpoint = false
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
 
   geo_location {
     location          = azurerm_resource_group.test.location
@@ -4764,15 +4753,14 @@ resource "azurerm_cosmosdb_account" "test" {
   is_virtual_network_filter_enabled = true
   ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
 
-  virtual_network_rule {
-    id                                   = azurerm_subnet.subnet1.id
-    ignore_missing_vnet_service_endpoint = true
-  }
+  virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
+    azurerm_subnet.subnet1.id
+  ]
 
-  virtual_network_rule {
-    id                                   = azurerm_subnet.subnet2.id
-    ignore_missing_vnet_service_endpoint = false
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
 
   geo_location {
     location          = azurerm_resource_group.test.location
@@ -4847,12 +4835,10 @@ resource "azurerm_cosmosdb_account" "test" {
     max_staleness_prefix    = 170000
   }
   is_virtual_network_filter_enabled = true
-  virtual_network_rule {
-    id = azurerm_subnet.subnet1.id
-  }
-  virtual_network_rule {
-    id = azurerm_subnet.subnet2.id
-  }
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
   multiple_write_locations_enabled = true
   geo_location {
     location          = azurerm_resource_group.test.location

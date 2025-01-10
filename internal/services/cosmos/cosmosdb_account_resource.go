@@ -481,26 +481,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 			},
 
-			//"virtual_network_rule": {
-			//	Type:     pluginsdk.TypeSet,
-			//	Optional: true,
-			//	Elem: &pluginsdk.Resource{
-			//		Schema: map[string]*pluginsdk.Schema{
-			//			"id": {
-			//				Type:         pluginsdk.TypeString,
-			//				Required:     true,
-			//				ValidateFunc: azure.ValidateResourceID,
-			//			},
-			//			"ignore_missing_vnet_service_endpoint": {
-			//				Type:     pluginsdk.TypeBool,
-			//				Optional: true,
-			//				Default:  false,
-			//			},
-			//		},
-			//	},
-			//	Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-			//},
-
 			"access_key_metadata_writes_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1488,10 +1468,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint`: %+v", err)
 		}
 
-		//if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(props.VirtualNetworkRules)); err != nil {
-		//	return fmt.Errorf("setting `virtual_network_rule`: %+v", err)
-		//}
-
 		d.Set("access_key_metadata_writes_enabled", !*props.DisableKeyBasedMetadataWriteAccess)
 		if apiProps := props.ApiProperties; apiProps != nil {
 			d.Set("mongo_server_version", pointer.From(apiProps.ServerVersion))
@@ -1840,21 +1816,6 @@ func expandAzureRmCosmosDBAccountVirtualNetworkSubnetIds(d *pluginsdk.ResourceDa
 	return &s
 }
 
-//func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) *[]cosmosdb.VirtualNetworkRule {
-//	virtualNetworkRules := d.Get("virtual_network_rule").(*pluginsdk.Set).List()
-//
-//	s := make([]cosmosdb.VirtualNetworkRule, len(virtualNetworkRules))
-//	for i, r := range virtualNetworkRules {
-//		m := r.(map[string]interface{})
-//		s[i] = cosmosdb.VirtualNetworkRule{
-//			Id:                               pointer.To(m["id"].(string)),
-//			IgnoreMissingVNetServiceEndpoint: pointer.FromBool(m["ignore_missing_vnet_service_endpoint"].(bool)),
-//		}
-//	}
-//
-//	return &s
-//}
-
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *cosmosdb.ConsistencyPolicy) []interface{} {
 	result := map[string]interface{}{}
 	result["consistency_level"] = string(policy.DefaultConsistencyLevel)
@@ -1972,24 +1933,6 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkSubnetIdsIgnoreMissingVnetServic
 
 	return pointer.To(result)
 }
-
-//func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]cosmosdb.VirtualNetworkRule) *pluginsdk.Set {
-//	results := pluginsdk.Set{
-//		F: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-//	}
-//
-//	if rules != nil {
-//		for _, r := range *rules {
-//			rule := map[string]interface{}{
-//				"id":                                   *r.Id,
-//				"ignore_missing_vnet_service_endpoint": *r.IgnoreMissingVNetServiceEndpoint,
-//			}
-//			results.Add(rule)
-//		}
-//	}
-//
-//	return &results
-//}
 
 func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
