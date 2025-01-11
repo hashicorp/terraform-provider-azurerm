@@ -85,15 +85,15 @@ A `filter` block supports the following:
 
 * `locations` - (Optional) Specifies a list of locations to scope the query to.
 
-* `os_types` - (Optional) Specifies a list of allowed operating systems.
+* `os_types` - (Optional) Specifies a list of allowed operating systems. Possible values are `Linux` and `Windows`.
 
 * `resource_groups` - (Optional) Specifies a list of allowed resource groups.
 
-* `resource_types` - (Optional) Specifies a list of allowed resources.
+* `resource_types` - (Optional) Specifies a list of allowed resources. Possible values are `Microsoft.Compute/virtualMachines` and `Microsoft.HybridCompute/machines`.
 
 * `tag_filter` - (Optional) Filter VMs by `Any` or `All` specified tags. Defaults to `Any`.
 
-* `tags` - (Optional) A mapping of tags for the VM
+* `tags` - (Optional) A mapping of tags for the VM.
 
 ---
 

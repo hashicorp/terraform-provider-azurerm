@@ -83,9 +83,9 @@ The following arguments are supported:
 
 -> **Note** The creation mode `GeoReplica` is currently in preview. It is only available when `preview_features` is set.
 
-* `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
+* `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. The only possible value is `GeoReplicas`. Changing this forces a new resource to be created.
 
-* `shard_count` -  (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
+* `shard_count` - (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `source_location` - (Optional) The location of the source MongoDB Cluster. Changing this forces a new resource to be created.
 

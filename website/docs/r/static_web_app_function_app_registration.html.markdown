@@ -69,9 +69,9 @@ resource "azurerm_static_web_app_function_app_registration" "example" {
 
 The following arguments are supported:
 
-* `static_web_app_id` (Required) - The ID of the Static Web App to register the Function App to as a backend. Changing this forces a new resource to be created. 
+* `static_web_app_id` - (Required) - The ID of the Static Web App to register the Function App to as a backend. Changing this forces a new resource to be created. 
 
-* `function_app_id` (Required) - The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend. Changing this forces a new resource to be created. 
+* `function_app_id` - (Required) - The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend. Changing this forces a new resource to be created. 
 
 ~> **NOTE:** Only one Function App can be connected to a Static Web App. Multiple Function Apps are not currently supported.
 

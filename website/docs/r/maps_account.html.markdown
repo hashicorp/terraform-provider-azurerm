@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
 
-* `location` - (Optional) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created. Defaults to `global`.
+* `location` - (Required) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 
@@ -64,7 +64,7 @@ A `cors` block supports the following:
 
 A `data_store` block supports the following:
 
-* `storage_account_id` - (Required) The ID of the Storage Account that should be linked to this Azure Maps Account.
+* `storage_account_id` - (Optional) The ID of the Storage Account that should be linked to this Azure Maps Account.
 
 * `unique_name` - (Required) The name given to the linked Storage Account.
 

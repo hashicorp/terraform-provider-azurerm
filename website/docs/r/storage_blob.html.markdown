@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` or `source_content`, respectively, are defined.
 
-* `encryption_scope` - (Optional) The encryption scope to use for this blob.
+* `encryption_scope` - (Optional) The encryption scope to use for this blob. Changing this forces a new resource to be created.
 
 * `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and cannot be specified if `source_content` or `source_uri` is specified. Changing this forces a new resource to be created.
 

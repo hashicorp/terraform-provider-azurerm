@@ -106,11 +106,11 @@ The following arguments are supported:
 
 * `registry` - (Optional) One or more `registry` blocks as defined below.
 
-* `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below.
+* `manual_trigger_config` - (Optional) A `manual_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
-* `event_trigger_config` - (Optional) A `event_trigger_config` block as defined below.
+* `event_trigger_config` - (Optional) A `event_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
-* `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below.
+* `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below. Changing this forces a new resource to be created.
 
 ~> ** NOTE **: Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
 
@@ -122,7 +122,7 @@ The following arguments are supported:
 
 A `template` block supports the following:
 
-* `container` - (Optional) A `container` block as defined below.
+* `container` - (Required) A `container` block as defined below.
 
 * `init_container` - (Optional) A `init_container` block as defined below.
 
@@ -168,11 +168,11 @@ An `init_container` block supports:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+* `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -222,7 +222,7 @@ A `liveness_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 ---
 
@@ -282,7 +282,7 @@ A `startup_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 ---
 
@@ -304,9 +304,9 @@ A `volume_mounts` block supports the following:
 
 A `volume` block supports the following:
 
-* `name` - (Optional) The name of the volume.
+* `name` - (Required) The name of the volume.
 
-* `storage_type` - (Optional) The type of storage to use for the volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`.
+* `storage_type` - (Optional) The type of storage to use for the volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
 
 * `storage_name` - (Optional) The name of the storage to use for the volume.
 
@@ -338,7 +338,7 @@ A `registry` block supports the following:
 
 * `password_secret_name` - (Optional) The name of the Secret that contains the registry login password.
 
-* `server` - (Optional) The URL of the Azure Container Registry server.
+* `server` - (Required) The URL of the Azure Container Registry server.
 
 ---
 
@@ -384,11 +384,11 @@ A `scale` block supports the following:
 
 A `rules` block supports the following:
 
-* `name` - (Optional) Name of the scale rule.
+* `name` - (Required) Name of the scale rule.
 
-* `custom_rule_type` - (Optional) Type of the scale rule.
+* `custom_rule_type` - (Required) Type of the scale rule. Possible values are `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`, `solace-event-queue` and `github-runner`.
 
-* `metadata` - (Optional) Metadata properties to describe the scale rule.
+* `metadata` - (Required) Metadata properties to describe the scale rule.
 
 * `authentication` - (Optional) A `authentication` block as defined below.
 
@@ -396,15 +396,15 @@ A `rules` block supports the following:
 
 A `authentication` block supports the following:
 
-* `secret_name` - (Optional) Name of the secret from which to pull the auth params.
+* `secret_name` - (Required) Name of the secret from which to pull the auth params.
 
-* `trigger_parameter` - (Optional) Trigger Parameter that uses the secret.
+* `trigger_parameter` - (Required) Trigger Parameter that uses the secret.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The type of identity used for the Container App Job. Possible values are `SystemAssigned`, `UserAssigned` and `None`. Defaults to `None`.
+* `type` - (Required) The type of identity used for the Container App Job. Possible values are `SystemAssigned`, `UserAssigned` and `None`.
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs to assign to the Container App Job.
 

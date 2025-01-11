@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
+* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
