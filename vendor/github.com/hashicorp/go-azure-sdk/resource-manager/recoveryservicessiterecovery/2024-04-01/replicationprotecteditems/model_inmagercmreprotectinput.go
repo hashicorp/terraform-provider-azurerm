@@ -17,6 +17,14 @@ type InMageRcmReprotectInput struct {
 	ReprotectAgentId    string  `json:"reprotectAgentId"`
 
 	// Fields inherited from ReverseReplicationProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmReprotectInput) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return BaseReverseReplicationProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmReprotectInput{}
@@ -30,9 +38,10 @@ func (s InMageRcmReprotectInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmReprotectInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

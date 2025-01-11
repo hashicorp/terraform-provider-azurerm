@@ -14,8 +14,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = ManagedHSMRoleDefinitionV0ToV1{}
 
-type ManagedHSMRoleDefinitionV0ToV1 struct {
-}
+type ManagedHSMRoleDefinitionV0ToV1 struct{}
 
 func (m ManagedHSMRoleDefinitionV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

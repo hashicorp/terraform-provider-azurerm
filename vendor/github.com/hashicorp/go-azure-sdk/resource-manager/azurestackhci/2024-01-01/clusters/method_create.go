@@ -49,7 +49,6 @@ func (c ClustersClient) Create(ctx context.Context, id ClusterId, input Cluster)
 
 	var model Cluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -114,16 +114,11 @@ func (s VMWareReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy_vmware_association", *existing.Model.Id)
 			}
 
-			type RawProviderSpecificInput struct {
-				Type   string                 `json:"-"`
-				Values map[string]interface{} `json:"-"`
-			}
-
 			parameters := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 					TargetProtectionContainerId: utils.String(SiteRecoveryReplicationPolicyVMWareAssociationTargetContainerId),
 					PolicyId:                    &model.RecoveryReplicationPolicyId,
-					ProviderSpecificInput:       &RawProviderSpecificInput{},
+					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
 
@@ -166,7 +161,6 @@ func (s VMWareReplicationPolicyAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
-
 					policyId := ""
 					// tracked on https://github.com/Azure/azure-rest-api-specs/issues/24751
 					if prop.PolicyId != nil && *prop.PolicyId != "" {

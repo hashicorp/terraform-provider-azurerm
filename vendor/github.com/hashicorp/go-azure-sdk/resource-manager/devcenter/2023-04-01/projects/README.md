@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects` Documentation
 
-The `projects` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `projects` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 payload := projects.Project{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := projects.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 payload := projects.ProjectUpdate{
 	// ...

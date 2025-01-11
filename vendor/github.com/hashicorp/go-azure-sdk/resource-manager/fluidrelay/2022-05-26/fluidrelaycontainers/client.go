@@ -15,7 +15,7 @@ type FluidRelayContainersClient struct {
 }
 
 func NewFluidRelayContainersClientWithBaseURI(sdkApi sdkEnv.Api) (*FluidRelayContainersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fluidrelaycontainers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fluidrelaycontainers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FluidRelayContainersClient: %+v", err)
 	}

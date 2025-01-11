@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 func resourceIotHubEndpointServiceBusQueue() *pluginsdk.Resource {
@@ -64,7 +64,7 @@ func resourceIothubEndpointServicebusQueue() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		//lintignore: S013
+		// lintignore: S013
 		"iothub_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

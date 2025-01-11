@@ -45,7 +45,6 @@ func (c HybridConnectionsClient) GetAuthorizationRule(ctx context.Context, id Hy
 
 	var model AuthorizationRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

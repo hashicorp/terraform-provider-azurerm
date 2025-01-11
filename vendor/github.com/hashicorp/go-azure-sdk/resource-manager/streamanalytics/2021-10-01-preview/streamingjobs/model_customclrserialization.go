@@ -14,6 +14,14 @@ type CustomClrSerialization struct {
 	Properties *CustomClrSerializationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Serialization
+
+	Type EventSerializationType `json:"type"`
+}
+
+func (s CustomClrSerialization) Serialization() BaseSerializationImpl {
+	return BaseSerializationImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = CustomClrSerialization{}
@@ -27,9 +35,10 @@ func (s CustomClrSerialization) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CustomClrSerialization: %+v", err)
 	}
+
 	decoded["type"] = "CustomClr"
 
 	encoded, err = json.Marshal(decoded)

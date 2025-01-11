@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
@@ -171,6 +172,12 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabase() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -227,8 +234,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
-		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		sqlDatabaseProperties.ServicePrincipalKey = &secureString
+		if v := d.Get("tenant_id").(string); v != "" {
+			sqlDatabaseProperties.Tenant = pointer.To(v)
+		}
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
@@ -257,6 +266,12 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
 		azureSQLDatabaseLinkedService.Annotations = &annotations
+	}
+
+	if credentialName := d.Get("credential_name").(string); credentialName != "" {
+		azureSQLDatabaseLinkedService.Credential = &datafactory.CredentialReference{
+			ReferenceName: pointer.To(credentialName),
+		}
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -350,6 +365,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseRead(d *pluginsdk.ResourceD
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
+	}
+
+	if credential := sql.Credential; credential != nil {
+		d.Set("credential_name", pointer.From(credential.ReferenceName))
 	}
 
 	return nil

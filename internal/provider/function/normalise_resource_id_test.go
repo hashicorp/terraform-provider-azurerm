@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -26,9 +25,6 @@ var cases = map[string][]string{
 }
 
 func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("skipping test due to missing feature flag")
-	}
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{

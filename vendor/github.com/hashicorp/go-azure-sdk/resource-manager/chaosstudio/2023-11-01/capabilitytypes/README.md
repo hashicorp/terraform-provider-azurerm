@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/capabilitytypes` Documentation
 
-The `capabilitytypes` SDK allows for interaction with the Azure Resource Manager Service `chaosstudio` (API Version `2023-11-01`).
+The `capabilitytypes` SDK allows for interaction with Azure Resource Manager `chaosstudio` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := capabilitytypes.NewTargetTypeID("12345678-1234-9876-4563-123456789012", "locationValue", "targetTypeValue")
+id := capabilitytypes.NewTargetTypeID("12345678-1234-9876-4563-123456789012", "locationName", "targetTypeName")
 
 // alternatively `client.List(ctx, id, capabilitytypes.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, capabilitytypes.DefaultListOperationOptions())

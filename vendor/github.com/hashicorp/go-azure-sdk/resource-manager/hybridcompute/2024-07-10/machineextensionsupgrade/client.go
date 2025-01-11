@@ -15,7 +15,7 @@ type MachineExtensionsUpgradeClient struct {
 }
 
 func NewMachineExtensionsUpgradeClientWithBaseURI(sdkApi sdkEnv.Api) (*MachineExtensionsUpgradeClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "machineextensionsupgrade", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "machineextensionsupgrade", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MachineExtensionsUpgradeClient: %+v", err)
 	}

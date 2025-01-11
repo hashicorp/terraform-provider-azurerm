@@ -46,7 +46,6 @@ func (c WebPubSubClient) ListKeys(ctx context.Context, id WebPubSubId) (result L
 
 	var model WebPubSubKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

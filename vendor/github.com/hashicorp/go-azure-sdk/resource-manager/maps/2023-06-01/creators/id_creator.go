@@ -44,7 +44,7 @@ func ParseCreatorID(input string) (*CreatorId, error) {
 	}
 
 	id := CreatorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCreatorIDInsensitively(input string) (*CreatorId, error) {
 	}
 
 	id := CreatorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CreatorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaps", "Microsoft.Maps", "Microsoft.Maps"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 		resourceids.StaticSegment("staticCreators", "creators", "creators"),
-		resourceids.UserSpecifiedSegment("creatorName", "creatorValue"),
+		resourceids.UserSpecifiedSegment("creatorName", "creatorName"),
 	}
 }
 

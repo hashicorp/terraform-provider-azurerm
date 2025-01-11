@@ -27,7 +27,6 @@ func TestFrontDoorCustomDomainAssociationID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorCustomDomainAssociationId
 	}{
-
 		{
 			// empty
 			Input: "",

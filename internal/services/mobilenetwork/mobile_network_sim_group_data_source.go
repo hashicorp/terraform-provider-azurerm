@@ -23,7 +23,7 @@ type SimGroupDataSource struct{}
 
 type SimGroupDataSourceModel struct {
 	Name             string                       `tfschema:"name"`
-	EncryptionKeyUrl string                       `tfschema:"encryption_key_url"`
+	EncryptionKeyURL string                       `tfschema:"encryption_key_url"`
 	Identity         []identity.ModelUserAssigned `tfschema:"identity"`
 	Location         string                       `tfschema:"location"`
 	MobileNetworkId  string                       `tfschema:"mobile_network_id"`
@@ -115,8 +115,8 @@ func (r SimGroupDataSource) Read() sdk.ResourceFunc {
 
 				properties := model.Properties
 
-				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyUrl != nil {
-					state.EncryptionKeyUrl = *properties.EncryptionKey.KeyUrl
+				if properties.EncryptionKey != nil && properties.EncryptionKey.KeyURL != nil {
+					state.EncryptionKeyURL = *properties.EncryptionKey.KeyURL
 				}
 
 				if properties.MobileNetwork != nil {

@@ -216,7 +216,7 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 }
 
 func convert2Str(rawVal interface{}) (string, error) {
-	value := ""
+	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val
 	} else {

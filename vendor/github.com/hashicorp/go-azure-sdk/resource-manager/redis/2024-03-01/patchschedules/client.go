@@ -15,7 +15,7 @@ type PatchSchedulesClient struct {
 }
 
 func NewPatchSchedulesClientWithBaseURI(sdkApi sdkEnv.Api) (*PatchSchedulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "patchschedules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "patchschedules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PatchSchedulesClient: %+v", err)
 	}

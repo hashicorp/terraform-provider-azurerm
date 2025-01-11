@@ -298,7 +298,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
-
 	}
 	// an update on the vault will reset the vault config to default, so we handle it at last.
 	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
@@ -594,7 +593,6 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if prop := model.Properties; prop != nil {
-
 			immutability := vaults.ImmutabilityStateDisabled
 			if prop.SecuritySettings != nil && prop.SecuritySettings.ImmutabilitySettings != nil {
 				immutability = pointer.From(prop.SecuritySettings.ImmutabilitySettings.State)

@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ProtectionContainerMappingProviderSpecificDetails interface {
+	ProtectionContainerMappingProviderSpecificDetails() BaseProtectionContainerMappingProviderSpecificDetailsImpl
 }
 
-// RawProtectionContainerMappingProviderSpecificDetailsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ProtectionContainerMappingProviderSpecificDetails = BaseProtectionContainerMappingProviderSpecificDetailsImpl{}
+
+type BaseProtectionContainerMappingProviderSpecificDetailsImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseProtectionContainerMappingProviderSpecificDetailsImpl) ProtectionContainerMappingProviderSpecificDetails() BaseProtectionContainerMappingProviderSpecificDetailsImpl {
+	return s
+}
+
+var _ ProtectionContainerMappingProviderSpecificDetails = RawProtectionContainerMappingProviderSpecificDetailsImpl{}
+
+// RawProtectionContainerMappingProviderSpecificDetailsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawProtectionContainerMappingProviderSpecificDetailsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	protectionContainerMappingProviderSpecificDetails BaseProtectionContainerMappingProviderSpecificDetailsImpl
+	Type                                              string
+	Values                                            map[string]interface{}
 }
 
-func unmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(input []byte) (ProtectionContainerMappingProviderSpecificDetails, error) {
+func (s RawProtectionContainerMappingProviderSpecificDetailsImpl) ProtectionContainerMappingProviderSpecificDetails() BaseProtectionContainerMappingProviderSpecificDetailsImpl {
+	return s.protectionContainerMappingProviderSpecificDetails
+}
+
+func UnmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(input []byte) (ProtectionContainerMappingProviderSpecificDetails, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(in
 		return nil, fmt.Errorf("unmarshaling ProtectionContainerMappingProviderSpecificDetails into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -60,10 +77,15 @@ func unmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(in
 		return out, nil
 	}
 
-	out := RawProtectionContainerMappingProviderSpecificDetailsImpl{
+	var parent BaseProtectionContainerMappingProviderSpecificDetailsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseProtectionContainerMappingProviderSpecificDetailsImpl: %+v", err)
+	}
+
+	return RawProtectionContainerMappingProviderSpecificDetailsImpl{
+		protectionContainerMappingProviderSpecificDetails: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

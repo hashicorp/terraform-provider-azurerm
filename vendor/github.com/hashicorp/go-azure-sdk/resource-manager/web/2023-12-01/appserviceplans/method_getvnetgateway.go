@@ -45,7 +45,6 @@ func (c AppServicePlansClient) GetVnetGateway(ctx context.Context, id VirtualNet
 
 	var model VnetGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

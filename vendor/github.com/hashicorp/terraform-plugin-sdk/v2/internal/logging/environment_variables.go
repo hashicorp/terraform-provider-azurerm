@@ -10,7 +10,7 @@ const (
 	// usage, this environment variable is handled by terraform-plugin-go.
 	//
 	// Terraform CLI's logging must be explicitly turned on before this
-	// environment varable can be used to reduce the SDK logging levels. It
+	// environment variable can be used to reduce the SDK logging levels. It
 	// cannot be used to show only SDK logging unless all other logging levels
 	// are turned off.
 	EnvTfLogSdk = "TF_LOG_SDK"

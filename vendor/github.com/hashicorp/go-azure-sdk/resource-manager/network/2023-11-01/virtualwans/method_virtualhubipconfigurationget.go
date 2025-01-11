@@ -46,7 +46,6 @@ func (c VirtualWANsClient) VirtualHubIPConfigurationGet(ctx context.Context, id 
 
 	var model HubIPConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

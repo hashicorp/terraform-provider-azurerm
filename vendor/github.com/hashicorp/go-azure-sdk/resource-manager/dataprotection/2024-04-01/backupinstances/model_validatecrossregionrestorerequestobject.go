@@ -16,10 +16,11 @@ type ValidateCrossRegionRestoreRequestObject struct {
 var _ json.Unmarshaler = &ValidateCrossRegionRestoreRequestObject{}
 
 func (s *ValidateCrossRegionRestoreRequestObject) UnmarshalJSON(bytes []byte) error {
-	type alias ValidateCrossRegionRestoreRequestObject
-	var decoded alias
+	var decoded struct {
+		CrossRegionRestoreDetails CrossRegionRestoreDetails `json:"crossRegionRestoreDetails"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ValidateCrossRegionRestoreRequestObject: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.CrossRegionRestoreDetails = decoded.CrossRegionRestoreDetails
@@ -30,11 +31,12 @@ func (s *ValidateCrossRegionRestoreRequestObject) UnmarshalJSON(bytes []byte) er
 	}
 
 	if v, ok := temp["restoreRequestObject"]; ok {
-		impl, err := unmarshalAzureBackupRestoreRequestImplementation(v)
+		impl, err := UnmarshalAzureBackupRestoreRequestImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RestoreRequestObject' for 'ValidateCrossRegionRestoreRequestObject': %+v", err)
 		}
 		s.RestoreRequestObject = impl
 	}
+
 	return nil
 }

@@ -27,7 +27,6 @@ func TestProductPolicyID(t *testing.T) {
 		Error    bool
 		Expected *ProductPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

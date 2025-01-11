@@ -24,9 +24,9 @@ type ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler struct {
 }
 ```
 
-Although there are still resources within the provider where this property is exposed in the Terraform schema, the provider is moving away from this and instead translates this behaviour in one of two ways.
+This is handled in the provider one of two ways depending on if the `Enabled` field is by its self or with other fields in the object.
 
-In cases where `Enabled` is the only field required to turn a feature on and off we opt to flatten the block into a single top level property (or higher level property if already nested inside a block). So in the case of Example A, this would become:
+In the cases where `Enabled` is the only field within the object we opt to flatten the block into a single top level property (or higher level property if already nested inside a block). So in the case of Example A, this would become:
 
 ```go
 "storage_blob_driver_enabled": {
@@ -36,7 +36,7 @@ In cases where `Enabled` is the only field required to turn a feature on and off
 },
 ```
 
-For features that can accept or require configuration, i.e. the object contains additional properties other than `Enabled` like in Example B, the behaviour should be such that when the block is present the feature is enabled, and when it is absent it is disabled. The corresponding Terraform schema would be as follows:
+However when there are multiple fields in addtion to the `Enabled` one and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -45,6 +45,11 @@ For features that can accept or require configuration, i.e. the object contains 
     MaxItems: 1,
     Elem: &pluginsdk.Resource{
         Schema: map[string]*pluginsdk.Schema{
+            "enabled": {
+                Type:     pluginsdk.TypeBool,
+                Optional: true,
+                Default:  false,
+            },
             "update_mode": {
                 Type:     pluginsdk.TypeString,
                 Required: true,
@@ -67,7 +72,7 @@ For features that can accept or require configuration, i.e. the object contains 
 },
 ```
 
-There are instances where configuration properties for a feature is optional, as shown below.
+Finally there are instances where the addtional fields/properties for a object/feature are optional or few in number, as shown below.
 
 Example C.
 ```go
@@ -77,7 +82,7 @@ type ManagedClusterStorageProfileDiskCSIDriver struct {
 }
 ```
 
-In cases like these one option is to flatten the block into two top level properties.
+In cases like these one option is to flatten the block into two top level properties:
 
 ```go
 "storage_disk_driver_enabled": {
@@ -97,27 +102,7 @@ In cases like these one option is to flatten the block into two top level proper
 },
 ```
 
-Depending on the behaviour of the Azure API and the default set by it, a worthwhile alternative is to set the property as required in the Terraform schema, to avoid having to set empty blocks to enable features.
-
-```go
-"storage_disk_driver": {
-    Type:     pluginsdk.TypeList,
-    Optional: true,
-    MaxItems: 1,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "version": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-                ValidateFunc: validation.StringInSlice([]string{
-                    "V1",
-                    "V2",
-                }, false),
-            },
-        },
-    },
-},
-```
+A judgement call should be made based off the behaviour of the API and expectations of a user.
 
 ## The `None` value or similar
 

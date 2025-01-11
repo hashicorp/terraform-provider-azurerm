@@ -49,7 +49,6 @@ func (c TopicsClient) CreateOrUpdate(ctx context.Context, id TopicId, input SBTo
 
 	var model SBTopic
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

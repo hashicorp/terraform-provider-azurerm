@@ -15,7 +15,7 @@ type SapLandscapeMonitorClient struct {
 }
 
 func NewSapLandscapeMonitorClientWithBaseURI(sdkApi sdkEnv.Api) (*SapLandscapeMonitorClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "saplandscapemonitor", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "saplandscapemonitor", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SapLandscapeMonitorClient: %+v", err)
 	}

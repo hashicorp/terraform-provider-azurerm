@@ -15,7 +15,7 @@ type ProductPolicyClient struct {
 }
 
 func NewProductPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*ProductPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "productpolicy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "productpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProductPolicyClient: %+v", err)
 	}

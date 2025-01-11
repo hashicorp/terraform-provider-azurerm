@@ -47,7 +47,6 @@ func (c PricingsClient) List(ctx context.Context, id commonids.SubscriptionId) (
 
 	var model PricingList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

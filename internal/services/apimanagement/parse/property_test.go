@@ -27,7 +27,6 @@ func TestPropertyID(t *testing.T) {
 		Error    bool
 		Expected *PropertyId
 	}{
-
 		{
 			// empty
 			Input: "",

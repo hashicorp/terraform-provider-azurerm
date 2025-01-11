@@ -42,7 +42,7 @@ func ParseStorageContainerID(input string) (*StorageContainerId, error) {
 	}
 
 	id := StorageContainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseStorageContainerIDInsensitively(input string) (*StorageContainerId, er
 	}
 
 	id := StorageContainerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id StorageContainerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticStorageContainers", "storageContainers", "storageContainers"),
-		resourceids.UserSpecifiedSegment("storageContainerName", "storageContainerValue"),
+		resourceids.UserSpecifiedSegment("storageContainerName", "storageContainerName"),
 	}
 }
 

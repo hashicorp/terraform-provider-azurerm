@@ -42,6 +42,7 @@ func (o ListByAutomationAccountOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByAutomationAccountOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

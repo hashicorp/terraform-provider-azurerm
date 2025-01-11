@@ -5,5 +5,5 @@ package virtualwans
 
 type VpnConnectionPacketCaptureStopParameters struct {
 	LinkConnectionNames *[]string `json:"linkConnectionNames,omitempty"`
-	SasUrl              *string   `json:"sasUrl,omitempty"`
+	SasURL              *string   `json:"sasUrl,omitempty"`
 }

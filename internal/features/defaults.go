@@ -62,6 +62,9 @@ func Default() UserFeatures {
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
+		Storage: StorageFeatures{
+			DataPlaneAvailable: true,
+		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
 		},
@@ -74,6 +77,10 @@ func Default() UserFeatures {
 		RecoveryService: RecoveryServiceFeatures{
 			VMBackupStopProtectionAndRetainDataOnDestroy: false,
 			PurgeProtectedItemsFromVaultOnDestroy:        false,
+		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false,
+			PreventVolumeDestruction:          true,
 		},
 	}
 }

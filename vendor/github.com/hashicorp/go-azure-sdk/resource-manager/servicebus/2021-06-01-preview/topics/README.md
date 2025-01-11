@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics` Documentation
 
-The `topics` SDK allows for interaction with the Azure Resource Manager Service `servicebus` (API Version `2021-06-01-preview`).
+The `topics` SDK allows for interaction with Azure Resource Manager `servicebus` (API Version `2021-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName")
 
 payload := topics.SBTopic{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := topics.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 // alternatively `client.ListByNamespace(ctx, id, topics.DefaultListByNamespaceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByNamespaceComplete(ctx, id, topics.DefaultListByNamespaceOperationOptions())

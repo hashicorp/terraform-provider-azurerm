@@ -15,7 +15,7 @@ type ApiClient struct {
 }
 
 func NewApiClientWithBaseURI(sdkApi sdkEnv.Api) (*ApiClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "api", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "api", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApiClient: %+v", err)
 	}

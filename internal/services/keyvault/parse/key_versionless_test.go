@@ -27,7 +27,6 @@ func TestKeyVersionlessID(t *testing.T) {
 		Error    bool
 		Expected *KeyVersionlessId
 	}{
-
 		{
 			// empty
 			Input: "",

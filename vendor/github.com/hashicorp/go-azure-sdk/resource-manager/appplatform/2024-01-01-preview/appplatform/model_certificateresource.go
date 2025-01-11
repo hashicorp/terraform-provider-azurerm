@@ -21,10 +21,14 @@ type CertificateResource struct {
 var _ json.Unmarshaler = &CertificateResource{}
 
 func (s *CertificateResource) UnmarshalJSON(bytes []byte) error {
-	type alias CertificateResource
-	var decoded alias
+	var decoded struct {
+		Id         *string                `json:"id,omitempty"`
+		Name       *string                `json:"name,omitempty"`
+		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
+		Type       *string                `json:"type,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into CertificateResource: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Id = decoded.Id
@@ -38,11 +42,12 @@ func (s *CertificateResource) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalCertificatePropertiesImplementation(v)
+		impl, err := UnmarshalCertificatePropertiesImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'CertificateResource': %+v", err)
 		}
 		s.Properties = impl
 	}
+
 	return nil
 }

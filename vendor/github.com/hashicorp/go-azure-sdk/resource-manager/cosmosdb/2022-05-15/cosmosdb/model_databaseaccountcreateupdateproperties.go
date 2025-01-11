@@ -41,10 +41,36 @@ type DatabaseAccountCreateUpdateProperties struct {
 var _ json.Unmarshaler = &DatabaseAccountCreateUpdateProperties{}
 
 func (s *DatabaseAccountCreateUpdateProperties) UnmarshalJSON(bytes []byte) error {
-	type alias DatabaseAccountCreateUpdateProperties
-	var decoded alias
+	var decoded struct {
+		AnalyticalStorageConfiguration     *AnalyticalStorageConfiguration `json:"analyticalStorageConfiguration,omitempty"`
+		ApiProperties                      *ApiProperties                  `json:"apiProperties,omitempty"`
+		Capabilities                       *[]Capability                   `json:"capabilities,omitempty"`
+		Capacity                           *Capacity                       `json:"capacity,omitempty"`
+		ConnectorOffer                     *ConnectorOffer                 `json:"connectorOffer,omitempty"`
+		ConsistencyPolicy                  *ConsistencyPolicy              `json:"consistencyPolicy,omitempty"`
+		Cors                               *[]CorsPolicy                   `json:"cors,omitempty"`
+		CreateMode                         *CreateMode                     `json:"createMode,omitempty"`
+		DatabaseAccountOfferType           DatabaseAccountOfferType        `json:"databaseAccountOfferType"`
+		DefaultIdentity                    *string                         `json:"defaultIdentity,omitempty"`
+		DisableKeyBasedMetadataWriteAccess *bool                           `json:"disableKeyBasedMetadataWriteAccess,omitempty"`
+		DisableLocalAuth                   *bool                           `json:"disableLocalAuth,omitempty"`
+		EnableAnalyticalStorage            *bool                           `json:"enableAnalyticalStorage,omitempty"`
+		EnableAutomaticFailover            *bool                           `json:"enableAutomaticFailover,omitempty"`
+		EnableCassandraConnector           *bool                           `json:"enableCassandraConnector,omitempty"`
+		EnableFreeTier                     *bool                           `json:"enableFreeTier,omitempty"`
+		EnableMultipleWriteLocations       *bool                           `json:"enableMultipleWriteLocations,omitempty"`
+		IPRules                            *[]IPAddressOrRange             `json:"ipRules,omitempty"`
+		IsVirtualNetworkFilterEnabled      *bool                           `json:"isVirtualNetworkFilterEnabled,omitempty"`
+		KeyVaultKeyUri                     *string                         `json:"keyVaultKeyUri,omitempty"`
+		Locations                          []Location                      `json:"locations"`
+		NetworkAclBypass                   *NetworkAclBypass               `json:"networkAclBypass,omitempty"`
+		NetworkAclBypassResourceIds        *[]string                       `json:"networkAclBypassResourceIds,omitempty"`
+		PublicNetworkAccess                *PublicNetworkAccess            `json:"publicNetworkAccess,omitempty"`
+		RestoreParameters                  *RestoreParameters              `json:"restoreParameters,omitempty"`
+		VirtualNetworkRules                *[]VirtualNetworkRule           `json:"virtualNetworkRules,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DatabaseAccountCreateUpdateProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AnalyticalStorageConfiguration = decoded.AnalyticalStorageConfiguration
@@ -80,11 +106,12 @@ func (s *DatabaseAccountCreateUpdateProperties) UnmarshalJSON(bytes []byte) erro
 	}
 
 	if v, ok := temp["backupPolicy"]; ok {
-		impl, err := unmarshalBackupPolicyImplementation(v)
+		impl, err := UnmarshalBackupPolicyImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'BackupPolicy' for 'DatabaseAccountCreateUpdateProperties': %+v", err)
 		}
 		s.BackupPolicy = impl
 	}
+
 	return nil
 }

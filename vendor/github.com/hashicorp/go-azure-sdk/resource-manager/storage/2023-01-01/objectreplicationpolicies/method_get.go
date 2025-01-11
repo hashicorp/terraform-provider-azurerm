@@ -45,7 +45,6 @@ func (c ObjectReplicationPoliciesClient) Get(ctx context.Context, id ObjectRepli
 
 	var model ObjectReplicationPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

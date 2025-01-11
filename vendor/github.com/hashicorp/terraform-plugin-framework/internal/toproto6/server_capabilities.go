@@ -19,6 +19,7 @@ func ServerCapabilities(ctx context.Context, fw *fwserver.ServerCapabilities) *t
 
 	return &tfprotov6.ServerCapabilities{
 		GetProviderSchemaOptional: fw.GetProviderSchemaOptional,
+		MoveResourceState:         fw.MoveResourceState,
 		PlanDestroy:               fw.PlanDestroy,
 	}
 }

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations` Documentation
 
-The `configurations` SDK allows for interaction with the Azure Resource Manager Service `postgresql` (API Version `2017-12-01`).
+The `configurations` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2017-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
 
 payload := configurations.Configuration{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "configurationValue")
+id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "configurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := configurations.NewServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.ListByServer(ctx, id)
 if err != nil {

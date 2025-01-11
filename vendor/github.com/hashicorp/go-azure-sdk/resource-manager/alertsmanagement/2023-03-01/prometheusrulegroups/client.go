@@ -15,7 +15,7 @@ type PrometheusRuleGroupsClient struct {
 }
 
 func NewPrometheusRuleGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*PrometheusRuleGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "prometheusrulegroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "prometheusrulegroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PrometheusRuleGroupsClient: %+v", err)
 	}

@@ -51,7 +51,6 @@ func (c WebAppsClient) UpdateConfiguration(ctx context.Context, id commonids.App
 
 	var model SiteConfigResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

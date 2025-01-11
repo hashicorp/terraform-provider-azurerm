@@ -42,10 +42,22 @@ func (o *MetricAlertPropertiesPatch) SetLastUpdatedTimeAsTime(input time.Time) {
 var _ json.Unmarshaler = &MetricAlertPropertiesPatch{}
 
 func (s *MetricAlertPropertiesPatch) UnmarshalJSON(bytes []byte) error {
-	type alias MetricAlertPropertiesPatch
-	var decoded alias
+	var decoded struct {
+		Actions              *[]MetricAlertAction `json:"actions,omitempty"`
+		AutoMitigate         *bool                `json:"autoMitigate,omitempty"`
+		Description          *string              `json:"description,omitempty"`
+		Enabled              *bool                `json:"enabled,omitempty"`
+		EvaluationFrequency  *string              `json:"evaluationFrequency,omitempty"`
+		IsMigrated           *bool                `json:"isMigrated,omitempty"`
+		LastUpdatedTime      *string              `json:"lastUpdatedTime,omitempty"`
+		Scopes               *[]string            `json:"scopes,omitempty"`
+		Severity             *int64               `json:"severity,omitempty"`
+		TargetResourceRegion *string              `json:"targetResourceRegion,omitempty"`
+		TargetResourceType   *string              `json:"targetResourceType,omitempty"`
+		WindowSize           *string              `json:"windowSize,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into MetricAlertPropertiesPatch: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Actions = decoded.Actions
@@ -67,11 +79,12 @@ func (s *MetricAlertPropertiesPatch) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["criteria"]; ok {
-		impl, err := unmarshalMetricAlertCriteriaImplementation(v)
+		impl, err := UnmarshalMetricAlertCriteriaImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Criteria' for 'MetricAlertPropertiesPatch': %+v", err)
 		}
 		s.Criteria = impl
 	}
+
 	return nil
 }

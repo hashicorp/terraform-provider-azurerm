@@ -50,7 +50,6 @@ func (c SAPDiskConfigurationsClient) SAPDiskConfigurations(ctx context.Context, 
 
 	var model SAPDiskConfigurationsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

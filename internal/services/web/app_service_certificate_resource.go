@@ -100,7 +100,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
+		parsedSecretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultSecretId)
 		if err != nil {
 			return err
 		}
@@ -253,7 +253,7 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyVaultValidate.NestedItemId,
+			ValidateFunc:     keyVaultValidate.NestedItemIdWithOptionalVersion,
 			ConflictsWith:    []string{"pfx_blob", "password"},
 			ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
 		},

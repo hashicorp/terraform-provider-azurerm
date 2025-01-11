@@ -8,5 +8,5 @@ type PolicySettings struct {
 	CustomBlockResponseStatusCode *int64              `json:"customBlockResponseStatusCode,omitempty"`
 	EnabledState                  *PolicyEnabledState `json:"enabledState,omitempty"`
 	Mode                          *PolicyMode         `json:"mode,omitempty"`
-	RedirectUrl                   *string             `json:"redirectUrl,omitempty"`
+	RedirectURL                   *string             `json:"redirectUrl,omitempty"`
 }

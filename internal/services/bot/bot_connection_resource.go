@@ -4,23 +4,24 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceArmBotConnection() *pluginsdk.Resource {
@@ -96,17 +97,6 @@ func resourceArmBotConnection() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["tags"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
-			Deprecated: "This property has been deprecated as the API no longer supports tags and will be removed in version 4.0 of the provider.",
-		}
-	}
-
 	return resource
 }
 
@@ -131,7 +121,6 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	serviceProviderName := d.Get("service_provider_name").(string)
 	var serviceProviderId *string
-	var availableProviders []string
 
 	serviceProviders, err := client.ListServiceProviders(ctx)
 	if err != nil {
@@ -139,8 +128,10 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if serviceProviders.Value == nil {
-		return fmt.Errorf("no service providers were returned from the Azure API")
+		return errors.New("no service providers were returned from the Azure API")
 	}
+
+	availableProviders := make([]string, 0, len(*serviceProviders.Value))
 	for _, provider := range *serviceProviders.Value {
 		if provider.Properties == nil || provider.Properties.ServiceProviderName == nil {
 			continue
@@ -160,12 +151,12 @@ func resourceArmBotConnectionCreate(d *pluginsdk.ResourceData, meta interface{})
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
 			ServiceProviderID: serviceProviderId,
-			ClientID:          utils.String(d.Get("client_id").(string)),
-			ClientSecret:      utils.String(d.Get("client_secret").(string)),
-			Scopes:            utils.String(d.Get("scopes").(string)),
+			ClientID:          pointer.To(d.Get("client_id").(string)),
+			ClientSecret:      pointer.To(d.Get("client_secret").(string)),
+			Scopes:            pointer.To(d.Get("scopes").(string)),
 		},
 		Kind:     botservice.KindBot,
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

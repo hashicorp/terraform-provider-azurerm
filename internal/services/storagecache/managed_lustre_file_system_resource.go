@@ -45,7 +45,7 @@ type HsmSetting struct {
 }
 
 type EncryptionKey struct {
-	KeyUrl        string `tfschema:"key_url"`
+	KeyURL        string `tfschema:"key_url"`
 	SourceVaultId string `tfschema:"source_vault_id"`
 }
 
@@ -61,8 +61,10 @@ type SkuProperties struct {
 
 type ManagedLustreFileSystemResource struct{}
 
-var _ sdk.ResourceWithUpdate = ManagedLustreFileSystemResource{}
-var _ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ManagedLustreFileSystemResource{}
+	_ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
+)
 
 func GetSkuPropertiesByName(skuName string) *SkuProperties {
 	for _, sku := range PossibleSkuProperties() {
@@ -481,7 +483,7 @@ func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfiles
 	encryptionKey := &input[0]
 
 	result := &amlfilesystems.KeyVaultKeyReference{
-		KeyUrl: encryptionKey.KeyUrl,
+		KeyURL: encryptionKey.KeyURL,
 		SourceVault: amlfilesystems.KeyVaultKeyReferenceSourceVault{
 			Id: pointer.To(encryptionKey.SourceVaultId),
 		},
@@ -499,7 +501,7 @@ func flattenManagedLustreFileSystemEncryptionKey(input *amlfilesystems.AmlFilesy
 	}
 
 	encryptionKey := EncryptionKey{
-		KeyUrl:        input.KeyEncryptionKey.KeyUrl,
+		KeyURL:        input.KeyEncryptionKey.KeyURL,
 		SourceVaultId: pointer.From(input.KeyEncryptionKey.SourceVault.Id),
 	}
 

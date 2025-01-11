@@ -15,7 +15,7 @@ type HostPoolClient struct {
 }
 
 func NewHostPoolClientWithBaseURI(sdkApi sdkEnv.Api) (*HostPoolClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "hostpool", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "hostpool", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HostPoolClient: %+v", err)
 	}

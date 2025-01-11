@@ -23,10 +23,18 @@ type SAPVirtualInstanceProperties struct {
 var _ json.Unmarshaler = &SAPVirtualInstanceProperties{}
 
 func (s *SAPVirtualInstanceProperties) UnmarshalJSON(bytes []byte) error {
-	type alias SAPVirtualInstanceProperties
-	var decoded alias
+	var decoded struct {
+		Environment                       SAPEnvironmentType                   `json:"environment"`
+		Errors                            *SAPVirtualInstanceError             `json:"errors,omitempty"`
+		Health                            *SAPHealthState                      `json:"health,omitempty"`
+		ManagedResourceGroupConfiguration *ManagedRGConfiguration              `json:"managedResourceGroupConfiguration,omitempty"`
+		ProvisioningState                 *SapVirtualInstanceProvisioningState `json:"provisioningState,omitempty"`
+		SapProduct                        SAPProductType                       `json:"sapProduct"`
+		State                             *SAPVirtualInstanceState             `json:"state,omitempty"`
+		Status                            *SAPVirtualInstanceStatus            `json:"status,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into SAPVirtualInstanceProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Environment = decoded.Environment
@@ -44,11 +52,12 @@ func (s *SAPVirtualInstanceProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["configuration"]; ok {
-		impl, err := unmarshalSAPConfigurationImplementation(v)
+		impl, err := UnmarshalSAPConfigurationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Configuration' for 'SAPVirtualInstanceProperties': %+v", err)
 		}
 		s.Configuration = impl
 	}
+
 	return nil
 }

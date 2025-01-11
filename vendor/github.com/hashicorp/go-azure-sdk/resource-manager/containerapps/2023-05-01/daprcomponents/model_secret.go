@@ -5,7 +5,7 @@ package daprcomponents
 
 type Secret struct {
 	Identity    *string `json:"identity,omitempty"`
-	KeyVaultUrl *string `json:"keyVaultUrl,omitempty"`
+	KeyVaultURL *string `json:"keyVaultUrl,omitempty"`
 	Name        *string `json:"name,omitempty"`
 	Value       *string `json:"value,omitempty"`
 }

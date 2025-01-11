@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsFunctionAppResource struct{}
@@ -757,11 +756,10 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					ResourceGroup: id.ResourceGroupName,
 					Location:      location.Normalize(model.Location),
 					Tags:          pointer.From(model.Tags),
-					Kind:          utils.NormalizeNilableString(model.Kind),
+					Kind:          pointer.From(model.Kind),
 				}
 
 				if props := model.Properties; props != nil {
-
 					state.Enabled = pointer.From(props.Enabled)
 					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
 					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
@@ -808,7 +806,6 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						state.VirtualNetworkSubnetID = subnetId
 					}
-
 				}
 				configResp, err := client.GetConfiguration(ctx, *id)
 				if err != nil {
@@ -1285,7 +1282,6 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 						if helpers.PlanIsConsumption(sku.Name) && newValue.(bool) {
 							return fmt.Errorf("`vnet_image_pull_enabled` cannot be enabled on consumption plans")
 						}
-
 					}
 				}
 			}
@@ -1395,7 +1391,6 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input *webapp
 				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
 			case "custom":
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
-
 			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":

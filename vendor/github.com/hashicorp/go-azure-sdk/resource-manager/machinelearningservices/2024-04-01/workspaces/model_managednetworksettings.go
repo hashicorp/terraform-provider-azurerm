@@ -18,10 +18,13 @@ type ManagedNetworkSettings struct {
 var _ json.Unmarshaler = &ManagedNetworkSettings{}
 
 func (s *ManagedNetworkSettings) UnmarshalJSON(bytes []byte) error {
-	type alias ManagedNetworkSettings
-	var decoded alias
+	var decoded struct {
+		IsolationMode *IsolationMode                 `json:"isolationMode,omitempty"`
+		NetworkId     *string                        `json:"networkId,omitempty"`
+		Status        *ManagedNetworkProvisionStatus `json:"status,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ManagedNetworkSettings: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.IsolationMode = decoded.IsolationMode
@@ -41,7 +44,7 @@ func (s *ManagedNetworkSettings) UnmarshalJSON(bytes []byte) error {
 
 		output := make(map[string]OutboundRule)
 		for key, val := range dictionaryTemp {
-			impl, err := unmarshalOutboundRuleImplementation(val)
+			impl, err := UnmarshalOutboundRuleImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling key %q field 'OutboundRules' for 'ManagedNetworkSettings': %+v", key, err)
 			}
@@ -49,5 +52,6 @@ func (s *ManagedNetworkSettings) UnmarshalJSON(bytes []byte) error {
 		}
 		s.OutboundRules = &output
 	}
+
 	return nil
 }

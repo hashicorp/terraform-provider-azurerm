@@ -15,7 +15,7 @@ type DataCollectionRuleAssociationsClient struct {
 }
 
 func NewDataCollectionRuleAssociationsClientWithBaseURI(sdkApi sdkEnv.Api) (*DataCollectionRuleAssociationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "datacollectionruleassociations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "datacollectionruleassociations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataCollectionRuleAssociationsClient: %+v", err)
 	}

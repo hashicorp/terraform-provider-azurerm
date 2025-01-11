@@ -49,7 +49,6 @@ func (c ProfilesClient) CheckTrafficManagerRelativeDnsNameAvailability(ctx conte
 
 	var model TrafficManagerNameAvailability
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

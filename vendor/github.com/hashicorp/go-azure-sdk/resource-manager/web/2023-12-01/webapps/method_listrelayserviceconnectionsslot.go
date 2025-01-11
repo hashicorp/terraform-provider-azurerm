@@ -46,7 +46,6 @@ func (c WebAppsClient) ListRelayServiceConnectionsSlot(ctx context.Context, id S
 
 	var model RelayServiceConnectionEntity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsListSecrets(ctx
 
 	var model DaprSecretsCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

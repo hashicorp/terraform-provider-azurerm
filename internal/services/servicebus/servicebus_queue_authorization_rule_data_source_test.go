@@ -37,6 +37,7 @@ func TestAccDataSourceServiceBusQueueAuthorizationRule_byId(t *testing.T) {
 		},
 	})
 }
+
 func TestAccDataSourceServiceBusQueueAuthorizationRule_byName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue_authorization_rule", "test")
 	r := ServiceBusQueueAuthorizationRuleDataSource{}

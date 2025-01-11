@@ -309,7 +309,6 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 							state.SamplingPercentage = samplingPercentage
 						}
 					}
-
 				}
 			}
 

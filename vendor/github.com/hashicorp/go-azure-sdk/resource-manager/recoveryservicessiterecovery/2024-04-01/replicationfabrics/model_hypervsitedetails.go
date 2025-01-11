@@ -14,6 +14,14 @@ type HyperVSiteDetails struct {
 	HyperVHosts *[]HyperVHostDetails `json:"hyperVHosts,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVSiteDetails) FabricSpecificDetails() BaseFabricSpecificDetailsImpl {
+	return BaseFabricSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVSiteDetails{}
@@ -27,9 +35,10 @@ func (s HyperVSiteDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVSiteDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVSite"
 
 	encoded, err = json.Marshal(decoded)

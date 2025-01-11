@@ -14,6 +14,14 @@ type AccountKeyDatastoreCredentials struct {
 	Secrets AccountKeyDatastoreSecrets `json:"secrets"`
 
 	// Fields inherited from DatastoreCredentials
+
+	CredentialsType CredentialsType `json:"credentialsType"`
+}
+
+func (s AccountKeyDatastoreCredentials) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return BaseDatastoreCredentialsImpl{
+		CredentialsType: s.CredentialsType,
+	}
 }
 
 var _ json.Marshaler = AccountKeyDatastoreCredentials{}
@@ -27,9 +35,10 @@ func (s AccountKeyDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AccountKeyDatastoreCredentials: %+v", err)
 	}
+
 	decoded["credentialsType"] = "AccountKey"
 
 	encoded, err = json.Marshal(decoded)

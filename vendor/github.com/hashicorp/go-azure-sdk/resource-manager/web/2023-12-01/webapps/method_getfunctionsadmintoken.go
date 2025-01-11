@@ -47,7 +47,6 @@ func (c WebAppsClient) GetFunctionsAdminToken(ctx context.Context, id commonids.
 
 	var model string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

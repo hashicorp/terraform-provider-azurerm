@@ -15,8 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = KubernetesClusterTrustedAccessRoleBindingResource{}
-var _ sdk.ResourceWithUpdate = KubernetesClusterTrustedAccessRoleBindingResource{}
+var (
+	_ sdk.Resource           = KubernetesClusterTrustedAccessRoleBindingResource{}
+	_ sdk.ResourceWithUpdate = KubernetesClusterTrustedAccessRoleBindingResource{}
+)
 
 type KubernetesClusterTrustedAccessRoleBindingResource struct{}
 
@@ -34,9 +36,11 @@ type KubernetesClusterTrustedAccessRoleBindingResourceSchema struct {
 func (r KubernetesClusterTrustedAccessRoleBindingResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return trustedaccess.ValidateTrustedAccessRoleBindingID
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) ResourceType() string {
 	return "azurerm_kubernetes_cluster_trusted_access_role_binding"
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kubernetes_cluster_id": {
@@ -63,9 +67,11 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Arguments() map[strin
 		},
 	}
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -110,6 +116,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Create() sdk.Resource
 		},
 	}
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -144,6 +151,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Read() sdk.ResourceFu
 		},
 	}
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -163,6 +171,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Delete() sdk.Resource
 		},
 	}
 }
+
 func (r KubernetesClusterTrustedAccessRoleBindingResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -202,7 +211,6 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Update() sdk.Resource
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBinding(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBinding) error {
-
 	if err := r.mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input, &output.Properties); err != nil {
 		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
 	}
@@ -211,7 +219,6 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterT
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBinding, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) error {
-
 	if err := r.mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input.Properties, output); err != nil {
 		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "TrustedAccessRoleBindingProperties", "Properties", err)
 	}
@@ -220,7 +227,6 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleB
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterTrustedAccessRoleBindingResourceSchemaToTrustedAccessRoleBindingProperties(input KubernetesClusterTrustedAccessRoleBindingResourceSchema, output *trustedaccess.TrustedAccessRoleBindingProperties) error {
-
 	roles := make([]string, 0)
 	for _, v := range input.Roles {
 		roles = append(roles, v)
@@ -232,7 +238,6 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) mapKubernetesClusterT
 }
 
 func (r KubernetesClusterTrustedAccessRoleBindingResource) mapTrustedAccessRoleBindingPropertiesToKubernetesClusterTrustedAccessRoleBindingResourceSchema(input trustedaccess.TrustedAccessRoleBindingProperties, output *KubernetesClusterTrustedAccessRoleBindingResourceSchema) error {
-
 	roles := make([]string, 0)
 	for _, v := range input.Roles {
 		roles = append(roles, v)

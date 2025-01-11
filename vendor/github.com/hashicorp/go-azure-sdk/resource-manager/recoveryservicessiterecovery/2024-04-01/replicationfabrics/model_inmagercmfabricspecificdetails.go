@@ -29,6 +29,14 @@ type InMageRcmFabricSpecificDetails struct {
 	VMwareSiteId               *string                    `json:"vmwareSiteId,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmFabricSpecificDetails) FabricSpecificDetails() BaseFabricSpecificDetailsImpl {
+	return BaseFabricSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmFabricSpecificDetails{}
@@ -42,9 +50,10 @@ func (s InMageRcmFabricSpecificDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmFabricSpecificDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

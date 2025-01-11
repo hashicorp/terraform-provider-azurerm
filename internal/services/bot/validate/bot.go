@@ -4,19 +4,19 @@
 package validate
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func BotMSTeamsCallingWebHook() pluginsdk.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
+	return func(i interface{}, k string) (warnings []string, errs []error) {
 		value := i.(string)
 		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
-			errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
+			errs = append(errs, errors.New("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
 		}
 
-		return warnings, errors
+		return warnings, errs
 	}
 }

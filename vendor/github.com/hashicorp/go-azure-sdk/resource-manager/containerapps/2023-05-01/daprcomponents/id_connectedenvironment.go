@@ -42,7 +42,7 @@ func ParseConnectedEnvironmentID(input string) (*ConnectedEnvironmentId, error) 
 	}
 
 	id := ConnectedEnvironmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseConnectedEnvironmentIDInsensitively(input string) (*ConnectedEnvironme
 	}
 
 	id := ConnectedEnvironmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ConnectedEnvironmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticConnectedEnvironments", "connectedEnvironments", "connectedEnvironments"),
-		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("connectedEnvironmentName", "connectedEnvironmentName"),
 	}
 }
 

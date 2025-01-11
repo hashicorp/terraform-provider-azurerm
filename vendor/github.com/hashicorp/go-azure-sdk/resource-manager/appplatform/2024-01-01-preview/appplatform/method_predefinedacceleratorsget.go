@@ -45,7 +45,6 @@ func (c AppPlatformClient) PredefinedAcceleratorsGet(ctx context.Context, id Pre
 
 	var model PredefinedAcceleratorResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

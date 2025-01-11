@@ -27,7 +27,6 @@ func TestSqlStoredProcedureID(t *testing.T) {
 		Error    bool
 		Expected *SqlStoredProcedureId
 	}{
-
 		{
 			// empty
 			Input: "",

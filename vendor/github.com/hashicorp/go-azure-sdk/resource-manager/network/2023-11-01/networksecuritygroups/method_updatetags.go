@@ -49,7 +49,6 @@ func (c NetworkSecurityGroupsClient) UpdateTags(ctx context.Context, id NetworkS
 
 	var model NetworkSecurityGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -27,7 +27,6 @@ func TestLogicAppStandardID(t *testing.T) {
 		Error    bool
 		Expected *LogicAppStandardId
 	}{
-
 		{
 			// empty
 			Input: "",

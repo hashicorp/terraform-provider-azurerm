@@ -27,7 +27,6 @@ func TestAccessPolicyObjectID(t *testing.T) {
 		Error    bool
 		Expected *AccessPolicyObjectId
 	}{
-
 		{
 			// empty
 			Input: "",

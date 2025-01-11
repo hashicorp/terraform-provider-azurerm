@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -120,7 +119,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 			},
 
 			"querystring_caching_behaviour": {
@@ -138,7 +136,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"content_types_to_compress": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -153,7 +150,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"probe_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 			},
 
 			"geo_filter": {

@@ -51,7 +51,7 @@ type PacketCoreControlPlaneModel struct {
 
 type LocalDiagnosticsAccessConfigurationModel struct {
 	AuthenticationType        string `tfschema:"authentication_type"`
-	HttpsServerCertificateUrl string `tfschema:"https_server_certificate_url"`
+	HttpsServerCertificateURL string `tfschema:"https_server_certificate_url"`
 }
 
 type PlatformConfigurationModel struct {
@@ -608,9 +608,9 @@ func expandPacketCoreControlLocalDiagnosticsAccessConfiguration(input []LocalDia
 	output := packetcorecontrolplane.LocalDiagnosticsAccessConfiguration{
 		AuthenticationType: packetcorecontrolplane.AuthenticationType(model.AuthenticationType),
 	}
-	if model.HttpsServerCertificateUrl != "" {
+	if model.HttpsServerCertificateURL != "" {
 		output.HTTPSServerCertificate = &packetcorecontrolplane.HTTPSServerCertificate{
-			CertificateUrl: model.HttpsServerCertificateUrl,
+			CertificateURL: model.HttpsServerCertificateURL,
 		}
 	}
 	return output
@@ -622,7 +622,7 @@ func flattenLocalPacketCoreControlLocalDiagnosticsAccessConfiguration(input pack
 		AuthenticationType: string(input.AuthenticationType),
 	}
 	if input.HTTPSServerCertificate != nil {
-		output.HttpsServerCertificateUrl = input.HTTPSServerCertificate.CertificateUrl
+		output.HttpsServerCertificateURL = input.HTTPSServerCertificate.CertificateURL
 	}
 	outputs = append(outputs, output)
 	return outputs

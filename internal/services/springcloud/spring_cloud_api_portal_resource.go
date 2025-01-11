@@ -39,8 +39,10 @@ type ApiPortalSsoModel struct {
 
 type SpringCloudAPIPortalResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudAPIPortalResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudAPIPortalResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudAPIPortalResource{}
+)
 
 func (s SpringCloudAPIPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_api_portal"

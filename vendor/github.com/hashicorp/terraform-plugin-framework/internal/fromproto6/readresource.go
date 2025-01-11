@@ -17,7 +17,7 @@ import (
 
 // ReadResourceRequest returns the *fwserver.ReadResourceRequest
 // equivalent of a *tfprotov6.ReadResourceRequest.
-func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
+func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.ReadResourceRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -25,7 +25,8 @@ func ReadResourceRequest(ctx context.Context, proto6 *tfprotov6.ReadResourceRequ
 	var diags diag.Diagnostics
 
 	fw := &fwserver.ReadResourceRequest{
-		Resource: resource,
+		Resource:           reqResource,
+		ClientCapabilities: ReadResourceClientCapabilities(proto6.ClientCapabilities),
 	}
 
 	currentState, currentStateDiags := State(ctx, proto6.CurrentState, resourceSchema)

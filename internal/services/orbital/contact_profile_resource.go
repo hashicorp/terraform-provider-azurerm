@@ -25,6 +25,12 @@ type ContactProfileResource struct{}
 
 var _ sdk.ResourceWithUpdate = ContactProfileResource{}
 
+var _ sdk.ResourceWithDeprecationAndNoReplacement = ContactProfileResource{}
+
+func (r ContactProfileResource) DeprecationMessage() string {
+	return "The `azurerm_orbital_contact_profile` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider."
+}
+
 type ContactProfileResourceModel struct {
 	Name                           string                    `tfschema:"name"`
 	ResourceGroup                  string                    `tfschema:"resource_group_name"`

@@ -27,7 +27,6 @@ func TestCertificateOrderID(t *testing.T) {
 		Error    bool
 		Expected *CertificateOrderId
 	}{
-
 		{
 			// empty
 			Input: "",

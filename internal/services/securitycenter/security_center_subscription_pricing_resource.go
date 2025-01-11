@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -260,9 +261,9 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
 	extensionStatuses := map[string]bool{}
-	extensionProperties := map[string]*interface{}{}
-	var outputList []pricings_v2023_01_01.Extension
+	extensionProperties := make(map[string]interface{})
 
+	outputList := make([]pricings_v2023_01_01.Extension, 0, len(inputList))
 	if extensionsStatusFromBackend != nil {
 		for _, backendExtension := range *extensionsStatusFromBackend {
 			// set the default value to false, then turn on the extension that appear in the template
@@ -283,7 +284,6 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 	}
 
 	for extensionName, toBeEnabled := range extensionStatuses {
-
 		isEnabled := pricings_v2023_01_01.IsEnabledFalse
 		if toBeEnabled {
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue
@@ -292,9 +292,13 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			Name:      extensionName,
 			IsEnabled: isEnabled,
 		}
+
 		if vAdditional, ok := extensionProperties[extensionName]; ok {
-			output.AdditionalExtensionProperties = vAdditional
+			props, _ := vAdditional.(*interface{})
+			p := (*props).(map[string]interface{})
+			output.AdditionalExtensionProperties = pointer.To(p)
 		}
+
 		outputList = append(outputList, output)
 	}
 

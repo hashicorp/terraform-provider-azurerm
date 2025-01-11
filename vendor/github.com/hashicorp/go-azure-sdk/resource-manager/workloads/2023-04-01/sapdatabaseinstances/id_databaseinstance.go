@@ -44,7 +44,7 @@ func ParseDatabaseInstanceID(input string) (*DatabaseInstanceId, error) {
 	}
 
 	id := DatabaseInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDatabaseInstanceIDInsensitively(input string) (*DatabaseInstanceId, er
 	}
 
 	id := DatabaseInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DatabaseInstanceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWorkloads", "Microsoft.Workloads", "Microsoft.Workloads"),
 		resourceids.StaticSegment("staticSapVirtualInstances", "sapVirtualInstances", "sapVirtualInstances"),
-		resourceids.UserSpecifiedSegment("sapVirtualInstanceName", "sapVirtualInstanceValue"),
+		resourceids.UserSpecifiedSegment("sapVirtualInstanceName", "sapVirtualInstanceName"),
 		resourceids.StaticSegment("staticDatabaseInstances", "databaseInstances", "databaseInstances"),
-		resourceids.UserSpecifiedSegment("databaseInstanceName", "databaseInstanceValue"),
+		resourceids.UserSpecifiedSegment("databaseInstanceName", "databaseInstanceName"),
 	}
 }
 

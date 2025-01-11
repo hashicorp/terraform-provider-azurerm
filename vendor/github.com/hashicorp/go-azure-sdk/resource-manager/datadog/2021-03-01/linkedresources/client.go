@@ -15,7 +15,7 @@ type LinkedResourcesClient struct {
 }
 
 func NewLinkedResourcesClientWithBaseURI(sdkApi sdkEnv.Api) (*LinkedResourcesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "linkedresources", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "linkedresources", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LinkedResourcesClient: %+v", err)
 	}

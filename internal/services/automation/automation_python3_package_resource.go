@@ -158,6 +158,9 @@ func (m Python3PackageResource) Read() sdk.ResourceFunc {
 			client := meta.Client.Automation.Python3Package
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return err
 			}
 

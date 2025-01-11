@@ -20,6 +20,14 @@ type HyperVReplicaBlueReplicationDetails struct {
 	VMProtectionStateDescription *string                    `json:"vmProtectionStateDescription,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaBlueReplicationDetails) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return BaseReplicationProviderSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaBlueReplicationDetails{}
@@ -33,9 +41,10 @@ func (s HyperVReplicaBlueReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaBlueReplicationDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplica2012R2"
 
 	encoded, err = json.Marshal(decoded)

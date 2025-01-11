@@ -54,7 +54,7 @@ func resourceServicebusSubscriptionRuleSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"subscription_id": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,

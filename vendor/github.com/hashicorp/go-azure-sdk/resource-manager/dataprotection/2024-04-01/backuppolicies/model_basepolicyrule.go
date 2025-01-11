@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BasePolicyRule interface {
+	BasePolicyRule() BaseBasePolicyRuleImpl
 }
 
-// RawBasePolicyRuleImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ BasePolicyRule = BaseBasePolicyRuleImpl{}
+
+type BaseBasePolicyRuleImpl struct {
+	Name       string `json:"name"`
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseBasePolicyRuleImpl) BasePolicyRule() BaseBasePolicyRuleImpl {
+	return s
+}
+
+var _ BasePolicyRule = RawBasePolicyRuleImpl{}
+
+// RawBasePolicyRuleImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawBasePolicyRuleImpl struct {
-	Type   string
-	Values map[string]interface{}
+	basePolicyRule BaseBasePolicyRuleImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalBasePolicyRuleImplementation(input []byte) (BasePolicyRule, error) {
+func (s RawBasePolicyRuleImpl) BasePolicyRule() BaseBasePolicyRuleImpl {
+	return s.basePolicyRule
+}
+
+func UnmarshalBasePolicyRuleImplementation(input []byte) (BasePolicyRule, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalBasePolicyRuleImplementation(input []byte) (BasePolicyRule, error)
 		return nil, fmt.Errorf("unmarshaling BasePolicyRule into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureBackupRule") {
@@ -52,10 +70,15 @@ func unmarshalBasePolicyRuleImplementation(input []byte) (BasePolicyRule, error)
 		return out, nil
 	}
 
-	out := RawBasePolicyRuleImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseBasePolicyRuleImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseBasePolicyRuleImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawBasePolicyRuleImpl{
+		basePolicyRule: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

@@ -45,7 +45,6 @@ func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsGet(ctx context.Con
 
 	var model NetworkVirtualApplianceConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

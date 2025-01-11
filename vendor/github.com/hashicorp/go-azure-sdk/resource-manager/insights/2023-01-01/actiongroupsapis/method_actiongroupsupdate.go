@@ -49,7 +49,6 @@ func (c ActionGroupsAPIsClient) ActionGroupsUpdate(ctx context.Context, id Actio
 
 	var model ActionGroupResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

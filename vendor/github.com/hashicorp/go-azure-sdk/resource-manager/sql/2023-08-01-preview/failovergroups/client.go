@@ -15,7 +15,7 @@ type FailoverGroupsClient struct {
 }
 
 func NewFailoverGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*FailoverGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "failovergroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "failovergroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FailoverGroupsClient: %+v", err)
 	}

@@ -15,7 +15,7 @@ type VNetPeeringClient struct {
 }
 
 func NewVNetPeeringClientWithBaseURI(sdkApi sdkEnv.Api) (*VNetPeeringClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vnetpeering", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vnetpeering", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VNetPeeringClient: %+v", err)
 	}

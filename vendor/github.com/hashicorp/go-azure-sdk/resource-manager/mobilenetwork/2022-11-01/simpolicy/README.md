@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy` Documentation
 
-The `simpolicy` SDK allows for interaction with the Azure Resource Manager Service `mobilenetwork` (API Version `2022-11-01`).
+The `simpolicy` SDK allows for interaction with Azure Resource Manager `mobilenetwork` (API Version `2022-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkValue", "simPolicyValue")
+id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkName", "simPolicyName")
 
 payload := simpolicy.SimPolicy{
 	// ...
@@ -41,7 +41,7 @@ if err := client.SimPoliciesCreateOrUpdateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkValue", "simPolicyValue")
+id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkName", "simPolicyName")
 
 if err := client.SimPoliciesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.SimPoliciesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkValue", "simPolicyValue")
+id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkName", "simPolicyName")
 
 read, err := client.SimPoliciesGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkValue", "simPolicyValue")
+id := simpolicy.NewSimPolicyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "mobileNetworkName", "simPolicyName")
 
 payload := simpolicy.TagsObject{
 	// ...

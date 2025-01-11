@@ -45,7 +45,6 @@ func (c CapacitiesClient) GetDetails(ctx context.Context, id CapacityId) (result
 
 	var model DedicatedCapacity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c FleetsClient) ListCredentials(ctx context.Context, id FleetId) (result L
 
 	var model FleetCredentialResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

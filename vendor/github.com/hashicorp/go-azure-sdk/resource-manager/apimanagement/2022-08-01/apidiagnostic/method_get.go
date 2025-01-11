@@ -45,7 +45,6 @@ func (c ApiDiagnosticClient) Get(ctx context.Context, id ApiDiagnosticId) (resul
 
 	var model DiagnosticContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

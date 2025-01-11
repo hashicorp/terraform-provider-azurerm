@@ -22,9 +22,7 @@ import (
 
 type IotCentralApplicationNetworkRuleSetResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotCentralApplicationNetworkRuleSetResource{}
-)
+var _ sdk.ResourceWithUpdate = IotCentralApplicationNetworkRuleSetResource{}
 
 type IotCentralApplicationNetworkRuleSetModel struct {
 	IotCentralApplicationId string             `tfschema:"iotcentral_application_id"`

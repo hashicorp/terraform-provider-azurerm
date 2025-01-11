@@ -225,7 +225,6 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 		)
 		var inboundNATRulePortMappingList []interface{}
 		if prop := e.Properties; prop != nil {
-
 			ipAddress = pointer.From(prop.IPAddress)
 
 			if prop.VirtualNetwork != nil {

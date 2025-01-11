@@ -4,6 +4,7 @@
 package trafficmanager
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -26,7 +26,7 @@ import (
 )
 
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
 		Update: resourceArmTrafficManagerProfileUpdate,
@@ -194,19 +194,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["profile_status"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(profiles.ProfileStatusEnabled),
-				string(profiles.ProfileStatusDisabled),
-			}, false),
-		}
-	}
-	return resource
 }
 
 func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -258,12 +245,12 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
 	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&
 		profile.Properties.MaxReturn == nil {
-		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
+		return errors.New("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.Properties.MonitorConfig.IntervalInSeconds == int64(10) &&
 		*profile.Properties.MonitorConfig.TimeoutInSeconds == int64(10) {
-		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+		return errors.New("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, profile); err != nil {

@@ -18,6 +18,14 @@ type AzureFabricSpecificDetails struct {
 	Zones             *[]A2AZoneDetails                   `json:"zones,omitempty"`
 
 	// Fields inherited from FabricSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s AzureFabricSpecificDetails) FabricSpecificDetails() BaseFabricSpecificDetailsImpl {
+	return BaseFabricSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = AzureFabricSpecificDetails{}
@@ -31,9 +39,10 @@ func (s AzureFabricSpecificDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureFabricSpecificDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "Azure"
 
 	encoded, err = json.Marshal(decoded)

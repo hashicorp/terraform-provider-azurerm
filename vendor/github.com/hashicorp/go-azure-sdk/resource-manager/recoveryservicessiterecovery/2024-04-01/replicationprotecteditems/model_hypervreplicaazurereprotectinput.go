@@ -19,6 +19,14 @@ type HyperVReplicaAzureReprotectInput struct {
 	VirtualMachineName  *string `json:"vmName,omitempty"`
 
 	// Fields inherited from ReverseReplicationProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaAzureReprotectInput) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return BaseReverseReplicationProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaAzureReprotectInput{}
@@ -32,9 +40,10 @@ func (s HyperVReplicaAzureReprotectInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaAzureReprotectInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplicaAzure"
 
 	encoded, err = json.Marshal(decoded)

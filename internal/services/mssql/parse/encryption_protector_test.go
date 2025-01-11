@@ -27,7 +27,6 @@ func TestEncryptionProtectorID(t *testing.T) {
 		Error    bool
 		Expected *EncryptionProtectorId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # Follows https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-prep-active-directory
 # The script is from https://github.com/Azure/Edge-infrastructure-quickstart-template/blob/c42d671bd8464071c3b8dfc9d599bef1631b22a2/modules/hci-provisioners/ad.ps1
 param(

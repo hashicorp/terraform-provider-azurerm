@@ -4,6 +4,6 @@ package virtualmachineextensions
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyVaultSecretReference struct {
-	SecretUrl   string      `json:"secretUrl"`
+	SecretURL   string      `json:"secretUrl"`
 	SourceVault SubResource `json:"sourceVault"`
 }

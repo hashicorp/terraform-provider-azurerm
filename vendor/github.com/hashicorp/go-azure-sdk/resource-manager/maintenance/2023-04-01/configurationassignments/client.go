@@ -15,7 +15,7 @@ type ConfigurationAssignmentsClient struct {
 }
 
 func NewConfigurationAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfigurationAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "configurationassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "configurationassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfigurationAssignmentsClient: %+v", err)
 	}

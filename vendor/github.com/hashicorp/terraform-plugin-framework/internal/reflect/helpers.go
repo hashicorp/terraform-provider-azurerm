@@ -46,36 +46,87 @@ func commaSeparatedString(in []string) string {
 }
 
 // getStructTags returns a map of Terraform field names to their position in
-// the tags of the struct `in`. `in` must be a struct.
-func getStructTags(_ context.Context, in reflect.Value, path path.Path) (map[string]int, error) {
-	tags := map[string]int{}
-	typ := trueReflectValue(in).Type()
-	if typ.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("%s: can't get struct tags of %s, is not a struct", path, in.Type())
+// the fields of the struct `in`. `in` must be a struct.
+//
+// The position of the field in a struct is represented as an index sequence to support type embedding
+// in structs. This index sequence can be used to retrieve the field with the Go "reflect" package FieldByIndex methods:
+//   - https://pkg.go.dev/reflect#Type.FieldByIndex
+//   - https://pkg.go.dev/reflect#Value.FieldByIndex
+//   - https://pkg.go.dev/reflect#Value.FieldByIndexErr
+//
+// The following are not supported and will return an error if detected in a struct (including embedded structs):
+//   - Duplicate "tfsdk" tags
+//   - Exported fields without a "tfsdk" tag
+//   - Exported fields with an invalid "tfsdk" tag (must be a valid Terraform identifier)
+func getStructTags(ctx context.Context, typ reflect.Type, path path.Path) (map[string][]int, error) { //nolint:unparam // False positive, ctx is used below.
+	tags := make(map[string][]int, 0)
+
+	if typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
 	}
+	if typ.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("%s: can't get struct tags of %s, is not a struct", path, typ)
+	}
+
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		if field.PkgPath != "" {
-			// skip unexported fields
+		if !field.IsExported() && !field.Anonymous {
+			// Skip unexported fields. Unexported embedded structs (anonymous fields) are allowed because they may
+			// contain exported fields that are promoted; which means they can be read/set.
 			continue
 		}
-		tag := field.Tag.Get(`tfsdk`)
+
+		// This index sequence is the location of the field within the struct.
+		// For promoted fields from an embedded struct, the length of this sequence will be > 1
+		fieldIndexSequence := []int{i}
+		tag, tagExists := field.Tag.Lookup(`tfsdk`)
+
+		// "tfsdk" tags with "-" are being explicitly excluded
 		if tag == "-" {
-			// skip explicitly excluded fields
 			continue
 		}
-		if tag == "" {
+
+		// Handle embedded structs
+		if field.Anonymous {
+			if tagExists {
+				return nil, fmt.Errorf(`%s: embedded struct field %s cannot have tfsdk tag`, path.AtName(tag), field.Name)
+			}
+
+			embeddedTags, err := getStructTags(ctx, field.Type, path)
+			if err != nil {
+				return nil, fmt.Errorf(`error retrieving embedded struct %q field tags: %w`, field.Name, err)
+			}
+			for k, v := range embeddedTags {
+				if other, ok := tags[k]; ok {
+					otherField := typ.FieldByIndex(other)
+					return nil, fmt.Errorf("embedded struct %q promotes a field with a duplicate tfsdk tag %q, conflicts with %q tfsdk tag", field.Name, k, otherField.Name)
+				}
+
+				tags[k] = append(fieldIndexSequence, v...)
+			}
+			continue
+		}
+
+		// All non-embedded fields must have a tfsdk tag
+		if !tagExists {
 			return nil, fmt.Errorf(`%s: need a struct tag for "tfsdk" on %s`, path, field.Name)
 		}
+
+		// Ensure the tfsdk tag has a valid name
 		path := path.AtName(tag)
 		if !isValidFieldName(tag) {
-			return nil, fmt.Errorf("%s: invalid field name, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
+			return nil, fmt.Errorf("%s: invalid tfsdk tag, must only use lowercase letters, underscores, and numbers, and must start with a letter", path)
 		}
+
+		// Ensure there are no duplicate tfsdk tags
 		if other, ok := tags[tag]; ok {
-			return nil, fmt.Errorf("%s: can't use field name for both %s and %s", path, typ.Field(other).Name, field.Name)
+			otherField := typ.FieldByIndex(other)
+			return nil, fmt.Errorf("%s: can't use tfsdk tag %q for both %s and %s fields", path, tag, otherField.Name, field.Name)
 		}
-		tags[tag] = i
+
+		tags[tag] = fieldIndexSequence
 	}
+
 	return tags, nil
 }
 

@@ -15,7 +15,8 @@ import (
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string,
-	builtInOnly bool) (policy.Definition, error) {
+	builtInOnly bool,
+) (policy.Definition, error) {
 	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 

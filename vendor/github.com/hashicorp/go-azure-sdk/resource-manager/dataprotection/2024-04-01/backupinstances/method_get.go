@@ -45,7 +45,6 @@ func (c BackupInstancesClient) Get(ctx context.Context, id BackupInstanceId) (re
 
 	var model BackupInstanceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

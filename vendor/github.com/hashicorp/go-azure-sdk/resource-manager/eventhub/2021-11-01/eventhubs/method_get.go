@@ -45,7 +45,6 @@ func (c EventHubsClient) Get(ctx context.Context, id EventhubId) (result GetOper
 
 	var model Eventhub
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

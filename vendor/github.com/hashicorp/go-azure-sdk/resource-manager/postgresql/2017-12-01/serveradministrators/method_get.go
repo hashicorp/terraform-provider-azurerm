@@ -46,7 +46,6 @@ func (c ServerAdministratorsClient) Get(ctx context.Context, id ServerId) (resul
 
 	var model ServerAdministratorResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

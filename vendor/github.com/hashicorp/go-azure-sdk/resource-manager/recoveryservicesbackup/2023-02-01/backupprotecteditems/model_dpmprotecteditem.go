@@ -20,6 +20,7 @@ type DPMProtectedItem struct {
 	ProtectionState  *ProtectedItemState           `json:"protectionState,omitempty"`
 
 	// Fields inherited from ProtectedItem
+
 	BackupManagementType             *BackupManagementType `json:"backupManagementType,omitempty"`
 	BackupSetName                    *string               `json:"backupSetName,omitempty"`
 	ContainerName                    *string               `json:"containerName,omitempty"`
@@ -33,10 +34,34 @@ type DPMProtectedItem struct {
 	LastRecoveryPoint                *string               `json:"lastRecoveryPoint,omitempty"`
 	PolicyId                         *string               `json:"policyId,omitempty"`
 	PolicyName                       *string               `json:"policyName,omitempty"`
+	ProtectedItemType                string                `json:"protectedItemType"`
 	ResourceGuardOperationRequests   *[]string             `json:"resourceGuardOperationRequests,omitempty"`
 	SoftDeleteRetentionPeriodInDays  *int64                `json:"softDeleteRetentionPeriodInDays,omitempty"`
 	SourceResourceId                 *string               `json:"sourceResourceId,omitempty"`
 	WorkloadType                     *DataSourceType       `json:"workloadType,omitempty"`
+}
+
+func (s DPMProtectedItem) ProtectedItem() BaseProtectedItemImpl {
+	return BaseProtectedItemImpl{
+		BackupManagementType:             s.BackupManagementType,
+		BackupSetName:                    s.BackupSetName,
+		ContainerName:                    s.ContainerName,
+		CreateMode:                       s.CreateMode,
+		DeferredDeleteTimeInUTC:          s.DeferredDeleteTimeInUTC,
+		DeferredDeleteTimeRemaining:      s.DeferredDeleteTimeRemaining,
+		IsArchiveEnabled:                 s.IsArchiveEnabled,
+		IsDeferredDeleteScheduleUpcoming: s.IsDeferredDeleteScheduleUpcoming,
+		IsRehydrate:                      s.IsRehydrate,
+		IsScheduledForDeferredDelete:     s.IsScheduledForDeferredDelete,
+		LastRecoveryPoint:                s.LastRecoveryPoint,
+		PolicyId:                         s.PolicyId,
+		PolicyName:                       s.PolicyName,
+		ProtectedItemType:                s.ProtectedItemType,
+		ResourceGuardOperationRequests:   s.ResourceGuardOperationRequests,
+		SoftDeleteRetentionPeriodInDays:  s.SoftDeleteRetentionPeriodInDays,
+		SourceResourceId:                 s.SourceResourceId,
+		WorkloadType:                     s.WorkloadType,
+	}
 }
 
 func (o *DPMProtectedItem) GetDeferredDeleteTimeInUTCAsTime() (*time.Time, error) {
@@ -74,9 +99,10 @@ func (s DPMProtectedItem) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DPMProtectedItem: %+v", err)
 	}
+
 	decoded["protectedItemType"] = "DPMProtectedItem"
 
 	encoded, err = json.Marshal(decoded)

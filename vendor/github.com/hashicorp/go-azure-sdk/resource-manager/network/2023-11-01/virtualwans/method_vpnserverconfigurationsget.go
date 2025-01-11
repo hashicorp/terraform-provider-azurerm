@@ -45,7 +45,6 @@ func (c VirtualWANsClient) VpnServerConfigurationsGet(ctx context.Context, id Vp
 
 	var model VpnServerConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

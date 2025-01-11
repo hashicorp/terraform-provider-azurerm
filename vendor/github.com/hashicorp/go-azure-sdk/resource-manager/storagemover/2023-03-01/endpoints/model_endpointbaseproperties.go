@@ -10,18 +10,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EndpointBaseProperties interface {
+	EndpointBaseProperties() BaseEndpointBasePropertiesImpl
 }
 
-// RawEndpointBasePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EndpointBaseProperties = BaseEndpointBasePropertiesImpl{}
+
+type BaseEndpointBasePropertiesImpl struct {
+	Description       *string            `json:"description,omitempty"`
+	EndpointType      EndpointType       `json:"endpointType"`
+	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+func (s BaseEndpointBasePropertiesImpl) EndpointBaseProperties() BaseEndpointBasePropertiesImpl {
+	return s
+}
+
+var _ EndpointBaseProperties = RawEndpointBasePropertiesImpl{}
+
+// RawEndpointBasePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEndpointBasePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	endpointBaseProperties BaseEndpointBasePropertiesImpl
+	Type                   string
+	Values                 map[string]interface{}
 }
 
-func unmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBaseProperties, error) {
+func (s RawEndpointBasePropertiesImpl) EndpointBaseProperties() BaseEndpointBasePropertiesImpl {
+	return s.endpointBaseProperties
+}
+
+func UnmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBaseProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +50,9 @@ func unmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBasePr
 		return nil, fmt.Errorf("unmarshaling EndpointBaseProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["endpointType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["endpointType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureStorageBlobContainer") {
@@ -52,10 +71,15 @@ func unmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBasePr
 		return out, nil
 	}
 
-	out := RawEndpointBasePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEndpointBasePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEndpointBasePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEndpointBasePropertiesImpl{
+		endpointBaseProperties: parent,
+		Type:                   value,
+		Values:                 temp,
+	}, nil
 
 }

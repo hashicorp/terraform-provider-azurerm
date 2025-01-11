@@ -27,7 +27,6 @@ func TestApplicationGatewayPrivateLinkConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *ApplicationGatewayPrivateLinkConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestApplicationGatewayPrivateLinkConfigurationIDInsensitively(t *testing.T)
 		Error    bool
 		Expected *ApplicationGatewayPrivateLinkConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

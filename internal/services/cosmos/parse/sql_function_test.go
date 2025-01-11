@@ -27,7 +27,6 @@ func TestSqlFunctionID(t *testing.T) {
 		Error    bool
 		Expected *SqlFunctionId
 	}{
-
 		{
 			// empty
 			Input: "",

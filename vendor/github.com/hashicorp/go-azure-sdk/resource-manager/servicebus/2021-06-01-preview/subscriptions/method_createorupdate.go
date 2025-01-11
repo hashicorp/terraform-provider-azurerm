@@ -49,7 +49,6 @@ func (c SubscriptionsClient) CreateOrUpdate(ctx context.Context, id Subscription
 
 	var model SBSubscription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

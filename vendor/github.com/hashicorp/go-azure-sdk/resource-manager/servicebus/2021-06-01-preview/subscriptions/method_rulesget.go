@@ -45,7 +45,6 @@ func (c SubscriptionsClient) RulesGet(ctx context.Context, id RuleId) (result Ru
 
 	var model Rule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

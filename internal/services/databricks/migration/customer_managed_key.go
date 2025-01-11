@@ -16,8 +16,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = CustomerManagedKeyV0ToV1{}
 
-type CustomerManagedKeyV0ToV1 struct {
-}
+type CustomerManagedKeyV0ToV1 struct{}
 
 func (c CustomerManagedKeyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

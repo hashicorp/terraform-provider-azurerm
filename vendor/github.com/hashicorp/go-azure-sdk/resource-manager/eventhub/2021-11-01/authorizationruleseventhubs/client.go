@@ -15,7 +15,7 @@ type AuthorizationRulesEventHubsClient struct {
 }
 
 func NewAuthorizationRulesEventHubsClientWithBaseURI(sdkApi sdkEnv.Api) (*AuthorizationRulesEventHubsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "authorizationruleseventhubs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "authorizationruleseventhubs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AuthorizationRulesEventHubsClient: %+v", err)
 	}

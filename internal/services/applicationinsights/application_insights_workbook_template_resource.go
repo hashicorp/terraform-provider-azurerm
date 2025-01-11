@@ -371,7 +371,7 @@ func (r ApplicationInsightsWorkbookTemplateResource) Delete() sdk.ResourceFunc {
 }
 
 func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel) *[]workbooktemplates.WorkbookTemplateGallery {
-	var outputList []workbooktemplates.WorkbookTemplateGallery
+	outputList := make([]workbooktemplates.WorkbookTemplateGallery, 0, len(inputList))
 	for _, input := range inputList {
 		output := workbooktemplates.WorkbookTemplateGallery{
 			Category:     utils.String(input.Category),
@@ -388,11 +388,11 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 }
 
 func flattenWorkbookTemplateGalleryModel(inputList *[]workbooktemplates.WorkbookTemplateGallery) []WorkbookTemplateGalleryModel {
-	var outputList []WorkbookTemplateGalleryModel
 	if inputList == nil {
-		return outputList
+		return []WorkbookTemplateGalleryModel{}
 	}
 
+	outputList := make([]WorkbookTemplateGalleryModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := WorkbookTemplateGalleryModel{}
 

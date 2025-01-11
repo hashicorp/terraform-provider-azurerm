@@ -92,7 +92,7 @@ func TestAccSharedImage_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
-				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dub"),
+				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dubs"),
 				check.That(data.ResourceName).Key("eula").HasValue("Do you agree there's infinite Rick's and Infinite Morty's?"),
 				check.That(data.ResourceName).Key("privacy_statement_uri").HasValue("https://council.of.ricks/privacy-statement"),
 				check.That(data.ResourceName).Key("release_note_uri").HasValue("https://council.of.ricks/changelog.md"),

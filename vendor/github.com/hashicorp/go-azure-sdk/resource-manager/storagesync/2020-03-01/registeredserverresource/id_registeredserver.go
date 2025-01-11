@@ -44,7 +44,7 @@ func ParseRegisteredServerID(input string) (*RegisteredServerId, error) {
 	}
 
 	id := RegisteredServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRegisteredServerIDInsensitively(input string) (*RegisteredServerId, er
 	}
 
 	id := RegisteredServerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id RegisteredServerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageSync", "Microsoft.StorageSync", "Microsoft.StorageSync"),
 		resourceids.StaticSegment("staticStorageSyncServices", "storageSyncServices", "storageSyncServices"),
-		resourceids.UserSpecifiedSegment("storageSyncServiceName", "storageSyncServiceValue"),
+		resourceids.UserSpecifiedSegment("storageSyncServiceName", "storageSyncServiceName"),
 		resourceids.StaticSegment("staticRegisteredServers", "registeredServers", "registeredServers"),
-		resourceids.UserSpecifiedSegment("serverId", "serverIdValue"),
+		resourceids.UserSpecifiedSegment("serverId", "serverId"),
 	}
 }
 

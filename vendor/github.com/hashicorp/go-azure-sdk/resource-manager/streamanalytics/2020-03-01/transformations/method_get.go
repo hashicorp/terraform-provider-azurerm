@@ -45,7 +45,6 @@ func (c TransformationsClient) Get(ctx context.Context, id TransformationId) (re
 
 	var model Transformation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

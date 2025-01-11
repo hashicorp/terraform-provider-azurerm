@@ -45,7 +45,6 @@ func (c AppServiceEnvironmentsClient) GetDiagnosticsItem(ctx context.Context, id
 
 	var model HostingEnvironmentDiagnostics
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

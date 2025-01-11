@@ -92,7 +92,7 @@ func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client
 		return nil, fmt.Errorf("retrieving Account %q for Table %q: %+v", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Resource Group for Storage Storage Table %q (Account %q)", id.TableName, id.AccountId.AccountName)
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Table %q (Account %q)", id.TableName, id.AccountId.AccountName)
 	}
 	tablesClient, err := client.Storage.TablesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
@@ -112,7 +112,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("retrieving Account %q for Table %q: %+v", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Resource Group for Storage Storage Table %q (Account %q)", id.TableName, id.AccountId.AccountName)
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Table %q (Account %q)", id.TableName, id.AccountId.AccountName)
 	}
 	tablesClient, err := client.Storage.TablesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {

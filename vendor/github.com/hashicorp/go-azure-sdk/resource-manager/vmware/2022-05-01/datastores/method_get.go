@@ -45,7 +45,6 @@ func (c DataStoresClient) Get(ctx context.Context, id DataStoreId) (result GetOp
 
 	var model Datastore
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

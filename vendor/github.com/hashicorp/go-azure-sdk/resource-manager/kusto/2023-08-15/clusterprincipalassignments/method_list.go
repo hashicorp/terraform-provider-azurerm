@@ -47,7 +47,6 @@ func (c ClusterPrincipalAssignmentsClient) List(ctx context.Context, id commonid
 
 	var model ClusterPrincipalAssignmentListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

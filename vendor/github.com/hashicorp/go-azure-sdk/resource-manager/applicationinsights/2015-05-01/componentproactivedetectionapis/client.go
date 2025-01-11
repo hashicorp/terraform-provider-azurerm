@@ -15,7 +15,7 @@ type ComponentProactiveDetectionAPIsClient struct {
 }
 
 func NewComponentProactiveDetectionAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ComponentProactiveDetectionAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "componentproactivedetectionapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "componentproactivedetectionapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ComponentProactiveDetectionAPIsClient: %+v", err)
 	}

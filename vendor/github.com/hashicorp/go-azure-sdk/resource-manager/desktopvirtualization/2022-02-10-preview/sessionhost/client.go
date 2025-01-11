@@ -15,7 +15,7 @@ type SessionHostClient struct {
 }
 
 func NewSessionHostClientWithBaseURI(sdkApi sdkEnv.Api) (*SessionHostClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sessionhost", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sessionhost", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SessionHostClient: %+v", err)
 	}

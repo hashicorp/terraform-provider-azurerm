@@ -14,6 +14,14 @@ type StorageBlobDeadLetterDestination struct {
 	Properties *StorageBlobDeadLetterDestinationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from DeadLetterDestination
+
+	EndpointType DeadLetterEndPointType `json:"endpointType"`
+}
+
+func (s StorageBlobDeadLetterDestination) DeadLetterDestination() BaseDeadLetterDestinationImpl {
+	return BaseDeadLetterDestinationImpl{
+		EndpointType: s.EndpointType,
+	}
 }
 
 var _ json.Marshaler = StorageBlobDeadLetterDestination{}
@@ -27,9 +35,10 @@ func (s StorageBlobDeadLetterDestination) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StorageBlobDeadLetterDestination: %+v", err)
 	}
+
 	decoded["endpointType"] = "StorageBlob"
 
 	encoded, err = json.Marshal(decoded)

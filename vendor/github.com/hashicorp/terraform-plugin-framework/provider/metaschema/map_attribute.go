@@ -19,7 +19,7 @@ var (
 	_ fwschema.AttributeWithValidateImplementation = MapAttribute{}
 )
 
-// MapAttribute represents a schema attribute that is a list with a single
+// MapAttribute represents a schema attribute that is a map with a single
 // element type. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The ElementType field
 // must be set.
@@ -28,7 +28,7 @@ var (
 // require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a list or directly via curly brace syntax.
+// return a map or directly via curly brace syntax.
 //
 //	# map of strings
 //	example_attribute = {

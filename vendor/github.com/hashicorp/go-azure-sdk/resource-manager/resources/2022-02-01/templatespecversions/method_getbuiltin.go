@@ -45,7 +45,6 @@ func (c TemplateSpecVersionsClient) GetBuiltIn(ctx context.Context, id VersionId
 
 	var model TemplateSpecVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

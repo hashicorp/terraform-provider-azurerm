@@ -46,8 +46,7 @@ type ServiceRegionPropertiesModel struct {
 	EsrpAddresses                         []string `tfschema:"esrp_addresses"`
 }
 
-type PrimaryRegionPropertiesModel struct {
-}
+type PrimaryRegionPropertiesModel struct{}
 
 type CommunicationsGatewayResource struct{}
 
@@ -421,7 +420,7 @@ func (r CommunicationsGatewayResource) Read() sdk.ResourceFunc {
 				state.Connectivity = string(properties.Connectivity)
 
 				codecsValue := ""
-				if properties.Codecs != nil && len(properties.Codecs) > 0 {
+				if len(properties.Codecs) > 0 {
 					codecsValue = string(properties.Codecs[0])
 				}
 				state.Codecs = codecsValue
@@ -515,7 +514,7 @@ func expandCommunicationsPlatformModel(input []string) []communicationsgateways.
 		return nil
 	}
 
-	var output []communicationsgateways.CommunicationsPlatform
+	output := make([]communicationsgateways.CommunicationsPlatform, 0, len(input))
 	for _, v := range input {
 		platform := communicationsgateways.CommunicationsPlatform(v)
 		output = append(output, platform)

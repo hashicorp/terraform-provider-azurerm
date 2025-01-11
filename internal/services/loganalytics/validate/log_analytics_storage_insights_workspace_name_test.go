@@ -25,7 +25,7 @@ func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:     "Invalid characters space",
-			Input:    "invalid Storage Insight Config Name Name",
+			Input:    "invalid Storage Insight Config Name",
 			Expected: false,
 		},
 		{

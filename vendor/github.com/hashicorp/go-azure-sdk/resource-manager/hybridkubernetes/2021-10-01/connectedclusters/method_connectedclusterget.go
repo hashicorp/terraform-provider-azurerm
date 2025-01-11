@@ -45,7 +45,6 @@ func (c ConnectedClustersClient) ConnectedClusterGet(ctx context.Context, id Con
 
 	var model ConnectedCluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

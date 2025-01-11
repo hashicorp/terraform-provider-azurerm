@@ -44,7 +44,7 @@ func ParseSoftwareUpdateConfigurationID(input string) (*SoftwareUpdateConfigurat
 	}
 
 	id := SoftwareUpdateConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSoftwareUpdateConfigurationIDInsensitively(input string) (*SoftwareUpd
 	}
 
 	id := SoftwareUpdateConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SoftwareUpdateConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticSoftwareUpdateConfigurations", "softwareUpdateConfigurations", "softwareUpdateConfigurations"),
-		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationName", "softwareUpdateConfigurationValue"),
+		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationName", "softwareUpdateConfigurationName"),
 	}
 }
 

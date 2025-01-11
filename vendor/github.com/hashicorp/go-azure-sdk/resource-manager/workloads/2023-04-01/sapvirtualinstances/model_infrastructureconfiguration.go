@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type InfrastructureConfiguration interface {
+	InfrastructureConfiguration() BaseInfrastructureConfigurationImpl
 }
 
-// RawInfrastructureConfigurationImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ InfrastructureConfiguration = BaseInfrastructureConfigurationImpl{}
+
+type BaseInfrastructureConfigurationImpl struct {
+	AppResourceGroup string            `json:"appResourceGroup"`
+	DeploymentType   SAPDeploymentType `json:"deploymentType"`
+}
+
+func (s BaseInfrastructureConfigurationImpl) InfrastructureConfiguration() BaseInfrastructureConfigurationImpl {
+	return s
+}
+
+var _ InfrastructureConfiguration = RawInfrastructureConfigurationImpl{}
+
+// RawInfrastructureConfigurationImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawInfrastructureConfigurationImpl struct {
-	Type   string
-	Values map[string]interface{}
+	infrastructureConfiguration BaseInfrastructureConfigurationImpl
+	Type                        string
+	Values                      map[string]interface{}
 }
 
-func unmarshalInfrastructureConfigurationImplementation(input []byte) (InfrastructureConfiguration, error) {
+func (s RawInfrastructureConfigurationImpl) InfrastructureConfiguration() BaseInfrastructureConfigurationImpl {
+	return s.infrastructureConfiguration
+}
+
+func UnmarshalInfrastructureConfigurationImplementation(input []byte) (InfrastructureConfiguration, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalInfrastructureConfigurationImplementation(input []byte) (Infrastru
 		return nil, fmt.Errorf("unmarshaling InfrastructureConfiguration into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["deploymentType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["deploymentType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "SingleServer") {
@@ -52,10 +70,15 @@ func unmarshalInfrastructureConfigurationImplementation(input []byte) (Infrastru
 		return out, nil
 	}
 
-	out := RawInfrastructureConfigurationImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseInfrastructureConfigurationImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseInfrastructureConfigurationImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawInfrastructureConfigurationImpl{
+		infrastructureConfiguration: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

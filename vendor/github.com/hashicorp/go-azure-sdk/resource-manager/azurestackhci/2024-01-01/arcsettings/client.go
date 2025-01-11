@@ -15,7 +15,7 @@ type ArcSettingsClient struct {
 }
 
 func NewArcSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*ArcSettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "arcsettings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "arcsettings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ArcSettingsClient: %+v", err)
 	}

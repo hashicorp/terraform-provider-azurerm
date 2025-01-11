@@ -27,7 +27,6 @@ func TestSecurityRuleID(t *testing.T) {
 		Error    bool
 		Expected *SecurityRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

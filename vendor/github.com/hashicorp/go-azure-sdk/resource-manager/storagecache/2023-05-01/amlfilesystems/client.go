@@ -15,7 +15,7 @@ type AmlFilesystemsClient struct {
 }
 
 func NewAmlFilesystemsClientWithBaseURI(sdkApi sdkEnv.Api) (*AmlFilesystemsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "amlfilesystems", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "amlfilesystems", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AmlFilesystemsClient: %+v", err)
 	}

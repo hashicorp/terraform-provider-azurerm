@@ -46,7 +46,6 @@ func (c ElasticPoolsClient) Get(ctx context.Context, id commonids.SqlElasticPool
 
 	var model ElasticPool
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

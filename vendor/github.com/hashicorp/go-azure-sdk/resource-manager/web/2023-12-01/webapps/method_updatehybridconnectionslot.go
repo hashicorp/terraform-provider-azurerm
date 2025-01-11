@@ -49,7 +49,6 @@ func (c WebAppsClient) UpdateHybridConnectionSlot(ctx context.Context, id SlotHy
 
 	var model HybridConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -39,6 +39,7 @@ func (o ListByHybridRunbookWorkerGroupOperationOptions) ToHeaders() *client.Head
 
 func (o ListByHybridRunbookWorkerGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

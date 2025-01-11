@@ -49,7 +49,6 @@ func (c HostPoolClient) Update(ctx context.Context, id HostPoolId, input HostPoo
 
 	var model HostPool
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type AttestationProvidersClient struct {
 }
 
 func NewAttestationProvidersClientWithBaseURI(sdkApi sdkEnv.Api) (*AttestationProvidersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "attestationproviders", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "attestationproviders", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AttestationProvidersClient: %+v", err)
 	}

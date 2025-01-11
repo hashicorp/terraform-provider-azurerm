@@ -14,6 +14,14 @@ type ServicePrincipalDatastoreSecrets struct {
 	ClientSecret *string `json:"clientSecret,omitempty"`
 
 	// Fields inherited from DatastoreSecrets
+
+	SecretsType SecretsType `json:"secretsType"`
+}
+
+func (s ServicePrincipalDatastoreSecrets) DatastoreSecrets() BaseDatastoreSecretsImpl {
+	return BaseDatastoreSecretsImpl{
+		SecretsType: s.SecretsType,
+	}
 }
 
 var _ json.Marshaler = ServicePrincipalDatastoreSecrets{}
@@ -27,9 +35,10 @@ func (s ServicePrincipalDatastoreSecrets) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServicePrincipalDatastoreSecrets: %+v", err)
 	}
+
 	decoded["secretsType"] = "ServicePrincipal"
 
 	encoded, err = json.Marshal(decoded)

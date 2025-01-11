@@ -45,7 +45,6 @@ func (c WebAppsClient) GetProcessModuleSlot(ctx context.Context, id ProcessModul
 
 	var model ProcessModuleInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

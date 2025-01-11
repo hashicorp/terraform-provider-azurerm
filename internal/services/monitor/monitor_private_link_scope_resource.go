@@ -148,7 +148,6 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 		props := model.Properties
 		d.Set("ingestion_access_mode", string(props.AccessModeSettings.IngestionAccessMode))
 		d.Set("query_access_mode", string(props.AccessModeSettings.QueryAccessMode))
-
 	}
 
 	return nil

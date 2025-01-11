@@ -132,7 +132,7 @@ func (a SingleNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject 
 	}
 }
 
-// GetNestingMode always returns NestingModeList.
+// GetNestingMode always returns NestingModeSingle.
 func (a SingleNestedAttribute) GetNestingMode() fwschema.NestingMode {
 	return fwschema.NestingModeSingle
 }

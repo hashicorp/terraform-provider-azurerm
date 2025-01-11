@@ -462,7 +462,6 @@ func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []strin
 
 	for _, policy := range *policies {
 		result = append(result, policy.ObjectId)
-
 	}
 
 	return result

@@ -44,7 +44,7 @@ func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
 	}
 
 	id := FrontendEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, er
 	}
 
 	id := FrontendEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FrontendEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFrontDoors", "frontDoors", "frontDoors"),
-		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorValue"),
+		resourceids.UserSpecifiedSegment("frontDoorName", "frontDoorName"),
 		resourceids.StaticSegment("staticFrontendEndpoints", "frontendEndpoints", "frontendEndpoints"),
-		resourceids.UserSpecifiedSegment("frontendEndpointName", "frontendEndpointValue"),
+		resourceids.UserSpecifiedSegment("frontendEndpointName", "frontendEndpointName"),
 	}
 }
 

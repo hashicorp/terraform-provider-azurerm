@@ -390,7 +390,6 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 func (a AutomationAccountResource) encryption_none(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 
 %s
@@ -417,7 +416,6 @@ resource "azurerm_role_assignment" "test" {
 }
 
 func (a AutomationAccountResource) encryption_basic(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 
 
@@ -449,7 +447,6 @@ resource "azurerm_automation_account" "test" {
 }
 
 func (a AutomationAccountResource) encryption_userIdentity(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 
 

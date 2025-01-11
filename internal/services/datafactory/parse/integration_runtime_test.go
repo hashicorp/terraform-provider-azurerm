@@ -27,7 +27,6 @@ func TestIntegrationRuntimeID(t *testing.T) {
 		Error    bool
 		Expected *IntegrationRuntimeId
 	}{
-
 		{
 			// empty
 			Input: "",

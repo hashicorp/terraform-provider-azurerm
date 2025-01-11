@@ -45,7 +45,6 @@ func (c DevicesClient) Get(ctx context.Context, id DataBoxEdgeDeviceId) (result 
 
 	var model DataBoxEdgeDevice
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

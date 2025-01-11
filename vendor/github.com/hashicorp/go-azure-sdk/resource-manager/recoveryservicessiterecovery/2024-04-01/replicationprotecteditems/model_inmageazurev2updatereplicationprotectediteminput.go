@@ -23,6 +23,14 @@ type InMageAzureV2UpdateReplicationProtectedItemInput struct {
 	VMDisks                         *[]UpdateDiskInput    `json:"vmDisks,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2UpdateReplicationProtectedItemInput) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return BaseUpdateReplicationProtectedItemProviderInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2UpdateReplicationProtectedItemInput{}
@@ -36,9 +44,10 @@ func (s InMageAzureV2UpdateReplicationProtectedItemInput) MarshalJSON() ([]byte,
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2UpdateReplicationProtectedItemInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

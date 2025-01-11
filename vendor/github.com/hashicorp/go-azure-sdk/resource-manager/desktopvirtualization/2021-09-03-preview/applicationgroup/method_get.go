@@ -45,7 +45,6 @@ func (c ApplicationGroupClient) Get(ctx context.Context, id ApplicationGroupId) 
 
 	var model ApplicationGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

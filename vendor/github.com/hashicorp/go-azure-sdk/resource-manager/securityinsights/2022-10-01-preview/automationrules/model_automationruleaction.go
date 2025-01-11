@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AutomationRuleAction interface {
+	AutomationRuleAction() BaseAutomationRuleActionImpl
 }
 
-// RawAutomationRuleActionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ AutomationRuleAction = BaseAutomationRuleActionImpl{}
+
+type BaseAutomationRuleActionImpl struct {
+	ActionType ActionType `json:"actionType"`
+	Order      int64      `json:"order"`
+}
+
+func (s BaseAutomationRuleActionImpl) AutomationRuleAction() BaseAutomationRuleActionImpl {
+	return s
+}
+
+var _ AutomationRuleAction = RawAutomationRuleActionImpl{}
+
+// RawAutomationRuleActionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawAutomationRuleActionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	automationRuleAction BaseAutomationRuleActionImpl
+	Type                 string
+	Values               map[string]interface{}
 }
 
-func unmarshalAutomationRuleActionImplementation(input []byte) (AutomationRuleAction, error) {
+func (s RawAutomationRuleActionImpl) AutomationRuleAction() BaseAutomationRuleActionImpl {
+	return s.automationRuleAction
+}
+
+func UnmarshalAutomationRuleActionImplementation(input []byte) (AutomationRuleAction, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalAutomationRuleActionImplementation(input []byte) (AutomationRuleAc
 		return nil, fmt.Errorf("unmarshaling AutomationRuleAction into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["actionType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["actionType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ModifyProperties") {
@@ -52,10 +70,15 @@ func unmarshalAutomationRuleActionImplementation(input []byte) (AutomationRuleAc
 		return out, nil
 	}
 
-	out := RawAutomationRuleActionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseAutomationRuleActionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAutomationRuleActionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawAutomationRuleActionImpl{
+		automationRuleAction: parent,
+		Type:                 value,
+		Values:               temp,
+	}, nil
 
 }

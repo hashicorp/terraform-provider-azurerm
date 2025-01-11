@@ -24,6 +24,14 @@ type SapNetWeaverProviderInstanceProperties struct {
 	SslPreference      *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s SapNetWeaverProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = SapNetWeaverProviderInstanceProperties{}
@@ -37,9 +45,10 @@ func (s SapNetWeaverProviderInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SapNetWeaverProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "SapNetWeaver"
 
 	encoded, err = json.Marshal(decoded)

@@ -33,6 +33,7 @@ func (o UnlinkBackendFromBuildOperationOptions) ToHeaders() *client.Headers {
 
 func (o UnlinkBackendFromBuildOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

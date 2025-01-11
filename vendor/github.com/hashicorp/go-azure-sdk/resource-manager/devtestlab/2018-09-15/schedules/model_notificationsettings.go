@@ -8,5 +8,5 @@ type NotificationSettings struct {
 	NotificationLocale *string       `json:"notificationLocale,omitempty"`
 	Status             *EnableStatus `json:"status,omitempty"`
 	TimeInMinutes      *int64        `json:"timeInMinutes,omitempty"`
-	WebhookUrl         *string       `json:"webhookUrl,omitempty"`
+	WebhookURL         *string       `json:"webhookUrl,omitempty"`
 }

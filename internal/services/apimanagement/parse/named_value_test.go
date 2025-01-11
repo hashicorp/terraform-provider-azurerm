@@ -27,7 +27,6 @@ func TestNamedValueID(t *testing.T) {
 		Error    bool
 		Expected *NamedValueId
 	}{
-
 		{
 			// empty
 			Input: "",

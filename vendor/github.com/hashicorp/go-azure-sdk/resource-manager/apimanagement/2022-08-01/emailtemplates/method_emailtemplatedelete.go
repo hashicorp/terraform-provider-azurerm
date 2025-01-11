@@ -35,6 +35,7 @@ func (o EmailTemplateDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o EmailTemplateDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -22,10 +22,16 @@ type OutputProperties struct {
 var _ json.Unmarshaler = &OutputProperties{}
 
 func (s *OutputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias OutputProperties
-	var decoded alias
+	var decoded struct {
+		Diagnostics               *Diagnostics                `json:"diagnostics,omitempty"`
+		Etag                      *string                     `json:"etag,omitempty"`
+		LastOutputEventTimestamps *[]LastOutputEventTimestamp `json:"lastOutputEventTimestamps,omitempty"`
+		SizeWindow                *int64                      `json:"sizeWindow,omitempty"`
+		TimeWindow                *string                     `json:"timeWindow,omitempty"`
+		WatermarkSettings         *OutputWatermarkProperties  `json:"watermarkSettings,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into OutputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Diagnostics = decoded.Diagnostics
@@ -41,7 +47,7 @@ func (s *OutputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["datasource"]; ok {
-		impl, err := unmarshalOutputDataSourceImplementation(v)
+		impl, err := UnmarshalOutputDataSourceImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Datasource' for 'OutputProperties': %+v", err)
 		}
@@ -49,11 +55,12 @@ func (s *OutputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["serialization"]; ok {
-		impl, err := unmarshalSerializationImplementation(v)
+		impl, err := UnmarshalSerializationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Serialization' for 'OutputProperties': %+v", err)
 		}
 		s.Serialization = impl
 	}
+
 	return nil
 }

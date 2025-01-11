@@ -22,11 +22,12 @@ func (s *ValidateRestoreRequestObject) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["restoreRequestObject"]; ok {
-		impl, err := unmarshalAzureBackupRestoreRequestImplementation(v)
+		impl, err := UnmarshalAzureBackupRestoreRequestImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RestoreRequestObject' for 'ValidateRestoreRequestObject': %+v", err)
 		}
 		s.RestoreRequestObject = impl
 	}
+
 	return nil
 }

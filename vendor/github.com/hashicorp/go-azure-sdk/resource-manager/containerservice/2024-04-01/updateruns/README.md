@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns` Documentation
 
-The `updateruns` SDK allows for interaction with the Azure Resource Manager Service `containerservice` (API Version `2024-04-01`).
+The `updateruns` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 payload := updateruns.UpdateRun{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, updateruns.DefaultCrea
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 if err := client.DeleteThenPoll(ctx, id, updateruns.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, updateruns.DefaultDeleteOperationOption
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue")
+id := updateruns.NewFleetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName")
 
 // alternatively `client.ListByFleet(ctx, id)` can be used to do batched pagination
 items, err := client.ListByFleetComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 payload := updateruns.SkipProperties{
 	// ...
@@ -103,7 +103,7 @@ if err := client.SkipThenPoll(ctx, id, payload, updateruns.DefaultSkipOperationO
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 if err := client.StartThenPoll(ctx, id, updateruns.DefaultStartOperationOptions()); err != nil {
 	// handle the error
@@ -115,7 +115,7 @@ if err := client.StartThenPoll(ctx, id, updateruns.DefaultStartOperationOptions(
 
 ```go
 ctx := context.TODO()
-id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetValue", "updateRunValue")
+id := updateruns.NewUpdateRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fleetName", "updateRunName")
 
 if err := client.StopThenPoll(ctx, id, updateruns.DefaultStopOperationOptions()); err != nil {
 	// handle the error

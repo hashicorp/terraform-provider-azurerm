@@ -27,7 +27,6 @@ func TestOpenIDConnectProviderID(t *testing.T) {
 		Error    bool
 		Expected *OpenIDConnectProviderId
 	}{
-
 		{
 			// empty
 			Input: "",

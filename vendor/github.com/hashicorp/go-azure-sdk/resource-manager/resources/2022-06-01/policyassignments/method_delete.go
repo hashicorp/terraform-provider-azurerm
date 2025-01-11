@@ -46,7 +46,6 @@ func (c PolicyAssignmentsClient) Delete(ctx context.Context, id ScopedPolicyAssi
 
 	var model PolicyAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

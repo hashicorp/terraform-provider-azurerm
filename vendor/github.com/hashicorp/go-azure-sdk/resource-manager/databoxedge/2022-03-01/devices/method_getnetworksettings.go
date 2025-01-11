@@ -46,7 +46,6 @@ func (c DevicesClient) GetNetworkSettings(ctx context.Context, id DataBoxEdgeDev
 
 	var model NetworkSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

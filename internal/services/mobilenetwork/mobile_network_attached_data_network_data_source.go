@@ -83,7 +83,6 @@ func (r AttachedDataNetworkDataSource) Arguments() map[string]*pluginsdk.Schema 
 
 func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"dns_addresses": {

@@ -39,6 +39,7 @@ func (o ListByVirtualMachineOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByVirtualMachineOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

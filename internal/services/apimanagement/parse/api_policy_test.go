@@ -27,7 +27,6 @@ func TestApiPolicyID(t *testing.T) {
 		Error    bool
 		Expected *ApiPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

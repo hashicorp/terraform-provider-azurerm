@@ -7,15 +7,15 @@ dependencies:
     - vendor/**/*
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - website/**/*
 tooling:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/tools/**/*
 state-migration:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/services/**/migration/**/*
 service/aadb2c:
 - changed-files:
@@ -51,6 +51,11 @@ service/application-insights:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/applicationinsights/**/*
+
+service/arc-kubernetes:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/arckubernetes/**/*
 
 service/arc-resource-bridge:
 - changed-files:
@@ -214,6 +219,11 @@ service/domain-services:
   - any-glob-to-any-file:
     - internal/services/domainservices/**/*
 
+service/dynatrace:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/dynatrace/**/*
+
 service/elastic:
 - changed-files:
   - any-glob-to-any-file:
@@ -238,6 +248,11 @@ service/extended-location:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/extendedlocation/**/*
+
+service/fabric:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/fabric/**/*
 
 service/firewall:
 - changed-files:
@@ -363,6 +378,11 @@ service/mobile-network:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/mobilenetwork/**/*
+
+service/mongo-cluster:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/mongocluster/**/*
 
 service/monitor:
 - changed-files:
@@ -554,6 +574,16 @@ service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
+
+service/trustedsigning:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/codesigning/**/*
+
+service/video-indexer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/videoindexer/**/*
 
 service/virtual-desktops:
 - changed-files:

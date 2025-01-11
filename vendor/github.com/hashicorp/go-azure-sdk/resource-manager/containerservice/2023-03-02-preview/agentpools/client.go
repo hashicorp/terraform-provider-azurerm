@@ -15,7 +15,7 @@ type AgentPoolsClient struct {
 }
 
 func NewAgentPoolsClientWithBaseURI(sdkApi sdkEnv.Api) (*AgentPoolsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "agentpools", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "agentpools", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AgentPoolsClient: %+v", err)
 	}

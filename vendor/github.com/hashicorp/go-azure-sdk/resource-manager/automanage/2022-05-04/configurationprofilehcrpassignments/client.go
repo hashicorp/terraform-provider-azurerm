@@ -15,7 +15,7 @@ type ConfigurationProfileHCRPAssignmentsClient struct {
 }
 
 func NewConfigurationProfileHCRPAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfigurationProfileHCRPAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "configurationprofilehcrpassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "configurationprofilehcrpassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfigurationProfileHCRPAssignmentsClient: %+v", err)
 	}

@@ -21,6 +21,14 @@ type MsSqlServerProviderInstanceProperties struct {
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s MsSqlServerProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = MsSqlServerProviderInstanceProperties{}
@@ -34,9 +42,10 @@ func (s MsSqlServerProviderInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MsSqlServerProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "MsSqlServer"
 
 	encoded, err = json.Marshal(decoded)

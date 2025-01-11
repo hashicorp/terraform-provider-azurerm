@@ -42,7 +42,7 @@ func ParseIntegrationAccountID(input string) (*IntegrationAccountId, error) {
 	}
 
 	id := IntegrationAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseIntegrationAccountIDInsensitively(input string) (*IntegrationAccountId
 	}
 
 	id := IntegrationAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id IntegrationAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
-		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
+		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 	}
 }
 

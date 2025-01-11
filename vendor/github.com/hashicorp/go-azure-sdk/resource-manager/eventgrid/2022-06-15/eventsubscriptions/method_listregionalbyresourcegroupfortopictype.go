@@ -40,6 +40,7 @@ func (o ListRegionalByResourceGroupForTopicTypeOperationOptions) ToHeaders() *cl
 
 func (o ListRegionalByResourceGroupForTopicTypeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

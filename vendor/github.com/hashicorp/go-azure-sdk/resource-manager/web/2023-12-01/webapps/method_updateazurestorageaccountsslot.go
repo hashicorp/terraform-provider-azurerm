@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateAzureStorageAccountsSlot(ctx context.Context, id Sl
 
 	var model AzureStoragePropertyDictionaryResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

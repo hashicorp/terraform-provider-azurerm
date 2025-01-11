@@ -38,7 +38,6 @@ func (w WrappedStringValidator) ValidateString(_ context.Context, request valida
 	value := request.ConfigValue.ValueString()
 	path := request.Path.String()
 	warnings, err := w.Func(value, path)
-
 	if err != nil {
 		response.Diagnostics.AddError(fmt.Sprintf("invalid value for %s", path), fmt.Sprintf("%+v", err))
 		return

@@ -45,7 +45,6 @@ func (c DeviceupdatesClient) InstancesGet(ctx context.Context, id InstanceId) (r
 
 	var model Instance
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

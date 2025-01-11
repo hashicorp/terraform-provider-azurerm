@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DatastoreCredentials interface {
+	DatastoreCredentials() BaseDatastoreCredentialsImpl
 }
 
-// RawDatastoreCredentialsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DatastoreCredentials = BaseDatastoreCredentialsImpl{}
+
+type BaseDatastoreCredentialsImpl struct {
+	CredentialsType CredentialsType `json:"credentialsType"`
+}
+
+func (s BaseDatastoreCredentialsImpl) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return s
+}
+
+var _ DatastoreCredentials = RawDatastoreCredentialsImpl{}
+
+// RawDatastoreCredentialsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDatastoreCredentialsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	datastoreCredentials BaseDatastoreCredentialsImpl
+	Type                 string
+	Values               map[string]interface{}
 }
 
-func unmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredentials, error) {
+func (s RawDatastoreCredentialsImpl) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return s.datastoreCredentials
+}
+
+func UnmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredentials, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredent
 		return nil, fmt.Errorf("unmarshaling DatastoreCredentials into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["credentialsType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["credentialsType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AccountKey") {
@@ -76,10 +93,15 @@ func unmarshalDatastoreCredentialsImplementation(input []byte) (DatastoreCredent
 		return out, nil
 	}
 
-	out := RawDatastoreCredentialsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDatastoreCredentialsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDatastoreCredentialsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDatastoreCredentialsImpl{
+		datastoreCredentials: parent,
+		Type:                 value,
+		Values:               temp,
+	}, nil
 
 }

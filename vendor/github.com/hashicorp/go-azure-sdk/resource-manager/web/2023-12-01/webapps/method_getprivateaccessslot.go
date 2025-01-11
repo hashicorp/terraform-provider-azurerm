@@ -46,7 +46,6 @@ func (c WebAppsClient) GetPrivateAccessSlot(ctx context.Context, id SlotId) (res
 
 	var model PrivateAccess
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

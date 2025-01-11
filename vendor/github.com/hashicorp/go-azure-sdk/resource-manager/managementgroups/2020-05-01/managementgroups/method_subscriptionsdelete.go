@@ -35,6 +35,7 @@ func (o SubscriptionsDeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o SubscriptionsDeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

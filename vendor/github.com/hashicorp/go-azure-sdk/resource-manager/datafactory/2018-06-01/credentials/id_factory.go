@@ -42,7 +42,7 @@ func ParseFactoryID(input string) (*FactoryId, error) {
 	}
 
 	id := FactoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseFactoryIDInsensitively(input string) (*FactoryId, error) {
 	}
 
 	id := FactoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id FactoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataFactory", "Microsoft.DataFactory", "Microsoft.DataFactory"),
 		resourceids.StaticSegment("staticFactories", "factories", "factories"),
-		resourceids.UserSpecifiedSegment("factoryName", "factoryValue"),
+		resourceids.UserSpecifiedSegment("factoryName", "factoryName"),
 	}
 }
 

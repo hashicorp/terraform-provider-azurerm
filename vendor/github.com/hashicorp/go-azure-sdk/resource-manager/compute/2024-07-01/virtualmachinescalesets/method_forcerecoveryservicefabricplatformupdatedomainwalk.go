@@ -36,6 +36,7 @@ func (o ForceRecoveryServiceFabricPlatformUpdateDomainWalkOperationOptions) ToHe
 
 func (o ForceRecoveryServiceFabricPlatformUpdateDomainWalkOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -82,7 +83,6 @@ func (c VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateD
 
 	var model RecoveryWalkResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

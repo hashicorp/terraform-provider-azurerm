@@ -15,7 +15,7 @@ type ScheduleClient struct {
 }
 
 func NewScheduleClientWithBaseURI(sdkApi sdkEnv.Api) (*ScheduleClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "schedule", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "schedule", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScheduleClient: %+v", err)
 	}

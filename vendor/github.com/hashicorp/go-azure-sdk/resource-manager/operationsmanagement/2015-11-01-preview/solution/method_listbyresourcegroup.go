@@ -47,7 +47,6 @@ func (c SolutionClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 
 	var model SolutionPropertiesList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

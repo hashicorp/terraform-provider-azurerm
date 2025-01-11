@@ -11,5 +11,5 @@ type AgentConfiguration struct {
 	GuestConfigurationEnabled *string                   `json:"guestConfigurationEnabled,omitempty"`
 	IncomingConnectionsPorts  *[]string                 `json:"incomingConnectionsPorts,omitempty"`
 	ProxyBypass               *[]string                 `json:"proxyBypass,omitempty"`
-	ProxyUrl                  *string                   `json:"proxyUrl,omitempty"`
+	ProxyURL                  *string                   `json:"proxyUrl,omitempty"`
 }

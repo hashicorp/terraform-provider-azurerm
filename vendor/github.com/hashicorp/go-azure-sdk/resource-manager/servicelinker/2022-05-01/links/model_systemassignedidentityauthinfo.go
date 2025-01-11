@@ -13,6 +13,14 @@ var _ AuthInfoBase = SystemAssignedIdentityAuthInfo{}
 type SystemAssignedIdentityAuthInfo struct {
 
 	// Fields inherited from AuthInfoBase
+
+	AuthType AuthType `json:"authType"`
+}
+
+func (s SystemAssignedIdentityAuthInfo) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return BaseAuthInfoBaseImpl{
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = SystemAssignedIdentityAuthInfo{}
@@ -26,9 +34,10 @@ func (s SystemAssignedIdentityAuthInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SystemAssignedIdentityAuthInfo: %+v", err)
 	}
+
 	decoded["authType"] = "systemAssignedIdentity"
 
 	encoded, err = json.Marshal(decoded)

@@ -15,7 +15,7 @@ type WebPubSubClient struct {
 }
 
 func NewWebPubSubClientWithBaseURI(sdkApi sdkEnv.Api) (*WebPubSubClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webpubsub", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webpubsub", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebPubSubClient: %+v", err)
 	}

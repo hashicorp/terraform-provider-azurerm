@@ -15,7 +15,7 @@ type DiskAccessesClient struct {
 }
 
 func NewDiskAccessesClientWithBaseURI(sdkApi sdkEnv.Api) (*DiskAccessesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "diskaccesses", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "diskaccesses", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DiskAccessesClient: %+v", err)
 	}

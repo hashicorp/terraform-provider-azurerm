@@ -15,7 +15,7 @@ type ScalingPlanClient struct {
 }
 
 func NewScalingPlanClientWithBaseURI(sdkApi sdkEnv.Api) (*ScalingPlanClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scalingplan", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scalingplan", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScalingPlanClient: %+v", err)
 	}

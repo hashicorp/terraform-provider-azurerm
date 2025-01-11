@@ -15,7 +15,7 @@ type BudgetsClient struct {
 }
 
 func NewBudgetsClientWithBaseURI(sdkApi sdkEnv.Api) (*BudgetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "budgets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "budgets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating BudgetsClient: %+v", err)
 	}

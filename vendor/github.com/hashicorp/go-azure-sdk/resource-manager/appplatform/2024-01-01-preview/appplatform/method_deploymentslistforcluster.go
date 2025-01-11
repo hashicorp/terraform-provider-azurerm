@@ -41,6 +41,7 @@ func (o DeploymentsListForClusterOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeploymentsListForClusterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

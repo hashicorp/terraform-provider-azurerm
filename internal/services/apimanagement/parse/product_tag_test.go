@@ -27,7 +27,6 @@ func TestProductTagID(t *testing.T) {
 		Error    bool
 		Expected *ProductTagId
 	}{
-
 		{
 			// empty
 			Input: "",

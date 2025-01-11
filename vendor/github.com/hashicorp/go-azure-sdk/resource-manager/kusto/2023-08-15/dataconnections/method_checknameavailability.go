@@ -51,7 +51,6 @@ func (c DataConnectionsClient) CheckNameAvailability(ctx context.Context, id com
 
 	var model CheckNameResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

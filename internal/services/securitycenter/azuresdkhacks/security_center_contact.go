@@ -27,7 +27,7 @@ func CreateSecurityCenterContact(ctx context.Context, client *security.ContactsC
 			}},
 		},
 	}); err != nil {
-		return result, validation.NewError("security.ContactsClient", "Create", err.Error())
+		return result, validation.NewError("security.ContactsClient", "Create", err.Error()) // nolint: govet
 	}
 
 	req, err := client.CreatePreparer(ctx, securityContactName, securityContact)

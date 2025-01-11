@@ -27,7 +27,6 @@ func TestApiID(t *testing.T) {
 		Error    bool
 		Expected *ApiId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestApiIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ApiId
 	}{
-
 		{
 			// empty
 			Input: "",

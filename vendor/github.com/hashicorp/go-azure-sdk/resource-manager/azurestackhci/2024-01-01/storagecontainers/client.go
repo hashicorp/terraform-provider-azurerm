@@ -15,7 +15,7 @@ type StorageContainersClient struct {
 }
 
 func NewStorageContainersClientWithBaseURI(sdkApi sdkEnv.Api) (*StorageContainersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "storagecontainers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "storagecontainers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StorageContainersClient: %+v", err)
 	}

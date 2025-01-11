@@ -51,7 +51,6 @@ func (c StorageAccountsClient) ListServiceSAS(ctx context.Context, id commonids.
 
 	var model ListServiceSasResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

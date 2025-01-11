@@ -15,7 +15,7 @@ type FrontendsInterfaceClient struct {
 }
 
 func NewFrontendsInterfaceClientWithBaseURI(sdkApi sdkEnv.Api) (*FrontendsInterfaceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "frontendsinterface", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "frontendsinterface", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FrontendsInterfaceClient: %+v", err)
 	}

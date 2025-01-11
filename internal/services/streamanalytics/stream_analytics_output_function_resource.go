@@ -19,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type OutputFunctionResource struct {
-}
+type OutputFunctionResource struct{}
 
 var (
 	_ sdk.ResourceWithCustomImporter = OutputFunctionResource{}

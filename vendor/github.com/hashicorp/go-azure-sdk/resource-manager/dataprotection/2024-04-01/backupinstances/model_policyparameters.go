@@ -30,7 +30,7 @@ func (s *PolicyParameters) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]BackupDatasourceParameters, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalBackupDatasourceParametersImplementation(val)
+			impl, err := UnmarshalBackupDatasourceParametersImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'BackupDatasourceParametersList' for 'PolicyParameters': %+v", i, err)
 			}
@@ -47,7 +47,7 @@ func (s *PolicyParameters) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]DataStoreParameters, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalDataStoreParametersImplementation(val)
+			impl, err := UnmarshalDataStoreParametersImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'DataStoreParametersList' for 'PolicyParameters': %+v", i, err)
 			}
@@ -55,5 +55,6 @@ func (s *PolicyParameters) UnmarshalJSON(bytes []byte) error {
 		}
 		s.DataStoreParametersList = &output
 	}
+
 	return nil
 }

@@ -45,7 +45,6 @@ func (c DaprComponentsClient) Get(ctx context.Context, id DaprComponentId) (resu
 
 	var model DaprComponent
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

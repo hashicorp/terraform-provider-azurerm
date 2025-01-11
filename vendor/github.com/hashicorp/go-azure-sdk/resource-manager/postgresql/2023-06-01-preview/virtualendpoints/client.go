@@ -15,7 +15,7 @@ type VirtualEndpointsClient struct {
 }
 
 func NewVirtualEndpointsClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualEndpointsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualendpoints", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualendpoints", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualEndpointsClient: %+v", err)
 	}

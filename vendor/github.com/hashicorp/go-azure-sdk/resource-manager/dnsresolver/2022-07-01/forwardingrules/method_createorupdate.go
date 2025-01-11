@@ -40,6 +40,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -83,7 +84,6 @@ func (c ForwardingRulesClient) CreateOrUpdate(ctx context.Context, id Forwarding
 
 	var model ForwardingRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

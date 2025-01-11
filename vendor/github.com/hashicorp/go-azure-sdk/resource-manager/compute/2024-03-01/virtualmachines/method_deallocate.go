@@ -36,6 +36,7 @@ func (o DeallocateOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeallocateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

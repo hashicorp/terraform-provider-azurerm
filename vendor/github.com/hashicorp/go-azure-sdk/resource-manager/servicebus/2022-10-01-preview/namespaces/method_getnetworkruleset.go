@@ -46,7 +46,6 @@ func (c NamespacesClient) GetNetworkRuleSet(ctx context.Context, id NamespaceId)
 
 	var model NetworkRuleSet
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

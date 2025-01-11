@@ -236,7 +236,6 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 			client := metadata.Client.LogAnalytics.TablesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			tableName := model.Name
 			log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace Table %s update.", tableName)
@@ -246,7 +245,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid workspace object ID for table %s: %s", tableName, err)
 			}
 
-			id := tables.NewTableID(subscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
+			id := tables.NewTableID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, tableName)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("error checking for presence of existing table %s: %v", tableName, err)

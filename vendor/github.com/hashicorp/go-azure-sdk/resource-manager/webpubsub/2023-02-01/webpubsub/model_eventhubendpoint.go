@@ -15,6 +15,14 @@ type EventHubEndpoint struct {
 	FullyQualifiedNamespace string `json:"fullyQualifiedNamespace"`
 
 	// Fields inherited from EventListenerEndpoint
+
+	Type EventListenerEndpointDiscriminator `json:"type"`
+}
+
+func (s EventHubEndpoint) EventListenerEndpoint() BaseEventListenerEndpointImpl {
+	return BaseEventListenerEndpointImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = EventHubEndpoint{}
@@ -28,9 +36,10 @@ func (s EventHubEndpoint) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubEndpoint: %+v", err)
 	}
+
 	decoded["type"] = "EventHub"
 
 	encoded, err = json.Marshal(decoded)

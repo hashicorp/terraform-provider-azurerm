@@ -101,7 +101,7 @@ func (d DatabaseV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"long_term_retention_policy": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,

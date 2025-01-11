@@ -43,6 +43,14 @@ type HyperVReplicaAzureEnableProtectionInput struct {
 	VirtualMachineName              *string                               `json:"vmName,omitempty"`
 
 	// Fields inherited from EnableProtectionProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaAzureEnableProtectionInput) EnableProtectionProviderSpecificInput() BaseEnableProtectionProviderSpecificInputImpl {
+	return BaseEnableProtectionProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaAzureEnableProtectionInput{}
@@ -56,9 +64,10 @@ func (s HyperVReplicaAzureEnableProtectionInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaAzureEnableProtectionInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplicaAzure"
 
 	encoded, err = json.Marshal(decoded)

@@ -14,6 +14,14 @@ type AzureToAzureUpdateNetworkMappingInput struct {
 	PrimaryNetworkId *string `json:"primaryNetworkId,omitempty"`
 
 	// Fields inherited from FabricSpecificUpdateNetworkMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s AzureToAzureUpdateNetworkMappingInput) FabricSpecificUpdateNetworkMappingInput() BaseFabricSpecificUpdateNetworkMappingInputImpl {
+	return BaseFabricSpecificUpdateNetworkMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = AzureToAzureUpdateNetworkMappingInput{}
@@ -27,9 +35,10 @@ func (s AzureToAzureUpdateNetworkMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureToAzureUpdateNetworkMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "AzureToAzure"
 
 	encoded, err = json.Marshal(decoded)

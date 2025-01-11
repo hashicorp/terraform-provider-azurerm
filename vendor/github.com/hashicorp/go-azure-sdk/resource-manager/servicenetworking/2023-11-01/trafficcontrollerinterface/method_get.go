@@ -45,7 +45,6 @@ func (c TrafficControllerInterfaceClient) Get(ctx context.Context, id TrafficCon
 
 	var model TrafficController
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

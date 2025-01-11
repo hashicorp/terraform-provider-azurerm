@@ -15,7 +15,7 @@ type PartnerNamespacesClient struct {
 }
 
 func NewPartnerNamespacesClientWithBaseURI(sdkApi sdkEnv.Api) (*PartnerNamespacesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "partnernamespaces", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "partnernamespaces", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PartnerNamespacesClient: %+v", err)
 	}

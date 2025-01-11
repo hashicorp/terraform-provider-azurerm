@@ -45,7 +45,6 @@ func (c PrivateEndpointsClient) Get(ctx context.Context, id PrivateEndpointId) (
 
 	var model PrivateEndpoint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

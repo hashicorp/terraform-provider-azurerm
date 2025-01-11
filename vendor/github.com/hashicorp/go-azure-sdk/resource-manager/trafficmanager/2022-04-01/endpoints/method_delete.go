@@ -46,7 +46,6 @@ func (c EndpointsClient) Delete(ctx context.Context, id EndpointTypeId) (result 
 
 	var model DeleteOperationResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

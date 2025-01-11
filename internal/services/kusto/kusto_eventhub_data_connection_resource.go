@@ -221,7 +221,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	d.Set("database_name", id.DatabaseName)
 
 	if resp.Model != nil {
-		if dataConnection, ok := (*resp.Model).(dataconnections.EventHubDataConnection); ok {
+		if dataConnection, ok := resp.Model.(dataconnections.EventHubDataConnection); ok {
 			if location := dataConnection.Location; location != nil {
 				d.Set("location", azure.NormalizeLocation(*location))
 			}

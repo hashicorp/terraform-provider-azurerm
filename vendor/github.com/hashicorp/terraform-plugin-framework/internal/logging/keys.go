@@ -18,6 +18,12 @@ const (
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
 
+	// The type of ephemeral resource being operated on, such as "random_password"
+	KeyEphemeralResourceType = "tf_ephemeral_resource_type"
+
+	// The Deferred reason for an RPC response
+	KeyDeferredReason = "tf_deferred_reason"
+
 	// Human readable string when calling a provider defined type that must
 	// implement the Description() method, such as validators.
 	KeyDescription = "description"

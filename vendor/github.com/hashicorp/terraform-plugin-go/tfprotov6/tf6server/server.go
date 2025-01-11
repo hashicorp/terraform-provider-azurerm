@@ -49,7 +49,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 6
+	protocolVersionMinor uint = 7
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -999,6 +999,221 @@ func (s *server) GetFunctions(ctx context.Context, protoReq *tfplugin6.GetFuncti
 	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
 
 	protoResp := toproto.GetFunctions_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) ValidateEphemeralResourceConfig(ctx context.Context, protoReq *tfplugin6.ValidateEphemeralResourceConfig_Request) (*tfplugin6.ValidateEphemeralResourceConfig_Response, error) {
+	rpc := "ValidateEphemeralResourceConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.ValidateEphemeralResourceConfig below once ProviderServer interface
+	// implements the EphemeralResourceServer RPC methods.
+	// nolint:staticcheck
+	ephemeralResourceProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement ValidateEphemeralResourceConfig")
+
+		protoResp := &tfplugin6.ValidateEphemeralResourceConfig_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider Validate Ephemeral Resource Config Not Implemented",
+					Detail: "A ValidateEphemeralResourceConfig call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements ephemeral resource support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	req := fromproto.ValidateEphemeralResourceConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.ValidateEphemeralResourceConfig(ctx, req)
+	resp, err := ephemeralResourceProviderServer.ValidateEphemeralResourceConfig(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.ValidateEphemeralResourceConfig_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) OpenEphemeralResource(ctx context.Context, protoReq *tfplugin6.OpenEphemeralResource_Request) (*tfplugin6.OpenEphemeralResource_Response, error) {
+	rpc := "OpenEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.OpenEphemeralResource below once ProviderServer interface
+	// implements the EphemeralResourceServer RPC methods.
+	// nolint:staticcheck
+	ephemeralResourceProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement OpenEphemeralResource")
+
+		protoResp := &tfplugin6.OpenEphemeralResource_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider Open Ephemeral Resource Not Implemented",
+					Detail: "A OpenEphemeralResource call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements ephemeral resource support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	req := fromproto.OpenEphemeralResourceRequest(protoReq)
+
+	tf6serverlogging.OpenEphemeralResourceClientCapabilities(ctx, req.ClientCapabilities)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.OpenEphemeralResource(ctx, req)
+	resp, err := ephemeralResourceProviderServer.OpenEphemeralResource(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", "Result", resp.Result)
+	tf6serverlogging.Deferred(ctx, resp.Deferred)
+
+	if resp.Deferred != nil && (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) {
+		resp.Diagnostics = append(resp.Diagnostics, invalidDeferredResponseDiag(resp.Deferred.Reason))
+	}
+
+	protoResp := toproto.OpenEphemeralResource_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) RenewEphemeralResource(ctx context.Context, protoReq *tfplugin6.RenewEphemeralResource_Request) (*tfplugin6.RenewEphemeralResource_Response, error) {
+	rpc := "RenewEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.RenewEphemeralResource below once ProviderServer interface
+	// implements the EphemeralResourceServer RPC methods.
+	// nolint:staticcheck
+	ephemeralResourceProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement RenewEphemeralResource")
+
+		protoResp := &tfplugin6.RenewEphemeralResource_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider Renew Ephemeral Resource Not Implemented",
+					Detail: "A RenewEphemeralResource call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements ephemeral resource support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	req := fromproto.RenewEphemeralResourceRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.RenewEphemeralResource(ctx, req)
+	resp, err := ephemeralResourceProviderServer.RenewEphemeralResource(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.RenewEphemeralResource_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) CloseEphemeralResource(ctx context.Context, protoReq *tfplugin6.CloseEphemeralResource_Request) (*tfplugin6.CloseEphemeralResource_Response, error) {
+	rpc := "CloseEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.CloseEphemeralResource below once ProviderServer interface
+	// implements the EphemeralResourceServer RPC methods.
+	// nolint:staticcheck
+	ephemeralResourceProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement CloseEphemeralResource")
+
+		protoResp := &tfplugin6.CloseEphemeralResource_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider Close Ephemeral Resource Not Implemented",
+					Detail: "A CloseEphemeralResource call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements ephemeral resource support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	req := fromproto.CloseEphemeralResourceRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.CloseEphemeralResource(ctx, req)
+	resp, err := ephemeralResourceProviderServer.CloseEphemeralResource(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.CloseEphemeralResource_Response(resp)
 
 	return protoResp, nil
 }

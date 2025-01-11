@@ -14,6 +14,14 @@ type InMageRcmUpdateContainerMappingInput struct {
 	EnableAgentAutoUpgrade string `json:"enableAgentAutoUpgrade"`
 
 	// Fields inherited from ReplicationProviderSpecificUpdateContainerMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmUpdateContainerMappingInput) ReplicationProviderSpecificUpdateContainerMappingInput() BaseReplicationProviderSpecificUpdateContainerMappingInputImpl {
+	return BaseReplicationProviderSpecificUpdateContainerMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmUpdateContainerMappingInput{}
@@ -27,9 +35,10 @@ func (s InMageRcmUpdateContainerMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmUpdateContainerMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

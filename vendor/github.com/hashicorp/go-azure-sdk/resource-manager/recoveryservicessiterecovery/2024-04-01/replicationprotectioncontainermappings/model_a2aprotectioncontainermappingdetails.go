@@ -18,6 +18,14 @@ type A2AProtectionContainerMappingDetails struct {
 	ScheduleName                        *string                              `json:"scheduleName,omitempty"`
 
 	// Fields inherited from ProtectionContainerMappingProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2AProtectionContainerMappingDetails) ProtectionContainerMappingProviderSpecificDetails() BaseProtectionContainerMappingProviderSpecificDetailsImpl {
+	return BaseProtectionContainerMappingProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2AProtectionContainerMappingDetails{}
@@ -31,9 +39,10 @@ func (s A2AProtectionContainerMappingDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2AProtectionContainerMappingDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

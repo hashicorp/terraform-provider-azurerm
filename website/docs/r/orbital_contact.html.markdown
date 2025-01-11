@@ -1,7 +1,7 @@
 ---
 subcategory: "Orbital"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_orbital_contact_profile"
+page_title: "Azure Resource Manager: azurerm_orbital_contact"
 description: |-
   Manages an orbital contact resource.
 ---
@@ -9,6 +9,8 @@ description: |-
 # azurerm_orbital_contact
 
 Manages an orbital contact.
+
+~> **Note:** The `azurerm_orbital_contact` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider.
 
 ## Example Usage
 

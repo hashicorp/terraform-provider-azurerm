@@ -5,5 +5,5 @@ package registries
 
 type SourceUploadDefinition struct {
 	RelativePath *string `json:"relativePath,omitempty"`
-	UploadUrl    *string `json:"uploadUrl,omitempty"`
+	UploadURL    *string `json:"uploadUrl,omitempty"`
 }

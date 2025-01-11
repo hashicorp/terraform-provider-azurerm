@@ -41,6 +41,7 @@ func (o ListGlobalBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListGlobalBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

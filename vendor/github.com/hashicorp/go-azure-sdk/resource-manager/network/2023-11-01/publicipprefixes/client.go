@@ -15,7 +15,7 @@ type PublicIPPrefixesClient struct {
 }
 
 func NewPublicIPPrefixesClientWithBaseURI(sdkApi sdkEnv.Api) (*PublicIPPrefixesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "publicipprefixes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "publicipprefixes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PublicIPPrefixesClient: %+v", err)
 	}

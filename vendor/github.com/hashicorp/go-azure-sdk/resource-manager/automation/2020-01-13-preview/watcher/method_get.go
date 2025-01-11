@@ -45,7 +45,6 @@ func (c WatcherClient) Get(ctx context.Context, id WatcherId) (result GetOperati
 
 	var model Watcher
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

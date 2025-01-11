@@ -27,7 +27,6 @@ func TestResourceGroupAssignmentID(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupAssignmentId
 	}{
-
 		{
 			// empty
 			Input: "",

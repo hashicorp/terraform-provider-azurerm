@@ -46,7 +46,6 @@ func (c ConfigurationsClient) ListByServer(ctx context.Context, id ServerId) (re
 
 	var model ConfigurationListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

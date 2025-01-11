@@ -24,9 +24,20 @@ type DockerBuildRequest struct {
 	Timeout            *int64             `json:"timeout,omitempty"`
 
 	// Fields inherited from RunRequest
+
 	AgentPoolName    *string `json:"agentPoolName,omitempty"`
 	IsArchiveEnabled *bool   `json:"isArchiveEnabled,omitempty"`
 	LogTemplate      *string `json:"logTemplate,omitempty"`
+	Type             string  `json:"type"`
+}
+
+func (s DockerBuildRequest) RunRequest() BaseRunRequestImpl {
+	return BaseRunRequestImpl{
+		AgentPoolName:    s.AgentPoolName,
+		IsArchiveEnabled: s.IsArchiveEnabled,
+		LogTemplate:      s.LogTemplate,
+		Type:             s.Type,
+	}
 }
 
 var _ json.Marshaler = DockerBuildRequest{}
@@ -40,9 +51,10 @@ func (s DockerBuildRequest) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DockerBuildRequest: %+v", err)
 	}
+
 	decoded["type"] = "DockerBuildRequest"
 
 	encoded, err = json.Marshal(decoded)

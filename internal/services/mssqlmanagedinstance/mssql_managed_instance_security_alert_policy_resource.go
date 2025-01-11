@@ -269,7 +269,6 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyRead(d *pluginsdk.ResourceDa
 	d.Set("managed_instance_name", id.ManagedInstanceName)
 
 	if result.Model != nil {
-
 		if props := result.Model.Properties; props != nil {
 			d.Set("enabled", props.State == managedserversecurityalertpolicies.SecurityAlertsPolicyStateEnabled)
 

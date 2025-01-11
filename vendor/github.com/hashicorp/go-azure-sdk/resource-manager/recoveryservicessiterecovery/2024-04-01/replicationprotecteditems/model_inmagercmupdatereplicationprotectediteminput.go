@@ -28,6 +28,14 @@ type InMageRcmUpdateReplicationProtectedItemInput struct {
 	VMNics                                *[]InMageRcmNicInput      `json:"vmNics,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmUpdateReplicationProtectedItemInput) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return BaseUpdateReplicationProtectedItemProviderInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmUpdateReplicationProtectedItemInput{}
@@ -41,9 +49,10 @@ func (s InMageRcmUpdateReplicationProtectedItemInput) MarshalJSON() ([]byte, err
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmUpdateReplicationProtectedItemInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

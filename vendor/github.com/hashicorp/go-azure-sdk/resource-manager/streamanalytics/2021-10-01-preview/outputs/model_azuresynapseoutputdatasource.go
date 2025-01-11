@@ -14,6 +14,14 @@ type AzureSynapseOutputDataSource struct {
 	Properties *AzureSynapseDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s AzureSynapseOutputDataSource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureSynapseOutputDataSource{}
@@ -27,9 +35,10 @@ func (s AzureSynapseOutputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureSynapseOutputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Sql/Server/DataWarehouse"
 
 	encoded, err = json.Marshal(decoded)

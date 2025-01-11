@@ -15,7 +15,7 @@ type RedisClient struct {
 }
 
 func NewRedisClientWithBaseURI(sdkApi sdkEnv.Api) (*RedisClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "redis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "redis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RedisClient: %+v", err)
 	}

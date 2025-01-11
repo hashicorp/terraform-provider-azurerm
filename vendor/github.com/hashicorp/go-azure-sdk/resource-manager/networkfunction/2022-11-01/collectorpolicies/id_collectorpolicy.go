@@ -44,7 +44,7 @@ func ParseCollectorPolicyID(input string) (*CollectorPolicyId, error) {
 	}
 
 	id := CollectorPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseCollectorPolicyIDInsensitively(input string) (*CollectorPolicyId, erro
 	}
 
 	id := CollectorPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id CollectorPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetworkFunction", "Microsoft.NetworkFunction", "Microsoft.NetworkFunction"),
 		resourceids.StaticSegment("staticAzureTrafficCollectors", "azureTrafficCollectors", "azureTrafficCollectors"),
-		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorValue"),
+		resourceids.UserSpecifiedSegment("azureTrafficCollectorName", "azureTrafficCollectorName"),
 		resourceids.StaticSegment("staticCollectorPolicies", "collectorPolicies", "collectorPolicies"),
-		resourceids.UserSpecifiedSegment("collectorPolicyName", "collectorPolicyValue"),
+		resourceids.UserSpecifiedSegment("collectorPolicyName", "collectorPolicyName"),
 	}
 }
 

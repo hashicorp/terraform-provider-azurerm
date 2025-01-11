@@ -14,6 +14,14 @@ type AutomationActionWorkspace struct {
 	WorkspaceResourceId *string `json:"workspaceResourceId,omitempty"`
 
 	// Fields inherited from AutomationAction
+
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s AutomationActionWorkspace) AutomationAction() BaseAutomationActionImpl {
+	return BaseAutomationActionImpl{
+		ActionType: s.ActionType,
+	}
 }
 
 var _ json.Marshaler = AutomationActionWorkspace{}
@@ -27,9 +35,10 @@ func (s AutomationActionWorkspace) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AutomationActionWorkspace: %+v", err)
 	}
+
 	decoded["actionType"] = "Workspace"
 
 	encoded, err = json.Marshal(decoded)

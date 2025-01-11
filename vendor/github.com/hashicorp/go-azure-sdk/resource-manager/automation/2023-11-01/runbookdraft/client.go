@@ -15,7 +15,7 @@ type RunbookDraftClient struct {
 }
 
 func NewRunbookDraftClientWithBaseURI(sdkApi sdkEnv.Api) (*RunbookDraftClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "runbookdraft", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "runbookdraft", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RunbookDraftClient: %+v", err)
 	}

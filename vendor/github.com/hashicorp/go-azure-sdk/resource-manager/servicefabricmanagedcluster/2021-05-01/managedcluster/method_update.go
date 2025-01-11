@@ -49,7 +49,6 @@ func (c ManagedClusterClient) Update(ctx context.Context, id ManagedClusterId, i
 
 	var model ManagedCluster
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

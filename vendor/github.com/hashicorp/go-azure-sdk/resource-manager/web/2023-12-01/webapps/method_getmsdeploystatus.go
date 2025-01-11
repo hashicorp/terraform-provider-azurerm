@@ -47,7 +47,6 @@ func (c WebAppsClient) GetMSDeployStatus(ctx context.Context, id commonids.AppSe
 
 	var model MSDeployStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

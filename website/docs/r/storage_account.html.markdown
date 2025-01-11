@@ -144,6 +144,8 @@ The following arguments are supported:
 
 ~> **Note:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
+~> **Note:** If `static_website` is specified, the service will automatically create a `azurerm_storage_container` named `$web`.
+
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
 ~> **Note:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.

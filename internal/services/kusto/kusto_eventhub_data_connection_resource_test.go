@@ -135,7 +135,7 @@ func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.EventHubDataConnection)
+		value, ok := resp.Model.(dataconnections.EventHubDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
 		}

@@ -15,7 +15,7 @@ type FleetUpdateStrategiesClient struct {
 }
 
 func NewFleetUpdateStrategiesClientWithBaseURI(sdkApi sdkEnv.Api) (*FleetUpdateStrategiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fleetupdatestrategies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fleetupdatestrategies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FleetUpdateStrategiesClient: %+v", err)
 	}

@@ -40,28 +40,6 @@ func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(t *testing
 	})
 }
 
-func testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_definition", "test")
-	r := KeyVaultMHSMRoleDefinitionResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.legacy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.legacyUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	domainSuffix, ok := client.Account.Environment.ManagedHSM.DomainSuffix()
@@ -136,66 +114,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
   }
 }
 `, r.template(data), data.RandomString)
-}
-
-func (r KeyVaultMHSMRoleDefinitionResource) legacy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-
-%s
-
-locals {
-  roleTestName = "c9562a52-2bd9-2671-3d89-cea5b4798a6b"
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
-  name           = local.roleTestName
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
-  description    = "desc foo"
-  permission {
-    data_actions = [
-      "Microsoft.KeyVault/managedHsm/keys/read/action",
-      "Microsoft.KeyVault/managedHsm/keys/write/action",
-      "Microsoft.KeyVault/managedHsm/keys/encrypt/action",
-      "Microsoft.KeyVault/managedHsm/keys/create",
-      "Microsoft.KeyVault/managedHsm/keys/delete",
-    ]
-    not_data_actions = [
-      "Microsoft.KeyVault/managedHsm/roleAssignments/read/action",
-    ]
-  }
-}
-`, r.template(data))
-}
-
-func (r KeyVaultMHSMRoleDefinitionResource) legacyUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-
-%s
-
-locals {
-  roleTestName = "c9562a52-2bd9-2671-3d89-cea5b4798a6b"
-}
-
-resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
-  name           = local.roleTestName
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
-  description    = "desc foo2"
-  permission {
-    data_actions = [
-      "Microsoft.KeyVault/managedHsm/keys/read/action",
-      "Microsoft.KeyVault/managedHsm/keys/write/action",
-      "Microsoft.KeyVault/managedHsm/keys/encrypt/action",
-      "Microsoft.KeyVault/managedHsm/keys/create",
-    ]
-    not_data_actions = [
-      "Microsoft.KeyVault/managedHsm/roleAssignments/read/action",
-      "Microsoft.KeyVault/managedHsm/keys/delete",
-    ]
-  }
-}
-`, r.template(data))
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) template(data acceptance.TestData) string {

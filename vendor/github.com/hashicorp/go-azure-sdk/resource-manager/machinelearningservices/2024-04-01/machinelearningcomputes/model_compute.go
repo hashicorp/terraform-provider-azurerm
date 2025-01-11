@@ -10,18 +10,44 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Compute interface {
+	Compute() BaseComputeImpl
 }
 
-// RawComputeImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ Compute = BaseComputeImpl{}
+
+type BaseComputeImpl struct {
+	ComputeLocation    *string            `json:"computeLocation,omitempty"`
+	ComputeType        ComputeType        `json:"computeType"`
+	CreatedOn          *string            `json:"createdOn,omitempty"`
+	Description        *string            `json:"description,omitempty"`
+	DisableLocalAuth   *bool              `json:"disableLocalAuth,omitempty"`
+	IsAttachedCompute  *bool              `json:"isAttachedCompute,omitempty"`
+	ModifiedOn         *string            `json:"modifiedOn,omitempty"`
+	ProvisioningErrors *[]ErrorResponse   `json:"provisioningErrors,omitempty"`
+	ProvisioningState  *ProvisioningState `json:"provisioningState,omitempty"`
+	ResourceId         *string            `json:"resourceId,omitempty"`
+}
+
+func (s BaseComputeImpl) Compute() BaseComputeImpl {
+	return s
+}
+
+var _ Compute = RawComputeImpl{}
+
+// RawComputeImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawComputeImpl struct {
-	Type   string
-	Values map[string]interface{}
+	compute BaseComputeImpl
+	Type    string
+	Values  map[string]interface{}
 }
 
-func unmarshalComputeImplementation(input []byte) (Compute, error) {
+func (s RawComputeImpl) Compute() BaseComputeImpl {
+	return s.compute
+}
+
+func UnmarshalComputeImplementation(input []byte) (Compute, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +57,9 @@ func unmarshalComputeImplementation(input []byte) (Compute, error) {
 		return nil, fmt.Errorf("unmarshaling Compute into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["computeType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["computeType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AKS") {
@@ -116,10 +142,15 @@ func unmarshalComputeImplementation(input []byte) (Compute, error) {
 		return out, nil
 	}
 
-	out := RawComputeImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseComputeImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseComputeImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawComputeImpl{
+		compute: parent,
+		Type:    value,
+		Values:  temp,
+	}, nil
 
 }

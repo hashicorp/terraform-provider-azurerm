@@ -45,7 +45,6 @@ func (c ActivityClient) Get(ctx context.Context, id ActivityId) (result GetOpera
 
 	var model Activity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

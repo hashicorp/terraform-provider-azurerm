@@ -27,7 +27,6 @@ func TestCassandraClusterID(t *testing.T) {
 		Error    bool
 		Expected *CassandraClusterId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -15,7 +15,7 @@ type LoadTestsClient struct {
 }
 
 func NewLoadTestsClientWithBaseURI(sdkApi sdkEnv.Api) (*LoadTestsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "loadtests", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "loadtests", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LoadTestsClient: %+v", err)
 	}

@@ -46,7 +46,6 @@ func (c WebAppsClient) GetFtpAllowedSlot(ctx context.Context, id SlotId) (result
 
 	var model CsmPublishingCredentialsPoliciesEntity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

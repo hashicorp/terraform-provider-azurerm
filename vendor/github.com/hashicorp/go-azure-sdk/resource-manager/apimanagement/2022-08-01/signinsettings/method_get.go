@@ -46,7 +46,6 @@ func (c SignInSettingsClient) Get(ctx context.Context, id ServiceId) (result Get
 
 	var model PortalSigninSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c NotificationRecipientEmailClient) CreateOrUpdate(ctx context.Context, id
 
 	var model RecipientEmailContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

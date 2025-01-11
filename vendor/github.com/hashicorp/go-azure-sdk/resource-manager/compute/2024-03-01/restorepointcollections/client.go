@@ -15,7 +15,7 @@ type RestorePointCollectionsClient struct {
 }
 
 func NewRestorePointCollectionsClientWithBaseURI(sdkApi sdkEnv.Api) (*RestorePointCollectionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "restorepointcollections", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "restorepointcollections", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RestorePointCollectionsClient: %+v", err)
 	}

@@ -51,7 +51,6 @@ func (c WebAppsClient) DiscoverBackup(ctx context.Context, id commonids.AppServi
 
 	var model RestoreRequest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

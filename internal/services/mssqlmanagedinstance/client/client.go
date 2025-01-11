@@ -38,7 +38,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	managedDatabasesClient, err := manageddatabases.NewManagedDatabasesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Managed Databases Client: %+v", err)

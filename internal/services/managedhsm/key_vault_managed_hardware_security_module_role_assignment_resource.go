@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
@@ -24,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultManagedHSMRoleAssignmentModel struct {
@@ -45,20 +44,12 @@ type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	s := map[string]*pluginsdk.Schema{
-		"managed_hsm_id": func() *pluginsdk.Schema {
-			s := &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ForceNew:     true,
-				ValidateFunc: managedhsms.ValidateManagedHSMID,
-			}
-			if features.FourPointOhBeta() {
-				s.Required = true
-			} else {
-				s.Optional = true
-				s.Computed = true
-			}
-			return s
-		}(),
+		"managed_hsm_id": {
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
+		},
 
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -88,16 +79,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-	if !features.FourPointOhBeta() {
-		s["vault_base_url"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			Deprecated:   "The field `vault_base_url` has been deprecated in favour of `managed_hsm_id` and will be removed in 4.0 of the Azure Provider",
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
+
 	return s
 }
 
@@ -163,21 +145,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if managedHsmId == nil && !features.FourPointOhBeta() {
-				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
-				}
-				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
-				if err != nil {
-					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
-				}
-				if managedHsmId == nil {
-					return fmt.Errorf("unable to determine the Resource Manager ID")
-				}
-			}
-
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
@@ -192,9 +159,9 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID: pointer.FromString(config.PrincipalId),
+				PrincipalID: pointer.To(config.PrincipalId),
 				// the role definition id may have '/' prefix, but the api doesn't accept it
-				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(config.RoleDefinitionId, "/")),
+				RoleDefinitionID: pointer.To(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
 
 			//nolint:misspell
@@ -247,10 +214,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				ManagedHSMID: resourceManagerId.ID(),
 				Name:         id.RoleAssignmentName,
 				Scope:        id.Scope,
-			}
-
-			if !features.FourPointOhBeta() {
-				model.VaultBaseUrl = id.BaseURI()
 			}
 
 			if props := resp.Properties; props != nil {

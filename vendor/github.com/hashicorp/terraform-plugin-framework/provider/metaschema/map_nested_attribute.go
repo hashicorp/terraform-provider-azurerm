@@ -18,7 +18,7 @@ var (
 	_ NestedAttribute = MapNestedAttribute{}
 )
 
-// MapNestedAttribute represents an attribute that is a set of objects where
+// MapNestedAttribute represents an attribute that is a map of objects where
 // the object attributes can be fully defined, including further nested
 // attributes. When retrieving the value for this attribute, use types.Map
 // as the value type unless the CustomType field is set. The NestedObject field
@@ -28,7 +28,7 @@ var (
 // not require definition beyond type information.
 //
 // Terraform configurations configure this attribute using expressions that
-// return a set of objects or directly via curly brace syntax.
+// return a map of objects or directly via curly brace syntax.
 //
 //	# map of objects
 //	example_attribute = {
@@ -123,7 +123,7 @@ func (a MapNestedAttribute) GetNestedObject() fwschema.NestedAttributeObject {
 	return a.NestedObject
 }
 
-// GetNestingMode always returns NestingModeList.
+// GetNestingMode always returns NestingModeMap.
 func (a MapNestedAttribute) GetNestingMode() fwschema.NestingMode {
 	return fwschema.NestingModeMap
 }

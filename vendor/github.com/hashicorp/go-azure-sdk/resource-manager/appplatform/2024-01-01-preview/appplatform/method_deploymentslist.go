@@ -40,6 +40,7 @@ func (o DeploymentsListOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeploymentsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

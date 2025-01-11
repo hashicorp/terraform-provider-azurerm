@@ -47,7 +47,6 @@ func (c ExtensionsClient) GetAzureMonitorStatus(ctx context.Context, id commonid
 
 	var model AzureMonitorResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

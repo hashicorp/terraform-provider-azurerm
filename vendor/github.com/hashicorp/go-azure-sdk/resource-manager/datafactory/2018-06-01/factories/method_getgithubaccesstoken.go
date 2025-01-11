@@ -50,7 +50,6 @@ func (c FactoriesClient) GetGitHubAccessToken(ctx context.Context, id FactoryId,
 
 	var model GitHubAccessTokenResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

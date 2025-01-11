@@ -46,7 +46,6 @@ func (c VNetPeeringClient) Get(ctx context.Context, id VirtualNetworkPeeringId) 
 
 	var model VirtualNetworkPeering
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

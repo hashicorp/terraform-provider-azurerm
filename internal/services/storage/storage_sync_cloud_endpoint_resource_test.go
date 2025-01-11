@@ -122,6 +122,10 @@ resource "azurerm_storage_sync_cloud_endpoint" "import" {
 
 func (r StorageSyncCloudEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-StorageSync-%[1]d"
   location = "%[2]s"

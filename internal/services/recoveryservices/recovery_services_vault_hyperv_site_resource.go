@@ -74,14 +74,10 @@ func (r HyperVSiteResource) Create() sdk.ResourceFunc {
 
 			id := replicationfabrics.NewReplicationFabricID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, metaModel.Name)
 
-			type HyperVSiteInstanceType struct {
-				InstanceType string `json:"instanceType"`
-			}
-
 			// the instance type `HyperVSite` is not exposed in Swagger, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22016
 			parameters := replicationfabrics.FabricCreationInput{
 				Properties: &replicationfabrics.FabricCreationInputProperties{
-					CustomDetails: HyperVSiteInstanceType{
+					CustomDetails: replicationfabrics.BaseFabricSpecificCreationInputImpl{
 						InstanceType: "HyperVSite",
 					},
 				},

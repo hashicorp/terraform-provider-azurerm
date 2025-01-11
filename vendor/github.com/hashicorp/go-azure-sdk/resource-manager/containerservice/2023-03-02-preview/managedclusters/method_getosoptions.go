@@ -34,6 +34,7 @@ func (o GetOSOptionsOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOSOptionsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c ManagedClustersClient) GetOSOptions(ctx context.Context, id LocationId, 
 
 	var model OSOptionProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

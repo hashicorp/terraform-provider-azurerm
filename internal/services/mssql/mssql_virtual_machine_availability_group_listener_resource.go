@@ -281,7 +281,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				},
 			}
 
-			if model.LoadBalancerConfiguration != nil && len(model.LoadBalancerConfiguration) != 0 {
+			if len(model.LoadBalancerConfiguration) != 0 {
 				lbConfigs, err := expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfigurations(model.LoadBalancerConfiguration)
 				if err != nil {
 					return err
@@ -289,7 +289,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Create() sdk.Resou
 				parameters.Properties.LoadBalancerConfigurations = lbConfigs
 			}
 
-			if model.MultiSubnetIpConfiguration != nil && len(model.MultiSubnetIpConfiguration) != 0 {
+			if len(model.MultiSubnetIpConfiguration) != 0 {
 				parameters.Properties.MultiSubnetIPConfigurations = expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguration(model.MultiSubnetIpConfiguration)
 			}
 
@@ -307,7 +307,6 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Read() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.MSSQL.VirtualMachinesAvailabilityGroupListenersClient
 
 			id, err := availabilitygrouplisteners.ParseAvailabilityGroupListenerID(metadata.ResourceData.Id())
@@ -330,7 +329,6 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Read() sdk.Resourc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-
 					state.AvailabilityGroupName = pointer.From(props.AvailabilityGroupName)
 					state.Port = pointer.From(props.Port)
 
@@ -348,7 +346,6 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Read() sdk.Resourc
 
 					if props.AvailabilityGroupConfiguration != nil {
 						if props.AvailabilityGroupConfiguration.Replicas != nil {
-
 							replicas, err := flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(props.AvailabilityGroupConfiguration.Replicas, id.SubscriptionId)
 							if err != nil {
 								return fmt.Errorf("setting `replica`: %+v", err)
@@ -387,7 +384,6 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 	results := make([]availabilitygrouplisteners.LoadBalancerConfiguration, 0)
 
 	for _, lb := range lbConfigs {
-
 		lbConfig := availabilitygrouplisteners.LoadBalancerConfiguration{
 			ProbePort: pointer.To(lb.ProbePort),
 		}
@@ -426,7 +422,6 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerMultiSubnetIpConfiguratio
 	results := make([]availabilitygrouplisteners.MultiSubnetIPConfiguration, 0)
 
 	for _, item := range multiSubnetIpConfiguration {
-
 		config := availabilitygrouplisteners.MultiSubnetIPConfiguration{
 			SqlVirtualMachineInstance: item.SqlVirtualMachineId,
 		}
@@ -565,7 +560,6 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerReplicas(input *[]availa
 	}
 
 	for _, replica := range *input {
-
 		sqlVirtualMachineInstanceId := ""
 		if replica.SqlVirtualMachineInstanceId != nil {
 			parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineIDInsensitively(*replica.SqlVirtualMachineInstanceId)

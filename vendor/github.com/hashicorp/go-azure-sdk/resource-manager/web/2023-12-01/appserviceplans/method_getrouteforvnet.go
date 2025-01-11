@@ -45,7 +45,6 @@ func (c AppServicePlansClient) GetRouteForVnet(ctx context.Context, id RouteId) 
 
 	var model []VnetRoute
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

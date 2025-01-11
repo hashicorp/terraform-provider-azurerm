@@ -285,7 +285,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_windows_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -346,7 +346,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"os_profile_linux_config": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -381,7 +381,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"network_profile": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -540,7 +540,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     pluginsdk.TypeSet,
 				Required: true,
@@ -637,7 +637,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -674,7 +674,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				Set: resourceVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"plan": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -699,7 +699,7 @@ func resourceVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"extension": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
@@ -1145,8 +1145,8 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(config *virtualm
 			listener := make(map[string]interface{})
 			listener["protocol"] = i.Protocol
 
-			if i.CertificateUrl != nil {
-				listener["certificate_url"] = *i.CertificateUrl
+			if i.CertificateURL != nil {
+				listener["certificate_url"] = *i.CertificateURL
 			}
 
 			listeners = append(listeners, listener)
@@ -1187,7 +1187,7 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets *[]virtualmach
 			certs := make([]map[string]interface{}, 0, len(*secret.VaultCertificates))
 			for _, cert := range *secret.VaultCertificates {
 				vaultCert := make(map[string]interface{})
-				vaultCert["certificate_url"] = *cert.CertificateUrl
+				vaultCert["certificate_url"] = *cert.CertificateURL
 
 				if cert.CertificateStore != nil {
 					vaultCert["certificate_store"] = *cert.CertificateStore
@@ -2105,7 +2105,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 					Protocol: pointer.To(virtualmachinescalesets.ProtocolTypes(protocol)),
 				}
 				if v := config["certificate_url"].(string); v != "" {
-					winRmListener.CertificateUrl = &v
+					winRmListener.CertificateURL = &v
 				}
 
 				winRmListeners = append(winRmListeners, winRmListener)
@@ -2166,7 +2166,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileSecrets(d *pluginsdk.ResourceDa
 
 				certUrl := config["certificate_url"].(string)
 				cert := virtualmachinescalesets.VaultCertificate{
-					CertificateUrl: &certUrl,
+					CertificateURL: &certUrl,
 				}
 				if v := config["certificate_store"].(string); v != "" {
 					cert.CertificateStore = &v

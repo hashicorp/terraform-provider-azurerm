@@ -49,7 +49,6 @@ func (c AttachedDataNetworkClient) UpdateTags(ctx context.Context, id AttachedDa
 
 	var model AttachedDataNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

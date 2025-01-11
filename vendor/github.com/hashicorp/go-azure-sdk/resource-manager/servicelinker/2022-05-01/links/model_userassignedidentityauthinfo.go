@@ -15,6 +15,14 @@ type UserAssignedIdentityAuthInfo struct {
 	SubscriptionId *string `json:"subscriptionId,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+
+	AuthType AuthType `json:"authType"`
+}
+
+func (s UserAssignedIdentityAuthInfo) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return BaseAuthInfoBaseImpl{
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = UserAssignedIdentityAuthInfo{}
@@ -28,9 +36,10 @@ func (s UserAssignedIdentityAuthInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling UserAssignedIdentityAuthInfo: %+v", err)
 	}
+
 	decoded["authType"] = "userAssignedIdentity"
 
 	encoded, err = json.Marshal(decoded)

@@ -49,7 +49,6 @@ func (c ManagedEnvironmentsClient) ManagedCertificatesUpdate(ctx context.Context
 
 	var model ManagedCertificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

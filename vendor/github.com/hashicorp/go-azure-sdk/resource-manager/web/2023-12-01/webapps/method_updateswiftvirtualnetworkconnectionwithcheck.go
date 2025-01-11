@@ -51,7 +51,6 @@ func (c WebAppsClient) UpdateSwiftVirtualNetworkConnectionWithCheck(ctx context.
 
 	var model SwiftVirtualNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

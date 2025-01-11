@@ -51,7 +51,6 @@ func (c TableServicePropertiesClient) TableServicesSetServiceProperties(ctx cont
 
 	var model TableServiceProperties
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

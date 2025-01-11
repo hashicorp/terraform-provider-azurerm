@@ -51,7 +51,6 @@ func (c SapLandscapeMonitorClient) Create(ctx context.Context, id MonitorId, inp
 
 	var model SapLandscapeMonitor
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

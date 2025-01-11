@@ -15,7 +15,7 @@ type SoftwareUpdateConfigurationMachineRunClient struct {
 }
 
 func NewSoftwareUpdateConfigurationMachineRunClientWithBaseURI(sdkApi sdkEnv.Api) (*SoftwareUpdateConfigurationMachineRunClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "softwareupdateconfigurationmachinerun", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "softwareupdateconfigurationmachinerun", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SoftwareUpdateConfigurationMachineRunClient: %+v", err)
 	}

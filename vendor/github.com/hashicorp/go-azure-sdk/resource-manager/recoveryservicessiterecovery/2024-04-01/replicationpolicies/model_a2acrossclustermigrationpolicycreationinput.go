@@ -13,6 +13,14 @@ var _ PolicyProviderSpecificInput = A2ACrossClusterMigrationPolicyCreationInput{
 type A2ACrossClusterMigrationPolicyCreationInput struct {
 
 	// Fields inherited from PolicyProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ACrossClusterMigrationPolicyCreationInput) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return BasePolicyProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ACrossClusterMigrationPolicyCreationInput{}
@@ -26,9 +34,10 @@ func (s A2ACrossClusterMigrationPolicyCreationInput) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ACrossClusterMigrationPolicyCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2ACrossClusterMigration"
 
 	encoded, err = json.Marshal(decoded)

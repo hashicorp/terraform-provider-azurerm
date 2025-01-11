@@ -15,7 +15,7 @@ type TopicTypesClient struct {
 }
 
 func NewTopicTypesClientWithBaseURI(sdkApi sdkEnv.Api) (*TopicTypesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "topictypes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "topictypes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TopicTypesClient: %+v", err)
 	}

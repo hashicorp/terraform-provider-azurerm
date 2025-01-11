@@ -13,7 +13,16 @@ var _ OneLakeArtifact = LakeHouseArtifact{}
 type LakeHouseArtifact struct {
 
 	// Fields inherited from OneLakeArtifact
-	ArtifactName string `json:"artifactName"`
+
+	ArtifactName string              `json:"artifactName"`
+	ArtifactType OneLakeArtifactType `json:"artifactType"`
+}
+
+func (s LakeHouseArtifact) OneLakeArtifact() BaseOneLakeArtifactImpl {
+	return BaseOneLakeArtifactImpl{
+		ArtifactName: s.ArtifactName,
+		ArtifactType: s.ArtifactType,
+	}
 }
 
 var _ json.Marshaler = LakeHouseArtifact{}
@@ -27,9 +36,10 @@ func (s LakeHouseArtifact) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LakeHouseArtifact: %+v", err)
 	}
+
 	decoded["artifactType"] = "LakeHouse"
 
 	encoded, err = json.Marshal(decoded)

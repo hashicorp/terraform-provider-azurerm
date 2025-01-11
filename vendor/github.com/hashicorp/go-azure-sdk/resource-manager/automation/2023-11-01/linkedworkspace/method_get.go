@@ -46,7 +46,6 @@ func (c LinkedWorkspaceClient) Get(ctx context.Context, id AutomationAccountId) 
 
 	var model LinkedWorkspace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

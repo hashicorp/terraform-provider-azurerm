@@ -10,8 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-type optionalToRequired struct {
-}
+type optionalToRequired struct{}
 
 var _ BreakingChangeRule = optionalToRequired{}
 

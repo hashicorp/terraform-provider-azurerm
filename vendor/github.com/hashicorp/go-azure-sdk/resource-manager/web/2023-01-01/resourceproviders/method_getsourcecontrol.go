@@ -45,7 +45,6 @@ func (c ResourceProvidersClient) GetSourceControl(ctx context.Context, id Source
 
 	var model SourceControl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

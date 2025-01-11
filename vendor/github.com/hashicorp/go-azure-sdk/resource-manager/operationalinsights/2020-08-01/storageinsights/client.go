@@ -15,7 +15,7 @@ type StorageInsightsClient struct {
 }
 
 func NewStorageInsightsClientWithBaseURI(sdkApi sdkEnv.Api) (*StorageInsightsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "storageinsights", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "storageinsights", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StorageInsightsClient: %+v", err)
 	}

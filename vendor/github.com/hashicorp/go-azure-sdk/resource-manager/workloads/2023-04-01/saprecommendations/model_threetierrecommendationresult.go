@@ -19,6 +19,14 @@ type ThreeTierRecommendationResult struct {
 	DbVMSku                        *string `json:"dbVmSku,omitempty"`
 
 	// Fields inherited from SAPSizingRecommendationResult
+
+	DeploymentType SAPDeploymentType `json:"deploymentType"`
+}
+
+func (s ThreeTierRecommendationResult) SAPSizingRecommendationResult() BaseSAPSizingRecommendationResultImpl {
+	return BaseSAPSizingRecommendationResultImpl{
+		DeploymentType: s.DeploymentType,
+	}
 }
 
 var _ json.Marshaler = ThreeTierRecommendationResult{}
@@ -32,9 +40,10 @@ func (s ThreeTierRecommendationResult) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ThreeTierRecommendationResult: %+v", err)
 	}
+
 	decoded["deploymentType"] = "ThreeTier"
 
 	encoded, err = json.Marshal(decoded)

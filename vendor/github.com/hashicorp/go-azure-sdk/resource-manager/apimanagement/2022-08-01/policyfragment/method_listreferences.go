@@ -40,6 +40,7 @@ func (o ListReferencesOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListReferencesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

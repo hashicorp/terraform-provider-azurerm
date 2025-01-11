@@ -27,7 +27,6 @@ func TestPlanID(t *testing.T) {
 		Error    bool
 		Expected *PlanId
 	}{
-
 		{
 			// empty
 			Input: "",

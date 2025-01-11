@@ -15,7 +15,7 @@ type ConfigurationStoresClient struct {
 }
 
 func NewConfigurationStoresClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfigurationStoresClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "configurationstores", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "configurationstores", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfigurationStoresClient: %+v", err)
 	}

@@ -27,7 +27,6 @@ func TestWorkspaceSqlAADAdminID(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceSqlAADAdminId
 	}{
-
 		{
 			// empty
 			Input: "",

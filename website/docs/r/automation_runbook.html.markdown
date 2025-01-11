@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `job_schedule` - (Optional) One or more `job_schedule` block as defined below.
 
-~> **NOTE** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schdule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
+~> **NOTE** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schedule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
 
 ---
 

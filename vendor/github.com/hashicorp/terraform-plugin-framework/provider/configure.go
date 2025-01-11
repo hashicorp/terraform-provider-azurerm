@@ -8,6 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// ConfigureProviderClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ConfigureProvider RPC,
+// such as forward-compatible Terraform behavior changes.
+type ConfigureProviderClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	DeferralAllowed bool
+}
+
 // ConfigureRequest represents a request containing the values the user
 // specified for the provider configuration block, along with other runtime
 // information from Terraform or the Plugin SDK. An instance of this request
@@ -24,6 +36,10 @@ type ConfigureRequest struct {
 	// that's implementing the Provider interface, for use in later
 	// resource CRUD operations.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ConfigureProvider RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities ConfigureProviderClientCapabilities
 }
 
 // ConfigureResponse represents a response to a
@@ -45,4 +61,19 @@ type ConfigureResponse struct {
 	// to [resource.ConfigureRequest.ProviderData] for each Resource type
 	// that implements the Configure method.
 	ResourceData any
+
+	// EphemeralResourceData is provider-defined data, clients, etc. that is
+	// passed to [ephemeral.ConfigureRequest.ProviderData] for each
+	// EphemeralResource type that implements the Configure method.
+	EphemeralResourceData any
+
+	// Deferred indicates that Terraform should automatically defer
+	// all resources and data sources for this provider.
+	//
+	// This field can only be set if
+	// `(provider.ConfigureRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	Deferred *Deferred
 }

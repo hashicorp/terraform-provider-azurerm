@@ -37,6 +37,7 @@ func (o DeleteImmutabilityPolicyOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteImmutabilityPolicyOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context, id c
 
 	var model ImmutabilityPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

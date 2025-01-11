@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FabricSpecificCreationInput interface {
+	FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl
 }
 
-// RawFabricSpecificCreationInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ FabricSpecificCreationInput = BaseFabricSpecificCreationInputImpl{}
+
+type BaseFabricSpecificCreationInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseFabricSpecificCreationInputImpl) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
+	return s
+}
+
+var _ FabricSpecificCreationInput = RawFabricSpecificCreationInputImpl{}
+
+// RawFabricSpecificCreationInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawFabricSpecificCreationInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	fabricSpecificCreationInput BaseFabricSpecificCreationInputImpl
+	Type                        string
+	Values                      map[string]interface{}
 }
 
-func unmarshalFabricSpecificCreationInputImplementation(input []byte) (FabricSpecificCreationInput, error) {
+func (s RawFabricSpecificCreationInputImpl) FabricSpecificCreationInput() BaseFabricSpecificCreationInputImpl {
+	return s.fabricSpecificCreationInput
+}
+
+func UnmarshalFabricSpecificCreationInputImplementation(input []byte) (FabricSpecificCreationInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalFabricSpecificCreationInputImplementation(input []byte) (FabricSpe
 		return nil, fmt.Errorf("unmarshaling FabricSpecificCreationInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Azure") {
@@ -60,10 +77,15 @@ func unmarshalFabricSpecificCreationInputImplementation(input []byte) (FabricSpe
 		return out, nil
 	}
 
-	out := RawFabricSpecificCreationInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseFabricSpecificCreationInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseFabricSpecificCreationInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawFabricSpecificCreationInputImpl{
+		fabricSpecificCreationInput: parent,
+		Type:                        value,
+		Values:                      temp,
+	}, nil
 
 }

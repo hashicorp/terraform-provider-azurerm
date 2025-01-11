@@ -37,7 +37,6 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_basic(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
@@ -57,7 +56,6 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_complete(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
@@ -91,7 +89,6 @@ func TestAccNextGenerationFirewallVNetPanoramaResource_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

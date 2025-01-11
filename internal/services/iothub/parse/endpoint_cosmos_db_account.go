@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -35,7 +36,7 @@ func (id EndpointCosmosDBAccountId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Endpoint Cosmos D B Account", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Endpoint CosmosDB Account", segmentsStr)
 }
 
 func (id EndpointCosmosDBAccountId) ID() string {
@@ -56,11 +57,11 @@ func EndpointCosmosDBAccountID(input string) (*EndpointCosmosDBAccountId, error)
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.IotHubName, err = id.PopSegment("iotHubs"); err != nil {
@@ -95,11 +96,11 @@ func EndpointCosmosDBAccountIDInsensitively(input string) (*EndpointCosmosDBAcco
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'iotHubs' segment

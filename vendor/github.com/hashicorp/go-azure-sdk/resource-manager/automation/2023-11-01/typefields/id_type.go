@@ -46,7 +46,7 @@ func ParseTypeID(input string) (*TypeId, error) {
 	}
 
 	id := TypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseTypeIDInsensitively(input string) (*TypeId, error) {
 	}
 
 	id := TypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id TypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticModules", "modules", "modules"),
-		resourceids.UserSpecifiedSegment("moduleName", "moduleValue"),
+		resourceids.UserSpecifiedSegment("moduleName", "moduleName"),
 		resourceids.StaticSegment("staticTypes", "types", "types"),
-		resourceids.UserSpecifiedSegment("typeName", "typeValue"),
+		resourceids.UserSpecifiedSegment("typeName", "typeName"),
 	}
 }
 

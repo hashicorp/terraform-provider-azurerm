@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/softwareupdateconfigurationmachinerun` Documentation
 
-The `softwareupdateconfigurationmachinerun` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2023-11-01`).
+The `softwareupdateconfigurationmachinerun` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfigurationmachinerun.NewSoftwareUpdateConfigurationMachineRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "softwareUpdateConfigurationMachineRunIdValue")
+id := softwareupdateconfigurationmachinerun.NewSoftwareUpdateConfigurationMachineRunID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "softwareUpdateConfigurationMachineRunId")
 
 read, err := client.GetById(ctx, id, softwareupdateconfigurationmachinerun.DefaultGetByIdOperationOptions())
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := softwareupdateconfigurationmachinerun.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := softwareupdateconfigurationmachinerun.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 // alternatively `client.List(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())

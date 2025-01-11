@@ -288,7 +288,7 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 }
 
 func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
-	var outputList []inboundendpoints.IPConfiguration
+	outputList := make([]inboundendpoints.IPConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := inboundendpoints.IPConfiguration{}
@@ -320,11 +320,11 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 }
 
 func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
-	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList
+		return []IPConfigurationModel{}
 	}
 
+	outputList := make([]IPConfigurationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := IPConfigurationModel{}
 

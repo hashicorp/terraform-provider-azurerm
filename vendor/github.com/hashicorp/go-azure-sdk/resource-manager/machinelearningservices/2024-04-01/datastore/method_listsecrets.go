@@ -16,7 +16,7 @@ import (
 type ListSecretsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DatastoreSecrets
+	Model        DatastoreSecrets
 }
 
 // ListSecrets ...
@@ -49,11 +49,11 @@ func (c DatastoreClient) ListSecrets(ctx context.Context, id DataStoreId) (resul
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDatastoreSecretsImplementation(respObj)
+	model, err := UnmarshalDatastoreSecretsImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

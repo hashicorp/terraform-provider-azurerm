@@ -19,10 +19,14 @@ type CredentialResource struct {
 var _ json.Unmarshaler = &CredentialResource{}
 
 func (s *CredentialResource) UnmarshalJSON(bytes []byte) error {
-	type alias CredentialResource
-	var decoded alias
+	var decoded struct {
+		Etag *string `json:"etag,omitempty"`
+		Id   *string `json:"id,omitempty"`
+		Name *string `json:"name,omitempty"`
+		Type *string `json:"type,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into CredentialResource: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Etag = decoded.Etag
@@ -36,11 +40,12 @@ func (s *CredentialResource) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalCredentialImplementation(v)
+		impl, err := UnmarshalCredentialImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'CredentialResource': %+v", err)
 		}
 		s.Properties = impl
 	}
+
 	return nil
 }

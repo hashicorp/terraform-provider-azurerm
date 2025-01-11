@@ -49,7 +49,6 @@ func (c AccountsClient) Update(ctx context.Context, id AccountId, input MapsAcco
 
 	var model MapsAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

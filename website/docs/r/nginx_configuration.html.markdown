@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name      = azurerm_resource_group.example.name
   sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
   location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
   diagnose_support_enabled = true
 
   frontend_public {

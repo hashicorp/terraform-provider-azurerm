@@ -18,6 +18,14 @@ type A2APolicyDetails struct {
 	RecoveryPointThresholdInMinutes   *int64  `json:"recoveryPointThresholdInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2APolicyDetails) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return BasePolicyProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2APolicyDetails{}
@@ -31,9 +39,10 @@ func (s A2APolicyDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2APolicyDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

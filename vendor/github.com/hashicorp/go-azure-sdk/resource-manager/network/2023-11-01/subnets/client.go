@@ -15,7 +15,7 @@ type SubnetsClient struct {
 }
 
 func NewSubnetsClientWithBaseURI(sdkApi sdkEnv.Api) (*SubnetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "subnets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "subnets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SubnetsClient: %+v", err)
 	}

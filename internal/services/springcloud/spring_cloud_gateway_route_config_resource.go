@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -18,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
@@ -74,17 +73,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S013
 			"protocol": {
 				Type:     pluginsdk.TypeString,
-				Optional: !features.FourPointOh(),
-				Required: features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOh() {
-						return string(appplatform.GatewayRouteConfigProtocolHTTP)
-					}
-					return nil
-				}(),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.GatewayRouteConfigProtocolHTTP),
 					string(appplatform.GatewayRouteConfigProtocolHTTPS),

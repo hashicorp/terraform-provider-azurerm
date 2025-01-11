@@ -56,9 +56,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.example.name
   name                 = "example-log"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of the Resource for which to enable flow logs for. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
 

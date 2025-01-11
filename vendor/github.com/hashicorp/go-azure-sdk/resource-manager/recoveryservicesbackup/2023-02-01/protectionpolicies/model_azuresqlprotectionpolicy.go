@@ -14,8 +14,18 @@ type AzureSqlProtectionPolicy struct {
 	RetentionPolicy RetentionPolicy `json:"retentionPolicy"`
 
 	// Fields inherited from ProtectionPolicy
+
+	BackupManagementType           string    `json:"backupManagementType"`
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
 	ResourceGuardOperationRequests *[]string `json:"resourceGuardOperationRequests,omitempty"`
+}
+
+func (s AzureSqlProtectionPolicy) ProtectionPolicy() BaseProtectionPolicyImpl {
+	return BaseProtectionPolicyImpl{
+		BackupManagementType:           s.BackupManagementType,
+		ProtectedItemsCount:            s.ProtectedItemsCount,
+		ResourceGuardOperationRequests: s.ResourceGuardOperationRequests,
+	}
 }
 
 var _ json.Marshaler = AzureSqlProtectionPolicy{}
@@ -29,9 +39,10 @@ func (s AzureSqlProtectionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureSqlProtectionPolicy: %+v", err)
 	}
+
 	decoded["backupManagementType"] = "AzureSql"
 
 	encoded, err = json.Marshal(decoded)
@@ -45,12 +56,16 @@ func (s AzureSqlProtectionPolicy) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &AzureSqlProtectionPolicy{}
 
 func (s *AzureSqlProtectionPolicy) UnmarshalJSON(bytes []byte) error {
-	type alias AzureSqlProtectionPolicy
-	var decoded alias
+	var decoded struct {
+		BackupManagementType           string    `json:"backupManagementType"`
+		ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
+		ResourceGuardOperationRequests *[]string `json:"resourceGuardOperationRequests,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureSqlProtectionPolicy: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
+	s.BackupManagementType = decoded.BackupManagementType
 	s.ProtectedItemsCount = decoded.ProtectedItemsCount
 	s.ResourceGuardOperationRequests = decoded.ResourceGuardOperationRequests
 
@@ -60,11 +75,12 @@ func (s *AzureSqlProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["retentionPolicy"]; ok {
-		impl, err := unmarshalRetentionPolicyImplementation(v)
+		impl, err := UnmarshalRetentionPolicyImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'AzureSqlProtectionPolicy': %+v", err)
 		}
 		s.RetentionPolicy = impl
 	}
+
 	return nil
 }

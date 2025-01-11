@@ -4,10 +4,10 @@ package webapps
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type WebSiteInstanceStatusProperties struct {
-	ConsoleUrl     *string                   `json:"consoleUrl,omitempty"`
+	ConsoleURL     *string                   `json:"consoleUrl,omitempty"`
 	Containers     *map[string]ContainerInfo `json:"containers,omitempty"`
-	DetectorUrl    *string                   `json:"detectorUrl,omitempty"`
-	HealthCheckUrl *string                   `json:"healthCheckUrl,omitempty"`
+	DetectorURL    *string                   `json:"detectorUrl,omitempty"`
+	HealthCheckURL *string                   `json:"healthCheckUrl,omitempty"`
 	State          *SiteRuntimeState         `json:"state,omitempty"`
-	StatusUrl      *string                   `json:"statusUrl,omitempty"`
+	StatusURL      *string                   `json:"statusUrl,omitempty"`
 }

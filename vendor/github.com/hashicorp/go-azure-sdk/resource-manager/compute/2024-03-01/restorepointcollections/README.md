@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections` Documentation
 
-The `restorepointcollections` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2024-03-01`).
+The `restorepointcollections` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionValue")
+id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionName")
 
 payload := restorepointcollections.RestorePointCollection{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionValue")
+id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionValue")
+id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionName")
 
 read, err := client.Get(ctx, id, restorepointcollections.DefaultGetOperationOptions())
 if err != nil {
@@ -108,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionValue")
+id := restorepointcollections.NewRestorePointCollectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "restorePointCollectionName")
 
 payload := restorepointcollections.RestorePointCollectionUpdate{
 	// ...

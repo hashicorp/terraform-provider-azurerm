@@ -17,7 +17,9 @@ type Databricks struct {
 	Properties *DatabricksProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Compute
+
 	ComputeLocation    *string            `json:"computeLocation,omitempty"`
+	ComputeType        ComputeType        `json:"computeType"`
 	CreatedOn          *string            `json:"createdOn,omitempty"`
 	Description        *string            `json:"description,omitempty"`
 	DisableLocalAuth   *bool              `json:"disableLocalAuth,omitempty"`
@@ -26,6 +28,21 @@ type Databricks struct {
 	ProvisioningErrors *[]ErrorResponse   `json:"provisioningErrors,omitempty"`
 	ProvisioningState  *ProvisioningState `json:"provisioningState,omitempty"`
 	ResourceId         *string            `json:"resourceId,omitempty"`
+}
+
+func (s Databricks) Compute() BaseComputeImpl {
+	return BaseComputeImpl{
+		ComputeLocation:    s.ComputeLocation,
+		ComputeType:        s.ComputeType,
+		CreatedOn:          s.CreatedOn,
+		Description:        s.Description,
+		DisableLocalAuth:   s.DisableLocalAuth,
+		IsAttachedCompute:  s.IsAttachedCompute,
+		ModifiedOn:         s.ModifiedOn,
+		ProvisioningErrors: s.ProvisioningErrors,
+		ProvisioningState:  s.ProvisioningState,
+		ResourceId:         s.ResourceId,
+	}
 }
 
 func (o *Databricks) GetCreatedOnAsTime() (*time.Time, error) {
@@ -63,9 +80,10 @@ func (s Databricks) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling Databricks: %+v", err)
 	}
+
 	decoded["computeType"] = "Databricks"
 
 	encoded, err = json.Marshal(decoded)

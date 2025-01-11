@@ -5,6 +5,7 @@ package appconfiguration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -51,6 +52,14 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 			_, err := configurationstores.ParseConfigurationStoreID(id)
 			return err
 		}),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// sku cannot be downgraded
+			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "premium" || new == "free"
+			}),
+		),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -106,6 +115,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
 					"standard",
+					"premium",
 				}, false),
 			},
 
@@ -289,7 +299,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
 			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+				return errors.New(userIsMissingNecessaryPermission(name, location))
 			}
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
@@ -362,7 +372,6 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err := replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
 			return fmt.Errorf("creating %s: %+v", replicaId, err)
 		}
-
 	}
 
 	return resourceAppConfigurationRead(d, meta)
@@ -925,7 +934,6 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 	}
 
 	return nil
-
 }
 
 func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {

@@ -5,6 +5,7 @@ package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -116,7 +117,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
 			} else {
-				return fmt.Errorf(optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(parsedVmId.ID(), vaultName))
+				return errors.New(optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(parsedVmId.ID(), vaultName))
 			}
 		}
 

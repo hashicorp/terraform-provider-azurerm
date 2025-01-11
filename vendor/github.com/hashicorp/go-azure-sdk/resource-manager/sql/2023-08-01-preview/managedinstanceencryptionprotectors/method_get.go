@@ -47,7 +47,6 @@ func (c ManagedInstanceEncryptionProtectorsClient) Get(ctx context.Context, id c
 
 	var model ManagedInstanceEncryptionProtector
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

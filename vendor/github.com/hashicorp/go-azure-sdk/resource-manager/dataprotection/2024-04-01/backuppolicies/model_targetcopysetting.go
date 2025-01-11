@@ -16,10 +16,11 @@ type TargetCopySetting struct {
 var _ json.Unmarshaler = &TargetCopySetting{}
 
 func (s *TargetCopySetting) UnmarshalJSON(bytes []byte) error {
-	type alias TargetCopySetting
-	var decoded alias
+	var decoded struct {
+		DataStore DataStoreInfoBase `json:"dataStore"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into TargetCopySetting: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DataStore = decoded.DataStore
@@ -30,11 +31,12 @@ func (s *TargetCopySetting) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["copyAfter"]; ok {
-		impl, err := unmarshalCopyOptionImplementation(v)
+		impl, err := UnmarshalCopyOptionImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CopyAfter' for 'TargetCopySetting': %+v", err)
 		}
 		s.CopyAfter = impl
 	}
+
 	return nil
 }

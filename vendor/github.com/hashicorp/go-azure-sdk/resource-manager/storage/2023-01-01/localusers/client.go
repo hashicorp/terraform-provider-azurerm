@@ -15,7 +15,7 @@ type LocalUsersClient struct {
 }
 
 func NewLocalUsersClientWithBaseURI(sdkApi sdkEnv.Api) (*LocalUsersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "localusers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "localusers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LocalUsersClient: %+v", err)
 	}

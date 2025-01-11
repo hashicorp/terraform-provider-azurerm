@@ -15,7 +15,7 @@ type CheckNameAvailabilityDisasterRecoveryConfigsClient struct {
 }
 
 func NewCheckNameAvailabilityDisasterRecoveryConfigsClientWithBaseURI(sdkApi sdkEnv.Api) (*CheckNameAvailabilityDisasterRecoveryConfigsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "checknameavailabilitydisasterrecoveryconfigs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "checknameavailabilitydisasterrecoveryconfigs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CheckNameAvailabilityDisasterRecoveryConfigsClient: %+v", err)
 	}

@@ -46,7 +46,6 @@ func (c StaticSitesClient) GetPrivateLinkResources(ctx context.Context, id Stati
 
 	var model PrivateLinkResourcesWrapper
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

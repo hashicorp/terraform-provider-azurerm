@@ -16,7 +16,16 @@ type ContinuousAction struct {
 	SelectorId string         `json:"selectorId"`
 
 	// Fields inherited from Action
+
 	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (s ContinuousAction) Action() BaseActionImpl {
+	return BaseActionImpl{
+		Name: s.Name,
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = ContinuousAction{}
@@ -30,9 +39,10 @@ func (s ContinuousAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ContinuousAction: %+v", err)
 	}
+
 	decoded["type"] = "continuous"
 
 	encoded, err = json.Marshal(decoded)

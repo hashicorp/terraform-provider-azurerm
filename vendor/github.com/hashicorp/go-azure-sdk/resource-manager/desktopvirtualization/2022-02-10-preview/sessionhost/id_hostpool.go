@@ -42,7 +42,7 @@ func ParseHostPoolID(input string) (*HostPoolId, error) {
 	}
 
 	id := HostPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseHostPoolIDInsensitively(input string) (*HostPoolId, error) {
 	}
 
 	id := HostPoolId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id HostPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticHostPools", "hostPools", "hostPools"),
-		resourceids.UserSpecifiedSegment("hostPoolName", "hostPoolValue"),
+		resourceids.UserSpecifiedSegment("hostPoolName", "hostPoolName"),
 	}
 }
 

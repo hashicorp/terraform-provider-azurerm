@@ -10,5 +10,5 @@ type SourceTriggerDescriptor struct {
 	Id            *string `json:"id,omitempty"`
 	ProviderType  *string `json:"providerType,omitempty"`
 	PullRequestId *string `json:"pullRequestId,omitempty"`
-	RepositoryUrl *string `json:"repositoryUrl,omitempty"`
+	RepositoryURL *string `json:"repositoryUrl,omitempty"`
 }

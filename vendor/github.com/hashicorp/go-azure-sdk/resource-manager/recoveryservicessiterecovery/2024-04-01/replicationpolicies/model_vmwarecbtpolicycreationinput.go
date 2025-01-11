@@ -16,6 +16,14 @@ type VMwareCbtPolicyCreationInput struct {
 	RecoveryPointHistoryInMinutes     *int64 `json:"recoveryPointHistoryInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMwareCbtPolicyCreationInput) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return BasePolicyProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMwareCbtPolicyCreationInput{}
@@ -29,9 +37,10 @@ func (s VMwareCbtPolicyCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMwareCbtPolicyCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMwareCbt"
 
 	encoded, err = json.Marshal(decoded)

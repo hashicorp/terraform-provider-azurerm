@@ -77,6 +77,7 @@ func (i diffWithMessage) Fix(line string) (string, error) {
 func (i diffWithMessage) String() string {
 	return i.msg
 }
+
 func (i diffWithMessage) ShouldSkip() bool {
 	return i.skip
 }

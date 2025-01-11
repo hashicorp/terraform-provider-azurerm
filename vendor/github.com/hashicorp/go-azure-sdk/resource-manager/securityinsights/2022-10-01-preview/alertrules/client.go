@@ -15,7 +15,7 @@ type AlertRulesClient struct {
 }
 
 func NewAlertRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*AlertRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "alertrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "alertrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AlertRulesClient: %+v", err)
 	}

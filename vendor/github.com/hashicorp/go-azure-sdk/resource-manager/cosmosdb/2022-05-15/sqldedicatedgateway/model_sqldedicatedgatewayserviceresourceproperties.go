@@ -18,10 +18,22 @@ type SqlDedicatedGatewayServiceResourceProperties struct {
 	SqlDedicatedGatewayEndpoint *string                                       `json:"sqlDedicatedGatewayEndpoint,omitempty"`
 
 	// Fields inherited from ServiceResourceProperties
+
 	CreationTime  *string        `json:"creationTime,omitempty"`
 	InstanceCount *int64         `json:"instanceCount,omitempty"`
 	InstanceSize  *ServiceSize   `json:"instanceSize,omitempty"`
+	ServiceType   ServiceType    `json:"serviceType"`
 	Status        *ServiceStatus `json:"status,omitempty"`
+}
+
+func (s SqlDedicatedGatewayServiceResourceProperties) ServiceResourceProperties() BaseServiceResourcePropertiesImpl {
+	return BaseServiceResourcePropertiesImpl{
+		CreationTime:  s.CreationTime,
+		InstanceCount: s.InstanceCount,
+		InstanceSize:  s.InstanceSize,
+		ServiceType:   s.ServiceType,
+		Status:        s.Status,
+	}
 }
 
 func (o *SqlDedicatedGatewayServiceResourceProperties) GetCreationTimeAsTime() (*time.Time, error) {
@@ -47,9 +59,10 @@ func (s SqlDedicatedGatewayServiceResourceProperties) MarshalJSON() ([]byte, err
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SqlDedicatedGatewayServiceResourceProperties: %+v", err)
 	}
+
 	decoded["serviceType"] = "SqlDedicatedGateway"
 
 	encoded, err = json.Marshal(decoded)

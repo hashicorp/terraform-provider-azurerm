@@ -42,7 +42,7 @@ func ParseLedgerID(input string) (*LedgerId, error) {
 	}
 
 	id := LedgerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseLedgerIDInsensitively(input string) (*LedgerId, error) {
 	}
 
 	id := LedgerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id LedgerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftConfidentialLedger", "Microsoft.ConfidentialLedger", "Microsoft.ConfidentialLedger"),
 		resourceids.StaticSegment("staticLedgers", "ledgers", "ledgers"),
-		resourceids.UserSpecifiedSegment("ledgerName", "ledgerValue"),
+		resourceids.UserSpecifiedSegment("ledgerName", "ledgerName"),
 	}
 }
 

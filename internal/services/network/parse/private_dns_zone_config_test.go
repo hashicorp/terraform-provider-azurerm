@@ -27,7 +27,6 @@ func TestPrivateDnsZoneConfigID(t *testing.T) {
 		Error    bool
 		Expected *PrivateDnsZoneConfigId
 	}{
-
 		{
 			// empty
 			Input: "",

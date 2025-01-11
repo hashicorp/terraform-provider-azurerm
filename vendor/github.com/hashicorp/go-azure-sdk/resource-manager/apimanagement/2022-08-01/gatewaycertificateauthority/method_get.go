@@ -45,7 +45,6 @@ func (c GatewayCertificateAuthorityClient) Get(ctx context.Context, id Certifica
 
 	var model GatewayCertificateAuthorityContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

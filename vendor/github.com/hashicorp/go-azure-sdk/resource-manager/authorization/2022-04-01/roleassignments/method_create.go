@@ -50,7 +50,6 @@ func (c RoleAssignmentsClient) Create(ctx context.Context, id ScopedRoleAssignme
 
 	var model RoleAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

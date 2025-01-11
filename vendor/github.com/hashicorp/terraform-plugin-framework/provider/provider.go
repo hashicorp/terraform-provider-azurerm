@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -83,6 +84,24 @@ type ProviderWithFunctions interface {
 	// The function name is determined by the Function implementing its Metadata
 	// method. All functions must have unique names.
 	Functions(context.Context) []func() function.Function
+}
+
+// ProviderWithEphemeralResources is an interface type that extends Provider to
+// include ephemeral resources for usage in practitioner configurations.
+//
+// Ephemeral resources are supported in Terraform version 1.10 and later.
+//
+// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
+// these notices are removed.
+type ProviderWithEphemeralResources interface {
+	Provider
+
+	// EphemeralResources returns a slice of functions to instantiate each EphemeralResource
+	// implementation.
+	//
+	// The ephemeral resource type name is determined by the EphemeralResource implementing
+	// the Metadata method. All ephemeral resources must have unique names.
+	EphemeralResources(context.Context) []func() ephemeral.EphemeralResource
 }
 
 // ProviderWithMetaSchema is a provider with a provider meta schema, which

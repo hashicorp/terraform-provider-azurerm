@@ -50,7 +50,6 @@ func (c ManagedEnvironmentsClient) NamespacesCheckNameAvailability(ctx context.C
 
 	var model CheckNameAvailabilityResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

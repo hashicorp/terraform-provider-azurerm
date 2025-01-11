@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EventListenerFilter interface {
+	EventListenerFilter() BaseEventListenerFilterImpl
 }
 
-// RawEventListenerFilterImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EventListenerFilter = BaseEventListenerFilterImpl{}
+
+type BaseEventListenerFilterImpl struct {
+	Type EventListenerFilterDiscriminator `json:"type"`
+}
+
+func (s BaseEventListenerFilterImpl) EventListenerFilter() BaseEventListenerFilterImpl {
+	return s
+}
+
+var _ EventListenerFilter = RawEventListenerFilterImpl{}
+
+// RawEventListenerFilterImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEventListenerFilterImpl struct {
-	Type   string
-	Values map[string]interface{}
+	eventListenerFilter BaseEventListenerFilterImpl
+	Type                string
+	Values              map[string]interface{}
 }
 
-func unmarshalEventListenerFilterImplementation(input []byte) (EventListenerFilter, error) {
+func (s RawEventListenerFilterImpl) EventListenerFilter() BaseEventListenerFilterImpl {
+	return s.eventListenerFilter
+}
+
+func UnmarshalEventListenerFilterImplementation(input []byte) (EventListenerFilter, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalEventListenerFilterImplementation(input []byte) (EventListenerFilt
 		return nil, fmt.Errorf("unmarshaling EventListenerFilter into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "EventName") {
@@ -44,10 +61,15 @@ func unmarshalEventListenerFilterImplementation(input []byte) (EventListenerFilt
 		return out, nil
 	}
 
-	out := RawEventListenerFilterImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEventListenerFilterImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEventListenerFilterImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEventListenerFilterImpl{
+		eventListenerFilter: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

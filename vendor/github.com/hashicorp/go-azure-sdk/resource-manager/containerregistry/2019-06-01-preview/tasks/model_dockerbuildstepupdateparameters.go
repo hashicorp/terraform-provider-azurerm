@@ -19,8 +19,18 @@ type DockerBuildStepUpdateParameters struct {
 	Target         *string     `json:"target,omitempty"`
 
 	// Fields inherited from TaskStepUpdateParameters
-	ContextAccessToken *string `json:"contextAccessToken,omitempty"`
-	ContextPath        *string `json:"contextPath,omitempty"`
+
+	ContextAccessToken *string  `json:"contextAccessToken,omitempty"`
+	ContextPath        *string  `json:"contextPath,omitempty"`
+	Type               StepType `json:"type"`
+}
+
+func (s DockerBuildStepUpdateParameters) TaskStepUpdateParameters() BaseTaskStepUpdateParametersImpl {
+	return BaseTaskStepUpdateParametersImpl{
+		ContextAccessToken: s.ContextAccessToken,
+		ContextPath:        s.ContextPath,
+		Type:               s.Type,
+	}
 }
 
 var _ json.Marshaler = DockerBuildStepUpdateParameters{}
@@ -34,9 +44,10 @@ func (s DockerBuildStepUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DockerBuildStepUpdateParameters: %+v", err)
 	}
+
 	decoded["type"] = "Docker"
 
 	encoded, err = json.Marshal(decoded)

@@ -17,6 +17,14 @@ type InMagePolicyInput struct {
 	RecoveryPointThresholdInMinutes *int64               `json:"recoveryPointThresholdInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMagePolicyInput) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return BasePolicyProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMagePolicyInput{}
@@ -30,9 +38,10 @@ func (s InMagePolicyInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMagePolicyInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMage"
 
 	encoded, err = json.Marshal(decoded)

@@ -42,7 +42,7 @@ func ParseProviderConfigurationAssignmentID(input string) (*ProviderConfiguratio
 	}
 
 	id := ProviderConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseProviderConfigurationAssignmentIDInsensitively(input string) (*Provide
 	}
 
 	id := ProviderConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ProviderConfigurationAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticConfigurationAssignments", "configurationAssignments", "configurationAssignments"),
-		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentValue"),
+		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentName"),
 	}
 }
 

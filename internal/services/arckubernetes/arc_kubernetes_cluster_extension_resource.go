@@ -149,7 +149,6 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
-
 }
 
 func (r ArcKubernetesClusterExtensionResource) Attributes() map[string]*pluginsdk.Schema {

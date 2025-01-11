@@ -41,6 +41,7 @@ func (o TagListByProductOperationOptions) ToHeaders() *client.Headers {
 
 func (o TagListByProductOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

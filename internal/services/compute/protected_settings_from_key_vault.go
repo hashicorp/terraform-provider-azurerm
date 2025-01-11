@@ -47,7 +47,7 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachineext
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachineextensions.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachineextensions.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -62,7 +62,7 @@ func expandProtectedSettingsFromKeyVaultVMSS(input []interface{}) *virtualmachin
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachinescalesets.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachinescalesets.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -77,7 +77,7 @@ func expandProtectedSettingsFromKeyVaultOldVMSSExtension(input []interface{}) *v
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachinescalesetextensions.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachinescalesetextensions.SubResource{
 			Id: pointer.To(v["source_vault_id"].(string)),
 		},
@@ -96,7 +96,7 @@ func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVau
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}
@@ -114,7 +114,7 @@ func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.Key
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}
@@ -132,7 +132,7 @@ func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachines
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}

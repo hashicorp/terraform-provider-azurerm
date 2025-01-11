@@ -15,7 +15,7 @@ type DiagnosticSettingsCategoriesClient struct {
 }
 
 func NewDiagnosticSettingsCategoriesClientWithBaseURI(sdkApi sdkEnv.Api) (*DiagnosticSettingsCategoriesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "diagnosticsettingscategories", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "diagnosticsettingscategories", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DiagnosticSettingsCategoriesClient: %+v", err)
 	}

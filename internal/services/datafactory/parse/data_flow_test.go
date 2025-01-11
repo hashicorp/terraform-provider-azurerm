@@ -27,7 +27,6 @@ func TestDataFlowID(t *testing.T) {
 		Error    bool
 		Expected *DataFlowId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/testlines` Documentation
 
-The `testlines` SDK allows for interaction with the Azure Resource Manager Service `voiceservices` (API Version `2023-04-03`).
+The `testlines` SDK allows for interaction with Azure Resource Manager `voiceservices` (API Version `2023-04-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayValue", "testLineValue")
+id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayName", "testLineName")
 
 payload := testlines.TestLine{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayValue", "testLineValue")
+id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayName", "testLineName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayValue", "testLineValue")
+id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayName", "testLineName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := testlines.NewCommunicationsGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayValue")
+id := testlines.NewCommunicationsGatewayID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayName")
 
 // alternatively `client.ListByCommunicationsGateway(ctx, id)` can be used to do batched pagination
 items, err := client.ListByCommunicationsGatewayComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayValue", "testLineValue")
+id := testlines.NewTestLineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationsGatewayName", "testLineName")
 
 payload := testlines.TestLineUpdate{
 	// ...

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -121,9 +120,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		// lintignore:S013
 		"shutdown_recovery_group": {
 			Type:     pluginsdk.TypeList,
-			Required: features.FourPointOhBeta(),
-			Optional: !features.FourPointOhBeta(),
-			Computed: !features.FourPointOhBeta(),
+			Required: true,
 			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -146,9 +143,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		// lintignore:S013
 		"failover_recovery_group": {
 			Type:     pluginsdk.TypeList,
-			Required: features.FourPointOhBeta(),
-			Optional: !features.FourPointOhBeta(),
-			Computed: !features.FourPointOhBeta(),
+			Required: true,
 			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -171,9 +166,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		// lintignore:S013
 		"boot_recovery_group": {
 			Type:     pluginsdk.TypeList,
-			Required: features.FourPointOhBeta(),
-			Optional: !features.FourPointOhBeta(),
-			Computed: !features.FourPointOhBeta(),
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -202,52 +195,6 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Arguments() map[string]*plu
 		},
 
 		"azure_to_azure_settings": replicationRecoveryPlanA2ASchema(),
-	}
-
-	if !features.FourPointOhBeta() {
-		schema["recovery_group"] = &pluginsdk.Schema{
-			Deprecated: "the `recovery_group` block has been deprecated in favour of the `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group` and will be removed in version 4.0 of the provider.",
-			Type:       pluginsdk.TypeSet,
-			Optional:   true,
-			Computed:   true,
-			MinItems:   3,
-			ConflictsWith: []string{
-				"shutdown_recovery_group",
-				"failover_recovery_group",
-				"boot_recovery_group",
-			},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(replicationrecoveryplans.RecoveryPlanGroupTypeBoot),
-							string(replicationrecoveryplans.RecoveryPlanGroupTypeShutdown),
-							string(replicationrecoveryplans.RecoveryPlanGroupTypeFailover),
-						}, false),
-					},
-					"replicated_protected_items": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-					"pre_action": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     replicationRecoveryPlanActionSchema(),
-					},
-					"post_action": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						Elem:     replicationRecoveryPlanActionSchema(),
-					},
-				},
-			},
-		}
 	}
 
 	return schema
@@ -434,7 +381,7 @@ func (r SiteRecoveryReplicationRecoveryPlanResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if model.A2ASettings != nil && len(model.A2ASettings) == 1 {
+			if len(model.A2ASettings) == 1 {
 				parameters.Properties.ProviderSpecificInput = expandA2ASettings(model.A2ASettings[0])
 			}
 
@@ -618,7 +565,6 @@ func expandRecoveryGroup(input []RecoveryGroupModel) ([]replicationrecoveryplans
 			StartGroupActions:         &preActions,
 			EndGroupActions:           &postActions,
 		})
-
 	}
 	return output, nil
 }
@@ -755,7 +701,6 @@ func validateRecoveryGroup(input []RecoveryGroupModel) (bool, error) {
 				return false, fmt.Errorf("`fabric_location` must not be specified for `recovery_group` with `ManualActionDetails` type.")
 			}
 		}
-
 	}
 
 	if bootCount == 0 || shutdownCount == 0 || failoverCount == 0 {

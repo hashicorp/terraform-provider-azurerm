@@ -14,7 +14,16 @@ type StringNotInAdvancedFilter struct {
 	Values *[]string `json:"values,omitempty"`
 
 	// Fields inherited from AdvancedFilter
-	Key *string `json:"key,omitempty"`
+
+	Key          *string                    `json:"key,omitempty"`
+	OperatorType AdvancedFilterOperatorType `json:"operatorType"`
+}
+
+func (s StringNotInAdvancedFilter) AdvancedFilter() BaseAdvancedFilterImpl {
+	return BaseAdvancedFilterImpl{
+		Key:          s.Key,
+		OperatorType: s.OperatorType,
+	}
 }
 
 var _ json.Marshaler = StringNotInAdvancedFilter{}
@@ -28,9 +37,10 @@ func (s StringNotInAdvancedFilter) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StringNotInAdvancedFilter: %+v", err)
 	}
+
 	decoded["operatorType"] = "StringNotIn"
 
 	encoded, err = json.Marshal(decoded)

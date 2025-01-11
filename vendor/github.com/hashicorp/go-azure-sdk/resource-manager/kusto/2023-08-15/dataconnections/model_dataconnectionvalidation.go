@@ -16,10 +16,11 @@ type DataConnectionValidation struct {
 var _ json.Unmarshaler = &DataConnectionValidation{}
 
 func (s *DataConnectionValidation) UnmarshalJSON(bytes []byte) error {
-	type alias DataConnectionValidation
-	var decoded alias
+	var decoded struct {
+		DataConnectionName *string `json:"dataConnectionName,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into DataConnectionValidation: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DataConnectionName = decoded.DataConnectionName
@@ -30,11 +31,12 @@ func (s *DataConnectionValidation) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["properties"]; ok {
-		impl, err := unmarshalDataConnectionImplementation(v)
+		impl, err := UnmarshalDataConnectionImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Properties' for 'DataConnectionValidation': %+v", err)
 		}
 		s.Properties = impl
 	}
+
 	return nil
 }

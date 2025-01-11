@@ -14,6 +14,14 @@ type EventHubStreamInputDataSource struct {
 	Properties *EventHubStreamInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from StreamInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s EventHubStreamInputDataSource) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return BaseStreamInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = EventHubStreamInputDataSource{}
@@ -27,9 +35,10 @@ func (s EventHubStreamInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubStreamInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.ServiceBus/EventHub"
 
 	encoded, err = json.Marshal(decoded)

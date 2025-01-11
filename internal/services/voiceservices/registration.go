@@ -9,9 +9,7 @@ import (
 
 type Registration struct{}
 
-var (
-	_ sdk.TypedServiceRegistration = Registration{}
-)
+var _ sdk.TypedServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {

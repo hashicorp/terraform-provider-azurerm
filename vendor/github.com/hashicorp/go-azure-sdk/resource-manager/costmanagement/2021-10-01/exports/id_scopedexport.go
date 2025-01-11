@@ -40,7 +40,7 @@ func ParseScopedExportID(input string) (*ScopedExportId, error) {
 	}
 
 	id := ScopedExportId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedExportIDInsensitively(input string) (*ScopedExportId, error) {
 	}
 
 	id := ScopedExportId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedExportId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCostManagement", "Microsoft.CostManagement", "Microsoft.CostManagement"),
 		resourceids.StaticSegment("staticExports", "exports", "exports"),
-		resourceids.UserSpecifiedSegment("exportName", "exportValue"),
+		resourceids.UserSpecifiedSegment("exportName", "exportName"),
 	}
 }
 

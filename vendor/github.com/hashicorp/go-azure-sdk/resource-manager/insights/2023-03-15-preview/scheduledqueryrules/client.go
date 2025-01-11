@@ -15,7 +15,7 @@ type ScheduledQueryRulesClient struct {
 }
 
 func NewScheduledQueryRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*ScheduledQueryRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scheduledqueryrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scheduledqueryrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScheduledQueryRulesClient: %+v", err)
 	}

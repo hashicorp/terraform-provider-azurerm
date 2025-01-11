@@ -6,11 +6,12 @@ package proto5server
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // PlanResourceChange satisfies the tfprotov5.ProviderServer interface.
@@ -44,7 +45,15 @@ func (s *Server) PlanResourceChange(ctx context.Context, proto5Req *tfprotov5.Pl
 		return toproto5.PlanResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.PlanResourceChangeRequest(ctx, proto5Req, resource, resourceSchema, providerMetaSchema)
+	resourceBehavior, diags := s.FrameworkServer.ResourceBehavior(ctx, proto5Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto5.PlanResourceChangeResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto5.PlanResourceChangeRequest(ctx, proto5Req, resource, resourceSchema, providerMetaSchema, resourceBehavior)
 
 	fwResp.Diagnostics.Append(diags...)
 

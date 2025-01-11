@@ -27,7 +27,6 @@ func TestDomainServiceReplicaSetID(t *testing.T) {
 		Error    bool
 		Expected *DomainServiceReplicaSetId
 	}{
-
 		{
 			// empty
 			Input: "",

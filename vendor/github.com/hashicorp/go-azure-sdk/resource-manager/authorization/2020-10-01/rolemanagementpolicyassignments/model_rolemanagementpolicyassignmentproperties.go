@@ -19,10 +19,14 @@ type RoleManagementPolicyAssignmentProperties struct {
 var _ json.Unmarshaler = &RoleManagementPolicyAssignmentProperties{}
 
 func (s *RoleManagementPolicyAssignmentProperties) UnmarshalJSON(bytes []byte) error {
-	type alias RoleManagementPolicyAssignmentProperties
-	var decoded alias
+	var decoded struct {
+		PolicyAssignmentProperties *PolicyAssignmentProperties `json:"policyAssignmentProperties,omitempty"`
+		PolicyId                   *string                     `json:"policyId,omitempty"`
+		RoleDefinitionId           *string                     `json:"roleDefinitionId,omitempty"`
+		Scope                      *string                     `json:"scope,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into RoleManagementPolicyAssignmentProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.PolicyAssignmentProperties = decoded.PolicyAssignmentProperties
@@ -43,7 +47,7 @@ func (s *RoleManagementPolicyAssignmentProperties) UnmarshalJSON(bytes []byte) e
 
 		output := make([]RoleManagementPolicyRule, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalRoleManagementPolicyRuleImplementation(val)
+			impl, err := UnmarshalRoleManagementPolicyRuleImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'EffectiveRules' for 'RoleManagementPolicyAssignmentProperties': %+v", i, err)
 			}
@@ -51,5 +55,6 @@ func (s *RoleManagementPolicyAssignmentProperties) UnmarshalJSON(bytes []byte) e
 		}
 		s.EffectiveRules = &output
 	}
+
 	return nil
 }

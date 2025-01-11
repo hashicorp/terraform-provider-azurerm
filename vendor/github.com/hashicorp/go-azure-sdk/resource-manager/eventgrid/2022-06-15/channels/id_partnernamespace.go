@@ -42,7 +42,7 @@ func ParsePartnerNamespaceID(input string) (*PartnerNamespaceId, error) {
 	}
 
 	id := PartnerNamespaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParsePartnerNamespaceIDInsensitively(input string) (*PartnerNamespaceId, er
 	}
 
 	id := PartnerNamespaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id PartnerNamespaceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerNamespaces", "partnerNamespaces", "partnerNamespaces"),
-		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceValue"),
+		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceName"),
 	}
 }
 

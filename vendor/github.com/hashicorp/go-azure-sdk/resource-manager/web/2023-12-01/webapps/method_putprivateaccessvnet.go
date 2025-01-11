@@ -51,7 +51,6 @@ func (c WebAppsClient) PutPrivateAccessVnet(ctx context.Context, id commonids.Ap
 
 	var model PrivateAccess
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

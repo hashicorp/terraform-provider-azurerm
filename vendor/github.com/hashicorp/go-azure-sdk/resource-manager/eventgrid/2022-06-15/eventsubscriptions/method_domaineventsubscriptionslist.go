@@ -40,6 +40,7 @@ func (o DomainEventSubscriptionsListOperationOptions) ToHeaders() *client.Header
 
 func (o DomainEventSubscriptionsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

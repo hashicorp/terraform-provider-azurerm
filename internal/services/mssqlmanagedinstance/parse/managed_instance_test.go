@@ -27,7 +27,6 @@ func TestManagedInstanceID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestManagedInstanceIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceId
 	}{
-
 		{
 			// empty
 			Input: "",

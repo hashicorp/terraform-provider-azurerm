@@ -5,5 +5,5 @@ package webapps
 
 type AzureTableStorageApplicationLogsConfig struct {
 	Level  *LogLevel `json:"level,omitempty"`
-	SasUrl string    `json:"sasUrl"`
+	SasURL string    `json:"sasUrl"`
 }

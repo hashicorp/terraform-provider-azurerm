@@ -206,7 +206,7 @@ func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *cli
 		}
 		return nil, fmt.Errorf("retrieving Source Control for %s: %v", id, err)
 	}
-	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.RepoUrl == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.RepoURL == nil {
 		return utils.Bool(false), nil
 	}
 

@@ -27,7 +27,6 @@ func TestDatabaseAccountID(t *testing.T) {
 		Error    bool
 		Expected *DatabaseAccountId
 	}{
-
 		{
 			// empty
 			Input: "",

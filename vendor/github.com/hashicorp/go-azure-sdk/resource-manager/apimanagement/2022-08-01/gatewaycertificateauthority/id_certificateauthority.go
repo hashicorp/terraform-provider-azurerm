@@ -46,7 +46,7 @@ func ParseCertificateAuthorityID(input string) (*CertificateAuthorityId, error) 
 	}
 
 	id := CertificateAuthorityId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseCertificateAuthorityIDInsensitively(input string) (*CertificateAuthori
 	}
 
 	id := CertificateAuthorityId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id CertificateAuthorityId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticGateways", "gateways", "gateways"),
-		resourceids.UserSpecifiedSegment("gatewayId", "gatewayIdValue"),
+		resourceids.UserSpecifiedSegment("gatewayId", "gatewayId"),
 		resourceids.StaticSegment("staticCertificateAuthorities", "certificateAuthorities", "certificateAuthorities"),
-		resourceids.UserSpecifiedSegment("certificateId", "certificateIdValue"),
+		resourceids.UserSpecifiedSegment("certificateId", "certificateId"),
 	}
 }
 

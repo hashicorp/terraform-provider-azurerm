@@ -38,6 +38,7 @@ func (o MigrateStorageOperationOptions) ToHeaders() *client.Headers {
 
 func (o MigrateStorageOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

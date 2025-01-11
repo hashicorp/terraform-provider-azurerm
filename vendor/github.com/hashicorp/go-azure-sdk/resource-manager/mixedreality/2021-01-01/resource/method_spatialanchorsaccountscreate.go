@@ -50,7 +50,6 @@ func (c ResourceClient) SpatialAnchorsAccountsCreate(ctx context.Context, id Spa
 
 	var model SpatialAnchorsAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

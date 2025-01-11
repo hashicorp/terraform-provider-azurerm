@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServerDNSAliasModel struct {
@@ -120,7 +120,7 @@ func (m ServerDNSAliasResource) Read() sdk.ResourceFunc {
 			}
 			if alias.Model != nil {
 				if prop := alias.Model.Properties; prop != nil {
-					state.DNSRecord = utils.NormalizeNilableString(prop.AzureDnsRecord)
+					state.DNSRecord = pointer.From(prop.AzureDnsRecord)
 				}
 			}
 			return metadata.Encode(&state)

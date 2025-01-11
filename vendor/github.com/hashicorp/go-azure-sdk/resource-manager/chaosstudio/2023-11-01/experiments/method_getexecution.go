@@ -45,7 +45,6 @@ func (c ExperimentsClient) GetExecution(ctx context.Context, id ExecutionId) (re
 
 	var model ExperimentExecution
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

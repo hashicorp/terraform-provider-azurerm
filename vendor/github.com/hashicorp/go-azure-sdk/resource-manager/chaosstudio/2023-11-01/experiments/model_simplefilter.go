@@ -14,6 +14,14 @@ type SimpleFilter struct {
 	Parameters *SimpleFilterParameters `json:"parameters,omitempty"`
 
 	// Fields inherited from Filter
+
+	Type FilterType `json:"type"`
+}
+
+func (s SimpleFilter) Filter() BaseFilterImpl {
+	return BaseFilterImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = SimpleFilter{}
@@ -27,9 +35,10 @@ func (s SimpleFilter) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SimpleFilter: %+v", err)
 	}
+
 	decoded["type"] = "Simple"
 
 	encoded, err = json.Marshal(decoded)

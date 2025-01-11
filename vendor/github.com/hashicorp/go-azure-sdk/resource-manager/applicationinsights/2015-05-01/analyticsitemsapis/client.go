@@ -15,7 +15,7 @@ type AnalyticsItemsAPIsClient struct {
 }
 
 func NewAnalyticsItemsAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*AnalyticsItemsAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "analyticsitemsapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "analyticsitemsapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AnalyticsItemsAPIsClient: %+v", err)
 	}

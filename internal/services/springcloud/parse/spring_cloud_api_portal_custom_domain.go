@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -38,7 +39,7 @@ func (id SpringCloudAPIPortalCustomDomainId) String() string {
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Spring Cloud A P I Portal Custom Domain", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Spring CloudAPI Portal Custom Domain", segmentsStr)
 }
 
 func (id SpringCloudAPIPortalCustomDomainId) ID() string {
@@ -59,11 +60,11 @@ func SpringCloudAPIPortalCustomDomainID(input string) (*SpringCloudAPIPortalCust
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.SpringName, err = id.PopSegment("spring"); err != nil {
@@ -101,11 +102,11 @@ func SpringCloudAPIPortalCustomDomainIDInsensitively(input string) (*SpringCloud
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'spring' segment

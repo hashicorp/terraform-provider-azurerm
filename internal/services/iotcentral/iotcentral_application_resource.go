@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -105,16 +104,6 @@ func resourceIotCentralApplication() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["template"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			ValidateFunc: validate.ApplicationTemplateName,
-		}
-	}
-
 	return resource
 }
 
@@ -153,9 +142,6 @@ func resourceIotCentralAppCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
 		displayName = id.IotAppName
-		if !features.FourPointOhBeta() {
-			displayName = id.ResourceGroupName
-		}
 	}
 
 	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))

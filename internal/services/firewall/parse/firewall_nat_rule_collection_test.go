@@ -27,7 +27,6 @@ func TestFirewallNatRuleCollectionID(t *testing.T) {
 		Error    bool
 		Expected *FirewallNatRuleCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

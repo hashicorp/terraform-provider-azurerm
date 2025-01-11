@@ -44,7 +44,7 @@ func ParseUpdateStrategyID(input string) (*UpdateStrategyId, error) {
 	}
 
 	id := UpdateStrategyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseUpdateStrategyIDInsensitively(input string) (*UpdateStrategyId, error)
 	}
 
 	id := UpdateStrategyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id UpdateStrategyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticFleets", "fleets", "fleets"),
-		resourceids.UserSpecifiedSegment("fleetName", "fleetValue"),
+		resourceids.UserSpecifiedSegment("fleetName", "fleetName"),
 		resourceids.StaticSegment("staticUpdateStrategies", "updateStrategies", "updateStrategies"),
-		resourceids.UserSpecifiedSegment("updateStrategyName", "updateStrategyValue"),
+		resourceids.UserSpecifiedSegment("updateStrategyName", "updateStrategyName"),
 	}
 }
 

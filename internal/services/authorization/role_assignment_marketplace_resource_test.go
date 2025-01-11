@@ -205,6 +205,10 @@ data "azurerm_role_definition" "test" {
   name = "%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_marketplace_role_assignment" "test" {
   role_definition_id = "${data.azurerm_role_definition.test.id}"
   principal_id       = "${data.azurerm_client_config.test.object_id}"
@@ -222,6 +226,10 @@ resource "azurerm_marketplace_role_assignment" "test" {
 
 func (RoleAssignmentMarketplaceResource) roleNameConfig(id string, roleName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "test" {
 }
 
@@ -259,6 +267,10 @@ resource "azurerm_marketplace_role_assignment" "import" {
 
 func (RoleAssignmentMarketplaceResource) builtinConfig(id string, roleName string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "test" {
 }
 
@@ -292,6 +304,10 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "%s"
@@ -318,6 +334,10 @@ resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_marketplace_role_assignment" "test" {
   name                             = "%s"
   role_definition_name             = "%s"
@@ -340,6 +360,10 @@ provider "azuread" {}
 resource "azuread_group" "test" {
   display_name     = "acctestspa-%d"
   security_enabled = true
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_marketplace_role_assignment" "test" {

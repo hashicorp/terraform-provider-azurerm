@@ -16,6 +16,14 @@ type DiscoveryConfiguration struct {
 	ManagedRgStorageAccountName *string `json:"managedRgStorageAccountName,omitempty"`
 
 	// Fields inherited from SAPConfiguration
+
+	ConfigurationType SAPConfigurationType `json:"configurationType"`
+}
+
+func (s DiscoveryConfiguration) SAPConfiguration() BaseSAPConfigurationImpl {
+	return BaseSAPConfigurationImpl{
+		ConfigurationType: s.ConfigurationType,
+	}
 }
 
 var _ json.Marshaler = DiscoveryConfiguration{}
@@ -29,9 +37,10 @@ func (s DiscoveryConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DiscoveryConfiguration: %+v", err)
 	}
+
 	decoded["configurationType"] = "Discovery"
 
 	encoded, err = json.Marshal(decoded)

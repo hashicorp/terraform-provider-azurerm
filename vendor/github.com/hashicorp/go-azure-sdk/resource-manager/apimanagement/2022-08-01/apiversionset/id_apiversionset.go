@@ -44,7 +44,7 @@ func ParseApiVersionSetID(input string) (*ApiVersionSetId, error) {
 	}
 
 	id := ApiVersionSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseApiVersionSetIDInsensitively(input string) (*ApiVersionSetId, error) {
 	}
 
 	id := ApiVersionSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ApiVersionSetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticApiVersionSets", "apiVersionSets", "apiVersionSets"),
-		resourceids.UserSpecifiedSegment("versionSetId", "versionSetIdValue"),
+		resourceids.UserSpecifiedSegment("versionSetId", "versionSetId"),
 	}
 }
 

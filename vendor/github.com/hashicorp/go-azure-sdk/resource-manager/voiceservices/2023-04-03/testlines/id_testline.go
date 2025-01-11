@@ -44,7 +44,7 @@ func ParseTestLineID(input string) (*TestLineId, error) {
 	}
 
 	id := TestLineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseTestLineIDInsensitively(input string) (*TestLineId, error) {
 	}
 
 	id := TestLineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id TestLineId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftVoiceServices", "Microsoft.VoiceServices", "Microsoft.VoiceServices"),
 		resourceids.StaticSegment("staticCommunicationsGateways", "communicationsGateways", "communicationsGateways"),
-		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayValue"),
+		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayName"),
 		resourceids.StaticSegment("staticTestLines", "testLines", "testLines"),
-		resourceids.UserSpecifiedSegment("testLineName", "testLineValue"),
+		resourceids.UserSpecifiedSegment("testLineName", "testLineName"),
 	}
 }
 

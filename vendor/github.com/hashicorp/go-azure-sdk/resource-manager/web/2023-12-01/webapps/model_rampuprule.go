@@ -5,7 +5,7 @@ package webapps
 
 type RampUpRule struct {
 	ActionHostName            *string  `json:"actionHostName,omitempty"`
-	ChangeDecisionCallbackUrl *string  `json:"changeDecisionCallbackUrl,omitempty"`
+	ChangeDecisionCallbackURL *string  `json:"changeDecisionCallbackUrl,omitempty"`
 	ChangeIntervalInMinutes   *int64   `json:"changeIntervalInMinutes,omitempty"`
 	ChangeStep                *float64 `json:"changeStep,omitempty"`
 	MaxReroutePercentage      *float64 `json:"maxReroutePercentage,omitempty"`

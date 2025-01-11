@@ -49,7 +49,6 @@ func (c ScheduleClient) Update(ctx context.Context, id ScheduleId, input Schedul
 
 	var model Schedule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

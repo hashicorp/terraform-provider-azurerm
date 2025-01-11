@@ -50,7 +50,6 @@ func (c HubsClient) NotificationHubsCheckNotificationHubAvailability(ctx context
 
 	var model CheckAvailabilityResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

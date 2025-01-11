@@ -15,14 +15,16 @@ Use this data source to access information about an existing File Share.
 ## Example Usage
 
 ```hcl
-data "azurerm_storage_share" "example" {
-  name                 = "existing"
-  storage_account_name = "existing"
+data "azurerm_storage_account" "example" {
+  name                = "exampleaccount"
+  resource_group_name = "examples"
 }
 
-output "id" {
-  value = data.azurerm_storage_share.example.id
+data "azurerm_storage_share" "example" {
+  name               = "existing"
+  storage_account_id = data.azurerm_storage_account.example.id
 }
+
 ```
 
 ## Arguments Reference
@@ -31,7 +33,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share.
 
-* `storage_account_name` - (Required) The name of the storage account.
+* `storage_account_name` - (Optional) The name of the storage account in which the share exists. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The ID of the storage account in which the share exists.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 ## Attributes Reference
 
@@ -57,9 +63,9 @@ A `access_policy` block has the following attributes:
 
 * `permissions` - The permissions which should be associated with this Shared Identifier. Possible value is combination of `r` (read), `w` (write), `d` (delete), and `l` (list).
 
-* `start` - The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `start` - The time at which this Access Policy is valid from.
 
-* `expiry` - The time at which this Access Policy should be valid until, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
+* `expiry` - The time at which this Access Policy is valid until.
 
 ## Timeouts
 

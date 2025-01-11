@@ -47,7 +47,6 @@ func (c WebAppsClient) GetMigrateMySqlStatus(ctx context.Context, id commonids.A
 
 	var model MigrateMySqlStatus
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

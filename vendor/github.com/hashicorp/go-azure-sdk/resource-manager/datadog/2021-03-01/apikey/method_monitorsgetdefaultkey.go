@@ -46,7 +46,6 @@ func (c ApiKeyClient) MonitorsGetDefaultKey(ctx context.Context, id MonitorId) (
 
 	var model DatadogApiKey
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -50,7 +50,6 @@ func (c NamespacesClient) RegenerateKeys(ctx context.Context, id AuthorizationRu
 
 	var model ResourceListKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

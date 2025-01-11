@@ -4,13 +4,17 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Float64Parameter{}
 var _ ParameterWithFloat64Validators = Float64Parameter{}
+var _ fwfunction.ParameterWithValidateImplementation = Float64Parameter{}
 
 // Float64Parameter represents a function parameter that is a 64-bit floating
 // point number.
@@ -111,4 +115,10 @@ func (p Float64Parameter) GetType() attr.Type {
 	}
 
 	return basetypes.Float64Type{}
+}
+
+func (p Float64Parameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
+	}
 }

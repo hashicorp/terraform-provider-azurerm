@@ -44,6 +44,7 @@ func HandlerMappingSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func HandlerMappingSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
@@ -315,7 +316,7 @@ func StorageAccountSchemaComputed() *pluginsdk.Schema {
 
 type Backup struct {
 	Name              string           `tfschema:"name"`
-	StorageAccountUrl string           `tfschema:"storage_account_url"`
+	StorageAccountURL string           `tfschema:"storage_account_url"`
 	Enabled           bool             `tfschema:"enabled"`
 	Schedule          []BackupSchedule `tfschema:"schedule"`
 }
@@ -570,7 +571,7 @@ type ApplicationLog struct {
 
 type AzureBlobStorage struct {
 	Level           string `tfschema:"level"`
-	SasUrl          string `tfschema:"sas_url"`
+	SasURL          string `tfschema:"sas_url"`
 	RetentionInDays int64  `tfschema:"retention_in_days"`
 }
 
@@ -580,7 +581,7 @@ type HttpLog struct {
 }
 
 type AzureBlobStorageHttp struct {
-	SasUrl          string `tfschema:"sas_url"`
+	SasURL          string `tfschema:"sas_url"`
 	RetentionInDays int64  `tfschema:"retention_in_days"`
 }
 
@@ -875,7 +876,7 @@ func ExpandLogsConfig(config []LogsConfig) *webapps.SiteLogsConfig {
 			appLogsBlobs := appLogs.AzureBlobStorage[0]
 			result.Properties.ApplicationLogs.AzureBlobStorage = &webapps.AzureBlobStorageApplicationLogsConfig{
 				Level:           pointer.To(webapps.LogLevel(appLogsBlobs.Level)),
-				SasUrl:          pointer.To(appLogsBlobs.SasUrl),
+				SasURL:          pointer.To(appLogsBlobs.SasURL),
 				RetentionInDays: pointer.To(appLogsBlobs.RetentionInDays),
 			}
 		}
@@ -897,8 +898,8 @@ func ExpandLogsConfig(config []LogsConfig) *webapps.SiteLogsConfig {
 		if len(httpLogs.AzureBlobStorage) == 1 {
 			httpLogsBlobStorage := httpLogs.AzureBlobStorage[0]
 			result.Properties.HTTPLogs.AzureBlobStorage = &webapps.AzureBlobStorageHTTPLogsConfig{
-				Enabled:         pointer.To(httpLogsBlobStorage.SasUrl != ""),
-				SasUrl:          pointer.To(httpLogsBlobStorage.SasUrl),
+				Enabled:         pointer.To(httpLogsBlobStorage.SasURL != ""),
+				SasURL:          pointer.To(httpLogsBlobStorage.SasURL),
 				RetentionInDays: pointer.To(httpLogsBlobStorage.RetentionInDays),
 			}
 		}
@@ -926,7 +927,7 @@ func ExpandBackupConfig(backupConfigs []Backup) (*webapps.BackupRequest, error) 
 	result.Properties = &webapps.BackupRequestProperties{
 		Enabled:           pointer.To(backupConfig.Enabled),
 		BackupName:        pointer.To(backupConfig.Name),
-		StorageAccountUrl: backupConfig.StorageAccountUrl,
+		StorageAccountURL: backupConfig.StorageAccountURL,
 		BackupSchedule: &webapps.BackupSchedule{
 			FrequencyInterval:     backupSchedule.FrequencyInterval,
 			FrequencyUnit:         webapps.FrequencyUnit(backupSchedule.FrequencyUnit),
@@ -1105,7 +1106,7 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 	}
 	props := *backupRequest.Properties
 	backup := Backup{
-		StorageAccountUrl: props.StorageAccountUrl,
+		StorageAccountURL: props.StorageAccountURL,
 	}
 	if props.BackupName != nil {
 		backup.Name = *props.BackupName
@@ -1162,12 +1163,12 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 
 		if appLogs.FileSystem != nil && pointer.From(appLogs.FileSystem.Level) != webapps.LogLevelOff {
 			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
-			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasUrl != nil {
+			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
 					Level: string(pointer.From(appLogs.AzureBlobStorage.Level)),
 				}
 
-				blobStorage.SasUrl = pointer.From(appLogs.AzureBlobStorage.SasUrl)
+				blobStorage.SasURL = pointer.From(appLogs.AzureBlobStorage.SasURL)
 
 				blobStorage.RetentionInDays = pointer.From(appLogs.AzureBlobStorage.RetentionInDays)
 
@@ -1196,15 +1197,15 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 
 		if httpLogs.AzureBlobStorage != nil && (httpLogs.AzureBlobStorage.Enabled != nil && *httpLogs.AzureBlobStorage.Enabled) {
 			blobStorage := AzureBlobStorageHttp{}
-			if httpLogs.AzureBlobStorage.SasUrl != nil {
-				blobStorage.SasUrl = *httpLogs.AzureBlobStorage.SasUrl
+			if httpLogs.AzureBlobStorage.SasURL != nil {
+				blobStorage.SasURL = *httpLogs.AzureBlobStorage.SasURL
 			}
 
 			if httpLogs.AzureBlobStorage.RetentionInDays != nil {
 				blobStorage.RetentionInDays = pointer.From(httpLogs.AzureBlobStorage.RetentionInDays)
 			}
 
-			if blobStorage.RetentionInDays != 0 || blobStorage.SasUrl != "" {
+			if blobStorage.RetentionInDays != 0 || blobStorage.SasURL != "" {
 				httpLog.AzureBlobStorage = []AzureBlobStorageHttp{blobStorage}
 			}
 		}
@@ -1257,7 +1258,7 @@ func FlattenStorageAccounts(appStorageAccounts *webapps.AzureStoragePropertyDict
 		return []StorageAccount{}
 	}
 
-	var storageAccounts []StorageAccount
+	storageAccounts := make([]StorageAccount, 0, len(*appStorageAccounts.Properties))
 	for k, v := range *appStorageAccounts.Properties {
 		storageAccount := StorageAccount{
 			Name: k,
@@ -1289,7 +1290,8 @@ func FlattenConnectionStrings(appConnectionStrings *webapps.ConnectionStringDict
 	if appConnectionStrings.Properties == nil || len(*appConnectionStrings.Properties) == 0 {
 		return []ConnectionString{}
 	}
-	var connectionStrings []ConnectionString
+
+	connectionStrings := make([]ConnectionString, 0, len(*appConnectionStrings.Properties))
 	for k, v := range *appConnectionStrings.Properties {
 		connectionString := ConnectionString{
 			Name:  k,
@@ -1386,7 +1388,7 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 		return []HandlerMappings{}
 	}
 
-	var handlerMappings []HandlerMappings
+	handlerMappings := make([]HandlerMappings, 0, len(*appHandlerMappings))
 	for _, v := range *appHandlerMappings {
 		handlerMapping := HandlerMappings{
 			Extension:           pointer.From(v.Extension),
@@ -1404,7 +1406,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 		return []VirtualApplication{}
 	}
 
-	var virtualApplications []VirtualApplication
+	virtualApplications := make([]VirtualApplication, 0, len(*appVirtualApplications))
 	for _, v := range *appVirtualApplications {
 		virtualApp := VirtualApplication{
 			VirtualPath:  pointer.From(v.VirtualPath),

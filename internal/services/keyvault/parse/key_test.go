@@ -27,7 +27,6 @@ func TestKeyID(t *testing.T) {
 		Error    bool
 		Expected *KeyId
 	}{
-
 		{
 			// empty
 			Input: "",

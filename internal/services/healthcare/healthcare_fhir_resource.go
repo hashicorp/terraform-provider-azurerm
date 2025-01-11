@@ -492,7 +492,6 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *fhirservices.FhirServicesClient, id fhirservices.FhirServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
-
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
 				return res, "Deleted", nil
@@ -518,6 +517,7 @@ func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuth
 
 	return auth
 }
+
 func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPolicyEntry {
 	if len(input) == 0 {
 		return nil
@@ -600,9 +600,7 @@ func flattenFhirAccessPolicy(policies *[]fhirservices.FhirServiceAccessPolicyEnt
 	}
 
 	for _, policy := range *policies {
-
 		result = append(result, policy.ObjectId)
-
 	}
 	return result
 }

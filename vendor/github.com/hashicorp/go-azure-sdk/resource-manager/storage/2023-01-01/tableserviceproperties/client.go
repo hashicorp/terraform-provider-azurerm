@@ -15,7 +15,7 @@ type TableServicePropertiesClient struct {
 }
 
 func NewTableServicePropertiesClientWithBaseURI(sdkApi sdkEnv.Api) (*TableServicePropertiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tableserviceproperties", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tableserviceproperties", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TableServicePropertiesClient: %+v", err)
 	}

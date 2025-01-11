@@ -15,7 +15,7 @@ type AssociationsInterfaceClient struct {
 }
 
 func NewAssociationsInterfaceClientWithBaseURI(sdkApi sdkEnv.Api) (*AssociationsInterfaceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "associationsinterface", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "associationsinterface", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AssociationsInterfaceClient: %+v", err)
 	}

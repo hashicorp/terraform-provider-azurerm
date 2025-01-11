@@ -14,10 +14,22 @@ type ReadOnlyFollowingDatabase struct {
 	Properties *ReadOnlyFollowingDatabaseProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Database
+
 	Id       *string `json:"id,omitempty"`
+	Kind     Kind    `json:"kind"`
 	Location *string `json:"location,omitempty"`
 	Name     *string `json:"name,omitempty"`
 	Type     *string `json:"type,omitempty"`
+}
+
+func (s ReadOnlyFollowingDatabase) Database() BaseDatabaseImpl {
+	return BaseDatabaseImpl{
+		Id:       s.Id,
+		Kind:     s.Kind,
+		Location: s.Location,
+		Name:     s.Name,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = ReadOnlyFollowingDatabase{}
@@ -31,9 +43,10 @@ func (s ReadOnlyFollowingDatabase) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ReadOnlyFollowingDatabase: %+v", err)
 	}
+
 	decoded["kind"] = "ReadOnlyFollowing"
 
 	encoded, err = json.Marshal(decoded)

@@ -42,7 +42,7 @@ func ParseFirewallPolicyID(input string) (*FirewallPolicyId, error) {
 	}
 
 	id := FirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseFirewallPolicyIDInsensitively(input string) (*FirewallPolicyId, error)
 	}
 
 	id := FirewallPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id FirewallPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticFirewallPolicies", "firewallPolicies", "firewallPolicies"),
-		resourceids.UserSpecifiedSegment("firewallPolicyName", "firewallPolicyValue"),
+		resourceids.UserSpecifiedSegment("firewallPolicyName", "firewallPolicyName"),
 	}
 }
 

@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UnplannedFailoverProviderSpecificInput interface {
+	UnplannedFailoverProviderSpecificInput() BaseUnplannedFailoverProviderSpecificInputImpl
 }
 
-// RawUnplannedFailoverProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ UnplannedFailoverProviderSpecificInput = BaseUnplannedFailoverProviderSpecificInputImpl{}
+
+type BaseUnplannedFailoverProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseUnplannedFailoverProviderSpecificInputImpl) UnplannedFailoverProviderSpecificInput() BaseUnplannedFailoverProviderSpecificInputImpl {
+	return s
+}
+
+var _ UnplannedFailoverProviderSpecificInput = RawUnplannedFailoverProviderSpecificInputImpl{}
+
+// RawUnplannedFailoverProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawUnplannedFailoverProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	unplannedFailoverProviderSpecificInput BaseUnplannedFailoverProviderSpecificInputImpl
+	Type                                   string
+	Values                                 map[string]interface{}
 }
 
-func unmarshalUnplannedFailoverProviderSpecificInputImplementation(input []byte) (UnplannedFailoverProviderSpecificInput, error) {
+func (s RawUnplannedFailoverProviderSpecificInputImpl) UnplannedFailoverProviderSpecificInput() BaseUnplannedFailoverProviderSpecificInputImpl {
+	return s.unplannedFailoverProviderSpecificInput
+}
+
+func UnmarshalUnplannedFailoverProviderSpecificInputImplementation(input []byte) (UnplannedFailoverProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalUnplannedFailoverProviderSpecificInputImplementation(input []byte)
 		return nil, fmt.Errorf("unmarshaling UnplannedFailoverProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -76,10 +93,15 @@ func unmarshalUnplannedFailoverProviderSpecificInputImplementation(input []byte)
 		return out, nil
 	}
 
-	out := RawUnplannedFailoverProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseUnplannedFailoverProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseUnplannedFailoverProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawUnplannedFailoverProviderSpecificInputImpl{
+		unplannedFailoverProviderSpecificInput: parent,
+		Type:                                   value,
+		Values:                                 temp,
+	}, nil
 
 }

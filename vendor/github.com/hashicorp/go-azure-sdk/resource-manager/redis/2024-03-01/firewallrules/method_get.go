@@ -45,7 +45,6 @@ func (c FirewallRulesClient) Get(ctx context.Context, id FirewallRuleId) (result
 
 	var model RedisFirewallRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

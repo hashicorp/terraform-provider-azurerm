@@ -21,6 +21,14 @@ type KubernetesClusterBackupDatasourceParameters struct {
 	SnapshotVolumes              bool                      `json:"snapshotVolumes"`
 
 	// Fields inherited from BackupDatasourceParameters
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s KubernetesClusterBackupDatasourceParameters) BackupDatasourceParameters() BaseBackupDatasourceParametersImpl {
+	return BaseBackupDatasourceParametersImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = KubernetesClusterBackupDatasourceParameters{}
@@ -34,9 +42,10 @@ func (s KubernetesClusterBackupDatasourceParameters) MarshalJSON() ([]byte, erro
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KubernetesClusterBackupDatasourceParameters: %+v", err)
 	}
+
 	decoded["objectType"] = "KubernetesClusterBackupDatasourceParameters"
 
 	encoded, err = json.Marshal(decoded)

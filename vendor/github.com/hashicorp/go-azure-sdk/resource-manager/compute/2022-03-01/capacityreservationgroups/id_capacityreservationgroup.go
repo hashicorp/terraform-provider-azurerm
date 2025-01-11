@@ -42,7 +42,7 @@ func ParseCapacityReservationGroupID(input string) (*CapacityReservationGroupId,
 	}
 
 	id := CapacityReservationGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseCapacityReservationGroupIDInsensitively(input string) (*CapacityReserv
 	}
 
 	id := CapacityReservationGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id CapacityReservationGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticCapacityReservationGroups", "capacityReservationGroups", "capacityReservationGroups"),
-		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupValue"),
+		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupName"),
 	}
 }
 

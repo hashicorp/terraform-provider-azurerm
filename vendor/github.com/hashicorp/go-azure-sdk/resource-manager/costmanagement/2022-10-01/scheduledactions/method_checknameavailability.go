@@ -49,7 +49,6 @@ func (c ScheduledActionsClient) CheckNameAvailability(ctx context.Context, input
 
 	var model CheckNameAvailabilityResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = KubernetesFleetUpdateRunResource{}
-var _ sdk.ResourceWithUpdate = KubernetesFleetUpdateRunResource{}
+var (
+	_ sdk.Resource           = KubernetesFleetUpdateRunResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFleetUpdateRunResource{}
+)
 
 type KubernetesFleetUpdateRunResource struct{}
 
@@ -422,7 +424,6 @@ func flattenKubernetesFleetUpdateRunStage(input []updateruns.UpdateStage) []Kube
 		})
 	}
 	return output
-
 }
 
 func flattenKubernetesFleetUpdateRunGroup(input *[]updateruns.UpdateGroup) []KubernetesFleetUpdateRunResourceUpdateGroupSchema {

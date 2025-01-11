@@ -45,7 +45,6 @@ func (c DnsForwardingRulesetsClient) Get(ctx context.Context, id DnsForwardingRu
 
 	var model DnsForwardingRuleset
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -16,7 +16,7 @@ import (
 type ComputeListKeysOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ComputeSecrets
+	Model        ComputeSecrets
 }
 
 // ComputeListKeys ...
@@ -49,11 +49,11 @@ func (c MachineLearningComputesClient) ComputeListKeys(ctx context.Context, id C
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalComputeSecretsImplementation(respObj)
+	model, err := UnmarshalComputeSecretsImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

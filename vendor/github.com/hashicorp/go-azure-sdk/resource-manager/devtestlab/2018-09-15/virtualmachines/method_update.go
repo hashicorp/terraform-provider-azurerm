@@ -49,7 +49,6 @@ func (c VirtualMachinesClient) Update(ctx context.Context, id VirtualMachineId, 
 
 	var model LabVirtualMachine
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

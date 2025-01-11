@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -423,21 +422,6 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  string(loadbalancers.LoadDistributionDefault),
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		resource["idle_timeout_in_minutes"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntBetween(4, 100),
-		}
-
-		resource["load_distribution"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-		}
 	}
 
 	return resource

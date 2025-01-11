@@ -46,7 +46,6 @@ func (c ServersClient) ListSkusForExisting(ctx context.Context, id ServerId) (re
 
 	var model SkuEnumerationForExistingResourceResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -47,7 +47,6 @@ func (c AppServiceEnvironmentsClient) GetVipInfo(ctx context.Context, id commoni
 
 	var model AddressResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

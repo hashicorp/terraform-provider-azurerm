@@ -40,6 +40,7 @@ func (o ListSynchronizationsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListSynchronizationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

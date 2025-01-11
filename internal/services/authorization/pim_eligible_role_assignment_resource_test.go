@@ -155,6 +155,10 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 
 func (PimEligibleRoleAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azuread_domains" "test" {
   only_initial = true
 }

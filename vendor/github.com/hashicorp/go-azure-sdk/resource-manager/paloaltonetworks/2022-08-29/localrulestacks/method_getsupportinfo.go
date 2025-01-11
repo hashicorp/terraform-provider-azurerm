@@ -34,6 +34,7 @@ func (o GetSupportInfoOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetSupportInfoOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c LocalRulestacksClient) GetSupportInfo(ctx context.Context, id LocalRules
 
 	var model SupportInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

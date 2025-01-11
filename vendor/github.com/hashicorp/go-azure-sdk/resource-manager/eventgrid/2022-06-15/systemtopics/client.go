@@ -15,7 +15,7 @@ type SystemTopicsClient struct {
 }
 
 func NewSystemTopicsClientWithBaseURI(sdkApi sdkEnv.Api) (*SystemTopicsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "systemtopics", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "systemtopics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SystemTopicsClient: %+v", err)
 	}

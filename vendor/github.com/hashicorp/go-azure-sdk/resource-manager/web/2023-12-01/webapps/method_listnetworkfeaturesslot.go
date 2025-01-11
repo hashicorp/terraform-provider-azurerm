@@ -45,7 +45,6 @@ func (c WebAppsClient) ListNetworkFeaturesSlot(ctx context.Context, id SlotNetwo
 
 	var model NetworkFeatures
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

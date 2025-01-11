@@ -36,6 +36,7 @@ func (o GetRunbookContentOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetRunbookContentOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c JobClient) GetRunbookContent(ctx context.Context, id JobId, options GetR
 
 	var model string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

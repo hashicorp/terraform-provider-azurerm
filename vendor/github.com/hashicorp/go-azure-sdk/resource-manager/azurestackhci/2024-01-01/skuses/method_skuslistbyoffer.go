@@ -39,6 +39,7 @@ func (o SkusListByOfferOperationOptions) ToHeaders() *client.Headers {
 
 func (o SkusListByOfferOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -45,7 +45,6 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsGet(ctx context.Context, id Digi
 
 	var model DigitalTwinsDescription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

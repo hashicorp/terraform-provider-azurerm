@@ -27,7 +27,6 @@ func TestBackupPolicyID(t *testing.T) {
 		Error    bool
 		Expected *BackupPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

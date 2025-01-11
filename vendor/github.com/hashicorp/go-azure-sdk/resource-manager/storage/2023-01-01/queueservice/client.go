@@ -15,7 +15,7 @@ type QueueServiceClient struct {
 }
 
 func NewQueueServiceClientWithBaseURI(sdkApi sdkEnv.Api) (*QueueServiceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "queueservice", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "queueservice", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating QueueServiceClient: %+v", err)
 	}

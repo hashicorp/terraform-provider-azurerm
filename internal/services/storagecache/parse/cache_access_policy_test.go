@@ -27,7 +27,6 @@ func TestCacheAccessPolicyID(t *testing.T) {
 		Error    bool
 		Expected *CacheAccessPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -52,7 +52,6 @@ func (c GeoBackupPoliciesClient) CreateOrUpdate(ctx context.Context, id commonid
 
 	var model GeoBackupPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

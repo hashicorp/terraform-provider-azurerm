@@ -14,7 +14,16 @@ type AzureOperationalStoreParameters struct {
 	ResourceGroupId *string `json:"resourceGroupId,omitempty"`
 
 	// Fields inherited from DataStoreParameters
+
 	DataStoreType DataStoreTypes `json:"dataStoreType"`
+	ObjectType    string         `json:"objectType"`
+}
+
+func (s AzureOperationalStoreParameters) DataStoreParameters() BaseDataStoreParametersImpl {
+	return BaseDataStoreParametersImpl{
+		DataStoreType: s.DataStoreType,
+		ObjectType:    s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = AzureOperationalStoreParameters{}
@@ -28,9 +37,10 @@ func (s AzureOperationalStoreParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureOperationalStoreParameters: %+v", err)
 	}
+
 	decoded["objectType"] = "AzureOperationalStoreParameters"
 
 	encoded, err = json.Marshal(decoded)

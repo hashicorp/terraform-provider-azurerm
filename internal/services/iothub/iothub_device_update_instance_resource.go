@@ -21,9 +21,7 @@ import (
 
 type IotHubDeviceUpdateInstanceResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubDeviceUpdateInstanceResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubDeviceUpdateInstanceResource{}
 
 type IotHubDeviceUpdateInstanceModel struct {
 	Name                     string                          `tfschema:"name"`

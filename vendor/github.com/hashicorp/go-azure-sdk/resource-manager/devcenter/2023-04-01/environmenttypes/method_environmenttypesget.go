@@ -45,7 +45,6 @@ func (c EnvironmentTypesClient) EnvironmentTypesGet(ctx context.Context, id DevC
 
 	var model EnvironmentType
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

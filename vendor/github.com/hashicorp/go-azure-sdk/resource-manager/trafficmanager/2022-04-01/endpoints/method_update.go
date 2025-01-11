@@ -49,7 +49,6 @@ func (c EndpointsClient) Update(ctx context.Context, id EndpointTypeId, input En
 
 	var model Endpoint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

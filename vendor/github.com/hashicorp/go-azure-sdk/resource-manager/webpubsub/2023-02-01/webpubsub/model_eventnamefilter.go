@@ -15,6 +15,14 @@ type EventNameFilter struct {
 	UserEventPattern *string   `json:"userEventPattern,omitempty"`
 
 	// Fields inherited from EventListenerFilter
+
+	Type EventListenerFilterDiscriminator `json:"type"`
+}
+
+func (s EventNameFilter) EventListenerFilter() BaseEventListenerFilterImpl {
+	return BaseEventListenerFilterImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = EventNameFilter{}
@@ -28,9 +36,10 @@ func (s EventNameFilter) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventNameFilter: %+v", err)
 	}
+
 	decoded["type"] = "EventName"
 
 	encoded, err = json.Marshal(decoded)

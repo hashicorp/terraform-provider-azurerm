@@ -27,7 +27,6 @@ func TestSpringCloudStorageID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudStorageId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSpringCloudStorageIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudStorageId
 	}{
-
 		{
 			// empty
 			Input: "",

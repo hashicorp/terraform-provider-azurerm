@@ -111,7 +111,9 @@ The following arguments are supported:
 
 ~> **Note:** Once `expiration_date` is set, it's not possible to unset the key even if it is deleted & recreated as underlying Azure API uses the restore of the purged key.
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). When this parameter gets changed on reruns, if newer date is ahead of current date, an update is performed. If the newer date is before the current date, resource will be force created.
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+
+~> **Note:** Removing this field from the config forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -15,7 +15,7 @@ type Python2PackageClient struct {
 }
 
 func NewPython2PackageClientWithBaseURI(sdkApi sdkEnv.Api) (*Python2PackageClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "python2package", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "python2package", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating Python2PackageClient: %+v", err)
 	}

@@ -45,7 +45,6 @@ func (c RegistrationDefinitionsClient) Get(ctx context.Context, id ScopedRegistr
 
 	var model RegistrationDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

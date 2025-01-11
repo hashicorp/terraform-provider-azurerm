@@ -15,7 +15,7 @@ type ResolvePrivateLinkServiceIdClient struct {
 }
 
 func NewResolvePrivateLinkServiceIdClientWithBaseURI(sdkApi sdkEnv.Api) (*ResolvePrivateLinkServiceIdClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "resolveprivatelinkserviceid", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "resolveprivatelinkserviceid", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ResolvePrivateLinkServiceIdClient: %+v", err)
 	}

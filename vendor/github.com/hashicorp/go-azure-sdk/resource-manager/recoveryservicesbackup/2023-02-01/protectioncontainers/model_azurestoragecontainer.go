@@ -18,11 +18,24 @@ type AzureStorageContainer struct {
 	StorageAccountVersion     *string                    `json:"storageAccountVersion,omitempty"`
 
 	// Fields inherited from ProtectionContainer
-	BackupManagementType  *BackupManagementType `json:"backupManagementType,omitempty"`
-	FriendlyName          *string               `json:"friendlyName,omitempty"`
-	HealthStatus          *string               `json:"healthStatus,omitempty"`
-	ProtectableObjectType *string               `json:"protectableObjectType,omitempty"`
-	RegistrationStatus    *string               `json:"registrationStatus,omitempty"`
+
+	BackupManagementType  *BackupManagementType    `json:"backupManagementType,omitempty"`
+	ContainerType         ProtectableContainerType `json:"containerType"`
+	FriendlyName          *string                  `json:"friendlyName,omitempty"`
+	HealthStatus          *string                  `json:"healthStatus,omitempty"`
+	ProtectableObjectType *string                  `json:"protectableObjectType,omitempty"`
+	RegistrationStatus    *string                  `json:"registrationStatus,omitempty"`
+}
+
+func (s AzureStorageContainer) ProtectionContainer() BaseProtectionContainerImpl {
+	return BaseProtectionContainerImpl{
+		BackupManagementType:  s.BackupManagementType,
+		ContainerType:         s.ContainerType,
+		FriendlyName:          s.FriendlyName,
+		HealthStatus:          s.HealthStatus,
+		ProtectableObjectType: s.ProtectableObjectType,
+		RegistrationStatus:    s.RegistrationStatus,
+	}
 }
 
 var _ json.Marshaler = AzureStorageContainer{}
@@ -36,9 +49,10 @@ func (s AzureStorageContainer) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureStorageContainer: %+v", err)
 	}
+
 	decoded["containerType"] = "StorageContainer"
 
 	encoded, err = json.Marshal(decoded)

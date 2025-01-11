@@ -32,6 +32,7 @@ func TestAccSiteRecoveryProtectionContainerMapping_basic(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccSiteRecoveryProtectionContainerMapping_withSystemAssignedAutoUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
 	r := SiteRecoveryProtectionContainerMappingResource{}

@@ -45,7 +45,6 @@ func (c AzureMonitorWorkspacesClient) Get(ctx context.Context, id AccountId) (re
 
 	var model AzureMonitorWorkspaceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

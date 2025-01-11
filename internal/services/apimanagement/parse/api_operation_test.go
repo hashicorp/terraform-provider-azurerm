@@ -27,7 +27,6 @@ func TestApiOperationID(t *testing.T) {
 		Error    bool
 		Expected *ApiOperationId
 	}{
-
 		{
 			// empty
 			Input: "",

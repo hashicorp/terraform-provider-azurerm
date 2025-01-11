@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,7 +31,7 @@ func NewLoadBalancerFrontendIpConfigurationID(subscriptionId, resourceGroup, loa
 
 func (id LoadBalancerFrontendIpConfigurationId) String() string {
 	segments := []string{
-		fmt.Sprintf("Frontend I P Configuration Name %q", id.FrontendIPConfigurationName),
+		fmt.Sprintf("FrontendIP Configuration Name %q", id.FrontendIPConfigurationName),
 		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -56,11 +57,11 @@ func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendI
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
@@ -95,11 +96,11 @@ func LoadBalancerFrontendIpConfigurationIDInsensitively(input string) (*LoadBala
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'loadBalancers' segment

@@ -15,7 +15,7 @@ type FqdnListGlobalRulestackClient struct {
 }
 
 func NewFqdnListGlobalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*FqdnListGlobalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fqdnlistglobalrulestack", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fqdnlistglobalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FqdnListGlobalRulestackClient: %+v", err)
 	}

@@ -50,7 +50,6 @@ func (c QuotasClient) CheckAvailability(ctx context.Context, id QuotaId, input Q
 
 	var model CheckQuotaAvailabilityResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

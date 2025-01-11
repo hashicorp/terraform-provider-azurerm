@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
@@ -37,7 +38,7 @@ import (
 )
 
 func resourceMsSqlServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMsSqlServerCreate,
 		Read:   resourceMsSqlServerRead,
 		Update: resourceMsSqlServerUpdate,
@@ -155,16 +156,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0: Switch this field to use None pattern...
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
-					"1.0",
-					"1.1",
 					"1.2",
-					"Disabled",
 				}, false),
 			},
 
@@ -202,6 +199,22 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "1.2",
+			ValidateFunc: validation.StringInSlice([]string{
+				"1.0",
+				"1.1",
+				"1.2",
+				"Disabled",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -286,7 +299,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
 	}
 
-	// TODO 4.0: Switch this field to use None pattern...
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
 	}

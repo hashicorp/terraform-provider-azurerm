@@ -15,7 +15,7 @@ type ProviderInstancesClient struct {
 }
 
 func NewProviderInstancesClientWithBaseURI(sdkApi sdkEnv.Api) (*ProviderInstancesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "providerinstances", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "providerinstances", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ProviderInstancesClient: %+v", err)
 	}

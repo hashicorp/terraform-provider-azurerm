@@ -546,7 +546,6 @@ func resourceMonitorAutoScaleSettingRead(d *pluginsdk.ResourceData, meta interfa
 		if err = d.Set("tags", utils.FlattenPtrMapStringString(tagMap)); err != nil {
 			return err
 		}
-
 	}
 	return nil
 }
@@ -877,7 +876,6 @@ func flattenAzureRmMonitorAutoScaleSettingPredictive(input *autoscalesettings.Pr
 }
 
 func flattenAzureRmMonitorAutoScaleSettingCapacity(input autoscalesettings.ScaleCapacity) ([]interface{}, error) {
-
 	result := make(map[string]interface{})
 
 	min, err := strconv.Atoi(input.Minimum)
@@ -1062,7 +1060,6 @@ func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]autoscal
 				if webHookProps := v.Properties; webHookProps != nil {
 					for key, value := range *v.Properties {
 						props[key] = value
-
 					}
 					hook["properties"] = props
 					webhooks = append(webhooks, hook)
@@ -1085,7 +1082,6 @@ func flattenAzureRmMonitorAutoScaleSettingRulesDimensions(dimensions *[]autoscal
 	}
 
 	for _, dimension := range *dimensions {
-
 		results = append(results, map[string]interface{}{
 			"name":     dimension.DimensionName,
 			"operator": string(dimension.Operator),

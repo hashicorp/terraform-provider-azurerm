@@ -54,7 +54,7 @@ func resourceServiceBusTopicAuthorizationRuleSchema() map[string]*pluginsdk.Sche
 			ValidateFunc: validate.AuthorizationRuleName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"topic_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,

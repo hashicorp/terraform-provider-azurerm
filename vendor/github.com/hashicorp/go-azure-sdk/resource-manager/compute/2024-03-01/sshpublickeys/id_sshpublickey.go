@@ -42,7 +42,7 @@ func ParseSshPublicKeyID(input string) (*SshPublicKeyId, error) {
 	}
 
 	id := SshPublicKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSshPublicKeyIDInsensitively(input string) (*SshPublicKeyId, error) {
 	}
 
 	id := SshPublicKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SshPublicKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticSshPublicKeys", "sshPublicKeys", "sshPublicKeys"),
-		resourceids.UserSpecifiedSegment("sshPublicKeyName", "sshPublicKeyValue"),
+		resourceids.UserSpecifiedSegment("sshPublicKeyName", "sshPublicKeyName"),
 	}
 }
 

@@ -27,7 +27,6 @@ func TestRouteFilterID(t *testing.T) {
 		Error    bool
 		Expected *RouteFilterId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -14,7 +14,16 @@ type StaticDeliveryAttributeMapping struct {
 	Properties *StaticDeliveryAttributeMappingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from DeliveryAttributeMapping
-	Name *string `json:"name,omitempty"`
+
+	Name *string                      `json:"name,omitempty"`
+	Type DeliveryAttributeMappingType `json:"type"`
+}
+
+func (s StaticDeliveryAttributeMapping) DeliveryAttributeMapping() BaseDeliveryAttributeMappingImpl {
+	return BaseDeliveryAttributeMappingImpl{
+		Name: s.Name,
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = StaticDeliveryAttributeMapping{}
@@ -28,9 +37,10 @@ func (s StaticDeliveryAttributeMapping) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StaticDeliveryAttributeMapping: %+v", err)
 	}
+
 	decoded["type"] = "Static"
 
 	encoded, err = json.Marshal(decoded)

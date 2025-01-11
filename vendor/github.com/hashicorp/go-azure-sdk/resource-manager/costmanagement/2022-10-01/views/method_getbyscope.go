@@ -45,7 +45,6 @@ func (c ViewsClient) GetByScope(ctx context.Context, id ScopedViewId) (result Ge
 
 	var model View
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

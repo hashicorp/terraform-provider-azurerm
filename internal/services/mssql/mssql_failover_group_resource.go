@@ -324,7 +324,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 			}
 
 			if existing.Model != nil {
-
 				model.Tags = pointer.From(existing.Model.Tags)
 
 				if props := existing.Model.Properties; props != nil {
@@ -343,7 +342,6 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 					}}
 
 					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
-
 				}
 			}
 
@@ -400,7 +398,7 @@ func (r MsSqlFailoverGroupResource) flattenPartnerServers(input []failovergroups
 }
 
 func (r MsSqlFailoverGroupResource) expandPartnerServers(input []PartnerServerModel) []failovergroups.PartnerInfo {
-	var partnerServers []failovergroups.PartnerInfo
+	partnerServers := make([]failovergroups.PartnerInfo, 0, len(input))
 	if input == nil {
 		return partnerServers
 	}

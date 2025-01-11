@@ -93,6 +93,21 @@ func TestAccAzureEndpoint_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test2")
+	r := AzureEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAzureEndpoint_subnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_azure_endpoint", "test")
 	r := AzureEndpointResource{}
@@ -240,6 +255,47 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
     name  = "header"
     value = "www.bing.com"
   }
+}
+`, template, data.RandomInteger)
+}
+
+func (r AzureEndpointResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip-%[2]d"
+}
+
+resource "azurerm_public_ip" "test2" {
+  name                = "acctestpublicip2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip2-%[2]d"
+}
+
+resource "azurerm_traffic_manager_azure_endpoint" "test" {
+  name               = "acctestend-azure%[2]d"
+  target_resource_id = azurerm_public_ip.test.id
+  weight             = 5
+  profile_id         = azurerm_traffic_manager_profile.test.id
+}
+
+resource "azurerm_traffic_manager_azure_endpoint" "test2" {
+  name               = "acctestend2-azure%[2]d"
+  target_resource_id = azurerm_public_ip.test2.id
+  weight             = 5
+  profile_id         = azurerm_traffic_manager_profile.test.id
 }
 `, template, data.RandomInteger)
 }

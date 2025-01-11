@@ -42,7 +42,7 @@ func ParseSpacecraftID(input string) (*SpacecraftId, error) {
 	}
 
 	id := SpacecraftId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseSpacecraftIDInsensitively(input string) (*SpacecraftId, error) {
 	}
 
 	id := SpacecraftId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id SpacecraftId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOrbital", "Microsoft.Orbital", "Microsoft.Orbital"),
 		resourceids.StaticSegment("staticSpacecrafts", "spacecrafts", "spacecrafts"),
-		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftValue"),
+		resourceids.UserSpecifiedSegment("spacecraftName", "spacecraftName"),
 	}
 }
 

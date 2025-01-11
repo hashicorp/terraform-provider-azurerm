@@ -15,7 +15,7 @@ type AscUsagesClient struct {
 }
 
 func NewAscUsagesClientWithBaseURI(sdkApi sdkEnv.Api) (*AscUsagesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "ascusages", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "ascusages", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AscUsagesClient: %+v", err)
 	}

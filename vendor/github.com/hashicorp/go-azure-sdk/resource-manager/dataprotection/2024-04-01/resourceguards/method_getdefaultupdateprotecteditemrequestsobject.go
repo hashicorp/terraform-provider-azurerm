@@ -45,7 +45,6 @@ func (c ResourceGuardsClient) GetDefaultUpdateProtectedItemRequestsObject(ctx co
 
 	var model DppBaseResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -989,7 +989,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name            = "acctestir%[2]d"
+  name            = "managed-integration-runtime"
   data_factory_id = azurerm_data_factory.test.id
   location        = azurerm_resource_group.test.location
   node_size       = "Standard_D8_v3"

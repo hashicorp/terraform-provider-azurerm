@@ -27,7 +27,6 @@ func TestRewriteRuleSetID(t *testing.T) {
 		Error    bool
 		Expected *RewriteRuleSetId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestRewriteRuleSetIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *RewriteRuleSetId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -46,7 +46,6 @@ func (c WebAppsClient) GetConfigurationSlot(ctx context.Context, id SlotId) (res
 
 	var model SiteConfigResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

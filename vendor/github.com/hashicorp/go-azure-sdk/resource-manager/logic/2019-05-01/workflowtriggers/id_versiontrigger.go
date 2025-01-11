@@ -46,7 +46,7 @@ func ParseVersionTriggerID(input string) (*VersionTriggerId, error) {
 	}
 
 	id := VersionTriggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func ParseVersionTriggerIDInsensitively(input string) (*VersionTriggerId, error)
 	}
 
 	id := VersionTriggerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -127,11 +127,11 @@ func (id VersionTriggerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionId", "versionIdValue"),
+		resourceids.UserSpecifiedSegment("versionId", "versionId"),
 		resourceids.StaticSegment("staticTriggers", "triggers", "triggers"),
-		resourceids.UserSpecifiedSegment("triggerName", "triggerValue"),
+		resourceids.UserSpecifiedSegment("triggerName", "triggerName"),
 	}
 }
 

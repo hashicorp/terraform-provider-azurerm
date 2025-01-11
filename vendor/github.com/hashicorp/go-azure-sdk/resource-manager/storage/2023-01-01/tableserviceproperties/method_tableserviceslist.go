@@ -47,7 +47,6 @@ func (c TableServicePropertiesClient) TableServicesList(ctx context.Context, id 
 
 	var model ListTableServices
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

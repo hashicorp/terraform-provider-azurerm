@@ -15,7 +15,7 @@ type RulesClient struct {
 }
 
 func NewRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*RulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "rules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "rules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RulesClient: %+v", err)
 	}

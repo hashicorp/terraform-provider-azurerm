@@ -15,6 +15,14 @@ type AzureToAzureNetworkMappingSettings struct {
 	RecoveryFabricLocation *string `json:"recoveryFabricLocation,omitempty"`
 
 	// Fields inherited from NetworkMappingFabricSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s AzureToAzureNetworkMappingSettings) NetworkMappingFabricSpecificSettings() BaseNetworkMappingFabricSpecificSettingsImpl {
+	return BaseNetworkMappingFabricSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = AzureToAzureNetworkMappingSettings{}
@@ -28,9 +36,10 @@ func (s AzureToAzureNetworkMappingSettings) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureToAzureNetworkMappingSettings: %+v", err)
 	}
+
 	decoded["instanceType"] = "AzureToAzure"
 
 	encoded, err = json.Marshal(decoded)

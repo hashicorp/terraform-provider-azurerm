@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ReverseReplicationProviderSpecificInput interface {
+	ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl
 }
 
-// RawReverseReplicationProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ReverseReplicationProviderSpecificInput = BaseReverseReplicationProviderSpecificInputImpl{}
+
+type BaseReverseReplicationProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseReverseReplicationProviderSpecificInputImpl) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return s
+}
+
+var _ ReverseReplicationProviderSpecificInput = RawReverseReplicationProviderSpecificInputImpl{}
+
+// RawReverseReplicationProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawReverseReplicationProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	reverseReplicationProviderSpecificInput BaseReverseReplicationProviderSpecificInputImpl
+	Type                                    string
+	Values                                  map[string]interface{}
 }
 
-func unmarshalReverseReplicationProviderSpecificInputImplementation(input []byte) (ReverseReplicationProviderSpecificInput, error) {
+func (s RawReverseReplicationProviderSpecificInputImpl) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return s.reverseReplicationProviderSpecificInput
+}
+
+func UnmarshalReverseReplicationProviderSpecificInputImplementation(input []byte) (ReverseReplicationProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalReverseReplicationProviderSpecificInputImplementation(input []byte
 		return nil, fmt.Errorf("unmarshaling ReverseReplicationProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -84,10 +101,15 @@ func unmarshalReverseReplicationProviderSpecificInputImplementation(input []byte
 		return out, nil
 	}
 
-	out := RawReverseReplicationProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseReverseReplicationProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseReverseReplicationProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawReverseReplicationProviderSpecificInputImpl{
+		reverseReplicationProviderSpecificInput: parent,
+		Type:                                    value,
+		Values:                                  temp,
+	}, nil
 
 }

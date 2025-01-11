@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerappsrevisions` Documentation
 
-The `containerappsrevisions` SDK allows for interaction with the Azure Resource Manager Service `containerapps` (API Version `2023-05-01`).
+The `containerappsrevisions` SDK allows for interaction with Azure Resource Manager `containerapps` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppValue", "revisionValue")
+id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppName", "revisionName")
 
 read, err := client.ActivateRevision(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppValue", "revisionValue")
+id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppName", "revisionName")
 
 read, err := client.DeactivateRevision(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppValue", "revisionValue")
+id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppName", "revisionName")
 
 read, err := client.GetRevision(ctx, id)
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerappsrevisions.NewContainerAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppValue")
+id := containerappsrevisions.NewContainerAppID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppName")
 
 // alternatively `client.ListRevisions(ctx, id, containerappsrevisions.DefaultListRevisionsOperationOptions())` can be used to do batched pagination
 items, err := client.ListRevisionsComplete(ctx, id, containerappsrevisions.DefaultListRevisionsOperationOptions())
@@ -89,7 +89,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppValue", "revisionValue")
+id := containerappsrevisions.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerAppName", "revisionName")
 
 read, err := client.RestartRevision(ctx, id)
 if err != nil {

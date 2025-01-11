@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-06-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -574,16 +574,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{2}),
 					},
 				},
 			},
+			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -663,7 +666,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2023_06_01_preview.Registries
+			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
@@ -861,7 +864,6 @@ func (r ContainerRegistryTaskResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -1034,7 +1036,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 			Status: &status,
 			SourceRepository: tasks.SourceProperties{
 				SourceControlType: tasks.SourceControlType(trigger.SourceType),
-				RepositoryUrl:     trigger.RepositoryURL,
+				RepositoryURL:     trigger.RepositoryURL,
 			},
 		}
 		if len(trigger.Events) != 0 {
@@ -1076,7 +1078,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 		}
 
 		obj.SourceType = string(trigger.SourceRepository.SourceControlType)
-		obj.RepositoryURL = trigger.SourceRepository.RepositoryUrl
+		obj.RepositoryURL = trigger.SourceRepository.RepositoryURL
 		if trigger.SourceRepository.Branch != nil {
 			obj.Branch = *trigger.SourceRepository.Branch
 		}

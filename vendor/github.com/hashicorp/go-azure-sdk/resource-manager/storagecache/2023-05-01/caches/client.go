@@ -15,7 +15,7 @@ type CachesClient struct {
 }
 
 func NewCachesClientWithBaseURI(sdkApi sdkEnv.Api) (*CachesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "caches", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "caches", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CachesClient: %+v", err)
 	}

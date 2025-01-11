@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ReplicationProviderSpecificSettings interface {
+	ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl
 }
 
-// RawReplicationProviderSpecificSettingsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ReplicationProviderSpecificSettings = BaseReplicationProviderSpecificSettingsImpl{}
+
+type BaseReplicationProviderSpecificSettingsImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseReplicationProviderSpecificSettingsImpl) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return s
+}
+
+var _ ReplicationProviderSpecificSettings = RawReplicationProviderSpecificSettingsImpl{}
+
+// RawReplicationProviderSpecificSettingsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawReplicationProviderSpecificSettingsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	replicationProviderSpecificSettings BaseReplicationProviderSpecificSettingsImpl
+	Type                                string
+	Values                              map[string]interface{}
 }
 
-func unmarshalReplicationProviderSpecificSettingsImplementation(input []byte) (ReplicationProviderSpecificSettings, error) {
+func (s RawReplicationProviderSpecificSettingsImpl) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return s.replicationProviderSpecificSettings
+}
+
+func UnmarshalReplicationProviderSpecificSettingsImplementation(input []byte) (ReplicationProviderSpecificSettings, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalReplicationProviderSpecificSettingsImplementation(input []byte) (R
 		return nil, fmt.Errorf("unmarshaling ReplicationProviderSpecificSettings into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2ACrossClusterMigration") {
@@ -116,10 +133,15 @@ func unmarshalReplicationProviderSpecificSettingsImplementation(input []byte) (R
 		return out, nil
 	}
 
-	out := RawReplicationProviderSpecificSettingsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseReplicationProviderSpecificSettingsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseReplicationProviderSpecificSettingsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawReplicationProviderSpecificSettingsImpl{
+		replicationProviderSpecificSettings: parent,
+		Type:                                value,
+		Values:                              temp,
+	}, nil
 
 }

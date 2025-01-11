@@ -15,7 +15,7 @@ type MachinesClient struct {
 }
 
 func NewMachinesClientWithBaseURI(sdkApi sdkEnv.Api) (*MachinesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "machines", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "machines", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MachinesClient: %+v", err)
 	}

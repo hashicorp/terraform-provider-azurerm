@@ -72,7 +72,7 @@ A `health_probe` block supports the following:
 
 * `protocol` - (Required) Specifies the protocol to use for health probe. Possible values are `Http` and `Https`.
 
-* `interval_in_seconds` - (Required) Specifies the number of seconds between health probes. Possible values are between `5` and `31536000` seconds (inclusive).
+* `interval_in_seconds` - (Required) Specifies the number of seconds between health probes. Possible values are between `1` and `255` seconds (inclusive).
 
 * `request_type` - (Optional) Specifies the type of health probe request that is made. Possible values are `GET` and `HEAD`. Defaults to `HEAD`.
 

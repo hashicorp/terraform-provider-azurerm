@@ -346,7 +346,7 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(databases.ReadWriteDatabase)
+		value, ok := resp.Model.(databases.ReadWriteDatabase)
 		if !ok {
 			return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
 		}

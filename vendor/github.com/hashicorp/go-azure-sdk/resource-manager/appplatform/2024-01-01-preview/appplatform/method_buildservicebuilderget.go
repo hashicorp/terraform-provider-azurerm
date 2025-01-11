@@ -45,7 +45,6 @@ func (c AppPlatformClient) BuildServiceBuilderGet(ctx context.Context, id Builde
 
 	var model BuilderResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

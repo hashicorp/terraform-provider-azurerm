@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -170,7 +171,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	appInsightsRaw := d.Get("application_insights").([]interface{})
 
 	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
-		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+		return errors.New("either `eventhub` or `application_insights` is required")
 	}
 
 	if d.IsNewResource() {
@@ -324,7 +325,6 @@ func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 		if clientId != "" {
 			credentials["identityClientId"] = clientId
 		}
-
 	}
 
 	return &credentials

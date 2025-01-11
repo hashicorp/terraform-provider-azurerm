@@ -91,6 +91,7 @@ func TestAccKubernetesFleetUpdateStrategy_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r KubernetesFleetUpdateStrategyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleetupdatestrategies.ParseUpdateStrategyID(state.ID)
 	if err != nil {
@@ -104,6 +105,7 @@ func (r KubernetesFleetUpdateStrategyTestResource) Exists(ctx context.Context, c
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r KubernetesFleetUpdateStrategyTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

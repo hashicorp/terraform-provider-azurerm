@@ -45,7 +45,6 @@ func (c SnapshotsClient) Get(ctx context.Context, id SnapshotId) (result GetOper
 
 	var model Snapshot
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -11,14 +11,22 @@ import (
 var _ DatastoreCredentials = CertificateDatastoreCredentials{}
 
 type CertificateDatastoreCredentials struct {
-	AuthorityUrl *string                     `json:"authorityUrl,omitempty"`
+	AuthorityURL *string                     `json:"authorityUrl,omitempty"`
 	ClientId     string                      `json:"clientId"`
-	ResourceUrl  *string                     `json:"resourceUrl,omitempty"`
+	ResourceURL  *string                     `json:"resourceUrl,omitempty"`
 	Secrets      CertificateDatastoreSecrets `json:"secrets"`
 	TenantId     string                      `json:"tenantId"`
 	Thumbprint   string                      `json:"thumbprint"`
 
 	// Fields inherited from DatastoreCredentials
+
+	CredentialsType CredentialsType `json:"credentialsType"`
+}
+
+func (s CertificateDatastoreCredentials) DatastoreCredentials() BaseDatastoreCredentialsImpl {
+	return BaseDatastoreCredentialsImpl{
+		CredentialsType: s.CredentialsType,
+	}
 }
 
 var _ json.Marshaler = CertificateDatastoreCredentials{}
@@ -32,9 +40,10 @@ func (s CertificateDatastoreCredentials) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CertificateDatastoreCredentials: %+v", err)
 	}
+
 	decoded["credentialsType"] = "Certificate"
 
 	encoded, err = json.Marshal(decoded)

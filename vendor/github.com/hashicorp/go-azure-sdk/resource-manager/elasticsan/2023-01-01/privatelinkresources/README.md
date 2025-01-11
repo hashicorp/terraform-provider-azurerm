@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/privatelinkresources` Documentation
 
-The `privatelinkresources` SDK allows for interaction with the Azure Resource Manager Service `elasticsan` (API Version `2023-01-01`).
+The `privatelinkresources` SDK allows for interaction with Azure Resource Manager `elasticsan` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkresources.NewElasticSanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "elasticSanValue")
+id := privatelinkresources.NewElasticSanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "elasticSanName")
 
 // alternatively `client.ListByElasticSan(ctx, id)` can be used to do batched pagination
 items, err := client.ListByElasticSanComplete(ctx, id)

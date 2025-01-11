@@ -273,7 +273,6 @@ func (r SimPolicyDataSource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					state.Tags = *model.Tags
 				}
-
 			}
 
 			metadata.SetID(id)

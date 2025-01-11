@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/failovergroups` Documentation
 
-The `failovergroups` SDK allows for interaction with the Azure Resource Manager Service `sql` (API Version `2023-08-01-preview`).
+The `failovergroups` SDK allows for interaction with Azure Resource Manager `sql` (API Version `2023-08-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 payload := failovergroups.FailoverGroup{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 if err := client.FailoverThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.FailoverThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 if err := client.ForceFailoverAllowDataLossThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -78,7 +78,7 @@ if err := client.ForceFailoverAllowDataLossThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)
@@ -111,7 +111,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 if err := client.TryPlannedBeforeForcedFailoverThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -123,7 +123,7 @@ if err := client.TryPlannedBeforeForcedFailoverThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "failoverGroupValue")
+id := failovergroups.NewFailoverGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "failoverGroupName")
 
 payload := failovergroups.FailoverGroupUpdate{
 	// ...

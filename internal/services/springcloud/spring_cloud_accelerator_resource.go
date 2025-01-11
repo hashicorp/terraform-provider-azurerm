@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudAcceleratorModel struct {
@@ -27,8 +27,10 @@ type SpringCloudAcceleratorModel struct {
 
 type SpringCloudAcceleratorResource struct{}
 
-var _ sdk.Resource = SpringCloudAcceleratorResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudAcceleratorResource{}
+var (
+	_ sdk.Resource                   = SpringCloudAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudAcceleratorResource{}
+)
 
 func (s SpringCloudAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_accelerator"

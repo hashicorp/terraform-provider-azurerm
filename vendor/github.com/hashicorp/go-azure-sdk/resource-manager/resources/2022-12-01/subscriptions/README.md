@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions` Documentation
 
-The `subscriptions` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2022-12-01`).
+The `subscriptions` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

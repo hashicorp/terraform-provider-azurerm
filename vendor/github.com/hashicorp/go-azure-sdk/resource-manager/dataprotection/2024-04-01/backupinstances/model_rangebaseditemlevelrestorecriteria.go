@@ -15,6 +15,14 @@ type RangeBasedItemLevelRestoreCriteria struct {
 	MinMatchingValue *string `json:"minMatchingValue,omitempty"`
 
 	// Fields inherited from ItemLevelRestoreCriteria
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s RangeBasedItemLevelRestoreCriteria) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return BaseItemLevelRestoreCriteriaImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = RangeBasedItemLevelRestoreCriteria{}
@@ -28,9 +36,10 @@ func (s RangeBasedItemLevelRestoreCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RangeBasedItemLevelRestoreCriteria: %+v", err)
 	}
+
 	decoded["objectType"] = "RangeBasedItemLevelRestoreCriteria"
 
 	encoded, err = json.Marshal(decoded)

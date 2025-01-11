@@ -15,7 +15,7 @@ type GlobalRulestackClient struct {
 }
 
 func NewGlobalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*GlobalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "globalrulestack", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "globalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GlobalRulestackClient: %+v", err)
 	}

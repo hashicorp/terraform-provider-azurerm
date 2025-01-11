@@ -27,7 +27,6 @@ func TestResourceGroupPolicyRemediationID(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupPolicyRemediationId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -46,7 +46,6 @@ func (c WorkspacesClient) UsagesList(ctx context.Context, id WorkspaceId) (resul
 
 	var model WorkspaceListUsagesResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

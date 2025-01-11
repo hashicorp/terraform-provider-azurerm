@@ -18,7 +18,7 @@ type LinkerGetOperationResponse struct {
 }
 
 // LinkerGet ...
-func (c ServiceLinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (result LinkerGetOperationResponse, err error) {
+func (c ServicelinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (result LinkerGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -45,7 +45,6 @@ func (c ServiceLinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (
 
 	var model LinkerResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

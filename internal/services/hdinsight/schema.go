@@ -702,6 +702,7 @@ func flattenHDInsightPrivateLinkConfigurations(input *[]clusters.PrivateLinkConf
 		},
 	}
 }
+
 func flattenHDInsightPrivateLinkConfigurationIpConfigurationProperties(input *clusters.IPConfiguration) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -732,11 +733,9 @@ func FlattenHDInsightsConfigurations(input map[string]string, d *pluginsdk.Resou
 		username = v
 	}
 
-	password := ""
+	password := d.Get("gateway.0.password").(string)
 	if v, exists := input["restAuthCredential.password"]; exists {
 		password = v
-	} else {
-		password = d.Get("gateway.0.password").(string)
 	}
 
 	out := map[string]interface{}{
@@ -1158,8 +1157,6 @@ type HDInsightNodeDefinition struct {
 	FixedTargetInstanceCount *int64
 	CanAutoScaleByCapacity   bool
 	CanAutoScaleOnSchedule   bool
-	// todo remove in 4.0
-	CanAutoScaleByCapacityDeprecated4PointOh bool
 }
 
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1256,37 +1253,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
@@ -1473,37 +1440,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
@@ -1777,7 +1714,7 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
 		Domain:             utils.String(v["domain_name"].(string)),
-		LdapsUrls:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
+		LdapsURLs:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
 		DomainUsername:     utils.String(v["domain_username"].(string)),
 		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
 		AaddsResourceId:    utils.String(v["aadds_resource_id"].(string)),
@@ -2009,7 +1946,7 @@ func flattenHDInsightSecurityProfile(input *clusters.SecurityProfile, d *plugins
 			"domain_name":             domain,
 			"domain_username":         domainUsername,
 			"domain_user_password":    d.Get("security_profile.0.domain_user_password"),
-			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsUrls),
+			"ldaps_urls":              utils.FlattenStringSlice(input.LdapsURLs),
 			"msi_resource_id":         msiResourceId,
 		},
 	}

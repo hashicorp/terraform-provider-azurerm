@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SwitchProviderProviderSpecificInput interface {
+	SwitchProviderProviderSpecificInput() BaseSwitchProviderProviderSpecificInputImpl
 }
 
-// RawSwitchProviderProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SwitchProviderProviderSpecificInput = BaseSwitchProviderProviderSpecificInputImpl{}
+
+type BaseSwitchProviderProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseSwitchProviderProviderSpecificInputImpl) SwitchProviderProviderSpecificInput() BaseSwitchProviderProviderSpecificInputImpl {
+	return s
+}
+
+var _ SwitchProviderProviderSpecificInput = RawSwitchProviderProviderSpecificInputImpl{}
+
+// RawSwitchProviderProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSwitchProviderProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	switchProviderProviderSpecificInput BaseSwitchProviderProviderSpecificInputImpl
+	Type                                string
+	Values                              map[string]interface{}
 }
 
-func unmarshalSwitchProviderProviderSpecificInputImplementation(input []byte) (SwitchProviderProviderSpecificInput, error) {
+func (s RawSwitchProviderProviderSpecificInputImpl) SwitchProviderProviderSpecificInput() BaseSwitchProviderProviderSpecificInputImpl {
+	return s.switchProviderProviderSpecificInput
+}
+
+func UnmarshalSwitchProviderProviderSpecificInputImplementation(input []byte) (SwitchProviderProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSwitchProviderProviderSpecificInputImplementation(input []byte) (S
 		return nil, fmt.Errorf("unmarshaling SwitchProviderProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "InMageAzureV2") {
@@ -44,10 +61,15 @@ func unmarshalSwitchProviderProviderSpecificInputImplementation(input []byte) (S
 		return out, nil
 	}
 
-	out := RawSwitchProviderProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSwitchProviderProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSwitchProviderProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSwitchProviderProviderSpecificInputImpl{
+		switchProviderProviderSpecificInput: parent,
+		Type:                                value,
+		Values:                              temp,
+	}, nil
 
 }

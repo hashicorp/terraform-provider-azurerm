@@ -47,7 +47,6 @@ func (c WebAppsClient) GetPrivateAccess(ctx context.Context, id commonids.AppSer
 
 	var model PrivateAccess
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

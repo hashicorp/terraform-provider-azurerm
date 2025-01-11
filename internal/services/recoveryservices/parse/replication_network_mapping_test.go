@@ -27,7 +27,6 @@ func TestReplicationNetworkMappingID(t *testing.T) {
 		Error    bool
 		Expected *ReplicationNetworkMappingId
 	}{
-
 		{
 			// empty
 			Input: "",

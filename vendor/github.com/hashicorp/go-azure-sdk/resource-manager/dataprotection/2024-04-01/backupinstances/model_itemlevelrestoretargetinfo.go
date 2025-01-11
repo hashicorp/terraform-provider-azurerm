@@ -17,8 +17,18 @@ type ItemLevelRestoreTargetInfo struct {
 	RestoreCriteria           []ItemLevelRestoreCriteria `json:"restoreCriteria"`
 
 	// Fields inherited from RestoreTargetInfoBase
+
+	ObjectType      string         `json:"objectType"`
 	RecoveryOption  RecoveryOption `json:"recoveryOption"`
 	RestoreLocation *string        `json:"restoreLocation,omitempty"`
+}
+
+func (s ItemLevelRestoreTargetInfo) RestoreTargetInfoBase() BaseRestoreTargetInfoBaseImpl {
+	return BaseRestoreTargetInfoBaseImpl{
+		ObjectType:      s.ObjectType,
+		RecoveryOption:  s.RecoveryOption,
+		RestoreLocation: s.RestoreLocation,
+	}
 }
 
 var _ json.Marshaler = ItemLevelRestoreTargetInfo{}
@@ -32,9 +42,10 @@ func (s ItemLevelRestoreTargetInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ItemLevelRestoreTargetInfo: %+v", err)
 	}
+
 	decoded["objectType"] = "ItemLevelRestoreTargetInfo"
 
 	encoded, err = json.Marshal(decoded)
@@ -48,14 +59,20 @@ func (s ItemLevelRestoreTargetInfo) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &ItemLevelRestoreTargetInfo{}
 
 func (s *ItemLevelRestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
-	type alias ItemLevelRestoreTargetInfo
-	var decoded alias
+	var decoded struct {
+		DatasourceInfo    Datasource     `json:"datasourceInfo"`
+		DatasourceSetInfo *DatasourceSet `json:"datasourceSetInfo,omitempty"`
+		ObjectType        string         `json:"objectType"`
+		RecoveryOption    RecoveryOption `json:"recoveryOption"`
+		RestoreLocation   *string        `json:"restoreLocation,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ItemLevelRestoreTargetInfo: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DatasourceInfo = decoded.DatasourceInfo
 	s.DatasourceSetInfo = decoded.DatasourceSetInfo
+	s.ObjectType = decoded.ObjectType
 	s.RecoveryOption = decoded.RecoveryOption
 	s.RestoreLocation = decoded.RestoreLocation
 
@@ -65,7 +82,7 @@ func (s *ItemLevelRestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["datasourceAuthCredentials"]; ok {
-		impl, err := unmarshalAuthCredentialsImplementation(v)
+		impl, err := UnmarshalAuthCredentialsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'DatasourceAuthCredentials' for 'ItemLevelRestoreTargetInfo': %+v", err)
 		}
@@ -80,7 +97,7 @@ func (s *ItemLevelRestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]ItemLevelRestoreCriteria, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalItemLevelRestoreCriteriaImplementation(val)
+			impl, err := UnmarshalItemLevelRestoreCriteriaImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'RestoreCriteria' for 'ItemLevelRestoreTargetInfo': %+v", i, err)
 			}
@@ -88,5 +105,6 @@ func (s *ItemLevelRestoreTargetInfo) UnmarshalJSON(bytes []byte) error {
 		}
 		s.RestoreCriteria = output
 	}
+
 	return nil
 }

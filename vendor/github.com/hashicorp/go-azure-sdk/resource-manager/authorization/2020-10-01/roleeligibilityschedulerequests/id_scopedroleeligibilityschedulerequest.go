@@ -40,7 +40,7 @@ func ParseScopedRoleEligibilityScheduleRequestID(input string) (*ScopedRoleEligi
 	}
 
 	id := ScopedRoleEligibilityScheduleRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedRoleEligibilityScheduleRequestIDInsensitively(input string) (*Sc
 	}
 
 	id := ScopedRoleEligibilityScheduleRequestId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedRoleEligibilityScheduleRequestId) Segments() []resourceids.Segmen
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticRoleEligibilityScheduleRequests", "roleEligibilityScheduleRequests", "roleEligibilityScheduleRequests"),
-		resourceids.UserSpecifiedSegment("roleEligibilityScheduleRequestName", "roleEligibilityScheduleRequestValue"),
+		resourceids.UserSpecifiedSegment("roleEligibilityScheduleRequestName", "roleEligibilityScheduleRequestName"),
 	}
 }
 

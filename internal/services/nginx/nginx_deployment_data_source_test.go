@@ -27,6 +27,7 @@ func TestAccNginxDeploymentDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("capacity").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("automatic_upgrade_channel").Exists(),
+				check.That(data.ResourceName).Key("dataplane_api_endpoint").Exists(),
 			),
 		},
 	})

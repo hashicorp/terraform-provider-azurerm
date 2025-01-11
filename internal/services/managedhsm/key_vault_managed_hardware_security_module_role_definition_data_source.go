@@ -9,16 +9,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
@@ -47,28 +45,11 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"managed_hsm_id": func() *pluginsdk.Schema {
-			s := &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: managedhsms.ValidateManagedHSMID,
-			}
-			if features.FourPointOhBeta() {
-				s.Required = true
-			} else {
-				s.Optional = true
-				s.Computed = true
-			}
-			return s
-		}(),
-	}
-
-	if !features.FourPointOhBeta() {
-		s["vault_base_url"] = &pluginsdk.Schema{
+		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-		}
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
+		},
 	}
 
 	return s
@@ -187,21 +168,6 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
 				if err != nil {
 					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
-				}
-			}
-
-			if managedHsmId == nil && !features.FourPointOhBeta() {
-				endpoint, err = parse.ManagedHSMEndpoint(config.VaultBaseUrl, domainSuffix)
-				if err != nil {
-					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
-				}
-				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
-				if err != nil {
-					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
-				}
-				if managedHsmId == nil {
-					return fmt.Errorf("unable to determine the Resource Manager ID")
 				}
 			}
 

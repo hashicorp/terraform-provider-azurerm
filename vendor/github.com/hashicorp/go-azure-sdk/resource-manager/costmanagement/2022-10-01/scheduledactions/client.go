@@ -15,7 +15,7 @@ type ScheduledActionsClient struct {
 }
 
 func NewScheduledActionsClientWithBaseURI(sdkApi sdkEnv.Api) (*ScheduledActionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scheduledactions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scheduledactions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScheduledActionsClient: %+v", err)
 	}

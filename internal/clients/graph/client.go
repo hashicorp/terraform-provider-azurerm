@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -100,7 +101,7 @@ func ServicePrincipalObjectID(ctx context.Context, authorizer auth.Authorizer, e
 
 	id := model.ServicePrincipals[0].ID
 	if id == nil {
-		return nil, fmt.Errorf("returned object ID was nil")
+		return nil, errors.New("returned object ID was nil")
 	}
 
 	return id, nil

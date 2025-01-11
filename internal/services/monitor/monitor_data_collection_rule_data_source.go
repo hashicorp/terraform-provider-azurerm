@@ -46,7 +46,6 @@ func (d DataCollectionRuleDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"data_collection_endpoint_id": {

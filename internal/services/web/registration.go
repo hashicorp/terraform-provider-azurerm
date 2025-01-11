@@ -4,7 +4,6 @@
 package web
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -33,9 +32,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_function_app":                  dataSourceFunctionApp(),
 		"azurerm_function_app_host_keys":        dataSourceFunctionAppHostKeys(),
 	}
-	if !features.FourPointOhBeta() {
-		datasources["azurerm_app_service_environment"] = dataSourceAppServiceEnvironment()
-	}
 	return datasources
 }
 
@@ -61,10 +57,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
 		"azurerm_static_site":                                       resourceStaticSite(),
 		"azurerm_static_site_custom_domain":                         resourceStaticSiteCustomDomain(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_app_service_environment"] = resourceAppServiceEnvironment()
 	}
 
 	return resources

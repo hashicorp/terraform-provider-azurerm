@@ -48,7 +48,6 @@ func (c GuestConfigurationAssignmentsClient) SubscriptionList(ctx context.Contex
 
 	var model GuestConfigurationAssignmentList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

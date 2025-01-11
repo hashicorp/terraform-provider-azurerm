@@ -994,13 +994,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       cache_duration                = "365.23:59:59"
     }
 
-    url_redirect_action {
-      redirect_type        = "PermanentRedirect"
-      redirect_protocol    = "MatchRequest"
-      query_string         = "clientIp={client_ip}"
-      destination_path     = "/exampleredirection"
-      destination_hostname = "contoso.com"
-      destination_fragment = "UrlRedirect"
+    response_header_action {
+      header_action = "Append"
+      header_name   = "Set-Cookie"
+      value         = "sessionId=12345678"
     }
   }
 

@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SAPSizingRecommendationResult interface {
+	SAPSizingRecommendationResult() BaseSAPSizingRecommendationResultImpl
 }
 
-// RawSAPSizingRecommendationResultImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SAPSizingRecommendationResult = BaseSAPSizingRecommendationResultImpl{}
+
+type BaseSAPSizingRecommendationResultImpl struct {
+	DeploymentType SAPDeploymentType `json:"deploymentType"`
+}
+
+func (s BaseSAPSizingRecommendationResultImpl) SAPSizingRecommendationResult() BaseSAPSizingRecommendationResultImpl {
+	return s
+}
+
+var _ SAPSizingRecommendationResult = RawSAPSizingRecommendationResultImpl{}
+
+// RawSAPSizingRecommendationResultImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSAPSizingRecommendationResultImpl struct {
-	Type   string
-	Values map[string]interface{}
+	sAPSizingRecommendationResult BaseSAPSizingRecommendationResultImpl
+	Type                          string
+	Values                        map[string]interface{}
 }
 
-func unmarshalSAPSizingRecommendationResultImplementation(input []byte) (SAPSizingRecommendationResult, error) {
+func (s RawSAPSizingRecommendationResultImpl) SAPSizingRecommendationResult() BaseSAPSizingRecommendationResultImpl {
+	return s.sAPSizingRecommendationResult
+}
+
+func UnmarshalSAPSizingRecommendationResultImplementation(input []byte) (SAPSizingRecommendationResult, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSAPSizingRecommendationResultImplementation(input []byte) (SAPSizi
 		return nil, fmt.Errorf("unmarshaling SAPSizingRecommendationResult into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["deploymentType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["deploymentType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "SingleServer") {
@@ -52,10 +69,15 @@ func unmarshalSAPSizingRecommendationResultImplementation(input []byte) (SAPSizi
 		return out, nil
 	}
 
-	out := RawSAPSizingRecommendationResultImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSAPSizingRecommendationResultImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSAPSizingRecommendationResultImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSAPSizingRecommendationResultImpl{
+		sAPSizingRecommendationResult: parent,
+		Type:                          value,
+		Values:                        temp,
+	}, nil
 
 }

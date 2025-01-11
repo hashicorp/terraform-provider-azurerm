@@ -33,6 +33,36 @@ resource "azurerm_role_definition" "example" {
 }
 ```
 
+## Example Usage with Management Group
+```hcl
+data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_management_group" "example" {
+  display_name = "ParentGroup"
+
+  subscription_ids = [
+    data.azurerm_subscription.current.subscription_id,
+  ]
+}
+
+resource "azurerm_role_definition" "example" {
+  name        = "example-mg-role"
+  scope       = azurerm_management_group.example.id
+  description = "Example custom role scoped to a management group."
+
+  permissions {
+    actions = ["Microsoft.Insights/alertRules/*",
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    azurerm_management_group.example.id
+  ]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -41,13 +71,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Role Definition. 
 
-* `scope` - (Required) The scope at which the Role Definition applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. It is recommended to use the first entry of the `assignable_scopes`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope at which the Role Definition applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, `/providers/Microsoft.Management/managementGroups/0b1f6471-1bf0-4dda-aec3-111122223333`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. It is recommended to use the first entry of the `assignable_scopes`. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description of the Role Definition.
 
 * `permissions` - (Optional) A `permissions` block as defined below.
 
-* `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+* `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, `/providers/Microsoft.Management/managementGroups/0b1f6471-1bf0-4dda-aec3-111122223333` , or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 
 ~> **NOTE:** The value for `scope` is automatically included in this list if no other values supplied.
 

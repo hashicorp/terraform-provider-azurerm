@@ -5,6 +5,7 @@ package aadb2c
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -144,10 +145,10 @@ func (r AadB2cDirectoryResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.CountryCode == "" {
-				return fmt.Errorf("`country_code` is required when creating a new AADB2C directory")
+				return errors.New("`country_code` is required when creating a new AADB2C directory")
 			}
 			if model.DisplayName == "" {
-				return fmt.Errorf("`display_name` is required when creating a new AADB2C directory")
+				return errors.New("`display_name` is required when creating a new AADB2C directory")
 			}
 
 			id := tenants.NewB2CDirectoryID(subscriptionId, model.ResourceGroup, model.DomainName)

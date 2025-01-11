@@ -118,33 +118,37 @@ To go through these in turn:
 
 * `Arguments` returns a list of schema fields which are user-specifiable - either Required or Optional.
 * `Attributes` returns a list of schema fields which are Computed (read-only).
-* `ModelObject` returns a reference to a Go struct which is used as the Model for this Data Source (this can also return `nil` if there's no model).
+* `ModelObject` returns a reference to a Go struct which is used as the Model for this Data Source.
 * `ResourceType` returns the name of this resource within the Provider (for example `azurerm_resource_group_example`).
 * `Read` returns a function defining both the Timeout and the Read function (which retrieves information from the Azure API) for this Data Source.
 
 ```go
+type ResourceGroupExampleDataSourceModel struct {
+	Name     string            `tfschema:"name"`
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
+}
+
 func (ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
 func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-		},
+		"location": commonschema.LocationComputed(),
 
 		"tags": commonschema.TagsDataSource(),
 	}
 }
 
 func (ResourceGroupExampleDataSource) ModelObject() interface{} {
-	return nil
+	return &ResourceGroupExampleDataSourceModel
 }
 
 func (ResourceGroupExampleDataSource) ResourceType() string {
@@ -154,7 +158,7 @@ func (ResourceGroupExampleDataSource) ResourceType() string {
 
 > In this case we're using the resource type `azurerm_resource_group_example` as [an existing Data Source for `azurerm_resource_group` exists](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) and the names need to be unique.
 
-These functions define a Data Source called `azurerm_resource_group_example`, which has one Required argument called `name` and two Computed arguments called `location` and `tags`. We'll come back to `ModelObject` later.
+These functions define a Data Source called `azurerm_resource_group_example`, which has one Required argument called `name` and two Computed arguments called `location` and `tags`.
 
 ---
 
@@ -171,33 +175,41 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 
 		// the Func returns a function which retrieves the current state of the Resource Group into the state 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            client := metadata.Client.Resource.GroupsClient
+			client := metadata.Client.Resource.GroupsClient
             
 			// retrieve the Name for this Resource Group from the Terraform Config
 			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name
-            subscriptionId := metadata.Client.Account.SubscriptionId
-            name := metadata.ResourceData.Get("name").(string)
-            id := resources.NewResourceGroupExampleID(subscriptionId, name)
+			// using the Subscription ID & name 
+			subscriptionId := metadata.Client.Account.SubscriptionId
 			
-			// then retrieve the Resource Group by it's ID
-            resp, err := client.Get(ctx, id)
-            if err != nil {
+			// declare a variable called state which we use to decode and encode values into
+			// this simultaneously gets values that have been set in the config for us
+			// and also allows us to set values into state
+			var state ResourceGroupExampleDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}   
+			
+			id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
+			
+			// then retrieve the Resource Group by it's ID 
+			resp, err := client.Get(ctx, id)
+			if err != nil {
 				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
-				// since this is a Data Source we must return an error if it's Not Found
-                if response.WasNotFound(resp.HttpResponse) {
-                    return fmt.Errorf("%s was not found", id)
-                }
+				// since this is a Data Source we must return an error if it's Not Found 
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
 				
-                // otherwise it's a genuine error (auth/api error etc) so raise it
+				// otherwise it's a genuine error (auth/api error etc) so raise it
 				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle
-                return fmt.Errorf("retrieving %s: %+v", id, err)
-            }
+				// or raise a bug report if there's something we should handle 
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
 			
 			// now we know the Resource Group exists, set the Resource ID for this Data Source
-			// this means that Terraform will track this as existing
-            metadata.SetID(id)
+			// this means that Terraform will track this as existing 
+			metadata.SetID(id)
 			
 			// at this point we can set information about this Resource Group into the State
 			// whilst traditionally we would do this via `metadata.ResourceData.Set("foo", "somevalue")
@@ -212,17 +224,14 @@ func (ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			// lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
 			// for users
 			if model := resp.Model; model != nil {
-			    metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
-				
+				state.Location = location.NormalizeNilable(model.Location)
+				state.Tags = pointer.From(model.Tags)
 				props := model.Properties; props != nil {
 					// If the data source exposes additional properties that live within the Properties
-					// model of the response they would be set into state here.
-                }
-                // (as above) Tags are a little different, so we have a dedicated helper function
-                // to flatten these consistently across the Provider
-                return tags.FlattenAndSet(metadata.ResourceData, model.Tags)
-            }   
-			return nil
+					// model of the response they would be set into state here. 
+				}
+			}   
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -249,23 +258,28 @@ import (
 
 type ResourceGroupExampleDataSource struct{}
 
+type ResourceGroupExampleDataSourceModel struct {
+	Name     string            `tfschema:"name"`
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
+}
+
+
 func (d ResourceGroupExampleDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
 func (d ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
+		"location": commonschema.LocationComputed(),
+		
 		"tags": commonschema.TagsDataSource(),
-
 	}
 }
 
@@ -283,8 +297,13 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			
-			id := resources.NewResourceGroupExampleID(subscriptionId, metadata.ResourceData.Get("name").(string))
+
+			var state ResourceGroupExampleDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := resources.NewResourceGroupExampleID(subscriptionId, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -297,10 +316,10 @@ func (d ResourceGroupExampleDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
-				return tags.FlattenAndSet(metadata.ResourceData, model.Tags)
+				state.Location = location.NormalizeNilable(model.Location)
+				state.Tags = pointer.From(model.Tags)
 			}
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }

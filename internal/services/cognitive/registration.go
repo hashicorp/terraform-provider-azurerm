@@ -56,5 +56,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AzureAIServicesResource{},
 		CognitiveDeploymentResource{},
+		CognitiveRaiBlocklistResource{},
 	}
 }

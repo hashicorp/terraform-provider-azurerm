@@ -10,13 +10,13 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory"
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 // TODO4.0: check if the workaround could be removed.
 // Workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/24758
 // Tracked on https://github.com/Azure/azure-rest-api-specs/issues/27816
-// This file is almost copied from https://github.com/tombuildsstuff/kermit/blob/main/sdk/datafactory/2018-06-01/datafactory/pipelines.go
+// This file is almost copied from https://github.com/jackofallops/kermit/blob/main/sdk/datafactory/2018-06-01/datafactory/pipelines.go
 // Added a custom client to use custom `PipelineResource`.
 
 type PipelinesClient struct {
@@ -62,26 +62,23 @@ func (client PipelinesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 			}},
 		},
 	}); err != nil {
-		return result, validation.NewError("datafactory.PipelinesClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("datafactory.PipelinesClient", "CreateOrUpdate", err.Error()) // nolint: govet
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, factoryName, pipelineName, pipeline, ifMatch)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", nil, "Failure preparing request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", nil, "Failure preparing request")
 	}
 
 	resp, err := client.OriginalClient.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", resp, "Failure sending request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", resp, "Failure sending request")
 	}
 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", resp, "Failure responding to request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -152,29 +149,26 @@ func (client PipelinesClient) Get(ctx context.Context, resourceGroupName string,
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("datafactory.PipelinesClient", "Get", err.Error())
+		return result, validation.NewError("datafactory.PipelinesClient", "Get", err.Error()) // nolint: govet
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, factoryName, pipelineName, ifNoneMatch)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", nil, "Failure preparing request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", nil, "Failure preparing request")
 	}
 
 	resp, err := client.OriginalClient.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", resp, "Failure sending request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", resp, "Failure sending request")
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", resp, "Failure responding to request")
-		return
+		return result, autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "Get", resp, "Failure responding to request")
 	}
 
-	return
+	return result, err
 }
 
 func (client PipelinesClient) GetPreparer(ctx context.Context, resourceGroupName string, factoryName string, pipelineName string, ifNoneMatch string) (*http.Request, error) {

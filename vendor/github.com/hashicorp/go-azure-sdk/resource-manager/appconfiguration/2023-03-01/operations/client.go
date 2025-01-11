@@ -15,7 +15,7 @@ type OperationsClient struct {
 }
 
 func NewOperationsClientWithBaseURI(sdkApi sdkEnv.Api) (*OperationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "operations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "operations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OperationsClient: %+v", err)
 	}

@@ -20,7 +20,7 @@ type instanceKey interface {
 	String() string
 }
 
-// NoKey represents the absense of an instanceKey, for the single instance
+// NoKey represents the absence of an instanceKey, for the single instance
 // of a configuration object that does not use "count" or "for_each" at all.
 var NoKey instanceKey
 

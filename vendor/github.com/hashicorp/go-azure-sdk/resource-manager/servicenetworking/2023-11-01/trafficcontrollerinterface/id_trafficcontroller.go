@@ -42,7 +42,7 @@ func ParseTrafficControllerID(input string) (*TrafficControllerId, error) {
 	}
 
 	id := TrafficControllerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseTrafficControllerIDInsensitively(input string) (*TrafficControllerId, 
 	}
 
 	id := TrafficControllerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id TrafficControllerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceNetworking", "Microsoft.ServiceNetworking", "Microsoft.ServiceNetworking"),
 		resourceids.StaticSegment("staticTrafficControllers", "trafficControllers", "trafficControllers"),
-		resourceids.UserSpecifiedSegment("trafficControllerName", "trafficControllerValue"),
+		resourceids.UserSpecifiedSegment("trafficControllerName", "trafficControllerName"),
 	}
 }
 

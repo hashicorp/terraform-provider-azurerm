@@ -29,7 +29,7 @@ type SpringCloudCustomizedAcceleratorModel struct {
 	Description              string               `tfschema:"description"`
 	DisplayName              string               `tfschema:"display_name"`
 	GitRepository            []GitRepositoryModel `tfschema:"git_repository"`
-	IconUrl                  string               `tfschema:"icon_url"`
+	IconURL                  string               `tfschema:"icon_url"`
 }
 
 type GitRepositoryModel struct {
@@ -57,8 +57,10 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudCustomizedAcceleratorResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+)
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"
@@ -273,7 +275,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
 					DisplayName:     pointer.To(model.DisplayName),
 					Description:     pointer.To(model.Description),
-					IconUrl:         pointer.To(model.IconUrl),
+					IconURL:         pointer.To(model.IconURL),
 					AcceleratorTags: pointer.To(model.AcceleratorTags),
 					GitRepository:   expandSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository),
 				},
@@ -336,7 +338,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("icon_url") {
-				properties.IconUrl = &model.IconUrl
+				properties.IconURL = &model.IconURL
 			}
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
@@ -396,8 +398,8 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 				}
 				state.GitRepository = flattenSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository, props.GitRepository)
 
-				if props.IconUrl != nil {
-					state.IconUrl = *props.IconUrl
+				if props.IconURL != nil {
+					state.IconURL = *props.IconURL
 				}
 			}
 

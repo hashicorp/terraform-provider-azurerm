@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devboxdefinitions` Documentation
 
-The `devboxdefinitions` SDK allows for interaction with the Azure Resource Manager Service `devcenter` (API Version `2023-04-01`).
+The `devboxdefinitions` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "devBoxDefinitionValue")
+id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "devBoxDefinitionName")
 
 payload := devboxdefinitions.DevBoxDefinition{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "devBoxDefinitionValue")
+id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "devBoxDefinitionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "devBoxDefinitionValue")
+id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "devBoxDefinitionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue", "devBoxDefinitionValue")
+id := devboxdefinitions.NewDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "devBoxDefinitionName")
 
 read, err := client.GetByProject(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue")
+id := devboxdefinitions.NewDevCenterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName")
 
 // alternatively `client.ListByDevCenter(ctx, id)` can be used to do batched pagination
 items, err := client.ListByDevCenterComplete(ctx, id)
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectValue")
+id := devboxdefinitions.NewProjectID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName")
 
 // alternatively `client.ListByProject(ctx, id)` can be used to do batched pagination
 items, err := client.ListByProjectComplete(ctx, id)
@@ -119,7 +119,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterValue", "devBoxDefinitionValue")
+id := devboxdefinitions.NewDevCenterDevBoxDefinitionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "devBoxDefinitionName")
 
 payload := devboxdefinitions.DevBoxDefinitionUpdate{
 	// ...

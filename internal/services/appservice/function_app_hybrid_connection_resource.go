@@ -216,7 +216,6 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-
 				if props := model.Properties; props != nil {
 					appHybridConn.RelayId = pointer.From(props.RelayArmUri)
 					appHybridConn.HostName = pointer.From(props.Hostname)

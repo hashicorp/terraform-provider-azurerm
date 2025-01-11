@@ -15,6 +15,14 @@ type KubernetesPVRestoreCriteria struct {
 	StorageClassName *string `json:"storageClassName,omitempty"`
 
 	// Fields inherited from ItemLevelRestoreCriteria
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s KubernetesPVRestoreCriteria) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return BaseItemLevelRestoreCriteriaImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = KubernetesPVRestoreCriteria{}
@@ -28,9 +36,10 @@ func (s KubernetesPVRestoreCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KubernetesPVRestoreCriteria: %+v", err)
 	}
+
 	decoded["objectType"] = "KubernetesPVRestoreCriteria"
 
 	encoded, err = json.Marshal(decoded)

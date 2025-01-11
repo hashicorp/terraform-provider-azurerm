@@ -14,8 +14,18 @@ type RestoreFilesTargetInfo struct {
 	TargetDetails TargetDetails `json:"targetDetails"`
 
 	// Fields inherited from RestoreTargetInfoBase
+
+	ObjectType      string         `json:"objectType"`
 	RecoveryOption  RecoveryOption `json:"recoveryOption"`
 	RestoreLocation *string        `json:"restoreLocation,omitempty"`
+}
+
+func (s RestoreFilesTargetInfo) RestoreTargetInfoBase() BaseRestoreTargetInfoBaseImpl {
+	return BaseRestoreTargetInfoBaseImpl{
+		ObjectType:      s.ObjectType,
+		RecoveryOption:  s.RecoveryOption,
+		RestoreLocation: s.RestoreLocation,
+	}
 }
 
 var _ json.Marshaler = RestoreFilesTargetInfo{}
@@ -29,9 +39,10 @@ func (s RestoreFilesTargetInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RestoreFilesTargetInfo: %+v", err)
 	}
+
 	decoded["objectType"] = "RestoreFilesTargetInfo"
 
 	encoded, err = json.Marshal(decoded)

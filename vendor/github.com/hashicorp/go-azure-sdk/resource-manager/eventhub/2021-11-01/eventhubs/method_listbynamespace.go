@@ -40,6 +40,7 @@ func (o ListByNamespaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByNamespaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

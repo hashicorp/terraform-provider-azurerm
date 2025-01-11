@@ -6,7 +6,7 @@ package channel
 type FacebookChannelProperties struct {
 	AppId       string          `json:"appId"`
 	AppSecret   *string         `json:"appSecret,omitempty"`
-	CallbackUrl *string         `json:"callbackUrl,omitempty"`
+	CallbackURL *string         `json:"callbackUrl,omitempty"`
 	IsEnabled   bool            `json:"isEnabled"`
 	Pages       *[]FacebookPage `json:"pages,omitempty"`
 	VerifyToken *string         `json:"verifyToken,omitempty"`

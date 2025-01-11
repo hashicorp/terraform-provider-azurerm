@@ -27,7 +27,6 @@ func TestClusterID(t *testing.T) {
 		Error    bool
 		Expected *ClusterId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -17,7 +17,7 @@ type SourceControlProperties struct {
 	FolderPath       *string     `json:"folderPath,omitempty"`
 	LastModifiedTime *string     `json:"lastModifiedTime,omitempty"`
 	PublishRunbook   *bool       `json:"publishRunbook,omitempty"`
-	RepoUrl          *string     `json:"repoUrl,omitempty"`
+	RepoURL          *string     `json:"repoUrl,omitempty"`
 	SourceType       *SourceType `json:"sourceType,omitempty"`
 }
 

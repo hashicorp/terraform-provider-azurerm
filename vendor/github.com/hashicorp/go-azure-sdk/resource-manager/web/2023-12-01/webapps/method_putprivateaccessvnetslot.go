@@ -50,7 +50,6 @@ func (c WebAppsClient) PutPrivateAccessVnetSlot(ctx context.Context, id SlotId, 
 
 	var model PrivateAccess
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

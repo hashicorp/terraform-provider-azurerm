@@ -49,7 +49,6 @@ func (c SchemaRegistryClient) CreateOrUpdate(ctx context.Context, id SchemaGroup
 
 	var model SchemaGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

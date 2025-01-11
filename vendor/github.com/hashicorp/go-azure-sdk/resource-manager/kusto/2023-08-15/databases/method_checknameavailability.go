@@ -51,7 +51,6 @@ func (c DatabasesClient) CheckNameAvailability(ctx context.Context, id commonids
 
 	var model CheckNameResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

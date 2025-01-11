@@ -26,7 +26,7 @@ data "azurerm_role_definition" "rg_contributor" {
 }
 
 data "azuread_group" "approvers" {
-  name = "Example Approver Group"
+  display_name = "Example Approver Group"
 }
 
 resource "azurerm_role_management_policy" "example" {

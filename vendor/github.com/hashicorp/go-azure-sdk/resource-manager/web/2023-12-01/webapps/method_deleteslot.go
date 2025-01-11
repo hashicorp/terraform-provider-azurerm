@@ -34,6 +34,7 @@ func (o DeleteSlotOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

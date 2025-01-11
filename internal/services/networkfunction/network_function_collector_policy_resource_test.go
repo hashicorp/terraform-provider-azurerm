@@ -9,13 +9,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkFunctionCollectorPolicyResource struct{}
@@ -107,12 +106,9 @@ func (r NetworkFunctionCollectorPolicyResource) Exists(ctx context.Context, clie
 	client := clients.NetworkFunction.CollectorPoliciesClient
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r NetworkFunctionCollectorPolicyResource) template(data acceptance.TestData) string {
@@ -218,9 +214,22 @@ func (r NetworkFunctionCollectorPolicyResource) complete(data acceptance.TestDat
 	return fmt.Sprintf(`
 			%s
 
+resource "azurerm_express_route_circuit" "test2" {
+  name                  = "acctest-erc2-%[2]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.test.id
+  bandwidth_in_gbps     = 1
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
 resource "azurerm_network_function_collector_policy" "test" {
-  name                 = "acctest-nfcp-%d"
-  location             = "%s"
+  name                 = "acctest-nfcp-%[2]d"
+  location             = "%[3]s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
 
   ipfx_emission {
@@ -228,7 +237,7 @@ resource "azurerm_network_function_collector_policy" "test" {
   }
 
   ipfx_ingestion {
-    source_resource_ids = [azurerm_express_route_circuit.test.id]
+    source_resource_ids = [azurerm_express_route_circuit.test.id, azurerm_express_route_circuit.test2.id]
   }
 
   tags = {
@@ -243,9 +252,22 @@ func (r NetworkFunctionCollectorPolicyResource) update(data acceptance.TestData)
 	return fmt.Sprintf(`
 			%s
 
+resource "azurerm_express_route_circuit" "test2" {
+  name                  = "acctest-erc2-%[2]d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  express_route_port_id = azurerm_express_route_port.test.id
+  bandwidth_in_gbps     = 1
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+}
+
 resource "azurerm_network_function_collector_policy" "test" {
-  name                 = "acctest-nfcp-%d"
-  location             = "%s"
+  name                 = "acctest-nfcp-%[2]d"
+  location             = "%[3]s"
   traffic_collector_id = azurerm_network_function_azure_traffic_collector.test.id
 
   ipfx_emission {
@@ -253,7 +275,7 @@ resource "azurerm_network_function_collector_policy" "test" {
   }
 
   ipfx_ingestion {
-    source_resource_ids = [azurerm_express_route_circuit.test.id]
+    source_resource_ids = [azurerm_express_route_circuit.test.id, azurerm_express_route_circuit.test2.id]
   }
 
   tags = {

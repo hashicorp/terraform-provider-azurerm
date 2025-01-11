@@ -247,6 +247,7 @@ resource "azurerm_synapse_spark_pool" "import" {
   node_size_family     = azurerm_synapse_spark_pool.test.node_size_family
   node_size            = azurerm_synapse_spark_pool.test.node_size
   node_count           = azurerm_synapse_spark_pool.test.node_count
+  spark_version        = azurerm_synapse_spark_pool.test.spark_version
 }
 `, config)
 }

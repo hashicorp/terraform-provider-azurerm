@@ -1135,6 +1135,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 }
 `, r.sqlVirtualMachineGroupDependencies(data))
 }
+
 func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroupRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s

@@ -41,6 +41,7 @@ func (o ResourceSkusListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ResourceSkusListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

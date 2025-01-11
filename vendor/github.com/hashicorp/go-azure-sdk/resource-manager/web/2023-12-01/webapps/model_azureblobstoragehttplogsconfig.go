@@ -6,5 +6,5 @@ package webapps
 type AzureBlobStorageHTTPLogsConfig struct {
 	Enabled         *bool   `json:"enabled,omitempty"`
 	RetentionInDays *int64  `json:"retentionInDays,omitempty"`
-	SasUrl          *string `json:"sasUrl,omitempty"`
+	SasURL          *string `json:"sasUrl,omitempty"`
 }

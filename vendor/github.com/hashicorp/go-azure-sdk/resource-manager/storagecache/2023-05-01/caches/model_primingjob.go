@@ -10,5 +10,5 @@ type PrimingJob struct {
 	PrimingJobPercentComplete *float64         `json:"primingJobPercentComplete,omitempty"`
 	PrimingJobState           *PrimingJobState `json:"primingJobState,omitempty"`
 	PrimingJobStatus          *string          `json:"primingJobStatus,omitempty"`
-	PrimingManifestUrl        string           `json:"primingManifestUrl"`
+	PrimingManifestURL        string           `json:"primingManifestUrl"`
 }

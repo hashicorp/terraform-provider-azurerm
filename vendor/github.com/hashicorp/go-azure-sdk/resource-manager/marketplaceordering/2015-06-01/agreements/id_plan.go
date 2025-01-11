@@ -44,7 +44,7 @@ func ParsePlanID(input string) (*PlanId, error) {
 	}
 
 	id := PlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePlanIDInsensitively(input string) (*PlanId, error) {
 	}
 
 	id := PlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -119,11 +119,11 @@ func (id PlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMarketplaceOrdering", "Microsoft.MarketplaceOrdering", "Microsoft.MarketplaceOrdering"),
 		resourceids.StaticSegment("staticAgreements", "agreements", "agreements"),
-		resourceids.UserSpecifiedSegment("publisherId", "publisherIdValue"),
+		resourceids.UserSpecifiedSegment("publisherId", "publisherId"),
 		resourceids.StaticSegment("staticOffers", "offers", "offers"),
-		resourceids.UserSpecifiedSegment("offerId", "offerIdValue"),
+		resourceids.UserSpecifiedSegment("offerId", "offerId"),
 		resourceids.StaticSegment("staticPlans", "plans", "plans"),
-		resourceids.UserSpecifiedSegment("planId", "planIdValue"),
+		resourceids.UserSpecifiedSegment("planId", "planId"),
 	}
 }
 

@@ -40,6 +40,7 @@ func (o PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) ToHead
 
 func (o PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

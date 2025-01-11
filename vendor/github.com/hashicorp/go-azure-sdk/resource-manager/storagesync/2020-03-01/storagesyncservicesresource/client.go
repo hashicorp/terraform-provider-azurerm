@@ -15,7 +15,7 @@ type StorageSyncServicesResourceClient struct {
 }
 
 func NewStorageSyncServicesResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*StorageSyncServicesResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "storagesyncservicesresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "storagesyncservicesresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StorageSyncServicesResourceClient: %+v", err)
 	}

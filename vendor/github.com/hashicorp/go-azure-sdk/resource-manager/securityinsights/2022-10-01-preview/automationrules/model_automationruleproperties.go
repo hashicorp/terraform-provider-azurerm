@@ -49,10 +49,17 @@ func (o *AutomationRuleProperties) SetLastModifiedTimeUtcAsTime(input time.Time)
 var _ json.Unmarshaler = &AutomationRuleProperties{}
 
 func (s *AutomationRuleProperties) UnmarshalJSON(bytes []byte) error {
-	type alias AutomationRuleProperties
-	var decoded alias
+	var decoded struct {
+		CreatedBy           *ClientInfo                   `json:"createdBy,omitempty"`
+		CreatedTimeUtc      *string                       `json:"createdTimeUtc,omitempty"`
+		DisplayName         string                        `json:"displayName"`
+		LastModifiedBy      *ClientInfo                   `json:"lastModifiedBy,omitempty"`
+		LastModifiedTimeUtc *string                       `json:"lastModifiedTimeUtc,omitempty"`
+		Order               int64                         `json:"order"`
+		TriggeringLogic     AutomationRuleTriggeringLogic `json:"triggeringLogic"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AutomationRuleProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.CreatedBy = decoded.CreatedBy
@@ -76,7 +83,7 @@ func (s *AutomationRuleProperties) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]AutomationRuleAction, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalAutomationRuleActionImplementation(val)
+			impl, err := UnmarshalAutomationRuleActionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Actions' for 'AutomationRuleProperties': %+v", i, err)
 			}
@@ -84,5 +91,6 @@ func (s *AutomationRuleProperties) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Actions = output
 	}
+
 	return nil
 }

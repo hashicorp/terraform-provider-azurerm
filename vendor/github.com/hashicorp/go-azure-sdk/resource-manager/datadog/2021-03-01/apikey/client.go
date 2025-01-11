@@ -15,7 +15,7 @@ type ApiKeyClient struct {
 }
 
 func NewApiKeyClientWithBaseURI(sdkApi sdkEnv.Api) (*ApiKeyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "apikey", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "apikey", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApiKeyClient: %+v", err)
 	}

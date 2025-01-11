@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ---
 
-* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option.
+* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option. To integrate frontend and backend services in Azure API Management, utilize the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, specifying the `base-url` value. Typically, this value corresponds to the `url` property defined in the [`azurerm_api_management_backend`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_backend) configuration.
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 

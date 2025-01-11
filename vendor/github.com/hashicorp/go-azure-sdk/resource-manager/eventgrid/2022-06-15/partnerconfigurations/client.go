@@ -15,7 +15,7 @@ type PartnerConfigurationsClient struct {
 }
 
 func NewPartnerConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*PartnerConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "partnerconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "partnerconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PartnerConfigurationsClient: %+v", err)
 	}

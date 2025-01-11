@@ -25,7 +25,7 @@ type StartWebSiteNetworkTraceOperationOperationResponse struct {
 type StartWebSiteNetworkTraceOperationOperationOptions struct {
 	DurationInSeconds *int64
 	MaxFrameLength    *int64
-	SasUrl            *string
+	SasURL            *string
 }
 
 func DefaultStartWebSiteNetworkTraceOperationOperationOptions() StartWebSiteNetworkTraceOperationOperationOptions {
@@ -40,6 +40,7 @@ func (o StartWebSiteNetworkTraceOperationOperationOptions) ToHeaders() *client.H
 
 func (o StartWebSiteNetworkTraceOperationOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -51,8 +52,8 @@ func (o StartWebSiteNetworkTraceOperationOperationOptions) ToQuery() *client.Que
 	if o.MaxFrameLength != nil {
 		out.Append("maxFrameLength", fmt.Sprintf("%v", *o.MaxFrameLength))
 	}
-	if o.SasUrl != nil {
-		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasUrl))
+	if o.SasURL != nil {
+		out.Append("sasUrl", fmt.Sprintf("%v", *o.SasURL))
 	}
 	return &out
 }

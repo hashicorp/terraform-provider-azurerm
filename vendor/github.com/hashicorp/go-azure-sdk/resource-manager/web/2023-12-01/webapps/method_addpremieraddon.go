@@ -49,7 +49,6 @@ func (c WebAppsClient) AddPremierAddOn(ctx context.Context, id PremierAddonId, i
 
 	var model PremierAddOn
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -38,7 +38,7 @@ func ParseSubscriptionOperationID(input string) (*SubscriptionOperationId, error
 	}
 
 	id := SubscriptionOperationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseSubscriptionOperationIDInsensitively(input string) (*SubscriptionOpera
 	}
 
 	id := SubscriptionOperationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id SubscriptionOperationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSubscription", "Microsoft.Subscription", "Microsoft.Subscription"),
 		resourceids.StaticSegment("staticSubscriptionOperations", "subscriptionOperations", "subscriptionOperations"),
-		resourceids.UserSpecifiedSegment("operationId", "operationIdValue"),
+		resourceids.UserSpecifiedSegment("operationId", "operationId"),
 	}
 }
 

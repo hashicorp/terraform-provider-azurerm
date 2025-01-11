@@ -6,6 +6,8 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
@@ -35,6 +37,8 @@ type ImportResourceStateRequest struct {
 	// TypeName is the resource type name, which is necessary for populating
 	// the ImportedResource TypeName of the ImportResourceStateResponse.
 	TypeName string
+
+	ClientCapabilities resource.ImportStateClientCapabilities
 }
 
 // ImportResourceStateResponse is the framework server response for the
@@ -42,11 +46,35 @@ type ImportResourceStateRequest struct {
 type ImportResourceStateResponse struct {
 	Diagnostics       diag.Diagnostics
 	ImportedResources []ImportedResource
+	Deferred          *resource.Deferred
 }
 
 // ImportResourceState implements the framework server ImportResourceState RPC.
 func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceStateRequest, resp *ImportResourceStateResponse) {
 	if req == nil {
+		return
+	}
+
+	if s.deferred != nil {
+		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",
+			map[string]interface{}{
+				logging.KeyDeferredReason: s.deferred.Reason.String(),
+			},
+		)
+		// Send an unknown value for the imported object
+		resp.ImportedResources = []ImportedResource{
+			{
+				State: tfsdk.State{
+					Raw:    tftypes.NewValue(req.EmptyState.Schema.Type().TerraformType(ctx), tftypes.UnknownValue),
+					Schema: req.EmptyState.Schema,
+				},
+				TypeName: req.TypeName,
+				Private:  &privatestate.Data{},
+			},
+		}
+		resp.Deferred = &resource.Deferred{
+			Reason: resource.DeferredReason(s.deferred.Reason),
+		}
 		return
 	}
 
@@ -90,7 +118,8 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 	}
 
 	importReq := resource.ImportStateRequest{
-		ID: req.ID,
+		ID:                 req.ID,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 
 	privateProviderData := privatestate.EmptyProviderData(ctx)
@@ -128,6 +157,7 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		private.Provider = importResp.Private
 	}
 
+	resp.Deferred = importResp.Deferred
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,

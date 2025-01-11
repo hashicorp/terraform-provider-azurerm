@@ -23,8 +23,8 @@ import (
 type AppServiceGitHubTokenResource struct{}
 
 func TestAccSourceControlGitHubToken_basic(t *testing.T) {
-	token := ""
-	if token = os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); token == "" {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	if token == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 
@@ -44,8 +44,8 @@ func TestAccSourceControlGitHubToken_basic(t *testing.T) {
 }
 
 func TestAccSourceControlGitHubToken_requiresImport(t *testing.T) {
-	token := ""
-	if token = os.Getenv("ARM_GITHUB_ACCESS_TOKEN"); token == "" {
+	token := os.Getenv("ARM_GITHUB_ACCESS_TOKEN")
+	if token == "" {
 		t.Skip("Skipping as `ARM_GITHUB_ACCESS_TOKEN` is not specified")
 	}
 

@@ -15,7 +15,7 @@ type DeletedConfigurationStoresClient struct {
 }
 
 func NewDeletedConfigurationStoresClientWithBaseURI(sdkApi sdkEnv.Api) (*DeletedConfigurationStoresClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "deletedconfigurationstores", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "deletedconfigurationstores", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DeletedConfigurationStoresClient: %+v", err)
 	}

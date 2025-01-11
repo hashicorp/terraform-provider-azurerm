@@ -47,7 +47,6 @@ func (c WebAppsClient) GetAuthSettingsV2WithoutSecrets(ctx context.Context, id c
 
 	var model SiteAuthSettingsV2
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

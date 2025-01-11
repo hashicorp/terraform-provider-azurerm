@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DatastoreSecrets interface {
+	DatastoreSecrets() BaseDatastoreSecretsImpl
 }
 
-// RawDatastoreSecretsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DatastoreSecrets = BaseDatastoreSecretsImpl{}
+
+type BaseDatastoreSecretsImpl struct {
+	SecretsType SecretsType `json:"secretsType"`
+}
+
+func (s BaseDatastoreSecretsImpl) DatastoreSecrets() BaseDatastoreSecretsImpl {
+	return s
+}
+
+var _ DatastoreSecrets = RawDatastoreSecretsImpl{}
+
+// RawDatastoreSecretsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDatastoreSecretsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	datastoreSecrets BaseDatastoreSecretsImpl
+	Type             string
+	Values           map[string]interface{}
 }
 
-func unmarshalDatastoreSecretsImplementation(input []byte) (DatastoreSecrets, error) {
+func (s RawDatastoreSecretsImpl) DatastoreSecrets() BaseDatastoreSecretsImpl {
+	return s.datastoreSecrets
+}
+
+func UnmarshalDatastoreSecretsImplementation(input []byte) (DatastoreSecrets, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalDatastoreSecretsImplementation(input []byte) (DatastoreSecrets, er
 		return nil, fmt.Errorf("unmarshaling DatastoreSecrets into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["secretsType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["secretsType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AccountKey") {
@@ -68,10 +85,15 @@ func unmarshalDatastoreSecretsImplementation(input []byte) (DatastoreSecrets, er
 		return out, nil
 	}
 
-	out := RawDatastoreSecretsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDatastoreSecretsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDatastoreSecretsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDatastoreSecretsImpl{
+		datastoreSecrets: parent,
+		Type:             value,
+		Values:           temp,
+	}, nil
 
 }

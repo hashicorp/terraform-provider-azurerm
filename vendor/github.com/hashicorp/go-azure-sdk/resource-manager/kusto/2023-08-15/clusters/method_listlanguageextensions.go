@@ -47,7 +47,6 @@ func (c ClustersClient) ListLanguageExtensions(ctx context.Context, id commonids
 
 	var model LanguageExtensionsList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

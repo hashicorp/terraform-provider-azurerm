@@ -27,7 +27,6 @@ func TestHubRouteTableRouteID(t *testing.T) {
 		Error    bool
 		Expected *HubRouteTableRouteId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -4,6 +4,6 @@ package virtualwans
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type GetVpnSitesConfigurationRequest struct {
-	OutputBlobSasUrl string    `json:"outputBlobSasUrl"`
+	OutputBlobSasURL string    `json:"outputBlobSasUrl"`
 	VpnSites         *[]string `json:"vpnSites,omitempty"`
 }

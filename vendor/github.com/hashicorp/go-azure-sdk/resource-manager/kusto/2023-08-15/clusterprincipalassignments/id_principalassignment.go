@@ -44,7 +44,7 @@ func ParsePrincipalAssignmentID(input string) (*PrincipalAssignmentId, error) {
 	}
 
 	id := PrincipalAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePrincipalAssignmentIDInsensitively(input string) (*PrincipalAssignment
 	}
 
 	id := PrincipalAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PrincipalAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKusto", "Microsoft.Kusto", "Microsoft.Kusto"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticPrincipalAssignments", "principalAssignments", "principalAssignments"),
-		resourceids.UserSpecifiedSegment("principalAssignmentName", "principalAssignmentValue"),
+		resourceids.UserSpecifiedSegment("principalAssignmentName", "principalAssignmentName"),
 	}
 }
 

@@ -44,7 +44,7 @@ func ParseStorageTargetID(input string) (*StorageTargetId, error) {
 	}
 
 	id := StorageTargetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseStorageTargetIDInsensitively(input string) (*StorageTargetId, error) {
 	}
 
 	id := StorageTargetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id StorageTargetId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageCache", "Microsoft.StorageCache", "Microsoft.StorageCache"),
 		resourceids.StaticSegment("staticCaches", "caches", "caches"),
-		resourceids.UserSpecifiedSegment("cacheName", "cacheValue"),
+		resourceids.UserSpecifiedSegment("cacheName", "cacheName"),
 		resourceids.StaticSegment("staticStorageTargets", "storageTargets", "storageTargets"),
-		resourceids.UserSpecifiedSegment("storageTargetName", "storageTargetValue"),
+		resourceids.UserSpecifiedSegment("storageTargetName", "storageTargetName"),
 	}
 }
 

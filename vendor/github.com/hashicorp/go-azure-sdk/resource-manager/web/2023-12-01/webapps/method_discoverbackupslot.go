@@ -50,7 +50,6 @@ func (c WebAppsClient) DiscoverBackupSlot(ctx context.Context, id SlotId, input 
 
 	var model RestoreRequest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

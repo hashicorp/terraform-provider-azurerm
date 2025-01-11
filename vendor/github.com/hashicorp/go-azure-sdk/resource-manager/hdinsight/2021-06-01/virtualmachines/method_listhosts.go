@@ -47,7 +47,6 @@ func (c VirtualMachinesClient) ListHosts(ctx context.Context, id commonids.HDIns
 
 	var model []HostInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

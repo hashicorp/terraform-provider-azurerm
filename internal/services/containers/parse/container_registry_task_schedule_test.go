@@ -27,7 +27,6 @@ func TestContainerRegistryTaskScheduleID(t *testing.T) {
 		Error    bool
 		Expected *ContainerRegistryTaskScheduleId
 	}{
-
 		{
 			// empty
 			Input: "",

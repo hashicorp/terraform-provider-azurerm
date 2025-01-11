@@ -45,8 +45,10 @@ type SimStaticIPPropertiesModel struct {
 
 type SimResource struct{}
 
-var _ sdk.ResourceWithUpdate = SimResource{}
-var _ sdk.ResourceWithCustomImporter = SimResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SimResource{}
+	_ sdk.ResourceWithCustomImporter = SimResource{}
+)
 
 func (r SimResource) ResourceType() string {
 	return "azurerm_mobile_network_sim"

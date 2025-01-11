@@ -192,7 +192,7 @@ A `response` block supports the following:
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
-* `representation` - (Optional) One or more `representation` blocks as defined below.
+* `representation` - (Optional) One or more `representation` blocks as defined above.
 
 ---
 

@@ -15,7 +15,7 @@ type SignalRClient struct {
 }
 
 func NewSignalRClientWithBaseURI(sdkApi sdkEnv.Api) (*SignalRClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "signalr", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "signalr", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SignalRClient: %+v", err)
 	}

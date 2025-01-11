@@ -45,7 +45,6 @@ func (c ExtensionsClient) ExtensionMetadataGet(ctx context.Context, id VersionId
 
 	var model ExtensionValue
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

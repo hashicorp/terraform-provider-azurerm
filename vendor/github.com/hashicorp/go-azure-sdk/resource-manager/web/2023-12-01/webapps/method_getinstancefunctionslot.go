@@ -45,7 +45,6 @@ func (c WebAppsClient) GetInstanceFunctionSlot(ctx context.Context, id SlotFunct
 
 	var model FunctionEnvelope
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -10,8 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-type becomeComputedOnly struct {
-}
+type becomeComputedOnly struct{}
 
 var _ BreakingChangeRule = becomeComputedOnly{}
 

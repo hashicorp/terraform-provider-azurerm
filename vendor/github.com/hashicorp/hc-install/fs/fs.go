@@ -4,14 +4,14 @@
 package fs
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 )
 
 var (
 	defaultTimeout = 10 * time.Second
-	discardLogger  = log.New(ioutil.Discard, "", 0)
+	discardLogger  = log.New(io.Discard, "", 0)
 )
 
 type fileCheckFunc func(path string) error

@@ -47,7 +47,6 @@ func (c WebAppsClient) GetSwiftVirtualNetworkConnection(ctx context.Context, id 
 
 	var model SwiftVirtualNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

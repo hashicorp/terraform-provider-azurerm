@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ThreeTierCustomResourceNames interface {
+	ThreeTierCustomResourceNames() BaseThreeTierCustomResourceNamesImpl
 }
 
-// RawThreeTierCustomResourceNamesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ThreeTierCustomResourceNames = BaseThreeTierCustomResourceNamesImpl{}
+
+type BaseThreeTierCustomResourceNamesImpl struct {
+	NamingPatternType NamingPatternType `json:"namingPatternType"`
+}
+
+func (s BaseThreeTierCustomResourceNamesImpl) ThreeTierCustomResourceNames() BaseThreeTierCustomResourceNamesImpl {
+	return s
+}
+
+var _ ThreeTierCustomResourceNames = RawThreeTierCustomResourceNamesImpl{}
+
+// RawThreeTierCustomResourceNamesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawThreeTierCustomResourceNamesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	threeTierCustomResourceNames BaseThreeTierCustomResourceNamesImpl
+	Type                         string
+	Values                       map[string]interface{}
 }
 
-func unmarshalThreeTierCustomResourceNamesImplementation(input []byte) (ThreeTierCustomResourceNames, error) {
+func (s RawThreeTierCustomResourceNamesImpl) ThreeTierCustomResourceNames() BaseThreeTierCustomResourceNamesImpl {
+	return s.threeTierCustomResourceNames
+}
+
+func UnmarshalThreeTierCustomResourceNamesImplementation(input []byte) (ThreeTierCustomResourceNames, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalThreeTierCustomResourceNamesImplementation(input []byte) (ThreeTie
 		return nil, fmt.Errorf("unmarshaling ThreeTierCustomResourceNames into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["namingPatternType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["namingPatternType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "FullResourceName") {
@@ -44,10 +61,15 @@ func unmarshalThreeTierCustomResourceNamesImplementation(input []byte) (ThreeTie
 		return out, nil
 	}
 
-	out := RawThreeTierCustomResourceNamesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseThreeTierCustomResourceNamesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseThreeTierCustomResourceNamesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawThreeTierCustomResourceNamesImpl{
+		threeTierCustomResourceNames: parent,
+		Type:                         value,
+		Values:                       temp,
+	}, nil
 
 }

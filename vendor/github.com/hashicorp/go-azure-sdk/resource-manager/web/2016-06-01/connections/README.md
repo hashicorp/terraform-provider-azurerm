@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections` Documentation
 
-The `connections` SDK allows for interaction with the Azure Resource Manager Service `web` (API Version `2016-06-01`).
+The `connections` SDK allows for interaction with Azure Resource Manager `web` (API Version `2016-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := connections.ConfirmConsentCodeDefinition{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := connections.ApiConnectionDefinition{
 	// ...
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := connections.ListConsentLinksDefinition{
 	// ...
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionValue")
+id := connections.NewConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectionName")
 
 payload := connections.ApiConnectionDefinition{
 	// ...

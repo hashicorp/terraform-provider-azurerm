@@ -45,7 +45,6 @@ func (c WebAppsClient) GetHybridConnection(ctx context.Context, id RelayId) (res
 
 	var model HybridConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

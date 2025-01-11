@@ -17,6 +17,14 @@ type ThreeTierFullResourceNames struct {
 	SharedStorage     *SharedStorageResourceNames         `json:"sharedStorage,omitempty"`
 
 	// Fields inherited from ThreeTierCustomResourceNames
+
+	NamingPatternType NamingPatternType `json:"namingPatternType"`
+}
+
+func (s ThreeTierFullResourceNames) ThreeTierCustomResourceNames() BaseThreeTierCustomResourceNamesImpl {
+	return BaseThreeTierCustomResourceNamesImpl{
+		NamingPatternType: s.NamingPatternType,
+	}
 }
 
 var _ json.Marshaler = ThreeTierFullResourceNames{}
@@ -30,9 +38,10 @@ func (s ThreeTierFullResourceNames) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ThreeTierFullResourceNames: %+v", err)
 	}
+
 	decoded["namingPatternType"] = "FullResourceName"
 
 	encoded, err = json.Marshal(decoded)

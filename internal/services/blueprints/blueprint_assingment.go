@@ -6,6 +6,7 @@ package blueprints
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -20,12 +21,12 @@ func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *assi
 			return nil, "", fmt.Errorf("unable to retrieve Blueprint Assignment %s: %+v", id.String(), err)
 		}
 		if resp.Model == nil || resp.Model.Properties.ProvisioningState == nil {
-			return resp, "nil", fmt.Errorf("Blueprint Assignment Model or ProvisioningState is nil")
+			return resp, "nil", errors.New("Blueprint Assignment Model or ProvisioningState is nil")
 		}
 		state := *resp.Model.Properties.ProvisioningState
 
 		if state == assignment.AssignmentProvisioningStateFailed {
-			return resp, string(state), fmt.Errorf("Blueprint Assignment provisioning entered a Failed state.")
+			return resp, string(state), errors.New("Blueprint Assignment provisioning entered a Failed state.")
 		}
 
 		return resp, string(state), nil
@@ -44,7 +45,7 @@ func blueprintAssignmentDeleteStateRefreshFunc(ctx context.Context, client *assi
 		}
 
 		if resp.Model == nil || resp.Model.Properties.ProvisioningState == nil {
-			return resp, "nil", fmt.Errorf("Blueprint Assignment Model or ProvisioningState is nil")
+			return resp, "nil", errors.New("Blueprint Assignment Model or ProvisioningState is nil")
 		}
 		return resp, string(*resp.Model.Properties.ProvisioningState), nil
 	}

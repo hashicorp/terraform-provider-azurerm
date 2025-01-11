@@ -15,7 +15,7 @@ type JobClient struct {
 }
 
 func NewJobClientWithBaseURI(sdkApi sdkEnv.Api) (*JobClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "job", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "job", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating JobClient: %+v", err)
 	}

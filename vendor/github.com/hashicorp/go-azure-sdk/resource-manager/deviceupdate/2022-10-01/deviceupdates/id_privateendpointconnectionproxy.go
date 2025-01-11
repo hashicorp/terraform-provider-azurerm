@@ -44,7 +44,7 @@ func ParsePrivateEndpointConnectionProxyID(input string) (*PrivateEndpointConnec
 	}
 
 	id := PrivateEndpointConnectionProxyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePrivateEndpointConnectionProxyIDInsensitively(input string) (*PrivateE
 	}
 
 	id := PrivateEndpointConnectionProxyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PrivateEndpointConnectionProxyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDeviceUpdate", "Microsoft.DeviceUpdate", "Microsoft.DeviceUpdate"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnectionProxies", "privateEndpointConnectionProxies", "privateEndpointConnectionProxies"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionProxyId", "privateEndpointConnectionProxyIdValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionProxyId", "privateEndpointConnectionProxyId"),
 	}
 }
 

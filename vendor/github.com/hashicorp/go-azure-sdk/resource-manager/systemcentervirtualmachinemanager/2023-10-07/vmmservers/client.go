@@ -15,7 +15,7 @@ type VMmServersClient struct {
 }
 
 func NewVMmServersClientWithBaseURI(sdkApi sdkEnv.Api) (*VMmServersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "vmmservers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "vmmservers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VMmServersClient: %+v", err)
 	}

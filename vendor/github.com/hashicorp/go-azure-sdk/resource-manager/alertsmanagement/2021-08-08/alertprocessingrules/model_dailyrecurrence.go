@@ -13,8 +13,18 @@ var _ Recurrence = DailyRecurrence{}
 type DailyRecurrence struct {
 
 	// Fields inherited from Recurrence
-	EndTime   *string `json:"endTime,omitempty"`
-	StartTime *string `json:"startTime,omitempty"`
+
+	EndTime        *string        `json:"endTime,omitempty"`
+	RecurrenceType RecurrenceType `json:"recurrenceType"`
+	StartTime      *string        `json:"startTime,omitempty"`
+}
+
+func (s DailyRecurrence) Recurrence() BaseRecurrenceImpl {
+	return BaseRecurrenceImpl{
+		EndTime:        s.EndTime,
+		RecurrenceType: s.RecurrenceType,
+		StartTime:      s.StartTime,
+	}
 }
 
 var _ json.Marshaler = DailyRecurrence{}
@@ -28,9 +38,10 @@ func (s DailyRecurrence) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DailyRecurrence: %+v", err)
 	}
+
 	decoded["recurrenceType"] = "Daily"
 
 	encoded, err = json.Marshal(decoded)

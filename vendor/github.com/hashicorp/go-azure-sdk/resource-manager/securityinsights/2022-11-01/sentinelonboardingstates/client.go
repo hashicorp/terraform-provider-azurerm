@@ -15,7 +15,7 @@ type SentinelOnboardingStatesClient struct {
 }
 
 func NewSentinelOnboardingStatesClientWithBaseURI(sdkApi sdkEnv.Api) (*SentinelOnboardingStatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sentinelonboardingstates", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sentinelonboardingstates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SentinelOnboardingStatesClient: %+v", err)
 	}

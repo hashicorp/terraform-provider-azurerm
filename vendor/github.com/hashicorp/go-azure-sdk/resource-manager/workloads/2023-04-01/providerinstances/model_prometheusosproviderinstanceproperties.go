@@ -11,12 +11,20 @@ import (
 var _ ProviderSpecificProperties = PrometheusOSProviderInstanceProperties{}
 
 type PrometheusOSProviderInstanceProperties struct {
-	PrometheusUrl     *string        `json:"prometheusUrl,omitempty"`
+	PrometheusURL     *string        `json:"prometheusUrl,omitempty"`
 	SapSid            *string        `json:"sapSid,omitempty"`
 	SslCertificateUri *string        `json:"sslCertificateUri,omitempty"`
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`
 
 	// Fields inherited from ProviderSpecificProperties
+
+	ProviderType string `json:"providerType"`
+}
+
+func (s PrometheusOSProviderInstanceProperties) ProviderSpecificProperties() BaseProviderSpecificPropertiesImpl {
+	return BaseProviderSpecificPropertiesImpl{
+		ProviderType: s.ProviderType,
+	}
 }
 
 var _ json.Marshaler = PrometheusOSProviderInstanceProperties{}
@@ -30,9 +38,10 @@ func (s PrometheusOSProviderInstanceProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PrometheusOSProviderInstanceProperties: %+v", err)
 	}
+
 	decoded["providerType"] = "PrometheusOS"
 
 	encoded, err = json.Marshal(decoded)

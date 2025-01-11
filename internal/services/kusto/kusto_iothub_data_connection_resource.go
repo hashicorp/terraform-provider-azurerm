@@ -215,7 +215,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("database_name", id.DatabaseName)
 
 	if resp.Model != nil {
-		if dataConnection, ok := (*resp.Model).(dataconnections.IotHubDataConnection); ok {
+		if dataConnection, ok := resp.Model.(dataconnections.IotHubDataConnection); ok {
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
 				iotHubId := ""

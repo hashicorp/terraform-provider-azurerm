@@ -62,8 +62,7 @@ func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clien
 	}
 
 	if model := resp.Model; model != nil {
-		ds := *model
-		if _, ok := ds.(dataset.KustoDatabaseDataSet); ok {
+		if _, ok := model.(dataset.KustoDatabaseDataSet); ok {
 			return utils.Bool(true), nil
 		}
 	}

@@ -47,7 +47,6 @@ func (c IotDpsResourceClient) ListPrivateLinkResources(ctx context.Context, id c
 
 	var model PrivateLinkResources
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

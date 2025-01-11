@@ -27,7 +27,6 @@ func TestStorageContainerImmutabilityPolicyID(t *testing.T) {
 		Error    bool
 		Expected *StorageContainerImmutabilityPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

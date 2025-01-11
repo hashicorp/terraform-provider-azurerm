@@ -40,6 +40,7 @@ func (o ListByEventHubOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByEventHubOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

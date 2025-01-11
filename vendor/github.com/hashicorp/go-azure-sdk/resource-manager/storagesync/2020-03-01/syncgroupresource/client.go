@@ -15,7 +15,7 @@ type SyncGroupResourceClient struct {
 }
 
 func NewSyncGroupResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*SyncGroupResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "syncgroupresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "syncgroupresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SyncGroupResourceClient: %+v", err)
 	}

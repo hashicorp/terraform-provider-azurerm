@@ -15,7 +15,7 @@ type FhirServicesClient struct {
 }
 
 func NewFhirServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*FhirServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fhirservices", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "fhirservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FhirServicesClient: %+v", err)
 	}

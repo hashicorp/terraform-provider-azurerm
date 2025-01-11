@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type RedisCacheAccessPolicyAssignmentResource struct {
-}
+type RedisCacheAccessPolicyAssignmentResource struct{}
 
 var _ sdk.Resource = RedisCacheAccessPolicyAssignmentResource{}
 

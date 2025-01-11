@@ -18,6 +18,7 @@ type GetMetadataRequest struct{}
 type GetMetadataResponse struct {
 	DataSources        []DataSourceMetadata
 	Diagnostics        diag.Diagnostics
+	EphemeralResources []EphemeralResourceMetadata
 	Functions          []FunctionMetadata
 	Resources          []ResourceMetadata
 	ServerCapabilities *ServerCapabilities
@@ -27,6 +28,13 @@ type GetMetadataResponse struct {
 // tfprotov5.DataSourceMetadata and tfprotov6.DataSourceMetadata types.
 type DataSourceMetadata struct {
 	// TypeName is the name of the data resource.
+	TypeName string
+}
+
+// EphemeralResourceMetadata is the framework server equivalent of the
+// tfprotov5.EphemeralResourceMetadata and tfprotov6.EphemeralResourceMetadata types.
+type EphemeralResourceMetadata struct {
+	// TypeName is the name of the ephemeral resource.
 	TypeName string
 }
 
@@ -47,11 +55,16 @@ type ResourceMetadata struct {
 // GetMetadata implements the framework server GetMetadata RPC.
 func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp *GetMetadataResponse) {
 	resp.DataSources = []DataSourceMetadata{}
+	resp.EphemeralResources = []EphemeralResourceMetadata{}
 	resp.Functions = []FunctionMetadata{}
 	resp.Resources = []ResourceMetadata{}
 	resp.ServerCapabilities = s.ServerCapabilities()
 
 	datasourceMetadatas, diags := s.DataSourceMetadatas(ctx)
+
+	resp.Diagnostics.Append(diags...)
+
+	ephemeralResourceMetadatas, diags := s.EphemeralResourceMetadatas(ctx)
 
 	resp.Diagnostics.Append(diags...)
 
@@ -68,6 +81,7 @@ func (s *Server) GetMetadata(ctx context.Context, req *GetMetadataRequest, resp 
 	}
 
 	resp.DataSources = datasourceMetadatas
+	resp.EphemeralResources = ephemeralResourceMetadatas
 	resp.Functions = functionMetadatas
 	resp.Resources = resourceMetadatas
 }

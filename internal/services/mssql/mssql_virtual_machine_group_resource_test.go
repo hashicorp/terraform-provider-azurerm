@@ -140,6 +140,10 @@ func (MsSqlVirtualMachineGroupResource) Exists(ctx context.Context, client *clie
 
 func (MsSqlVirtualMachineGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
@@ -324,6 +328,10 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
 
 func (MsSqlVirtualMachineGroupResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
@@ -351,6 +359,10 @@ resource "azurerm_mssql_virtual_machine_group" "test" {
 
 func (MsSqlVirtualMachineGroupResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"

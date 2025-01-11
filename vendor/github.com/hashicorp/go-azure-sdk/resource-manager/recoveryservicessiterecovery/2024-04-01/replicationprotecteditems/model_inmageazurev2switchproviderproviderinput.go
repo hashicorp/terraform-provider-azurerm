@@ -16,6 +16,14 @@ type InMageAzureV2SwitchProviderProviderInput struct {
 	TargetVaultID     string `json:"targetVaultID"`
 
 	// Fields inherited from SwitchProviderProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2SwitchProviderProviderInput) SwitchProviderProviderSpecificInput() BaseSwitchProviderProviderSpecificInputImpl {
+	return BaseSwitchProviderProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2SwitchProviderProviderInput{}
@@ -29,9 +37,10 @@ func (s InMageAzureV2SwitchProviderProviderInput) MarshalJSON() ([]byte, error) 
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2SwitchProviderProviderInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

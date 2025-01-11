@@ -45,7 +45,6 @@ func (c GetRecommendationsClient) RecommendationsGet(ctx context.Context, id Sco
 
 	var model ResourceRecommendationBase
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

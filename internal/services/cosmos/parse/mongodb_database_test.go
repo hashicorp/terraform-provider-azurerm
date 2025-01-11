@@ -27,7 +27,6 @@ func TestMongodbDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *MongodbDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

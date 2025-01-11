@@ -14,8 +14,18 @@ type ServiceTagOutboundRule struct {
 	Destination *ServiceTagDestination `json:"destination,omitempty"`
 
 	// Fields inherited from OutboundRule
+
 	Category *RuleCategory `json:"category,omitempty"`
 	Status   *RuleStatus   `json:"status,omitempty"`
+	Type     RuleType      `json:"type"`
+}
+
+func (s ServiceTagOutboundRule) OutboundRule() BaseOutboundRuleImpl {
+	return BaseOutboundRuleImpl{
+		Category: s.Category,
+		Status:   s.Status,
+		Type:     s.Type,
+	}
 }
 
 var _ json.Marshaler = ServiceTagOutboundRule{}
@@ -29,9 +39,10 @@ func (s ServiceTagOutboundRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServiceTagOutboundRule: %+v", err)
 	}
+
 	decoded["type"] = "ServiceTag"
 
 	encoded, err = json.Marshal(decoded)

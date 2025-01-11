@@ -17,7 +17,7 @@ import (
 
 // PlanResourceChangeRequest returns the *fwserver.PlanResourceChangeRequest
 // equivalent of a *tfprotov5.PlanResourceChangeRequest.
-func PlanResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.PlanResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
+func PlanResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.PlanResourceChangeRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior) (*fwserver.PlanResourceChangeRequest, diag.Diagnostics) {
 	if proto5 == nil {
 		return nil, nil
 	}
@@ -39,8 +39,10 @@ func PlanResourceChangeRequest(ctx context.Context, proto5 *tfprotov5.PlanResour
 	}
 
 	fw := &fwserver.PlanResourceChangeRequest{
-		ResourceSchema: resourceSchema,
-		Resource:       resource,
+		ResourceBehavior:   resourceBehavior,
+		ResourceSchema:     resourceSchema,
+		Resource:           reqResource,
+		ClientCapabilities: ModifyPlanClientCapabilities(proto5.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto5.Config, resourceSchema)

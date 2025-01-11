@@ -16,6 +16,14 @@ type AcceleratorBasicAuthSetting struct {
 	Username         string  `json:"username"`
 
 	// Fields inherited from AcceleratorAuthSetting
+
+	AuthType string `json:"authType"`
+}
+
+func (s AcceleratorBasicAuthSetting) AcceleratorAuthSetting() BaseAcceleratorAuthSettingImpl {
+	return BaseAcceleratorAuthSettingImpl{
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = AcceleratorBasicAuthSetting{}
@@ -29,9 +37,10 @@ func (s AcceleratorBasicAuthSetting) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AcceleratorBasicAuthSetting: %+v", err)
 	}
+
 	decoded["authType"] = "BasicAuth"
 
 	encoded, err = json.Marshal(decoded)

@@ -15,7 +15,7 @@ type DataCollectionRulesClient struct {
 }
 
 func NewDataCollectionRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*DataCollectionRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "datacollectionrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "datacollectionrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataCollectionRulesClient: %+v", err)
 	}

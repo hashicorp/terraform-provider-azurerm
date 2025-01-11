@@ -37,6 +37,7 @@ func (o LockImmutabilityPolicyOperationOptions) ToHeaders() *client.Headers {
 
 func (o LockImmutabilityPolicyOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c BlobContainersClient) LockImmutabilityPolicy(ctx context.Context, id com
 
 	var model ImmutabilityPolicy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

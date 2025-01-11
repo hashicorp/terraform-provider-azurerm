@@ -34,7 +34,7 @@ func CacheDeleteAccessPolicyByName(policies []caches.NfsAccessPolicy, name strin
 }
 
 func CacheInsertOrUpdateAccessPolicy(policies []caches.NfsAccessPolicy, policy caches.NfsAccessPolicy) ([]caches.NfsAccessPolicy, error) {
-	var newPolicies []caches.NfsAccessPolicy
+	newPolicies := make([]caches.NfsAccessPolicy, 0, len(policies))
 
 	isNew := true
 	for _, existPolicy := range policies {

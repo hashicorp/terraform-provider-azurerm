@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -231,13 +231,6 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
 		}
 
-		if !features.FourPointOhBeta() {
-			// set the default value for forwarding protocol to avoid a breaking change...
-			if protocol == "" {
-				protocol = string(cdn.ForwardingProtocolMatchRequest)
-			}
-		}
-
 		// NOTE: It is valid to not define the originGroupOverride in the Route Configuration Override Action
 		// however, if you do not define the Origin Group ID you also cannot define the Forwarding Protocol either
 		if originGroupIdRaw != "" {
@@ -247,7 +240,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 
 			originGroupOverride = cdn.OriginGroupOverride{
 				OriginGroup: &cdn.ResourceReference{
-					ID: utils.String(originGroupIdRaw),
+					ID: pointer.To(originGroupIdRaw),
 				},
 				ForwardingProtocol: cdn.ForwardingProtocol(protocol),
 			}
@@ -268,44 +261,21 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'cache_duration', got %q", cacheDuration)
 			}
 		} else {
-			if !features.FourPointOhBeta() {
-				// since 'cache_duration', 'query_string_caching_behavior' and 'cache_behavior' are optional create a default values
-				// for those values if not set.
-				if cacheBehavior == "" {
-					cacheBehavior = string(cdn.RuleCacheBehaviorHonorOrigin)
-				}
-
-				if queryStringCachingBehavior == "" {
-					queryStringCachingBehavior = string(cdn.RuleQueryStringCachingBehaviorIgnoreQueryString)
-				}
-
-				// NOTE: if the cacheBehavior is 'HonorOrigin' the cacheDuration must be null, issue #19311
-				if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
-					if cacheDuration == "" {
-						cacheDuration = "1.12:00:00"
-					}
-				} else if cacheDuration != "" {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' field is set to 'HonorOrigin' the 'cache_duration' must not be set")
-				}
+			if cacheBehavior == "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
 			}
 
-			if features.FourPointOhBeta() {
-				if cacheBehavior == "" {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_behavior' field must be set")
-				}
+			if queryStringCachingBehavior == "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
+			}
 
-				if queryStringCachingBehavior == "" {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'query_string_caching_behavior' field must be set")
+			// NOTE: if the cacheBehavior is 'HonorOrigin' cacheDuration must be null, issue #19311
+			if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
+				if cacheDuration == "" {
+					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
 				}
-
-				// NOTE: if the cacheBehavior is 'HonorOrigin' cacheDuration must be null, issue #19311
-				if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
-					if cacheDuration == "" {
-						return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
-					}
-				} else if cacheDuration != "" {
-					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
-				}
+			} else if cacheDuration != "" {
+				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
 			}
 
 			cacheConfiguration = cdn.CacheConfiguration{

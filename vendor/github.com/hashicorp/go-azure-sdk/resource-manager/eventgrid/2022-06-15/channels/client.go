@@ -15,7 +15,7 @@ type ChannelsClient struct {
 }
 
 func NewChannelsClientWithBaseURI(sdkApi sdkEnv.Api) (*ChannelsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "channels", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "channels", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ChannelsClient: %+v", err)
 	}

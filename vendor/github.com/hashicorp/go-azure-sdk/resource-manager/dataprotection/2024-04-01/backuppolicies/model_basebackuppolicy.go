@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BaseBackupPolicy interface {
+	BaseBackupPolicy() BaseBaseBackupPolicyImpl
 }
 
-// RawBaseBackupPolicyImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ BaseBackupPolicy = BaseBaseBackupPolicyImpl{}
+
+type BaseBaseBackupPolicyImpl struct {
+	DatasourceTypes []string `json:"datasourceTypes"`
+	ObjectType      string   `json:"objectType"`
+}
+
+func (s BaseBaseBackupPolicyImpl) BaseBackupPolicy() BaseBaseBackupPolicyImpl {
+	return s
+}
+
+var _ BaseBackupPolicy = RawBaseBackupPolicyImpl{}
+
+// RawBaseBackupPolicyImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawBaseBackupPolicyImpl struct {
-	Type   string
-	Values map[string]interface{}
+	baseBackupPolicy BaseBaseBackupPolicyImpl
+	Type             string
+	Values           map[string]interface{}
 }
 
-func unmarshalBaseBackupPolicyImplementation(input []byte) (BaseBackupPolicy, error) {
+func (s RawBaseBackupPolicyImpl) BaseBackupPolicy() BaseBaseBackupPolicyImpl {
+	return s.baseBackupPolicy
+}
+
+func UnmarshalBaseBackupPolicyImplementation(input []byte) (BaseBackupPolicy, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalBaseBackupPolicyImplementation(input []byte) (BaseBackupPolicy, er
 		return nil, fmt.Errorf("unmarshaling BaseBackupPolicy into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "BackupPolicy") {
@@ -44,10 +62,15 @@ func unmarshalBaseBackupPolicyImplementation(input []byte) (BaseBackupPolicy, er
 		return out, nil
 	}
 
-	out := RawBaseBackupPolicyImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseBaseBackupPolicyImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseBaseBackupPolicyImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawBaseBackupPolicyImpl{
+		baseBackupPolicy: parent,
+		Type:             value,
+		Values:           temp,
+	}, nil
 
 }

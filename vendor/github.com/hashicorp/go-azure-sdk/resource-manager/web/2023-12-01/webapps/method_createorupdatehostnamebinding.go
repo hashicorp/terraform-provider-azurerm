@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdateHostNameBinding(ctx context.Context, id Hos
 
 	var model HostNameBinding
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

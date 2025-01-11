@@ -87,7 +87,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 			localRuleStackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
-			loc := ""
 			var model NextGenerationFirewallVHubLocalRuleStackModel
 
 			if err := metadata.Decode(&model); err != nil {
@@ -116,7 +115,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
 			}
 
-			loc = location.Normalize(ruleStack.Model.Location)
+			loc := location.Normalize(ruleStack.Model.Location)
 
 			firewall := firewalls.FirewallResource{
 				Location: loc,

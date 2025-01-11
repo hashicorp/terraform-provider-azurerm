@@ -99,7 +99,6 @@ func dataSourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Reso
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("assignment_hash", pointer.From(props.AssignmentHash))
 			d.Set("compliance_status", string(pointer.From(props.ComplianceStatus)))
 			d.Set("latest_report_id", pointer.From(props.LatestReportId))

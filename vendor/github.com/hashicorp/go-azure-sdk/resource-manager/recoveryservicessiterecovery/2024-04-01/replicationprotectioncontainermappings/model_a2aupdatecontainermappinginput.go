@@ -16,6 +16,14 @@ type A2AUpdateContainerMappingInput struct {
 	AutomationAccountAuthenticationType *AutomationAccountAuthenticationType `json:"automationAccountAuthenticationType,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificUpdateContainerMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2AUpdateContainerMappingInput) ReplicationProviderSpecificUpdateContainerMappingInput() BaseReplicationProviderSpecificUpdateContainerMappingInputImpl {
+	return BaseReplicationProviderSpecificUpdateContainerMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2AUpdateContainerMappingInput{}
@@ -29,9 +37,10 @@ func (s A2AUpdateContainerMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2AUpdateContainerMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

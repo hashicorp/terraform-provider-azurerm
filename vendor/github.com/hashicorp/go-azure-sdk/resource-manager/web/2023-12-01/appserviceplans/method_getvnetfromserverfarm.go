@@ -45,7 +45,6 @@ func (c AppServicePlansClient) GetVnetFromServerFarm(ctx context.Context, id Ser
 
 	var model VnetInfoResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

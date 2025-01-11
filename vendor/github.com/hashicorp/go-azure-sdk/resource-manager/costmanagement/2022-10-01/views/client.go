@@ -15,7 +15,7 @@ type ViewsClient struct {
 }
 
 func NewViewsClientWithBaseURI(sdkApi sdkEnv.Api) (*ViewsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "views", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "views", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ViewsClient: %+v", err)
 	}

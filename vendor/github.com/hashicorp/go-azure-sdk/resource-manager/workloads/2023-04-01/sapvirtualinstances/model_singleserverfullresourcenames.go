@@ -14,6 +14,14 @@ type SingleServerFullResourceNames struct {
 	VirtualMachine *VirtualMachineResourceNames `json:"virtualMachine,omitempty"`
 
 	// Fields inherited from SingleServerCustomResourceNames
+
+	NamingPatternType NamingPatternType `json:"namingPatternType"`
+}
+
+func (s SingleServerFullResourceNames) SingleServerCustomResourceNames() BaseSingleServerCustomResourceNamesImpl {
+	return BaseSingleServerCustomResourceNamesImpl{
+		NamingPatternType: s.NamingPatternType,
+	}
 }
 
 var _ json.Marshaler = SingleServerFullResourceNames{}
@@ -27,9 +35,10 @@ func (s SingleServerFullResourceNames) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SingleServerFullResourceNames: %+v", err)
 	}
+
 	decoded["namingPatternType"] = "FullResourceName"
 
 	encoded, err = json.Marshal(decoded)

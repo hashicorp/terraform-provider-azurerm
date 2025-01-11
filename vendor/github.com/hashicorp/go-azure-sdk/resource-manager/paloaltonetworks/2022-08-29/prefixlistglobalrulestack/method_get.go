@@ -45,7 +45,6 @@ func (c PrefixListGlobalRulestackClient) Get(ctx context.Context, id PrefixListI
 
 	var model PrefixListGlobalRulestackResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

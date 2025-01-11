@@ -46,7 +46,6 @@ func (c WebAppsClient) ListFunctionSecretsSlot(ctx context.Context, id SlotFunct
 
 	var model FunctionSecrets
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

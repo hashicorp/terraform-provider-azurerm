@@ -14,6 +14,14 @@ type JavaScriptFunctionRetrieveDefaultDefinitionParameters struct {
 	BindingRetrievalProperties *JavaScriptFunctionBindingRetrievalProperties `json:"bindingRetrievalProperties,omitempty"`
 
 	// Fields inherited from FunctionRetrieveDefaultDefinitionParameters
+
+	BindingType string `json:"bindingType"`
+}
+
+func (s JavaScriptFunctionRetrieveDefaultDefinitionParameters) FunctionRetrieveDefaultDefinitionParameters() BaseFunctionRetrieveDefaultDefinitionParametersImpl {
+	return BaseFunctionRetrieveDefaultDefinitionParametersImpl{
+		BindingType: s.BindingType,
+	}
 }
 
 var _ json.Marshaler = JavaScriptFunctionRetrieveDefaultDefinitionParameters{}
@@ -27,9 +35,10 @@ func (s JavaScriptFunctionRetrieveDefaultDefinitionParameters) MarshalJSON() ([]
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling JavaScriptFunctionRetrieveDefaultDefinitionParameters: %+v", err)
 	}
+
 	decoded["bindingType"] = "Microsoft.StreamAnalytics/JavascriptUdf"
 
 	encoded, err = json.Marshal(decoded)

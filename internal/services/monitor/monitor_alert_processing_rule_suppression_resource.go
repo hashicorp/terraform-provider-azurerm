@@ -128,7 +128,8 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("add_action_group_ids") {
 				model.Properties.Actions = []alertprocessingrules.Action{
-					alertprocessingrules.RemoveAllActionGroups{}}
+					alertprocessingrules.RemoveAllActionGroups{},
+				}
 			}
 
 			if metadata.ResourceData.HasChange("condition") {
@@ -217,6 +218,7 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r AlertProcessingRuleSuppressionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,

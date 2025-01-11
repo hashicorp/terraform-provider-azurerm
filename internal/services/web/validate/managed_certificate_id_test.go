@@ -12,7 +12,6 @@ func TestManagedCertificateID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

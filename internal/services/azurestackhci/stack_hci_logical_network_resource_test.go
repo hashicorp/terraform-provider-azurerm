@@ -26,12 +26,12 @@ const (
 )
 
 func TestAccStackHCILogicalNetwork_dynamic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
-	r := StackHCILogicalNetworkResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
+
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
+	r := StackHCILogicalNetworkResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,23 +45,16 @@ func TestAccStackHCILogicalNetwork_dynamic(t *testing.T) {
 }
 
 func TestAccStackHCILogicalNetwork_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
-	r := StackHCILogicalNetworkResource{}
-
 	if os.Getenv(customLocationIdEnv) == "" {
 		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
 	}
 
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_logical_network", "test")
+	r := StackHCILogicalNetworkResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -94,7 +87,7 @@ func TestAccStackHCILogicalNetwork_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.dynamic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -210,14 +203,8 @@ resource "azurerm_stack_hci_logical_network" "test" {
       end   = "10.0.0.239"
     }
     route {
-      name                = "test-route"
       address_prefix      = "10.0.0.0/28"
-      next_hop_ip_address = "10.0.20.1"
-    }
-    route {
-      name                = "test-route2"
-      address_prefix      = "10.0.0.128/28"
-      next_hop_ip_address = "10.0.20.2"
+      next_hop_ip_address = "10.0.0.1"
     }
   }
 }
@@ -254,14 +241,8 @@ resource "azurerm_stack_hci_logical_network" "test" {
       end   = "10.0.0.239"
     }
     route {
-      name                = "test-route"
       address_prefix      = "10.0.0.0/28"
-      next_hop_ip_address = "10.0.20.1"
-    }
-    route {
-      name                = "test-route2"
-      address_prefix      = "10.0.0.128/28"
-      next_hop_ip_address = "10.0.20.2"
+      next_hop_ip_address = "10.0.0.1"
     }
   }
 
@@ -294,22 +275,16 @@ resource "azurerm_stack_hci_logical_network" "test" {
     address_prefix       = "10.0.0.0/24"
     vlan_id              = 123
     ip_pool {
-      start = "10.0.0.218"
-      end   = "10.0.0.230"
+      start = "10.0.0.208"
+      end   = "10.0.0.210"
     }
     ip_pool {
-      start = "10.0.0.234"
-      end   = "10.0.0.239"
+      start = "10.0.0.244"
+      end   = "10.0.0.249"
     }
     route {
-      name                = "test-route"
       address_prefix      = "10.0.0.0/28"
-      next_hop_ip_address = "10.0.20.1"
-    }
-    route {
-      name                = "test-route2"
-      address_prefix      = "10.0.0.128/28"
-      next_hop_ip_address = "10.0.20.2"
+      next_hop_ip_address = "10.0.0.1"
     }
   }
 

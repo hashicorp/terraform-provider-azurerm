@@ -13,6 +13,14 @@ var _ SchedulePolicy = LongTermSchedulePolicy{}
 type LongTermSchedulePolicy struct {
 
 	// Fields inherited from SchedulePolicy
+
+	SchedulePolicyType string `json:"schedulePolicyType"`
+}
+
+func (s LongTermSchedulePolicy) SchedulePolicy() BaseSchedulePolicyImpl {
+	return BaseSchedulePolicyImpl{
+		SchedulePolicyType: s.SchedulePolicyType,
+	}
 }
 
 var _ json.Marshaler = LongTermSchedulePolicy{}
@@ -26,9 +34,10 @@ func (s LongTermSchedulePolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LongTermSchedulePolicy: %+v", err)
 	}
+
 	decoded["schedulePolicyType"] = "LongTermSchedulePolicy"
 
 	encoded, err = json.Marshal(decoded)

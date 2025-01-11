@@ -44,7 +44,7 @@ func ParseIdentityProviderID(input string) (*IdentityProviderId, error) {
 	}
 
 	id := IdentityProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseIdentityProviderIDInsensitively(input string) (*IdentityProviderId, er
 	}
 
 	id := IdentityProviderId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +129,7 @@ func (id IdentityProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticIdentityProviders", "identityProviders", "identityProviders"),
 		resourceids.ConstantSegment("identityProviderName", PossibleValuesForIdentityProviderType(), "aad"),
 	}

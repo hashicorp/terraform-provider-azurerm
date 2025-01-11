@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorCustomDomainAssociationResource struct {
-}
+type CdnFrontDoorCustomDomainAssociationResource struct{}
 
 // NOTE: There isn't a complete test case because the basic and the
 // update together equals what the complete test case would be...

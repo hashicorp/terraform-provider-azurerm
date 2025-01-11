@@ -42,7 +42,7 @@ func ParseVirtualNetworkID(input string) (*VirtualNetworkId, error) {
 	}
 
 	id := VirtualNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseVirtualNetworkIDInsensitively(input string) (*VirtualNetworkId, error)
 	}
 
 	id := VirtualNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id VirtualNetworkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticVirtualNetworks", "virtualNetworks", "virtualNetworks"),
-		resourceids.UserSpecifiedSegment("virtualNetworkName", "virtualNetworkValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkName", "virtualNetworkName"),
 	}
 }
 

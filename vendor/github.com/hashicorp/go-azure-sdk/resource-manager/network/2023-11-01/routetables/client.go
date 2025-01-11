@@ -15,7 +15,7 @@ type RouteTablesClient struct {
 }
 
 func NewRouteTablesClientWithBaseURI(sdkApi sdkEnv.Api) (*RouteTablesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "routetables", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "routetables", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RouteTablesClient: %+v", err)
 	}

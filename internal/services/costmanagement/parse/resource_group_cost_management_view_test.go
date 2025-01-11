@@ -27,7 +27,6 @@ func TestResourceGroupCostManagementViewID(t *testing.T) {
 		Error    bool
 		Expected *ResourceGroupCostManagementViewId
 	}{
-
 		{
 			// empty
 			Input: "",

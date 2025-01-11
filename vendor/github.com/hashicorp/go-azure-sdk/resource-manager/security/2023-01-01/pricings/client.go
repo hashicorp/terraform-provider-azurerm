@@ -15,7 +15,7 @@ type PricingsClient struct {
 }
 
 func NewPricingsClientWithBaseURI(sdkApi sdkEnv.Api) (*PricingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "pricings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "pricings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PricingsClient: %+v", err)
 	}

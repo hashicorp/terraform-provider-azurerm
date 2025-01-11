@@ -15,6 +15,14 @@ type KubernetesStorageClassRestoreCriteria struct {
 	SelectedStorageClassName *string `json:"selectedStorageClassName,omitempty"`
 
 	// Fields inherited from ItemLevelRestoreCriteria
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s KubernetesStorageClassRestoreCriteria) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return BaseItemLevelRestoreCriteriaImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = KubernetesStorageClassRestoreCriteria{}
@@ -28,9 +36,10 @@ func (s KubernetesStorageClassRestoreCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KubernetesStorageClassRestoreCriteria: %+v", err)
 	}
+
 	decoded["objectType"] = "KubernetesStorageClassRestoreCriteria"
 
 	encoded, err = json.Marshal(decoded)

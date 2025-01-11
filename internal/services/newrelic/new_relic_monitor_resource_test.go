@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,6 +146,9 @@ resource "azurerm_new_relic_monitor" "test" {
     last_name    = "last"
     phone_number = "123456"
   }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
@@ -167,6 +170,9 @@ resource "azurerm_new_relic_monitor" "import" {
     first_name   = azurerm_new_relic_monitor.test.user[0].first_name
     last_name    = azurerm_new_relic_monitor.test.user[0].last_name
     phone_number = azurerm_new_relic_monitor.test.user[0].phone_number
+  }
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, config)
@@ -192,6 +198,9 @@ resource "azurerm_new_relic_monitor" "test" {
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
+  }
+  identity {
+    type = "SystemAssigned"
   }
   account_creation_source = "LIFTR"
   account_id              = "%[5]s"

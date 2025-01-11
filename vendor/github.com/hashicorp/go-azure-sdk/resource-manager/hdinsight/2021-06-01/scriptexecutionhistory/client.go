@@ -15,7 +15,7 @@ type ScriptExecutionHistoryClient struct {
 }
 
 func NewScriptExecutionHistoryClientWithBaseURI(sdkApi sdkEnv.Api) (*ScriptExecutionHistoryClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "scriptexecutionhistory", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "scriptexecutionhistory", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ScriptExecutionHistoryClient: %+v", err)
 	}

@@ -27,7 +27,6 @@ func TestEndpointCosmosDBAccountID(t *testing.T) {
 		Error    bool
 		Expected *EndpointCosmosDBAccountId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestEndpointCosmosDBAccountIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointCosmosDBAccountId
 	}{
-
 		{
 			// empty
 			Input: "",

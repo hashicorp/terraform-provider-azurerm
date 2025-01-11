@@ -225,9 +225,6 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_route", id.ID())
 	}
 
-	var origins []interface{}
-	var originGroup *cdn.ResourceReference
-
 	protocolsRaw := d.Get("supported_protocols").(*pluginsdk.Set).List()
 	originGroupRaw := d.Get("cdn_frontdoor_origin_group_id").(string)
 	ruleSetIdsRaw := d.Get("cdn_frontdoor_rule_set_ids").(*pluginsdk.Set).List()
@@ -262,6 +259,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	var originGroup *cdn.ResourceReference
 	if originGroupRaw != "" {
 		id, err := parse.FrontDoorOriginGroupID(originGroupRaw)
 		if err != nil {
@@ -308,6 +306,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	// NOTE: These are not sent to the API, they are only here so Terraform
 	// can provision/destroy the resources in the correct order.
+	origins := make([]string, 0, len(originsRaw))
 	for _, origin := range originsRaw {
 		id, err := parse.FrontDoorOriginID(origin.(string))
 		if err != nil {

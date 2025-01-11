@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains` Documentation
 
-The `domains` SDK allows for interaction with the Azure Resource Manager Service `communication` (API Version `2023-03-31`).
+The `domains` SDK allows for interaction with Azure Resource Manager `communication` (API Version `2023-03-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 payload := domains.VerificationParameter{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CancelVerificationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 payload := domains.DomainResource{
 	// ...
@@ -58,7 +58,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 payload := domains.VerificationParameter{
 	// ...
@@ -103,7 +103,7 @@ if err := client.InitiateVerificationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewEmailServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue")
+id := domains.NewEmailServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName")
 
 // alternatively `client.ListByEmailServiceResource(ctx, id)` can be used to do batched pagination
 items, err := client.ListByEmailServiceResourceComplete(ctx, id)
@@ -120,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceValue", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "emailServiceName", "domainName")
 
 payload := domains.UpdateDomainRequestParameters{
 	// ...

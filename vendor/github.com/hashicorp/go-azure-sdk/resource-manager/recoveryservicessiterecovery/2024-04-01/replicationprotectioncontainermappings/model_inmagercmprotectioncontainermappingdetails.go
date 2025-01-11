@@ -14,6 +14,14 @@ type InMageRcmProtectionContainerMappingDetails struct {
 	EnableAgentAutoUpgrade *string `json:"enableAgentAutoUpgrade,omitempty"`
 
 	// Fields inherited from ProtectionContainerMappingProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmProtectionContainerMappingDetails) ProtectionContainerMappingProviderSpecificDetails() BaseProtectionContainerMappingProviderSpecificDetailsImpl {
+	return BaseProtectionContainerMappingProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmProtectionContainerMappingDetails{}
@@ -27,9 +35,10 @@ func (s InMageRcmProtectionContainerMappingDetails) MarshalJSON() ([]byte, error
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmProtectionContainerMappingDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

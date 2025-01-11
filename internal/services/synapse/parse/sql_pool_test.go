@@ -27,7 +27,6 @@ func TestSqlPoolID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolId
 	}{
-
 		{
 			// empty
 			Input: "",

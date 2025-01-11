@@ -45,6 +45,8 @@ The following arguments are supported:
 
 * `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
 
+* `virtual_router_auto_scale_min_capacity` - (Optional) Minimum instance capacity for the scaling configuration of the Virtual Hub Router. Defaults to `2`.
+
 ---
 
 
@@ -79,8 +81,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `virtual_router_asn` - The Autonomous System Number of the Virtual Hub BGP router.
 
 * `virtual_router_ips` - The IP addresses of the Virtual Hub BGP router.
-
-* `virtual_router_auto_scale_min_capacity` - Minimum instance capacity for the scaling configuration of the Virtual Hub Router.
 
 ## Timeouts
 

@@ -47,7 +47,6 @@ func (c AttachedDatabaseConfigurationsClient) ListByCluster(ctx context.Context,
 
 	var model AttachedDatabaseConfigurationListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

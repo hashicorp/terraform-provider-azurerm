@@ -12,7 +12,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -142,11 +141,7 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-						// 0 is no longer a valid value
-						if features.FourPointOhBeta() {
-							return validation.IntBetween(1, 20)
-						}
-						return validation.IntBetween(0, 20)
+						return validation.IntBetween(1, 20)
 					}(),
 				},
 

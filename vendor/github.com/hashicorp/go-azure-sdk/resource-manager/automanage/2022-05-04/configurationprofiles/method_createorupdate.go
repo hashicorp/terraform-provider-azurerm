@@ -50,7 +50,6 @@ func (c ConfigurationProfilesClient) CreateOrUpdate(ctx context.Context, id Conf
 
 	var model ConfigurationProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/offers` Documentation
 
-The `offers` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2024-01-01`).
+The `offers` SDK allows for interaction with Azure Resource Manager `azurestackhci` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := offers.NewOfferID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "publisherValue", "offerValue")
+id := offers.NewOfferID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "publisherName", "offerName")
 
 read, err := client.Get(ctx, id, offers.DefaultGetOperationOptions())
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := offers.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := offers.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 // alternatively `client.ListByCluster(ctx, id, offers.DefaultListByClusterOperationOptions())` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id, offers.DefaultListByClusterOperationOptions())
@@ -57,7 +57,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := offers.NewPublisherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "publisherValue")
+id := offers.NewPublisherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName", "publisherName")
 
 // alternatively `client.ListByPublisher(ctx, id, offers.DefaultListByPublisherOperationOptions())` can be used to do batched pagination
 items, err := client.ListByPublisherComplete(ctx, id, offers.DefaultListByPublisherOperationOptions())

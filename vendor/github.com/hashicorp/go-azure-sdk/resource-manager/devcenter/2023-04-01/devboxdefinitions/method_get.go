@@ -45,7 +45,6 @@ func (c DevBoxDefinitionsClient) Get(ctx context.Context, id DevCenterDevBoxDefi
 
 	var model DevBoxDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

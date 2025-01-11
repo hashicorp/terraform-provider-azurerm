@@ -49,7 +49,6 @@ func (c CertificatesClient) CreateOrUpdate(ctx context.Context, id CertificateId
 
 	var model Certificate
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

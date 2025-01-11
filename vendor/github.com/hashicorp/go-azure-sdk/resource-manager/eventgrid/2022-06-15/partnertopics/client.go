@@ -15,7 +15,7 @@ type PartnerTopicsClient struct {
 }
 
 func NewPartnerTopicsClientWithBaseURI(sdkApi sdkEnv.Api) (*PartnerTopicsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "partnertopics", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "partnertopics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PartnerTopicsClient: %+v", err)
 	}

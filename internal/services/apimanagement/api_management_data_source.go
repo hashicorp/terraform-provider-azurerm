@@ -269,12 +269,12 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("publisher_email", model.Properties.PublisherEmail)
 		d.Set("publisher_name", model.Properties.PublisherName)
 		d.Set("notification_sender_email", pointer.From(model.Properties.NotificationSenderEmail))
-		d.Set("gateway_url", pointer.From(model.Properties.GatewayUrl))
-		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalUrl))
-		d.Set("portal_url", pointer.From(model.Properties.PortalUrl))
-		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalUrl))
-		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiUrl))
-		d.Set("scm_url", pointer.From(model.Properties.ScmUrl))
+		d.Set("gateway_url", pointer.From(model.Properties.GatewayURL))
+		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalURL))
+		d.Set("portal_url", pointer.From(model.Properties.PortalURL))
+		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalURL))
+		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiURL))
+		d.Set("scm_url", pointer.From(model.Properties.ScmURL))
 		d.Set("public_ip_addresses", pointer.From(model.Properties.PublicIPAddresses))
 		d.Set("public_ip_address_id", pointer.From(model.Properties.PublicIPAddressId))
 		d.Set("private_ip_addresses", pointer.From(model.Properties.PrivateIPAddresses))
@@ -376,7 +376,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 	for _, prop := range *input {
 		results = append(results, map[string]interface{}{
 			"capacity":             int32(prop.Sku.Capacity),
-			"gateway_regional_url": pointer.From(prop.GatewayRegionalUrl),
+			"gateway_regional_url": pointer.From(prop.GatewayRegionalURL),
 			"location":             location.NormalizeNilable(pointer.To(prop.Location)),
 			"private_ip_addresses": pointer.From(prop.PrivateIPAddresses),
 			"public_ip_address_id": pointer.From(prop.PublicIPAddressId),

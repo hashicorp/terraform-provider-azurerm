@@ -15,7 +15,7 @@ type DataCollectionEndpointsClient struct {
 }
 
 func NewDataCollectionEndpointsClientWithBaseURI(sdkApi sdkEnv.Api) (*DataCollectionEndpointsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "datacollectionendpoints", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "datacollectionendpoints", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DataCollectionEndpointsClient: %+v", err)
 	}

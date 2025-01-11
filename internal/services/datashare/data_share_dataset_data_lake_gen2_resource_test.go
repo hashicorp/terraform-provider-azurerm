@@ -93,14 +93,13 @@ func (t DataShareDataSetDataLakeGen2Resource) Exists(ctx context.Context, client
 	}
 
 	if model := resp.Model; model != nil {
-		ds := *model
-		if _, ok := ds.(dataset.ADLSGen2FileDataSet); ok {
+		if _, ok := model.(dataset.ADLSGen2FileDataSet); ok {
 			return utils.Bool(true), nil
 		}
-		if _, ok := ds.(dataset.ADLSGen2FolderDataSet); ok {
+		if _, ok := model.(dataset.ADLSGen2FolderDataSet); ok {
 			return utils.Bool(true), nil
 		}
-		if _, ok := ds.(dataset.ADLSGen2FileSystemDataSet); ok {
+		if _, ok := model.(dataset.ADLSGen2FileSystemDataSet); ok {
 			return utils.Bool(true), nil
 		}
 	}

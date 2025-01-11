@@ -46,7 +46,6 @@ func (c DaprComponentsClient) ListSecrets(ctx context.Context, id DaprComponentI
 
 	var model DaprSecretsCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

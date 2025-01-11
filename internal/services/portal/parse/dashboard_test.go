@@ -27,7 +27,6 @@ func TestDashboardID(t *testing.T) {
 		Error    bool
 		Expected *DashboardId
 	}{
-
 		{
 			// empty
 			Input: "",

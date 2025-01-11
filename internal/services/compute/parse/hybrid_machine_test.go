@@ -27,7 +27,6 @@ func TestHybridMachineID(t *testing.T) {
 		Error    bool
 		Expected *HybridMachineId
 	}{
-
 		{
 			// empty
 			Input: "",

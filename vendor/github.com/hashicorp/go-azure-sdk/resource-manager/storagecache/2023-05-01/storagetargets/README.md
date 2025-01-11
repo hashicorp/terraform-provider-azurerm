@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets` Documentation
 
-The `storagetargets` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2023-05-01`).
+The `storagetargets` SDK allows for interaction with Azure Resource Manager `storagecache` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 payload := storagetargets.StorageTarget{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.DeleteThenPoll(ctx, id, storagetargets.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, storagetargets.DefaultDeleteOperationOp
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.DnsRefreshThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +65,7 @@ if err := client.DnsRefreshThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -81,7 +81,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := storagetargets.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 // alternatively `client.ListByCache(ctx, id)` can be used to do batched pagination
 items, err := client.ListByCacheComplete(ctx, id)
@@ -98,7 +98,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.RestoreDefaultsThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -110,7 +110,7 @@ if err := client.RestoreDefaultsThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.StorageTargetFlushThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -122,7 +122,7 @@ if err := client.StorageTargetFlushThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.StorageTargetInvalidateThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -134,7 +134,7 @@ if err := client.StorageTargetInvalidateThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.StorageTargetResumeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -146,7 +146,7 @@ if err := client.StorageTargetResumeThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue", "storageTargetValue")
+id := storagetargets.NewStorageTargetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "storageTargetName")
 
 if err := client.StorageTargetSuspendThenPoll(ctx, id); err != nil {
 	// handle the error

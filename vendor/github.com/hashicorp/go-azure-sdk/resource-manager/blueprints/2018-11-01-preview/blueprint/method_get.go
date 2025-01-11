@@ -45,7 +45,6 @@ func (c BlueprintClient) Get(ctx context.Context, id ScopedBlueprintId) (result 
 
 	var model Blueprint
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

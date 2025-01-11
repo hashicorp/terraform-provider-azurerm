@@ -50,7 +50,6 @@ func (c DataCollectionRulesClient) Create(ctx context.Context, id DataCollection
 
 	var model DataCollectionRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

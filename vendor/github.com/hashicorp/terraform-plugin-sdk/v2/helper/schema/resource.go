@@ -189,7 +189,7 @@ type Resource struct {
 	// This implementation is optional. If omitted, all Schema must enable
 	// the ForceNew field and any practitioner changes that would have
 	// caused and update will instead destroy and recreate the infrastructure
-	// compontent.
+	// component.
 	//
 	// The *ResourceData parameter contains the plan and state data for this
 	// managed resource instance. The available data in the Get* methods is the
@@ -321,7 +321,7 @@ type Resource struct {
 	// This implementation is optional. If omitted, all Schema must enable
 	// the ForceNew field and any practitioner changes that would have
 	// caused and update will instead destroy and recreate the infrastructure
-	// compontent.
+	// component.
 	//
 	// The Context parameter stores SDK information, such as loggers and
 	// timeout deadlines. It also is wired to receive any cancellation from
@@ -460,7 +460,7 @@ type Resource struct {
 	// This implementation is optional. If omitted, all Schema must enable
 	// the ForceNew field and any practitioner changes that would have
 	// caused and update will instead destroy and recreate the infrastructure
-	// compontent.
+	// component.
 	//
 	// The Context parameter stores SDK information, such as loggers. It also
 	// is wired to receive any cancellation from Terraform such as a system or
@@ -640,6 +640,34 @@ type Resource struct {
 	// changes with it enabled. However, data-based errors typically require
 	// logic fixes that should be applicable for both SDKs to be resolved.
 	EnableLegacyTypeSystemPlanErrors bool
+
+	// ResourceBehavior is used to control SDK-specific logic when
+	// interacting with this resource.
+	ResourceBehavior ResourceBehavior
+}
+
+// ResourceBehavior controls SDK-specific logic when interacting
+// with a resource.
+type ResourceBehavior struct {
+	// ProviderDeferred enables provider-defined logic to be executed
+	// in the case of a deferred response from (Provider).ConfigureProvider.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	ProviderDeferred ProviderDeferredBehavior
+}
+
+// ProviderDeferredBehavior enables provider-defined logic to be executed
+// in the case of a deferred response from provider configuration.
+//
+// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+// to change or break without warning. It is not protected by version compatibility guarantees.
+type ProviderDeferredBehavior struct {
+	// When EnablePlanModification is true, the SDK will execute provider-defined logic
+	// during plan (CustomizeDiff, Default, DiffSuppressFunc, etc.) if ConfigureProvider
+	// returns a deferred response. The SDK will then automatically return a deferred response
+	// along with the modified plan.
+	EnablePlanModification bool
 }
 
 // SchemaMap returns the schema information for this Resource whether it is
@@ -720,7 +748,7 @@ type StateUpgrader struct {
 
 	// Upgrade takes the JSON encoded state and the provider meta value, and
 	// upgrades the state one single schema version. The provided state is
-	// deocded into the default json types using a map[string]interface{}. It
+	// decoded into the default json types using a map[string]interface{}. It
 	// is up to the StateUpgradeFunc to ensure that the returned value can be
 	// encoded using the new schema.
 	Upgrade StateUpgradeFunc
@@ -845,7 +873,7 @@ func (r *Resource) Apply(
 		data.providerMeta = s.ProviderMeta
 	}
 
-	// Instance Diff shoould have the timeout info, need to copy it over to the
+	// Instance Diff should have the timeout info, need to copy it over to the
 	// ResourceData meta
 	rt := ResourceTimeout{}
 	if _, ok := d.Meta[TimeoutKey]; ok {

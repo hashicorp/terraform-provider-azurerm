@@ -14,6 +14,14 @@ type FileReferenceInputDataSource struct {
 	Properties *FileReferenceInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s FileReferenceInputDataSource) ReferenceInputDataSource() BaseReferenceInputDataSourceImpl {
+	return BaseReferenceInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = FileReferenceInputDataSource{}
@@ -27,9 +35,10 @@ func (s FileReferenceInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling FileReferenceInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "File"
 
 	encoded, err = json.Marshal(decoded)

@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
+* `credential_name` - (Optional) The name of a User-assigned Managed Identity. Use this argument to authenticate against the linked resource using a User-assigned Managed Identity.
+
 ---
 
 A `key_vault_connection_string` block supports the following:
