@@ -19,7 +19,7 @@ import (
 type LogAnalyticsWorkspaceTableResource struct{}
 
 func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -28,24 +28,24 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 		},
 		{
 			Config:      r.updateRetentionImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace_table"),
 		},
 		data.ImportStep(),
 		{
 			Config: r.updateRetentionUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
+				check.That("azurerm_log_analytics_workspace_table.test").ExistsInAzure(r),
+				check.That("azurerm_log_analytics_workspace_table.test").Key("id").Exists(),
+				check.That("azurerm_log_analytics_workspace_table.test").Key("name").HasValue("AppEvents"),
+				check.That("azurerm_log_analytics_workspace_table.test").Key("retention_in_days").HasValue("7"),
+				check.That("azurerm_log_analytics_workspace_table.test").Key("total_retention_in_days").HasValue("32"),
 			),
 		},
 	})
 }
 
 func TestAccLogAnalyticsWorkspaceTable_plan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceTableResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -54,13 +54,13 @@ func TestAccLogAnalyticsWorkspaceTable_plan(t *testing.T) {
 		},
 		{
 			Config:      r.planImport(data),
-			ExpectError: acceptance.RequiresImportError(data.ResourceType),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace_table"),
 		},
 		data.ImportStep(),
 		{
 			Config: r.planUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_log_analytics_workspace_table.test").ExistsInAzure(r),
 			),
 		},
 	})
@@ -91,7 +91,7 @@ func TestAccLogAnalyticsWorkspaceTable_customDcr(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue("CustomTable_CL"),
 				check.That(data.ResourceName).Key("column.0.name").HasValue("LogName"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("0"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("0"),
+				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -120,10 +120,11 @@ import {
   to = azurerm_log_analytics_workspace_table.test
 }
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "AppEvents"
-  type         = "Microsoft"
-  sub_type     = "DataCollectionRuleBased"
-  workspace_id = azurerm_log_analytics_workspace.test.id
+  name                    = "AppEvents"
+  type                    = "Microsoft"
+  sub_type                = "DataCollectionRuleBased"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+	total_retention_in_days = 90
 }
 `, t.base(data))
 }
@@ -150,11 +151,12 @@ import {
   to = azurerm_log_analytics_workspace_table.test
 }
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "AppTraces"
-  type         = "Microsoft"
-  sub_type     = "DataCollectionRuleBased"
-  workspace_id = azurerm_log_analytics_workspace.test.id
-  plan         = "Analytics"
+  name                    = "AppTraces"
+  type                    = "Microsoft"
+  sub_type                = "DataCollectionRuleBased"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  plan                    = "Analytics"
+	total_retention_in_days = 90
 }
 `, t.base(data))
 }
@@ -163,11 +165,12 @@ func (t LogAnalyticsWorkspaceTableResource) planUpdate(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "AppTraces"
-  type         = "Microsoft"
-  sub_type     = "DataCollectionRuleBased"
-  workspace_id = azurerm_log_analytics_workspace.test.id
-  plan         = "Basic"
+  name                    = "AppTraces"
+  type                    = "Microsoft"
+  sub_type                = "DataCollectionRuleBased"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  plan                    = "Basic"
+	total_retention_in_days = 90
 }
 `, t.base(data))
 }
@@ -199,10 +202,11 @@ func (t LogAnalyticsWorkspaceTableResource) customUpdate(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name         = "CustomTable_CL"
-  type         = "CustomLog"
-  sub_type     = "DataCollectionRuleBased"
-  workspace_id = azurerm_log_analytics_workspace.test.id
+  name                    = "CustomTable_CL"
+  type                    = "CustomLog"
+  sub_type                = "DataCollectionRuleBased"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+	total_retention_in_days = 30
 
   column {
     name = "LogName"
@@ -230,12 +234,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
-}
-resource "azurerm_log_analytics_workspace_table" "test" {
-  name                    = "AppTraces"
-  workspace_id            = azurerm_log_analytics_workspace.test.id
-  plan                    = "Basic"
-  total_retention_in_days = 32
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
