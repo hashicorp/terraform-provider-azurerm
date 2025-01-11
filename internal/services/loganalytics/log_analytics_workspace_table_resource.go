@@ -59,7 +59,6 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			var table LogAnalyticsWorkspaceTableResourceModel
 			if err := metadata.DecodeDiff(&table); err != nil {
 				return err
@@ -550,7 +549,7 @@ func columnSchema() map[string]*pluginsdk.Schema {
 }
 
 func expandColumns(columns *[]Column) *[]tables.Column {
-	var result []tables.Column
+	result := make([]tables.Column, 0, len(*columns))
 	for _, column := range *columns {
 		result = append(result, tables.Column{
 			Name:             pointer.To(column.Name),
@@ -566,7 +565,7 @@ func expandColumns(columns *[]Column) *[]tables.Column {
 }
 
 func flattenColumns(columns *[]tables.Column) []Column {
-	var result []Column
+	result := make([]Column, 0, len(*columns))
 	for _, column := range *columns {
 		result = append(result, Column{
 			Name:             pointer.From(column.Name),
