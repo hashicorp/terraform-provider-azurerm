@@ -5,6 +5,10 @@ ENHANCEMENTS:
 * dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
 * `azurerm_cost_anomaly_alert` - add support for the `notification_email` property [GH-27680]
 
+BUG FIXES:
+
+* `azurerm_logic_app_standard` - fix setting `public_network_access` for conflicting API properties [GH-28465]
+
 ## 4.15.0 (January 10, 2025)
 
 FEATURES:
