@@ -1228,19 +1228,16 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempWithoutOri
 
 					client := clients.Containers.AgentPoolsClient
 
-					id, err := commonids.ParseKubernetesClusterID(state.Attributes["kubernetes_cluster_id"])
-					if err != nil {
-						return err
-					}
-
-					originalNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
-
-					resp, err := client.Get(ctx, originalNodePoolId)
+					originalNodePoolId, err := agentpools.ParseAgentPoolID(state.Attributes["id"])
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", originalNodePoolId, err)
 					}
+					resp, err := client.Get(ctx, *originalNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", *originalNodePoolId, err)
+					}
 					if resp.Model == nil {
-						return fmt.Errorf("retrieving %s: model was nil", originalNodePoolId)
+						return fmt.Errorf("retrieving %s: model was nil", *originalNodePoolId)
 					}
 
 					tempNodePoolName := "temp"
@@ -1248,12 +1245,12 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempWithoutOri
 					profile.Name = &tempNodePoolName
 					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
 
-					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+					tempNodePoolId := agentpools.NewAgentPoolID(originalNodePoolId.SubscriptionId, originalNodePoolId.ResourceGroupName, originalNodePoolId.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, originalNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, *originalNodePoolId); err != nil {
 						return fmt.Errorf("deleting original %s: %+v", originalNodePoolId, err)
 					}
 
