@@ -60,14 +60,14 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 				},
 			},
 		},
-		// At point in time of the implementation of this resource the API only accept SystemAssigned even though API Spec defines all three identity modes are possible
+		// Note [1]: At point in time of the implementation of this resource the API only accept SystemAssigned even though API Spec defines all three identity modes are possible
 		// Error when trying with type UserAssigned:
 		//	code: "CannotSetResourceIdentity"
 		//	message: "The resource identity 'UserAssigned' cannot be set on the resource of type 'Microsoft.ContainerRegistry/registries/credentialSets'."
 		// or with type empty:
 		//	code: "OnlySystemManagedIdentityAllowed"
 		//	message: "Only System Managed Identities are allowed for resources of type 'Microsoft.ContainerRegistry/registries/credentialSets'. For more information, please visit https://aka.ms/acr/cache."
-		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+		"identity": commonschema.SystemAssignedIdentityRequired(),
 	}
 }
 
@@ -81,11 +81,11 @@ type AuthenticationCredential struct {
 }
 
 type ContainerRegistryCredentialSetModel struct {
-	Name                     string                                     `tfschema:"name"`
-	ContainerRegistryId      string                                     `tfschema:"container_registry_id"`
-	LoginServer              string                                     `tfschema:"login_server"`
-	AuthenticationCredential []AuthenticationCredential                 `tfschema:"authentication_credentials"`
-	Identity                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Name                     string                         `tfschema:"name"`
+	ContainerRegistryId      string                         `tfschema:"container_registry_id"`
+	LoginServer              string                         `tfschema:"login_server"`
+	AuthenticationCredential []AuthenticationCredential     `tfschema:"authentication_credentials"`
+	Identity                 []identity.ModelSystemAssigned `tfschema:"identity"`
 }
 
 func (ContainerRegistryCredentialSetResource) ModelObject() interface{} {
@@ -129,18 +129,13 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(config.Identity)
-			if err != nil {
-				return err
-			}
-
 			param := credentialsets.CredentialSet{
 				Name: pointer.To(id.CredentialSetName),
 				Properties: &credentialsets.CredentialSetProperties{
 					LoginServer:     pointer.To(config.LoginServer),
 					AuthCredentials: expandAuthCredentials(config.AuthenticationCredential),
 				},
-				Identity: expandedIdentity,
+				Identity: expandIdentity(config.Identity),
 			}
 
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
@@ -179,10 +174,7 @@ func (r ContainerRegistryCredentialSetResource) Update() sdk.ResourceFunc {
 			param.Properties = &properties
 
 			if metadata.ResourceData.HasChange("identity") {
-				param.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
-				if err != nil {
-					return err
-				}
+				param.Identity = expandIdentity(model.Identity)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
@@ -222,11 +214,7 @@ func (ContainerRegistryCredentialSetResource) Read() sdk.ResourceFunc {
 			config.ContainerRegistryId = registryId.ID()
 
 			if model := resp.Model; model != nil {
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				config.Identity = pointer.From(flattenedIdentity)
+				config.Identity = flattenIdentity(model.Identity)
 				if props := model.Properties; props != nil {
 					config.LoginServer = pointer.From(props.LoginServer)
 					config.AuthenticationCredential = flattenAuthCredentials(props.AuthCredentials)
@@ -286,4 +274,31 @@ func flattenAuthCredentials(input *[]credentialsets.AuthCredential) []Authentica
 		})
 	}
 	return output
+}
+
+// read the note [1] above why we transform the identity here like that
+func flattenIdentity(input *identity.SystemAndUserAssignedMap) []identity.ModelSystemAssigned {
+	if input == nil {
+		return nil
+	}
+	output := make([]identity.ModelSystemAssigned, 1)
+	output[0] = identity.ModelSystemAssigned{
+		Type:        input.Type,
+		TenantId:    input.TenantId,
+		PrincipalId: input.PrincipalId,
+	}
+	return output
+}
+
+// read the note [1] above why we transform the identity here like that
+func expandIdentity(input []identity.ModelSystemAssigned) *identity.SystemAndUserAssignedMap {
+	if len(input) == 0 {
+		return nil
+	}
+	output := identity.SystemAndUserAssignedMap{
+		Type:        input[0].Type,
+		TenantId:    input[0].TenantId,
+		PrincipalId: input[0].PrincipalId,
+	}
+	return &output
 }

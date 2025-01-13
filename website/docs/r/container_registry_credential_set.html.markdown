@@ -127,13 +127,8 @@ A `authentication_credentials` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Currently the only possible value is `SystemAssigned`.
 
-~> **NOTE:** The Azure Resource currently only supports `SystemAssigned` Identities.
-
-* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Container Registry Credential Set.
-
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
