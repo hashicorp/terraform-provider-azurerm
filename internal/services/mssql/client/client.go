@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/outboundfirewallrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
@@ -53,6 +54,7 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *jobagents.JobAgentsClient
 	JobCredentialsClient                               *jobcredentials.JobCredentialsClient
+	JobTargetGroupsClient                              *jobtargetgroups.JobTargetGroupsClient
 	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *outboundfirewallrules.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *replicationlinks.ReplicationLinksClient
@@ -147,6 +149,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Job Credentials Client: %+v", err)
 	}
 	o.Configure(jobCredentialsClient.Client, o.Authorizers.ResourceManager)
+
+	jobTargetGroupsClient, err := jobtargetgroups.NewJobTargetGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Job Target Groups Client: %+v", err)
+	}
+	o.Configure(jobTargetGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	longTermRetentionPoliciesClient, err := longtermretentionpolicies.NewLongTermRetentionPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -292,6 +300,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
 		ElasticPoolsClient:                     elasticPoolsClient,
 		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
+		JobTargetGroupsClient:                  jobTargetGroupsClient,
 		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                 replicationLinksClient,
 		RestorableDroppedDatabasesClient:       restorableDroppedDatabasesClient,
