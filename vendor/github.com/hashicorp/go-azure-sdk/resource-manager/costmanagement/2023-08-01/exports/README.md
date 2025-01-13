@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports` Documentation
 
-The `exports` SDK allows for interaction with Azure Resource Manager `costmanagement` (API Version `2021-10-01`).
+The `exports` SDK allows for interaction with Azure Resource Manager `costmanagement` (API Version `2023-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
 ```
 
 
