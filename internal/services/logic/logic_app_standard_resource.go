@@ -344,7 +344,6 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	if !features.FivePointOhBeta() {
 		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
 		publicNetworkAccess = reconcilePNA(d)
-		// publicNetworkAccess = helpers.PublicNetworkAccessEnabled
 		if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
 			publicNetworkAccess = helpers.PublicNetworkAccessDisabled
 		}
