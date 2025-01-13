@@ -115,7 +115,7 @@ func (id VMwareSiteId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOffAzure", "Microsoft.OffAzure", "Microsoft.OffAzure"),
 		resourceids.StaticSegment("staticVmwareSites", "vmwareSites", "vmwareSites"),
-		resourceids.UserSpecifiedSegment("vmwareSiteName", "siteName"),
+		resourceids.UserSpecifiedSegment("vmwareSiteName", "vmwareSiteName"),
 	}
 }
 

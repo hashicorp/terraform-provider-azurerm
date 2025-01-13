@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "sentinelOnboardingStateName")
+id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "onboardingStateName")
 
 payload := sentinelonboardingstates.SentinelOnboardingState{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "sentinelOnboardingStateName")
+id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "onboardingStateName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "sentinelOnboardingStateName")
+id := sentinelonboardingstates.NewOnboardingStateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "onboardingStateName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

@@ -113,9 +113,9 @@ func (id DeletedConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDeletedConfigurationStores", "deletedConfigurationStores", "deletedConfigurationStores"),
-		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "configStoreName"),
+		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "deletedConfigurationStoreName"),
 	}
 }
 

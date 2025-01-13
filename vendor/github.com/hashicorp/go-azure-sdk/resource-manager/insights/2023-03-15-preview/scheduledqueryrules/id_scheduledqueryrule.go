@@ -115,7 +115,7 @@ func (id ScheduledQueryRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticScheduledQueryRules", "scheduledQueryRules", "scheduledQueryRules"),
-		resourceids.UserSpecifiedSegment("scheduledQueryRuleName", "ruleName"),
+		resourceids.UserSpecifiedSegment("scheduledQueryRuleName", "scheduledQueryRuleName"),
 	}
 }
 

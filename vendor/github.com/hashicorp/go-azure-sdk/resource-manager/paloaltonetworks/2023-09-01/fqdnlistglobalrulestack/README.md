@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "name")
+id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "fqdnListName")
 
 payload := fqdnlistglobalrulestack.FqdnListGlobalRulestackResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "name")
+id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "fqdnListName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "name")
+id := fqdnlistglobalrulestack.NewFqdnListID("globalRulestackName", "fqdnListName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

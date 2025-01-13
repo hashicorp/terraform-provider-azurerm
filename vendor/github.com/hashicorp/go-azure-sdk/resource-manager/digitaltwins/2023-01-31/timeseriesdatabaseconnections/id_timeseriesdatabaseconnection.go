@@ -121,7 +121,7 @@ func (id TimeSeriesDatabaseConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDigitalTwins", "Microsoft.DigitalTwins", "Microsoft.DigitalTwins"),
 		resourceids.StaticSegment("staticDigitalTwinsInstances", "digitalTwinsInstances", "digitalTwinsInstances"),
-		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "resourceName"),
+		resourceids.UserSpecifiedSegment("digitalTwinsInstanceName", "digitalTwinsInstanceName"),
 		resourceids.StaticSegment("staticTimeSeriesDatabaseConnections", "timeSeriesDatabaseConnections", "timeSeriesDatabaseConnections"),
 		resourceids.UserSpecifiedSegment("timeSeriesDatabaseConnectionName", "timeSeriesDatabaseConnectionName"),
 	}

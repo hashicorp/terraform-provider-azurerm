@@ -115,7 +115,7 @@ func (id TrafficManagerProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticTrafficManagerProfiles", "trafficManagerProfiles", "trafficManagerProfiles"),
-		resourceids.UserSpecifiedSegment("trafficManagerProfileName", "profileName"),
+		resourceids.UserSpecifiedSegment("trafficManagerProfileName", "trafficManagerProfileName"),
 	}
 }
 

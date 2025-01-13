@@ -133,13 +133,13 @@ func (id ProcessModuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "name"),
+		resourceids.UserSpecifiedSegment("siteName", "siteName"),
 		resourceids.StaticSegment("staticSlots", "slots", "slots"),
-		resourceids.UserSpecifiedSegment("slotName", "slot"),
+		resourceids.UserSpecifiedSegment("slotName", "slotName"),
 		resourceids.StaticSegment("staticProcesses", "processes", "processes"),
 		resourceids.UserSpecifiedSegment("processId", "processId"),
 		resourceids.StaticSegment("staticModules", "modules", "modules"),
-		resourceids.UserSpecifiedSegment("moduleName", "baseAddress"),
+		resourceids.UserSpecifiedSegment("moduleName", "moduleName"),
 	}
 }
 

@@ -751,7 +751,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	createMode := d.Get("create_mode").(string)
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
-
 		_, adminLoginSet := d.GetOk("administrator_login")
 		_, adminPwdSet := d.GetOk("administrator_password")
 

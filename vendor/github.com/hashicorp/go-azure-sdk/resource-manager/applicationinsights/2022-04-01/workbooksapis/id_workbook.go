@@ -115,7 +115,7 @@ func (id WorkbookId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticWorkbooks", "workbooks", "workbooks"),
-		resourceids.UserSpecifiedSegment("workbookName", "resourceName"),
+		resourceids.UserSpecifiedSegment("workbookName", "workbookName"),
 	}
 }
 

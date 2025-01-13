@@ -195,7 +195,7 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 				}
 
 				if appSourceControl.RepoURL != "" {
-					sourceControl.Properties.RepoUrl = pointer.To(appSourceControl.RepoURL)
+					sourceControl.Properties.RepoURL = pointer.To(appSourceControl.RepoURL)
 				}
 
 				if appSourceControl.Branch != "" {
@@ -255,7 +255,7 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 				state = SourceControlModel{
 					AppID:                     id.ID(),
 					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
-					RepoURL:                   pointer.From(props.RepoUrl),
+					RepoURL:                   pointer.From(props.RepoURL),
 					Branch:                    pointer.From(props.Branch),
 					ManualIntegration:         pointer.From(props.IsManualIntegration),
 					UseMercurial:              pointer.From(props.IsMercurial),
@@ -264,7 +264,6 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 					GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
 					LocalGitSCM:               pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeLocalGit,
 				}
-
 			}
 
 			return metadata.Encode(&state)

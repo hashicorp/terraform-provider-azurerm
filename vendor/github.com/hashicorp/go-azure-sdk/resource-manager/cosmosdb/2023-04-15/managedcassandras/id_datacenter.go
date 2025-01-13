@@ -121,7 +121,7 @@ func (id DataCenterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticCassandraClusters", "cassandraClusters", "cassandraClusters"),
-		resourceids.UserSpecifiedSegment("cassandraClusterName", "clusterName"),
+		resourceids.UserSpecifiedSegment("cassandraClusterName", "cassandraClusterName"),
 		resourceids.StaticSegment("staticDataCenters", "dataCenters", "dataCenters"),
 		resourceids.UserSpecifiedSegment("dataCenterName", "dataCenterName"),
 	}

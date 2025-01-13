@@ -123,7 +123,7 @@ func (id TagRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
 		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 		resourceids.StaticSegment("staticTagRules", "tagRules", "tagRules"),
-		resourceids.UserSpecifiedSegment("tagRuleName", "ruleSetName"),
+		resourceids.UserSpecifiedSegment("tagRuleName", "tagRuleName"),
 	}
 }
 

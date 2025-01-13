@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 if err := client.ClaimAnyVMThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.ClaimAnyVMThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.LabVirtualMachineCreationParameter{
 	// ...
@@ -54,7 +54,7 @@ if err := client.CreateEnvironmentThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.Lab{
 	// ...
@@ -71,7 +71,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -83,7 +83,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.ExportResourceUsageParameters{
 	// ...
@@ -100,7 +100,7 @@ if err := client.ExportResourceUsageThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.GenerateUploadUriParameter{
 	// ...
@@ -121,7 +121,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 read, err := client.Get(ctx, id, labs.DefaultGetOperationOptions())
 if err != nil {
@@ -137,7 +137,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.ImportLabVirtualMachineRequest{
 	// ...
@@ -188,7 +188,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 // alternatively `client.ListVhds(ctx, id)` can be used to do batched pagination
 items, err := client.ListVhdsComplete(ctx, id)
@@ -205,7 +205,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := labs.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 payload := labs.UpdateResource{
 	// ...

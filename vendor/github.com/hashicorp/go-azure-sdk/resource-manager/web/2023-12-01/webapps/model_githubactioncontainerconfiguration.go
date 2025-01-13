@@ -6,6 +6,6 @@ package webapps
 type GitHubActionContainerConfiguration struct {
 	ImageName *string `json:"imageName,omitempty"`
 	Password  *string `json:"password,omitempty"`
-	ServerUrl *string `json:"serverUrl,omitempty"`
+	ServerURL *string `json:"serverUrl,omitempty"`
 	Username  *string `json:"username,omitempty"`
 }

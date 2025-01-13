@@ -115,7 +115,7 @@ func (id ScheduleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
 		resourceids.StaticSegment("staticSchedules", "schedules", "schedules"),
-		resourceids.UserSpecifiedSegment("scheduleName", "name"),
+		resourceids.UserSpecifiedSegment("scheduleName", "scheduleName"),
 	}
 }
 

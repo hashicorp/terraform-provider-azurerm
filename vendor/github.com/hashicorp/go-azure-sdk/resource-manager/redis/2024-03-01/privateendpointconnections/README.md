@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "privateEndpointConnectionName")
+id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "privateEndpointConnectionName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "privateEndpointConnectionName")
+id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "privateEndpointConnectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
+id := privateendpointconnections.NewRediID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName")
 
 read, err := client.List(ctx, id)
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName", "privateEndpointConnectionName")
+id := privateendpointconnections.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisName", "privateEndpointConnectionName")
 
 payload := privateendpointconnections.PrivateEndpointConnection{
 	// ...

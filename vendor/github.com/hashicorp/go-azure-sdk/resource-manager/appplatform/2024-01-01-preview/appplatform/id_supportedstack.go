@@ -127,11 +127,11 @@ func (id SupportedStackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "serviceName"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticBuildServices", "buildServices", "buildServices"),
 		resourceids.UserSpecifiedSegment("buildServiceName", "buildServiceName"),
 		resourceids.StaticSegment("staticSupportedStacks", "supportedStacks", "supportedStacks"),
-		resourceids.UserSpecifiedSegment("supportedStackName", "stackName"),
+		resourceids.UserSpecifiedSegment("supportedStackName", "supportedStackName"),
 	}
 }
 

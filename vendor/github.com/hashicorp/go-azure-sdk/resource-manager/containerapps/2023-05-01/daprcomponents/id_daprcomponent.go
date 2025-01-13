@@ -121,9 +121,9 @@ func (id DaprComponentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApp", "Microsoft.App", "Microsoft.App"),
 		resourceids.StaticSegment("staticManagedEnvironments", "managedEnvironments", "managedEnvironments"),
-		resourceids.UserSpecifiedSegment("managedEnvironmentName", "environmentName"),
+		resourceids.UserSpecifiedSegment("managedEnvironmentName", "managedEnvironmentName"),
 		resourceids.StaticSegment("staticDaprComponents", "daprComponents", "daprComponents"),
-		resourceids.UserSpecifiedSegment("daprComponentName", "componentName"),
+		resourceids.UserSpecifiedSegment("daprComponentName", "daprComponentName"),
 	}
 }
 

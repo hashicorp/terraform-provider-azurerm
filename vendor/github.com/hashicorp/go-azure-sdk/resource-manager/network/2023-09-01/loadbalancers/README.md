@@ -166,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "groupName", "loadBalancerName", "backendPoolName")
+id := loadbalancers.NewBackendAddressPoolID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "loadBalancerName", "backendAddressPoolName")
 
 payload := loadbalancers.QueryInboundNatRulePortMappingRequest{
 	// ...
@@ -394,7 +394,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLoadBalancerID("12345678-1234-9876-4563-123456789012", "groupName", "loadBalancerName")
+id := loadbalancers.NewLoadBalancerID("12345678-1234-9876-4563-123456789012", "resourceGroupName", "loadBalancerName")
 
 payload := loadbalancers.MigrateLoadBalancerToIPBasedRequest{
 	// ...
@@ -415,7 +415,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadbalancers.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := loadbalancers.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := loadbalancers.LoadBalancerVipSwapRequest{
 	// ...

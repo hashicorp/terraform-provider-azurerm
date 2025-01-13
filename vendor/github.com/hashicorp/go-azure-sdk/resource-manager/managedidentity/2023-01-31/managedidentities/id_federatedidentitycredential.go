@@ -121,9 +121,9 @@ func (id FederatedIdentityCredentialId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedIdentity", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
 		resourceids.StaticSegment("staticUserAssignedIdentities", "userAssignedIdentities", "userAssignedIdentities"),
-		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "resourceName"),
+		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityName"),
 		resourceids.StaticSegment("staticFederatedIdentityCredentials", "federatedIdentityCredentials", "federatedIdentityCredentials"),
-		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialResourceName"),
+		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialName"),
 	}
 }
 

@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := regions.NameAvailabilityCheckRequestParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.LocationsGetCapabilities(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.LocationsListBillingSpecs(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.LocationsListUsages(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := regions.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := regions.ClusterCreateRequestValidationParameters{
 	// ...

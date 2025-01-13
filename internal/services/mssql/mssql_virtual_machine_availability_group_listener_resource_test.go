@@ -65,7 +65,6 @@ func TestAccMsSqlVirtualMachineAvailabilityGroupListener_multiSubnetIpConfigurat
 }
 
 func (MsSqlVirtualMachineAvailabilityGroupListenerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-
 	id, err := availabilitygrouplisteners.ParseAvailabilityGroupListenerID(state.ID)
 	if err != nil {
 		return nil, err

@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewSourceControlID("sourceControlType")
+id := resourceproviders.NewSourceControlID("sourceControlName")
 
 read, err := client.GetSourceControl(ctx, id)
 if err != nil {
@@ -94,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := resourceproviders.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.GetUsagesInLocationlist(ctx, id)` can be used to do batched pagination
 items, err := client.GetUsagesInLocationlistComplete(ctx, id)
@@ -292,7 +292,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resourceproviders.NewSourceControlID("sourceControlType")
+id := resourceproviders.NewSourceControlID("sourceControlName")
 
 payload := resourceproviders.SourceControl{
 	// ...

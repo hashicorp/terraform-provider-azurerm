@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DomainTopicEventSubscriptionsGetFullUrlOperationResponse struct {
+type DomainTopicEventSubscriptionsGetFullURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EventSubscriptionFullUrl
+	Model        *EventSubscriptionFullURL
 }
 
-// DomainTopicEventSubscriptionsGetFullUrl ...
-func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetFullUrl(ctx context.Context, id TopicEventSubscriptionId) (result DomainTopicEventSubscriptionsGetFullUrlOperationResponse, err error) {
+// DomainTopicEventSubscriptionsGetFullURL ...
+func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetFullURL(ctx context.Context, id TopicEventSubscriptionId) (result DomainTopicEventSubscriptionsGetFullURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -44,7 +44,7 @@ func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsGetFullUrl(ctx co
 		return
 	}
 
-	var model EventSubscriptionFullUrl
+	var model EventSubscriptionFullURL
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

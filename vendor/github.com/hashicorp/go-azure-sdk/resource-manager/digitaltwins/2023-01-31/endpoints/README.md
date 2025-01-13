@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "endpointName")
 
 payload := endpoints.DigitalTwinsEndpointResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.DigitalTwinsEndpointCreateOrUpdateThenPoll(ctx, id, payload); e
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "endpointName")
 
 if err := client.DigitalTwinsEndpointDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DigitalTwinsEndpointDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "endpointName")
+id := endpoints.NewEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName", "endpointName")
 
 read, err := client.DigitalTwinsEndpointGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := endpoints.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := endpoints.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 // alternatively `client.DigitalTwinsEndpointList(ctx, id)` can be used to do batched pagination
 items, err := client.DigitalTwinsEndpointListComplete(ctx, id)

@@ -121,9 +121,9 @@ func (id ServerFarmVirtualNetworkConnectionId) Segments() []resourceids.Segment 
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticServerFarms", "serverFarms", "serverFarms"),
-		resourceids.UserSpecifiedSegment("serverFarmName", "name"),
+		resourceids.UserSpecifiedSegment("serverFarmName", "serverFarmName"),
 		resourceids.StaticSegment("staticVirtualNetworkConnections", "virtualNetworkConnections", "virtualNetworkConnections"),
-		resourceids.UserSpecifiedSegment("virtualNetworkConnectionName", "vnetName"),
+		resourceids.UserSpecifiedSegment("virtualNetworkConnectionName", "virtualNetworkConnectionName"),
 	}
 }
 

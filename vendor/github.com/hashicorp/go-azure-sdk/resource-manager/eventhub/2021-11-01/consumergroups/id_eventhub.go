@@ -123,7 +123,7 @@ func (id EventhubId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventhubName", "eventHubName"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubName"),
 	}
 }
 

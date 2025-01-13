@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "federatedIdentityCredentialResourceName")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityName", "federatedIdentityCredentialName")
 
 payload := managedidentities.FederatedIdentityCredential{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "federatedIdentityCredentialResourceName")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityName", "federatedIdentityCredentialName")
 
 read, err := client.FederatedIdentityCredentialsDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "federatedIdentityCredentialResourceName")
+id := managedidentities.NewFederatedIdentityCredentialID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityName", "federatedIdentityCredentialName")
 
 read, err := client.FederatedIdentityCredentialsGet(ctx, id)
 if err != nil {

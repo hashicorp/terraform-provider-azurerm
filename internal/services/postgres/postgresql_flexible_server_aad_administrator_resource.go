@@ -134,7 +134,6 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 	}
 
 	resp, err := client.Get(ctx, *id)
-
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)

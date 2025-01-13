@@ -123,7 +123,7 @@ func (id ObjectDataTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
 		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticObjectDataTypes", "objectDataTypes", "objectDataTypes"),
-		resourceids.UserSpecifiedSegment("objectDataTypeName", "typeName"),
+		resourceids.UserSpecifiedSegment("objectDataTypeName", "objectDataTypeName"),
 	}
 }
 

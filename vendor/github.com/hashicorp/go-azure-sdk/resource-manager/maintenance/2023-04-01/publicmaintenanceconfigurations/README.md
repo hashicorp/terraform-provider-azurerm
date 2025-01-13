@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "resourceName")
+id := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID("12345678-1234-9876-4563-123456789012", "publicMaintenanceConfigurationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

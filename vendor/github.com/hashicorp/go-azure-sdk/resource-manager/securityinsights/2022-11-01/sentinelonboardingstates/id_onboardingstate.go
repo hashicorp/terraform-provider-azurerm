@@ -125,7 +125,7 @@ func (id OnboardingStateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurityInsights", "Microsoft.SecurityInsights", "Microsoft.SecurityInsights"),
 		resourceids.StaticSegment("staticOnboardingStates", "onboardingStates", "onboardingStates"),
-		resourceids.UserSpecifiedSegment("onboardingStateName", "sentinelOnboardingStateName"),
+		resourceids.UserSpecifiedSegment("onboardingStateName", "onboardingStateName"),
 	}
 }
 

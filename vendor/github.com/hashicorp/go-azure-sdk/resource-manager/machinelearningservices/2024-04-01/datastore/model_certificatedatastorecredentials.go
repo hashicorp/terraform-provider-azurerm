@@ -11,9 +11,9 @@ import (
 var _ DatastoreCredentials = CertificateDatastoreCredentials{}
 
 type CertificateDatastoreCredentials struct {
-	AuthorityUrl *string                     `json:"authorityUrl,omitempty"`
+	AuthorityURL *string                     `json:"authorityUrl,omitempty"`
 	ClientId     string                      `json:"clientId"`
-	ResourceUrl  *string                     `json:"resourceUrl,omitempty"`
+	ResourceURL  *string                     `json:"resourceUrl,omitempty"`
 	Secrets      CertificateDatastoreSecrets `json:"secrets"`
 	TenantId     string                      `json:"tenantId"`
 	Thumbprint   string                      `json:"thumbprint"`

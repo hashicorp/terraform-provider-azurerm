@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 payload := postrules.PostRulesResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 read, err := client.GetCounters(ctx, id, postrules.DefaultGetCountersOperationOptions())
 if err != nil {
@@ -102,7 +102,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 read, err := client.RefreshCounters(ctx, id, postrules.DefaultRefreshCountersOperationOptions())
 if err != nil {
@@ -118,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := postrules.NewPostRuleID("globalRulestackName", "priority")
+id := postrules.NewPostRuleID("globalRulestackName", "postRuleName")
 
 read, err := client.ResetCounters(ctx, id, postrules.DefaultResetCountersOperationOptions())
 if err != nil {

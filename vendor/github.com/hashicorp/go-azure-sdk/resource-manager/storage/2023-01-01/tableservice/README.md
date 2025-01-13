@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "tableName")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "tableName")
 
 payload := tableservice.Table{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "tableName")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "tableName")
 
 read, err := client.TableDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "tableName")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "tableName")
 
 read, err := client.TableGet(ctx, id)
 if err != nil {
@@ -95,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "tableName")
+id := tableservice.NewTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName", "tableName")
 
 payload := tableservice.Table{
 	// ...

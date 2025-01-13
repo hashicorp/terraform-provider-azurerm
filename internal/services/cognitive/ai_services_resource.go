@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -88,7 +88,6 @@ type AzureAIServicesResourceResourceModel struct {
 
 func (AzureAIServicesResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -389,16 +388,6 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			keys, err := client.AccountsListKeys(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("listing the Keys for %s: %+v", id, err)
-			}
-
-			if model := keys.Model; model != nil {
-				state.PrimaryAccessKey = pointer.From(model.Key1)
-				state.SecondaryAccessKey = pointer.From(model.Key2)
-			}
-
 			state.Name = id.AccountName
 			state.ResourceGroupName = id.ResourceGroupName
 
@@ -426,6 +415,18 @@ func (AzureAIServicesResource) Read() sdk.ResourceFunc {
 					localAuthEnabled := true
 					if props.DisableLocalAuth != nil {
 						localAuthEnabled = !*props.DisableLocalAuth
+					}
+
+					if localAuthEnabled {
+						keys, err := client.AccountsListKeys(ctx, *id)
+						if err != nil {
+							return fmt.Errorf("listing the Keys for %s: %+v", id, err)
+						}
+
+						if model := keys.Model; model != nil {
+							state.PrimaryAccessKey = pointer.From(model.Key1)
+							state.SecondaryAccessKey = pointer.From(model.Key2)
+						}
 					}
 					state.LocalAuthorizationEnabled = localAuthEnabled
 
@@ -500,7 +501,7 @@ func (AzureAIServicesResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("custom_subdomain_name") {
-				props.Properties.CustomSubDomainName = pointer.FromString(model.CustomSubdomainName)
+				props.Properties.CustomSubDomainName = pointer.To(model.CustomSubdomainName)
 			}
 
 			if metadata.ResourceData.HasChange("fqdns") {
@@ -635,7 +636,6 @@ func expandAzureAIServicesCustomerManagedKey(input []AzureAIServicesCustomerMana
 		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
 	}
 	return encryption, nil
-
 }
 
 func flattenAzureAIServicesCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]AzureAIServicesCustomerManagedKey, error) {

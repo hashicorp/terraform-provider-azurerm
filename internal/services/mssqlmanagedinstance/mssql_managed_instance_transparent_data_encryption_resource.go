@@ -150,7 +150,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionCreateUpdate(d *plugin
 		if err != nil {
 			return fmt.Errorf("creating/updating managed instance key for %s: %+v", managedInstanceId, err)
 		}
-
 	}
 
 	encryptionProtectorObject := managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtector{
@@ -195,7 +194,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 	d.Set("managed_instance_id", managedInstanceId.ID())
 
 	if resp.Model != nil && resp.Model.Properties != nil {
-
 		log.Printf("[INFO] Encryption protector key type is %s", resp.Model.Properties.ServerKeyType)
 
 		keyVaultKeyId := ""
@@ -245,7 +243,6 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionDelete(d *pluginsdk.Re
 
 	// Service managed doesn't require a key name
 	encryptionProtector := managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtector{
-
 		Properties: &managedinstanceencryptionprotectors.ManagedInstanceEncryptionProtectorProperties{
 			ServerKeyType: managedinstanceencryptionprotectors.ServerKeyTypeServiceManaged,
 			ServerKeyName: &managedInstanceKeyName,

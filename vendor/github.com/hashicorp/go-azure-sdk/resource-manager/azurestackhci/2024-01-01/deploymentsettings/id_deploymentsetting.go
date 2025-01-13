@@ -123,7 +123,7 @@ func (id DeploymentSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
 		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticDeploymentSettings", "deploymentSettings", "deploymentSettings"),
-		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingsName"),
+		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingName"),
 	}
 }
 

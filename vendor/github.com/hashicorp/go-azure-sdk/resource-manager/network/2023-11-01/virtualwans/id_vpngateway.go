@@ -115,7 +115,7 @@ func (id VpnGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnGateways", "vpnGateways", "vpnGateways"),
-		resourceids.UserSpecifiedSegment("vpnGatewayName", "gatewayName"),
+		resourceids.UserSpecifiedSegment("vpnGatewayName", "vpnGatewayName"),
 	}
 }
 

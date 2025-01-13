@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "privateEndpointConnectionName")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceName", "privateEndpointConnectionName")
 
 payload := iotdpsresource.PrivateEndpointConnection{
 	// ...
@@ -92,7 +92,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "privateEndpointConnectionName")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -120,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "privateEndpointConnectionName")
+id := iotdpsresource.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id)
 if err != nil {
@@ -136,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotdpsresource.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "groupId")
+id := iotdpsresource.NewPrivateLinkResourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "provisioningServiceName", "groupId")
 
 read, err := client.GetPrivateLinkResources(ctx, id)
 if err != nil {

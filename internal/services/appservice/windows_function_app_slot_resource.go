@@ -808,7 +808,6 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						state.VirtualNetworkSubnetID = subnetId
 					}
-
 				}
 
 				configResp, err := client.GetConfigurationSlot(ctx, *id)

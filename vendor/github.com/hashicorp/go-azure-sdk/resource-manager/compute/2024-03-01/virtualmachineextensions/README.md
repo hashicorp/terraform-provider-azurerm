@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "vmExtensionName")
+id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "extensionName")
 
 payload := virtualmachineextensions.VirtualMachineExtension{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "vmExtensionName")
+id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "extensionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "vmExtensionName")
+id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "extensionName")
 
 read, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "vmExtensionName")
+id := virtualmachineextensions.NewExtensionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineName", "extensionName")
 
 payload := virtualmachineextensions.VirtualMachineExtensionUpdate{
 	// ...

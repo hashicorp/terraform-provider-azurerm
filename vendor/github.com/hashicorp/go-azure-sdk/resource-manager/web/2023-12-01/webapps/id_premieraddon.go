@@ -121,9 +121,9 @@ func (id PremierAddonId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSites", "sites", "sites"),
-		resourceids.UserSpecifiedSegment("siteName", "name"),
+		resourceids.UserSpecifiedSegment("siteName", "siteName"),
 		resourceids.StaticSegment("staticPremierAddons", "premierAddons", "premierAddons"),
-		resourceids.UserSpecifiedSegment("premierAddonName", "premierAddOnName"),
+		resourceids.UserSpecifiedSegment("premierAddonName", "premierAddonName"),
 	}
 }
 

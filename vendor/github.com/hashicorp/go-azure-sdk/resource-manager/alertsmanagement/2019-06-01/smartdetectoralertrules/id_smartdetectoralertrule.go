@@ -115,7 +115,7 @@ func (id SmartDetectorAlertRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticSmartDetectorAlertRules", "smartDetectorAlertRules", "smartDetectorAlertRules"),
-		resourceids.UserSpecifiedSegment("smartDetectorAlertRuleName", "alertRuleName"),
+		resourceids.UserSpecifiedSegment("smartDetectorAlertRuleName", "smartDetectorAlertRuleName"),
 	}
 }
 

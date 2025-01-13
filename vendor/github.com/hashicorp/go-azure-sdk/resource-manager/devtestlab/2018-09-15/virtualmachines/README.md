@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.DataDiskProperties{
 	// ...
@@ -41,7 +41,7 @@ if err := client.AddDataDiskThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.ApplyArtifactsRequest{
 	// ...
@@ -58,7 +58,7 @@ if err := client.ApplyArtifactsThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.ClaimThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.ClaimThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.LabVirtualMachine{
 	// ...
@@ -87,7 +87,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -99,7 +99,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.DetachDataDiskProperties{
 	// ...
@@ -116,7 +116,7 @@ if err := client.DetachDataDiskThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 read, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 if err != nil {
@@ -132,7 +132,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 read, err := client.GetRdpFileContents(ctx, id)
 if err != nil {
@@ -148,7 +148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "name")
+id := virtualmachines.NewLabID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName")
 
 // alternatively `client.List(ctx, id, virtualmachines.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, virtualmachines.DefaultListOperationOptions())
@@ -165,7 +165,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 read, err := client.ListApplicableSchedules(ctx, id)
 if err != nil {
@@ -181,7 +181,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.RedeployThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -193,7 +193,7 @@ if err := client.RedeployThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.ResizeLabVirtualMachineProperties{
 	// ...
@@ -210,7 +210,7 @@ if err := client.ResizeThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.RestartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -222,7 +222,7 @@ if err := client.RestartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -234,7 +234,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -246,7 +246,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.TransferDisksThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -258,7 +258,7 @@ if err := client.TransferDisksThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 if err := client.UnClaimThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -270,7 +270,7 @@ if err := client.UnClaimThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "name")
+id := virtualmachines.NewVirtualMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "labName", "virtualMachineName")
 
 payload := virtualmachines.UpdateResource{
 	// ...

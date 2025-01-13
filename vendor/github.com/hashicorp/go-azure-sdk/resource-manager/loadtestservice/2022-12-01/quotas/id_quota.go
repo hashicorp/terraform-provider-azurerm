@@ -113,9 +113,9 @@ func (id QuotaId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLoadTestService", "Microsoft.LoadTestService", "Microsoft.LoadTestService"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticQuotas", "quotas", "quotas"),
-		resourceids.UserSpecifiedSegment("quotaName", "quotaBucketName"),
+		resourceids.UserSpecifiedSegment("quotaName", "quotaName"),
 	}
 }
 

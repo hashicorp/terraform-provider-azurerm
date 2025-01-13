@@ -18,7 +18,7 @@ type ConnectorGetOperationResponse struct {
 }
 
 // ConnectorGet ...
-func (c ServiceLinkerClient) ConnectorGet(ctx context.Context, id ConnectorId) (result ConnectorGetOperationResponse, err error) {
+func (c ServicelinkerClient) ConnectorGet(ctx context.Context, id ConnectorId) (result ConnectorGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

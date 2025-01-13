@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName")
 
 payload := workbooksapis.Workbook{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName")
 
 read, err := client.WorkbooksDelete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName")
 
 read, err := client.WorkbooksGet(ctx, id, workbooksapis.DefaultWorkbooksGetOperationOptions())
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "revisionId")
+id := workbooksapis.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName", "revisionId")
 
 read, err := client.WorkbooksRevisionGet(ctx, id)
 if err != nil {
@@ -128,7 +128,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName")
 
 // alternatively `client.WorkbooksRevisionsList(ctx, id)` can be used to do batched pagination
 items, err := client.WorkbooksRevisionsListComplete(ctx, id)
@@ -145,7 +145,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName")
+id := workbooksapis.NewWorkbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workbookName")
 
 payload := workbooksapis.WorkbookUpdateParameters{
 	// ...

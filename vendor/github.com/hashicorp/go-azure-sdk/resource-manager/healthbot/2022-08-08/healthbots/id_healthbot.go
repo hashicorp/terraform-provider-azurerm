@@ -115,7 +115,7 @@ func (id HealthBotId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHealthBot", "Microsoft.HealthBot", "Microsoft.HealthBot"),
 		resourceids.StaticSegment("staticHealthBots", "healthBots", "healthBots"),
-		resourceids.UserSpecifiedSegment("healthBotName", "botName"),
+		resourceids.UserSpecifiedSegment("healthBotName", "healthBotName"),
 	}
 }
 

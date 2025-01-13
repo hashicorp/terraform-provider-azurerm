@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := diagnosticsettings.NewDiagnosticSettingID("name")
+id := diagnosticsettings.NewDiagnosticSettingID("diagnosticSettingName")
 
 payload := diagnosticsettings.DiagnosticSettingsResource{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := diagnosticsettings.NewDiagnosticSettingID("name")
+id := diagnosticsettings.NewDiagnosticSettingID("diagnosticSettingName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := diagnosticsettings.NewDiagnosticSettingID("name")
+id := diagnosticsettings.NewDiagnosticSettingID("diagnosticSettingName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

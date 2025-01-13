@@ -131,7 +131,7 @@ func (id ModuleObjectDataTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticModules", "modules", "modules"),
 		resourceids.UserSpecifiedSegment("moduleName", "moduleName"),
 		resourceids.StaticSegment("staticObjectDataTypes", "objectDataTypes", "objectDataTypes"),
-		resourceids.UserSpecifiedSegment("objectDataTypeName", "typeName"),
+		resourceids.UserSpecifiedSegment("objectDataTypeName", "objectDataTypeName"),
 	}
 }
 

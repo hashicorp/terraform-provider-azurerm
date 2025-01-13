@@ -115,7 +115,7 @@ func (id MaintenanceConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticMaintenanceConfigurations", "maintenanceConfigurations", "maintenanceConfigurations"),
-		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "resourceName"),
+		resourceids.UserSpecifiedSegment("maintenanceConfigurationName", "maintenanceConfigurationName"),
 	}
 }
 

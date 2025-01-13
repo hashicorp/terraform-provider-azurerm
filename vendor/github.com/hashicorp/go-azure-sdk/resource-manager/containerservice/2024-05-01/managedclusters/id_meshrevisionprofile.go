@@ -113,9 +113,9 @@ func (id MeshRevisionProfileId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerService", "Microsoft.ContainerService", "Microsoft.ContainerService"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "location"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticMeshRevisionProfiles", "meshRevisionProfiles", "meshRevisionProfiles"),
-		resourceids.UserSpecifiedSegment("meshRevisionProfileName", "mode"),
+		resourceids.UserSpecifiedSegment("meshRevisionProfileName", "meshRevisionProfileName"),
 	}
 }
 

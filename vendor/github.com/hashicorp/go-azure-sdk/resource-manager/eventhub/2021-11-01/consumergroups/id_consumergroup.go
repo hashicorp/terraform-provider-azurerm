@@ -129,7 +129,7 @@ func (id ConsumerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
 		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticEventhubs", "eventhubs", "eventhubs"),
-		resourceids.UserSpecifiedSegment("eventhubName", "eventHubName"),
+		resourceids.UserSpecifiedSegment("eventhubName", "eventhubName"),
 		resourceids.StaticSegment("staticConsumerGroups", "consumerGroups", "consumerGroups"),
 		resourceids.UserSpecifiedSegment("consumerGroupName", "consumerGroupName"),
 	}

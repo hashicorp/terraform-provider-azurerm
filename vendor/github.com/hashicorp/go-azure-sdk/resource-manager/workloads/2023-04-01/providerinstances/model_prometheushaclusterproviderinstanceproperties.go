@@ -13,7 +13,7 @@ var _ ProviderSpecificProperties = PrometheusHaClusterProviderInstanceProperties
 type PrometheusHaClusterProviderInstanceProperties struct {
 	ClusterName       *string        `json:"clusterName,omitempty"`
 	Hostname          *string        `json:"hostname,omitempty"`
-	PrometheusUrl     *string        `json:"prometheusUrl,omitempty"`
+	PrometheusURL     *string        `json:"prometheusUrl,omitempty"`
 	Sid               *string        `json:"sid,omitempty"`
 	SslCertificateUri *string        `json:"sslCertificateUri,omitempty"`
 	SslPreference     *SslPreference `json:"sslPreference,omitempty"`

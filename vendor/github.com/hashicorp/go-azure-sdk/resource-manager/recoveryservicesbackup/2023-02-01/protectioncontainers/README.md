@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "fabricName", "containerName")
+id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupFabricName", "protectionContainerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "fabricName", "containerName")
+id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupFabricName", "protectionContainerName")
 
 read, err := client.Inquire(ctx, id, protectioncontainers.DefaultInquireOperationOptions())
 if err != nil {
@@ -56,7 +56,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := protectioncontainers.NewBackupFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "fabricName")
+id := protectioncontainers.NewBackupFabricID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupFabricName")
 
 read, err := client.Refresh(ctx, id, protectioncontainers.DefaultRefreshOperationOptions())
 if err != nil {
@@ -72,7 +72,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "fabricName", "containerName")
+id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupFabricName", "protectionContainerName")
 
 payload := protectioncontainers.ProtectionContainerResource{
 	// ...
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "fabricName", "containerName")
+id := protectioncontainers.NewProtectionContainerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupFabricName", "protectionContainerName")
 
 read, err := client.Unregister(ctx, id)
 if err != nil {

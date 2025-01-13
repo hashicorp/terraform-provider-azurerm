@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := privatelinkservices.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 payload := privatelinkservices.CheckPrivateLinkServiceVisibilityRequest{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CheckPrivateLinkServiceVisibilityThenPoll(ctx, id, payload); er
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := privatelinkservices.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 payload := privatelinkservices.CheckPrivateLinkServiceVisibilityRequest{
 	// ...
@@ -59,7 +59,7 @@ if err := client.CheckPrivateLinkServiceVisibilityByResourceGroupThenPoll(ctx, i
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
+id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName")
 
 payload := privatelinkservices.PrivateLinkService{
 	// ...
@@ -76,7 +76,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
+id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -88,7 +88,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "peConnectionName")
+id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName", "privateEndpointConnectionName")
 
 if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -100,7 +100,7 @@ if err := client.DeletePrivateEndpointConnectionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
+id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName")
 
 read, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
 if err != nil {
@@ -116,7 +116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "peConnectionName")
+id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName", "privateEndpointConnectionName")
 
 read, err := client.GetPrivateEndpointConnection(ctx, id, privatelinkservices.DefaultGetPrivateEndpointConnectionOperationOptions())
 if err != nil {
@@ -149,7 +149,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := privatelinkservices.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 // alternatively `client.ListAutoApprovedPrivateLinkServices(ctx, id)` can be used to do batched pagination
 items, err := client.ListAutoApprovedPrivateLinkServicesComplete(ctx, id)
@@ -166,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := privatelinkservices.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 // alternatively `client.ListAutoApprovedPrivateLinkServicesByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListAutoApprovedPrivateLinkServicesByResourceGroupComplete(ctx, id)
@@ -200,7 +200,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
+id := privatelinkservices.NewPrivateLinkServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName")
 
 // alternatively `client.ListPrivateEndpointConnections(ctx, id)` can be used to do batched pagination
 items, err := client.ListPrivateEndpointConnectionsComplete(ctx, id)
@@ -217,7 +217,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "peConnectionName")
+id := privatelinkservices.NewPrivateEndpointConnectionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateLinkServiceName", "privateEndpointConnectionName")
 
 payload := privatelinkservices.PrivateEndpointConnection{
 	// ...

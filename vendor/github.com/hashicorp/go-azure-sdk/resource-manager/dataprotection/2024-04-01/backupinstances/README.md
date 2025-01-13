@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.TriggerBackupRequest{
 	// ...
@@ -41,7 +41,7 @@ if err := client.AdhocBackupThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.BackupInstanceResource{
 	// ...
@@ -58,7 +58,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, backupinstances.Defaul
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 if err := client.DeleteThenPoll(ctx, id, backupinstances.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -70,7 +70,7 @@ if err := client.DeleteThenPoll(ctx, id, backupinstances.DefaultDeleteOperationO
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
+id := backupinstances.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -103,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 if err := client.ResumeBackupsThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -115,7 +115,7 @@ if err := client.ResumeBackupsThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 if err := client.ResumeProtectionThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -127,7 +127,7 @@ if err := client.ResumeProtectionThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.StopProtectionRequest{
 	// ...
@@ -144,7 +144,7 @@ if err := client.StopProtectionThenPoll(ctx, id, payload, backupinstances.Defaul
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.SuspendBackupRequest{
 	// ...
@@ -161,7 +161,7 @@ if err := client.SuspendBackupsThenPoll(ctx, id, payload, backupinstances.Defaul
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.SyncBackupInstanceRequest{
 	// ...
@@ -178,7 +178,7 @@ if err := client.SyncBackupInstanceThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := backupinstances.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 payload := backupinstances.CrossRegionRestoreRequestObject{
 	// ...
@@ -195,7 +195,7 @@ if err := client.TriggerCrossRegionRestoreThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.AzureBackupRehydrationRequest{
 	// ...
@@ -212,7 +212,7 @@ if err := client.TriggerRehydrateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.AzureBackupRestoreRequest{
 	// ...
@@ -229,7 +229,7 @@ if err := client.TriggerRestoreThenPoll(ctx, id, payload, backupinstances.Defaul
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "location")
+id := backupinstances.NewProviderLocationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "locationName")
 
 payload := backupinstances.ValidateCrossRegionRestoreRequestObject{
 	// ...
@@ -246,7 +246,7 @@ if err := client.ValidateCrossRegionRestoreThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName")
+id := backupinstances.NewBackupVaultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName")
 
 payload := backupinstances.ValidateForBackupRequest{
 	// ...
@@ -263,7 +263,7 @@ if err := client.ValidateForBackupThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vaultName", "backupInstanceName")
+id := backupinstances.NewBackupInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "backupVaultName", "backupInstanceName")
 
 payload := backupinstances.ValidateRestoreRequestObject{
 	// ...

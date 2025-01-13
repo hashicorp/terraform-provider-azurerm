@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type AppsGetResourceUploadUrlOperationResponse struct {
+type AppsGetResourceUploadURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *ResourceUploadDefinition
 }
 
-// AppsGetResourceUploadUrl ...
-func (c AppPlatformClient) AppsGetResourceUploadUrl(ctx context.Context, id AppId) (result AppsGetResourceUploadUrlOperationResponse, err error) {
+// AppsGetResourceUploadURL ...
+func (c AppPlatformClient) AppsGetResourceUploadURL(ctx context.Context, id AppId) (result AppsGetResourceUploadURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

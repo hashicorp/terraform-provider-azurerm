@@ -115,7 +115,7 @@ func (id DeploymentScriptId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticDeploymentScripts", "deploymentScripts", "deploymentScripts"),
-		resourceids.UserSpecifiedSegment("deploymentScriptName", "scriptName"),
+		resourceids.UserSpecifiedSegment("deploymentScriptName", "deploymentScriptName"),
 	}
 }
 

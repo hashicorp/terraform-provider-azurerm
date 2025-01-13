@@ -115,7 +115,7 @@ func (id PrometheusRuleGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticPrometheusRuleGroups", "prometheusRuleGroups", "prometheusRuleGroups"),
-		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "ruleGroupName"),
+		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "prometheusRuleGroupName"),
 	}
 }
 

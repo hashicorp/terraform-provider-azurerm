@@ -115,7 +115,7 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHardwareSecurityModules", "Microsoft.HardwareSecurityModules", "Microsoft.HardwareSecurityModules"),
 		resourceids.StaticSegment("staticDedicatedHSMs", "dedicatedHSMs", "dedicatedHSMs"),
-		resourceids.UserSpecifiedSegment("dedicatedHSMName", "name"),
+		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMName"),
 	}
 }
 

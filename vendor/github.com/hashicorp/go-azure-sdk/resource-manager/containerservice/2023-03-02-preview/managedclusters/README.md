@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "roleName")
+id := managedclusters.NewAccessProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "accessProfileName")
 
 read, err := client.GetAccessProfile(ctx, id)
 if err != nil {
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "resourceName", "commandId")
+id := managedclusters.NewCommandResultID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "commandId")
 
 read, err := client.GetCommandResult(ctx, id)
 if err != nil {
@@ -114,7 +114,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.GetOSOptions(ctx, id, managedclusters.DefaultGetOSOptionsOperationOptions())
 if err != nil {
@@ -228,7 +228,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "location")
+id := managedclusters.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
 read, err := client.ListKubernetesVersions(ctx, id)
 if err != nil {

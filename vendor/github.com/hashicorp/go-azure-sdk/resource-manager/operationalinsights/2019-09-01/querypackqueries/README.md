@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "queryName")
 
 read, err := client.QueriesDelete(ctx, id)
 if err != nil {
@@ -40,7 +40,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "queryName")
 
 read, err := client.QueriesGet(ctx, id)
 if err != nil {
@@ -73,7 +73,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "queryName")
 
 payload := querypackqueries.LogAnalyticsQueryPackQuery{
 	// ...
@@ -116,7 +116,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "id")
+id := querypackqueries.NewQueryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName", "queryName")
 
 payload := querypackqueries.LogAnalyticsQueryPackQuery{
 	// ...

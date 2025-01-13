@@ -115,7 +115,7 @@ func (id MetricAlertId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticMetricAlerts", "metricAlerts", "metricAlerts"),
-		resourceids.UserSpecifiedSegment("metricAlertName", "ruleName"),
+		resourceids.UserSpecifiedSegment("metricAlertName", "metricAlertName"),
 	}
 }
 

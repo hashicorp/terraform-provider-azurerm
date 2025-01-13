@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "serviceName")
+id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "serviceName")
 
 payload := sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ServiceCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "serviceName")
+id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "serviceName")
 
 if err := client.ServiceDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ServiceDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName", "serviceName")
+id := sqldedicatedgateway.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "databaseAccountName", "serviceName")
 
 read, err := client.ServiceGet(ctx, id)
 if err != nil {

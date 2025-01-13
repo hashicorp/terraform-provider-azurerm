@@ -90,18 +90,18 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `IntegrationAccountAgreementsClient.ListContentCallbackUrl`
+### Example Usage: `IntegrationAccountAgreementsClient.ListContentCallbackURL`
 
 ```go
 ctx := context.TODO()
 id := integrationaccountagreements.NewAgreementID("12345678-1234-9876-4563-123456789012", "example-resource-group", "integrationAccountName", "agreementName")
 
-payload := integrationaccountagreements.GetCallbackUrlParameters{
+payload := integrationaccountagreements.GetCallbackURLParameters{
 	// ...
 }
 
 
-read, err := client.ListContentCallbackUrl(ctx, id, payload)
+read, err := client.ListContentCallbackURL(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

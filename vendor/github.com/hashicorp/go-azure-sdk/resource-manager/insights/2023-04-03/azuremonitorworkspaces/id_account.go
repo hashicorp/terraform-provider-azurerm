@@ -115,7 +115,7 @@ func (id AccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMonitor", "Microsoft.Monitor", "Microsoft.Monitor"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "azureMonitorWorkspaceName"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 	}
 }
 

@@ -12,14 +12,14 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListContentCallbackUrlOperationResponse struct {
+type ListContentCallbackURLOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *WorkflowTriggerCallbackUrl
+	Model        *WorkflowTriggerCallbackURL
 }
 
-// ListContentCallbackUrl ...
-func (c IntegrationAccountAssembliesClient) ListContentCallbackUrl(ctx context.Context, id AssemblyId) (result ListContentCallbackUrlOperationResponse, err error) {
+// ListContentCallbackURL ...
+func (c IntegrationAccountAssembliesClient) ListContentCallbackURL(ctx context.Context, id AssemblyId) (result ListContentCallbackURLOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -44,7 +44,7 @@ func (c IntegrationAccountAssembliesClient) ListContentCallbackUrl(ctx context.C
 		return
 	}
 
-	var model WorkflowTriggerCallbackUrl
+	var model WorkflowTriggerCallbackURL
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

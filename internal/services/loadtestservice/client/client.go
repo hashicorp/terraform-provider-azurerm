@@ -16,7 +16,6 @@ type AutoClient struct {
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
-
 	v20221201Client, err := loadtestserviceV20221201.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})

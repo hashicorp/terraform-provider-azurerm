@@ -99,7 +99,7 @@ func (id SourceControlId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticSourceControls", "sourceControls", "sourceControls"),
-		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlType"),
+		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlName"),
 	}
 }
 

@@ -115,7 +115,7 @@ func (id ManagedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticManagedHSMs", "managedHSMs", "managedHSMs"),
-		resourceids.UserSpecifiedSegment("managedHSMName", "name"),
+		resourceids.UserSpecifiedSegment("managedHSMName", "managedHSMName"),
 	}
 }
 
