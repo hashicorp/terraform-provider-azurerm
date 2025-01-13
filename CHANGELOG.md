@@ -1,3 +1,10 @@
+## 4.16.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
+* `azurerm_cost_anomaly_alert` - add support for the `notification_email` property [GH-27680]
+
 ## 4.15.0 (January 10, 2025)
 
 FEATURES:
