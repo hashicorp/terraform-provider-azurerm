@@ -128,7 +128,7 @@ func (r MsSqlJobTargetGroupResourceTest) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_mssql_job_target_group" "test" {
-  name = "acctest-target-group-%[2]d"
+  name         = "acctest-target-group-%[2]d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 }
 `, r.template(data), data.RandomInteger)
@@ -139,7 +139,7 @@ func (r MsSqlJobTargetGroupResourceTest) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_mssql_job_target_group" "import" {
-  name = azurerm_mssql_job_target_group.test.name
+  name         = azurerm_mssql_job_target_group.test.name
   job_agent_id = azurerm_mssql_job_target_group.test.job_agent_id
 }
 `, r.basic(data))
@@ -150,13 +150,13 @@ func (r MsSqlJobTargetGroupResourceTest) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_mssql_job_target_group" "test" {
-  name = "acctest-target-group-%[2]d"
+  name         = "acctest-target-group-%[2]d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type = "SqlServer"
-    membership_type = "Include"
-    server_name = azurerm_mssql_server.test.name
+    type              = "SqlServer"
+    membership_type   = "Include"
+    server_name       = azurerm_mssql_server.test.name
     job_credential_id = azurerm_mssql_job_credential.test.id
   }
 }
@@ -175,12 +175,12 @@ resource "azurerm_mssql_database" "test2" {
 }
 
 resource "azurerm_mssql_job_target_group" "test" {
-  name = "acctest-target-group-%[2]d"
+  name         = "acctest-target-group-%[2]d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type = "SqlDatabase"
-    server_name = azurerm_mssql_server.test.name
+    type          = "SqlDatabase"
+    server_name   = azurerm_mssql_server.test.name
     database_name = azurerm_mssql_database.test2.name
   }
 }
@@ -212,12 +212,12 @@ resource "azurerm_mssql_elasticpool" "test" {
 }
 
 resource "azurerm_mssql_job_target_group" "test" {
-  name = "acctest-target-group-%[2]d"
+  name         = "acctest-target-group-%[2]d"
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type = "SqlElasticPool"
-    server_name = azurerm_mssql_server.test.name
+    type              = "SqlElasticPool"
+    server_name       = azurerm_mssql_server.test.name
     elastic_pool_name = azurerm_mssql_elasticpool.test.name
     job_credential_id = azurerm_mssql_job_credential.test.id
   }

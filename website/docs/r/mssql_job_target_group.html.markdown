@@ -48,12 +48,12 @@ resource "azurerm_mssql_job_credential" "example" {
 }
 
 resource "azurerm_mssql_job_target_group" "example" {
-  name = "example-target-group"
+  name         = "example-target-group"
   job_agent_id = azurerm_mssql_job_agent.example.id
 
   job_target {
-    type = "SqlServer"
-    server_name = azurerm_mssql_server.example.name
+    type              = "SqlServer"
+    server_name       = azurerm_mssql_server.example.name
     job_credential_id = azurerm_mssql_job_credential.example.id
   }
 }
