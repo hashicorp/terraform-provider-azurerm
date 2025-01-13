@@ -1381,6 +1381,21 @@ github.com/hashicorp/terraform-svchost
 # github.com/hashicorp/yamux v0.1.1
 ## explicit; go 1.15
 github.com/hashicorp/yamux
+# github.com/jackofallops/giovanni v0.28.0
+## explicit; go 1.21
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers
+github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems
+github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths
+github.com/jackofallops/giovanni/storage/2023-11-03/file/directories
+github.com/jackofallops/giovanni/storage/2023-11-03/file/files
+github.com/jackofallops/giovanni/storage/2023-11-03/file/shares
+github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues
+github.com/jackofallops/giovanni/storage/2023-11-03/table/entities
+github.com/jackofallops/giovanni/storage/2023-11-03/table/tables
+github.com/jackofallops/giovanni/storage/accesscontrol
+github.com/jackofallops/giovanni/storage/internal/metadata
 # github.com/jackofallops/kermit v0.20241010.1180132
 ## explicit; go 1.22
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
@@ -1440,21 +1455,6 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.27.0
-## explicit; go 1.21
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
-github.com/tombuildsstuff/giovanni/storage/accesscontrol
-github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
