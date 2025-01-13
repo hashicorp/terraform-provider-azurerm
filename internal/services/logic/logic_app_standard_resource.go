@@ -341,9 +341,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	publicNetworkAccess := d.Get("public_network_access").(string)
-	if !features.FivePointOhBeta() && publicNetworkAccess == "" {
+	if !features.FivePointOhBeta() {
 		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
-		publicNetworkAccess = helpers.PublicNetworkAccessEnabled
+		publicNetworkAccess = reconcilePNA(d)
+		// publicNetworkAccess = helpers.PublicNetworkAccessEnabled
 		if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
 			publicNetworkAccess = helpers.PublicNetworkAccessDisabled
 		}
@@ -379,6 +380,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
@@ -453,6 +455,10 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		} else {
 			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
 		}
+	}
+
+	if !features.FivePointOhBeta() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 
 	if clientCertEnabled {
@@ -1367,13 +1373,7 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 	}
 
 	if !features.FivePointOhBeta() {
-		if v, ok := config["public_network_access_enabled"]; ok || d.Get("public_network_access").(string) != "" {
-			pna := helpers.PublicNetworkAccessEnabled
-			if !v.(bool) || d.Get("public_network_access").(string) == helpers.PublicNetworkAccessDisabled {
-				pna = helpers.PublicNetworkAccessDisabled
-			}
-			siteConfig.PublicNetworkAccess = pointer.To(pna)
-		}
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 
 	return siteConfig, nil
@@ -1554,4 +1554,27 @@ func expandHeaders(input interface{}) map[string][]string {
 	}
 
 	return output
+}
+
+func reconcilePNA(d *pluginsdk.ResourceData) string {
+	pna := ""
+	scPNASet := true
+	if !d.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
+		pna = d.Get("public_network_access").(string)
+	}
+	if sc := d.GetRawConfig().AsValueMap()["site_config"]; !sc.IsNull() {
+		if len(sc.AsValueSlice()) > 0 && !sc.AsValueSlice()[0].AsValueMap()["public_network_access_enabled"].IsNull() {
+			scPNASet = true
+		}
+	}
+	if pna == "" && scPNASet { // if not, or it's empty, is site_config value set
+		pnaBool := d.Get("site_config.0.public_network_access_enabled").(bool)
+		if pnaBool {
+			pna = helpers.PublicNetworkAccessEnabled
+		} else {
+			pna = helpers.PublicNetworkAccessDisabled
+		}
+	}
+
+	return pna
 }
