@@ -22,6 +22,14 @@ type A2AUpdateReplicationProtectedItemInput struct {
 	TfoAzureVMName                     *string                          `json:"tfoAzureVMName,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2AUpdateReplicationProtectedItemInput) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return BaseUpdateReplicationProtectedItemProviderInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2AUpdateReplicationProtectedItemInput{}
@@ -35,9 +43,10 @@ func (s A2AUpdateReplicationProtectedItemInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2AUpdateReplicationProtectedItemInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

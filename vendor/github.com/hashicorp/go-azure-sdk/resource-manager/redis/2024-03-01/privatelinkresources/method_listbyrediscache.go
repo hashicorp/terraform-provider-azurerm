@@ -46,7 +46,6 @@ func (c PrivateLinkResourcesClient) ListByRedisCache(ctx context.Context, id Red
 
 	var model PrivateLinkResourceListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

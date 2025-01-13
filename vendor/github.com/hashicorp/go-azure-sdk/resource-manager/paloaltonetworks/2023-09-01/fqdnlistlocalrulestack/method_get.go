@@ -45,7 +45,6 @@ func (c FqdnListLocalRulestackClient) Get(ctx context.Context, id LocalRulestack
 
 	var model FqdnListLocalRulestackResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

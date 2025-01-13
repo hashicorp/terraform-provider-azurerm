@@ -15,7 +15,7 @@ type EncryptionProtectorsClient struct {
 }
 
 func NewEncryptionProtectorsClientWithBaseURI(sdkApi sdkEnv.Api) (*EncryptionProtectorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "encryptionprotectors", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "encryptionprotectors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EncryptionProtectorsClient: %+v", err)
 	}

@@ -46,7 +46,6 @@ func (c LocalUsersClient) ListKeys(ctx context.Context, id LocalUserId) (result 
 
 	var model LocalUserKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

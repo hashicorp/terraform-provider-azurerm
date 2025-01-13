@@ -46,7 +46,6 @@ func (c TestJobClient) Get(ctx context.Context, id RunbookId) (result GetOperati
 
 	var model TestJob
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -38,6 +38,7 @@ func (o StopProtectionOperationOptions) ToHeaders() *client.Headers {
 
 func (o StopProtectionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

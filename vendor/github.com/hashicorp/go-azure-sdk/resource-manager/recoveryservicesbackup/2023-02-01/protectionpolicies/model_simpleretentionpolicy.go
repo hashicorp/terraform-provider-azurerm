@@ -14,6 +14,14 @@ type SimpleRetentionPolicy struct {
 	RetentionDuration *RetentionDuration `json:"retentionDuration,omitempty"`
 
 	// Fields inherited from RetentionPolicy
+
+	RetentionPolicyType string `json:"retentionPolicyType"`
+}
+
+func (s SimpleRetentionPolicy) RetentionPolicy() BaseRetentionPolicyImpl {
+	return BaseRetentionPolicyImpl{
+		RetentionPolicyType: s.RetentionPolicyType,
+	}
 }
 
 var _ json.Marshaler = SimpleRetentionPolicy{}
@@ -27,9 +35,10 @@ func (s SimpleRetentionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SimpleRetentionPolicy: %+v", err)
 	}
+
 	decoded["retentionPolicyType"] = "SimpleRetentionPolicy"
 
 	encoded, err = json.Marshal(decoded)

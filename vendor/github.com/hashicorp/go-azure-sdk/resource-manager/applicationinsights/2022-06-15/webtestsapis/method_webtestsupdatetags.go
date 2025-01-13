@@ -49,7 +49,6 @@ func (c WebTestsAPIsClient) WebTestsUpdateTags(ctx context.Context, id WebTestId
 
 	var model WebTest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

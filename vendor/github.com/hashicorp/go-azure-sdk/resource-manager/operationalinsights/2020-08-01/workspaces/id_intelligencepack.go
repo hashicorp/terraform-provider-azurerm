@@ -44,7 +44,7 @@ func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
 	}
 
 	id := IntelligencePackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseIntelligencePackIDInsensitively(input string) (*IntelligencePackId, er
 	}
 
 	id := IntelligencePackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id IntelligencePackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticIntelligencePacks", "intelligencePacks", "intelligencePacks"),
-		resourceids.UserSpecifiedSegment("intelligencePackName", "intelligencePackValue"),
+		resourceids.UserSpecifiedSegment("intelligencePackName", "intelligencePackName"),
 	}
 }
 

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing` Documentation
 
-The `blobauditing` SDK allows for interaction with the Azure Resource Manager Service `sql` (API Version `2023-08-01-preview`).
+The `blobauditing` SDK allows for interaction with Azure Resource Manager `sql` (API Version `2023-08-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 payload := blobauditing.DatabaseBlobAuditingPolicy{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 read, err := client.DatabaseBlobAuditingPoliciesGet(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 // alternatively `client.DatabaseBlobAuditingPoliciesListByDatabase(ctx, id)` can be used to do batched pagination
 items, err := client.DatabaseBlobAuditingPoliciesListByDatabaseComplete(ctx, id)
@@ -79,7 +79,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 payload := blobauditing.ExtendedDatabaseBlobAuditingPolicy{
 	// ...
@@ -100,7 +100,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 read, err := client.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, id)
 if err != nil {
@@ -116,7 +116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "databaseValue")
+id := commonids.NewSqlDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "databaseName")
 
 // alternatively `client.ExtendedDatabaseBlobAuditingPoliciesListByDatabase(ctx, id)` can be used to do batched pagination
 items, err := client.ExtendedDatabaseBlobAuditingPoliciesListByDatabaseComplete(ctx, id)
@@ -133,7 +133,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := blobauditing.ExtendedServerBlobAuditingPolicy{
 	// ...
@@ -150,7 +150,7 @@ if err := client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, i
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, id)
 if err != nil {
@@ -166,7 +166,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ExtendedServerBlobAuditingPoliciesListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ExtendedServerBlobAuditingPoliciesListByServerComplete(ctx, id)
@@ -183,7 +183,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 payload := blobauditing.ServerBlobAuditingPolicy{
 	// ...
@@ -200,7 +200,7 @@ if err := client.ServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, id, paylo
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 read, err := client.ServerBlobAuditingPoliciesGet(ctx, id)
 if err != nil {
@@ -216,7 +216,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ServerBlobAuditingPoliciesListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ServerBlobAuditingPoliciesListByServerComplete(ctx, id)

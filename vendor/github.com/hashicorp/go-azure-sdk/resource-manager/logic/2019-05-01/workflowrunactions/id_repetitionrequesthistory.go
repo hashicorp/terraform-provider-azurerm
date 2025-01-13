@@ -50,7 +50,7 @@ func ParseRepetitionRequestHistoryID(input string) (*RepetitionRequestHistoryId,
 	}
 
 	id := RepetitionRequestHistoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -67,7 +67,7 @@ func ParseRepetitionRequestHistoryIDInsensitively(input string) (*RepetitionRequ
 	}
 
 	id := RepetitionRequestHistoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -139,15 +139,15 @@ func (id RepetitionRequestHistoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticRuns", "runs", "runs"),
-		resourceids.UserSpecifiedSegment("runName", "runValue"),
+		resourceids.UserSpecifiedSegment("runName", "runName"),
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
-		resourceids.UserSpecifiedSegment("actionName", "actionValue"),
+		resourceids.UserSpecifiedSegment("actionName", "actionName"),
 		resourceids.StaticSegment("staticRepetitions", "repetitions", "repetitions"),
-		resourceids.UserSpecifiedSegment("repetitionName", "repetitionValue"),
+		resourceids.UserSpecifiedSegment("repetitionName", "repetitionName"),
 		resourceids.StaticSegment("staticRequestHistories", "requestHistories", "requestHistories"),
-		resourceids.UserSpecifiedSegment("requestHistoryName", "requestHistoryValue"),
+		resourceids.UserSpecifiedSegment("requestHistoryName", "requestHistoryName"),
 	}
 }
 

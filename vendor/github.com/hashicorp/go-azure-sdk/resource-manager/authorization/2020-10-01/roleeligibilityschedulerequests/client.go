@@ -15,7 +15,7 @@ type RoleEligibilityScheduleRequestsClient struct {
 }
 
 func NewRoleEligibilityScheduleRequestsClientWithBaseURI(sdkApi sdkEnv.Api) (*RoleEligibilityScheduleRequestsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "roleeligibilityschedulerequests", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "roleeligibilityschedulerequests", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RoleEligibilityScheduleRequestsClient: %+v", err)
 	}

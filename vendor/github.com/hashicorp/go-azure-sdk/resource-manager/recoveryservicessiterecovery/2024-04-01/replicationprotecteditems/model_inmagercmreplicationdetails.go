@@ -74,6 +74,14 @@ type InMageRcmReplicationDetails struct {
 	VMNics                                     *[]InMageRcmNicDetails                       `json:"vmNics,omitempty"`
 
 	// Fields inherited from ReplicationProviderSpecificSettings
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmReplicationDetails) ReplicationProviderSpecificSettings() BaseReplicationProviderSpecificSettingsImpl {
+	return BaseReplicationProviderSpecificSettingsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmReplicationDetails{}
@@ -87,9 +95,10 @@ func (s InMageRcmReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmReplicationDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcm"
 
 	encoded, err = json.Marshal(decoded)

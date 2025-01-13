@@ -20,6 +20,14 @@ type InMageAzureV2ReprotectInput struct {
 	StorageAccountId    *string   `json:"storageAccountId,omitempty"`
 
 	// Fields inherited from ReverseReplicationProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageAzureV2ReprotectInput) ReverseReplicationProviderSpecificInput() BaseReverseReplicationProviderSpecificInputImpl {
+	return BaseReverseReplicationProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageAzureV2ReprotectInput{}
@@ -33,9 +41,10 @@ func (s InMageAzureV2ReprotectInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageAzureV2ReprotectInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageAzureV2"
 
 	encoded, err = json.Marshal(decoded)

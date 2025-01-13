@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource` Documentation
 
-The `serverendpointresource` SDK allows for interaction with the Azure Resource Manager Service `storagesync` (API Version `2020-03-01`).
+The `serverendpointresource` SDK allows for interaction with Azure Resource Manager `storagesync` (API Version `2020-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue", "serverEndpointValue")
+id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName", "serverEndpointName")
 
 payload := serverendpointresource.ServerEndpointCreateParameters{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ServerEndpointsCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue", "serverEndpointValue")
+id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName", "serverEndpointName")
 
 if err := client.ServerEndpointsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ServerEndpointsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue", "serverEndpointValue")
+id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName", "serverEndpointName")
 
 read, err := client.ServerEndpointsGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewSyncGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue")
+id := serverendpointresource.NewSyncGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName")
 
 read, err := client.ServerEndpointsListBySyncGroup(ctx, id)
 if err != nil {
@@ -85,7 +85,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue", "serverEndpointValue")
+id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName", "serverEndpointName")
 
 payload := serverendpointresource.ServerEndpointUpdateParameters{
 	// ...
@@ -102,7 +102,7 @@ if err := client.ServerEndpointsUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceValue", "syncGroupValue", "serverEndpointValue")
+id := serverendpointresource.NewServerEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageSyncServiceName", "syncGroupName", "serverEndpointName")
 
 payload := serverendpointresource.RecallActionParameters{
 	// ...

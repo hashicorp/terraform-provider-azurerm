@@ -15,7 +15,7 @@ type TenantsClient struct {
 }
 
 func NewTenantsClientWithBaseURI(sdkApi sdkEnv.Api) (*TenantsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tenants", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tenants", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TenantsClient: %+v", err)
 	}

@@ -14,6 +14,14 @@ type VirtualMachineSecrets struct {
 	AdministratorAccount *VirtualMachineSshCredentials `json:"administratorAccount,omitempty"`
 
 	// Fields inherited from ComputeSecrets
+
+	ComputeType ComputeType `json:"computeType"`
+}
+
+func (s VirtualMachineSecrets) ComputeSecrets() BaseComputeSecretsImpl {
+	return BaseComputeSecretsImpl{
+		ComputeType: s.ComputeType,
+	}
 }
 
 var _ json.Marshaler = VirtualMachineSecrets{}
@@ -27,9 +35,10 @@ func (s VirtualMachineSecrets) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VirtualMachineSecrets: %+v", err)
 	}
+
 	decoded["computeType"] = "VirtualMachine"
 
 	encoded, err = json.Marshal(decoded)

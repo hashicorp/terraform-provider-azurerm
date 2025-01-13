@@ -123,6 +123,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 								"Fsv2",
 								"DC",
 								"MOPRMS",
+								"PRMS",
 							}, false),
 						},
 					},

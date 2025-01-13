@@ -47,7 +47,6 @@ func (c PartnerConfigurationsClient) Get(ctx context.Context, id commonids.Resou
 
 	var model PartnerConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

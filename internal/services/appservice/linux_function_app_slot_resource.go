@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -444,10 +444,11 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 						}
 					}
 				}
-
 			}
-			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
+
+			// Only send for ElasticPremium and Consumption plan
+			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
+			sendContentSettings := elasticOrConsumptionPlan && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {

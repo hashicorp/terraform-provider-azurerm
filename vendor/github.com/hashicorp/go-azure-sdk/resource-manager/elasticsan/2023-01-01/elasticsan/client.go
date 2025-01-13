@@ -15,7 +15,7 @@ type ElasticSanClient struct {
 }
 
 func NewElasticSanClientWithBaseURI(sdkApi sdkEnv.Api) (*ElasticSanClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "elasticsan", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "elasticsan", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ElasticSanClient: %+v", err)
 	}

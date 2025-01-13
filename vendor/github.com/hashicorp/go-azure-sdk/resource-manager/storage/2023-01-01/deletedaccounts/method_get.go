@@ -45,7 +45,6 @@ func (c DeletedAccountsClient) Get(ctx context.Context, id DeletedAccountId) (re
 
 	var model DeletedAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

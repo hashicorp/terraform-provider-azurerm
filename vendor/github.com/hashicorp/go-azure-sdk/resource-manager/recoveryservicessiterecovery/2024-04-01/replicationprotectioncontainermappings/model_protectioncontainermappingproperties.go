@@ -25,10 +25,20 @@ type ProtectionContainerMappingProperties struct {
 var _ json.Unmarshaler = &ProtectionContainerMappingProperties{}
 
 func (s *ProtectionContainerMappingProperties) UnmarshalJSON(bytes []byte) error {
-	type alias ProtectionContainerMappingProperties
-	var decoded alias
+	var decoded struct {
+		Health                                *string        `json:"health,omitempty"`
+		HealthErrorDetails                    *[]HealthError `json:"healthErrorDetails,omitempty"`
+		PolicyFriendlyName                    *string        `json:"policyFriendlyName,omitempty"`
+		PolicyId                              *string        `json:"policyId,omitempty"`
+		SourceFabricFriendlyName              *string        `json:"sourceFabricFriendlyName,omitempty"`
+		SourceProtectionContainerFriendlyName *string        `json:"sourceProtectionContainerFriendlyName,omitempty"`
+		State                                 *string        `json:"state,omitempty"`
+		TargetFabricFriendlyName              *string        `json:"targetFabricFriendlyName,omitempty"`
+		TargetProtectionContainerFriendlyName *string        `json:"targetProtectionContainerFriendlyName,omitempty"`
+		TargetProtectionContainerId           *string        `json:"targetProtectionContainerId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ProtectionContainerMappingProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Health = decoded.Health
@@ -48,11 +58,12 @@ func (s *ProtectionContainerMappingProperties) UnmarshalJSON(bytes []byte) error
 	}
 
 	if v, ok := temp["providerSpecificDetails"]; ok {
-		impl, err := unmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(v)
+		impl, err := UnmarshalProtectionContainerMappingProviderSpecificDetailsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'ProtectionContainerMappingProperties': %+v", err)
 		}
 		s.ProviderSpecificDetails = impl
 	}
+
 	return nil
 }

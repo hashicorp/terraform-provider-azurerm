@@ -42,7 +42,7 @@ func ParseLicenseID(input string) (*LicenseId, error) {
 	}
 
 	id := LicenseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseLicenseIDInsensitively(input string) (*LicenseId, error) {
 	}
 
 	id := LicenseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id LicenseId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHybridCompute", "Microsoft.HybridCompute", "Microsoft.HybridCompute"),
 		resourceids.StaticSegment("staticLicenses", "licenses", "licenses"),
-		resourceids.UserSpecifiedSegment("licenseName", "licenseValue"),
+		resourceids.UserSpecifiedSegment("licenseName", "licenseName"),
 	}
 }
 

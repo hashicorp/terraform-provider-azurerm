@@ -15,7 +15,7 @@ type AssessmentsMetadataClient struct {
 }
 
 func NewAssessmentsMetadataClientWithBaseURI(sdkApi sdkEnv.Api) (*AssessmentsMetadataClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "assessmentsmetadata", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "assessmentsmetadata", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AssessmentsMetadataClient: %+v", err)
 	}

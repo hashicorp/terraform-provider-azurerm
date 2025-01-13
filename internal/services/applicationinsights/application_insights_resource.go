@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -171,19 +170,6 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["daily_data_cap_in_gb"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeFloat,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.FloatAtLeast(0),
-		}
-		resource.Schema["daily_data_cap_notifications_disabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		}
-	}
 	return resource
 }
 
@@ -232,7 +218,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() {
 		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
 		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-			return fmt.Errorf("`workspace_id` can not be removed after set")
+			return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
 		}
 	}
 
@@ -330,7 +316,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 							return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
 						}
 					}
-
 				}
 			}
 

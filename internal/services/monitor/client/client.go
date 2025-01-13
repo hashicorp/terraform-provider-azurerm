@@ -6,13 +6,11 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopedresources"
@@ -38,7 +36,6 @@ type Client struct {
 	AutoscaleSettingsClient *autoscalesettings.AutoScaleSettingsClient
 
 	// alerts management
-	ActionRulesClient             *actionrules.ActionRulesClient
 	AlertProcessingRulesClient    *alertprocessingrules.AlertProcessingRulesClient
 	SmartDetectorAlertRulesClient *smartdetectoralertrules.SmartDetectorAlertRulesClient
 
@@ -52,7 +49,6 @@ type Client struct {
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
 	DiagnosticSettingsClient             *diagnosticSettingClient.DiagnosticSettingsClient
 	DiagnosticSettingsCategoryClient     *diagnosticCategoryClient.DiagnosticSettingsCategoriesClient
-	LogProfilesClient                    *logprofiles.LogProfilesClient
 	MetricAlertsClient                   *metricalerts.MetricAlertsClient
 	PrivateLinkScopesClient              *privatelinkscopesapis.PrivateLinkScopesAPIsClient
 	PrivateLinkScopedResourcesClient     *privatelinkscopedresources.PrivateLinkScopedResourcesClient
@@ -73,12 +69,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Autoscale Settings client: %+v", err)
 	}
 	o.Configure(AutoscaleSettingsClient.Client, o.Authorizers.ResourceManager)
-
-	ActionRulesClient, err := actionrules.NewActionRulesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Action Rules client: %+v", err)
-	}
-	o.Configure(ActionRulesClient.Client, o.Authorizers.ResourceManager)
 
 	alertProcessingRulesClient, err := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -146,12 +136,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(DiagnosticSettingsCategoryClient.Client, o.Authorizers.ResourceManager)
 
-	LogProfilesClient, err := logprofiles.NewLogProfilesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Log Profiles client: %+v", err)
-	}
-	o.Configure(LogProfilesClient.Client, o.Authorizers.ResourceManager)
-
 	MetricAlertsClient, err := metricalerts.NewMetricAlertsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Metric Alerts client: %+v", err)
@@ -191,7 +175,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AADDiagnosticSettingsClient:          aadDiagnosticSettingsClient,
 		AutoscaleSettingsClient:              AutoscaleSettingsClient,
-		ActionRulesClient:                    ActionRulesClient,
 		SmartDetectorAlertRulesClient:        SmartDetectorAlertRulesClient,
 		ActionGroupsClient:                   ActionGroupsClient,
 		ActivityLogsClient:                   activityLogsClient,
@@ -203,7 +186,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DataCollectionRulesClient:            DataCollectionRulesClient,
 		DiagnosticSettingsClient:             DiagnosticSettingsClient,
 		DiagnosticSettingsCategoryClient:     DiagnosticSettingsCategoryClient,
-		LogProfilesClient:                    LogProfilesClient,
 		MetricAlertsClient:                   MetricAlertsClient,
 		PrivateLinkScopesClient:              PrivateLinkScopesClient,
 		PrivateLinkScopedResourcesClient:     PrivateLinkScopedResourcesClient,

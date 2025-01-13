@@ -16,10 +16,11 @@ type SwitchProtectionInputProperties struct {
 var _ json.Unmarshaler = &SwitchProtectionInputProperties{}
 
 func (s *SwitchProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
-	type alias SwitchProtectionInputProperties
-	var decoded alias
+	var decoded struct {
+		ReplicationProtectedItemName *string `json:"replicationProtectedItemName,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into SwitchProtectionInputProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ReplicationProtectedItemName = decoded.ReplicationProtectedItemName
@@ -30,11 +31,12 @@ func (s *SwitchProtectionInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["providerSpecificDetails"]; ok {
-		impl, err := unmarshalSwitchProtectionProviderSpecificInputImplementation(v)
+		impl, err := UnmarshalSwitchProtectionProviderSpecificInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'SwitchProtectionInputProperties': %+v", err)
 		}
 		s.ProviderSpecificDetails = impl
 	}
+
 	return nil
 }

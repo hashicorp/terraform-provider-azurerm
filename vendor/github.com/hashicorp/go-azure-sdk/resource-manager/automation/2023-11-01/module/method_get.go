@@ -45,7 +45,6 @@ func (c ModuleClient) Get(ctx context.Context, id ModuleId) (result GetOperation
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

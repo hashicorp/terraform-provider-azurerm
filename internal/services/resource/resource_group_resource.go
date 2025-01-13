@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -129,7 +131,6 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 				}
 
 				return true, "Done", nil
-
 			},
 		}
 
@@ -193,13 +194,16 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
+				if response.WasNotFound(results.Response().Response.Response) {
+					return nil
+				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
-			for results.NotDone() {
-				val := results.Value()
+			for _, value := range results.Values() {
+				val := value
 				if val.ID != nil {
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
 				}
@@ -222,6 +226,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
+		if response.WasNotFound(deleteFuture.Response()) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -268,5 +275,5 @@ delete this using the Azure API directly (which will clear up any nested resourc
 More information on the 'features' block can be found in the documentation:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, strings.Join(formattedResourceUris, "\n"))
-	return fmt.Errorf(strings.ReplaceAll(message, "'", "`"))
+	return errors.New(strings.ReplaceAll(message, "'", "`"))
 }

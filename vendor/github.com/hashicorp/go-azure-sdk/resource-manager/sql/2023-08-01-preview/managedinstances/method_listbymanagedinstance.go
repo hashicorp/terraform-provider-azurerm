@@ -46,6 +46,7 @@ func (o ListByManagedInstanceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByManagedInstanceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

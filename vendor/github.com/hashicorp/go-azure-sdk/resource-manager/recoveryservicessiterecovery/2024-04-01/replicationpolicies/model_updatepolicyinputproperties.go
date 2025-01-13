@@ -22,11 +22,12 @@ func (s *UpdatePolicyInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["replicationProviderSettings"]; ok {
-		impl, err := unmarshalPolicyProviderSpecificInputImplementation(v)
+		impl, err := UnmarshalPolicyProviderSpecificInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ReplicationProviderSettings' for 'UpdatePolicyInputProperties': %+v", err)
 		}
 		s.ReplicationProviderSettings = impl
 	}
+
 	return nil
 }

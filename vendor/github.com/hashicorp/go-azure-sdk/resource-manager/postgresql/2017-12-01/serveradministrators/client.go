@@ -15,7 +15,7 @@ type ServerAdministratorsClient struct {
 }
 
 func NewServerAdministratorsClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerAdministratorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serveradministrators", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serveradministrators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerAdministratorsClient: %+v", err)
 	}

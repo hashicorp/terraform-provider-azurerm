@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UpdateReplicationProtectedItemProviderInput interface {
+	UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl
 }
 
-// RawUpdateReplicationProtectedItemProviderInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ UpdateReplicationProtectedItemProviderInput = BaseUpdateReplicationProtectedItemProviderInputImpl{}
+
+type BaseUpdateReplicationProtectedItemProviderInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseUpdateReplicationProtectedItemProviderInputImpl) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return s
+}
+
+var _ UpdateReplicationProtectedItemProviderInput = RawUpdateReplicationProtectedItemProviderInputImpl{}
+
+// RawUpdateReplicationProtectedItemProviderInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawUpdateReplicationProtectedItemProviderInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	updateReplicationProtectedItemProviderInput BaseUpdateReplicationProtectedItemProviderInputImpl
+	Type                                        string
+	Values                                      map[string]interface{}
 }
 
-func unmarshalUpdateReplicationProtectedItemProviderInputImplementation(input []byte) (UpdateReplicationProtectedItemProviderInput, error) {
+func (s RawUpdateReplicationProtectedItemProviderInputImpl) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return s.updateReplicationProtectedItemProviderInput
+}
+
+func UnmarshalUpdateReplicationProtectedItemProviderInputImplementation(input []byte) (UpdateReplicationProtectedItemProviderInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalUpdateReplicationProtectedItemProviderInputImplementation(input []
 		return nil, fmt.Errorf("unmarshaling UpdateReplicationProtectedItemProviderInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -68,10 +85,15 @@ func unmarshalUpdateReplicationProtectedItemProviderInputImplementation(input []
 		return out, nil
 	}
 
-	out := RawUpdateReplicationProtectedItemProviderInputImpl{
+	var parent BaseUpdateReplicationProtectedItemProviderInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseUpdateReplicationProtectedItemProviderInputImpl: %+v", err)
+	}
+
+	return RawUpdateReplicationProtectedItemProviderInputImpl{
+		updateReplicationProtectedItemProviderInput: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

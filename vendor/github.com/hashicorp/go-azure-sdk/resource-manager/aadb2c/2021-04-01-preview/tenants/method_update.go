@@ -50,7 +50,6 @@ func (c TenantsClient) Update(ctx context.Context, id B2CDirectoryId, input Upda
 
 	var model Tenant
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

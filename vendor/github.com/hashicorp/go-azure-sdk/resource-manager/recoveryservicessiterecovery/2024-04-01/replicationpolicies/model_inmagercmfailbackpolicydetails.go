@@ -15,6 +15,14 @@ type InMageRcmFailbackPolicyDetails struct {
 	CrashConsistentFrequencyInMinutes *int64 `json:"crashConsistentFrequencyInMinutes,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s InMageRcmFailbackPolicyDetails) PolicyProviderSpecificDetails() BasePolicyProviderSpecificDetailsImpl {
+	return BasePolicyProviderSpecificDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = InMageRcmFailbackPolicyDetails{}
@@ -28,9 +36,10 @@ func (s InMageRcmFailbackPolicyDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling InMageRcmFailbackPolicyDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "InMageRcmFailback"
 
 	encoded, err = json.Marshal(decoded)

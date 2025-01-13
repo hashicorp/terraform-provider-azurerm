@@ -47,7 +47,6 @@ func (c ClustersClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 
 	var model ClusterListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

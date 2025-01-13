@@ -49,7 +49,6 @@ func (c ConnectionTypeClient) CreateOrUpdate(ctx context.Context, id ConnectionT
 
 	var model ConnectionType
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

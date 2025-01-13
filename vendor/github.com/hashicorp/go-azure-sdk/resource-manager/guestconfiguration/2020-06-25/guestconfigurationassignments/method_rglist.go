@@ -48,7 +48,6 @@ func (c GuestConfigurationAssignmentsClient) RGList(ctx context.Context, id comm
 
 	var model GuestConfigurationAssignmentList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

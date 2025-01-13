@@ -26,6 +26,14 @@ type KubernetesClusterVaultTierRestoreCriteria struct {
 	StagingStorageAccountId      *string                      `json:"stagingStorageAccountId,omitempty"`
 
 	// Fields inherited from ItemLevelRestoreCriteria
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s KubernetesClusterVaultTierRestoreCriteria) ItemLevelRestoreCriteria() BaseItemLevelRestoreCriteriaImpl {
+	return BaseItemLevelRestoreCriteriaImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = KubernetesClusterVaultTierRestoreCriteria{}
@@ -39,9 +47,10 @@ func (s KubernetesClusterVaultTierRestoreCriteria) MarshalJSON() ([]byte, error)
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KubernetesClusterVaultTierRestoreCriteria: %+v", err)
 	}
+
 	decoded["objectType"] = "KubernetesClusterVaultTierRestoreCriteria"
 
 	encoded, err = json.Marshal(decoded)

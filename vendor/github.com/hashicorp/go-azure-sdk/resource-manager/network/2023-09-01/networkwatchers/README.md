@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers` Documentation
 
-The `networkwatchers` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-09-01`).
+The `networkwatchers` SDK allows for interaction with Azure Resource Manager `network` (API Version `2023-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.ConnectivityParameters{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CheckConnectivityThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.NetworkWatcher{
 	// ...
@@ -63,7 +63,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.AzureReachabilityReportParameters{
 	// ...
@@ -108,7 +108,7 @@ if err := client.GetAzureReachabilityReportThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.FlowLogStatusParameters{
 	// ...
@@ -125,7 +125,7 @@ if err := client.GetFlowLogStatusThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.NetworkConfigurationDiagnosticParameters{
 	// ...
@@ -142,7 +142,7 @@ if err := client.GetNetworkConfigurationDiagnosticThenPoll(ctx, id, payload); er
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.NextHopParameters{
 	// ...
@@ -159,7 +159,7 @@ if err := client.GetNextHopThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.TopologyParameters{
 	// ...
@@ -180,7 +180,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.TroubleshootingParameters{
 	// ...
@@ -197,7 +197,7 @@ if err := client.GetTroubleshootingThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.QueryTroubleshootingParameters{
 	// ...
@@ -214,7 +214,7 @@ if err := client.GetTroubleshootingResultThenPoll(ctx, id, payload); err != nil 
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.SecurityGroupViewParameters{
 	// ...
@@ -263,7 +263,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.AvailableProvidersListParameters{
 	// ...
@@ -280,7 +280,7 @@ if err := client.ListAvailableProvidersThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.FlowLogInformation{
 	// ...
@@ -297,7 +297,7 @@ if err := client.SetFlowLogConfigurationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.TagsObject{
 	// ...
@@ -318,7 +318,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherValue")
+id := networkwatchers.NewNetworkWatcherID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkWatcherName")
 
 payload := networkwatchers.VerificationIPFlowParameters{
 	// ...

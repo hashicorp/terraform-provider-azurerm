@@ -49,6 +49,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `sku_name` - (Optional) The `name` of the SKU to be used by this Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
+* `sku_profile` - (Optional) An `sku_profile` block as defined below. Changing this forces a new resource to be created.
+
+-> **Note:** If `sku_profile` is specified the `sku_name` must be set to `Mix`.
+
 * `additional_capabilities` - (Optional) An `additional_capabilities` block as defined below.
 
 * `encryption_at_host_enabled` - (Optional) Should disks attached to this Virtual Machine Scale Set be encrypted by enabling Encryption at Host?
@@ -113,13 +117,23 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 -> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
-* `zones` - (Optional) Specifies a list of Availability Zones across which the Virtual Machine Scale Set will create instances. Changing this forces a new Virtual Machine Scale Set to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones across which the Virtual Machine Scale Set will create instances.
+
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 -> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
 * `priority_mix` - (Optional) a `priority_mix` block as defined below
+
+---
+
+An `sku_profile` block supports the following:
+
+* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice` and `CapacityOptimized`.
+
+* `vm_sizes` - (Required) Specifies the VM sizes for the virtual machine scale set.
 
 ---
 

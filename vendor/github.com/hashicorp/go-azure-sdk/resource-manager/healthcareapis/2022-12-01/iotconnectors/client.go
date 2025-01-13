@@ -15,7 +15,7 @@ type IotConnectorsClient struct {
 }
 
 func NewIotConnectorsClientWithBaseURI(sdkApi sdkEnv.Api) (*IotConnectorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "iotconnectors", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "iotconnectors", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IotConnectorsClient: %+v", err)
 	}

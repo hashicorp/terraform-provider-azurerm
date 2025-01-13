@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations` Documentation
 
-The `automations` SDK allows for interaction with the Azure Resource Manager Service `security` (API Version `2019-01-01-preview`).
+The `automations` SDK allows for interaction with Azure Resource Manager `security` (API Version `2019-01-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationValue")
+id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationName")
 
 payload := automations.Automation{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationValue")
+id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationValue")
+id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationValue")
+id := automations.NewAutomationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationName")
 
 payload := automations.Automation{
 	// ...

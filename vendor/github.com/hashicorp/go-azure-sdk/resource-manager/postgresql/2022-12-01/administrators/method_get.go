@@ -45,7 +45,6 @@ func (c AdministratorsClient) Get(ctx context.Context, id AdministratorId) (resu
 
 	var model ActiveDirectoryAdministrator
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

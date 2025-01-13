@@ -15,7 +15,7 @@ type AttachedDatabaseConfigurationsClient struct {
 }
 
 func NewAttachedDatabaseConfigurationsClientWithBaseURI(sdkApi sdkEnv.Api) (*AttachedDatabaseConfigurationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "attacheddatabaseconfigurations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "attacheddatabaseconfigurations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AttachedDatabaseConfigurationsClient: %+v", err)
 	}

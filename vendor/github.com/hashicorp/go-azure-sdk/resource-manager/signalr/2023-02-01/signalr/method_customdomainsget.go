@@ -45,7 +45,6 @@ func (c SignalRClient) CustomDomainsGet(ctx context.Context, id CustomDomainId) 
 
 	var model CustomDomain
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

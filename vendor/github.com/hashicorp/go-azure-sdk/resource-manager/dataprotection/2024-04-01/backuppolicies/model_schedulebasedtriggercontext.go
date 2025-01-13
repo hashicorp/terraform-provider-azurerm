@@ -15,6 +15,14 @@ type ScheduleBasedTriggerContext struct {
 	TaggingCriteria []TaggingCriteria `json:"taggingCriteria"`
 
 	// Fields inherited from TriggerContext
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s ScheduleBasedTriggerContext) TriggerContext() BaseTriggerContextImpl {
+	return BaseTriggerContextImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = ScheduleBasedTriggerContext{}
@@ -28,9 +36,10 @@ func (s ScheduleBasedTriggerContext) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ScheduleBasedTriggerContext: %+v", err)
 	}
+
 	decoded["objectType"] = "ScheduleBasedTriggerContext"
 
 	encoded, err = json.Marshal(decoded)

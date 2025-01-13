@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AddDisksProviderSpecificInput interface {
+	AddDisksProviderSpecificInput() BaseAddDisksProviderSpecificInputImpl
 }
 
-// RawAddDisksProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ AddDisksProviderSpecificInput = BaseAddDisksProviderSpecificInputImpl{}
+
+type BaseAddDisksProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseAddDisksProviderSpecificInputImpl) AddDisksProviderSpecificInput() BaseAddDisksProviderSpecificInputImpl {
+	return s
+}
+
+var _ AddDisksProviderSpecificInput = RawAddDisksProviderSpecificInputImpl{}
+
+// RawAddDisksProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawAddDisksProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	addDisksProviderSpecificInput BaseAddDisksProviderSpecificInputImpl
+	Type                          string
+	Values                        map[string]interface{}
 }
 
-func unmarshalAddDisksProviderSpecificInputImplementation(input []byte) (AddDisksProviderSpecificInput, error) {
+func (s RawAddDisksProviderSpecificInputImpl) AddDisksProviderSpecificInput() BaseAddDisksProviderSpecificInputImpl {
+	return s.addDisksProviderSpecificInput
+}
+
+func UnmarshalAddDisksProviderSpecificInputImplementation(input []byte) (AddDisksProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalAddDisksProviderSpecificInputImplementation(input []byte) (AddDisk
 		return nil, fmt.Errorf("unmarshaling AddDisksProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -52,10 +69,15 @@ func unmarshalAddDisksProviderSpecificInputImplementation(input []byte) (AddDisk
 		return out, nil
 	}
 
-	out := RawAddDisksProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseAddDisksProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseAddDisksProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawAddDisksProviderSpecificInputImpl{
+		addDisksProviderSpecificInput: parent,
+		Type:                          value,
+		Values:                        temp,
+	}, nil
 
 }

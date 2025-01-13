@@ -15,7 +15,7 @@ type VirtualWANsClient struct {
 }
 
 func NewVirtualWANsClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualWANsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualwans", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualwans", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualWANsClient: %+v", err)
 	}

@@ -63,8 +63,7 @@ func (t ShareKustoClusterDataSetResource) Exists(ctx context.Context, clients *c
 	}
 
 	if model := resp.Model; model != nil {
-		ds := *model
-		if _, ok := ds.(dataset.KustoClusterDataSet); ok {
+		if _, ok := model.(dataset.KustoClusterDataSet); ok {
 			return utils.Bool(true), nil
 		}
 	}

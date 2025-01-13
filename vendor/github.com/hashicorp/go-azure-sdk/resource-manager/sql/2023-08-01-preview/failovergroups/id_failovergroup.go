@@ -44,7 +44,7 @@ func ParseFailoverGroupID(input string) (*FailoverGroupId, error) {
 	}
 
 	id := FailoverGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseFailoverGroupIDInsensitively(input string) (*FailoverGroupId, error) {
 	}
 
 	id := FailoverGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id FailoverGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSql", "Microsoft.Sql", "Microsoft.Sql"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("serverName", "serverName"),
 		resourceids.StaticSegment("staticFailoverGroups", "failoverGroups", "failoverGroups"),
-		resourceids.UserSpecifiedSegment("failoverGroupName", "failoverGroupValue"),
+		resourceids.UserSpecifiedSegment("failoverGroupName", "failoverGroupName"),
 	}
 }
 

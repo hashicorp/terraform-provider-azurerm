@@ -46,7 +46,6 @@ func (c AutomationRulesClient) Delete(ctx context.Context, id AutomationRuleId) 
 
 	var model interface{}
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -50,7 +50,6 @@ func (c DevicesClient) UploadCertificate(ctx context.Context, id DataBoxEdgeDevi
 
 	var model UploadCertificateResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

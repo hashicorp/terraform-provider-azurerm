@@ -15,7 +15,7 @@ type HubsClient struct {
 }
 
 func NewHubsClientWithBaseURI(sdkApi sdkEnv.Api) (*HubsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "hubs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "hubs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HubsClient: %+v", err)
 	}

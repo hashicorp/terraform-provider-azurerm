@@ -45,7 +45,6 @@ func (c WorkspacesClient) WorkspacePurgeGetPurgeStatus(ctx context.Context, id O
 
 	var model WorkspacePurgeStatusResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

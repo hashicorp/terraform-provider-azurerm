@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = DevCenterEnvironmentTypeResource{}
-var _ sdk.ResourceWithUpdate = DevCenterEnvironmentTypeResource{}
+var (
+	_ sdk.Resource           = DevCenterEnvironmentTypeResource{}
+	_ sdk.ResourceWithUpdate = DevCenterEnvironmentTypeResource{}
+)
 
 type DevCenterEnvironmentTypeResource struct{}
 

@@ -6,15 +6,14 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -155,21 +154,22 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
+			if metadata.ResourceData.HasChange("quota_size_in_kib") {
+				metadata.Logger.Infof("Updating %s", id)
 
-			update := volumequotarules.VolumeQuotaRulePatch{
-				Properties: &volumequotarules.VolumeQuotaRulesProperties{},
+				update := volumequotarules.VolumeQuotaRulePatch{
+					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
+				}
+
+				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+
+				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
-
-			update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
-			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -180,7 +180,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
@@ -191,12 +190,12 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -207,7 +206,7 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:           id.VolumeQuotaRuleName,
 				VolumeID:       volumeID.ID(),
-				Location:       location.NormalizeNilable(pointer.To(existing.Model.Location)),
+				Location:       location.Normalize(existing.Model.Location),
 				QuotaTarget:    pointer.From(existing.Model.Properties.QuotaTarget),
 				QuotaSizeInKiB: pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
 				QuotaType:      string(pointer.From(existing.Model.Properties.QuotaType)),
@@ -224,7 +223,6 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
@@ -234,7 +232,7 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)

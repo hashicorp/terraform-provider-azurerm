@@ -47,7 +47,6 @@ func (c FileServiceClient) GetServiceProperties(ctx context.Context, id commonid
 
 	var model FileServiceProperties
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -22,11 +22,12 @@ func (s *FabricCreationInputProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["customDetails"]; ok {
-		impl, err := unmarshalFabricSpecificCreationInputImplementation(v)
+		impl, err := UnmarshalFabricSpecificCreationInputImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CustomDetails' for 'FabricCreationInputProperties': %+v", err)
 		}
 		s.CustomDetails = impl
 	}
+
 	return nil
 }

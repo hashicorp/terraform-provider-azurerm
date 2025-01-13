@@ -29,7 +29,7 @@ func (s *CreateProtectionContainerInputProperties) UnmarshalJSON(bytes []byte) e
 
 		output := make([]ReplicationProviderSpecificContainerCreationInput, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalReplicationProviderSpecificContainerCreationInputImplementation(val)
+			impl, err := UnmarshalReplicationProviderSpecificContainerCreationInputImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'ProviderSpecificInput' for 'CreateProtectionContainerInputProperties': %+v", i, err)
 			}
@@ -37,5 +37,6 @@ func (s *CreateProtectionContainerInputProperties) UnmarshalJSON(bytes []byte) e
 		}
 		s.ProviderSpecificInput = &output
 	}
+
 	return nil
 }

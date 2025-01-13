@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -283,7 +283,6 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			id := webapps.NewSlotID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, webAppSlot.Name)
 
 			webApp, err := client.Get(ctx, *appId)
-
 			if err != nil {
 				return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
 			}
@@ -704,7 +703,6 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 				if err := metadata.Encode(&state); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
-
 			}
 
 			return nil

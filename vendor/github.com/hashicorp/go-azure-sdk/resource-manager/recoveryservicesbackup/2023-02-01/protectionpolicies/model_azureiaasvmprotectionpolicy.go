@@ -20,8 +20,18 @@ type AzureIaaSVMProtectionPolicy struct {
 	TimeZone                      *string                     `json:"timeZone,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
+
+	BackupManagementType           string    `json:"backupManagementType"`
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
 	ResourceGuardOperationRequests *[]string `json:"resourceGuardOperationRequests,omitempty"`
+}
+
+func (s AzureIaaSVMProtectionPolicy) ProtectionPolicy() BaseProtectionPolicyImpl {
+	return BaseProtectionPolicyImpl{
+		BackupManagementType:           s.BackupManagementType,
+		ProtectedItemsCount:            s.ProtectedItemsCount,
+		ResourceGuardOperationRequests: s.ResourceGuardOperationRequests,
+	}
 }
 
 var _ json.Marshaler = AzureIaaSVMProtectionPolicy{}
@@ -35,9 +45,10 @@ func (s AzureIaaSVMProtectionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureIaaSVMProtectionPolicy: %+v", err)
 	}
+
 	decoded["backupManagementType"] = "AzureIaasVM"
 
 	encoded, err = json.Marshal(decoded)
@@ -51,19 +62,28 @@ func (s AzureIaaSVMProtectionPolicy) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &AzureIaaSVMProtectionPolicy{}
 
 func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
-	type alias AzureIaaSVMProtectionPolicy
-	var decoded alias
+	var decoded struct {
+		InstantRPDetails               *InstantRPAdditionalDetails `json:"instantRPDetails,omitempty"`
+		InstantRpRetentionRangeInDays  *int64                      `json:"instantRpRetentionRangeInDays,omitempty"`
+		PolicyType                     *IAASVMPolicyType           `json:"policyType,omitempty"`
+		TieringPolicy                  *map[string]TieringPolicy   `json:"tieringPolicy,omitempty"`
+		TimeZone                       *string                     `json:"timeZone,omitempty"`
+		BackupManagementType           string                      `json:"backupManagementType"`
+		ProtectedItemsCount            *int64                      `json:"protectedItemsCount,omitempty"`
+		ResourceGuardOperationRequests *[]string                   `json:"resourceGuardOperationRequests,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureIaaSVMProtectionPolicy: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.InstantRPDetails = decoded.InstantRPDetails
 	s.InstantRpRetentionRangeInDays = decoded.InstantRpRetentionRangeInDays
 	s.PolicyType = decoded.PolicyType
-	s.ProtectedItemsCount = decoded.ProtectedItemsCount
-	s.ResourceGuardOperationRequests = decoded.ResourceGuardOperationRequests
 	s.TieringPolicy = decoded.TieringPolicy
 	s.TimeZone = decoded.TimeZone
+	s.BackupManagementType = decoded.BackupManagementType
+	s.ProtectedItemsCount = decoded.ProtectedItemsCount
+	s.ResourceGuardOperationRequests = decoded.ResourceGuardOperationRequests
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -71,7 +91,7 @@ func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["retentionPolicy"]; ok {
-		impl, err := unmarshalRetentionPolicyImplementation(v)
+		impl, err := UnmarshalRetentionPolicyImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RetentionPolicy' for 'AzureIaaSVMProtectionPolicy': %+v", err)
 		}
@@ -79,11 +99,12 @@ func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["schedulePolicy"]; ok {
-		impl, err := unmarshalSchedulePolicyImplementation(v)
+		impl, err := UnmarshalSchedulePolicyImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'SchedulePolicy' for 'AzureIaaSVMProtectionPolicy': %+v", err)
 		}
 		s.SchedulePolicy = impl
 	}
+
 	return nil
 }

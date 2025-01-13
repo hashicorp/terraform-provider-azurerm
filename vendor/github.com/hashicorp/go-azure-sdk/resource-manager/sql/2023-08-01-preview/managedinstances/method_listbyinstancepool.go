@@ -39,6 +39,7 @@ func (o ListByInstancePoolOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByInstancePoolOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

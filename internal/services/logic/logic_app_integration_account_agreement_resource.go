@@ -236,7 +236,6 @@ func resourceLogicAppIntegrationAccountAgreementRead(d *pluginsdk.ResourceData, 
 		if props.Metadata != nil {
 			d.Set("metadata", props.Metadata)
 		}
-
 	}
 
 	return nil

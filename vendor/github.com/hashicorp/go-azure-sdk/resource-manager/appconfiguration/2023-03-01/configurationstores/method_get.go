@@ -45,7 +45,6 @@ func (c ConfigurationStoresClient) Get(ctx context.Context, id ConfigurationStor
 
 	var model ConfigurationStore
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

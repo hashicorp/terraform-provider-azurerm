@@ -45,7 +45,6 @@ func (c FrontendsInterfaceClient) Get(ctx context.Context, id FrontendId) (resul
 
 	var model Frontend
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

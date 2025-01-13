@@ -27,7 +27,6 @@ func TestElasticPoolID(t *testing.T) {
 		Error    bool
 		Expected *ElasticPoolId
 	}{
-
 		{
 			// empty
 			Input: "",
