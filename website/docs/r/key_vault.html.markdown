@@ -12,10 +12,7 @@ Manages a Key Vault.
 
 ## Disclaimers
 
-~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
-
-<!-- TODO: Remove Note in 4.0 -->
-~> **Note:** It's possible to define Key Vault Certificate Contacts both within [the `azurerm_key_vault` resource](key_vault.html) via the `contact` block and by using [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html). However it's not possible to use both methods to manage Certificate Contacts within a KeyVault, since there'll be conflicts.
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However, it's not possible to use both methods to manage Access Policies within a KeyVault, since there will be conflicts.
 
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
@@ -107,9 +104,6 @@ The following arguments are supported:
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` (the default) days.
 
 ~> **Note:** This field can only be configured one time and cannot be updated.
-
-<!-- TODO: Remove `contact` and Notes in 4.0 -->
-* `contact` - (Optional) One or more `contact` block as defined below.
 
 ~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
 
