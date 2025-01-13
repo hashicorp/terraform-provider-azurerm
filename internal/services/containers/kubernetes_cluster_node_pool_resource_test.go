@@ -6,7 +6,6 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -118,21 +117,6 @@ func TestAccKubernetesClusterNodePool_capacityReservationGroup(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("AvailabilitySet not supported as an option for default_node_pool in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.availabilitySetConfig(data),
-			ExpectError: regexp.MustCompile("multiple node pools are only supported when the Default Node Pool uses a VMScaleSet"),
-		},
 	})
 }
 
@@ -816,43 +800,6 @@ func TestAccKubernetesClusterNodePool_osSkuAzureLinux(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_osSkuCBLMariner(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("CBLMariner is an invalid `os_sku` in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.osSku(data, "CBLMariner"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_osSkuMariner(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Mariner is an invalid `os_sku` in 4.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.osSku(data, "Mariner"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesClusterNodePool_osSkuMigration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -968,31 +915,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.workloadRuntime(data, "OCIContainer"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_customCATrustEnabled(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping this test in 4.0 beta as it is not supported")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customCATrustEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.customCATrustEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1250,19 +1172,17 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 
 					client := clients.Containers.AgentPoolsClient
 
-					id, err := commonids.ParseKubernetesClusterID(state.Attributes["kubernetes_cluster_id"])
-					if err != nil {
-						return err
-					}
-
-					originalNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, state.Attributes["name"])
-
-					resp, err := client.Get(ctx, originalNodePoolId)
+					originalNodePoolId, err := agentpools.ParseAgentPoolID(state.Attributes["id"])
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", originalNodePoolId, err)
 					}
+
+					resp, err := client.Get(ctx, *originalNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", *originalNodePoolId, err)
+					}
 					if resp.Model == nil {
-						return fmt.Errorf("retrieving %s: model was nil", originalNodePoolId)
+						return fmt.Errorf("retrieving %s: model was nil", *originalNodePoolId)
 					}
 
 					tempNodePoolName := "temp"
@@ -1270,7 +1190,7 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 					profile.Name = &tempNodePoolName
 					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
 
-					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
+					tempNodePoolId := agentpools.NewAgentPoolID(originalNodePoolId.SubscriptionId, originalNodePoolId.ResourceGroupName, originalNodePoolId.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
@@ -1389,47 +1309,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   max_count             = %d
 }
 `, r.templateConfig(data), min, max)
-}
-
-func (KubernetesClusterNodePoolResource) availabilitySetConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    type       = "AvailabilitySet"
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterNodePoolResource) kubeletAndLinuxOSConfig(data acceptance.TestData) string {
@@ -2565,25 +2444,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (r KubernetesClusterNodePoolResource) other(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 3
-  fips_enabled          = true
-  kubelet_disk_type     = "OS"
-  message_of_the_day    = "daily message"
-}
-`, r.templateConfig(data))
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2836,41 +2696,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   workload_runtime      = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
-}
-
-func (KubernetesClusterNodePoolResource) customCATrustEnabled(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                    = "internal"
-  kubernetes_cluster_id   = azurerm_kubernetes_cluster.test.id
-  vm_size                 = "Standard_D2s_v3"
-  custom_ca_trust_enabled = "%t"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
