@@ -283,7 +283,7 @@ func TestAccLinuxFunctionApp_withCustomContentShareElasticPremiumPlan(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan),
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "test-acc-custom-content-share"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -291,7 +291,17 @@ func TestAccLinuxFunctionApp_withCustomContentShareElasticPremiumPlan(t *testing
 				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		data.ImportStep("app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "new-acc-custom-content-share"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("3"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("new-acc-custom-content-share"),
+			),
+		},
+		data.ImportStep("app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -301,13 +311,23 @@ func TestAccLinuxFunctionApp_withCustomContentShareVnetEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsCustomContentShareWithVnetEnabled(data, SkuConsumptionPlan),
+			Config: r.appSettingsCustomContentShareWithVnetEnabled(data, SkuConsumptionPlan, "test-acc-custom-content-share"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%", "site_credential.0.password"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.appSettingsCustomContentShareWithVnetEnabled(data, SkuConsumptionPlan, "new-acc-custom-content-share"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("new-acc-custom-content-share"),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -2336,7 +2356,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string, fileShareName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2356,15 +2376,15 @@ resource "azurerm_linux_function_app" "test" {
   app_settings = {
     foo                  = "bar"
     secret               = "sauce"
-    WEBSITE_CONTENTSHARE = "test-acc-custom-content-share"
+    WEBSITE_CONTENTSHARE = "%s"
   }
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, planSku), data.RandomInteger, fileShareName)
 }
 
-func (r LinuxFunctionAppResource) appSettingsCustomContentShareWithVnetEnabled(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) appSettingsCustomContentShareWithVnetEnabled(data acceptance.TestData, planSku string, fileShareName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2373,7 +2393,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
+  name                 = "%s" 
   storage_account_name = azurerm_storage_account.test.name
   quota                = 1
 }
@@ -2395,7 +2415,7 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, planSku), fileShareName, data.RandomInteger)
 }
 
 func (r LinuxFunctionAppResource) stickySettings(data acceptance.TestData) string {
