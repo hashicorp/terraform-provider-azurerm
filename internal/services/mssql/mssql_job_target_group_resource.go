@@ -190,7 +190,6 @@ func (r MsSqlJobTargetGroupResource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
-
 }
 
 func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
