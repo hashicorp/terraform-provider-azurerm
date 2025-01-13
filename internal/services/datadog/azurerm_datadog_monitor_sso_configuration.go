@@ -72,6 +72,20 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 					string(singlesignon.SingleSignOnStatesEnable),
 					string(singlesignon.SingleSignOnStatesDisable),
 				}, false),
+				Deprecated: "This property has been deprecated in favor of `single_sign_on`.",
+			},
+
+			"single_sign_on": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					// @tombuildsstuff: other options are available, but the Create handles this as a boolean for now
+					// should the field be a boolean? one to consider for 4.0 when this resource is inlined
+					string(singlesignon.SingleSignOnStatesEnable),
+					string(singlesignon.SingleSignOnStatesDisable),
+					string(singlesignon.SingleSignOnStatesExisting),
+					string(singlesignon.SingleSignOnStatesInitial),
+				}, false),
 			},
 
 			"login_url": {
