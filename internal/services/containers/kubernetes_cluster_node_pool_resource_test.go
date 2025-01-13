@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -891,26 +890,6 @@ func TestAccKubernetesClusterNodePool_scaleDownMode(t *testing.T) {
 func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
-
-	if !features.FourPointOhBeta() {
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.workloadRuntime(data, "OCIContainer"),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-		return
-	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
