@@ -36,7 +36,6 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
 			},
 
 			"auto_delete_on_idle": {

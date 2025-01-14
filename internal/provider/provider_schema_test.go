@@ -160,6 +160,10 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	// TODO: 4.0 - work through this list
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
 		// 1: Fields which require renaming etc
+		"azurerm_datadog_monitor_sso_configuration": {
+			// should be fixed in 4.0, presumably ditching `_enabled` and adding Enum validation
+			"single_sign_on_enabled": {},
+		},
 		"azurerm_netapp_volume": {
 			// should be fixed in 4.0, presumably ditching `_enabled` and making this `protocols_to_use` or something?
 			"protocols_enabled": {},

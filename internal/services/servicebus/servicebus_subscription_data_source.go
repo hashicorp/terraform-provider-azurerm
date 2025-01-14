@@ -33,7 +33,6 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: topics.ValidateTopicID,
-				AtLeastOneOf: []string{"topic_id", "resource_group_name", "namespace_name", "topic_name"},
 			},
 
 			"auto_delete_on_idle": {
