@@ -272,6 +272,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
   operation_name_format     = "Name"
+  metrics_enabled           = true
 
   backend_request {
     body_bytes     = 1
@@ -362,6 +363,7 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   http_correlation_protocol = "W3C"
   verbosity                 = "verbose"
   operation_name_format     = "Url"
+  metrics_enabled           = false
 }
 `, r.template(data))
 }

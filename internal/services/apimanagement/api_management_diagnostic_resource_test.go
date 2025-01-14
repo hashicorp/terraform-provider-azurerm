@@ -230,6 +230,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   log_client_ip             = false
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
+  metrics_enabled           = false
 
   frontend_request {
     body_bytes     = 100
@@ -310,6 +311,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
   operation_name_format     = "Url"
+  metrics_enabled           = true
 }
 `, r.template(data))
 }

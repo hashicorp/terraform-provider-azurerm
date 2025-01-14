@@ -65,6 +65,12 @@ func resourceApiManagementApiDiagnostic() *pluginsdk.Resource {
 				ValidateFunc: logger.ValidateLoggerID,
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"sampling_percentage": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -199,6 +205,7 @@ func resourceApiManagementApiDiagnosticCreateUpdate(d *pluginsdk.ResourceData, m
 	parameters := apidiagnostic.DiagnosticContract{
 		Properties: &apidiagnostic.DiagnosticContractProperties{
 			LoggerId: d.Get("api_management_logger_id").(string),
+			Metrics:  pointer.To(d.Get("metrics_enabled").(bool)),
 		},
 	}
 
@@ -332,6 +339,7 @@ func resourceApiManagementApiDiagnosticRead(d *pluginsdk.ResourceData, meta inte
 				format = string(pointer.From(props.OperationNameFormat))
 			}
 			d.Set("operation_name_format", format)
+			d.Set("metrics_enabled", pointer.From(props.Metrics))
 		}
 	}
 
