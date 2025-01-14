@@ -665,7 +665,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			for _, dnsZoneId := range *privateDnsZoneIds {
 				flattened, err := retrieveAndFlattenPrivateDnsZone(ctx, dnsClient, dnsZoneId)
 				if err != nil {
-					return nil
+					return fmt.Errorf("reading %s for %s: %+v", dnsZoneId, id, err)
 				}
 
 				// an exceptional case but no harm in handling
