@@ -41,10 +41,7 @@ func TestAccMsSqlJobResource_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_mssql_job"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -92,7 +89,7 @@ func (MsSqlJobResourceTest) Exists(ctx context.Context, client *clients.Client, 
 
 	resp, err := client.MSSQL.JobsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

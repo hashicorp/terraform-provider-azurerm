@@ -25,16 +25,16 @@ var _ sdk.ResourceWithUpdate = MsSqlJobResource{}
 
 func (MsSqlJobResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"job_agent_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: jobs.ValidateJobAgentID,
-			ForceNew:     true,
-		},
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+		},
+		"job_agent_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: jobs.ValidateJobAgentID,
 			ForceNew:     true,
 		},
 		"description": {
@@ -64,7 +64,7 @@ func (r MsSqlJobResource) Create() sdk.ResourceFunc {
 
 			var model MsSqlJobResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			jobAgent, err := jobs.ParseJobAgentID(model.JobAgentID)
@@ -76,7 +76,7 @@ func (r MsSqlJobResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -91,7 +91,7 @@ func (r MsSqlJobResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating %s: %+v", id.ID(), err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -117,7 +117,7 @@ func (MsSqlJobResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := MsSqlJobResourceModel{
@@ -149,7 +149,7 @@ func (MsSqlJobResource) Update() sdk.ResourceFunc {
 
 			var state MsSqlJobResourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decoding %s: %+v", id.ID(), err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			param := jobs.Job{
@@ -159,7 +159,7 @@ func (MsSqlJobResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id.ID(), err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -179,7 +179,7 @@ func (MsSqlJobResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id.ID(), err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil

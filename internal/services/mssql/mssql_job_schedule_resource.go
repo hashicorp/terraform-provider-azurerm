@@ -123,10 +123,10 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *jobId)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s was not found: %+v", jobId.ID(), err)
+					return fmt.Errorf("%s was not found: %+v", jobId, err)
 				}
 
-				return fmt.Errorf("checking for presence of existing %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", jobId, err)
 			}
 
 			if existing.Model == nil {
@@ -144,7 +144,7 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			// Default schedule is disabled when created using the API
 			// if schedule is enabled we can reasonably assume the schedule was modified outside of Terraform and should be imported.
 			schedule := existing.Model.Properties.Schedule
-			if *schedule.Enabled {
+			if pointer.From(schedule.Enabled) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), jobId)
 			}
 
@@ -162,7 +162,7 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *jobId, *existing.Model); err != nil {
-				return fmt.Errorf("creating schedule for %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("creating schedule for %s: %+v", jobId, err)
 			}
 
 			metadata.SetID(jobId)
@@ -188,7 +188,7 @@ func (MsSqlJobScheduleResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(jobId)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", jobId, err)
 			}
 
 			state := MsSqlJobScheduleResourceModel{
@@ -230,19 +230,19 @@ func (MsSqlJobScheduleResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *jobId)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", jobId, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `model` was nil", jobId)
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `properties` was nil", jobId)
 			}
 
 			if existing.Model.Properties.Schedule == nil {
-				return fmt.Errorf("retrieving %s: `schedule` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `schedule` was nil", jobId)
 			}
 
 			schedule := existing.Model.Properties.Schedule
@@ -267,7 +267,7 @@ func (MsSqlJobScheduleResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *jobId, *existing.Model); err != nil {
-				return fmt.Errorf("updating schedule for %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("updating schedule for %s: %+v", jobId, err)
 			}
 
 			return nil
@@ -292,21 +292,21 @@ func (MsSqlJobScheduleResource) Delete() sdk.ResourceFunc {
 					return nil
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", jobId.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", jobId, err)
 			}
 
 			if model := existing.Model; model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `model` was nil", jobId)
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `properties` was nil", jobId)
 			}
 
 			// Set Schedule to nil allowing Azure to repopulate with default values
 			existing.Model.Properties.Schedule = nil
 			if _, err := client.CreateOrUpdate(ctx, *jobId, *existing.Model); err != nil {
-				return fmt.Errorf("deleting schedule from %s, %+v", jobId.ID(), err)
+				return fmt.Errorf("deleting schedule from %s, %+v", jobId, err)
 			}
 
 			return nil
