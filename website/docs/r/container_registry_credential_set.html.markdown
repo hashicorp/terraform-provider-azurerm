@@ -54,11 +54,19 @@ resource "azurerm_resource_group" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekeyvault"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  access_policy {
+    tenant_id               = data.azurerm_client_config.current.tenant_id
+    object_id               = data.azurerm_client_config.current.object_id
+    certificate_permissions = []
+    key_permissions         = []
+    secret_permissions      = ["Get", "Set", "Delete", "Purge"]
+  }
 }
 
 resource "azurerm_key_vault_secret" "example_user" {
@@ -88,8 +96,8 @@ resource "azurerm_container_registry_credential_set" "example" {
     type = "SystemAssigned"
   }
   authentication_credentials {
-    username_secret_id = azurerm_key_vault_secret.example_user.resource_versionless_id
-    password_secret_id = azurerm_key_vault_secret.example_password.resource_versionless_id
+    username_secret_id = azurerm_key_vault_secret.example_user.versionless_id
+    password_secret_id = azurerm_key_vault_secret.example_password.versionless_id
   }
 }
 

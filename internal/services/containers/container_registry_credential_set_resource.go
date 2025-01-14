@@ -281,12 +281,14 @@ func flattenIdentity(input *identity.SystemAndUserAssignedMap) []identity.ModelS
 	if input == nil {
 		return nil
 	}
-	output := make([]identity.ModelSystemAssigned, 1)
-	output[0] = identity.ModelSystemAssigned{
+	// the api returns 'systemAssigned' as the type instead of 'SystemAssigned'...
+	// in the identity package a private function to normalize the type is used (normalizeType)
+	systemAssignedIdentity := &identity.SystemAssigned{
 		Type:        input.Type,
 		TenantId:    input.TenantId,
 		PrincipalId: input.PrincipalId,
 	}
+	output := identity.FlattenSystemAssignedToModel(systemAssignedIdentity)
 	return output
 }
 

@@ -44,10 +44,7 @@ func TestAccContainerRegistryCredentialSet_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_container_registry_credential_set"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -98,6 +95,39 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    certificate_permissions = []
+    key_permissions         = []
+    secret_permissions      = [
+      "Get", "Set", "Delete", "Purge"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test-user-name" {
+  key_vault_id = azurerm_key_vault.test.id
+  name         = "acr-cs-user-name"
+  value        = "name"
+}
+
+resource "azurerm_key_vault_secret" "test-user-password" {
+  key_vault_id = azurerm_key_vault.test.id
+  name         = "acr-cs-user-password"
+  value        = "password"
+}
+
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   location            = azurerm_resource_group.test.location
@@ -113,11 +143,11 @@ resource "azurerm_container_registry_credential_set" "test" {
     type = "SystemAssigned"
   }
   authentication_credentials {
-    username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name"
-    password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
+    username_secret_id = azurerm_key_vault_secret.test-user-name.versionless_id
+    password_secret_id = azurerm_key_vault_secret.test-user-password.versionless_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r ContainerRegistryCredentialSetResource) requiresImport(data acceptance.TestData) string {
@@ -150,6 +180,45 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    certificate_permissions = []
+    key_permissions         = []
+    secret_permissions      = [
+      "Get", "Set", "Delete", "Purge"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "test-user-name" {
+  key_vault_id = azurerm_key_vault.test.id
+  name         = "acr-cs-user-name"
+  value        = "name"
+}
+
+resource "azurerm_key_vault_secret" "test-user-password" {
+  key_vault_id = azurerm_key_vault.test.id
+  name         = "acr-cs-user-password"
+  value        = "password"
+}
+
+resource "azurerm_key_vault_secret" "test-other-user-password" {
+  key_vault_id = azurerm_key_vault.test.id
+  name         = "acr-cs-other-user-password"
+  value        = "otherpassword"
+}
+
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   location            = azurerm_resource_group.test.location
@@ -165,9 +234,9 @@ resource "azurerm_container_registry_credential_set" "test" {
     type = "SystemAssigned"
   }
   authentication_credentials {
-    username_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-name-changed"
-    password_secret_id = "https://example-keyvault.vault.azure.net/secrets/acr-cs-user-password"
+    username_secret_id = azurerm_key_vault_secret.test-user-name.versionless_id
+    password_secret_id = azurerm_key_vault_secret.test-other-user-password.versionless_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
