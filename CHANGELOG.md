@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_logic_app_standard` - fix setting `public_network_access` for conflicting API properties [GH-28465]
+* `azurerm_redis_cache` - `data_persistence_authentication_method` can now be unset [GH-27932]
 
 ## 4.15.0 (January 10, 2025)
 
