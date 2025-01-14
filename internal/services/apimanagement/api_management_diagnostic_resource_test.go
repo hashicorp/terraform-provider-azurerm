@@ -228,6 +228,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   sampling_percentage       = 11.1
   always_log_errors         = false
   log_client_ip             = false
+  metrics                   = true
   http_correlation_protocol = "Legacy"
   verbosity                 = "error"
 
