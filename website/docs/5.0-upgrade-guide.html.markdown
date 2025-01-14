@@ -97,6 +97,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
+### `azurerm_datadog_monitor_sso_configuration`
+
+* The `single_sign_on_enabled` property has been renamed to `single_sign_on` with the possible values `Enable`, `Disable`, `Initial`, and `Existing`.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
