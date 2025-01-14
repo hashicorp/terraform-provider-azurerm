@@ -130,15 +130,15 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `model` was nil", jobId)
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `model.Properties` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `model.Properties` was nil", jobId)
 			}
 
 			if existing.Model.Properties.Schedule == nil {
-				return fmt.Errorf("retrieving %s: `model.Properties.Schedule` was nil", jobId.ID())
+				return fmt.Errorf("retrieving %s: `model.Properties.Schedule` was nil", jobId)
 			}
 
 			// Default schedule is disabled when created using the API
