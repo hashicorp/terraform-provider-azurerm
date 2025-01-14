@@ -241,7 +241,7 @@ resource "azurerm_mysql_flexible_server_configuration" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mysql_flexible_server.test.name}"
   value               = "%s"
-  depends_on = [ azurerm_mysql_flexible_server_configuration.test1 ]
+  depends_on          = [azurerm_mysql_flexible_server_configuration.test1]
 }
 `, r.empty(data), value)
 }

@@ -223,7 +223,7 @@ func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context, client 
 	}
 
 	if toIdx < curIdx {
-		return fmt.Errorf("cannot set gtid_mode from %s to %s", currentValue, value)
+		return fmt.Errorf("cannot set `gtid_mode` from %s to %s", currentValue, value)
 	}
 
 	for _, v := range gtidSeq[curIdx+1 : toIdx+1] {
@@ -233,9 +233,9 @@ func mysqlFlexibleServerConfigurationUpdateGITDMode(ctx context.Context, client 
 			},
 		}
 
-		log.Printf("[DEBUG] updating gtid_mode of %s to %s", id, v)
+		log.Printf("[DEBUG] updating `gtid_mode` of %s to %s", id, v)
 		if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
-			return fmt.Errorf("updating gtid_mode of %s: %v", id, err)
+			return fmt.Errorf("updating `gtid_mode` of %s: %v", id, err)
 		}
 	}
 
