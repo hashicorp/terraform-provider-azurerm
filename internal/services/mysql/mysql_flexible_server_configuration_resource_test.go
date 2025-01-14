@@ -65,6 +65,28 @@ func TestAccMySQLFlexibleServerConfiguration_interactiveTimeout(t *testing.T) {
 	})
 }
 
+func TestAccMySQLFlexibleServerConfiguration_GTIDMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MySQLFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gtidMode(data, "OFF_PERMISSIVE"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("OFF_PERMISSIVE")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gtidMode(data, "ON"),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("ON")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMySQLFlexibleServerConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
 	r := MySQLFlexibleServerConfigurationResource{}
@@ -201,6 +223,27 @@ func (r MySQLFlexibleServerConfigurationResource) characterSetServer(data accept
 
 func (r MySQLFlexibleServerConfigurationResource) interactiveTimeout(data acceptance.TestData) string {
 	return r.template(data, "interactive_timeout", "30")
+}
+
+func (r MySQLFlexibleServerConfigurationResource) gtidMode(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server_configuration" "test1" {
+  name                = "enforce_gtid_consistency"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "ON"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "gtid_mode"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_mysql_flexible_server.test.name}"
+  value               = "%s"
+  depends_on = [ azurerm_mysql_flexible_server_configuration.test1 ]
+}
+`, r.empty(data), value)
 }
 
 func (r MySQLFlexibleServerConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
