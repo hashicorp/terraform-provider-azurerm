@@ -50,13 +50,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `identity` block supports the following:
+An `identity` block exports the following:
 
-* `type` - The type of identity used for the resource. Only possible value is `SystemAssigned`.
+* `type` - The type of identity used for the resource.
 
 ---
 
-A `plan` block supports the following:
+A `plan` block exports the following:
 
 * `billing_cycle` - Different billing cycles.
 
@@ -68,7 +68,7 @@ A `plan` block supports the following:
 
 ---
 
-A `user` block supports the following:
+A `user` block exports the following:
 
 * `country` - Country of the user.
 

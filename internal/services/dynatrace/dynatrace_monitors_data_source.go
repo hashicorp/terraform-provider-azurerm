@@ -204,7 +204,7 @@ func (d MonitorsDataSource) Read() sdk.ResourceFunc {
 					Identity:                      identityProps,
 					EnvironmentProperties:         FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties),
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
-					UserInfo:                      FlattenDynatraceUserInfo(metadata.ResourceData.Get("user").([]interface{})),
+					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
 				}
 				if model.Tags != nil {
 					monitorResource.Tags = pointer.From(model.Tags)
