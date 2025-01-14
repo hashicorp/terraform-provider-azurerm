@@ -9,6 +9,9 @@ BUG FIXES:
 
 * `azurerm_logic_app_standard` - fix setting `public_network_access` for conflicting API properties [GH-28465]
 * `azurerm_redis_cache` - `data_persistence_authentication_method` can now be unset [GH-27932]
+* `azurerm_mssql_database` - fix bug where verifying TDE might fail to return an error on failure [GH-28505]
+* `azurerm_mssql_database` - fix several potential bugs where retry functions could return false negatives for actual errors [GH-28505]
+* `azurerm_private_endpoint` - fix a bug where reading Private DNS could error and exit the Read of the resource early without raising an error [GH-28505]
 
 ## 4.15.0 (January 10, 2025)
 
