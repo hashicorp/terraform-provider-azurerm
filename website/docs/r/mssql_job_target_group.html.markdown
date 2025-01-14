@@ -63,9 +63,9 @@ resource "azurerm_mssql_job_target_group" "example" {
 
 The following arguments are supported:
 
-* `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Job Target Group to be created.
-
 * `name` - (Required) The name which should be used for this Job Target Group. Changing this forces a new Job Target Group to be created.
+
+* `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Job Target Group to be created.
 
 ---
 
@@ -87,9 +87,9 @@ A `job_target` block supports the following:
 
 ~> **Note:** This is required when `type` is `SqlElasticPool`.
 
-* `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
-
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
+
+* `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 
 ~> **Note:** This is required when `membership_type` is `Include`, unless `type` is `SqlDatabase`.
 

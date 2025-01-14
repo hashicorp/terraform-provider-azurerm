@@ -19,24 +19,30 @@ import (
 type MsSqlJobTargetGroupResource struct{}
 
 type MsSqlJobTargetGroupResourceModel struct {
+	Name       string           `tfschema:"name"`
 	JobAgentID string           `tfschema:"job_agent_id"`
 	JobTargets []MsSqlJobTarget `tfschema:"job_target"`
-	Name       string           `tfschema:"name"`
 }
 
 type MsSqlJobTarget struct {
-	DatabaseName    string `tfschema:"database_name"`
-	ElasticPoolName string `tfschema:"elastic_pool_name"`
-	MembershipType  string `tfschema:"membership_type"`
-	JobCredentialId string `tfschema:"job_credential_id"`
 	ServerName      string `tfschema:"server_name"`
 	Type            string `tfschema:"type"`
+	DatabaseName    string `tfschema:"database_name"`
+	ElasticPoolName string `tfschema:"elastic_pool_name"`
+	JobCredentialId string `tfschema:"job_credential_id"`
+	MembershipType  string `tfschema:"membership_type"`
 }
 
 var _ sdk.ResourceWithUpdate = MsSqlJobTargetGroupResource{}
 
 func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			ForceNew:     true,
+		},
 		"job_agent_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -48,27 +54,6 @@ func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"database_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.ValidateMsSqlDatabaseName,
-					},
-					"elastic_pool_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validate.ValidateMsSqlElasticPoolName,
-					},
-					"membership_type": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Default:      string(jobtargetgroups.JobTargetGroupMembershipTypeInclude),
-						ValidateFunc: validation.StringInSlice(jobtargetgroups.PossibleValuesForJobTargetGroupMembershipType(), false),
-					},
-					"job_credential_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: jobcredentials.ValidateCredentialID,
-					},
 					"server_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -83,14 +68,29 @@ func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 							string(jobtargetgroups.JobTargetTypeSqlServer),
 						}, false),
 					},
+					"database_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.ValidateMsSqlDatabaseName,
+					},
+					"elastic_pool_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.ValidateMsSqlElasticPoolName,
+					},
+					"job_credential_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: jobcredentials.ValidateCredentialID,
+					},
+					"membership_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(jobtargetgroups.JobTargetGroupMembershipTypeInclude),
+						ValidateFunc: validation.StringInSlice(jobtargetgroups.PossibleValuesForJobTargetGroupMembershipType(), false),
+					},
 				},
 			},
-		},
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
 		},
 	}
 }
@@ -127,7 +127,7 @@ func (r MsSqlJobTargetGroupResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -147,7 +147,7 @@ func (r MsSqlJobTargetGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating %s: %+v", id.ID(), err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -173,7 +173,7 @@ func (r MsSqlJobTargetGroupResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := MsSqlJobTargetGroupResourceModel{
@@ -205,20 +205,20 @@ func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
 
 			var config MsSqlJobTargetGroupResourceModel
 			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding %s: %+v", id.ID(), err)
+				return fmt.Errorf("decoding %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id.ID())
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `model.Properties` was nil", id.ID())
+				return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
 			}
 
 			if metadata.ResourceData.HasChange("job_target") {
@@ -230,7 +230,7 @@ func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
-				return fmt.Errorf("updating: %s: %+v", id.ID(), err)
+				return fmt.Errorf("updating: %s: %+v", id, err)
 			}
 
 			return nil
@@ -250,7 +250,7 @@ func (r MsSqlJobTargetGroupResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id.ID(), err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
