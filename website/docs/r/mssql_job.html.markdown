@@ -59,9 +59,9 @@ resource "azurerm_mssql_job" "example" {
 
 The following arguments are supported:
 
-* `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Elastic Job to be created.
-
 * `name` - (Required) The name which should be used for this Elastic Job. Changing this forces a new Elastic Job to be created.
+
+* `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Elastic Job to be created.
 
 ---
 

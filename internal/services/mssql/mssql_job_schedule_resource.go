@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -18,12 +19,12 @@ import (
 type MsSqlJobScheduleResource struct{}
 
 type MsSqlJobScheduleResourceModel struct {
+	JobID     string `tfschema:"job_id"`
+	Type      string `tfschema:"type"`
 	Enabled   bool   `tfschema:"enabled"`
 	EndTime   string `tfschema:"end_time"`
 	Interval  string `tfschema:"interval"`
-	JobID     string `tfschema:"job_id"`
 	StartTime string `tfschema:"start_time"`
-	Type      string `tfschema:"type"`
 }
 
 var (
@@ -33,6 +34,17 @@ var (
 
 func (MsSqlJobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"job_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: jobs.ValidateJobID,
+		},
+		"type": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(jobs.PossibleValuesForJobScheduleType(), false),
+		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -52,12 +64,6 @@ func (MsSqlJobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validate.ISO8601Duration,
 		},
-		"job_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: jobs.ValidateJobID,
-		},
 		"start_time": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -65,11 +71,6 @@ func (MsSqlJobScheduleResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:         true,
 			DiffSuppressFunc: suppress.RFC3339MinuteTime,
 			ValidateFunc:     validation.IsRFC3339Time,
-		},
-		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(jobs.PossibleValuesForJobScheduleType(), false),
 		},
 	}
 }
@@ -119,6 +120,9 @@ func (r MsSqlJobScheduleResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(jobId.ID())
+			defer locks.UnlockByID(jobId.ID())
 
 			existing, err := client.Get(ctx, *jobId)
 			if err != nil {
@@ -223,6 +227,9 @@ func (MsSqlJobScheduleResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(jobId.ID())
+			defer locks.UnlockByID(jobId.ID())
+
 			var config MsSqlJobScheduleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -285,6 +292,9 @@ func (MsSqlJobScheduleResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(jobId.ID())
+			defer locks.UnlockByID(jobId.ID())
 
 			existing, err := client.Get(ctx, *jobId)
 			if err != nil {

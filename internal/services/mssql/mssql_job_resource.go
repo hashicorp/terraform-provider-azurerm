@@ -16,9 +16,9 @@ import (
 type MsSqlJobResource struct{}
 
 type MsSqlJobResourceModel struct {
-	Description string `tfschema:"description"`
-	JobAgentID  string `tfschema:"job_agent_id"`
 	Name        string `tfschema:"name"`
+	JobAgentID  string `tfschema:"job_agent_id"`
+	Description string `tfschema:"description"`
 }
 
 var _ sdk.ResourceWithUpdate = MsSqlJobResource{}
@@ -147,14 +147,14 @@ func (MsSqlJobResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state MsSqlJobResourceModel
-			if err := metadata.Decode(&state); err != nil {
+			var config MsSqlJobResourceModel
+			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			param := jobs.Job{
 				Properties: pointer.To(jobs.JobProperties{
-					Description: pointer.To(state.Description),
+					Description: pointer.To(config.Description),
 				}),
 			}
 
