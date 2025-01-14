@@ -20,22 +20,17 @@ resource "azurerm_mssql_server" "example" {
 }
 
 resource "azurerm_mssql_database" "example" {
-  name                             = "${var.prefix}-db"
-  resource_group_name              = azurerm_resource_group.example.name
-  location                         = azurerm_resource_group.example.location
-  server_name                      = azurerm_mssql_server.example.name
-  edition                          = "Basic"
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode                      = "Default"
-  requested_service_objective_name = "Basic"
+  name        = "${var.prefix}-db"
+  server_id   = azurerm_mssql_server.example.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
 }
 
 # Enables the "Allow Access to Azure services" box as described in the API docs
 # https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate
 resource "azurerm_mssql_firewall_rule" "example" {
-  name                = "allow-azure-services"
-  resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mssql_server.example.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "0.0.0.0"
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.example.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }

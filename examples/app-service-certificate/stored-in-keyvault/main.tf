@@ -34,7 +34,7 @@ resource "azurerm_key_vault_access_policy" "current_user" {
 }
 
 data "azuread_service_principal" "web_app_resource_provider" {
-  client_id            = data.azurerm_client_config.current.client_id
+  client_id = data.azurerm_client_config.current.client_id
 }
 
 resource "azurerm_key_vault_access_policy" "web_app_resource_provider" {
