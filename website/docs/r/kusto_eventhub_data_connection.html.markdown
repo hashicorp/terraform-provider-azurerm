@@ -69,7 +69,6 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
 
   eventhub_id          = azurerm_eventhub.eventhub.id
   consumer_group       = azurerm_eventhub_consumer_group.consumer_group.name
-  retrieval_start_date = "2024-11-25T04:44:44Z"
 
   table_name        = "my-table"         #(Optional)
   mapping_rule_name = "my-table-mapping" #(Optional)
