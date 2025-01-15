@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise` Documentation
 
-The `redisenterprise` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2024-10-01`).
+The `redisenterprise` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
 ```
 
 
@@ -230,6 +230,18 @@ payload := redisenterprise.DatabaseUpdate{
 
 
 if err := client.DatabasesUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `RedisEnterpriseClient.DatabasesUpgradeDBRedisVersion`
+
+```go
+ctx := context.TODO()
+id := redisenterprise.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
+
+if err := client.DatabasesUpgradeDBRedisVersionThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
