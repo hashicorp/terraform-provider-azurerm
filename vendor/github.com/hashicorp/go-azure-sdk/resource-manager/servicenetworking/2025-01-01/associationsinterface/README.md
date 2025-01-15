@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/associationsinterface` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/associationsinterface` Documentation
 
-The `associationsinterface` SDK allows for interaction with Azure Resource Manager `servicenetworking` (API Version `2023-11-01`).
+The `associationsinterface` SDK allows for interaction with Azure Resource Manager `servicenetworking` (API Version `2025-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/associationsinterface"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01/associationsinterface"
 ```
 
 

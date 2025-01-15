@@ -18,7 +18,7 @@ import (
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
 	redis_2024_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01"
-	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
+	servicenetworking_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2025-01-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
@@ -268,7 +268,7 @@ type Client struct {
 	ServiceConnector                  *serviceConnector.Client
 	ServiceFabric                     *serviceFabric.Client
 	ServiceFabricManaged              *serviceFabricManaged.Client
-	ServiceNetworking                 *servicenetworking_2023_11_01.Client
+	ServiceNetworking                 *servicenetworking_2025_01_01.Client
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
 	StorageCache                      *storagecache_2023_05_01.Client
