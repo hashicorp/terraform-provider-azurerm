@@ -42,8 +42,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
 var (
@@ -298,10 +298,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"min_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
-				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+				}, false),
 			},
 
 			"is_hns_enabled": {
@@ -1271,6 +1273,15 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 		},
 		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
+	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+		}
 	}
 
 	return resource

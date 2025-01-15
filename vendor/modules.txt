@@ -148,7 +148,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20241206.1180327
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20241212.1154051
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -417,10 +417,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedica
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions
-github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions
+github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views
 github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints
@@ -504,6 +503,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/inboun
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/outboundendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks
 github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors
+github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource
 github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01
@@ -611,7 +611,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
-github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters
@@ -943,11 +943,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtual
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers
-github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules
@@ -1049,6 +1049,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobac
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials
+github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/managedbackupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/manageddatabases
@@ -1164,7 +1165,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20241206.1180327
+# github.com/hashicorp/go-azure-sdk/sdk v0.20241212.1154051
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1380,6 +1381,21 @@ github.com/hashicorp/terraform-svchost
 # github.com/hashicorp/yamux v0.1.1
 ## explicit; go 1.15
 github.com/hashicorp/yamux
+# github.com/jackofallops/giovanni v0.28.0
+## explicit; go 1.21
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs
+github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers
+github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems
+github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths
+github.com/jackofallops/giovanni/storage/2023-11-03/file/directories
+github.com/jackofallops/giovanni/storage/2023-11-03/file/files
+github.com/jackofallops/giovanni/storage/2023-11-03/file/shares
+github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues
+github.com/jackofallops/giovanni/storage/2023-11-03/table/entities
+github.com/jackofallops/giovanni/storage/2023-11-03/table/tables
+github.com/jackofallops/giovanni/storage/accesscontrol
+github.com/jackofallops/giovanni/storage/internal/metadata
 # github.com/jackofallops/kermit v0.20241010.1180132
 ## explicit; go 1.22
 github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration
@@ -1439,21 +1455,6 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.27.0
-## explicit; go 1.21
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
-github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
-github.com/tombuildsstuff/giovanni/storage/accesscontrol
-github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
