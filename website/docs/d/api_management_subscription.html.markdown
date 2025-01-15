@@ -14,9 +14,8 @@ Use this data source to access information about an existing API Management Subs
 
 ```hcl
 data "azurerm_api_management_subscription" "example" {
-  resource_group_name = "example-rg"
-  subscription_id     = "example-subscription"
-  api_management_name = "example-apim"
+  api_management_id = "example-apim"
+  subscription_id   = "example-subscription-id"
 }
 
 output "id" {
@@ -28,9 +27,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this Subscription exists.
-
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `api_management_id` - (Required) The ID of the API Management Service in which this Subscription exists.
 
 * `subscription_id` - (Required) The Identifier for the API Management Subscription.
 

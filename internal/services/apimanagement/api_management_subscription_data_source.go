@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -22,24 +22,26 @@ var _ sdk.DataSource = ApiManagementSubscriptionDataSource{}
 type ApiManagementSubscriptionDataSource struct{}
 
 type ApiManagementSubscriptionDataSourceModel struct {
-	ApiManagementName string `tfschema:"api_management_name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	SubscriptionId    string `tfschema:"subscription_id"`
-	AllowTracing      bool   `tfschema:"allow_tracing"`
-	ApiId             string `tfschema:"api_id"`
-	DisplayName       string `tfschema:"display_name"`
-	PrimaryKey        string `tfschema:"primary_key"`
-	ProductId         string `tfschema:"product_id"`
-	SecondaryKey      string `tfschema:"secondary_key"`
-	State             string `tfschema:"state"`
-	UserId            string `tfschema:"user_id"`
+	ApiManagementId string `tfschema:"api_management_id"`
+	SubscriptionId  string `tfschema:"subscription_id"`
+	AllowTracing    bool   `tfschema:"allow_tracing"`
+	ApiId           string `tfschema:"api_id"`
+	DisplayName     string `tfschema:"display_name"`
+	PrimaryKey      string `tfschema:"primary_key"`
+	ProductId       string `tfschema:"product_id"`
+	SecondaryKey    string `tfschema:"secondary_key"`
+	State           string `tfschema:"state"`
+	UserId          string `tfschema:"user_id"`
 }
 
 func (ApiManagementSubscriptionDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"api_management_name": schemaz.SchemaApiManagementDataSourceName(),
-
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"api_management_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: apimanagementservice.ValidateServiceID,
+		},
 
 		"subscription_id": schemaz.SchemaApiManagementChildDataSourceName(),
 	}
@@ -101,10 +103,8 @@ func (ApiManagementSubscriptionDataSource) ResourceType() string {
 func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
-
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.SubscriptionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state ApiManagementSubscriptionDataSourceModel
 
@@ -112,7 +112,12 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := subscription.NewSubscriptions2ID(subscriptionId, state.ResourceGroupName, state.ApiManagementName, state.SubscriptionId)
+			api_management_id, err := apimanagementservice.ParseServiceID(state.ApiManagementId)
+			if err != nil {
+				return fmt.Errorf("parsing: %+v", err)
+			}
+
+			id := subscription.NewSubscriptions2ID(api_management_id.SubscriptionId, api_management_id.ResourceGroupName, api_management_id.ServiceName, state.SubscriptionId)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -127,27 +132,22 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					productId := ""
-					apiId := ""
 					// check if the subscription is for all apis or a specific product/ api
 					if props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
 						// the scope is either a product or api id
 						parseId, err := product.ParseProductIDInsensitively(props.Scope)
 						if err == nil {
-							productId = parseId.ID()
+							state.ProductId = parseId.ID()
 						} else {
 							parsedApiId, err := api.ParseApiIDInsensitively(props.Scope)
 							if err != nil {
-								return fmt.Errorf("parsing scope into product/ api id %q: %+v", props.Scope, err)
+								return fmt.Errorf("parsing scope into product/api id %q: %+v", props.Scope, err)
 							}
-							apiId = parsedApiId.ID()
+							state.ApiId = parsedApiId.ID()
 						}
 					}
 					state.AllowTracing = pointer.From(props.AllowTracing)
-					state.ApiId = apiId
 					state.DisplayName = pointer.From(props.DisplayName)
-					state.ProductId = productId
-					state.State = string(props.State)
 					state.UserId = pointer.From(props.OwnerId)
 				}
 			}
@@ -155,7 +155,7 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 			// Primary and secondary keys must be got from this additional api
 			keyResp, err := client.ListSecrets(ctx, id)
 			if err != nil {
-				return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", id.SubscriptionId, id.ServiceName, id.ResourceGroupName, err)
+				return fmt.Errorf("listing Primary and Secondary Keys for %s: %+v", id, err)
 			}
 			if model := keyResp.Model; model != nil {
 				state.SecondaryKey = pointer.From(model.SecondaryKey)
