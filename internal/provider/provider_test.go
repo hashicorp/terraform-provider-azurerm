@@ -328,8 +328,58 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {
+	// TODO: remove this test in v4.0
+	if features.FourPointOhBeta() {
+		t.Skip("skipping 3.x specific test")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only Azure CLI authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                       *env,
+			EnableAuthenticatingUsingAzureCLI: true,
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+// TODO: remove TestAccProvider_cliAuth and rename this test to TestAccProvider_cliAuth in v4.0
+func TestAccProvider_cliAuthWithSubscriptionIdHint(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	// TODO: remove this condition in v4.0
+	if os.Getenv("ARM_SUBSCRIPTION_ID") == "" {
+		t.Skip("ARM_SUBSCRIPTION_ID not set")
 	}
 
 	logging.SetOutput(t)

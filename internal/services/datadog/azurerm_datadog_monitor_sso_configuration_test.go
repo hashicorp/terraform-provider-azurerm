@@ -48,6 +48,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -63,6 +64,7 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -78,6 +80,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -85,6 +88,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Disable"),
 			),
 		},
 		data.ImportStep(),
@@ -92,6 +96,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -149,7 +154,7 @@ provider "azurerm" {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on            = "Enable"
+  single_sign_on_enabled    = "Enable"
   enterprise_application_id = %q
 }
 `, r.template(data), r.enterpriseAppId)
@@ -161,7 +166,7 @@ func (r SSODatadogMonitorResource) requiresImport(data acceptance.TestData) stri
 
 resource "azurerm_datadog_monitor_sso_configuration" "import" {
   datadog_monitor_id        = azurerm_datadog_monitor_sso_configuration.test.datadog_monitor_id
-  single_sign_on            = azurerm_datadog_monitor_sso_configuration.test.single_sign_on
+  single_sign_on_enabled    = azurerm_datadog_monitor_sso_configuration.test.single_sign_on_enabled
   enterprise_application_id = azurerm_datadog_monitor_sso_configuration.test.enterprise_application_id
 }
 `, r.basic(data))
@@ -177,7 +182,7 @@ provider "azurerm" {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on            = "Disable"
+  single_sign_on_enabled    = "Disable"
   enterprise_application_id = %q
 }
 `, r.template(data), r.enterpriseAppId)
