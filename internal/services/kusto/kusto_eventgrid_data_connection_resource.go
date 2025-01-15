@@ -138,15 +138,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
-			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
-			"eventgrid_resource_id": {
+			"eventgrid_event_subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: eventsubscriptions.ValidateScopedEventSubscriptionID,
 			},
 
-			// TODO: rename this to `managed_identity_id` in 4.0
-			"managed_identity_resource_id": {
+			"managed_identity_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
