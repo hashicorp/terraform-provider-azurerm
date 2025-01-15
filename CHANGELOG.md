@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 *  `azurerm_windows_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 * `azurerm_linux_web_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
+* `azurerm_container_app` – support for the `termination_grace_period_seconds` property [GH-28307]
 
 BUG FIXES:
 
