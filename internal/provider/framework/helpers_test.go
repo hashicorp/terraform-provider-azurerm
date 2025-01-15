@@ -4,7 +4,6 @@
 package framework
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -24,9 +23,7 @@ func Test_getOidcToken(t *testing.T) {
 
 	if result == nil {
 		t.Fatalf("getOidcToken returned nil result without an error")
-	}
-
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getOidcToken did not return expected string (%s), got %+v", expectedString, *result)
 	}
 }
@@ -44,9 +41,7 @@ func Test_getOidcTokenFromFile(t *testing.T) {
 
 	if result == nil {
 		t.Fatalf("getOidcToken returned nil result without an error")
-	}
-
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getOidcToken did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -70,10 +65,7 @@ func Test_getOidcTokenExpectMismatch(t *testing.T) {
 
 func Test_getOidcTokenAKSWorkload(t *testing.T) {
 	expectedString := "testOidcFromFile"
-	err := os.Setenv("AZURE_FEDERATED_TOKEN_FILE", "./testdata/oidc_test_input.txt")
-	if err != nil {
-		t.Fatalf("could not set env var (`AZURE_FEDERATED_TOKEN_FILE`) for test: %+v", err)
-	}
+	t.Setenv("AZURE_FEDERATED_TOKEN_FILE", "./testdata/oidc_test_input.txt")
 
 	p := &ProviderModel{
 		UseAKSWorkloadIdentity: basetypes.NewBoolValue(true),
@@ -91,17 +83,14 @@ func Test_getOidcTokenAKSWorkload(t *testing.T) {
 
 func Test_getOidcTokenAKSWorkloadExpectMismatch(t *testing.T) {
 	configuredString := "testOidc"
-	err := os.Setenv("AZURE_FEDERATED_TOKEN_FILE", "./testdata/oidc_test_input.txt")
-	if err != nil {
-		t.Fatalf("could not set env var (`AZURE_FEDERATED_TOKEN_FILE`) for test: %+v", err)
-	}
+	t.Setenv("AZURE_FEDERATED_TOKEN_FILE", "./testdata/oidc_test_input.txt")
 
 	p := &ProviderModel{
 		OIDCToken:              basetypes.NewStringValue(configuredString),
 		UseAKSWorkloadIdentity: basetypes.NewBoolValue(true),
 	}
 
-	_, err = getOidcToken(p)
+	_, err := getOidcToken(p)
 	if err == nil {
 		t.Fatal("expected an error but did not get one")
 	}
@@ -124,8 +113,7 @@ func Test_getClientSecret(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientSecret returned nil result without an error")
-	}
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getCLientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -147,7 +135,7 @@ func Test_getClientSecretExpectMismatch(t *testing.T) {
 }
 
 func Test_getClientSecretFromFile(t *testing.T) {
-	os.Setenv("ARM_CLIENT_SECRET", "")
+	t.Setenv("ARM_CLIENT_SECRET", "")
 	expectedString := "testClientSecretFromFile"
 	p := &ProviderModel{
 		ClientSecretFilePath: basetypes.NewStringValue("./testdata/client_secret_test_input.txt"),
@@ -159,14 +147,13 @@ func Test_getClientSecretFromFile(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientSecretFromFile returned nil result without an error")
-	}
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getClientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
 
 func Test_getClientSecretFromFileMismatch(t *testing.T) {
-	os.Setenv("ARM_CLIENT_SECRET", "foo")
+	t.Setenv("ARM_CLIENT_SECRET", "foo")
 	p := &ProviderModel{
 		ClientSecretFilePath: basetypes.NewStringValue("./testdata/client_secret_test_input.txt"),
 	}
@@ -192,8 +179,7 @@ func Test_getClientID(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	}
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -225,46 +211,40 @@ func Test_getClientIDFromFile(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	}
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
 
 func Test_getClientIDAKSWorkload(t *testing.T) {
 	expectedString := "testClientIDAKSWorkload"
-	err := os.Setenv("ARM_CLIENT_ID", expectedString)
-	if err != nil {
-		t.Fatalf("failed to set environment variable ARM_CLIENT_ID: %v", err)
-	}
+	t.Setenv("ARM_CLIENT_ID", expectedString)
 
 	p := &ProviderModel{
 		UseAKSWorkloadIdentity: basetypes.NewBoolValue(true),
 	}
+
 	result, err := getClientId(p)
 	if err != nil {
 		t.Fatalf("getClientID returned unexpected error %v", err)
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	}
-	if *result != expectedString {
+	} else if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
 
 func Test_getClientIDAKSWorkloadExpectMismatch(t *testing.T) {
 	configuredString := "testClientIDAKSWorkload"
-	err := os.Setenv("ARM_CLIENT_ID", "testClientID")
-	if err != nil {
-		t.Fatalf("failed to set environment variable ARM_CLIENT_ID: %v", err)
-	}
+	t.Setenv("ARM_CLIENT_ID", "testClientID")
+
 	p := &ProviderModel{
 		ClientId:               basetypes.NewStringValue(configuredString),
 		UseAKSWorkloadIdentity: basetypes.NewBoolValue(true),
 	}
 
-	_, err = getClientId(p)
+	_, err := getClientId(p)
 	if err == nil {
 		t.Fatalf("expected an error but did not get one")
 	}
@@ -281,9 +261,7 @@ func Test_decodeCertificate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeCertificate returned unexpected error %v", err)
 	}
-	if result == nil {
-		t.Fatalf("decodeCertificate returned nil result without an error")
-	}
+
 	if string(result) != expected {
 		t.Fatalf("decodeCertificate did not return expected result `%s`, got `%s`", expected, result)
 	}
