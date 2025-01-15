@@ -23,7 +23,10 @@ type SSODatadogMonitorResource struct {
 	enterpriseAppId       string
 }
 
-func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) {
+// Because the test resource interface requires an Exists() function with a value receiver, I refactored this function
+// to take a resource as arg rather than receiver in order to comply with the Go recommendation to not make methods on
+// both value and pointer receivers.
+func populateValuesFromEnvironment(t *testing.T, r *SSODatadogMonitorResource) {
 	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
 	}
@@ -42,12 +45,13 @@ func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
-	r.populateValuesFromEnvironment(t)
+	populateValuesFromEnvironment(t, &r)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue("Enable"),
 			),
 		},
 		data.ImportStep(),
@@ -57,7 +61,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
-	r.populateValuesFromEnvironment(t)
+	populateValuesFromEnvironment(t, &r)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -72,19 +76,21 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
-	r.populateValuesFromEnvironment(t)
+	populateValuesFromEnvironment(t, &r)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesEnable)),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, singlesignon.SingleSignOnStatesDisable),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesDisable)),
 			),
 		},
 		data.ImportStep(),
@@ -92,13 +98,46 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesEnable)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, singlesignon.SingleSignOnStatesExisting),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesExisting)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesEnable)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, singlesignon.SingleSignOnStatesInitial),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesInitial)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("single_sign_on").HasValue(string(singlesignon.SingleSignOnStatesEnable)),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := singlesignon.ParseSingleSignOnConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,7 +151,7 @@ func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.C
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r SSODatadogMonitorResource) template(data acceptance.TestData) string {
+func (r *SSODatadogMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datadogrg-%[1]d"
@@ -167,7 +206,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "import" {
 `, r.basic(data))
 }
 
-func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) update(data acceptance.TestData, ssoState singlesignon.SingleSignOnStates) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,8 +216,8 @@ provider "azurerm" {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on            = "Disable"
+  single_sign_on            = %s
   enterprise_application_id = %q
 }
-`, r.template(data), r.enterpriseAppId)
+`, r.template(data), ssoState, r.enterpriseAppId)
 }
