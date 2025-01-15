@@ -1,5 +1,7 @@
 ## 4.16.0 (Unreleased)
 
+**NOTE:** This release contains a breaking change reverting `redisenterprise` API version from `2024-06-01-preview` to `2024-10-01` as not all regions are currently supported in the `2024-06-01-preview` version 
+
 ENHANCEMENTS:
 
 * dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
@@ -13,6 +15,9 @@ BUG FIXES:
 * `azurerm_mssql_database` - fix bug where verifying TDE might fail to return an error on failure [GH-28505]
 * `azurerm_mssql_database` - fix several potential bugs where retry functions could return false negatives for actual errors [GH-28505]
 * `azurerm_private_endpoint` - fix a bug where reading Private DNS could error and exit the Read of the resource early without raising an error [GH-28505]
+
+BREAKING CHANGES:
+* dependencies - `redisenterprise` API version reverted from `2024-06-01-preview` to `2024-10-01` [GH-28516]
 
 ## 4.15.0 (January 10, 2025)
 
