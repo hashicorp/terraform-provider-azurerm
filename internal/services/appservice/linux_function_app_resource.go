@@ -437,7 +437,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					if !functionApp.VnetImagePullEnabled {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
-
 				}
 			}
 			// Only send for ElasticPremium and Consumption plan

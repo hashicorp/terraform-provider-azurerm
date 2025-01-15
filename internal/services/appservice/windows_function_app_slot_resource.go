@@ -456,7 +456,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 						if !functionAppSlot.VnetImagePullEnabled {
 							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 						}
-
 					}
 				}
 			}
