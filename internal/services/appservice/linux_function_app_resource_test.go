@@ -2393,7 +2393,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "%s" 
+  name                 = "%s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 1
 }
