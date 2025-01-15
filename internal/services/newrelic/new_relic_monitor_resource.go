@@ -314,7 +314,7 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 
 				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 				if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
-					return fmt.Errorf("creating NewRelic Monitored Subscriptions of %s: %+v", id, err)
+					return fmt.Errorf("creating New Relic Monitored Subscriptions of %s: %+v", id, err)
 				}
 			}
 
@@ -409,32 +409,31 @@ func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := monitors.ParseMonitorID(metadata.ResourceData.Id())
+			id, err := monitoredsubscriptions.ParseMonitorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			var originalModel NewRelicMonitorModel
-			if err = metadata.Decode(&originalModel); err != nil {
+			var model NewRelicMonitorModel
+			if err = metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			if metadata.ResourceData.HasChange("monitored_subscription") {
 				monitoredSubscriptionsClient := metadata.Client.NewRelic.MonitoredSubscriptionsClient
-				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
 
-				if len(originalModel.MonitoredSubscription) == 0 {
-					if _, err := monitoredSubscriptionsClient.Delete(ctx, monitorId); err != nil {
+				if len(model.MonitoredSubscription) == 0 {
+					if _, err := monitoredSubscriptionsClient.Delete(ctx, *id); err != nil {
 						return fmt.Errorf("deleting NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 					}
 				} else {
 					monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
 						Properties: &monitoredsubscriptions.SubscriptionList{
-							MonitoredSubscriptionList: expandMonitorSubscriptionList(originalModel.MonitoredSubscription),
+							MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription),
 						},
 					}
 
-					if err := monitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
+					if err := monitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, *id, monitoredSubscriptionsProperties); err != nil {
 						return fmt.Errorf("updating NewRelic Monitored Subscriptions of %s: %+v", *id, err)
 					}
 				}

@@ -175,9 +175,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (r NewRelicMonitorResource) basic(data acceptance.TestData, effectiveDate string, email string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_new_relic_monitor" "test" {
   name                = "acctest-nrm-%d"
@@ -196,13 +195,12 @@ resource "azurerm_new_relic_monitor" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
 
 func (r NewRelicMonitorResource) requiresImport(data acceptance.TestData, effectiveDate string, email string) string {
-	config := r.basic(data, effectiveDate, email)
 	return fmt.Sprintf(`
-			%s
+%s
 
 resource "azurerm_new_relic_monitor" "import" {
   name                = azurerm_new_relic_monitor.test.name
@@ -221,13 +219,12 @@ resource "azurerm_new_relic_monitor" "import" {
     type = "SystemAssigned"
   }
 }
-`, config)
+`, r.basic(data, effectiveDate, email))
 }
 
 func (r NewRelicMonitorResource) complete(data acceptance.TestData, effectiveDate string, email string, accountId string, orgId string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-			%[1]s
+%[1]s
 
 resource "azurerm_new_relic_monitor" "test" {
   name                = "acctest-nrm-%[2]d"
@@ -255,13 +252,13 @@ resource "azurerm_new_relic_monitor" "test" {
   org_creation_source     = "LIFTR"
   user_id                 = "123456"
 }
-`, template, data.RandomInteger, effectiveDate, email, accountId, orgId)
+`, r.template(data), data.RandomInteger, effectiveDate, email, accountId, orgId)
 }
 
 func (r NewRelicMonitorResource) identity(data acceptance.TestData, effectiveDate string, email string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
+
 resource "azurerm_new_relic_monitor" "test" {
   name                = "acctest-nrm-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -291,11 +288,10 @@ resource "azurerm_role_assignment" "test" {
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
   principal_id       = azurerm_new_relic_monitor.test.identity[0].principal_id
 }
-`, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
 
 func (r NewRelicMonitorResource) monitoredSubscription(data acceptance.TestData, effectiveDate string, email string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -323,5 +319,5 @@ resource "azurerm_new_relic_monitor" "test" {
     subscription_id = data.azurerm_subscription.test.subscription_id
   }
 }
-`, template, data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
+`, r.template(data), data.Subscriptions.Secondary, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
