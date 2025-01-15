@@ -2,6 +2,11 @@
 
 **NOTE:** This release contains a breaking change reverting `redisenterprise` API version from `2024-06-01-preview` to `2024-10-01` as not all regions are currently supported in the `2024-06-01-preview` version 
 
+FEATURES:
+
+* **New Resource**: `azurerm_mssql_job` [GH-28456]
+* **New Resource**: `azurerm_mssql_job_schedule` [GH-28456]
+
 ENHANCEMENTS:
 
 * dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
