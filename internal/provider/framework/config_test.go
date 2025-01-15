@@ -27,7 +27,7 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	// Skip enhanced validation
-	_ = os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
+	t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
 
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),

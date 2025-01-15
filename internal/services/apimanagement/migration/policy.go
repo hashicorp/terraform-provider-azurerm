@@ -22,7 +22,7 @@ func (ApiManagementPolicyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		apiMgmtId, err := policy.ParseServiceID(rawState["id"].(string))
 		if err != nil {
-			return rawState, nil
+			return rawState, nil // lint:ignore nilerr this is not an error as we just want to skip the upgrade
 		}
 		id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
 		rawState["id"] = id.ID()

@@ -163,9 +163,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NGINX Deployment.
 
-* `ip_address` - The IP address of the deployment.
+* `ip_address` - The IP address of the NGINX Deployment.
 
-* `nginx_version` - The version of deployed NGINX.
+* `nginx_version` - The version of the NGINX Deployment.
+
+* `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
 ## Timeouts
 

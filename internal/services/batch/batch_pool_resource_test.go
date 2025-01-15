@@ -740,6 +740,24 @@ func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.
 	})
 }
 
+func TestAccBatchPool_securityProfileWithUEFISettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileWithUEFISettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("security_profile.0.host_encryption_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("security_profile.0.security_type").HasValue("trustedLaunch"),
+				check.That(data.ResourceName).Key("security_profile.0.secure_boot_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("security_profile.0.vtpm_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("stop_pending_resize_operation"),
+	})
+}
+
 func TestAccBatchPool_linuxUserAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -2656,4 +2674,38 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   network_security_group_id = azurerm_network_security_group.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) securityProfileWithUEFISettings(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "acctestbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+resource "azurerm_batch_pool" "test" {
+  name                = "acctestpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "Standard_A1"
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  security_profile {
+    host_encryption_enabled = false
+    security_type           = "trustedLaunch"
+    secure_boot_enabled     = true
+    vtpm_enabled            = false
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString)
 }

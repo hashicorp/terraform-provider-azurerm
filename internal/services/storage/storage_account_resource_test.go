@@ -241,6 +241,9 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 }
 
 func TestAccStorageAccount_minTLSVersion(t *testing.T) {
+	if features.FivePointOhBeta() {
+		t.Skipf("Skipping as the only possible value for `minimum_tls_version` is `1.2`")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 

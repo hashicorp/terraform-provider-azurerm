@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `network_interface_ids` - (Required). A list of Network Interface IDs which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
 
-* `os_disk` - (Required) A `os_disk` block as defined below.
+* `os_disk` - (Required) An `os_disk` block as defined below.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine should be exist. Changing this forces a new resource to be created.
 
@@ -395,6 +395,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as documented below.
 
+* `os_disk` - An `os_disk` block as documented below.
+
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
@@ -412,6 +414,12 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+An `os_disk` block exports the following:
+
+* `id` - The ID of the OS disk.
 
 ## Timeouts
 

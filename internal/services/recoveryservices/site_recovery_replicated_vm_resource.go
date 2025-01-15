@@ -21,10 +21,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -307,7 +309,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
-	out := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
@@ -354,6 +356,15 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"recovery_load_balancer_backend_address_pool_ids": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+				},
+			},
+
 			"recovery_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -362,8 +373,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	return out
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
@@ -561,19 +570,25 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		testSubNetName := vmNicInput["failover_test_subnet_name"].(string)
 		testPublicIpAddressID := vmNicInput["failover_test_public_ip_address_id"].(string)
 
+		var recoveryLoadBalancerBackendPoolIds *[]string
+		if ids, ok := vmNicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
+			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
+		}
+
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
 			return fmt.Errorf("updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
 		}
 		ipConfig := []replicationprotecteditems.IPConfigInputDetails{
 			{
-				RecoverySubnetName:        &targetSubnetName,
-				RecoveryStaticIPAddress:   &targetStaticIp,
-				RecoveryPublicIPAddressId: &recoveryPublicIPAddressID,
-				TfoStaticIPAddress:        &testStaticIp,
-				TfoPublicIPAddressId:      &testPublicIpAddressID,
-				TfoSubnetName:             &testSubNetName,
-				IsPrimary:                 utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
+				RecoverySubnetName:              &targetSubnetName,
+				RecoveryStaticIPAddress:         &targetStaticIp,
+				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
+				RecoveryPublicIPAddressId:       &recoveryPublicIPAddressID,
+				TfoStaticIPAddress:              &testStaticIp,
+				TfoPublicIPAddressId:            &testPublicIpAddressID,
+				TfoSubnetName:                   &testSubNetName,
+				IsPrimary:                       utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
@@ -906,6 +921,9 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						}
 						if ipConfig.RecoverySubnetName != nil {
 							nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName
+						}
+						if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
+							nicOutput["recovery_load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds))
 						}
 						if ipConfig.RecoveryPublicIPAddressId != nil {
 							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId

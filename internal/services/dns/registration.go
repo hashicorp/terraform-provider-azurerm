@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/dns"
@@ -41,7 +44,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_dns_soa_record":   dataSourceDnsSoaRecord(),
 		"azurerm_dns_srv_record":   dataSourceDnsSrvRecord(),
 		"azurerm_dns_txt_record":   dataSourceDnsTxtRecord(),
-		"azurerm_dns_zone":         dataSourceDnsZone(),
 	}
 }
 
@@ -57,6 +59,19 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_dns_ptr_record":   resourceDnsPtrRecord(),
 		"azurerm_dns_srv_record":   resourceDnsSrvRecord(),
 		"azurerm_dns_txt_record":   resourceDnsTxtRecord(),
-		"azurerm_dns_zone":         resourceDnsZone(),
+	}
+}
+
+// DataSources returns a list of Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		DnsZoneDataResource{},
+	}
+}
+
+// Resources returns a list of Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		DnsZoneResource{},
 	}
 }

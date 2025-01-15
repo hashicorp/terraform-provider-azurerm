@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
+	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
 func ADLSAccessControlPermissions(i interface{}, k string) (warnings []string, errors []error) {

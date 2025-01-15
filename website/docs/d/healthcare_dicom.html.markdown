@@ -27,7 +27,7 @@ output "azurerm_healthcare_dicom_service" {
 
 * `name` - The name of the Healthcare DICOM Service
 
-* `workspace_id` - The id of the Healthcare Workspace in which the Healthcare DICOM Service exists.
+* `workspace_id` - The ID of the Healthcare Workspace in which the Healthcare DICOM Service exists.
 
 ## Attributes Reference
 
@@ -39,17 +39,48 @@ The following attributes are exported:
 
 * `authentication` - The `authentication` block as defined below.
 
+* `data_partitions_enabled` - If data partitions are enabled or not.
+
+* `cors` - The `cors` block as defined below.
+
+* `encryption_key_url` - The URL of the key to use for encryption as part of the customer-managed key encryption settings.
+
 * `service_url` - The url of the Healthcare DICOM Services.
+
+* `storage` - The `storage` block as defined below.
 
 * `tags` - A map of tags assigned to the Healthcare DICOM Service.
 
 ---
-An `authentication` supports the following:
+An `authentication` exports the following:
 
 * `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
   Authority must be registered to Azure AD and in the following format: <https://{Azure-AD-endpoint}/{tenant-id>}.
 
 * `audience` - The intended audience to receive authentication tokens for the service. The default value is <https://dicom.azurehealthcareapis.azure.com>
+
+---
+
+A `cors` exports the following:
+
+* `allowed_origins` - A list of allowed origins for CORS.
+
+* `allowed_headers` - A list of allowed headers for CORS.
+
+* `allowed_methods` - A list of allowed methods for CORS.
+
+* `max_age_in_seconds` - The maximum age in seconds for the CORS configuration.
+
+* `allow_credentials` - Whether to allow credentials in CORS.
+
+---
+
+A `storage` block exports the following:
+
+* `file_system_name` - The filesystem name of connected storage account.
+
+* `storage_account_id` - The resource ID of connected storage account.
+
 
 ## Timeouts
 

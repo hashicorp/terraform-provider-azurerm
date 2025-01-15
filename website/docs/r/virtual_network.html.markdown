@@ -89,6 +89,8 @@ The following arguments are supported:
 
 -> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
+* `private_endpoint_vnet_policies` - (Optional) The Private Endpoint VNet Policies for the Virtual Network. Possible values are `Disabled` and `Basic`. Defaults to `Disabled`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

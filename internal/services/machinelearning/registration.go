@@ -60,5 +60,7 @@ func (r Registration) Resources() []sdk.Resource {
 		MachineLearningDataStoreDataLakeGen2{},
 		MachineLearningDataStoreFileShare{},
 		WorkspaceNetworkOutboundRuleFqdn{},
+		WorkspaceNetworkOutboundRulePrivateEndpoint{},
+		WorkspaceNetworkOutboundRuleServiceTag{},
 	}
 }

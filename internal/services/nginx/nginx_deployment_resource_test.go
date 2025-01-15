@@ -41,6 +41,7 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("capacity").HasValue("10"),
 				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
+				check.That(data.ResourceName).Key("dataplane_api_endpoint").Exists(),
 			),
 		},
 		data.ImportStep(),

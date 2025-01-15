@@ -42,6 +42,8 @@ type StaticWebAppDataSourceModel struct {
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
+	RepositoryUrl       string                                     `tfschema:"repository_url"`
+	RepositoryBranch    string                                     `tfschema:"repository_branch"`
 }
 
 func (s StaticWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -109,6 +111,16 @@ func (s StaticWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"repository_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"repository_branch": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"tags": tags.SchemaDataSource(),
 	}
 }
@@ -157,6 +169,8 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
+					state.RepositoryBranch = pointer.From(props.Branch)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
