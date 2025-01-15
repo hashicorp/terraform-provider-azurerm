@@ -92,6 +92,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
+* The deprecated `virtual_network_rule` property has been removed in favour of the `virtual_network_subnet_ids` and `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint` property.
 
 ### `azurerm_eventhub`
 
