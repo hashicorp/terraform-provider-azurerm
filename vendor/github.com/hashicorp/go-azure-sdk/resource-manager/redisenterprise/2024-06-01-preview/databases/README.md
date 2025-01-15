@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases` Documentation
 
-The `databases` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2024-10-01`).
+The `databases` SDK allows for interaction with Azure Resource Manager `redisenterprise` (API Version `2024-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
 ```
 
 
@@ -212,6 +212,18 @@ payload := databases.DatabaseUpdate{
 
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `DatabasesClient.UpgradeDBRedisVersion`
+
+```go
+ctx := context.TODO()
+id := databases.NewDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "redisEnterpriseName", "databaseName")
+
+if err := client.UpgradeDBRedisVersionThenPoll(ctx, id); err != nil {
 	// handle the error
 }
 ```
