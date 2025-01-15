@@ -12,8 +12,9 @@ ENHANCEMENTS:
 * dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
 * dependencies - `postgresql` update API version to `2024-08-01` [GH-28474]
 * `azurerm_cost_anomaly_alert` - add support for the `notification_email` property [GH-27680]
+* `azurerm_data_protection_backup_vault` - support for `immutability` property [GH-27859]
 * `azurerm_linux_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
-*  `azurerm_windows_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
+* `azurerm_windows_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 * `azurerm_linux_web_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 * `azurerm_container_app` – support for the `termination_grace_period_seconds` property [GH-28307]
 
