@@ -191,7 +191,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   os_profile {
     admin_username = "adminuser"
-    admin_password = "!password!@#$"
+    admin_password = "!Password!@#$"
     computer_name  = "testvm"
   }
 
@@ -307,7 +307,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   os_profile {
     admin_username = "adminuser"
-    admin_password = "!password!@#$"
+    admin_password = "!Password!@#$"
     computer_name  = "testvm"
   }
 
@@ -399,7 +399,7 @@ resource "azurerm_stack_hci_windows_virtual_machine" "test" {
 
   os_profile {
     admin_username                    = "adminuser"
-    admin_password                    = "!password!@#$"
+    admin_password                    = "!Password!@#$"
     computer_name                     = "testvm2"
     automatic_update_enabled          = true
     time_zone                         = "UTC"
