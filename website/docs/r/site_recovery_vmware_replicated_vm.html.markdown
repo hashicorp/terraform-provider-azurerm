@@ -124,7 +124,7 @@ The following arguments are supported:
 
 ~> **Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created. 
 
-* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Premium_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
+* `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`.
 
 ~> **Note:** Only one of `default_recovery_disk_type` or `managed_disk` must be specified.
 
@@ -161,7 +161,7 @@ A `managed_disk` block supports the following:
 
 * `disk_id` - (Required) The ID of the disk to be replicated.
 
-* `target_disk_type` - (Required) The disk type of the disk to be created when a failover is done. Possible values are `Premium_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
+* `target_disk_type` - (Required) The disk type of the disk to be created when a failover is done. Possible values are `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`.
 
 * `log_storage_account_id` - (Optional) The ID of the storage account that should be used for logging during replication.
 

@@ -93,13 +93,13 @@ The `log_rule` block supports the following:
 
 * `send_subscription_logs_enabled` - (Optional) Send Subscription logs. The default value is `false`. Changing this forces a new resource to be created.
 
-* `filtering_tag` - (Optional) Filtering tag for the log rule. A `filtering_tag` block as defined below. Changing this forces a new resource to be created.
+* `filtering_tag` - (Required) Filtering tag for the log rule. A `filtering_tag` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
 The `metric_rule` block supports the following:
 
-* `filtering_tag` - (Optional) Filtering tag for the metric rule. A `filtering_tag` block as defined below.
+* `filtering_tag` - (Required) Filtering tag for the metric rule. A `filtering_tag` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

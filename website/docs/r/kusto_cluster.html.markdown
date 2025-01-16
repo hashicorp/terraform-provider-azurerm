@@ -100,11 +100,11 @@ A `sku` block supports the following:
 
 A `virtual_network_configuration` block supports the following:
 
-* `subnet_id` - (Required) The subnet resource id.
+* `subnet_id` - (Required) The subnet resource id. Changing this forces a new resource to be created.
 
-* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id. Changing this forces a new resource to be created.
 
-* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id. Changing this forces a new resource to be created.
 
 ---
 

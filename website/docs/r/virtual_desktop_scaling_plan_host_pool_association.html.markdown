@@ -90,26 +90,26 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "example" 
 
 The following arguments are supported:
 
-- `host_pool_id` - (Required) The resource ID for the Virtual Desktop Host Pool. Changing this forces a new resource to be created.
+* `host_pool_id` - (Required) The resource ID for the Virtual Desktop Host Pool. Changing this forces a new resource to be created.
 
-- `scaling_plan_id` - (Required) The resource ID for the Virtual Desktop Scaling Plan. Changing this forces a new resource to be created.
+* `scaling_plan_id` - (Required) The resource ID for the Virtual Desktop Scaling Plan. Changing this forces a new resource to be created.
 
-- `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
+* `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Virtual Desktop Scaling Plan Host Pool association.
+* `id` - The ID of the Virtual Desktop Scaling Plan Host Pool association.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Scaling Plan Host Pool association.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Scaling Plan Host Pool association.
-- `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Scaling Plan Host Pool association.
-- `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Scaling Plan Host Pool association.
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Scaling Plan Host Pool association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Scaling Plan Host Pool association.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Scaling Plan Host Pool association.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Scaling Plan Host Pool association.
 
 ## Import
 

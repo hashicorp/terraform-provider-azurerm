@@ -85,6 +85,8 @@ A `criteria` block supports the following:
 
 * `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy Blob Storage to be created.
 
+---
+
 A `life_cycle` block supports the following:
 
 * `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new Backup Policy Blob Storage to be created.

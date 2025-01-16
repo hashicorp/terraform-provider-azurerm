@@ -106,7 +106,7 @@ The following arguments are supported:
 
 -> **NOTE:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
 
-* `create_source` - (Optional) A `create_source` block as defined below.
+* `create_source` - (Optional) A `create_source` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

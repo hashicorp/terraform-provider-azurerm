@@ -83,7 +83,7 @@ A `secret` block supports the following:
 
 * `name` - (Required) The Secret name.
 
-* `value` - (Required) The value for this secret.
+* `value` - (Optional) The value for this secret.
 
 ## Attributes Reference
 

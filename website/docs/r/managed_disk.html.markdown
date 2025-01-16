@@ -197,7 +197,7 @@ The `disk_encryption_key` block supports:
 
 The `encryption_settings` block supports:
 
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined above.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 

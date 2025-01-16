@@ -63,13 +63,13 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Endpoint
+* `name` - (Required) The name of the Virtual Endpoint. Changing this forces a new resource to be created.
 
-* `source_server_id` - (Required) The Resource ID of the *Source* Postgres Flexible Server this should be associated with.
+* `source_server_id` - (Required) The Resource ID of the *Source* Postgres Flexible Server this should be associated with. Changing this forces a new resource to be created.
 
 * `replica_server_id` - (Required) The Resource ID of the *Replica* Postgres Flexible Server this should be associated with
 
-* `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported.
+* `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

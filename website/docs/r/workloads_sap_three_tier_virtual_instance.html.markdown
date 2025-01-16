@@ -481,7 +481,7 @@ A `virtual_machine` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the Volume. The only possible value is `default`. The only possible value is `default`. Possible values are `hanaData`, `hanaLog`, `hanaShared` and `usrSap`. Changing this forces a new resource to be created.
 
 ~> **Note:** Possible value for Application Server and Central Server is `default`.
 

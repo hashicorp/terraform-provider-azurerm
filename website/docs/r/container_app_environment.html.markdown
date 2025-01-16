@@ -86,9 +86,9 @@ A `workload_profile` block supports the following:
 
 ~> **Note:** Defining a `Consumption` profile is optional, however, Environments created without an initial Workload Profile cannot have them added at a later time and must be recreated. Similarly, an environment created with Profiles must always have at least one defined Profile, removing all profiles will force a recreation of the resource. 
 
-* `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
+* `maximum_count` - (Optional) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
-* `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+* `minimum_count` - (Optional) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 

@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Possible values include `true` or `false`. Defaults to `true`.
 
-* `storage_account_type` - (Optional) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Changing this forces a new Synapse SQL Pool to be created. Defaults to `GRS`.
+* `storage_account_type` - (Required) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 
