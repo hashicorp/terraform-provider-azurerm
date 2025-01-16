@@ -996,7 +996,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			accessConnectorIdRaw := d.Get("access_connector_id").(string)
 			accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 			if err != nil {
-				return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
+				return err
 			}
 
 			accessConnector, err := acClient.Get(ctx, *accessConnectorId)
@@ -1007,11 +1007,11 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			if accessConnector.Model.Identity != nil {
 				accIdentityId := ""
 				for raw := range accessConnector.Model.Identity.IdentityIds {
-					id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+					identityId, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
 					if err != nil {
-						return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+						return err
 					}
-					accIdentityId = id.ID()
+					accIdentityId = identityId.ID()
 					break
 				}
 
@@ -1169,7 +1169,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		// to extract the correct key vault subscription for the exists call...
 		v, err := commonids.ParseKeyVaultID(servicesKeyVaultId)
 		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", servicesKeyVaultId, err)
+			return err
 		}
 
 		servicesResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
@@ -1203,7 +1203,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		// to extract the correct key vault subscription for the exists call...
 		v, err := commonids.ParseKeyVaultID(diskKeyVaultId)
 		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", diskKeyVaultId, err)
+			return err
 		}
 
 		diskResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
