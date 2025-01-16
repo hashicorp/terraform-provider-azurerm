@@ -4,6 +4,7 @@
 package storage_test
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"testing"
@@ -28,11 +29,13 @@ func TestAccDataSourceStorageBlobContent_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_blob_content", "test")
 
+	testStringBase64 := base64.StdEncoding.EncodeToString([]byte(testString))
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: StorageBlobContentDataSource{}.basicWithDataSource(data, sourceBlob.Name()),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("content").HasValue(testString),
+				check.That(data.ResourceName).Key("content").HasValue(testStringBase64),
 			),
 		},
 	})

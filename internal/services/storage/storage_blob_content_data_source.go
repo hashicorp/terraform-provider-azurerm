@@ -1,107 +1,132 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package storage
 
 import (
+	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
-func dataSourceStorageBlobContent() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceStorageBlobContentRead,
+const (
+	mibSizeBytes           = 1048576
+	maxBlobSizeMib         = 1
+	maxBlobSizeBytes int64 = mibSizeBytes * maxBlobSizeMib
+)
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+type StorageBlobContentDataSource struct{}
+
+type StorageBlobContentDataSourceModel struct {
+	Name                 string `tfschema:"name"`
+	StorageAccountName   string `tfschema:"storage_account_name"`
+	StorageContainerName string `tfschema:"storage_container_name"`
+	Content              string `tfschema:"content"`
+}
+
+func (d StorageBlobContentDataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
+		"storage_account_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"storage_container_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"content": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+		"storage_container_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 	}
 }
 
-func dataSourceStorageBlobContentRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
-	name := d.Get("name").(string)
-
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+func (d StorageBlobContentDataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"content": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
-	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", accountName)
+}
+
+func (d StorageBlobContentDataSource) ModelObject() interface{} {
+	return &StorageBlobContentDataSourceModel{}
+}
+
+func (d StorageBlobContentDataSource) ResourceType() string {
+	return "azurerm_storage_blob_content"
+}
+
+func (d StorageBlobContentDataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var state StorageBlobContentDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			account, err := metadata.Client.Storage.FindAccount(ctx, subscriptionId, state.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q: %v", state.StorageAccountName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("locating Storage Account %q", state.StorageAccountName)
+			}
+
+			endpoint, err := account.DataPlaneEndpoint("blob")
+			if err != nil {
+				return fmt.Errorf("determining Blob endpoint: %v", err)
+			}
+
+			accountId, err := accounts.ParseAccountID(*endpoint, client.StorageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("parsing Account ID: %v", err)
+			}
+
+			id := blobs.NewBlobID(*accountId, state.StorageContainerName, state.Name)
+			log.Printf("[INFO] Retrieving %s", id)
+			metadata.SetID(id)
+
+			blobsClient, err := client.BlobsDataPlaneClient(ctx, *account, client.DataPlaneOperationSupportingAnyAuthMethod())
+			if err != nil {
+				return fmt.Errorf("building Blobs Client: %v", err)
+			}
+
+			propertiesInput := blobs.GetPropertiesInput{}
+			properties, err := blobsClient.GetProperties(ctx, state.StorageContainerName, state.Name, propertiesInput)
+			if err != nil {
+				if response.WasNotFound(properties.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("retrieving content for %s: %v", id, err)
+			}
+			if properties.ContentLength > maxBlobSizeBytes {
+				return fmt.Errorf("size of blob '%s' exceeds maximum size limit of %d bytes", state.Name, maxBlobSizeBytes)
+			}
+
+			input := blobs.GetInput{}
+			content, err := blobsClient.Get(ctx, state.StorageContainerName, state.Name, input)
+			if err != nil {
+				if response.WasNotFound(content.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("retrieving content for %s: %v", id, err)
+			}
+
+			state.Content = base64.StdEncoding.EncodeToString(*content.Contents)
+			return metadata.Encode(&state)
+		},
 	}
-
-	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return fmt.Errorf("building Blobs Client: %v", err)
-	}
-
-	blobEndpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
-	if err != nil {
-		return fmt.Errorf("retrieving the blob data plane endpoint: %v", err)
-	}
-
-	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
-	if err != nil {
-		return fmt.Errorf("parsing Account ID: %v", err)
-	}
-
-	id := blobs.NewBlobID(*accountId, containerName, name)
-
-	log.Printf("[INFO] Retrieving %s", id)
-	input := blobs.GetInput{}
-	content, err := blobsClient.Get(ctx, containerName, name, input)
-	if err != nil {
-		if response.WasNotFound(content.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
-		}
-
-		return fmt.Errorf("retrieving content for %s: %v", id, err)
-	}
-
-	d.Set("content", string(*content.Contents))
-
-	d.Set("name", name)
-	d.Set("storage_container_name", containerName)
-	d.Set("storage_account_name", accountName)
-
-	d.SetId(id.ID())
-
-	return nil
 }

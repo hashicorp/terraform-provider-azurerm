@@ -35,7 +35,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                    dataSourceStorageAccount(),
 		"azurerm_storage_blob":                       dataSourceStorageBlob(),
-		"azurerm_storage_blob_content":               dataSourceStorageBlobContent(),
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
@@ -75,6 +74,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		StorageBlobContentDataSource{},
 		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
 		storageContainersDataSource{},
