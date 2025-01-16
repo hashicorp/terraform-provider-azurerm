@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies - update `hashicorp/go-azure-sdk` to `v0.20250115.1141151` [GH-28519]
 * dependencies - `costmanagement` update to use `2023-08-01` [GH-27680]
 * dependencies - `postgresql` update API version to `2024-08-01` [GH-28474]
 * `azurerm_cost_anomaly_alert` - add support for the `notification_email` property [GH-27680]
