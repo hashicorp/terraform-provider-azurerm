@@ -129,13 +129,18 @@ func (r ContainerRegistryCredentialSetResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			identityExpanded, err := identity.ExpandSystemAssignedFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
 			param := credentialsets.CredentialSet{
 				Name: pointer.To(id.CredentialSetName),
 				Properties: &credentialsets.CredentialSetProperties{
 					LoginServer:     pointer.To(config.LoginServer),
 					AuthCredentials: expandAuthCredentials(config.AuthenticationCredential),
 				},
-				Identity: expandIdentity(config.Identity),
+				Identity: identityExpanded,
 			}
 
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
@@ -174,7 +179,11 @@ func (r ContainerRegistryCredentialSetResource) Update() sdk.ResourceFunc {
 			param.Properties = &properties
 
 			if metadata.ResourceData.HasChange("identity") {
-				param.Identity = expandIdentity(model.Identity)
+				identityExpanded, err := identity.ExpandSystemAssignedFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				param.Identity = identityExpanded
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
@@ -214,7 +223,7 @@ func (ContainerRegistryCredentialSetResource) Read() sdk.ResourceFunc {
 			config.ContainerRegistryId = registryId.ID()
 
 			if model := resp.Model; model != nil {
-				config.Identity = flattenIdentity(model.Identity)
+				config.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
 				if props := model.Properties; props != nil {
 					config.LoginServer = pointer.From(props.LoginServer)
 					config.AuthenticationCredential = flattenAuthCredentials(props.AuthCredentials)
@@ -274,33 +283,4 @@ func flattenAuthCredentials(input *[]credentialsets.AuthCredential) []Authentica
 		})
 	}
 	return output
-}
-
-// read the note [1] above why we transform the identity here like that
-func flattenIdentity(input *identity.SystemAndUserAssignedMap) []identity.ModelSystemAssigned {
-	if input == nil {
-		return nil
-	}
-	// the api returns 'systemAssigned' as the type instead of 'SystemAssigned'...
-	// in the identity package a private function to normalize the type is used (normalizeType)
-	systemAssignedIdentity := &identity.SystemAssigned{
-		Type:        input.Type,
-		TenantId:    input.TenantId,
-		PrincipalId: input.PrincipalId,
-	}
-	output := identity.FlattenSystemAssignedToModel(systemAssignedIdentity)
-	return output
-}
-
-// read the note [1] above why we transform the identity here like that
-func expandIdentity(input []identity.ModelSystemAssigned) *identity.SystemAndUserAssignedMap {
-	if len(input) == 0 {
-		return nil
-	}
-	output := identity.SystemAndUserAssignedMap{
-		Type:        input[0].Type,
-		TenantId:    input[0].TenantId,
-		PrincipalId: input[0].PrincipalId,
-	}
-	return &output
 }
