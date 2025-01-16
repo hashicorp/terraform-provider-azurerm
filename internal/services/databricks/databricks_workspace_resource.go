@@ -23,10 +23,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	hsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -34,6 +36,351 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.WorkspaceName,
+		},
+
+		"location": commonschema.Location(),
+
+		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"standard",
+				"premium",
+				"trial",
+			}, false),
+		},
+
+		"managed_resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			// NOTE: O+C We set a value for this if omitted so this should remain Computed
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"customer_managed_key_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"managed_disk_identity": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"principal_id": {
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
+					},
+
+					"tenant_id": {
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"infrastructure_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+		},
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"default_storage_firewall_enabled": {
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"access_connector_id"},
+		},
+
+		"access_connector_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"default_storage_firewall_enabled"},
+		},
+
+		"network_security_group_rules_required": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(workspaces.RequiredNsgRulesAllRules),
+				string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
+				string(workspaces.RequiredNsgRulesNoAzureServiceRules),
+			}, false),
+		},
+
+		"load_balancer_backend_address_pool_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+		},
+
+		"custom_parameters": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"machine_learning_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						ValidateFunc: mlworkspace.ValidateWorkspaceID,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"nat_gateway_name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						Computed:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"no_public_ip": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"public_ip_name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						Computed:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"public_subnet_name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"public_subnet_network_security_group_association_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"private_subnet_name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"private_subnet_network_security_group_association_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"virtual_network_id": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateVirtualNetworkID,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"storage_account_name": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: storageValidate.StorageAccountName,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"storage_account_sku_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+
+					"vnet_address_prefix": {
+						Type:         pluginsdk.TypeString,
+						ForceNew:     true,
+						Optional:     true,
+						Computed:     true,
+						AtLeastOneOf: workspaceCustomParametersString(),
+					},
+				},
+			},
+		},
+
+		"managed_resource_group_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"workspace_url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"workspace_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"managed_services_cmk_key_vault_key_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  keyVaultValidate.KeyVaultChildID,
+			ConflictsWith: []string{"managed_services_cmk_managed_hsm_key_id"},
+		},
+
+		"managed_services_cmk_managed_hsm_key_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  hsmValidate.ManagedHSMDataPlaneVersionedKeyID,
+			ConflictsWith: []string{"managed_services_cmk_key_vault_key_id"},
+		},
+
+		"managed_disk_cmk_key_vault_key_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  keyVaultValidate.KeyVaultChildID,
+			ConflictsWith: []string{"managed_disk_cmk_managed_hsm_key_id"},
+		},
+
+		"managed_disk_cmk_managed_hsm_key_id": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  hsmValidate.ManagedHSMDataPlaneVersionedKeyID,
+			ConflictsWith: []string{"managed_disk_cmk_key_vault_key_id"},
+		},
+
+		"managed_disk_cmk_rotation_to_latest_version_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"disk_encryption_set_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"storage_account_identity": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"principal_id": {
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
+					},
+
+					"tenant_id": {
+						Type:      pluginsdk.TypeString,
+						Sensitive: true,
+						Computed:  true,
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"enhanced_security_compliance": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"automatic_cluster_update_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"compliance_security_profile_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"compliance_security_profile_standards": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(workspaces.ComplianceStandardHIPAA),
+								string(workspaces.ComplianceStandardPCIDSS),
+							}, false),
+						},
+					},
+					"enhanced_security_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"tags": commonschema.Tags(),
+	}
+	if !features.FivePointOhBeta() {
+		schema["managed_services_cmk_key_vault_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			Deprecated:   "'managed_services_cmk_key_vault_id' has been deprecated in favor of 'managed_services_cmk_key_vault_key_id' and will be removed in v4.0 of the provider",
+		}
+
+		schema["managed_services_cmk_managed_hsm_key_id"].ConflictsWith = []string{"managed_services_cmk_key_vault_key_id", "managed_services_cmk_key_vault_id"}
+
+		schema["managed_disk_cmk_key_vault_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			Deprecated:   "'managed_disk_cmk_key_vault_id' has been deprecated in favor of 'managed_disk_cmk_key_vault_key_id' and will be removed in v4.0 of the provider",
+		}
+
+		schema["managed_disk_cmk_managed_hsm_key_id"].ConflictsWith = []string{"managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_key_vault_id"}
+	}
+	return schema
+}
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -54,324 +401,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			return err
 		}),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.WorkspaceName,
-			},
-
-			"location": commonschema.Location(),
-
-			"resource_group_name": commonschema.ResourceGroupName(),
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"standard",
-					"premium",
-					"trial",
-				}, false),
-			},
-
-			"managed_resource_group_name": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// NOTE: O+C We set a value for this if omitted so this should remain Computed
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"customer_managed_key_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"managed_disk_identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"principal_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-
-						"tenant_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"infrastructure_encryption_enabled": {
-				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
-				Optional: true,
-				Default:  false,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"default_storage_firewall_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				RequiredWith: []string{"access_connector_id"},
-			},
-
-			"access_connector_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				RequiredWith: []string{"default_storage_firewall_enabled"},
-			},
-
-			"network_security_group_rules_required": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(workspaces.RequiredNsgRulesAllRules),
-					string(workspaces.RequiredNsgRulesNoAzureDatabricksRules),
-					string(workspaces.RequiredNsgRulesNoAzureServiceRules),
-				}, false),
-			},
-
-			"load_balancer_backend_address_pool_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
-			},
-
-			"custom_parameters": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				// NOTE: O+C The API populates these and since many are ForceNew there doesn't appear to be a need to remove this once set to use the defaults
-				Computed: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"machine_learning_workspace_id": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							ValidateFunc: mlworkspace.ValidateWorkspaceID,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"nat_gateway_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							Computed:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"no_public_ip": {
-							Type:         pluginsdk.TypeBool,
-							Optional:     true,
-							Default:      true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"public_ip_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							Computed:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"public_subnet_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"public_subnet_network_security_group_association_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"private_subnet_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"private_subnet_network_security_group_association_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"virtual_network_id": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							ValidateFunc: commonids.ValidateVirtualNetworkID,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"storage_account_name": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: storageValidate.StorageAccountName,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"storage_account_sku_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-
-						"vnet_address_prefix": {
-							Type:         pluginsdk.TypeString,
-							ForceNew:     true,
-							Optional:     true,
-							Computed:     true,
-							AtLeastOneOf: workspaceCustomParametersString(),
-						},
-					},
-				},
-			},
-
-			"managed_resource_group_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"workspace_url": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"managed_services_cmk_key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
-			},
-
-			"managed_services_cmk_key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateKeyVaultID,
-			},
-
-			"managed_disk_cmk_key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
-			},
-			"managed_disk_cmk_key_vault_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateKeyVaultID,
-			},
-
-			"managed_disk_cmk_rotation_to_latest_version_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
-			},
-
-			"disk_encryption_set_id": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"storage_account_identity": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"principal_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-
-						"tenant_id": {
-							Type:      pluginsdk.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-
-						"type": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"enhanced_security_compliance": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"automatic_cluster_update_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"compliance_security_profile_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"compliance_security_profile_standards": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
-								}, false),
-							},
-						},
-						"enhanced_security_monitoring_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
-
-			"tags": commonschema.Tags(),
-		},
+		Schema: databricksWorkspaceSchema(),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
@@ -382,8 +412,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 				_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 				_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
+				_, managedServicesCMKHSM := d.GetChange("managed_services_cmk_managed_hsm_key_id")
 				_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
 				_, enhancedSecurityCompliance := d.GetChange("enhanced_security_compliance")
+				_, managedDiskCMKHSM := d.GetChange("managed_disk_cmk_managed_hsm_key_id")
 
 				oldSku, newSku := d.GetChange("sku")
 
@@ -409,8 +441,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					}
 				}
 
-				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
+				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedServicesCMKHSM.(string) != "" || managedDiskCMK.(string) != "" || managedDiskCMKHSM.(string) != "") &&
+					!strings.EqualFold("premium", newSku.(string)) {
+					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id`, 'managed_disk_cmk_managed_hsm_key_id' and `managed_services_cmk_key_vault_key_id`, 'managed_services_cmk_managed_hsm_key_id' are only available with a `premium` workspace `sku`, got %q", newSku)
 				}
 
 				return nil
@@ -458,11 +491,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 }
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBricks.WorkspacesClient
-	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	clientHub := meta.(*clients.Client)
+	client := clientHub.DataBricks.WorkspacesClient
+	acClient := clientHub.DataBricks.AccessConnectorClient
+	lbClient := clientHub.LoadBalancers.LoadBalancersClient
+	accountClient := clientHub.Account
+	subscriptionId := accountClient.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -563,95 +597,31 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
 
-	var servicesKeyId string
-	var servicesKeyVaultId string
-	var diskKeyId string
-	var diskKeyVaultId string
-
-	if v, ok := d.GetOk("managed_services_cmk_key_vault_key_id"); ok {
-		servicesKeyId = v.(string)
-	}
-
-	if v, ok := d.GetOk("managed_services_cmk_key_vault_id"); ok {
-		servicesKeyVaultId = v.(string)
-	}
-
-	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
-		diskKeyId = v.(string)
-	}
-
-	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
-		diskKeyVaultId = v.(string)
-	}
-
-	// set default subscription as current subscription for key vault look-up...
-	servicesResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	diskResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-
-	if servicesKeyVaultId != "" {
-		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
-		// to extract the correct key vault subscription for the exists call...
-		v, err := commonids.ParseKeyVaultID(servicesKeyVaultId)
-		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", servicesKeyVaultId, err)
-		}
-
-		servicesResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
-	}
-
-	if servicesKeyId != "" {
+	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+		return fmt.Errorf("expanding customer-managed key for managed services encryption: %+v", err)
+	} else if cmkID != nil {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
-		if err != nil {
-			return err
-		}
-
-		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
-		}
 
 		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
 			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
 			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
-				KeyName:     key.Name,
-				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyName:     cmkID.Name(),
+				KeyVersion:  cmkID.Version(),
+				KeyVaultUri: cmkID.BaseUri(),
 			},
 		}
 	}
 
-	if diskKeyVaultId != "" {
-		// If they passed the 'managed_disk_cmk_key_vault_id' parse the Key Vault ID
-		// to extract the correct key vault subscription for the exists call...
-		v, err := commonids.ParseKeyVaultID(diskKeyVaultId)
-		if err != nil {
-			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", diskKeyVaultId, err)
-		}
-
-		diskResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
-	}
-
-	if diskKeyId != "" {
+	if diskCMKID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+		return fmt.Errorf("expanding customer-managed key for managed disk encryption: %+v", err)
+	} else if diskCMKID != nil {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(diskKeyId)
-		if err != nil {
-			return err
-		}
-
-		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
-		}
-
 		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
 			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
 			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
-				KeyName:     key.Name,
-				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyName:     diskCMKID.Name(),
+				KeyVersion:  diskCMKID.Version(),
+				KeyVaultUri: diskCMKID.BaseUri(),
 			},
 		}
 	}
@@ -755,13 +725,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
 	}
 
-	// Always set these even if they are empty to keep the state file
-	// consistent with the configuration file...
-	d.Set("managed_services_cmk_key_vault_key_id", servicesKeyId)
-	d.Set("managed_disk_cmk_key_vault_key_id", diskKeyId)
-	d.Set("managed_services_cmk_key_vault_id", servicesKeyVaultId)
-	d.Set("managed_disk_cmk_key_vault_id", diskKeyVaultId)
-
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
@@ -773,17 +736,6 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	var encryptDiskRotationEnabled bool
-	var servicesKeyVaultId string
-	if v, ok := d.GetOk("managed_services_cmk_key_vault_id"); ok {
-		servicesKeyVaultId = v.(string)
-	}
-
-	var diskKeyVaultId string
-	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
-		diskKeyVaultId = v.(string)
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -877,34 +829,46 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("workspace_id", workspaceId)
 
 		// customer managed key for managed services
-		var servicesKeyId string
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedServices; encryptionProps != nil {
-				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
-					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
-					if err == nil {
-						servicesKeyId = key.ID()
+				if kvProp := encryptionProps.KeyVaultProperties; kvProp != nil {
+					if kvProp.KeyVaultUri != "" {
+						cmkID, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMIDByComponents(kvProp.KeyVaultUri, kvProp.KeyName, kvProp.KeyVersion, meta.(*clients.Client).Account.Environment.ManagedHSM)
+						if err != nil {
+							return fmt.Errorf("flattening customer-managed key for managed services encryption: %+v", err)
+						}
+						if cmkID.KeyVaultKeyId != nil {
+							d.Set("managed_services_cmk_key_vault_key_id", cmkID.KeyVaultKeyId.ID())
+						} else {
+							d.Set("managed_services_cmk_managed_hsm_key_id", cmkID.ID())
+						}
 					}
 				}
 			}
 		}
 
 		// customer managed key for managed disk
-		var diskKeyId string
+		var encryptDiskRotationEnabled bool
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedDisk; encryptionProps != nil {
-				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
-					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
-					if err == nil {
-						diskKeyId = key.ID()
+				if kvProp := encryptionProps.KeyVaultProperties; kvProp.KeyVaultUri != "" {
+					cmkID, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMIDByComponents(kvProp.KeyVaultUri, kvProp.KeyName, kvProp.KeyVersion, meta.(*clients.Client).Account.Environment.ManagedHSM)
+					if err != nil {
+						return fmt.Errorf("flattening customer-managed key for managed disk encryption: %+v", err)
+					}
+					if cmkID.KeyVaultKeyId != nil {
+						d.Set("managed_disk_cmk_key_vault_key_id", cmkID.KeyVaultKeyId.ID())
+					} else {
+						d.Set("managed_disk_cmk_managed_hsm_key_id", cmkID.ID())
 					}
 				}
 
-				encryptDiskRotationEnabled = *encryptionProps.RotationToLatestKeyVersionEnabled
+				encryptDiskRotationEnabled = pointer.From(encryptionProps.RotationToLatestKeyVersionEnabled)
 			}
 		}
 
 		d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance))
+		d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
 
 		var encryptDiskEncryptionSetId string
 		if model.Properties.DiskEncryptionSetId != nil {
@@ -912,13 +876,11 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("disk_encryption_set_id", encryptDiskEncryptionSetId)
 
-		// Always set these even if they are empty to keep the state file
-		// consistent with the configuration file...
-		d.Set("managed_services_cmk_key_vault_key_id", servicesKeyId)
-		d.Set("managed_services_cmk_key_vault_id", servicesKeyVaultId)
-		d.Set("managed_disk_cmk_key_vault_key_id", diskKeyId)
-		d.Set("managed_disk_cmk_key_vault_id", diskKeyVaultId)
-		d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
+		// Always set these even if they are empty to keep the state file in 4.x
+		if !features.FivePointOhBeta() {
+			d.Set("managed_services_cmk_key_vault_id", d.Get("managed_services_cmk_key_vault_id"))
+			d.Set("managed_disk_cmk_key_vault_id", d.Get("managed_disk_cmk_key_vault_id"))
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
