@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -589,12 +588,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 			expanded.LinuxFxVersion = javaString
 		}
 
-		if !features.FourPointOhBeta() {
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-			}
-		}
-
 		if linuxAppStack.DockerImageName != "" {
 			expanded.LinuxFxVersion = pointer.To(EncodeDockerFxString(linuxAppStack.DockerImageName, linuxAppStack.DockerRegistryUrl))
 
@@ -725,12 +718,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 			}
 			expanded.LinuxFxVersion = javaString
-		}
-
-		if !features.FourPointOhBeta() {
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-			}
 		}
 
 		if linuxAppStack.DockerImageName != "" {
@@ -1033,16 +1020,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 			}
 		}
 
-		if !features.FourPointOhBeta() {
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				}
-			}
-		}
-
 		if winAppStack.DockerImageName != "" {
 			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
 
@@ -1179,15 +1156,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 			case winAppStack.JavaContainer != "":
 				expanded.JavaContainer = pointer.To(winAppStack.JavaContainer)
 				expanded.JavaContainerVersion = pointer.To(winAppStack.JavaContainerVersion)
-			}
-		}
-		if !features.FourPointOhBeta() {
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				}
 			}
 		}
 
