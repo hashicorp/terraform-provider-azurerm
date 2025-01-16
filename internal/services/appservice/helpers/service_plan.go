@@ -43,6 +43,12 @@ var consumptionSkus = []string{
 	"Y1",
 }
 
+var premiumSkus = []string{
+	"P1v2", "P2v2", "P3v2", // Premium V2
+	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
+	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
+}
+
 var flexConsumptionSkus = []string{
 	"FC1",
 }
@@ -80,6 +86,19 @@ func PlanIsConsumption(input *string) bool {
 		return false
 	}
 	for _, v := range consumptionSkus {
+		if strings.EqualFold(*input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlanIsPremium(input *string) bool {
+	if input == nil {
+		return false
+	}
+	for _, v := range premiumSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}
