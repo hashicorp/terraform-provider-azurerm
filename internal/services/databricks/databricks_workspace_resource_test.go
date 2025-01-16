@@ -852,10 +852,10 @@ resource "azurerm_subnet" "public" {
 
   delegation {
     name = "acctest"
-  
+
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-  
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
@@ -873,10 +873,10 @@ resource "azurerm_subnet" "private" {
 
   delegation {
     name = "acctest"
-  
+
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-  
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
@@ -960,10 +960,10 @@ resource "azurerm_subnet" "private" {
 
   delegation {
     name = "acctest"
-  
+
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-  
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
@@ -1040,10 +1040,10 @@ resource "azurerm_subnet" "public" {
 
   delegation {
     name = "acctest"
-  
+
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-  
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
@@ -1334,10 +1334,10 @@ resource "azurerm_subnet" "public" {
 
   delegation {
     name = "acctest"
-  
+
     service_delegation {
       name = "Microsoft.Databricks/workspaces"
-	
+
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
         "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
