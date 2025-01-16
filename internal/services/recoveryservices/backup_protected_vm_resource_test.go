@@ -251,6 +251,25 @@ func TestAccBackupProtectedVm_protectionStoppedOnDestroy(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_protectionSuspendedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSuspendProtection(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithSuspendProtection(data, true),
+		},
+	})
+}
+
 func TestAccBackupProtectedVm_recoverSoftDeletedVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
@@ -1126,4 +1145,159 @@ provider "azurerm" {
 
 %s
 `, r.baseWithSoftDelete(data), protectedVMBlock)
+}
+
+func (r BackupProtectedVmResource) basicWithSuspendProtection(data acceptance.TestData, deleted bool) string {
+	protectedVMBlock := `
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+  backup_policy_id    = join("/", [azurerm_recovery_services_vault.test.id, "backupPolicies/EnhancedPolicy"])
+
+  include_disk_luns = [0]
+}
+`
+	if deleted {
+		protectedVMBlock = ""
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    recovery_service {
+      vm_backup_suspend_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy             = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-backup-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet"
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/16"]
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest_subnet"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["10.0.10.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctest_nic"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "acctestipconfig"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-ip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestip%[1]d"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctest-datadisk"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1023"
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctestvm"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  vm_size               = "Standard_D1_v2"
+  network_interface_ids = [azurerm_network_interface.test.id]
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "acctest-osdisk"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+  }
+
+  storage_data_disk {
+    name              = "acctest-datadisk"
+    managed_disk_id   = azurerm_managed_disk.test.id
+    managed_disk_type = "Standard_LRS"
+    disk_size_gb      = azurerm_managed_disk.test.disk_size_gb
+    create_option     = "Attach"
+    lun               = 0
+  }
+
+  storage_data_disk {
+    name              = "acctest-another-datadisk"
+    create_option     = "Empty"
+    disk_size_gb      = "1"
+    lun               = 1
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "acctest"
+    admin_username = "vmadmin"
+    admin_password = "Password123!@#"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
+  }
+
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+  immutability        = "Unlocked"
+}
+
+%[4]s
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, protectedVMBlock)
 }
