@@ -192,11 +192,11 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	if features.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy {
-		t.Errorf("expected recver_services.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
+		t.Errorf("expected recovery_service.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
 	}
 
 	if features.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy {
-		t.Errorf("expected recver_services.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
+		t.Errorf("expected recovery_service.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
 	}
 
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {

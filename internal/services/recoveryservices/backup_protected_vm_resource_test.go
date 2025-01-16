@@ -1117,21 +1117,6 @@ provider "azurerm" {
 `, r.baseWithOutProvider(data))
 }
 
-func (r BackupProtectedVmResource) protectionSuspendOnDestroy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    recovery_service {
-      vm_backup_suspend_protection_and_retain_data_on_destroy = true
-      purge_protected_items_from_vault_on_destroy          = true
-    }
-  }
-}
-
-%s
-`, r.baseWithOutProvider(data))
-}
-
 func (r BackupProtectedVmResource) basicWithSoftDelete(data acceptance.TestData, deleted bool) string {
 	protectedVMBlock := `
 resource "azurerm_backup_protected_vm" "test" {
