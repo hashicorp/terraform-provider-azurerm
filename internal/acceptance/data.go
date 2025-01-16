@@ -82,7 +82,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 
 	testData.Subscriptions = Subscriptions{
 		Primary:   os.Getenv("ARM_SUBSCRIPTION_ID"),
-		Secondary: os.Getenv("ARM_TEST_SUBSCRIPTION_ID_ALT"),
+		Secondary: os.Getenv("ARM_SUBSCRIPTION_ID_ALT"),
 	}
 
 	return testData
