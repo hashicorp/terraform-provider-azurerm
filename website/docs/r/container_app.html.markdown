@@ -398,6 +398,8 @@ An `ingress` block supports the following:
 
 ~> **Note:**  if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
+* `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
+
 ---
 
 A `ip_security_restriction` block supports the following:

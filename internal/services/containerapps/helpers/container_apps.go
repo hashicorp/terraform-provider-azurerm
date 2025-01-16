@@ -298,10 +298,13 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
-		ClientCertificateMode:  pointer.To(containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
+	if ingress.ClientCertificateMode != "" {
+		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
+		result.ClientCertificateMode = &clientCertificateMode
+	}
 
 	return result
 }
@@ -321,11 +324,14 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
-		ClientCertificateMode:  string(pointer.From(ingress.ClientCertificateMode)),
 	}
 
 	if ingress.Transport != nil {
 		result.Transport = strings.ToLower(string(*ingress.Transport))
+	}
+
+	if ingress.ClientCertificateMode != nil {
+		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
 	}
 
 	return []Ingress{result}
