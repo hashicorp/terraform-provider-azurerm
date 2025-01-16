@@ -26,7 +26,7 @@ type SSODatadogMonitorResource struct {
 // Because the test resource interface requires an Exists() function with a value receiver, I refactored this function
 // to take a resource as arg rather than receiver in order to comply with the Go recommendation to not make methods on
 // both value and pointer receivers.
-func populateValuesFromEnvironment(t *testing.T, r *SSODatadogMonitorResource) {
+func NewSSODatadogMonitorResource(t *testing.T) SSODatadogMonitorResource {
 	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
 	}
@@ -36,16 +36,16 @@ func populateValuesFromEnvironment(t *testing.T, r *SSODatadogMonitorResource) {
 	if os.Getenv("ARM_TEST_ENTERPRISE_APP_ID") == "" {
 		t.Skip("Skipping as ARM_TEST_ENTERPRISE_APP_ID is not specified")
 	}
-
-	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
-	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
-	r.enterpriseAppId = os.Getenv("ARM_TEST_ENTERPRISE_APP_ID")
+	return SSODatadogMonitorResource{
+		datadogApiKey:         os.Getenv("ARM_TEST_DATADOG_API_KEY"),
+		datadogApplicationKey: os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"),
+		enterpriseAppId:       os.Getenv("ARM_TEST_ENTERPRISE_APP_ID"),
+	}
 }
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := SSODatadogMonitorResource{}
-	populateValuesFromEnvironment(t, &r)
+	r := NewSSODatadogMonitorResource(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -60,8 +60,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 
 func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := SSODatadogMonitorResource{}
-	populateValuesFromEnvironment(t, &r)
+	r := NewSSODatadogMonitorResource(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -75,8 +74,7 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := SSODatadogMonitorResource{}
-	populateValuesFromEnvironment(t, &r)
+	r := NewSSODatadogMonitorResource(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),

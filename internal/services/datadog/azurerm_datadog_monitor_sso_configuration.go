@@ -66,9 +66,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 
 			"single_sign_on": {
 				Type:     pluginsdk.TypeString,
-				Required: features.FivePointOhBeta(),
-				Optional: !features.FivePointOhBeta(),
-				Computed: !features.FivePointOhBeta(),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(singlesignon.SingleSignOnStatesEnable),
 					string(singlesignon.SingleSignOnStatesDisable),
@@ -99,6 +97,8 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			ExactlyOneOf: []string{"single_sign_on"},
 			Deprecated:   "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `single_sign_on` property instead.",
 		}
+		resource.Schema["single_sign_on"].Optional = true
+		resource.Schema["single_sign_on"].Computed = true
 	}
 
 	return resource
@@ -170,7 +170,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// per the create func
-			d.Set("single_sign_on", props.SingleSignOnState)
+			d.Set("single_sign_on", string(*props.SingleSignOnState))
 			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 
