@@ -60,13 +60,8 @@ func (ContainerRegistryCredentialSetResource) Arguments() map[string]*pluginsdk.
 				},
 			},
 		},
-		// Note [1]: At point in time of the implementation of this resource the API only accept SystemAssigned even though API Spec defines all three identity modes are possible
-		// Error when trying with type UserAssigned:
-		//	code: "CannotSetResourceIdentity"
-		//	message: "The resource identity 'UserAssigned' cannot be set on the resource of type 'Microsoft.ContainerRegistry/registries/credentialSets'."
-		// or with type empty:
-		//	code: "OnlySystemManagedIdentityAllowed"
-		//	message: "Only System Managed Identities are allowed for resources of type 'Microsoft.ContainerRegistry/registries/credentialSets'. For more information, please visit https://aka.ms/acr/cache."
+		// This property relies on a pandora workaround due to a swagger issue
+		// https://github.com/Azure/azure-rest-api-specs/issues/32154
 		"identity": commonschema.SystemAssignedIdentityRequired(),
 	}
 }
