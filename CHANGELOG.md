@@ -4,6 +4,7 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_container_registry_credential_set` [GH-27528]
 * **New Resource**: `azurerm_mssql_job` [GH-28456]
 * **New Resource**: `azurerm_mssql_job_schedule` [GH-28456]
 
@@ -14,6 +15,7 @@ ENHANCEMENTS:
 * dependencies - `postgresql` update API version to `2024-08-01` [GH-28474]
 * `azurerm_cost_anomaly_alert` - add support for the `notification_email` property [GH-27680]
 * `azurerm_data_protection_backup_vault` - support for `immutability` property [GH-27859]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `temporary_name_for_rotation` property to allow node pool rotation [GH-27791]
 * `azurerm_linux_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 * `azurerm_windows_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
 * `azurerm_linux_web_app` - add  support for node `22` and java `17` support for `JBOSSEAP` [GH-28472]
