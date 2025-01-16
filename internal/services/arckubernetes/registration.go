@@ -52,5 +52,6 @@ func (r Registration) Resources() []sdk.Resource {
 		ArcKubernetesClusterExtensionResource{},
 		ArcKubernetesFluxConfigurationResource{},
 		ArcKubernetesProvisionedClusterInstanceResource{},
+		ArcKubernetesProvisionedClusterResource{},
 	}
 }

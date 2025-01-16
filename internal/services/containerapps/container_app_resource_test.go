@@ -1387,6 +1387,8 @@ resource "azurerm_container_app" "test" {
     max_replicas = 3
 
     revision_suffix = "%[3]s"
+
+    termination_grace_period_seconds = 60
   }
 
   ingress {

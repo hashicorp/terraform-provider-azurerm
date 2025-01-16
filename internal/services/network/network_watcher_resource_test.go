@@ -79,6 +79,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 		"FlowLog": {
 			"basic":                   testAccNetworkWatcherFlowLog_basic,
 			"basicWithVirtualNetwork": testAccNetworkWatcherFlowLog_basicWithVirtualNetwork,
+			"basicWithSubnet":         testAccNetworkWatcherFlowLog_basicWithSubnet,
+			"basicWithNIC":            testAccNetworkWatcherFlowLog_basicWithNIC,
 			"requiresImport":          testAccNetworkWatcherFlowLog_requiresImport,
 			"disabled":                testAccNetworkWatcherFlowLog_disabled,
 			"reenabled":               testAccNetworkWatcherFlowLog_reenabled,
