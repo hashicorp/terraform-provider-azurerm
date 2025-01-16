@@ -873,6 +873,7 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 				"termination_grace_period_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 600),
 					Description:  "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
 				},
@@ -917,6 +918,11 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"termination_grace_period_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -929,10 +935,9 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 
 	config := input[0]
 	template := &containerapps.Template{
-		Containers:                    expandContainerAppContainers(config.Containers),
-		InitContainers:                expandInitContainerAppContainers(config.InitContainers),
-		Volumes:                       expandContainerAppVolumes(config.Volumes),
-		TerminationGracePeriodSeconds: pointer.To(config.TerminationGracePeriod),
+		Containers:     expandContainerAppContainers(config.Containers),
+		InitContainers: expandInitContainerAppContainers(config.InitContainers),
+		Volumes:        expandContainerAppVolumes(config.Volumes),
 	}
 
 	if config.MaxReplicas != 0 {
@@ -940,6 +945,10 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 			template.Scale = &containerapps.Scale{}
 		}
 		template.Scale.MaxReplicas = pointer.To(config.MaxReplicas)
+	}
+
+	if config.TerminationGracePeriod != 0 {
+		template.TerminationGracePeriodSeconds = pointer.To(config.TerminationGracePeriod)
 	}
 
 	if config.MinReplicas != 0 {
