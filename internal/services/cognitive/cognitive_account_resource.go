@@ -245,7 +245,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"bypass": {
 							Type:        pluginsdk.TypeString,
 							Optional:    true,
-							Description: "Only support for the kind `OpenAI`",
+							Computed:    true,
+							Description: "Only supported for the kind `OpenAI`",
 							ValidateFunc: validation.StringInSlice(
 								cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
 								false,
@@ -719,8 +720,11 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	kind := d.Get("kind").(string)
+	bypass := cognitiveservicesaccounts.ByPassSelectionAzureServices
 	if kind == "OpenAI" {
-		bypass := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
+			bypass = cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		}
 		ruleSet.Bypass = &bypass
 	} else {
 		if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
