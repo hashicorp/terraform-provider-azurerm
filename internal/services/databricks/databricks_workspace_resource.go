@@ -728,7 +728,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -1243,11 +1243,12 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
 	props.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
+	model.Properties = props
+
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	// TODO: can be removed once https://github.com/Azure/azure-sdk-for-go/issues/14571 is fixed
 	if d.HasChange("tags") {
 		workspaceUpdate := workspaces.WorkspaceUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
