@@ -54,6 +54,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
+### `azurerm_maps_creator`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://aka.ms/AzureMapsCreatorDeprecation).
+
 ## Removed Data Sources
 
 Please follow the format in the example below for adding removed data sources:
@@ -102,6 +106,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
 
+### `azurerm_express_route_connection`
+
+* The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
@@ -120,6 +128,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
 
+### `azurerm_mssql_managed_instance`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
 ### `azurerm_mssql_server`
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
@@ -133,14 +145,27 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_redis_cache`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_redis_enterprise_cluster`
+
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
+
+### `azurerm_servicebus_namespace`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
 
 ### `azurerm_storage_account`
 
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
+* The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 
 ### `azurerm_storage_container`
 
