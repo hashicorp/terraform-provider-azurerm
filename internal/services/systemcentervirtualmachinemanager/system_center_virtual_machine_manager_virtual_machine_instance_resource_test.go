@@ -49,7 +49,7 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("operating_system", "hardware", "network_interface"),
 	})
 }
 
@@ -177,22 +177,6 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
     system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-  }
-
-  operating_system {
-    computer_name = "testComputer"
-  }
-
-  hardware {
-    cpu_count    = 1
-    memory_in_mb = 1024
-  }
-
-  network_interface {
-    name              = "testNIC"
-    ipv4_address_type = "Dynamic"
-    ipv6_address_type = "Dynamic"
-    mac_address_type  = "Dynamic"
   }
 
   lifecycle {
