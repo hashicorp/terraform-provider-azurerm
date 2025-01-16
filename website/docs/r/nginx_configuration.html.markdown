@@ -149,6 +149,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of this Nginx Configuration.
 
+* `protected_file` - Zero or more `protected_file` blocks with sensitive information as defined below.
+
+---
+
+A `protected_file` block exports the following:
+
+* `content_hash` - The hash of the contents of this configuration file prefixed by the algorithm used.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

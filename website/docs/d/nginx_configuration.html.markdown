@@ -54,6 +54,8 @@ A `config_file` block exports the following:
 
 A `protected_file` block exports the following:
 
+* `content_hash` - The hash of the contents of this configuration file prefixed by the algorithm used.
+
 * `virtual_path` - The path of this configuration file.
 
 ## Timeouts
