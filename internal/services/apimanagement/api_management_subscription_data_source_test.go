@@ -60,7 +60,7 @@ resource "azurerm_api_management_subscription" "test" {
 }
 
 data "azurerm_api_management_subscription" "test" {
-  api_management_id = api_management_id.test.id
+  api_management_id = azurerm_api_management.test.id
   subscription_id   = azurerm_api_management_subscription.test.subscription_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

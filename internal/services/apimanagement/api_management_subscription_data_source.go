@@ -148,6 +148,7 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 					}
 					state.AllowTracing = pointer.From(props.AllowTracing)
 					state.DisplayName = pointer.From(props.DisplayName)
+					state.State = string(props.State)
 					state.UserId = pointer.From(props.OwnerId)
 				}
 			}
