@@ -36,6 +36,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `config_file` - A `config_file` block as defined below.
 
+* `protected_file` - A `protected_file` block as defined below.
+
 * `package_data` - The package data for this configuration.
 
 * `root_file` - The root file path of this Nginx Configuration.
@@ -45,6 +47,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 A `config_file` block exports the following:
 
 * `content` - The base-64 encoded contents of this configuration file.
+
+* `virtual_path` - The path of this configuration file.
+
+---
+
+A `protected_file` block exports the following:
 
 * `virtual_path` - The path of this configuration file.
 

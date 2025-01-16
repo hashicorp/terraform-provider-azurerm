@@ -276,9 +276,17 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) Delete() sdk.R
 
 			managedInstanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
 
-			err = aadAuthOnlyClient.DeleteThenPoll(ctx, managedInstanceId)
+			// Before deleting an AAD admin, it is necessary to disable `AzureADOnlyAuthentication` first, as deleting an AAD admin when `AzureADOnlyAuthentication` feature is enabled is not supported.
+			// Use `CreateOrUpdateThenPoll` instead of `DeleteThenPoll`, because the actual deletion behavior of the API is not to really delete the record, but to update `AzureADOnlyAuthentication` to false. Therefore, using `DeleteThenPoll` will cause pull till done to never end until it times out.
+			aadAuthOnlyParams := managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthentication{
+				Properties: &managedinstanceazureadonlyauthentications.ManagedInstanceAzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: false,
+				},
+			}
+
+			err = aadAuthOnlyClient.CreateOrUpdateThenPoll(ctx, managedInstanceId, aadAuthOnlyParams)
 			if err != nil {
-				return fmt.Errorf("removing `azuread_authentication_only` for %s: %+v", managedInstanceId, err)
+				return fmt.Errorf("disabling `azuread_authentication_only` for %s: %+v", id, err)
 			}
 
 			err = client.DeleteThenPoll(ctx, managedInstanceId)
