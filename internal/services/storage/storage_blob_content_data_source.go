@@ -16,7 +16,7 @@ import (
 
 const (
 	mibSizeBytes           = 1048576
-	maxBlobSizeMib         = 1
+	maxBlobSizeMib         = 2
 	maxBlobSizeBytes int64 = mibSizeBytes * maxBlobSizeMib
 )
 
