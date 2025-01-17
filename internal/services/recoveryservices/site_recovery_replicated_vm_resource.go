@@ -304,6 +304,16 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem:       networkInterfaceResource(),
 			},
+
+			// ONLY available in API version 2023-06-01
+			"churn_option_selected": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(replicationprotecteditems.ChurnOptionSelectedNormal),
+					string(replicationprotecteditems.ChurnOptionSelectedHigh),
+				}, false),
+			},
 		},
 	}
 }
@@ -508,6 +518,7 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 				VMManagedDisks:                     &managedDisks,
 				VMDisks:                            &vmDisks,
 				RecoveryExtendedLocation:           expandEdgeZone(d.Get("target_edge_zone").(string)),
+				ChurnOptionSelected:                pointer.To(d.Get("churn_option_selected").(string)),
 			},
 		},
 	}
