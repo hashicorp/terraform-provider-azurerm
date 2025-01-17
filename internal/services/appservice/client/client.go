@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appservicecertificateorders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
@@ -15,11 +16,12 @@ import (
 )
 
 type Client struct {
-	AppServiceEnvironmentClient *appserviceenvironments.AppServiceEnvironmentsClient
-	ResourceProvidersClient     *resourceproviders.ResourceProvidersClient
-	ServicePlanClient           *appserviceplans.AppServicePlansClient
-	StaticSitesClient           *staticsites.StaticSitesClient
-	WebAppsClient               *webapps.WebAppsClient
+	AppServiceEnvironmentClient       *appserviceenvironments.AppServiceEnvironmentsClient
+	ResourceProvidersClient           *resourceproviders.ResourceProvidersClient
+	ServicePlanClient                 *appserviceplans.AppServicePlansClient
+	StaticSitesClient                 *staticsites.StaticSitesClient
+	WebAppsClient                     *webapps.WebAppsClient
+	AppServiceCertificatesOrderClient *appservicecertificateorders.AppServiceCertificateOrdersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -53,11 +55,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(servicePlanClient.Client, o.Authorizers.ResourceManager)
 
+	appServiceCertificatesOrderClient, err := appservicecertificateorders.NewAppServiceCertificateOrdersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Certificate Order client: %+v", err)
+	}
+	o.Configure(appServiceCertificatesOrderClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
-		AppServiceEnvironmentClient: appServiceEnvironmentClient,
-		ResourceProvidersClient:     resourceProvidersClient,
-		ServicePlanClient:           servicePlanClient,
-		StaticSitesClient:           staticSitesClient,
-		WebAppsClient:               webAppServiceClient,
+		AppServiceEnvironmentClient:       appServiceEnvironmentClient,
+		ResourceProvidersClient:           resourceProvidersClient,
+		ServicePlanClient:                 servicePlanClient,
+		StaticSitesClient:                 staticSitesClient,
+		WebAppsClient:                     webAppServiceClient,
+		AppServiceCertificatesOrderClient: appServiceCertificatesOrderClient,
 	}, nil
 }
