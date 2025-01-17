@@ -8,8 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoordeliveryruleactiondiscriminator"
 )
 
 func CdnFrontDoorRouteName(i interface{}, k string) (_ []string, errors []error) {
@@ -87,7 +88,7 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 	return nil, nil
 }
 
-func CdnFrontDoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
+func CdnFrontDoorActionsBlock(actions []rules.DeliveryRuleAction) error {
 	routeConfigurationOverride := false
 	responseHeader := false
 	requestHeader := false
@@ -96,23 +97,23 @@ func CdnFrontDoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
 
 	for _, rule := range actions {
 		if !routeConfigurationOverride {
-			_, routeConfigurationOverride = rule.AsDeliveryRuleRouteConfigurationOverrideAction()
+			_, routeConfigurationOverride = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleRouteConfigurationOverrideAction(rule)
 		}
 
 		if !responseHeader {
-			_, responseHeader = rule.AsDeliveryRuleResponseHeaderAction()
+			_, responseHeader = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleResponseHeaderAction(rule)
 		}
 
 		if !requestHeader {
-			_, requestHeader = rule.AsDeliveryRuleRequestHeaderAction()
+			_, requestHeader = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleRequestHeaderAction(rule)
 		}
 
 		if !urlRewrite {
-			_, urlRewrite = rule.AsURLRewriteAction()
+			_, urlRewrite = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleUrlRewriteAction(rule)
 		}
 
 		if !urlRedirect {
-			_, urlRedirect = rule.AsURLRedirectAction()
+			_, urlRedirect = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleUrlRedirectAction(rule)
 		}
 	}
 
