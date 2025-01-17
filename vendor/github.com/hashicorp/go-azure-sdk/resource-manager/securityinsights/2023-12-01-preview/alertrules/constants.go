@@ -61,6 +61,7 @@ const (
 	AlertPropertyProductName          AlertProperty = "ProductName"
 	AlertPropertyProviderName         AlertProperty = "ProviderName"
 	AlertPropertyRemediationSteps     AlertProperty = "RemediationSteps"
+	AlertPropertySubTechniques        AlertProperty = "SubTechniques"
 	AlertPropertyTechniques           AlertProperty = "Techniques"
 )
 
@@ -74,6 +75,7 @@ func PossibleValuesForAlertProperty() []string {
 		string(AlertPropertyProductName),
 		string(AlertPropertyProviderName),
 		string(AlertPropertyRemediationSteps),
+		string(AlertPropertySubTechniques),
 		string(AlertPropertyTechniques),
 	}
 }
@@ -101,6 +103,7 @@ func parseAlertProperty(input string) (*AlertProperty, error) {
 		"productname":          AlertPropertyProductName,
 		"providername":         AlertPropertyProviderName,
 		"remediationsteps":     AlertPropertyRemediationSteps,
+		"subtechniques":        AlertPropertySubTechniques,
 		"techniques":           AlertPropertyTechniques,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
