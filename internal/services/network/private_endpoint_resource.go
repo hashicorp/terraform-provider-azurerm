@@ -5,8 +5,10 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -25,6 +27,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -349,27 +352,51 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-			switch {
-			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
-				{
+		result, err := client.CreateOrUpdate(ctx, id, parameters)
+		if err != nil {
+			return &pluginsdk.RetryError{
+				Err:       fmt.Errorf("creating %s: %+v", id, err),
+				Retryable: false,
+			}
+		}
+
+		if err := result.Poller.PollUntilDone(ctx); err != nil {
+			if strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id") {
+				return &pluginsdk.RetryError{
+					Err:       fmt.Errorf("waiting the creation of %s: %+v", id, err),
+					Retryable: true,
+				}
+			}
+
+			var lroFailError pollers.PollingFailedError
+			if errors.As(err, &lroFailError) {
+				type lroErrorType struct {
+					Error struct {
+						Code    string `json:"code"`
+						Message string `json:"message"`
+					} `json:"error"`
+				}
+
+				var lroError lroErrorType
+				if err := lroFailError.HttpResponse.Unmarshal(&lroError); err != nil {
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("creating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
+						Err:       fmt.Errorf("unmarshaling lro error response: %v", err),
 						Retryable: false,
 					}
 				}
-			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
-				{
+
+				var retryableErrorCodes = []string{"RetryableError", "StorageAccountOperationInProgress"}
+				if slices.Contains(retryableErrorCodes, lroError.Error.Code) {
+					log.Printf("[WARN] Retry polling %q on error code: %q", id, lroError.Error.Code)
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("creating Private Endpoint %s: %+v", id, err),
 						Retryable: true,
 					}
 				}
-			default:
-				return &pluginsdk.RetryError{
-					Err:       fmt.Errorf("creating %s: %+v", id, err),
-					Retryable: false,
-				}
+			}
+
+			return &pluginsdk.RetryError{
+				Err:       fmt.Errorf("waiting the creation of %s: %+v", id, err),
+				Retryable: false,
 			}
 		}
 
