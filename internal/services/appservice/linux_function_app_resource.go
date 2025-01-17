@@ -1000,28 +1000,35 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
-				if err != nil {
-					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
-				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings = helpers.ParseContentSettings(appSettingsResp.Model, state.AppSettings)
 
 				if !state.StorageUsesMSI {
-					suffix := uuid.New().String()[0:4]
 					_, contentOverVnetEnabled := state.AppSettings["WEBSITE_CONTENTOVERVNET"]
 					_, contentSharePresent := state.AppSettings["WEBSITE_CONTENTSHARE"]
-					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
-						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
-					}
 
 					if !contentSharePresent {
 						if contentOverVnetEnabled {
 							return fmt.Errorf("the value of WEBSITE_CONTENTSHARE must be set to a predefined share when the storage account is restricted to a virtual network")
 						}
-						state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
+
+						// WEBSITE_CONTENTSHARE is not defined, so we read the current value from the Function
+						appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+						if err != nil {
+							return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+						}
+						state.AppSettings = helpers.ParseContentSettings(appSettingsResp.Model, state.AppSettings)
+
+						// We check again, and if still empty we generate one
+						_, contentSharePresent = state.AppSettings["WEBSITE_CONTENTSHARE"]
+						if !contentSharePresent {
+							suffix := uuid.New().String()[0:4]
+							state.AppSettings["WEBSITE_CONTENTSHARE"] = fmt.Sprintf("%s-%s", strings.ToLower(state.Name), suffix)
+						}
+					}
+					if _, contentShareConnectionStringPresent := state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !contentShareConnectionStringPresent {
+						state.AppSettings["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"] = storageString
 					}
 				} else {
 					if _, present := state.AppSettings["AzureWebJobsStorage__accountName"]; !present {
