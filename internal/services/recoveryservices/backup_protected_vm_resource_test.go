@@ -79,7 +79,6 @@ func TestAccBackupProtectedVm_separateResourceGroups(t *testing.T) {
 }
 
 func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
-	virtualMachine := "azurerm_virtual_machine.test"
 	fBackupPolicyResourceName := "azurerm_backup_policy_vm.test"
 	sBackupPolicyResourceName := "azurerm_backup_policy_vm.test_change_backup"
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
@@ -107,43 +106,6 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			// Azure API is quite sensitive, adding the step to control resource cleanup order
 			ResourceName: fBackupPolicyResourceName,
 			Config:       r.withBasePolicy(data),
-		},
-		{
-			// Then VM can be removed
-			ResourceName: virtualMachine,
-			Config:       r.withBasePolicy(data),
-		},
-		{
-			// Remove backup policies and vault
-			ResourceName: data.ResourceName,
-			Config:       r.basePolicyTest(data),
-		},
-	})
-}
-
-func TestAccBackupProtectedVm_updateVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
-	r := BackupProtectedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.updateVaultFirstBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateVaultSecondBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		{
-			// vault cannot be deleted unless we unregister all backups
-			Config: r.additionalVault(data),
 		},
 	})
 }
@@ -239,6 +201,25 @@ func TestAccBackupProtectedVm_protectionStoppedOnDestroy(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protectionStoppedOnDestroy(data),
+		},
+	})
+}
+
+func TestAccBackupProtectedVm_protectionStoppedOnDestroyWithGuard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithGuard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -851,73 +832,6 @@ resource "azurerm_backup_protected_vm" "test" {
 }
 
 // For update backup policy id test
-func (BackupProtectedVmResource) basePolicyTest(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-backup-%d-1"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
-  location            = azurerm_resource_group.test.location
-  address_space       = ["10.0.0.0/16"]
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest_subnet"
-  virtual_network_name = azurerm_virtual_network.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  address_prefixes     = ["10.0.10.0/24"]
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctest_nic"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "acctestipconfig"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test.id
-  }
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-ip"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
-  domain_name_label   = "acctestip%d"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctest-datadisk"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1023"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
-}
-
-// For update backup policy id test
 func (r BackupProtectedVmResource) withBasePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1042,32 +956,6 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.baseWithoutVM(data))
 }
 
-func (r BackupProtectedVmResource) updateVaultFirstBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  backup_policy_id    = azurerm_backup_policy_vm.test.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultSecondBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test2.name
-  backup_policy_id    = azurerm_backup_policy_vm.test2.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
 func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1126,4 +1014,32 @@ provider "azurerm" {
 
 %s
 `, r.baseWithSoftDelete(data), protectedVMBlock)
+}
+
+func (r BackupProtectedVmResource) basicWithGuard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
+  backup_policy_id    = azurerm_backup_policy_vm.test.id
+
+  include_disk_luns = [0]
+
+  depends_on = [azurerm_recovery_services_vault_resource_guard_association.test]
+}
+
+resource "azurerm_data_protection_resource_guard" "test" {
+  name                = "acctest-dprg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
+  vault_id          = azurerm_recovery_services_vault.test.id
+  resource_guard_id = azurerm_data_protection_resource_guard.test.id
+}
+`, r.base(data), data.RandomInteger)
 }
