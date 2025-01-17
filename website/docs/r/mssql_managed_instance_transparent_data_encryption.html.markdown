@@ -187,6 +187,8 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) To use customer managed keys from Azure Key Vault, provide the AKV Key ID. To use service managed keys, omit this field.
 
+* `managed_hsm_key_id` -  (Optional)  To use customer managed keys from a managed HSM, provide the Managed HSM Key ID. To use service managed keys, omit this field.
+
 ~> **NOTE:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey' 
 
 ~> **NOTE:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
