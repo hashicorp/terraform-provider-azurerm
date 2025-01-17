@@ -94,12 +94,12 @@ func PlanIsConsumption(input *string) bool {
 	return false
 }
 
-func PlanIsPremium(input *string) bool {
-	if input == nil {
+func PlanIsPremium(input string) bool {
+	if input == "" {
 		return false
 	}
 	for _, v := range premiumSkus {
-		if strings.EqualFold(*input, v) {
+		if strings.EqualFold(input, v) {
 			return true
 		}
 	}
