@@ -175,14 +175,6 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[2]d-e"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "test" {
   name                   = "acctest-ngfwvn-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -251,6 +243,16 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "egress" {
+  name                = "acctestpublicip-%[1]d-e"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  depends_on = [azurerm_public_ip.test]
 }
 
 resource "azurerm_network_security_group" "test" {
