@@ -243,10 +243,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						},
 
 						"bypass": {
-							Type:        pluginsdk.TypeString,
-							Optional:    true,
-							Computed:    true,
-							Description: "Only supported for the kind `OpenAI`",
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice(
 								cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
 								false,
@@ -719,18 +717,15 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		VirtualNetworkRules: &networkRules,
 	}
 
-	kind := d.Get("kind").(string)
-	bypass := cognitiveservicesaccounts.ByPassSelectionAzureServices
-	if kind == "OpenAI" {
-		if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-			bypass = cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
-		}
-		ruleSet.Bypass = &bypass
-	} else {
-		if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
+	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
+		kind := d.Get("kind").(string)
+		if kind != "OpenAI" {
 			return nil, nil, fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
 		}
+		bypasss := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
+		ruleSet.Bypass = &bypasss
 	}
+
 	return &ruleSet, subnetIds, nil
 }
 
