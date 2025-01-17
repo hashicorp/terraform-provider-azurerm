@@ -324,3 +324,105 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateContainerAppName(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "-",
+		},
+		{
+			Input: "9",
+		},
+		{
+			Input: "a-",
+		},
+		{
+			Input: "a.",
+		},
+		{
+			Input: "a--a",
+		},
+		{
+			Input: "Cannothavecapitals",
+		},
+		{
+			Input: "a-a",
+			Valid: true,
+		},
+		{
+			Input: "val-1-id",
+			Valid: true,
+		},
+		{
+			Input: "invalid12345678901234567890123456",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ContainerAppName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}
+
+func TestValidateContainerAppContainerName(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "-",
+		},
+		{
+			Input: "9",
+		},
+		{
+			Input: "a-",
+		},
+		{
+			Input: "a.",
+
+		},
+		{
+			Input: "a--a",
+			Valid: true,
+		},
+		{
+			Input: "Cannothavecapitals",
+		},
+		{
+			Input: "a-a",
+			Valid: true,
+		},
+		{
+			Input: "val-1-id",
+			Valid: true,
+		},
+		{
+			Input: "invalid12345678901234567890123456",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ContainerAppContainerName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}
