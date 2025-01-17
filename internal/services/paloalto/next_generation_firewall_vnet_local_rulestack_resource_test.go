@@ -147,6 +147,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       untrusted_subnet_id = azurerm_subnet.test2.id
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 	}
@@ -171,6 +173,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       untrusted_subnet_id = azurerm_subnet.test2.id
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -227,6 +231,14 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_public_ip" "egress" {
+  name                = "acctestpublicip-%[2]d-e"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                 = "acctest-ngfwvn-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -275,6 +287,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       port              = 18082
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -286,6 +300,14 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_public_ip" "egress" {
+  name                = "acctestpublicip-%[2]d-e"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
   name                 = "acctest-ngfwvn-%[2]d"
@@ -322,6 +344,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       port              = 18082
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -335,14 +359,6 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[1]d-e"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -416,6 +432,8 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
+
+  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {

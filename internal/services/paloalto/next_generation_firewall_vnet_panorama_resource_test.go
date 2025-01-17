@@ -134,6 +134,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
       untrusted_subnet_id = azurerm_subnet.test2.id
     }
   }
+
+  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 	}
@@ -159,6 +161,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
       untrusted_subnet_id = azurerm_subnet.test2.id
     }
   }
+
+  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
@@ -170,6 +174,14 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_public_ip" "egress" {
+  name                = "acctestpublicip-%[2]d-e"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "test" {
   name                   = "acctest-ngfwvn-%[2]d"
@@ -220,6 +232,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_panorama" "
       port              = 18082
     }
   }
+
+  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
 }
@@ -233,14 +247,6 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[1]d-e"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
