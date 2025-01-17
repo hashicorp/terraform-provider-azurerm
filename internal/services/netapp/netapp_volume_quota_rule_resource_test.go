@@ -198,7 +198,7 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2023-08-17T08:01:00Z",
@@ -210,7 +210,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-DelegatedSubnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"

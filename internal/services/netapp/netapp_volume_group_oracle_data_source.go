@@ -18,23 +18,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.DataSource = NetAppVolumeGroupSAPHanaDataSource{}
+var _ sdk.DataSource = NetAppVolumeGroupOracleDataSource{}
 
-type NetAppVolumeGroupSAPHanaDataSource struct{}
+type NetAppVolumeGroupOracleDataSource struct{}
 
-func (r NetAppVolumeGroupSAPHanaDataSource) ResourceType() string {
-	return "azurerm_netapp_volume_group_sap_hana"
+func (r NetAppVolumeGroupOracleDataSource) ResourceType() string {
+	return "azurerm_netapp_volume_group_oracle"
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeGroupSAPHanaDataSourceModel{}
+func (r NetAppVolumeGroupOracleDataSource) ModelObject() interface{} {
+	return &netAppModels.NetAppVolumeGroupOracleDataSourceModel{}
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeGroupOracleDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumegroups.ValidateVolumeGroupID
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupOracleDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Arguments() map[string]*pluginsdk.Sc
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupOracleDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -88,6 +88,8 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
+					"zone": commonschema.ZoneSingleComputed(),
 
 					"volume_spec_name": {
 						Type:     pluginsdk.TypeString,
@@ -227,19 +229,34 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 							},
 						},
 					},
+
+					"encryption_key_source": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"network_features": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaDataSource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeGroupOracleDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
 
-			var state netAppModels.NetAppVolumeGroupSAPHanaDataSourceModel
+			var state netAppModels.NetAppVolumeGroupOracleDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -262,7 +279,7 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Read() sdk.ResourceFunc {
 						state.GroupDescription = pointer.From(groupMetaData.GroupDescription)
 					}
 
-					volumes, err := flattenNetAppVolumeGroupSAPHanaVolumes(ctx, props.Volumes, metadata)
+					volumes, err := flattenNetAppVolumeGroupOracleVolumes(ctx, props.Volumes, metadata)
 					if err != nil {
 						return fmt.Errorf("setting `volume`: %+v", err)
 					}
