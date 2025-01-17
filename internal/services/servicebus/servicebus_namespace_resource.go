@@ -362,7 +362,6 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 			return err
 		}
 		log.Printf("[DEBUG] Created the Network Rule Set associated with %s", id)
-
 	}
 
 	return resourceServiceBusNamespaceRead(d, meta)
@@ -374,8 +373,6 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for ServiceBus Namespace update")
-
-	t := d.Get("tags").(map[string]interface{})
 
 	id, err := namespaces.ParseNamespaceID(d.Id())
 	if err != nil {
@@ -402,7 +399,6 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		payload.Identity = identity
-
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -431,7 +427,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = expandTags(t)
+		payload.Tags = expandTags(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("minimum_tls_version") {
@@ -440,6 +436,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			payload.Properties.MinimumTlsVersion = &minimumTls
 		}
 	}
+
 	if d.HasChange("capacity") {
 		sku := d.Get("sku").(string)
 		if capacity := d.Get("capacity"); capacity != nil {
@@ -452,6 +449,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			payload.Sku.Capacity = pointer.To(int64(capacity.(int)))
 		}
 	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
