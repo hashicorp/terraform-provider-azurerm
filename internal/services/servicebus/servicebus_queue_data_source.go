@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,7 +19,7 @@ import (
 )
 
 func dataSourceServiceBusQueue() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceServiceBusQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -114,6 +115,22 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		for _, name := range []string{"batched_operations", "express", "partitioning"} {
+			oldName := fmt.Sprintf("enable_%s", name)
+			newName := fmt.Sprintf("%s_enabled", name)
+			resource.Schema[oldName] = &pluginsdk.Schema{
+				Deprecated:    fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
+				Type:          pluginsdk.TypeBool,
+				Computed:      true,
+				ConflictsWith: []string{newName},
+			}
+			resource.Schema[newName].ConflictsWith = []string{oldName}
+		}
+	}
+
+	return resource
 }
 
 func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
