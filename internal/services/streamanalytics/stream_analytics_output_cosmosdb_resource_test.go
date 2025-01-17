@@ -159,6 +159,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   container_name           = azurerm_cosmosdb_sql_container.test.name
   document_id              = "exampledocumentid"
   partition_key            = "examplekey"
+  authentication_mode      = "Msi"
 }
 `, template, data.RandomString, data.RandomInteger)
 }

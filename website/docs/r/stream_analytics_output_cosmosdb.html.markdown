@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `partition_key` - (Optional) The name of the field in output events used to specify the key for partitioning output across collections. If `container_name` contains `{partition}` token, this property is required to be specified.
 
+* `authentication_mode` - (Optional) The authentication mode for the CosmosDB database. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
