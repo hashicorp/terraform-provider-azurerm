@@ -10,6 +10,11 @@ description: |-
 
 Use this data source to access the content of an existing Storage Blob.
 
+~> **Note:** The content of the blob will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+~> **Note:** The maxiumum blob size is limited to 2MiB to prevent large blobs from breaking state files or crashing due to insufficient memory.
+
 ## Example Usage
 
 ```hcl
@@ -34,7 +39,7 @@ The following arguments are supported:
 
 * `id` - The ID of the storage blob.
 
-* `content` - The URL of the storage blob.
+* `content` - The content of the storage blob, encoded in base64. The [function](https://developer.hashicorp.com/terraform/language/functions/base64decode) `base64decode` can be used to obtain the original string.
 
 ## Timeouts
 
