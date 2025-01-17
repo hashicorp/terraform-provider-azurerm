@@ -277,7 +277,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
-					UserInfo:                      FlattenDynatraceUserInfo(metadata.ResourceData.Get("user").([]interface{})),
+					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
 				}
 
 				if model.Tags != nil {
