@@ -182,6 +182,12 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
 
+			if !features.FivePointOhBeta() {
+				d.Set("enable_batched_operations", props.EnableBatchedOperations)
+				d.Set("enable_express", props.EnableExpress)
+				d.Set("enable_partitioning", props.EnablePartitioning)
+			}
+
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
 
