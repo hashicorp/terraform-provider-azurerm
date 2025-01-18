@@ -5,11 +5,11 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +19,7 @@ import (
 )
 
 func dataSourceServiceBusQueue() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceServiceBusQueueRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -37,25 +37,6 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-			},
-
-			// TODO Remove in 4.0
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: azValidate.NamespaceName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
-			},
-
-			// TODO Remove in 4.0
-			"resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: resourcegroups.ValidateName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"auto_delete_on_idle": {
@@ -78,20 +59,17 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_batched_operations": {
+			"batched_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_express": {
+			"express_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_partitioning": {
+			"partitioning_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -137,6 +115,22 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		for _, name := range []string{"batched_operations", "express", "partitioning"} {
+			oldName := fmt.Sprintf("enable_%s", name)
+			newName := fmt.Sprintf("%s_enabled", name)
+			resource.Schema[oldName] = &pluginsdk.Schema{
+				Deprecated:    fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
+				Type:          pluginsdk.TypeBool,
+				Computed:      true,
+				ConflictsWith: []string{newName},
+			}
+			resource.Schema[newName].ConflictsWith = []string{oldName}
+		}
+	}
+
+	return resource
 }
 
 func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -177,9 +171,9 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("lock_duration", props.LockDuration)
@@ -187,6 +181,12 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
+
+			if !features.FivePointOhBeta() {
+				d.Set("enable_batched_operations", props.EnableBatchedOperations)
+				d.Set("enable_express", props.EnableExpress)
+				d.Set("enable_partitioning", props.EnablePartitioning)
+			}
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
