@@ -347,6 +347,8 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  depends_on = [azurerm_public_ip.egress]
 }
 
 resource "azurerm_public_ip" "egress" {
@@ -355,8 +357,6 @@ resource "azurerm_public_ip" "egress" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-
-  depends_on = [azurerm_public_ip.test]
 }
 
 resource "azurerm_network_security_group" "test" {
