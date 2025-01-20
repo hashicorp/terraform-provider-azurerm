@@ -34,7 +34,6 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 			default:
 				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer\n", resource.ResourceType()))
 			}
-
 		}
 		for _, datasource := range s.DataSources() {
 			modelType := reflect.TypeOf(datasource.ModelObject())

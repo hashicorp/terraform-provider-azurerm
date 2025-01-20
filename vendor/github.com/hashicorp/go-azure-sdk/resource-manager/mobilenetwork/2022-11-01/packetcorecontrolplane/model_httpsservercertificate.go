@@ -4,6 +4,6 @@ package packetcorecontrolplane
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HTTPSServerCertificate struct {
-	CertificateUrl string                   `json:"certificateUrl"`
+	CertificateURL string                   `json:"certificateUrl"`
 	Provisioning   *CertificateProvisioning `json:"provisioning,omitempty"`
 }

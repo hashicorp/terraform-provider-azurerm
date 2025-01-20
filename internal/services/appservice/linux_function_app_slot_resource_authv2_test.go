@@ -276,7 +276,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 
 func (r LinuxFunctionAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -816,7 +815,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"

@@ -47,7 +47,6 @@ func (c BlobServiceClient) List(ctx context.Context, id commonids.StorageAccount
 
 	var model BlobServiceItems
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

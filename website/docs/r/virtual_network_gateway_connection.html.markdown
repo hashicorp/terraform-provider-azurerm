@@ -199,7 +199,7 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

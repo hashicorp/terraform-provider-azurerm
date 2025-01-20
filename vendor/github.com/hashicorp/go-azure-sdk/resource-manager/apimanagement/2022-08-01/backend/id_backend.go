@@ -44,7 +44,7 @@ func ParseBackendID(input string) (*BackendId, error) {
 	}
 
 	id := BackendId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseBackendIDInsensitively(input string) (*BackendId, error) {
 	}
 
 	id := BackendId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id BackendId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticBackends", "backends", "backends"),
-		resourceids.UserSpecifiedSegment("backendId", "backendIdValue"),
+		resourceids.UserSpecifiedSegment("backendId", "backendId"),
 	}
 }
 

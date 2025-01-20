@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 func resourceStorageBlob() *pluginsdk.Resource {
@@ -451,7 +451,10 @@ func resourceStorageBlobDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	input := blobs.DeleteInput{
 		DeleteSnapshots: true,
 	}
-	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+	if resp, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 

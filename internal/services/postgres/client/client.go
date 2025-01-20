@@ -17,10 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
-	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
-	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/firewallrules"
 	flexibleservers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
+	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases"
+	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules"
+	flexibleservervirtualendpoints "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -40,6 +41,7 @@ type Client struct {
 	VirtualNetworkRulesClient           *virtualnetworkrules.VirtualNetworkRulesClient
 	ServerAdministratorsClient          *serveradministrators.ServerAdministratorsClient
 	ReplicasClient                      *replicas.ReplicasClient
+	VirtualEndpointClient               *flexibleservervirtualendpoints.VirtualEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -133,6 +135,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(flexibleServerAdministratorsClient.Client, o.Authorizers.ResourceManager)
 
+	virtualEndpointClient, err := flexibleservervirtualendpoints.NewVirtualEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building FlexibleServerVirtualEndpoint client: %+v", err)
+	}
+	o.Configure(virtualEndpointClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ConfigurationsClient:                configurationsClient,
 		DatabasesClient:                     databasesClient,
@@ -149,5 +157,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VirtualNetworkRulesClient:           virtualNetworkRulesClient,
 		ServerAdministratorsClient:          serverAdministratorsClient,
 		ReplicasClient:                      replicasClient,
+		VirtualEndpointClient:               virtualEndpointClient,
 	}, nil
 }

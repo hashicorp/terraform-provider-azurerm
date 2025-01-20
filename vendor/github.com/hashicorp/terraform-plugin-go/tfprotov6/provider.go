@@ -47,6 +47,32 @@ type ProviderServer interface {
 	// data source is to terraform-plugin-go, so they're their own
 	// interface that is composed into ProviderServer.
 	DataSourceServer
+
+	// FunctionServer is an interface encapsulating all the function-related RPC
+	// requests. ProviderServer implementations must implement them, but they
+	// are a handy interface for defining what a function is to
+	// terraform-plugin-go, so they are their own interface that is composed
+	// into ProviderServer.
+	FunctionServer
+}
+
+// ProviderServerWithEphemeralResources is a temporary interface for servers
+// to implement Ephemeral Resource RPC handling with:
+//
+// - ValidateEphemeralResourceConfig
+// - OpenEphemeralResource
+// - RenewEphemeralResource
+// - CloseEphemeralResource
+//
+// Deprecated: The EphemeralResourceServer methods will be moved into the
+// ProviderServer interface and this interface will be removed in a future
+// version.
+type ProviderServerWithEphemeralResources interface {
+	ProviderServer
+
+	// EphemeralResourceServer is an interface encapsulating all the ephemeral
+	// resource-related RPC requests.
+	EphemeralResourceServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -66,8 +92,14 @@ type GetMetadataResponse struct {
 	// DataSources returns metadata for all data resources.
 	DataSources []DataSourceMetadata
 
+	// Functions returns metadata for all functions.
+	Functions []FunctionMetadata
+
 	// Resources returns metadata for all managed resources.
 	Resources []ResourceMetadata
+
+	// EphemeralResources returns metadata for all ephemeral resources.
+	EphemeralResources []EphemeralResourceMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -105,6 +137,21 @@ type GetProviderSchemaResponse struct {
 	// shortname and an underscore. It should match the first label after
 	// `data` in a user's configuration.
 	DataSourceSchemas map[string]*Schema
+
+	// Functions is a map of function names to their definition.
+	//
+	// Unlike data resources and managed resources, the name should NOT be
+	// prefixed with the provider name and an underscore. Configuration
+	// references to functions use a separate namespacing syntax that already
+	// includes the provider name.
+	Functions map[string]*Function
+
+	// EphemeralResourceSchemas is a map of ephemeral resource names to the schema for
+	// the configuration specified in the ephemeral resource. The name should be an
+	// ephemeral resource name, and should be prefixed with your provider's
+	// shortname and an underscore. It should match the first label after
+	// `ephemeral` in a user's configuration.
+	EphemeralResourceSchemas map[string]*Schema
 
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with
@@ -190,6 +237,10 @@ type ConfigureProviderRequest struct {
 	// known values. Values that are not set in the configuration will be
 	// null.
 	Config *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ConfigureProvider RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ConfigureProviderClientCapabilities
 }
 
 // ConfigureProviderResponse represents a Terraform RPC response to the

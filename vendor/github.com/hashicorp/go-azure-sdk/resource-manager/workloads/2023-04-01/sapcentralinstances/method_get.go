@@ -45,7 +45,6 @@ func (c SAPCentralInstancesClient) Get(ctx context.Context, id CentralInstanceId
 
 	var model SAPCentralServerInstance
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

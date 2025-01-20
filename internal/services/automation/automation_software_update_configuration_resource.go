@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	validate4 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validate2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,9 +117,8 @@ type SoftwareUpdateConfigurationModel struct {
 	AutomationAccountID   string       `tfschema:"automation_account_id"`
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
-	ErrorMeesage          string       `tfschema:"error_meesage"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system"`
+	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -137,214 +135,94 @@ type SoftwareUpdateConfigurationResource struct{}
 var _ sdk.ResourceWithUpdate = SoftwareUpdateConfigurationResource{}
 
 func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
-	linux := pluginsdk.Resource{}
-	windows := pluginsdk.Resource{}
-	if !features.FourPointOhBeta() {
-		linux = pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"reboot": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  RebootSettingIfRequired,
-					ValidateFunc: validation.StringInSlice([]string{
-						RebootSettingAlways,
-						RebootSettingIfRequired,
-						RebootSettingNever,
-						RebootSettingRebootOnly,
-					}, false),
-				},
+	linux := pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"reboot": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  RebootSettingIfRequired,
+				ValidateFunc: validation.StringInSlice([]string{
+					RebootSettingAlways,
+					RebootSettingIfRequired,
+					RebootSettingNever,
+					RebootSettingRebootOnly,
+				}, false),
+			},
 
-				"classification_included": {
-					Type:          pluginsdk.TypeString,
-					Optional:      true,
-					ConflictsWith: []string{"windows.0.classifications_included"},
-					Computed:      true,
-					ValidateFunc: validation.StringInSlice(
-						softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-						false),
-					Deprecated: "", // TODO
-				},
-
-				"classifications_included": {
-					Type:          pluginsdk.TypeList,
-					Optional:      true,
-					Computed:      true,
-					ConflictsWith: []string{"windows.0.classification_included"},
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(
-							softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-							false),
-					},
-				},
-
-				"excluded_packages": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"included_packages": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
+			"classifications_included": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(), false),
 				},
 			},
-		}
-		windows = pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"classification_included": {
-					Type:          pluginsdk.TypeString,
-					Optional:      true,
-					Computed:      true,
-					ConflictsWith: []string{"windows.0.classifications_included"},
-					Deprecated:    "windows classification can be set as a list, use `classifications_included` instead.",
-					ValidateFunc: validation.StringInSlice(func() (vs []string) {
-						vs = append(vs, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-						return
-					}(), false),
-				},
 
-				"classifications_included": {
-					Type:          pluginsdk.TypeList,
-					Optional:      true,
-					Computed:      true,
-					ConflictsWith: []string{"windows.0.classification_included"},
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(func() (res []string) {
-							res = append(res, softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses()...)
-							return
-						}(), false),
-					},
-				},
-
-				"excluded_knowledge_base_numbers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"included_knowledge_base_numbers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"reboot": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  RebootSettingIfRequired,
-					ValidateFunc: validation.StringInSlice([]string{
-						RebootSettingAlways,
-						RebootSettingIfRequired,
-						RebootSettingNever,
-						RebootSettingRebootOnly,
-					}, false),
+			"excluded_packages": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-		}
-	} else {
-		linux = pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"reboot": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  RebootSettingIfRequired,
-					ValidateFunc: validation.StringInSlice([]string{
-						RebootSettingAlways,
-						RebootSettingIfRequired,
-						RebootSettingNever,
-						RebootSettingRebootOnly,
-					}, false),
-				},
 
-				"classifications_included": {
-					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(softwareupdateconfiguration.PossibleValuesForLinuxUpdateClasses(),
-							false),
-					},
-				},
-
-				"excluded_packages": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"included_packages": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
+			"included_packages": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-		}
-		windows = pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"classifications_included": {
-					Type:     pluginsdk.TypeList,
-					Required: true, // TODO 4.0 - Update docs to reflect this breaking change.
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice(
-							softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(),
-							false),
-					},
-				},
-
-				"excluded_knowledge_base_numbers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"included_knowledge_base_numbers": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-
-				"reboot": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  RebootSettingIfRequired,
-					ValidateFunc: validation.StringInSlice([]string{
-						RebootSettingAlways,
-						RebootSettingIfRequired,
-						RebootSettingNever,
-						RebootSettingRebootOnly,
-					}, false),
-				},
-			},
-		}
+		},
 	}
+
+	windows := pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"classifications_included": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+					ValidateFunc: validation.StringInSlice(
+						softwareupdateconfiguration.PossibleValuesForWindowsUpdateClasses(),
+						false),
+				},
+			},
+
+			"excluded_knowledge_base_numbers": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"included_knowledge_base_numbers": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"reboot": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  RebootSettingIfRequired,
+				ValidateFunc: validation.StringInSlice([]string{
+					RebootSettingAlways,
+					RebootSettingIfRequired,
+					RebootSettingNever,
+					RebootSettingRebootOnly,
+				}, false),
+			},
+		},
+	}
+
 	r := map[string]*pluginsdk.Schema{
 		"automation_account_id": {
 			Type:         pluginsdk.TypeString,
@@ -467,7 +345,6 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"tag_filter": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(softwareupdateconfiguration.TagOperatorsAny),
 										string(softwareupdateconfiguration.TagOperatorsAll),
@@ -512,8 +389,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"start_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -522,12 +400,12 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"start_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
 					},
 
 					"expiry_time": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -536,7 +414,6 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"expiry_time_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
 					},
 
 					"is_enabled": {
@@ -546,8 +423,9 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"next_run": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// NOTE: O+C API returns a default if omitted which  can be updated without issue so this can remain
 						Computed:         true,
 						DiffSuppressFunc: suppress.RFC3339MinuteTime,
 						ValidateFunc:     validation.IsRFC3339Time,
@@ -556,7 +434,6 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"next_run_offset_minutes": {
 						Type:     pluginsdk.TypeFloat,
 						Optional: true,
-						Computed: true,
 					},
 
 					"interval": {
@@ -628,7 +505,7 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 								"occurrence": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 5),
+									ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, -1}), // -1 is last week and 5 is invalid
 								},
 
 								"day": {
@@ -698,19 +575,6 @@ func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.S
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		r["operating_system"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(softwareupdateconfiguration.OperatingSystemTypeLinux),
-				string(softwareupdateconfiguration.OperatingSystemTypeWindows),
-			}, false),
-			Deprecated: "This property has been deprecated and will be removed in a future release. The use of either the `linux` or `windows` blocks replaces setting this value directly. This value is ignored by the provider.",
-		}
-	}
-
 	return r
 }
 
@@ -719,13 +583,6 @@ func (m SoftwareUpdateConfigurationResource) Attributes() map[string]*pluginsdk.
 		"error_code": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-
-		// TODO 4.0 remove & update docs
-		"error_meesage": {
-			Type:       pluginsdk.TypeString,
-			Computed:   true,
-			Deprecated: "`error_meesage` will be removed in favour of `error_message` in version 4.0 of the AzureRM Provider",
 		},
 
 		"error_message": {
@@ -815,10 +672,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 						IncludedPackages: pointer.From(linux.IncludedPackageNameMasks),
 					}
 
-					if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(linux.IncludedPackageClassifications)), ", ")) == 1 {
-						l.Classification = string(pointer.From(linux.IncludedPackageClassifications))
-					}
-
 					state.Linux = []Linux{l}
 					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeLinux)
 				}
@@ -828,10 +681,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 						ExcludedKbs:     pointer.From(windows.ExcludedKbNumbers),
 						IncludedKbs:     pointer.From(windows.IncludedKbNumbers),
 						RebootSetting:   pointer.From(windows.RebootSetting),
-					}
-
-					if !features.FourPointOhBeta() && len(strings.Split(string(pointer.From(windows.IncludedUpdateClassifications)), ", ")) == 1 {
-						w.Classification = string(pointer.From(windows.IncludedUpdateClassifications))
 					}
 
 					state.Windows = []Windows{w}
@@ -953,6 +802,10 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 							Parameters: pointer.From(post.Parameters),
 						}}
 					}
+				}
+
+				if errorMessage := props.Error; errorMessage != nil {
+					state.ErrorMessage = pointer.From(errorMessage.Message)
 				}
 			}
 
@@ -1076,7 +929,6 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 					} else {
 						target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}
 					}
-
 				} else {
 					target.AzureQueries = &[]softwareupdateconfiguration.AzureQueryProperties{}
 					target.NonAzureQueries = &[]softwareupdateconfiguration.NonAzureQueryProperties{}
@@ -1340,11 +1192,6 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 		if v.Reboot != "" {
 			updateConfig.Linux.RebootSetting = pointer.To(v.Reboot)
 		}
-		if !features.FourPointOhBeta() {
-			if v.Classification != "" {
-				updateConfig.Linux.IncludedPackageClassifications = pointer.To(softwareupdateconfiguration.LinuxUpdateClasses(v.Classification))
-			}
-		}
 		if len(v.Classifications) > 0 {
 			updateConfig.Linux.IncludedPackageClassifications = pointer.To(softwareupdateconfiguration.LinuxUpdateClasses(strings.Join(v.Classifications, ",")))
 		}
@@ -1366,9 +1213,6 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			w.IncludedKbNumbers = pointer.To(v.IncludedKbs)
 		}
 
-		if !features.FourPointOhBeta() && len(v.Classification) == 1 {
-			w.IncludedUpdateClassifications = pointer.To(softwareupdateconfiguration.WindowsUpdateClasses(strings.Join(v.Classifications, ",")))
-		}
 		if len(v.Classifications) > 0 {
 			w.IncludedUpdateClassifications = pointer.To(softwareupdateconfiguration.WindowsUpdateClasses(strings.Join(v.Classifications, ",")))
 		}

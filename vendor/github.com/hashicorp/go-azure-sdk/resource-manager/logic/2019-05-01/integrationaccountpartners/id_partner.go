@@ -44,7 +44,7 @@ func ParsePartnerID(input string) (*PartnerId, error) {
 	}
 
 	id := PartnerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParsePartnerIDInsensitively(input string) (*PartnerId, error) {
 	}
 
 	id := PartnerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id PartnerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
-		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
+		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 		resourceids.StaticSegment("staticPartners", "partners", "partners"),
-		resourceids.UserSpecifiedSegment("partnerName", "partnerValue"),
+		resourceids.UserSpecifiedSegment("partnerName", "partnerName"),
 	}
 }
 

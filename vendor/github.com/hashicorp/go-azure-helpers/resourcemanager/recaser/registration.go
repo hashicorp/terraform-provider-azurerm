@@ -13,6 +13,15 @@ import (
 
 var knownResourceIds = make(map[string]resourceids.ResourceId)
 
+// KnownResourceIds returns the map of resource IDs that have been registered by each API imported via the
+// RegisterResourceId function. This is the case for all APIs generated via the Pandora project via init().
+// The keys for the map are the lower-cased ID strings with the user-specified segments
+// stripped out, leaving the path intact. Example:
+// "/subscriptions//resourceGroups//providers/Microsoft.BotService/botServices/"
+func KnownResourceIds() map[string]resourceids.ResourceId {
+	return knownResourceIds
+}
+
 var resourceIdsWriteLock = &sync.Mutex{}
 
 func init() {

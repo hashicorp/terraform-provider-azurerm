@@ -16,7 +16,16 @@ type EasyAuthMicrosoftEntraIDAuthInfo struct {
 	Secret                 *string                 `json:"secret,omitempty"`
 
 	// Fields inherited from AuthInfoBase
+
 	AuthMode *AuthMode `json:"authMode,omitempty"`
+	AuthType AuthType  `json:"authType"`
+}
+
+func (s EasyAuthMicrosoftEntraIDAuthInfo) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return BaseAuthInfoBaseImpl{
+		AuthMode: s.AuthMode,
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = EasyAuthMicrosoftEntraIDAuthInfo{}
@@ -30,9 +39,10 @@ func (s EasyAuthMicrosoftEntraIDAuthInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EasyAuthMicrosoftEntraIDAuthInfo: %+v", err)
 	}
+
 	decoded["authType"] = "easyAuthMicrosoftEntraID"
 
 	encoded, err = json.Marshal(decoded)

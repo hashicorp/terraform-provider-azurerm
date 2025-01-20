@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -22,7 +22,6 @@ type SiteConfigLinuxWebAppSlot struct {
 	ApiManagementConfigId         string                  `tfschema:"api_management_api_id"`
 	ApiDefinition                 string                  `tfschema:"api_definition_url"`
 	AppCommandLine                string                  `tfschema:"app_command_line"`
-	AutoHeal                      bool                    `tfschema:"auto_heal_enabled"`
 	AutoHealSettings              []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	AutoSwapSlotName              string                  `tfschema:"auto_swap_slot_name"`
 	UseManagedIdentityACR         bool                    `tfschema:"container_registry_use_managed_identity"`
@@ -87,14 +86,6 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"application_stack": linuxApplicationStackSchema(),
-
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					RequiredWith: []string{
-						"site_config.0.auto_heal_setting",
-					},
-				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
 
@@ -183,6 +174,7 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -211,28 +203,17 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -291,7 +272,6 @@ type SiteConfigWindowsWebAppSlot struct {
 	ApiDefinition                 string                    `tfschema:"api_definition_url"`
 	ApplicationStack              []ApplicationStackWindows `tfschema:"application_stack"`
 	AppCommandLine                string                    `tfschema:"app_command_line"`
-	AutoHeal                      bool                      `tfschema:"auto_heal_enabled"`
 	AutoHealSettings              []AutoHealSettingWindows  `tfschema:"auto_heal_setting"`
 	AutoSwapSlotName              string                    `tfschema:"auto_swap_slot_name"`
 	UseManagedIdentityACR         bool                      `tfschema:"container_registry_use_managed_identity"`
@@ -355,15 +335,6 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				"app_command_line": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-				},
-
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-					RequiredWith: []string{
-						"site_config.0.auto_heal_setting",
-					},
 				},
 
 				"auto_heal_setting": autoHealSettingSchemaWindows(),
@@ -458,6 +429,7 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"VS2017",
 						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -486,28 +458,17 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -573,7 +534,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
@@ -696,6 +657,7 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	}
 
 	if len(s.AutoHealSettings) == 1 {
+		expanded.AutoHealEnabled = pointer.To(true)
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -705,8 +667,8 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := *existing
 
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
@@ -867,6 +829,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealEnabled = pointer.To(false)
+		if len(s.AutoHealSettings) != 0 {
+			expanded.AutoHealEnabled = pointer.To(true)
+		}
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -876,7 +842,6 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfig) {
 	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
 	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
-	s.AutoHeal = pointer.From(appSiteSlotConfig.AutoHealEnabled)
 	s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteSlotConfig.AutoHealRules)
 	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
 	s.ContainerRegistryMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
@@ -923,7 +888,6 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 		linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
 		s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
-
 }
 
 func (s *SiteConfigLinuxWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {
@@ -954,7 +918,7 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerAppStack(input map[string]string
 
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
-	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
@@ -965,7 +929,6 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerDeprecatedAppStack(input map[str
 		applicationStack = s.ApplicationStack[0]
 	}
 	if !usesDeprecated {
-
 		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
 			applicationStack.DockerRegistryUrl = v
 		}
@@ -997,7 +960,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
@@ -1142,6 +1105,7 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	}
 
 	if len(s.AutoHealSettings) != 0 {
+		expanded.AutoHealEnabled = pointer.To(true)
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 	return expanded, nil
@@ -1155,7 +1119,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
@@ -1239,7 +1202,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
 		}
-
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
@@ -1338,6 +1300,10 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealEnabled = pointer.To(false)
+		if len(s.AutoHealSettings) != 0 {
+			expanded.AutoHealEnabled = pointer.To(true)
+		}
 		expanded.AutoHealRules = expandAutoHealSettingsWindows(s.AutoHealSettings)
 	}
 
@@ -1355,7 +1321,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 
 	s.AlwaysOn = pointer.From(appSiteSlotConfig.AlwaysOn)
 	s.AppCommandLine = pointer.From(appSiteSlotConfig.AppCommandLine)
-	s.AutoHeal = pointer.From(appSiteSlotConfig.AutoHealEnabled)
 	s.AutoHealSettings = flattenAutoHealSettingsWindows(appSiteSlotConfig.AutoHealRules)
 	s.AutoSwapSlotName = pointer.From(appSiteSlotConfig.AutoSwapSlotName)
 	s.ContainerRegistryUserMSI = pointer.From(appSiteSlotConfig.AcrUserManagedIdentityID)
@@ -1425,7 +1390,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	winAppStack.CurrentStack = currentStack
 
 	s.ApplicationStack = []ApplicationStackWindows{winAppStack}
-
 }
 
 func (s *SiteConfigWindowsWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {
@@ -1468,7 +1432,7 @@ func (s *SiteConfigWindowsWebAppSlot) DecodeDockerAppStack(input map[string]stri
 
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
-	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost)
+	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
 
 	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }

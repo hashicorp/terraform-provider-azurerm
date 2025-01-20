@@ -359,12 +359,16 @@ func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+		},
+		data.ImportStep(),
+		{
 			Config: r.serverlessCompute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
 				check.That(data.ResourceName).Key("serverless_compute.0.subnet_id").Exists(),
-				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -434,10 +438,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -476,10 +476,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   tags = {
     ENV = "Test"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -507,10 +503,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -590,10 +582,6 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   admin_enabled       = true
-
-  lifecycle {
-    ignore_changes = [network_rule_set]
-  }
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -766,13 +754,10 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -831,10 +816,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
@@ -875,10 +856,6 @@ resource "azurerm_machine_learning_workspace" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -915,10 +892,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -988,15 +961,12 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   depends_on = [azurerm_role_assignment.test]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
 
 func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1126,12 +1096,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     azurerm_role_assignment.test_sa1,
     azurerm_key_vault_access_policy.test-policy1,
   ]
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
-}
-`, r.template(data), data.RandomInteger)
+}`, r.template(data), data.RandomInteger)
 }
 
 func (r WorkspaceResource) featureStore(data acceptance.TestData) string {
@@ -1169,10 +1134,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)
@@ -1214,10 +1175,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1250,10 +1207,6 @@ resource "azurerm_machine_learning_workspace" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  lifecycle {
-    ignore_changes = [managed_network]
-  }
 }
 `, template, data.RandomInteger)
 }
@@ -1261,6 +1214,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessCompute(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1283,18 +1240,15 @@ resource "azurerm_machine_learning_workspace" "test" {
   application_insights_id       = azurerm_application_insights.test.id
   key_vault_id                  = azurerm_key_vault.test.id
   storage_account_id            = azurerm_storage_account.test.id
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 
   serverless_compute {
-    subnet_id = azurerm_subnet.test.id
+    public_ip_enabled = true
+    subnet_id         = azurerm_subnet.test.id
   }
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)
@@ -1303,6 +1257,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1332,10 +1290,6 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   identity {
     type = "SystemAssigned"
-  }
-
-  lifecycle {
-    ignore_changes = [managed_network]
   }
 }
 `, template, data.RandomInteger)

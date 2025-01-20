@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CopyOption interface {
+	CopyOption() BaseCopyOptionImpl
 }
 
-// RawCopyOptionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ CopyOption = BaseCopyOptionImpl{}
+
+type BaseCopyOptionImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseCopyOptionImpl) CopyOption() BaseCopyOptionImpl {
+	return s
+}
+
+var _ CopyOption = RawCopyOptionImpl{}
+
+// RawCopyOptionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawCopyOptionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	copyOption BaseCopyOptionImpl
+	Type       string
+	Values     map[string]interface{}
 }
 
-func unmarshalCopyOptionImplementation(input []byte) (CopyOption, error) {
+func (s RawCopyOptionImpl) CopyOption() BaseCopyOptionImpl {
+	return s.copyOption
+}
+
+func UnmarshalCopyOptionImplementation(input []byte) (CopyOption, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalCopyOptionImplementation(input []byte) (CopyOption, error) {
 		return nil, fmt.Errorf("unmarshaling CopyOption into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "CopyOnExpiryOption") {
@@ -60,10 +77,15 @@ func unmarshalCopyOptionImplementation(input []byte) (CopyOption, error) {
 		return out, nil
 	}
 
-	out := RawCopyOptionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseCopyOptionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseCopyOptionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawCopyOptionImpl{
+		copyOption: parent,
+		Type:       value,
+		Values:     temp,
+	}, nil
 
 }

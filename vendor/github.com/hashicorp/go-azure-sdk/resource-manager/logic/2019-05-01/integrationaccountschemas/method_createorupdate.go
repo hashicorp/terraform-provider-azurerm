@@ -50,7 +50,6 @@ func (c IntegrationAccountSchemasClient) CreateOrUpdate(ctx context.Context, id 
 
 	var model IntegrationAccountSchema
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,10 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 var _ pollers.PollerType = &longRunningOperationPoller{}
@@ -29,6 +28,9 @@ type longRunningOperationPoller struct {
 	initialRetryDuration time.Duration
 	originalUrl          *url.URL
 	pollingUrl           *url.URL
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func pollingUriForLongRunningOperation(resp *client.Response) string {
@@ -41,8 +43,9 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 
 func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
-		client:               client,
-		initialRetryDuration: 10 * time.Second,
+		client:                client,
+		initialRetryDuration:  10 * time.Second,
+		maxDroppedConnections: 3,
 	}
 
 	pollingUrl := pollingUriForLongRunningOperation(resp)
@@ -79,14 +82,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		return nil, fmt.Errorf("internal error: cannot poll without a pollingUrl")
 	}
 
-	// Retry the polling operation if a 404 was returned
-	retryOn404 := func(resp *http.Response, _ *odata.OData) (bool, error) {
-		if resp != nil && response.WasStatusCode(resp, http.StatusNotFound) {
-			return true, nil
-		}
-		return false, nil
-	}
-
 	reqOpts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -94,11 +89,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			http.StatusCreated,
 			http.StatusAccepted,
 			http.StatusNoContent,
+
+			// NOTE: 404 doesn't want to be a retry since we already retry on 404
+			http.StatusNotFound,
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: nil,
 		Path:          p.pollingUrl.Path,
-		RetryFunc:     client.RequestRetryAny(append(defaultRetryFunctions, retryOn404)...),
+		RetryFunc:     client.RequestRetryAny(defaultRetryFunctions...),
 	}
 
 	// TODO: port over the `api-version` header
@@ -114,8 +112,19 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	}
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				result.Status = pollers.PollingStatusUnknown
+				return result, nil
+			}
+		}
+
 		return nil, err
 	}
+
+	p.droppedConnectionCount = 0
 
 	if result.HttpResponse != nil {
 		var respBody []byte
@@ -133,6 +142,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 				result.PollInterval = time.Second * time.Duration(sleep)
 			}
+		}
+
+		// We've just created/changed this resource, so it _should_ exist but some APIs
+		// return a 404 initially - so we should wait for that to complete for non-Delete LROs
+		if result.HttpResponse.StatusCode == http.StatusNotFound {
+			result.Status = pollers.PollingStatusInProgress
+			return
 		}
 
 		// 202's don't necessarily return a body, so there's nothing to deserialize
@@ -213,13 +229,15 @@ type operationResult struct {
 	// >  cannot parse " 01:58:30 +0000" as "T"
 	StartTime *string `json:"startTime"`
 
-	Properties struct {
-		// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties operationResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type operationResultProperties struct {
+	// Some APIs (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 type status string

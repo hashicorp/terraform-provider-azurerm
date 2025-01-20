@@ -28,6 +28,26 @@ func TestAccOrchestratedVirtualMachineScaleSet_priority(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_zoneUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.multipleZone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -189,27 +209,40 @@ func TestAccOrchestratedVirtualMachineScaleSet_PatchAssessmentModeWindows(t *tes
 	})
 }
 
-func TestAccOrchestratedVirtualMachineScaleSet_otherAutomaticInstanceRepair(t *testing.T) {
+func TestAccOrchestratedVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherAutomaticInstanceRepair(data),
+			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.otherAutomaticInstanceRepairUpdated(data),
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
-			Config: r.otherAutomaticInstanceRepair(data),
+			Config: r.otherAutomaticRepairsPolicy(data, "Reimage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -426,6 +459,60 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) singleZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) multipleZone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  zones = ["1", "2"]
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) windowsHotpatchingEnabled(data acceptance.TestData) string {
@@ -996,7 +1083,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticInstanceRepair(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyEnabled(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1072,7 +1159,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   automatic_instance_repair {
     enabled      = true
-    grace_period = "PT1H"
+    grace_period = "PT30M"
   }
 
   extension {
@@ -1092,7 +1179,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
 }
 
-func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticInstanceRepairUpdated(data acceptance.TestData) string {
+func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
 	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1185,6 +1272,93 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString)
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, action string) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+%[3]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest%[4]s"
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  zones               = []
+  sku_name            = "Standard_D1_v2"
+  # Orchestrated VMSS allocation will timeout at service side due to extension, set instances to 0 to avoid the timeout
+  instances                   = 0
+  platform_fault_domain_count = 2
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  automatic_instance_repair {
+    enabled      = true
+    grace_period = "PT30M"
+    action       = "%[5]s"
+  }
+
+  extension {
+    name                               = "HealthExtension"
+    publisher                          = "Microsoft.ManagedServices"
+    type                               = "ApplicationHealthLinux"
+    type_handler_version               = "1.0"
+    auto_upgrade_minor_version_enabled = true
+    settings = jsonencode({
+      "protocol"    = "http"
+      "port"        = 80
+      "requestPath" = "/healthEndpoint"
+    })
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, action)
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) otherUltraSsd(data acceptance.TestData) string {
@@ -1451,6 +1625,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   sku_name  = "Standard_F2"
   instances = 1
+
+  extension_operations_enabled = false
 
   os_profile {
     linux_configuration {

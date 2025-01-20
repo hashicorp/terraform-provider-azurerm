@@ -14,6 +14,14 @@ type PropertyChangedConditionProperties struct {
 	ConditionProperties *AutomationRulePropertyValuesChangedCondition `json:"conditionProperties,omitempty"`
 
 	// Fields inherited from AutomationRuleCondition
+
+	ConditionType ConditionType `json:"conditionType"`
+}
+
+func (s PropertyChangedConditionProperties) AutomationRuleCondition() BaseAutomationRuleConditionImpl {
+	return BaseAutomationRuleConditionImpl{
+		ConditionType: s.ConditionType,
+	}
 }
 
 var _ json.Marshaler = PropertyChangedConditionProperties{}
@@ -27,9 +35,10 @@ func (s PropertyChangedConditionProperties) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling PropertyChangedConditionProperties: %+v", err)
 	}
+
 	decoded["conditionType"] = "PropertyChanged"
 
 	encoded, err = json.Marshal(decoded)

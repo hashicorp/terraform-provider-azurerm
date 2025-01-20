@@ -62,10 +62,12 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.Any(
-					// Elevated access for a global admin is needed to assign roles in this scope:
+					// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
 					// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
-					// It seems only user account is allowed to be elevated access.
+					validation.StringMatch(regexp.MustCompile("/"), "Root scope (/) is invalid"),
 					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Subscription.*"), "Subscription scope is invalid"),
+					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Capacity"), "Capacity scope is invalid"),
+					validation.StringMatch(regexp.MustCompile("/providers/Microsoft.BillingBenefits"), "BillingBenefits scope is invalid"),
 
 					billingValidate.EnrollmentID,
 					commonids.ValidateManagementGroupID,
@@ -136,15 +138,14 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				RequiredWith: []string{"condition_version"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"condition_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				RequiredWith: []string{"condition"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
@@ -236,11 +237,15 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	condition := d.Get("condition").(string)
 	conditionVersion := d.Get("condition_version").(string)
 
-	if condition != "" && conditionVersion != "" {
+	switch {
+	case condition != "" && conditionVersion != "":
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
 		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
-	} else if condition != "" || conditionVersion != "" {
-		return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
+	case condition != "" && conditionVersion == "":
+		properties.RoleAssignmentProperties.Condition = utils.String(condition)
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String("2.0")
+	case condition == "" && conditionVersion != "":
+		return fmt.Errorf("`conditionVersion` should not be set without `condition`")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
@@ -325,7 +330,6 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if roleResp.Model != nil && roleResp.Model.Properties != nil {
 				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
 			}
-
 		}
 	}
 

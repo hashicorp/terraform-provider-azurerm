@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `eventhub_consumer_group_name` - (Optional) Name of the Event Hub Consumer Group. Changing this forces a new resource to be created. Defaults to `$Default`.
 
-* `kusto_table_name` - (Optional) Name of the Kusto Table. Changing this forces a new resource to be created.
+* `kusto_table_name` - (Optional) Name of the Kusto Table. Defaults to `AdtPropertyEvents`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SynchronizationSetting
+	Model        SynchronizationSetting
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c SynchronizationSettingClient) Get(ctx context.Context, id Synchronizatio
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalSynchronizationSettingImplementation(respObj)
+	model, err := UnmarshalSynchronizationSettingImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

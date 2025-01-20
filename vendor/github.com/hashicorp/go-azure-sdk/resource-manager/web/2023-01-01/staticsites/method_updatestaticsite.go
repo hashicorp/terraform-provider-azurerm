@@ -50,7 +50,6 @@ func (c StaticSitesClient) UpdateStaticSite(ctx context.Context, id StaticSiteId
 
 	var model StaticSiteARMResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

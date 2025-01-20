@@ -20,60 +20,11 @@ import (
 )
 
 var (
-	_ sdk.Resource           = ServicesAccountResource{}
-	_ sdk.ResourceWithUpdate = ServicesAccountResource{}
+	_ sdk.Resource           = AccountResource{}
+	_ sdk.ResourceWithUpdate = AccountResource{}
 )
 
-type ServicesAccountResource struct{}
-
-func (r ServicesAccountResource) ModelObject() interface{} {
-	return &AccountResourceSchema{}
-}
-
-func (r ServicesAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return graphservicesprods.ValidateAccountID
-}
-
-func (r ServicesAccountResource) ResourceType() string {
-	return "azurerm_graph_services_account"
-}
-
-func (r ServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
-	return AccountResource{}.Arguments()
-}
-
-func (r ServicesAccountResource) Attributes() map[string]*pluginsdk.Schema {
-	return AccountResource{}.Attributes()
-}
-
-func (r ServicesAccountResource) Create() sdk.ResourceFunc {
-	return AccountResource{}.Create()
-}
-
-func (r ServicesAccountResource) Read() sdk.ResourceFunc {
-	return AccountResource{}.Read()
-}
-
-func (r ServicesAccountResource) Delete() sdk.ResourceFunc {
-	return AccountResource{}.Delete()
-}
-
-func (r ServicesAccountResource) Update() sdk.ResourceFunc {
-	return AccountResource{}.Update()
-}
-
-var (
-	_ sdk.Resource                          = AccountResource{}
-	_ sdk.ResourceWithUpdate                = AccountResource{}
-	_ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
-)
-
-// AccountResource remove this in 4.0, the resource is renamed
 type AccountResource struct{}
-
-func (r AccountResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_graph_services_account"
-}
 
 func (r AccountResource) ModelObject() interface{} {
 	return &AccountResourceSchema{}
@@ -92,7 +43,7 @@ func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r AccountResource) ResourceType() string {
-	return "azurerm_graph_account"
+	return "azurerm_graph_services_account"
 }
 
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {

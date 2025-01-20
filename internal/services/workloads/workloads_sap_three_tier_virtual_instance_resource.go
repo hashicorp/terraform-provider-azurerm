@@ -5,6 +5,7 @@ package workloads
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -1057,7 +1058,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) CustomizeDiff() sdk.Resour
 			if v := rd.Get("three_tier_configuration.0.database_server_configuration.0.disk_volume_configuration"); v != nil {
 				diskVolumes := v.(*pluginsdk.Set).List()
 				if hasDuplicateVolumeName(diskVolumes) {
-					return fmt.Errorf("`volume_name` cannot be duplicated")
+					return errors.New("`volume_name` cannot be duplicated")
 				}
 			}
 
@@ -1937,7 +1938,7 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 			}
 
 			if _, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
-				return nil, fmt.Errorf("currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug")
+				return nil, errors.New("currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug")
 			}
 		}
 	}

@@ -5,6 +5,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -79,18 +80,18 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		},
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
-			warnings, errors := fn(id, "id")
+			warnings, errs := fn(id, "id")
 			if len(warnings) > 0 {
 				for _, warning := range warnings {
 					rw.logger.Warn(warning)
 				}
 			}
-			if len(errors) > 0 {
+			if len(errs) > 0 {
 				out := ""
-				for _, err := range errors {
+				for _, err := range errs {
 					out += err.Error()
 				}
-				return fmt.Errorf(out)
+				return errors.New(out)
 			}
 
 			return nil

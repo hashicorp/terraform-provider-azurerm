@@ -15,7 +15,7 @@ type DaprComponentsClient struct {
 }
 
 func NewDaprComponentsClientWithBaseURI(sdkApi sdkEnv.Api) (*DaprComponentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "daprcomponents", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "daprcomponents", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DaprComponentsClient: %+v", err)
 	}

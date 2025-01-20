@@ -42,7 +42,7 @@ func ParseScalingPlanID(input string) (*ScalingPlanId, error) {
 	}
 
 	id := ScalingPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseScalingPlanIDInsensitively(input string) (*ScalingPlanId, error) {
 	}
 
 	id := ScalingPlanId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ScalingPlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticScalingPlans", "scalingPlans", "scalingPlans"),
-		resourceids.UserSpecifiedSegment("scalingPlanName", "scalingPlanValue"),
+		resourceids.UserSpecifiedSegment("scalingPlanName", "scalingPlanName"),
 	}
 }
 

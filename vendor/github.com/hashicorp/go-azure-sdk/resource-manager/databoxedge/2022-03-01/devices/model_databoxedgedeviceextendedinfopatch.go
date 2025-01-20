@@ -7,6 +7,6 @@ type DataBoxEdgeDeviceExtendedInfoPatch struct {
 	ChannelIntegrityKeyName    *string             `json:"channelIntegrityKeyName,omitempty"`
 	ChannelIntegrityKeyVersion *string             `json:"channelIntegrityKeyVersion,omitempty"`
 	ClientSecretStoreId        *string             `json:"clientSecretStoreId,omitempty"`
-	ClientSecretStoreUrl       *string             `json:"clientSecretStoreUrl,omitempty"`
+	ClientSecretStoreURL       *string             `json:"clientSecretStoreUrl,omitempty"`
 	SyncStatus                 *KeyVaultSyncStatus `json:"syncStatus,omitempty"`
 }

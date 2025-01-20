@@ -99,6 +99,37 @@ func resourceArmDevTestVirtualNetwork() *pluginsdk.Resource {
 							Default:      string(virtualnetworks.UsagePermissionTypeAllow),
 							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
 						},
+
+						"shared_public_ip_address": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"allowed_ports": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"backend_port": {
+													Type:     pluginsdk.TypeInt,
+													Optional: true,
+												},
+
+												"transport_protocol": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(virtualnetworks.TransportProtocolTcp),
+														string(virtualnetworks.TransportProtocolUdp),
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -305,13 +336,43 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 
 	for _, val := range input {
 		v := val.(map[string]interface{})
+
 		subnet := virtualnetworks.SubnetOverride{
-			ResourceId:                   pointer.To(subnetId.ID()),
-			LabSubnetName:                pointer.To(name),
-			UsePublicIPAddressPermission: pointer.To(virtualnetworks.UsagePermissionType(v["use_public_ip_address"].(string))),
-			UseInVMCreationPermission:    pointer.To(virtualnetworks.UsagePermissionType(v["use_in_virtual_machine_creation"].(string))),
+			ResourceId:                         pointer.To(subnetId.ID()),
+			LabSubnetName:                      pointer.To(name),
+			UsePublicIPAddressPermission:       pointer.To(virtualnetworks.UsagePermissionType(v["use_public_ip_address"].(string))),
+			UseInVMCreationPermission:          pointer.To(virtualnetworks.UsagePermissionType(v["use_in_virtual_machine_creation"].(string))),
+			SharedPublicIPAddressConfiguration: expandDevTestVirtualNetworkSubnetIpAddressConfiguration(v["shared_public_ip_address"].([]interface{})),
 		}
 		results = append(results, subnet)
+	}
+
+	return &results
+}
+
+func expandDevTestVirtualNetworkSubnetIpAddressConfiguration(input []interface{}) *virtualnetworks.SubnetSharedPublicIPAddressConfiguration {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &virtualnetworks.SubnetSharedPublicIPAddressConfiguration{
+		AllowedPorts: expandDevTestVirtualNetworkSubnetAllowedPorts(v["allowed_ports"].([]interface{})),
+	}
+}
+
+func expandDevTestVirtualNetworkSubnetAllowedPorts(input []interface{}) *[]virtualnetworks.Port {
+	results := make([]virtualnetworks.Port, 0)
+
+	for _, val := range input {
+		v := val.(map[string]interface{})
+
+		allowedPort := virtualnetworks.Port{
+			BackendPort:       pointer.To(int64(v["backend_port"].(int))),
+			TransportProtocol: pointer.To(virtualnetworks.TransportProtocol(v["transport_protocol"].(string))),
+		}
+		results = append(results, allowedPort)
 	}
 
 	return &results
@@ -330,7 +391,39 @@ func flattenDevTestVirtualNetworkSubnets(input *[]virtualnetworks.SubnetOverride
 		}
 		output["use_public_ip_address"] = v.UsePublicIPAddressPermission
 		output["use_in_virtual_machine_creation"] = v.UseInVMCreationPermission
+		output["shared_public_ip_address"] = flattenDevTestVirtualNetworkSubnetIpAddressConfiguration(v.SharedPublicIPAddressConfiguration)
 
+		outputs = append(outputs, output)
+	}
+
+	return outputs
+}
+
+func flattenDevTestVirtualNetworkSubnetIpAddressConfiguration(input *virtualnetworks.SubnetSharedPublicIPAddressConfiguration) []interface{} {
+	outputs := make([]interface{}, 0)
+
+	if input == nil {
+		return outputs
+	}
+
+	output := make(map[string]interface{})
+	if input.AllowedPorts != nil {
+		output["allowed_ports"] = flattenDevTestVirtualNetworkSubnetAllowedPorts(input.AllowedPorts)
+	}
+	outputs = append(outputs, output)
+	return outputs
+}
+
+func flattenDevTestVirtualNetworkSubnetAllowedPorts(input *[]virtualnetworks.Port) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	for _, v := range *input {
+		output := make(map[string]interface{})
+		output["backend_port"] = pointer.From(v.BackendPort)
+		output["transport_protocol"] = pointer.From(v.TransportProtocol)
 		outputs = append(outputs, output)
 	}
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -17,8 +17,7 @@ func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]co
 		return nil
 	}
 
-	var includedPaths []cosmosdb.IncludedPath
-
+	includedPaths := make([]cosmosdb.IncludedPath, 0, len(input))
 	for _, v := range input {
 		includedPath := v.(map[string]interface{})
 		path := cosmosdb.IncludedPath{
@@ -36,8 +35,7 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]co
 		return nil
 	}
 
-	var paths []cosmosdb.ExcludedPath
-
+	paths := make([]cosmosdb.ExcludedPath, 0, len(input))
 	for _, v := range input {
 		block := v.(map[string]interface{})
 		paths = append(paths, cosmosdb.ExcludedPath{

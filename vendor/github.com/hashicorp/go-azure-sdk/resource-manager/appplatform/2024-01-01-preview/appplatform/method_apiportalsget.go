@@ -45,7 +45,6 @@ func (c AppPlatformClient) ApiPortalsGet(ctx context.Context, id ApiPortalId) (r
 
 	var model ApiPortalResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

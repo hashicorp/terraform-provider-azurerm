@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/securityrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/securityrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -128,7 +128,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -137,7 +137,7 @@ func resourceNetworkSecurityRule() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			//lintignore:S018
+			// lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     pluginsdk.TypeSet,
 				MaxItems: 10,
@@ -320,12 +320,12 @@ func resourceNetworkSecurityRuleUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("source_port_ranges") {
 		var sourcePortRanges []string
-		r := d.Get("destination_port_range").(*pluginsdk.Set).List()
+		r := d.Get("source_port_ranges").(*pluginsdk.Set).List()
 		for _, v := range r {
 			s := v.(string)
 			sourcePortRanges = append(sourcePortRanges, s)
 		}
-		payload.Properties.DestinationPortRanges = pointer.To(sourcePortRanges)
+		payload.Properties.SourcePortRanges = pointer.To(sourcePortRanges)
 	}
 
 	if d.HasChange("destination_port_range") {

@@ -15,7 +15,7 @@ type QueuesAuthorizationRuleClient struct {
 }
 
 func NewQueuesAuthorizationRuleClientWithBaseURI(sdkApi sdkEnv.Api) (*QueuesAuthorizationRuleClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "queuesauthorizationrule", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "queuesauthorizationrule", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating QueuesAuthorizationRuleClient: %+v", err)
 	}

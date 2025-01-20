@@ -45,7 +45,6 @@ func (c SessionHostClient) Get(ctx context.Context, id SessionHostId) (result Ge
 
 	var model SessionHost
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

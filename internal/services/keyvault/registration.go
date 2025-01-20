@@ -4,6 +4,9 @@
 package keyvault
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -13,6 +16,7 @@ type Registration struct{}
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkTypedServiceRegistration          = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -69,5 +73,20 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		KeyVaultCertificateContactsResource{},
+	}
+}
+
+func (r Registration) FrameworkResources() []func() resource.Resource {
+	return []func() resource.Resource{}
+}
+
+func (r Registration) FrameworkDataSources() []func() datasource.DataSource {
+	return []func() datasource.DataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{
+		NewKeyVaultCertificateEphemeralResource,
+		NewKeyVaultSecretEphemeralResource,
 	}
 }

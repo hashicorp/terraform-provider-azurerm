@@ -45,7 +45,6 @@ func (c PrivateZonesClient) Get(ctx context.Context, id PrivateDnsZoneId) (resul
 
 	var model PrivateZone
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

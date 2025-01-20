@@ -44,7 +44,7 @@ func ParseProviders2GuestConfigurationAssignmentID(input string) (*Providers2Gue
 	}
 
 	id := Providers2GuestConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseProviders2GuestConfigurationAssignmentIDInsensitively(input string) (*
 	}
 
 	id := Providers2GuestConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,11 +121,11 @@ func (id Providers2GuestConfigurationAssignmentId) Segments() []resourceids.Segm
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticVirtualMachines", "virtualMachines", "virtualMachines"),
-		resourceids.UserSpecifiedSegment("virtualMachineName", "virtualMachineValue"),
+		resourceids.UserSpecifiedSegment("virtualMachineName", "virtualMachineName"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftGuestConfiguration", "Microsoft.GuestConfiguration", "Microsoft.GuestConfiguration"),
 		resourceids.StaticSegment("staticGuestConfigurationAssignments", "guestConfigurationAssignments", "guestConfigurationAssignments"),
-		resourceids.UserSpecifiedSegment("guestConfigurationAssignmentName", "guestConfigurationAssignmentValue"),
+		resourceids.UserSpecifiedSegment("guestConfigurationAssignmentName", "guestConfigurationAssignmentName"),
 	}
 }
 

@@ -593,6 +593,28 @@ func TestAccBackupProtectionPolicyVM_tieringPolicy(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyTypeDefault(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateBackupTime(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -1062,6 +1084,27 @@ resource "azurerm_backup_policy_vm" "test" {
       duration_type = "Months"
       mode          = "TierAfter"
     }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) updateBackupTime(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "20:00"
+  }
+
+  retention_daily {
+    count = 10
   }
 }
 `, r.template(data), data.RandomInteger)

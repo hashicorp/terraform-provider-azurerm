@@ -35,8 +35,7 @@ resource "azurerm_redis_enterprise_cluster" "example1" {
 }
 
 resource "azurerm_redis_enterprise_database" "example" {
-  name                = "default"
-  resource_group_name = azurerm_resource_group.example.name
+  name = "default"
 
   cluster_id        = azurerm_redis_enterprise_cluster.example.id
   client_protocol   = "Encrypted"
@@ -58,8 +57,6 @@ resource "azurerm_redis_enterprise_database" "example" {
 The following arguments are supported:
 
 * `name` - (Optional) The name which should be used for this Redis Enterprise Database. Currently the acceptable value for this argument is `default`. Defaults to `default`. Changing this forces a new Redis Enterprise Database to be created.
-
-* `resource_group_name` - (Optional) The name of the Resource Group where the Redis Enterprise Database should exist. Changing this forces a new Redis Enterprise Database to be created.
 
 * `cluster_id` - (Required) The resource id of the Redis Enterprise Cluster to deploy this Redis Enterprise Database. Changing this forces a new Redis Enterprise Database to be created.
 

@@ -27,7 +27,6 @@ func TestThreatIntelligenceIndicatorID(t *testing.T) {
 		Error    bool
 		Expected *ThreatIntelligenceIndicatorId
 	}{
-
 		{
 			// empty
 			Input: "",

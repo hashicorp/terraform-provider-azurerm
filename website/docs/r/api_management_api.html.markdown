@@ -36,10 +36,9 @@ resource "azurerm_api_management_api" "example" {
   display_name        = "Example API"
   path                = "example"
   protocols           = ["https"]
-
   import {
     content_format = "swagger-link-json"
-    content_value  = "http://conferenceapi.azurewebsites.net/?format=json"
+    content_value  = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/refs/heads/main/internal/services/apimanagement/testdata/api_management_api_schema_swagger.json"
   }
 }
 ```
@@ -82,10 +81,6 @@ The following arguments are supported:
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
-* `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
-
--> **NOTE:** This property has been deprecated in favour of the `api_type` property and will be removed in version 4.0 of the provider.
-
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
@@ -120,7 +115,7 @@ A `import` block supports the following:
 
 * `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `openapi`, `openapi+json`, `openapi+json-link`, `openapi-link`, `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
 
-* `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline.
+* `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline. The URL must be accessible and return a valid document; otherwise, deployment may fail.
 
 * `wsdl_selector` - (Optional) A `wsdl_selector` block as defined below, which allows you to limit the import of a WSDL to only a subset of the document. This can only be specified when `content_format` is `wsdl` or `wsdl-link`.
 

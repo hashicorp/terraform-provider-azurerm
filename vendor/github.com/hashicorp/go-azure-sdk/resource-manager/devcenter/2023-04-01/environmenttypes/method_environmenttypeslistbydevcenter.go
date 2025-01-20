@@ -39,6 +39,7 @@ func (o EnvironmentTypesListByDevCenterOperationOptions) ToHeaders() *client.Hea
 
 func (o EnvironmentTypesListByDevCenterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

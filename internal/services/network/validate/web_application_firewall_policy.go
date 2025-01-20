@@ -60,6 +60,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{
 	"0.1",
 	"1.0",
+	"1.1",
 	"2.1",
 	"2.2.9",
 	"3.0",
@@ -74,11 +75,14 @@ var ValidateWebApplicationFirewallPolicyRuleSetType = validation.StringInSlice([
 }, false)
 
 var ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion = validation.StringInSlice([]string{
+	"1.0",
+	"1.1",
 	"2.1",
 	"3.2",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyExclusionRuleSetType = validation.StringInSlice([]string{
 	"OWASP",
+	"Microsoft_BotManagerRuleSet",
 	"Microsoft_DefaultRuleSet",
 }, false)

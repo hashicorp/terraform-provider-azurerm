@@ -40,9 +40,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
-* `enable_auto_scaling` - Does this Node Pool have Auto-Scaling enabled?
+* `auto_scaling_enabled` - Does this Node Pool have Auto-Scaling enabled?
 
-* `enable_node_public_ip` - Do nodes in this Node Pool have a Public IP Address?
+* `node_public_ip_enabled` - Do nodes in this Node Pool have a Public IP Address?
 
 * `eviction_policy` - The eviction policy used for Virtual Machines in the Virtual Machine Scale Set, when `priority` is set to `Spot`.
 

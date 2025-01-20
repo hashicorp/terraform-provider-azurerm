@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `node_public_ip_enabled` - (Optional) Whether the compute cluster will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Defaults to `false`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 

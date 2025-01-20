@@ -49,6 +49,43 @@ func TestAccAppConfiguration_standard(t *testing.T) {
 	})
 }
 
+func TestAccAppConfiguration_upgradesku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
@@ -256,7 +293,7 @@ func TestAccAppConfiguration_replicaUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -495,6 +532,26 @@ resource "azurerm_app_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppConfigurationResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

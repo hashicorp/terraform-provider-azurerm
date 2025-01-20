@@ -14,6 +14,14 @@ type RawStreamInputDataSource struct {
 	Properties *RawInputDatasourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from StreamInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s RawStreamInputDataSource) StreamInputDataSource() BaseStreamInputDataSourceImpl {
+	return BaseStreamInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = RawStreamInputDataSource{}
@@ -27,9 +35,10 @@ func (s RawStreamInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RawStreamInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Raw"
 
 	encoded, err = json.Marshal(decoded)

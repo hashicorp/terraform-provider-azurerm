@@ -45,7 +45,6 @@ func (c VirtualNetworkLinksClient) Get(ctx context.Context, id VirtualNetworkLin
 
 	var model VirtualNetworkLink
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

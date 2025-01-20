@@ -4,7 +4,6 @@
 package graphservices
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -34,11 +33,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
-		ServicesAccountResource{},
-	}
-
-	if !features.FourPointOhBeta() {
-		resources = append(resources, AccountResource{})
+		AccountResource{},
 	}
 
 	return resources

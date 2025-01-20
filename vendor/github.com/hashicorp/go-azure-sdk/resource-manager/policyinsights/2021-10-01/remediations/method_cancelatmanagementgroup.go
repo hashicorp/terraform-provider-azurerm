@@ -46,7 +46,6 @@ func (c RemediationsClient) CancelAtManagementGroup(ctx context.Context, id Prov
 
 	var model Remediation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

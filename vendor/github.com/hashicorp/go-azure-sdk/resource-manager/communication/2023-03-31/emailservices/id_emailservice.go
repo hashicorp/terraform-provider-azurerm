@@ -42,7 +42,7 @@ func ParseEmailServiceID(input string) (*EmailServiceId, error) {
 	}
 
 	id := EmailServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseEmailServiceIDInsensitively(input string) (*EmailServiceId, error) {
 	}
 
 	id := EmailServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id EmailServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCommunication", "Microsoft.Communication", "Microsoft.Communication"),
 		resourceids.StaticSegment("staticEmailServices", "emailServices", "emailServices"),
-		resourceids.UserSpecifiedSegment("emailServiceName", "emailServiceValue"),
+		resourceids.UserSpecifiedSegment("emailServiceName", "emailServiceName"),
 	}
 }
 

@@ -173,7 +173,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {

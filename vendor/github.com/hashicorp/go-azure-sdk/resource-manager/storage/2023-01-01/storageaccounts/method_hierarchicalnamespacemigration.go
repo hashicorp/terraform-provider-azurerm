@@ -37,6 +37,7 @@ func (o HierarchicalNamespaceMigrationOperationOptions) ToHeaders() *client.Head
 
 func (o HierarchicalNamespaceMigrationOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

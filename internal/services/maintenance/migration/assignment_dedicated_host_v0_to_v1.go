@@ -15,8 +15,7 @@ import (
 
 var _ pluginsdk.StateUpgrade = AssignmentDedicatedHostV0ToV1{}
 
-type AssignmentDedicatedHostV0ToV1 struct {
-}
+type AssignmentDedicatedHostV0ToV1 struct{}
 
 func (AssignmentDedicatedHostV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

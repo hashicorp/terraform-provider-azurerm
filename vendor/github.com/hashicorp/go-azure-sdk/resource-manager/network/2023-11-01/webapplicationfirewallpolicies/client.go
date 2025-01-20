@@ -15,7 +15,7 @@ type WebApplicationFirewallPoliciesClient struct {
 }
 
 func NewWebApplicationFirewallPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*WebApplicationFirewallPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webapplicationfirewallpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webapplicationfirewallpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebApplicationFirewallPoliciesClient: %+v", err)
 	}

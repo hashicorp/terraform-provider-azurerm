@@ -68,6 +68,8 @@ output "hostname" {
 
 * `secondary_connection_string` - The secondary connection string of the Redis Instance.
 
+* `access_keys_authentication_enabled` - Specifies if access key authentication is enabled.
+
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
 * `zones` - A list of Availability Zones in which this Redis Cache is located.

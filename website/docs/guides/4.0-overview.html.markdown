@@ -1,0 +1,62 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: Version 4.0 of the Azure Provider"
+description: |-
+Azure Resource Manager: Version 4.0 of the Azure Provider
+---
+
+# Version 4.0 of the Azure Provider
+
+-> **Note:** Since this documentation is versioned, we recommend checking [the latest version of this document](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-overview).
+
+Version 4.0 of the Azure Provider is a major release. It has introduced breaking changes as required, in addition to new functionality and bug fixes.
+
+During the development of version 2.0 as well as 3.0 of the Azure Provider we made use of Feature Toggling to gradually add support for the new functionality. This allows users to try out the next major release of the provider in non-production environments, to get a sense of the upcoming changes that will be required in their configuration and to provide invaluable feedback on the changes.
+
+We have used the same approach for version 4.0 of the Azure Provider too, providing an opt-in Beta for the changes coming in version 4.0 whilst using 3.x versions of the Azure Provider.
+
+An upgrade guide containing the detailed changes coming in version 4.0 of the Azure Provider has been made available and can be found [here](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide).
+
+## Disclaimer
+
+Important to note is that the activation of the Beta should **only be done in non-production environments** and the **activation is non-reversible** since the changes in 4.0 will affect the Terraform state. We recommend making backups of the environment and state files that you will be testing the beta in, in case a rollback is required.
+
+## Pinning to a 3.x version of the Azure Provider
+
+We recommend pinning the version of each Provider you use in Terraform, for example:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=3.112.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+}
+```
+
+## What's available in Version 4.0 of the Azure Provider?
+
+-> **Note:** Since new functionality is being added iteratively, this page will be updated as new functionality is added to the 4.0 Beta
+
+Version 4.0 of the Azure Provider is now released.
+
+Below is a brief overview of the biggest changes and new features coming in 4.0. For more details on these please see the [4.0 upgrade guide](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/4.0-upgrade-guide).
+
+### Improved Resource Provider Registration
+
+Resource Provider Registration within the provider will be defined with better clarity and gives users more control over which resource providers to automatically register.
+
+### Provider Functions
+
+With the introduction of provider functions in Terraform 1.8, we'll be introducing two new Azure specific provider functions for Azure Resource IDs in 4.0.
+
+### Additional Configuration Options for Subnets defined in the Virtual Network Resource
+
+We've extended the `subnet` block within the `azurerm_virtual_network` resource to allow creation of subnets with delegations and route tables, among other options.

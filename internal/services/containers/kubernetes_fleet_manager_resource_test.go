@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,6 +91,7 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
@@ -104,6 +105,7 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

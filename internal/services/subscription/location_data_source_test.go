@@ -25,14 +25,14 @@ func TestAccLocationDataSource_NonExistingRegion(t *testing.T) {
 	})
 }
 
-func TestAccLocationDataSource_westUS(t *testing.T) {
+func TestAccLocationDataSource_eastUS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_location", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: LocationsDataSource{}.basic("westus"),
+			Config: LocationsDataSource{}.basic("eastus"),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("display_name").HasValue("West US"),
+				check.That(data.ResourceName).Key("display_name").HasValue("East US"),
 				check.That(data.ResourceName).Key("zone_mappings.0.logical_zone").HasValue("1"),
 				check.That(data.ResourceName).Key("zone_mappings.1.logical_zone").HasValue("2"),
 				check.That(data.ResourceName).Key("zone_mappings.2.logical_zone").HasValue("3"),

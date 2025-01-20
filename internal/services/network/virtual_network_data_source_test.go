@@ -75,8 +75,8 @@ resource "azurerm_virtual_network" "test" {
   dns_servers         = ["10.0.0.4"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 

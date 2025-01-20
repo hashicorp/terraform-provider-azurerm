@@ -27,7 +27,6 @@ func TestAnalyticsSharedItemID(t *testing.T) {
 		Error    bool
 		Expected *AnalyticsSharedItemId
 	}{
-
 		{
 			// empty
 			Input: "",

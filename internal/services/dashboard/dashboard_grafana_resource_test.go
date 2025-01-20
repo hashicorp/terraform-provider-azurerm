@@ -123,7 +123,13 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_monitor_workspace" "test" {
+  name                = "acctest-mw-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r DashboardGrafanaResource) basic(data acceptance.TestData) string {
@@ -204,7 +210,7 @@ resource "azurerm_dashboard_grafana" "test" {
   }
 
   azure_monitor_workspace_integrations {
-    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
+    resource_id = azurerm_monitor_workspace.test.id
   }
 
   tags = {
@@ -219,6 +225,12 @@ func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 			%s
 
+resource "azurerm_monitor_workspace" "test2" {
+  name                = "acctest-mw2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
@@ -230,11 +242,11 @@ resource "azurerm_dashboard_grafana" "test" {
   }
 
   azure_monitor_workspace_integrations {
-    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d"
+    resource_id = azurerm_monitor_workspace.test.id
   }
 
   azure_monitor_workspace_integrations {
-    resource_id = "${azurerm_resource_group.test.id}/providers/microsoft.monitor/accounts/a-mwr-%[2]d-2"
+    resource_id = azurerm_monitor_workspace.test2.id
   }
 
   smtp {
@@ -251,5 +263,5 @@ resource "azurerm_dashboard_grafana" "test" {
     key2 = "value2"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }

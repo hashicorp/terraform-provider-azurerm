@@ -15,7 +15,7 @@ type ModuleClient struct {
 }
 
 func NewModuleClientWithBaseURI(sdkApi sdkEnv.Api) (*ModuleClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "module", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "module", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ModuleClient: %+v", err)
 	}

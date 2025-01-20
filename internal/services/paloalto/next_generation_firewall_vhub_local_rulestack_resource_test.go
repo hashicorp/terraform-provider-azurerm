@@ -316,7 +316,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 1001
   action       = "DenySilent"
-
+  protocol     = "application-default"
   applications = ["any"]
 
   destination {

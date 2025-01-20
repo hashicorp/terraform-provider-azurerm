@@ -902,6 +902,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   name                = "acctestmdcr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  kind                = "WorkspaceTransforms"
 
   destinations {
     log_analytics {
@@ -941,6 +942,7 @@ resource "azurerm_monitor_data_collection_rule" "test" {
   name                = "acctestmdcr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  kind                = "WorkspaceTransforms"
 
   destinations {
     log_analytics {

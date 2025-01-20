@@ -27,7 +27,6 @@ func TestApplicationGatewayURLPathMapPathRuleID(t *testing.T) {
 		Error    bool
 		Expected *ApplicationGatewayURLPathMapPathRuleId
 	}{
-
 		{
 			// empty
 			Input: "",

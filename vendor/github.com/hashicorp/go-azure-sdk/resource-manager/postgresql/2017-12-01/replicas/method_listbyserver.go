@@ -46,7 +46,6 @@ func (c ReplicasClient) ListByServer(ctx context.Context, id ServerId) (result L
 
 	var model ServerListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

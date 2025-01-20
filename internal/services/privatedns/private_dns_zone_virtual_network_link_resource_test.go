@@ -137,8 +137,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 
@@ -174,8 +174,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 
@@ -225,8 +225,8 @@ resource "azurerm_virtual_network" "test_alt" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 
@@ -280,8 +280,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 
@@ -322,8 +322,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 

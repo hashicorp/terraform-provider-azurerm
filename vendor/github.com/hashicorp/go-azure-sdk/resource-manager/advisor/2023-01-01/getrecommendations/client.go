@@ -15,7 +15,7 @@ type GetRecommendationsClient struct {
 }
 
 func NewGetRecommendationsClientWithBaseURI(sdkApi sdkEnv.Api) (*GetRecommendationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "getrecommendations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "getrecommendations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GetRecommendationsClient: %+v", err)
 	}

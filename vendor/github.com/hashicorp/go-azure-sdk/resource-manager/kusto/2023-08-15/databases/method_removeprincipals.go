@@ -51,7 +51,6 @@ func (c DatabasesClient) RemovePrincipals(ctx context.Context, id commonids.Kust
 
 	var model DatabasePrincipalListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

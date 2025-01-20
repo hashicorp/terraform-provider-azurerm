@@ -40,6 +40,7 @@ func (o DedicatedHsmListByResourceGroupOperationOptions) ToHeaders() *client.Hea
 
 func (o DedicatedHsmListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

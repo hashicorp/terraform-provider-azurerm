@@ -319,7 +319,7 @@ resource "azurerm_storage_object_replication" "test" {
   rules {
     source_container_name        = azurerm_storage_container.src.name
     destination_container_name   = azurerm_storage_container.dst.name
-    copy_blobs_created_after     = "%s"
+    copy_blobs_created_after     = "%[2]s"
     filter_out_blobs_with_prefix = ["blobA", "blobB", "blobC"]
   }
   rules {

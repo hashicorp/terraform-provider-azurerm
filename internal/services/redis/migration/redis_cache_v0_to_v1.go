@@ -8,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"

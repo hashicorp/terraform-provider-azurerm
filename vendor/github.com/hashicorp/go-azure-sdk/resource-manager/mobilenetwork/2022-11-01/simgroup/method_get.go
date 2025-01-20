@@ -45,7 +45,6 @@ func (c SIMGroupClient) Get(ctx context.Context, id SimGroupId) (result GetOpera
 
 	var model SimGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -5,19 +5,30 @@ package resourceproviders
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 )
 
-func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs map[string]struct{}) error {
+// EnsureRegistered tries to determine whether all requiredRPs are registered in the subscription, and attempts to
+// register them if it appears they are not. Note that this may fail if a resource provider is not available in the
+// current cloud environment (a warning message will be logged to indicate when a resource provider is not listed).
+func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, requiredRPs ResourceProviders) error {
+	// Cache supported resource providers if RP registration and enhanced validation are not both disabled
+	if len(requiredRPs) == 0 && !features.EnhancedValidationEnabled() {
+		log.Printf("[DEBUG] Skipping populating the resource provider cache, since resource provider registration and enhanced validation are both disabled")
+		return nil
+	}
+
 	if cachedResourceProviders == nil || registeredResourceProviders == nil || unregisteredResourceProviders == nil {
 		if err := populateCache(ctx, client, subscriptionId); err != nil {
 			return fmt.Errorf("populating Resource Provider cache: %+v", err)
@@ -27,16 +38,17 @@ func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, su
 	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
 	providersToRegister, err := DetermineWhichRequiredResourceProvidersRequireRegistration(requiredRPs)
 	if err != nil {
-		return fmt.Errorf("determining which Required Resource Providers require registration: %+v", err)
+		return fmt.Errorf("determining which Resource Providers require registration: %+v", err)
 	}
 
-	if len(*providersToRegister) > 0 {
-		log.Printf("[DEBUG] Registering %d Resource Providers", len(*providersToRegister))
-		if err := registerForSubscription(ctx, client, subscriptionId, *providersToRegister); err != nil {
-			return err
-		}
-	} else {
+	if len(*providersToRegister) == 0 {
 		log.Printf("[DEBUG] All required Resource Providers are registered")
+		return nil
+	}
+
+	log.Printf("[DEBUG] Registering %d Resource Providers", len(*providersToRegister))
+	if err = registerForSubscription(ctx, client, subscriptionId, *providersToRegister); err != nil {
+		return userError(err)
 	}
 
 	return nil
@@ -44,8 +56,7 @@ func EnsureRegistered(ctx context.Context, client *providers.ProvidersClient, su
 
 // registerForSubscription registers the specified Resource Providers in the current Subscription
 func registerForSubscription(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, providersToRegister []string) error {
-	var err error
-	var failedProviders []string
+	errs := &registrationErrors{}
 	var wg sync.WaitGroup
 	wg.Add(len(providersToRegister))
 
@@ -53,30 +64,33 @@ func registerForSubscription(ctx context.Context, client *providers.ProvidersCli
 		go func(p string) {
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering Resource Provider %q with namespace", p)
-			if innerErr := registerWithSubscription(ctx, client, subscriptionId, p); innerErr != nil {
-				failedProviders = append(failedProviders, p)
-				if err == nil {
-					err = innerErr
-				} else {
-					err = fmt.Errorf("%s\n%s", err, innerErr)
-				}
+			if err := registerWithSubscription(ctx, client, subscriptionId, p); err != nil {
+				errs.append(err)
 			}
 		}(providerName)
 	}
 
 	wg.Wait()
 
-	if len(failedProviders) > 0 {
-		err = fmt.Errorf("Cannot register providers: %s. Errors were: %s", strings.Join(failedProviders, ", "), err)
+	if errs.hasErr() {
+		return errs
 	}
-	return err
+
+	return nil
 }
 
 func registerWithSubscription(ctx context.Context, client *providers.ProvidersClient, subscriptionId commonids.SubscriptionId, providerName string) error {
 	providerId := providers.NewSubscriptionProviderID(subscriptionId.SubscriptionId, providerName)
 	log.Printf("[DEBUG] Registering %s..", providerId)
-	if _, err := client.Register(ctx, providerId, providers.ProviderRegistrationRequest{}); err != nil {
-		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
+	if resp, err := client.Register(ctx, providerId, providers.ProviderRegistrationRequest{}); err != nil {
+		msg := fmt.Sprintf("registering resource provider %q: %s", providerName, err)
+
+		if response.WasForbidden(resp.HttpResponse) {
+			// a 403 response was received, so wrap ErrNoAuthorization in order to expose messaging for this
+			return fmt.Errorf("%w: %s", ErrNoAuthorization, msg)
+		}
+
+		return errors.New(msg)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to finish registering..", providerId)

@@ -160,7 +160,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0` and `8.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0`, `8.0` and `9.0`.
 
 * `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
 
@@ -172,13 +172,13 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, and `17`.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
+~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --os-type linux`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values are `12-lts`, `14-lts`, `16-lts`, `18-lts` and `20-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1` and `8.2`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2` and `8.3`.
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
@@ -692,8 +692,6 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled? Required with `auto_heal_setting`.
-
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
 * `auto_swap_slot_name` - (Optional) The Linux Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -732,7 +730,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 

@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EventListenerEndpoint interface {
+	EventListenerEndpoint() BaseEventListenerEndpointImpl
 }
 
-// RawEventListenerEndpointImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ EventListenerEndpoint = BaseEventListenerEndpointImpl{}
+
+type BaseEventListenerEndpointImpl struct {
+	Type EventListenerEndpointDiscriminator `json:"type"`
+}
+
+func (s BaseEventListenerEndpointImpl) EventListenerEndpoint() BaseEventListenerEndpointImpl {
+	return s
+}
+
+var _ EventListenerEndpoint = RawEventListenerEndpointImpl{}
+
+// RawEventListenerEndpointImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawEventListenerEndpointImpl struct {
-	Type   string
-	Values map[string]interface{}
+	eventListenerEndpoint BaseEventListenerEndpointImpl
+	Type                  string
+	Values                map[string]interface{}
 }
 
-func unmarshalEventListenerEndpointImplementation(input []byte) (EventListenerEndpoint, error) {
+func (s RawEventListenerEndpointImpl) EventListenerEndpoint() BaseEventListenerEndpointImpl {
+	return s.eventListenerEndpoint
+}
+
+func UnmarshalEventListenerEndpointImplementation(input []byte) (EventListenerEndpoint, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalEventListenerEndpointImplementation(input []byte) (EventListenerEn
 		return nil, fmt.Errorf("unmarshaling EventListenerEndpoint into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "EventHub") {
@@ -44,10 +61,15 @@ func unmarshalEventListenerEndpointImplementation(input []byte) (EventListenerEn
 		return out, nil
 	}
 
-	out := RawEventListenerEndpointImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseEventListenerEndpointImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseEventListenerEndpointImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawEventListenerEndpointImpl{
+		eventListenerEndpoint: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

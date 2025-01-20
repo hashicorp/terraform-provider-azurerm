@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlServerTransparentDataEncryptionResource struct{}
@@ -116,16 +118,18 @@ func (MsSqlServerTransparentDataEncryptionResource) Exists(ctx context.Context, 
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.EncryptionProtectorClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.MSSQL.EncryptionProtectorClient.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("Encryption protector for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", *id)
 		}
 
-		return nil, fmt.Errorf("reading Encryption Protector for server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MsSqlServerTransparentDataEncryptionResource) baseKeyVault(data acceptance.TestData) string {
@@ -371,7 +375,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
@@ -379,7 +383,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
@@ -387,7 +391,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "user" {
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad20"
   scope              = "/keys"
   role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"

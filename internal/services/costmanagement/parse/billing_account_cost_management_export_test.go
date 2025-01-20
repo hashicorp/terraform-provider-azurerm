@@ -27,7 +27,6 @@ func TestBillingAccountCostManagementExportID(t *testing.T) {
 		Error    bool
 		Expected *BillingAccountCostManagementExportId
 	}{
-
 		{
 			// empty
 			Input: "",

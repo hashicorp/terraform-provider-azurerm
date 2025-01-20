@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -264,12 +264,9 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 						state.AppServiceEnvironmentId = *ase.Id
 					}
 
-					state.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
-
-					state.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
+					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
+					state.Reserved = pointer.From(props.Reserved)
+					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
 					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				state.Tags = pointer.From(model.Tags)

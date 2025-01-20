@@ -51,7 +51,6 @@ func (c BlobContainersClient) SetLegalHold(ctx context.Context, id commonids.Sto
 
 	var model LegalHold
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

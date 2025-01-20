@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts` Documentation
 
-The `dedicatedhosts` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2024-03-01`).
+The `dedicatedhosts` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupValue", "hostValue")
+id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupName", "hostName")
 
 payload := dedicatedhosts.DedicatedHost{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupValue", "hostValue")
+id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupName", "hostName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupValue", "hostValue")
+id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupName", "hostName")
 
 read, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
 if err != nil {
@@ -70,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupValue", "hostValue")
+id := commonids.NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostGroupName", "hostName")
 
 payload := dedicatedhosts.DedicatedHostUpdate{
 	// ...

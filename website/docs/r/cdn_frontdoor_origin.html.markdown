@@ -223,8 +223,6 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the origin be enabled? Possible values are `true` or `false`. Defaults to `true`.
 
--> **NOTE:** The `enabled` field will need to be explicitly set until the 4.0 provider is released due to the deprecation of the `health_probes_enabled` property in version 3.x of the AzureRM Provider.
-
 * `http_port` - (Optional) The value of the HTTP port. Must be between `1` and `65535`. Defaults to `80`.
 
 * `https_port` - (Optional) The value of the HTTPS port. Must be between `1` and `65535`. Defaults to `443`.

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts` Documentation
 
-The `storageaccounts` SDK allows for interaction with the Azure Resource Manager Service `storage` (API Version `2023-01-01`).
+The `storageaccounts` SDK allows for interaction with Azure Resource Manager `storage` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 if err := client.AbortHierarchicalNamespaceMigrationThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.StorageAccountCreateParameters{
 	// ...
@@ -75,7 +75,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 if err := client.FailoverThenPoll(ctx, id, storageaccounts.DefaultFailoverOperationOptions()); err != nil {
 	// handle the error
@@ -103,7 +103,7 @@ if err := client.FailoverThenPoll(ctx, id, storageaccounts.DefaultFailoverOperat
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 read, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 if err != nil {
@@ -119,7 +119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 if err := client.HierarchicalNamespaceMigrationThenPoll(ctx, id, storageaccounts.DefaultHierarchicalNamespaceMigrationOperationOptions()); err != nil {
 	// handle the error
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.AccountSasParameters{
 	// ...
@@ -186,7 +186,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 read, err := client.ListKeys(ctx, id, storageaccounts.DefaultListKeysOperationOptions())
 if err != nil {
@@ -202,7 +202,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.ServiceSasParameters{
 	// ...
@@ -223,7 +223,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.StorageAccountRegenerateKeyParameters{
 	// ...
@@ -244,7 +244,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.BlobRestoreParameters{
 	// ...
@@ -261,7 +261,7 @@ if err := client.RestoreBlobRangesThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 read, err := client.RevokeUserDelegationKeys(ctx, id)
 if err != nil {
@@ -277,7 +277,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountValue")
+id := commonids.NewStorageAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "storageAccountName")
 
 payload := storageaccounts.StorageAccountUpdateParameters{
 	// ...

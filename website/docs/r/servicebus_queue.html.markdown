@@ -33,7 +33,7 @@ resource "azurerm_servicebus_queue" "example" {
   name         = "tfex_servicebus_queue"
   namespace_id = azurerm_servicebus_namespace.example.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 ```
 
@@ -45,11 +45,11 @@ The following arguments are supported:
 
 * `namespace_id` - (Required) The ID of the ServiceBus Namespace to create this queue in. Changing this forces a new resource to be created.
 
-* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute (`PT1M`).
+* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to `PT1M` (1 Minute).
 
 * `max_message_size_in_kilobytes` - (Optional) Integer value which controls the maximum size of a message allowed on the queue for Premium SKU. For supported values see the "Large messages support" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-premium-messaging#large-messages-support-preview).
 
-* `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas). Defaults to `1024`.
+* `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
 * `requires_duplicate_detection` - (Optional) Boolean flag which controls whether the Queue requires duplicate detection. Changing this forces a new resource to be created. Defaults to `false`.
 
@@ -59,23 +59,23 @@ The following arguments are supported:
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
 
-* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to 10 minutes (`PT10M`).
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to `PT10M` (10 Minutes).
 
 * `max_delivery_count` - (Optional) Integer value which controls when a message is automatically dead lettered. Defaults to `10`.
 
 * `status` - (Optional) The status of the Queue. Possible values are `Active`, `Creating`, `Deleting`, `Disabled`, `ReceiveDisabled`, `Renaming`, `SendDisabled`, `Unknown`. Note that `Restoring` is not accepted. Defaults to `Active`.
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls whether server-side batched operations are enabled. Defaults to `true`.
+* `batched_operations_enabled` - (Optional) Boolean flag which controls whether server-side batched operations are enabled. Defaults to `true`.
 
 * `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the Queue is automatically deleted, minimum of 5 minutes.
 
-* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers. Changing this forces a new resource to be created. Defaults to `false` for Basic and Standard.
+* `partitioning_enabled` - (Optional) Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers. Changing this forces a new resource to be created. Defaults to `false` for Basic and Standard.
 
 -> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. For premium namespace, partitioning is available at namespace creation, and all queues and topics in the partitioned namespace will be partitioned, for the premium namespace that has `premium_messaging_partitions` sets to `1`, the namespace is not partitioned.
 
-* `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `false`.
+* `express_enabled` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `false`.
 
-~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `enable_express` MUST be set to `false`.
+~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `express_enabled` MUST be set to `false`.
 
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
 

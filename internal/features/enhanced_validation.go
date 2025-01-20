@@ -8,8 +8,7 @@ import (
 	"strings"
 )
 
-// EnhancedValidationEnabled returns whether or not the feature for Enhanced Validation is
-// enabled.
+// EnhancedValidationEnabled returns whether the feature for Enhanced Validation is enabled.
 //
 // This functionality calls out to the Azure MetaData Service to cache the list of supported
 // Azure Locations for the specified Endpoint - and then uses that to provide enhanced validation

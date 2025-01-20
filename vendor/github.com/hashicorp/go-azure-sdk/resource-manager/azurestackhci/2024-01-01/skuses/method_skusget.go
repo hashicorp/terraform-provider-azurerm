@@ -34,6 +34,7 @@ func (o SkusGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o SkusGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c SkusesClient) SkusGet(ctx context.Context, id SkuId, options SkusGetOper
 
 	var model Sku
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -164,7 +164,7 @@ Alternatively, using the `AzureCLI@2` task, you can expose the OIDC token to `id
       Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$env:tenantId"
 ```
 
-The following Terraform and Provider blocks can be specified - where `3.7.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -173,7 +173,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.7.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -211,7 +211,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.7.0"
+      version = "=4.1.0"
     }
   }
 }

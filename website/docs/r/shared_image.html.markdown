@@ -106,6 +106,10 @@ The following arguments are supported:
 
 * `accelerated_network_support_enabled` - (Optional) Specifies if the Shared Image supports Accelerated Network. Changing this forces a new resource to be created.
 
+* `hibernation_enabled` - (Optional) Specifies if the Shared Image supports hibernation. Changing this forces a new resource to be created.
+
+* `disk_controller_type_nvme_enabled` - (Optional) Specifies if the Shared Image supports NVMe disks. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 
 ---

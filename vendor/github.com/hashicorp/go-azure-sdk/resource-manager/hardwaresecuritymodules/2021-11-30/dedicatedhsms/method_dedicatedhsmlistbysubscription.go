@@ -40,6 +40,7 @@ func (o DedicatedHsmListBySubscriptionOperationOptions) ToHeaders() *client.Head
 
 func (o DedicatedHsmListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

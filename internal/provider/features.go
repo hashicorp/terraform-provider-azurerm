@@ -183,7 +183,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"permanently_delete_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  !features.FourPointOhBeta(),
+						Default:  false,
 					},
 				},
 			},
@@ -309,6 +309,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"storage": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"data_plane_available": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
 		"subscription": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -368,6 +383,28 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
+					},
+				},
+			},
+		},
+
+		"netapp": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"delete_backups_on_backup_vault_destroy": {
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+					"prevent_volume_destruction": {
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
 					},
 				},
 			},
@@ -580,6 +617,15 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 		}
 	}
+	if raw, ok := val["storage"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			storageRaw := items[0].(map[string]interface{})
+			if v, ok := storageRaw["data_plane_available"]; ok {
+				featuresMap.Storage.DataPlaneAvailable = v.(bool)
+			}
+		}
+	}
 
 	if raw, ok := val["subscription"]; ok {
 		items := raw.([]interface{})
@@ -620,6 +666,19 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["netapp"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			netappRaw := items[0].(map[string]interface{})
+			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
+				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
+			}
+			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
+				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
 			}
 		}
 	}

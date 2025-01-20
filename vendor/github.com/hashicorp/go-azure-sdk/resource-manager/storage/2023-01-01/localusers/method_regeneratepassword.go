@@ -46,7 +46,6 @@ func (c LocalUsersClient) RegeneratePassword(ctx context.Context, id LocalUserId
 
 	var model LocalUserRegeneratePasswordResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
