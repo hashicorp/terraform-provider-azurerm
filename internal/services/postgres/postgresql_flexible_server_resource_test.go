@@ -1238,7 +1238,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   storage_mb             = 32768
-  create_mode            = "Update"
   version                = "%s"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
