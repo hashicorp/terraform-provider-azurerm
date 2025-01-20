@@ -245,6 +245,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `upgrade_override` - (Optional) A `upgrade_override` block as defined below.
+
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
@@ -872,6 +874,18 @@ A `sysctl_config` block supports the following:
 * `vm_swappiness` - (Optional) The sysctl setting vm.swappiness. Must be between `0` and `100`.
 
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`.
+
+---
+
+The `upgrade_override` block supports the following:
+
+* `force_upgrade_enabled` - (Required) Whether to force upgrade the cluster. Note that this option instructs the upgrade operation to bypass upgrade protections such as checking for deprecated API usage.
+
+-> **Note: Enable this option only with caution as it may render the cluster inoperative.**
+
+* `effective_until` - (Optional) Specifies the duration, in RFC 3339 format (e.g., `2025-10-01T13:00:00Z`), the `upgrade_override` values are effective. This field must be set for the `upgrade_override` values to take effect.
+
+-> **Note:** This only matches the start time of an upgrade, and the effectiveness won't change once an upgrade starts even if the `effective_until` value expires as the upgrade proceeds.
 
 ---
 
