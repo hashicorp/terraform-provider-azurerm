@@ -1302,6 +1302,7 @@ func TestAccWindowsFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+
 func TestAccWindowsFunctionAppSlot_tlsSettingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
