@@ -2306,8 +2306,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("upgrade_override") {
-		updateCluster = true
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
+
+		err = validateKubernetesClusterUpgradeOverrideSetting(d.GetChange("upgrade_override"))
+		if err != nil {
+			return fmt.Errorf("expanding `upgrade_override`: %+v", err)
+		}
+
+		updateCluster = true
 		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
 		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
 	}
@@ -2560,6 +2566,19 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	d.Partial(false)
 
 	return resourceKubernetesClusterRead(d, meta)
+}
+
+func validateKubernetesClusterUpgradeOverrideSetting(_, new interface{}) error {
+	if new == nil {
+		return fmt.Errorf("upgrade_override cannot be unset")
+	}
+
+	newOverrideSetting, canConvert := new.([]interface{})
+	if !canConvert || len(newOverrideSetting) == 0 {
+		return fmt.Errorf("upgrade_override cannot be unset")
+	}
+
+	return nil
 }
 
 func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
