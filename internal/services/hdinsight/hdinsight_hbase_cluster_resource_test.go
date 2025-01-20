@@ -247,6 +247,28 @@ func TestAccHDInsightHBaseCluster_tls(t *testing.T) {
 	})
 }
 
+func TestAccHDInsightHBaseCluster_acceleratedWritesEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
+	r := HDInsightHBaseClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.acceleratedWritesEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func TestAccHDInsightHBaseCluster_diskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hbase_cluster", "test")
 	r := HDInsightHBaseClusterResource{}
@@ -1499,6 +1521,58 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   cluster_version     = "4.0"
   tier                = "Standard"
   tls_min_version     = "1.2"
+
+  component_version {
+    hbase = "2.1"
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D3_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightHBaseClusterResource) acceleratedWritesEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_hbase_cluster" "test" {
+  name                       = "acctesthdi-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  cluster_version            = "4.0"
+  tier                       = "Standard"
+  tls_min_version            = "1.2"
+  accelerated_writes_enabled = true
 
   component_version {
     hbase = "2.1"
