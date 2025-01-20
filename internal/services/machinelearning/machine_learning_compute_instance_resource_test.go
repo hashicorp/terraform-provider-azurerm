@@ -34,6 +34,39 @@ func TestAccComputeInstance_basic(t *testing.T) {
 	})
 }
 
+func TestAccComputeInstance_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
+	r := ComputeInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccComputeInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_instance", "test")
 	r := ComputeInstanceResource{}
@@ -138,6 +171,37 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
+func (r ComputeInstanceResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
+
+	return fmt.Sprintf(`
+%s
+
+variable "ssh_key" {
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+}
+
+resource "azurerm_machine_learning_compute_instance" "test" {
+  name                          = "acctest%d"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  virtual_machine_size          = "STANDARD_DS3_V2"
+  local_auth_enabled            = true
+  node_public_ip_enabled        = true
+
+  description = "this is a resource residing in azure"
+
+  ssh {
+    enabled    = true
+    public_key = var.ssh_key
+  }
+
+  tags = {
+    Label1 = "Value"
+  }
+}
+`, template, data.RandomIntOfLength(8))
+}
+
 func (r ComputeInstanceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 
@@ -201,12 +265,14 @@ resource "azurerm_private_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id
+
   private_service_connection {
     name                           = "test-mlworkspace-%d"
     private_connection_resource_id = azurerm_machine_learning_workspace.test.id
     subresource_names              = ["amlworkspace"]
     is_manual_connection           = false
   }
+
   private_dns_zone_group {
     name                 = "test"
     private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
@@ -219,14 +285,18 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
   node_public_ip_enabled        = false
+  subnet_resource_id            = azurerm_subnet.test.id
+  description                   = "this is desc"
+
   ssh {
+    enabled    = true
     public_key = var.ssh_key
   }
-  subnet_resource_id = azurerm_subnet.test.id
-  description        = "this is desc"
+
   tags = {
     Label1 = "Value1"
   }
+
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
     azurerm_private_endpoint.test
