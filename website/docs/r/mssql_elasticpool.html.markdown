@@ -28,12 +28,13 @@ resource "azurerm_mssql_server" "example" {
 }
 
 resource "azurerm_mssql_elasticpool" "example" {
-  name                = "test-epool"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  server_name         = azurerm_mssql_server.example.name
-  license_type        = "LicenseIncluded"
-  max_size_gb         = 756
+  name                            = "test-epool"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  server_name                     = azurerm_mssql_server.example.name
+  high_availability_replica_count = 1
+  license_type                    = "LicenseIncluded"
+  max_size_gb                     = 756
 
   sku {
     name     = "BasicPool"
@@ -84,6 +85,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.
+
+* `high_availability_replica_count` - (Optional) Specifies the number of high availability replicas for the elastic pool. Only valid if sku tier is `HyperScale`. Valid range is 0-4. Default = 1.
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 

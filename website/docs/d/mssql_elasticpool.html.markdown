@@ -38,6 +38,8 @@ output "elasticpool_id" {
 
 * `enclave_type` - The type of enclave being used by the elastic pool.
 
+* `high_availability_replica_count` - The count of hyperscale high availability replicas.
+
 * `license_type` - The license type to apply for this elastic pool.
 
 * `location` - Specifies the supported Azure location where the resource exists.
