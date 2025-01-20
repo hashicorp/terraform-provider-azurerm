@@ -1571,8 +1571,9 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 }
 
 type StickySettings struct {
-	AppSettingNames       []string `tfschema:"app_setting_names"`
-	ConnectionStringNames []string `tfschema:"connection_string_names"`
+	AppSettingNames         []string `tfschema:"app_setting_names"`
+	AzureStorageConfigNames []string `tfschema:"azure_storage_config_names"`
+	ConnectionStringNames   []string `tfschema:"connection_string_names"`
 }
 
 func StickySettingsSchema() *pluginsdk.Schema {
@@ -1592,6 +1593,22 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.azure_storage_config_names",
+						"sticky_settings.0.connection_string_names",
+					},
+				},
+
+				"azure_storage_config_names": {
+					Type:     pluginsdk.TypeList,
+					MinItems: 1,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					AtLeastOneOf: []string{
+						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.azure_storage_config_names",
 						"sticky_settings.0.connection_string_names",
 					},
 				},
@@ -1606,6 +1623,7 @@ func StickySettingsSchema() *pluginsdk.Schema {
 					},
 					AtLeastOneOf: []string{
 						"sticky_settings.0.app_setting_names",
+						"sticky_settings.0.azure_storage_config_names",
 						"sticky_settings.0.connection_string_names",
 					},
 				},
@@ -1621,6 +1639,14 @@ func StickySettingsComputedSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"app_setting_names": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"azure_storage_config_names": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,
 					Elem: &pluginsdk.Schema{
@@ -1646,19 +1672,25 @@ func ExpandStickySettings(input []StickySettings) *webapps.SlotConfigNames {
 	}
 
 	return &webapps.SlotConfigNames{
-		AppSettingNames:       &input[0].AppSettingNames,
-		ConnectionStringNames: &input[0].ConnectionStringNames,
+		AppSettingNames:         &input[0].AppSettingNames,
+		AzureStorageConfigNames: &input[0].AzureStorageConfigNames,
+		ConnectionStringNames:   &input[0].ConnectionStringNames,
 	}
 }
 
 func FlattenStickySettings(input *webapps.SlotConfigNames) []StickySettings {
 	result := StickySettings{}
-	if input == nil || (input.AppSettingNames == nil && input.ConnectionStringNames == nil) || (len(*input.AppSettingNames) == 0 && len(*input.ConnectionStringNames) == 0) {
+	if input == nil || (input.AppSettingNames == nil && input.AzureStorageConfigNames == nil && input.ConnectionStringNames == nil) ||
+		(len(*input.AppSettingNames) == 0 && len(*input.AzureStorageConfigNames) == 0 && len(*input.ConnectionStringNames) == 0) {
 		return []StickySettings{}
 	}
 
 	if input.AppSettingNames != nil && len(*input.AppSettingNames) > 0 {
 		result.AppSettingNames = *input.AppSettingNames
+	}
+
+	if input.AzureStorageConfigNames != nil && len(*input.AzureStorageConfigNames) > 0 {
+		result.AzureStorageConfigNames = *input.AzureStorageConfigNames
 	}
 
 	if input.ConnectionStringNames != nil && len(*input.ConnectionStringNames) > 0 {

@@ -894,14 +894,18 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				stickySettings := helpers.ExpandStickySettings(state.StickySettings)
 				stickySettingsUpdate := webapps.SlotConfigNamesResource{
 					Properties: &webapps.SlotConfigNames{
-						AppSettingNames:       &emptySlice,
-						ConnectionStringNames: &emptySlice,
+						AppSettingNames:         &emptySlice,
+						AzureStorageConfigNames: &emptySlice,
+						ConnectionStringNames:   &emptySlice,
 					},
 				}
 
 				if stickySettings != nil {
 					if stickySettings.AppSettingNames != nil {
 						stickySettingsUpdate.Properties.AppSettingNames = stickySettings.AppSettingNames
+					}
+					if stickySettings.AzureStorageConfigNames != nil {
+						stickySettingsUpdate.Properties.AzureStorageConfigNames = stickySettings.AzureStorageConfigNames
 					}
 					if stickySettings.ConnectionStringNames != nil {
 						stickySettingsUpdate.Properties.ConnectionStringNames = stickySettings.ConnectionStringNames
