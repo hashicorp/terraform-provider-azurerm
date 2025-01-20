@@ -1426,11 +1426,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
 
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
-			Type:                     &extensionType,
-			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(autoUpgradeMinorVersion),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+			Publisher:               pointer.To(extensionRaw["publisher"].(string)),
+			Type:                    &extensionType,
+			TypeHandlerVersion:      pointer.To(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion: pointer.To(autoUpgradeMinorVersion),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -1452,6 +1451,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
+		}
+
+		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok && val != nil {
+			extensionProps.ProvisionAfterExtensions = utils.ExpandStringSlice(val.([]interface{}))
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
