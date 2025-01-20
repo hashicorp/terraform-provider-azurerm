@@ -1456,6 +1456,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"force_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
 						"effective_until": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -4624,33 +4629,27 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 
 func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
 	if len(input) == 0 || input[0] == nil {
-		return &managedclusters.ClusterUpgradeSettings{
-			OverrideSettings: &managedclusters.UpgradeOverrideSettings{
-				// The forceUpgrade field controls the overrideUpgradeSetting feature.
-				// If overrideUpgradeSetting is not specified, set forceUpgrade to false to disable the feature.
-				// Not passing this field to the API will not disable the feature.
-				ForceUpgrade: pointer.To(false),
-			},
-		}
+		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
 	return &managedclusters.ClusterUpgradeSettings{
 		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
-			ForceUpgrade: pointer.To(true),
+			ForceUpgrade: pointer.To(raw["force_upgrade_enabled"].(bool)),
 			Until:        pointer.To(raw["effective_until"].(string)),
 		},
 	}
 }
 
 func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.ClusterUpgradeSettings) []interface{} {
-	if input == nil || input.OverrideSettings == nil || !pointer.From(input.OverrideSettings.ForceUpgrade) {
+	if input == nil || input.OverrideSettings == nil {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"effective_until": pointer.From(input.OverrideSettings.Until),
+			"effective_until":       pointer.From(input.OverrideSettings.Until),
+			"force_upgrade_enabled": pointer.From(input.OverrideSettings.ForceUpgrade),
 		},
 	}
 }

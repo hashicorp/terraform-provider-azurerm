@@ -954,14 +954,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
-	upgradeOverrideSetting := ""
-	if isUpgradeOverrideSettingEnabled {
-		upgradeOverrideSetting = fmt.Sprintf(`
-  upgrade_override {
-	effective_until = "%s"
-  }`, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339))
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -991,8 +983,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
-  %[3]s
-
+  upgrade_override {
+    effective_until       = "%[3]s"
+    force_upgrade_enabled = %[4]t
+  }
 }
-  `, data.RandomString, data.Locations.Primary, upgradeOverrideSetting)
+  `, data.RandomString, data.Locations.Primary, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339), isUpgradeOverrideSettingEnabled)
 }
