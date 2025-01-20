@@ -1302,6 +1302,41 @@ func TestAccWindowsFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 	})
 }
+func TestAccWindowsFunctionAppSlot_tlsSettingUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_256_GCM_SHA384"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.tlsCipherSuiteConfigured(data, SkuStandardPlan, "TLS_AES_128_GCM_SHA256"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
 
 func TestAccWindowsFunctionAppSlot_basicWithTlsOnePointThree(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
@@ -1359,6 +1394,27 @@ resource "azurerm_windows_function_app_slot" "test" {
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger)
+}
+
+func (r WindowsFunctionAppSlotResource) tlsCipherSuiteConfigured(data acceptance.TestData, planSku string, tlsCipherSuiteValue string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app_slot" "test" {
+  name                       = "acctest-WFAS-%d"
+  function_app_id            = azurerm_windows_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    minimum_tls_cipher_suite = "%s"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, tlsCipherSuiteValue)
 }
 
 func (r WindowsFunctionAppSlotResource) withIPRestrictions(data acceptance.TestData) string {
@@ -1730,8 +1786,9 @@ resource "azurerm_windows_function_app_slot" "test" {
       powershell_core_version = "7"
     }
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
@@ -1915,8 +1972,9 @@ resource "azurerm_windows_function_app_slot" "test" {
     health_check_eviction_time_in_min = 3
     worker_count                      = 3
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
@@ -2050,8 +2108,9 @@ resource "azurerm_windows_function_app_slot" "test" {
     health_check_eviction_time_in_min = 3
     worker_count                      = 3
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version      = "1.1"
+    scm_minimum_tls_version  = "1.1"
+    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
 
     cors {
       allowed_origins = [
