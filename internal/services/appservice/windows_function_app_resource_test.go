@@ -1629,6 +1629,42 @@ func TestAccWindowsFunctionApp_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_websiteContentOverVnetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.websiteContentOverVnet(data, SkuElasticPremiumPlan, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+	})
+}
+
 // Outputs
 
 func TestAccWindowsFunctionApp_basicOutputs(t *testing.T) {
@@ -4024,6 +4060,43 @@ resource "azurerm_windows_function_app" "test" {
 
 }
 `, r.templateWithStorageAccountExtras(data, planSKU), data.RandomInteger)
+}
+
+// nolint: unparam
+func (r WindowsFunctionAppResource) websiteContentOverVnet(data acceptance.TestData, planSKU string, websiteContentSiteConfig bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "shareforfa"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 5
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                       = "acctestWA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    WEBSITE_CONTENTSHARE = "shareforfa"
+  }
+
+  site_config {}
+  website_content_share_over_vnet = %t
+
+  lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled, ftp_publish_basic_authentication_enabled]
+  }
+}
+`, r.template(data, planSKU), data.RandomInteger, websiteContentSiteConfig)
 }
 
 func (r WindowsFunctionAppResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {
