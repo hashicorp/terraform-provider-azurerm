@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where the Blob exists. Changing this forces a new resource to be created.
 
+* `uefi_settings` - (Optional) A `uefi_settings` block as defined below. Changing this forces a new Shared Image Version to be created.
+
 -> **NOTE:** `blob_uri` and `storage_account_id` must be specified together
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
@@ -100,6 +102,55 @@ The `target_region` block supports the following:
 * `exclude_from_latest_enabled` - (Optional) Specifies whether this Shared Image Version should be excluded when querying for the `latest` version. Defaults to `false`.
 
 * `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+
+---
+
+The `uefi_settings` block supports the following:
+
+* `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values: `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate`, `NoSignatureTemplate`
+
+* `additional_signatures` - (Optional) A block defining additional UEFI signatures.
+
+
+The `additional_signatures` block supports the following:
+
+* `db` - (Optional) One or more blocks defining the database of UEFI Keys (DB).
+
+* `dbx` - (Optional) One or more blocks defining the database of revoked UEFI Keys (DBX).
+
+* `kek` - (Optional) One or more blocks defining Key Encryption Keys (KEK).
+
+* `pk` - (Optional) One block defining the platform key (PK).
+
+
+A `db` block supports the following:
+
+* `certificate_data` - (Required) The Base64-encoded certificate data.
+
+* `key_type` - (Required) The type of key signature. Possible values are: `sha256` and `x509`.
+
+
+A `dbx` block supports the following:
+
+* `certificate_data` - (Required) The Base64-encoded certificate data.
+
+* `key_type` - (Required) The type of key signature. Possible values are: `sha256` and `x509`.
+
+
+A `kek` block supports the following:
+
+* `certificate_data` - (Required) The Base64-encoded certificate data.
+
+* `key_type` - (Required) The type of key signature. Possible values are: `sha256` and `x509`.
+
+
+The `pk` block supports the following:
+
+* `certificate_data` - (Required) The Base64-encoded certificate data.
+
+* `key_type` - (Required) The type of key signature. Possible values are: `sha256` and `x509`.
+
+
 
 ## Attributes Reference
 
