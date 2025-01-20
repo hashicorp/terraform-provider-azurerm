@@ -4631,7 +4631,7 @@ func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managed
 	if len(input) == 0 || input[0] == nil {
 		return &managedclusters.ClusterUpgradeSettings{
 			OverrideSettings: &managedclusters.UpgradeOverrideSettings{
-				ForceUpgrade: false,
+				ForceUpgrade: pointer.To(false),
 			},
 		}
 	}
