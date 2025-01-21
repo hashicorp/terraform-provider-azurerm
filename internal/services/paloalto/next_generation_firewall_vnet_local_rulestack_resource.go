@@ -73,14 +73,14 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Arguments() map[string
 			Optional:     true,
 			ForceNew:     true,
 			Default:      "pan_swfw_cloud_ngfw",
-			ValidateFunc: validation.StringLenBetween(1, 50),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"plan_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      "panw-cngfw-payg",
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 50),
 		},
 
 		"tags": commonschema.Tags(),
