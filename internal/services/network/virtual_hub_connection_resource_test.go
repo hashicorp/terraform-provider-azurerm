@@ -279,6 +279,21 @@ func TestAccVirtualHubConnection_routeMapAndStaticVnetLocalRouteOverrideCriteria
 	})
 }
 
+func TestAccVirtualHubConnection_routeMapAndStaticVnetPropagateStaticRoutes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualwans.ParseHubVirtualNetworkConnectionID(state.ID)
 	if err != nil {
@@ -672,4 +687,20 @@ resource "azurerm_virtual_hub_connection" "test" {
   }
 }
 `, r.template(data), nameSuffix, data.RandomInteger)
+}
+
+func (r VirtualHubConnectionResource) routeMapAndStaticVnetPropagateStaticRoutes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%[2]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing {
+    static_vnet_propagate_static_routes = true
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
