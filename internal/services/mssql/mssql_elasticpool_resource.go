@@ -274,7 +274,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			ZoneRedundant:                pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId:   pointer.To(maintenanceConfigId.ID()),
 			PreferredEnclaveType:         nil,
-			HighAvailabilityReplicaCount: pointer.To(d.Get("high_availability_replica_count").(int)),
+			HighAvailabilityReplicaCount: pointer.To(d.Get("high_availability_replica_count").(int64)),
 		},
 	}
 
