@@ -82,6 +82,22 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_workspace
 	})
 }
 
+func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_cognitiveAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
+	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCognitiveAccount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_resource_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMachineLearningWorkspaceNetworkOutboundRulePrivateEndpoint_redis(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint", "test")
 	r := WorkspaceNetworkOutboundPrivateEndpointResource{}
