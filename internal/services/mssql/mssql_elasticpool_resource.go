@@ -194,7 +194,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"high_availability_replica_count": {
-				Type:         pluginsdk.TypeInt,
+				Type:         pluginsdk.TypeInt64,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
