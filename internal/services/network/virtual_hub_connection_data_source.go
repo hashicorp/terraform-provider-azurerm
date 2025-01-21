@@ -105,7 +105,7 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 
 						"static_vnet_propagate_static_routes": {
 							Type:     pluginsdk.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 
 						// lintignore:XS003
