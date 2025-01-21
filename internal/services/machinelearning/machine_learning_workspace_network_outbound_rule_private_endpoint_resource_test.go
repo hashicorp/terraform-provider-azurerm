@@ -387,6 +387,67 @@ resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpo
 `, template, data.RandomInteger, data.RandomStringOfLength(6))
 }
 
+func (r WorkspaceNetworkOutboundPrivateEndpointResource) withCognitiveAccount(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  managed_network {
+    isolation_mode = "AllowOnlyApprovedOutbound"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_machine_learning_workspace" "test2" {
+  name                    = "acctest-MLW2-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_cognitive_account" "testaccount" {
+	name                = "acctestcogaccount-%[3]s"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	kind 							  = "OpenAI"
+	sku_name            = "S0"
+
+}
+
+resource "azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint" "test" {
+  name                = "acctest-CSA-outboundrule-%[3]s"
+  workspace_id        = azurerm_machine_learning_workspace.test.id
+  service_resource_id = azure_cognitive_account.testaccount.id
+  sub_resource_target = "account"
+}
+`, template, data.RandomInteger, data.RandomStringOfLength(6))
+}
+
 func (r WorkspaceNetworkOutboundPrivateEndpointResource) withRedis(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
