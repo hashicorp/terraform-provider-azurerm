@@ -228,7 +228,7 @@ func (r OutputCosmosDBResource) Read() sdk.ResourceFunc {
 					}
 					state.PartitionKey = partitionKey
 
-					state.AuthenticationMode = string(*output.Properties.AuthenticationMode)
+					state.AuthenticationMode = string(pointer.From(output.Properties.AuthenticationMode))
 
 					return metadata.Encode(&state)
 				}
