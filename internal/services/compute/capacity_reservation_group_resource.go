@@ -172,7 +172,7 @@ func resourceCapacityReservationGroupDelete(d *pluginsdk.ResourceData, meta inte
 			Refresh: func() (interface{}, string, error) {
 				res, err := client.Delete(ctx, *id)
 				if err != nil {
-					return res, "Deleting", nil
+					return res, "Deleting", nil // lint:ignore nilerr Returning nil error is intentional as we will retry the delete operation
 				}
 				return res, "Deleted", nil
 			},

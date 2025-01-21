@@ -72,11 +72,12 @@ type DeploymentModel struct {
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
-	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account"`
+	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
 	// Deprecated: remove in next major version
 	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
 	Tags          map[string]string `tfschema:"tags"`
@@ -154,24 +155,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"logging_storage_account": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-
-					"container_name": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-					},
-				},
-			},
 		},
 
 		"frontend_public": {
@@ -261,8 +244,26 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
-	}
 
+		resource["logging_storage_account"] = &pluginsdk.Schema{
+			Deprecated: "The `logging_storage_account` block has been deprecated and will be removed in v5.0 of the AzureRM Provider. To enable logs, use the `azurerm_monitor_diagnostic_setting` resource instead.",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+
+					"container_name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		}
+	}
 	return resource
 }
 
@@ -274,6 +275,10 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dataplane_api_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -322,12 +327,14 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
 
-			if len(model.LoggingStorageAccount) > 0 {
-				prop.Logging = &nginxdeployment.NginxLogging{
-					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
-					},
+			if !features.FivePointOhBeta() {
+				if len(model.LoggingStorageAccount) > 0 {
+					prop.Logging = &nginxdeployment.NginxLogging{
+						StorageAccount: &nginxdeployment.NginxStorageAccount{
+							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
+							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						},
+					}
 				}
 			}
 
@@ -460,14 +467,17 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output.IpAddress = pointer.ToString(props.IPAddress)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
-					if props.Logging != nil && props.Logging.StorageAccount != nil {
-						output.LoggingStorageAccount = []LoggingStorageAccount{
-							{
-								Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-								ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
-							},
+					if !features.FivePointOhBeta() {
+						if props.Logging != nil && props.Logging.StorageAccount != nil {
+							output.LoggingStorageAccount = []LoggingStorageAccount{
+								{
+									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+								},
+							}
 						}
 					}
 
@@ -571,12 +581,14 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-			if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
-				req.Properties.Logging = &nginxdeployment.NginxLogging{
-					StorageAccount: &nginxdeployment.NginxStorageAccount{
-						AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
-						ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
-					},
+			if !features.FivePointOhBeta() {
+				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
+					req.Properties.Logging = &nginxdeployment.NginxLogging{
+						StorageAccount: &nginxdeployment.NginxStorageAccount{
+							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
+							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+						},
+					}
 				}
 			}
 
