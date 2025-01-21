@@ -49,7 +49,7 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstance_basic(t *tes
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("operating_system", "hardware", "network_interface"),
+		data.ImportStep(),
 	})
 }
 
@@ -180,8 +180,8 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   }
 
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default
-    ignore_changes = [storage_disk]
+    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface, operating system per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system]
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
