@@ -1,5 +1,9 @@
 ## 4.17.0 (Unreleased)
 
+FEATURES:
+
+* Data Source: `azurerm_api_management_subscription` [GH-27824]
+
 ENHANCEMENTS:
 
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
