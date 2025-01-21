@@ -448,7 +448,7 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 		staticVnetLocalRouteOverrideCriteria = string(*input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria)
 	}
 
-	var staticVnetPropagateStaticRoutes bool
+	staticVnetPropagateStaticRoutes := false
 	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil && input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes != nil {
 		staticVnetPropagateStaticRoutes = *input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes
 	}
