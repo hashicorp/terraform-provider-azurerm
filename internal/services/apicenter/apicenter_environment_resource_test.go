@@ -35,6 +35,21 @@ func TestAccApicenterEnvironment_basic(t *testing.T) {
 	})
 }
 
+func TestAccApicenterEnvironment_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_apicenter_environment", "test")
+	r := ApiCenterEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApicenterEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_apicenter_environment", "test")
 	r := ApiCenterEnvironmentResource{}
@@ -104,6 +119,29 @@ resource "azurerm_apicenter_environment" "test" {
   identification   = "testid"
   environment_type = "testing"
   description      = "testing environment"
+}
+`, template)
+}
+
+func (r ApiCenterEnvironmentResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_apicenter_environment" "test" {
+  name                   = "test"
+  service_id             = azurerm_apicenter_service.test.id
+  identification         = "testid"
+  environment_type       = "testing"
+  description            = "testing environment"
+  development_portal_uri = "https://developer.com"
+  instructions           = "Use this wonderful API to CRUD brilliant data."
+  server_type            = "Azure API Management"
+  management_portal_uri  = "https://azure-apim-mgmt-portal.azure.com"
 }
 `, template)
 }
