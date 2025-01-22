@@ -67,10 +67,11 @@ type VirtualNetworkRules struct {
 	IgnoreMissingVnetServiceEndpoint bool   `tfschema:"ignore_missing_vnet_service_endpoint"`
 }
 
-type NetworkACLs struct {
-	DefaultAction       string                `tfschema:"default_action"`
-	IpRules             []string              `tfschema:"ip_rules"`
-	VirtualNetworkRules []VirtualNetworkRules `tfschema:"virtual_network_rules"`
+type AzureAIServicesNetworkACLs struct {
+	Bypass              string                               `tfschema:"bypass"`
+	DefaultAction       string                               `tfschema:"default_action"`
+	IpRules             []string                             `tfschema:"ip_rules"`
+	VirtualNetworkRules []AzureAIServicesVirtualNetworkRules `tfschema:"virtual_network_rules"`
 }
 
 type CustomerManagedKey struct {
@@ -179,6 +180,15 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"custom_subdomain_name"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"bypass": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  cognitiveservicesaccounts.ByPassSelectionAzureServices,
+						ValidateFunc: validation.StringInSlice(
+							cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
+							false,
+						),
+					},
 					"default_action": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -737,7 +747,10 @@ func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkR
 		networkRules = append(networkRules, rule)
 	}
 
+	bypass := cognitiveservicesaccounts.ByPassSelection((v.Bypass))
+
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
+		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
@@ -773,7 +786,8 @@ func flattenNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []Netwo
 		}
 	}
 
-	return []NetworkACLs{{
+	return []AzureAIServicesNetworkACLs{{
+		Bypass:              string(*input.Bypass),
 		DefaultAction:       string(*input.DefaultAction),
 		IpRules:             ipRules,
 		VirtualNetworkRules: virtualNetworkRules,
