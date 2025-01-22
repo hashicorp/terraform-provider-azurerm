@@ -64,25 +64,21 @@ func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 		"description": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 
 		"development_portal_uri": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 
 		"instructions": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 
 		"server_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 			ValidateFunc: validation.StringInSlice(
 				environments.PossibleValuesForEnvironmentServerType(),
 				false),
@@ -90,7 +86,6 @@ func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 		"management_portal_uri": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
 		},
 	}
 }
@@ -128,7 +123,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			// @favoretti: can't find any workspace creation buttons in the portal, assume everything defaults to "default" for now?
-			id := environments.NewEnvironmentID(subscriptionId, service.ResourceGroupName, service.ServiceName, "default", model.Name)
+			id := environments.NewEnvironmentID(subscriptionId, service.ResourceGroupName, service.ServiceName, "default", model.Identification)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing ApiCenter Environment %s: %+v", id, err)
@@ -149,11 +144,11 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 					Type:                pointer.To(environments.EnvironmentServerType(model.ServerType)),
 					ManagementPortalUri: &[]string{model.MgmtPortalUri},
 				},
+				Title: model.Name,
 			}
 
 			apiCenterEnvironment := environments.Environment{
-				Id:         &model.Identification,
-				Name:       &model.Name,
+				Name:       &model.Identification,
 				Properties: &apiCenterEnvironmentProps,
 				Type:       &model.Type,
 			}
@@ -220,11 +215,11 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 			serviceId := services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 
 			state := ApiCenterEnvironmentResourceModel{
-				Name:           *resp.Model.Name,
+				Name:           resp.Model.Properties.Title,
 				ServiceId:      serviceId.ID(),
-				Identification: *resp.Model.Id,
+				Identification: *resp.Model.Name,
 				Description:    *resp.Model.Properties.Description,
-				Type:           *resp.Model.Type,
+				Type:           string(resp.Model.Properties.Kind),
 				DevPortalUri:   (*resp.Model.Properties.Onboarding.DeveloperPortalUri)[0],
 				MgmtPortalUri:  (*resp.Model.Properties.Server.ManagementPortalUri)[0],
 				Instructions:   *resp.Model.Properties.Onboarding.Instructions,
