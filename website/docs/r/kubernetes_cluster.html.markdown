@@ -881,7 +881,7 @@ The `upgrade_override` block supports the following:
 
 -> **Note:** Once set, the `upgrade_override` block cannot be removed from the configuration.
 
-* `force_upgrade_enabled` - (Required) Whether to force upgrade the cluster. Note that this option instructs the upgrade operation to bypass upgrade protections such as checking for deprecated API usage.
+* `force_upgrade_enabled` - (Required) Whether to force upgrade the cluster. Possible values are `true` or `false`.
 
 !> **Important: The `force_upgrade_enabled` field instructs the upgrade operation to bypass upgrade protections (e.g. checking for deprecated API usage) which may render the cluster inoperative after the upgrade process has completed. Use the `force_upgrade_enabled` option with extreme caution only.**
 
