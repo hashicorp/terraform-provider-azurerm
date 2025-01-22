@@ -196,6 +196,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"high_availability_replica_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
 
@@ -274,7 +275,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			ZoneRedundant:                pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId:   pointer.To(maintenanceConfigId.ID()),
 			PreferredEnclaveType:         nil,
-			HighAvailabilityReplicaCount: pointer.To(d.Get("high_availability_replica_count").(int64)),
+			HighAvailabilityReplicaCount: pointer.To(int64(d.Get("high_availability_replica_count").(int))),
 		},
 	}
 
@@ -355,11 +356,12 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("license_type", licenseType)
 
+			var highAvailabilityReplicaCount int64
 			highAvailabilityReplicaCount := 1
 			if props.HighAvailabilityReplicaCount != nil {
-				highAvailabilityReplicaCount = int(*props.HighAvailabilityReplicaCount)
+				highAvailabilityReplicaCount = pointer.From(props.HighAvailabilityReplicaCount)
 			}
-			d.Set("high_availability_replica_count", pointer.To(int64(highAvailabilityReplicaCount))
+			d.Set("high_availability_replica_count", pointer.To(highAvailabilityReplicaCount)
 
 			if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(props.PerDatabaseSettings)); err != nil {
 				return fmt.Errorf("setting `per_database_settings`: %+v", err)
