@@ -100,7 +100,7 @@ A `network_acls` block supports the following:
 
 * `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`.
 
-> **NOTE:** `bypass` can only be set when `kind` is set to `OpenAI` 
+-> **NOTE:** `bypass` can only be set when `kind` is set to `OpenAI` 
 
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
