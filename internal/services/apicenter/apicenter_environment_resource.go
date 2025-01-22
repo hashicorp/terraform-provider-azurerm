@@ -226,7 +226,6 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 				ServerType:     string(*resp.Model.Properties.Server.Type),
 			}
 			return metadata.Encode(&state)
-
 		},
 	}
 }
