@@ -356,8 +356,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("license_type", licenseType)
 
-			var highAvailabilityReplicaCount int64
-			highAvailabilityReplicaCount := 1
+			highAvailabilityReplicaCount := int64(1)
 			if props.HighAvailabilityReplicaCount != nil {
 				highAvailabilityReplicaCount = pointer.From(props.HighAvailabilityReplicaCount)
 			}
