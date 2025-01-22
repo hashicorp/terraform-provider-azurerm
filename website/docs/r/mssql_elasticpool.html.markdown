@@ -49,7 +49,7 @@ resource "azurerm_mssql_elasticpool" "example" {
 }
 ```
 
-Creating a HyperScale Elasticpool:
+## Example Usage for a HyperScale Elasticpool:
 
 ```hcl
 resource "azurerm_resource_group" "example" {

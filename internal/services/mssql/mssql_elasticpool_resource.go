@@ -194,7 +194,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"high_availability_replica_count": {
-				Type:         pluginsdk.TypeInt64,
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 4),
 			},
@@ -355,7 +355,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("license_type", licenseType)
 
-			d.Set("high_availability_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
+			replicaCount := 1
+			if props.HighAvailabilityReplicaCount != nil {
+				replicaCount = props.HighAvailabilityReplicaCount
+			}
+			d.Set("high_availability_replica_count", replicaCount)
 
 			if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(props.PerDatabaseSettings)); err != nil {
 				return fmt.Errorf("setting `per_database_settings`: %+v", err)
