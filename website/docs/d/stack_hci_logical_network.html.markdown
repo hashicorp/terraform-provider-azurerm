@@ -14,7 +14,7 @@ Use this data source to access information about an existing Stack HCI Logical N
 
 ```hcl
 data "azurerm_stack_hci_logical_network" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
