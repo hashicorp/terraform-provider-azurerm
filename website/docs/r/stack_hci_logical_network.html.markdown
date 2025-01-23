@@ -74,7 +74,7 @@ A `ip_pool` block supports the following:
 
 A `route` block supports the following:
 
-* `address_prefix` - (Optional) The Address in CIDR notation. Changing this forces a new resource to be created.
+* `address_prefix` - (Optional) The address prefix in CIDR notation. Changing this forces a new resource to be created.
 
 * `next_hop_ip_address` - (Optional) The IPv4 address of the next hop. Changing this forces a new resource to be created.
 
