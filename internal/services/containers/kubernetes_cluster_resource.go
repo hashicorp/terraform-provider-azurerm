@@ -4648,7 +4648,7 @@ func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPo
 
 func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
 	if len(input) == 0 || input[0] == nil {
-		// Return nil only when upgrade_override blcok is not set
+		// Return nil only when upgrade_override block is not set
 		return nil
 	}
 
