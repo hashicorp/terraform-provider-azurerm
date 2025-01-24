@@ -10,6 +10,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedCluster struct {
+	ETag             *string                           `json:"eTag,omitempty"`
 	ExtendedLocation *edgezones.Model                  `json:"extendedLocation,omitempty"`
 	Id               *string                           `json:"id,omitempty"`
 	Identity         *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`

@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters` Documentation
 
-The `managedclusters` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-05-01`).
+The `managedclusters` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
 ```
 
 
@@ -44,7 +44,7 @@ payload := managedclusters.ManagedCluster{
 }
 
 
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -56,7 +56,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ctx := context.TODO()
 id := commonids.NewKubernetesClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName")
 
-if err := client.DeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id, managedclusters.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -417,7 +417,7 @@ payload := managedclusters.TagsObject{
 }
 
 
-if err := client.UpdateTagsThenPoll(ctx, id, payload); err != nil {
+if err := client.UpdateTagsThenPoll(ctx, id, payload, managedclusters.DefaultUpdateTagsOperationOptions()); err != nil {
 	// handle the error
 }
 ```
