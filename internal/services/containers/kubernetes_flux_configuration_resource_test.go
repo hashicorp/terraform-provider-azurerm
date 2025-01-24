@@ -210,6 +210,27 @@ func TestAccKubernetesFluxConfiguration_kustomizationPostBuild(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesFluxConfiguration_kustomizationPostBuildUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kustomizationPostBuild(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.kustomizationUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesFluxConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fluxconfiguration.ParseScopedFluxConfigurationID(state.ID)
 	if err != nil {
@@ -784,6 +805,35 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
         optional = false
       }
     }
+    wait = false
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesFluxConfigurationResource) kustomizationUpdated(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  git_repository {
+    url             = "https://github.com/Azure/arc-k8s-demo"
+    reference_type  = "branch"
+    reference_value = "main"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+    path = "./test/path"
     wait = false
   }
 
