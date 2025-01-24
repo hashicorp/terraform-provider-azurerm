@@ -1108,7 +1108,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model)
+		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
@@ -1170,7 +1170,7 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOrigina
 					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(originalNodePoolId.SubscriptionId, originalNodePoolId.ResourceGroupName, originalNodePoolId.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
@@ -1225,11 +1225,11 @@ func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempWithoutOri
 					profile.Properties.VMSize = pointer.To("Standard_F4s_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(originalNodePoolId.SubscriptionId, originalNodePoolId.ResourceGroupName, originalNodePoolId.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, *originalNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, *originalNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 						return fmt.Errorf("deleting original %s: %+v", originalNodePoolId, err)
 					}
 

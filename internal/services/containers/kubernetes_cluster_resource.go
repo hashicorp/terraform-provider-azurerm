@@ -1813,7 +1813,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -2338,7 +2338,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -2360,7 +2360,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.Model.Properties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
 		}
@@ -2463,7 +2463,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
-				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 				}
 			}
@@ -2476,7 +2476,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
 			}
 
-			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2484,7 +2484,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		} else {
 			log.Printf("[DEBUG] Updating of Default Node Pool..")
 
-			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
 
@@ -2905,7 +2905,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -4619,7 +4619,7 @@ func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsCli
 	// retries the creation of a node pool 3 times
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
-		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}
 	}

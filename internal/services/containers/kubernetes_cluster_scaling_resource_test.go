@@ -81,7 +81,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
@@ -139,11 +139,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 
