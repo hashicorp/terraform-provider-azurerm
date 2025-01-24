@@ -62,6 +62,47 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 	return &out, nil
 }
 
+type ResolutionPolicy string
+
+const (
+	ResolutionPolicyDefault          ResolutionPolicy = "Default"
+	ResolutionPolicyNxDomainRedirect ResolutionPolicy = "NxDomainRedirect"
+)
+
+func PossibleValuesForResolutionPolicy() []string {
+	return []string{
+		string(ResolutionPolicyDefault),
+		string(ResolutionPolicyNxDomainRedirect),
+	}
+}
+
+func (s *ResolutionPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResolutionPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseResolutionPolicy(input string) (*ResolutionPolicy, error) {
+	vals := map[string]ResolutionPolicy{
+		"default":          ResolutionPolicyDefault,
+		"nxdomainredirect": ResolutionPolicyNxDomainRedirect,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ResolutionPolicy(input)
+	return &out, nil
+}
+
 type VirtualNetworkLinkState string
 
 const (
