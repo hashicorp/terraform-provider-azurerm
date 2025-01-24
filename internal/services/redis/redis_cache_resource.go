@@ -881,11 +881,8 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		if len(configs) > 0 {
 			aadAuth := configs[0].AsValueMap()["active_directory_authentication_enabled"]
 			if !aadAuth.IsNull() {
-				entraEnabled := false
-				if aadAuth.True() {
-					entraEnabled = true
-				}
-				output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+				entraEnabled := aadAuth.True()
+				output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
 			}
 		}
 	}
