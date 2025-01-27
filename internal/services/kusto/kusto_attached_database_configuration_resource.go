@@ -5,6 +5,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -24,7 +25,7 @@ import (
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Read:   resourceKustoAttachedDatabaseConfigurationRead,
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
@@ -153,6 +154,20 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateKustoClusterID,
+			Deprecated:   "Use `cluster_id` instead.",
+		}
+		resource.Schema["cluster_id"].ConflictsWith = []string{"cluster_resource_id"}
+		resource.Schema["cluster_resource_id"].Required = false
+	}
+
+	return resource
 }
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

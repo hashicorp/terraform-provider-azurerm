@@ -5,6 +5,7 @@ package kusto
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -29,7 +30,7 @@ import (
 )
 
 func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoEventGridDataConnectionCreateUpdate,
 		Update: resourceKustoEventGridDataConnectionCreateUpdate,
 		Read:   resourceKustoEventGridDataConnectionRead,
@@ -154,6 +155,31 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["eventgrid_event_subscription_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
+			Deprecated:    "Use `eventgrid_resource_id` instead.",
+			ConflictsWith: []string{"eventgrid_resource_id"},
+		}
+		resource.Schema["eventgrid_resource_id"].ConflictsWith = []string{"eventgrid_event_subscription_id"}
+
+		resource.Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateKustoClusterID,
+				commonids.ValidateUserAssignedIdentityID,
+			),
+			Deprecated:    "Use `managed_identity_id` instead.",
+			ConflictsWith: []string{"managed_identity_id"},
+		}
+		resource.Schema["managed_identity_id"].ConflictsWith = []string{"managed_identity_resource_id"}
+	}
+
+	return resource
 }
 
 func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
