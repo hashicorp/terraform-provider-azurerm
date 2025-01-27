@@ -1005,15 +1005,17 @@ The `kubelet_identity` block exports the following:
 
 ---
 
-A `load_balancer_profile` block exports the following:
+A `network_profile` block supports the following:
 
-* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+* `load_balancer_profile` - A `load_balancer_profile` block as defined below.
+
+* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
 
 ---
 
-A `network_profile` block supports the following:
+A `load_balancer_profile` block exports the following:
 
-* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
 
 ---
 
