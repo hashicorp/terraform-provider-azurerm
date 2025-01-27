@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -16,7 +17,7 @@ import (
 )
 
 func dataSourceServiceBusSubscription() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceServiceBusSubscriptionRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -86,6 +87,16 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "Use 'batched_operations_enabled' instead",
+		}
+	}
+
+	return resource
 }
 
 func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interface{}) error {

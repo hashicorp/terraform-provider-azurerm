@@ -121,12 +121,10 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			oldName := fmt.Sprintf("enable_%s", name)
 			newName := fmt.Sprintf("%s_enabled", name)
 			resource.Schema[oldName] = &pluginsdk.Schema{
-				Deprecated:   fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
-				Type:         pluginsdk.TypeBool,
-				Computed:     true,
-				ExactlyOneOf: []string{newName},
+				Deprecated: fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
+				Type:       pluginsdk.TypeBool,
+				Computed:   true,
 			}
-			resource.Schema[newName].ExactlyOneOf = []string{oldName}
 		}
 	}
 

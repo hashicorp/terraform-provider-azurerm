@@ -22,6 +22,7 @@ func TestAccDataSourceServiceBusSubscription_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
+				check.That(data.ResourceName).Key("batch_operations_enabled").Exists(),
 			),
 		},
 	})
