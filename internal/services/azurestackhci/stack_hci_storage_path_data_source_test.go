@@ -2,6 +2,7 @@ package azurestackhci_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -11,6 +12,10 @@ import (
 type StackHCIStoragePathDataSource struct{}
 
 func TestAccStackHCIStoragePathDataSource_basic(t *testing.T) {
+	if os.Getenv(customLocationIdEnv) == "" {
+		t.Skipf("skipping since %q has not been specified", customLocationIdEnv)
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_stack_hci_storage_path", "test")
 	d := StackHCIStoragePathDataSource{}
 
