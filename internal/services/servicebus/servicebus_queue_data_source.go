@@ -5,7 +5,6 @@ package servicebus
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -121,12 +121,12 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			oldName := fmt.Sprintf("enable_%s", name)
 			newName := fmt.Sprintf("%s_enabled", name)
 			resource.Schema[oldName] = &pluginsdk.Schema{
-				Deprecated:    fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
-				Type:          pluginsdk.TypeBool,
-				Computed:      true,
-				ConflictsWith: []string{newName},
+				Deprecated:   fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
+				Type:         pluginsdk.TypeBool,
+				Computed:     true,
+				ExactlyOneOf: []string{newName},
 			}
-			resource.Schema[newName].ConflictsWith = []string{oldName}
+			resource.Schema[newName].ExactlyOneOf = []string{oldName}
 		}
 	}
 
