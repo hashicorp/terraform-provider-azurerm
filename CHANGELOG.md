@@ -6,8 +6,16 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
-  
+* `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types [GH-28453]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - parse `oms_agent.log_analytics_workspace_id` insensitively to handle inconsistent casing [GH-28575]
+* `azurerm_kubernetes_flux_configuration` - fix issue where removing `post_build` from a `kustomization` resulted in an error from the API [GH-28590]
+* `azurerm_virtual_machine` - parse `os_disk` insensitively to handle inconsistent casing [GH-28592]
+
 ## 4.16.0 (January 16, 2025)
 
 **NOTE:** This release contains a breaking change reverting `redisenterprise` API version from `2024-10-01` to `2024-06-01-preview` as not all regions are currently supported in the `2024-10-01` version 
