@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones` Documentation
 
-The `privatezones` SDK allows for interaction with Azure Resource Manager `privatedns` (API Version `2020-06-01`).
+The `privatezones` SDK allows for interaction with Azure Resource Manager `privatedns` (API Version `2024-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 ```
 
 

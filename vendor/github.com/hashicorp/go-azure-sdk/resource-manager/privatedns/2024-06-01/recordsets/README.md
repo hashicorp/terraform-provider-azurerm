@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/recordsets` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets` Documentation
 
-The `recordsets` SDK allows for interaction with Azure Resource Manager `privatedns` (API Version `2020-06-01`).
+The `recordsets` SDK allows for interaction with Azure Resource Manager `privatedns` (API Version `2024-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/recordsets"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 ```
 
 

@@ -338,7 +338,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
 
 		if input.ManagedDisk.Id != nil {
-			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.Id)
+			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
 			if err != nil {
 				return nil, err
 			}
