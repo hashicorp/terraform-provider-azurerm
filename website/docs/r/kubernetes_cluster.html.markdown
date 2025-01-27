@@ -1005,7 +1005,7 @@ The `kubelet_identity` block exports the following:
 
 ---
 
-A `network_profile` block supports the following:
+A `network_profile` block exports the following:
 
 * `load_balancer_profile` - A `load_balancer_profile` block as defined below.
 
