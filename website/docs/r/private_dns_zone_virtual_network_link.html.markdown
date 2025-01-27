@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `registration_enabled` - (Optional) Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled? Defaults to `false`.
 
+* `resolution_policy` - (Optional) Specifies the policy for handling DNS resolution. If set to `NxDomainRedirect`, the DNS resolution will fall back to internet recursion when an authoritative NXDOMAIN response is received for a Private Link zone. Defaults to `Default` (no recursion).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
