@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
+* dependencies: `storage` - update to use `2023-05-01` [GH-27760]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
 * `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types [GH-28453]
 * `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` [GH-27853]
@@ -14,7 +15,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_container_app` - updated the validation regex for the resource's name [GH-28528]
+* `azurerm_container_app` - update the validation regex for the resource's name [GH-28528]
 * `azurerm_kubernetes_cluster` - parse `oms_agent.log_analytics_workspace_id` insensitively to handle inconsistent casing [GH-28575]
 * `azurerm_kubernetes_flux_configuration` - fix issue where removing `post_build` from a `kustomization` resulted in an error from the API [GH-28590]
 * `azurerm_virtual_machine` - parse `os_disk` insensitively to handle inconsistent casing [GH-28592]
