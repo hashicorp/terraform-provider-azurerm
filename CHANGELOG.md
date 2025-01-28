@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_container_app` - updated the validation regex for the resource's name [GH-28528]
 * `azurerm_kubernetes_cluster` - parse `oms_agent.log_analytics_workspace_id` insensitively to handle inconsistent casing [GH-28575]
 * `azurerm_kubernetes_flux_configuration` - fix issue where removing `post_build` from a `kustomization` resulted in an error from the API [GH-28590]
 * `azurerm_virtual_machine` - parse `os_disk` insensitively to handle inconsistent casing [GH-28592]
