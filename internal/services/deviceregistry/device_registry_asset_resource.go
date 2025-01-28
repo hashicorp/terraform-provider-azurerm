@@ -23,18 +23,14 @@ type AssetResourceModel struct {
 	Name                         string                 `tfschema:"name"`
 	ResourceGroupName            string                 `tfschema:"resource_group_name"`
 	Location                     string                 `tfschema:"location"`
-	Type                         string                 `tfschema:"type"`
 	Tags                         map[string]string      `tfschema:"tags"`
 	ExtendedLocationName         string                 `tfschema:"extended_location_name"`
 	ExtendedLocationType         string                 `tfschema:"extended_location_type"`
-	ProvisioningState            string                 `tfschema:"provisioning_state"`
-	Uuid                         string                 `tfschema:"uuid"`
 	Enabled                      bool                   `tfschema:"enabled"`
 	ExternalAssetId              string                 `tfschema:"external_asset_id"`
 	DisplayName                  string                 `tfschema:"display_name"`
 	Description                  string                 `tfschema:"description"`
 	AssetEndpointProfileRef      string                 `tfschema:"asset_endpoint_profile_ref"`
-	Version                      int64                  `tfschema:"version"`
 	Manufacturer                 string                 `tfschema:"manufacturer"`
 	ManufacturerUri              string                 `tfschema:"manufacturer_uri"`
 	Model                        string                 `tfschema:"model"`
@@ -47,21 +43,17 @@ type AssetResourceModel struct {
 	DiscoveredAssetRefs          []string               `tfschema:"discovered_asset_refs"`
 	DefaultDatasetsConfiguration string                 `tfschema:"default_datasets_configuration"`
 	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
-	DefaultTopic                 Topic                  `tfschema:"default_topic"`
+	DefaultTopicPath             string                 `tfschema:"default_topic_path"`
+	DefaultTopicRetain           string                 `tfschema:"default_topic_retain"`
 	Datasets                     []Dataset              `tfschema:"datasets"`
 	Events                       []Event                `tfschema:"events"`
-	Status                       AssetStatus            `tfschema:"status"`
-}
-
-type Topic struct {
-	Path   string `tfschema:"path"`
-	Retain string `tfschema:"retain"`
 }
 
 type Dataset struct {
 	Name                 string      `tfschema:"name"`
 	DatasetConfiguration string      `tfschema:"dataset_configuration"`
-	Topic                Topic       `tfschema:"topic"`
+	TopicPath            string      `tfschema:"topic_path"`
+	TopicRetain          string      `tfschema:"topic_retain"`
 	DataPoints           []DataPoint `tfschema:"data_points"`
 }
 
@@ -77,35 +69,8 @@ type Event struct {
 	EventNotifier      string `tfschema:"event_notifier"`
 	ObservabilityMode  string `tfschema:"observability_mode"`
 	EventConfiguration string `tfschema:"event_configuration"`
-	Topic              Topic  `tfschema:"topic"`
-}
-
-type AssetStatus struct {
-	Errors   []ErrorStatus   `tfschema:"errors"`
-	Version  int64           `tfschema:"version"`
-	Datasets []DatasetStatus `tfschema:"datasets"`
-	Events   []EventStatus   `tfschema:"events"`
-}
-
-type ErrorStatus struct {
-	Code    string `tfschema:"code"`
-	Message string `tfschema:"message"`
-}
-
-type DatasetStatus struct {
-	Name                   string                 `tfschema:"name"`
-	MessageSchemaReference MessageSchemaReference `tfschema:"message_schema_reference"`
-}
-
-type EventStatus struct {
-	Name                   string                 `tfschema:"name"`
-	MessageSchemaReference MessageSchemaReference `tfschema:"message_schema_reference"`
-}
-
-type MessageSchemaReference struct {
-	SchemaRegistryNamespace string `tfschema:"schema_registry_namespace"`
-	SchemaName              string `tfschema:"schema_name"`
-	SchemaVersion           string `tfschema:"schema_version"`
+	TopicPath          string `tfschema:"topic_path"`
+	TopicRetain        string `tfschema:"topic_retain"`
 }
 
 func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
@@ -185,6 +150,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 		"attributes": {
 			Type:     pluginsdk.TypeMap,
 			Optional: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
 		"discovered_asset_refs": {
 			Type:     pluginsdk.TypeList,
@@ -201,26 +167,20 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
-		"default_topic": {
-			Type:     pluginsdk.TypeMap,
+		"default_topic_path": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Elem: map[string]*pluginsdk.Schema{
-				"path": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-				},
-				"retain": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-			},
+		},
+		"default_topic_retain": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
 		},
 		"datasets": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeMap,
-				Elem: map[string]*pluginsdk.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -229,26 +189,20 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"topic": {
-						Type:     pluginsdk.TypeMap,
+					"topic_path": {
+						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Elem: map[string]*pluginsdk.Schema{
-							"path": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-							"retain": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-						},
+					},
+					"topic_retain": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
 					},
 					"data_points": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeMap,
-							Elem: map[string]*pluginsdk.Schema{
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
 								"name": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
@@ -276,9 +230,8 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 		"events": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeMap,
-				Elem: map[string]*pluginsdk.Schema{
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
 					"name": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -297,19 +250,14 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"topic": {
-						Type:     pluginsdk.TypeMap,
+					"topic_path": {
+						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Elem: map[string]*pluginsdk.Schema{
-							"path": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-							"retain": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-						},
+					},
+					"topic_retain": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
 					},
 				},
 			},
@@ -318,113 +266,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (AssetResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"uuid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"version": {
-			Type:     pluginsdk.TypeInt,
-			Computed: true,
-		},
-		"status": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
-			Elem: map[string]*pluginsdk.Schema{
-				"errors": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeMap,
-						Elem: map[string]*pluginsdk.Schema{
-							"code": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"message": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-				"version": {
-					Type:     pluginsdk.TypeInt,
-					Computed: true,
-				},
-				"datasets": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeMap,
-						Elem: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"message_schema_reference": {
-								Type:     pluginsdk.TypeMap,
-								Computed: true,
-								Elem: map[string]*pluginsdk.Schema{
-									"schema_registry_namespace": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"schema_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"schema_version": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-				"events": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeMap,
-						Elem: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"message_schema_reference": {
-								Type:     pluginsdk.TypeMap,
-								Computed: true,
-								Elem: map[string]*pluginsdk.Schema{
-									"schema_registry_namespace": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"schema_name": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-									"schema_version": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (AssetResource) ModelObject() interface{} {
@@ -483,11 +325,8 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 					DiscoveredAssetRefs:          pointer.To(config.DiscoveredAssetRefs),
 					DefaultDatasetsConfiguration: pointer.To(config.DefaultDatasetsConfiguration),
 					DefaultEventsConfiguration:   pointer.To(config.DefaultEventsConfiguration),
+					DefaultTopic:                 toAzureTopic(config.DefaultTopicPath, config.DefaultTopicRetain),
 				},
-			}
-
-			if config.DefaultTopic.Path != "" {
-				param.Properties.DefaultTopic = toAzureTopic(config.DefaultTopic)
 			}
 
 			if len(config.Datasets) > 0 {
@@ -549,10 +388,10 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
-			if metadata.ResourceData.HasChange("default_topic") {
+			if metadata.ResourceData.HasChange("default_topic_path") || metadata.ResourceData.HasChange("default_topic_retain") {
 				param.Properties.DefaultTopic = &assets.TopicUpdate{
-					Path:   pointer.To(config.DefaultTopic.Path),
-					Retain: pointer.To(assets.TopicRetainType(config.DefaultTopic.Retain)),
+					Path:   pointer.To(config.DefaultTopicPath),
+					Retain: pointer.To(assets.TopicRetainType(config.DefaultTopicRetain)),
 				}
 			}
 
@@ -641,14 +480,10 @@ func (AssetResource) Read() sdk.ResourceFunc {
 				state.ExtendedLocationType = model.ExtendedLocation.Type
 				if props := model.Properties; props != nil {
 					state.AssetEndpointProfileRef = props.AssetEndpointProfileRef
-					state.Type = pointer.From(model.Type)
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
-					state.Uuid = pointer.From(props.Uuid)
 					state.Enabled = pointer.From(props.Enabled)
 					state.ExternalAssetId = pointer.From(props.ExternalAssetId)
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Description = pointer.From(props.Description)
-					state.Version = pointer.From(props.Version)
 					state.Manufacturer = pointer.From(props.Manufacturer)
 					state.ManufacturerUri = pointer.From(props.ManufacturerUri)
 					state.Model = pointer.From(props.Model)
@@ -661,7 +496,10 @@ func (AssetResource) Read() sdk.ResourceFunc {
 					state.DiscoveredAssetRefs = pointer.From(props.DiscoveredAssetRefs)
 					state.DefaultDatasetsConfiguration = pointer.From(props.DefaultDatasetsConfiguration)
 					state.DefaultEventsConfiguration = pointer.From(props.DefaultEventsConfiguration)
-					state.DefaultTopic = toTFTopic(props.DefaultTopic)
+
+					if defaultTopic := props.DefaultTopic; defaultTopic != nil {
+						state.DefaultTopicPath, state.DefaultTopicRetain = toTFTopic(props.DefaultTopic)
+					}
 
 					if datasets := props.Datasets; datasets != nil {
 						state.Datasets = toTFDatasets(datasets)
@@ -669,13 +507,6 @@ func (AssetResource) Read() sdk.ResourceFunc {
 
 					if events := props.Events; events != nil {
 						state.Events = toTFEvents(events)
-					}
-
-					if status := props.Status; status != nil {
-						state.Status.Version = pointer.From(status.Version)
-						state.Status.Errors = toTFAssetErrorStatuses(status.Errors)
-						state.Status.Datasets = toTFDatasetStatuses(status.Datasets)
-						state.Status.Events = toTFEventStatuses(status.Events)
 					}
 				}
 			}
@@ -718,7 +549,7 @@ func toAzureDatasets(datasets []Dataset) *[]assets.Dataset {
 		azureDatasets[i] = assets.Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.To(dataset.DatasetConfiguration),
-			Topic:                toAzureTopic(dataset.Topic),
+			Topic:                toAzureTopic(dataset.TopicPath, dataset.TopicRetain),
 			DataPoints:           toAzureDataPoints(dataset.DataPoints),
 		}
 	}
@@ -756,24 +587,25 @@ func toAzureEvents(events []Event) *[]assets.Event {
 			EventNotifier:      event.EventNotifier,
 			EventConfiguration: pointer.To(event.EventConfiguration),
 			ObservabilityMode:  pointer.To(assets.EventObservabilityMode(event.ObservabilityMode)),
-			Topic:              toAzureTopic(event.Topic),
+			Topic:              toAzureTopic(event.TopicPath, event.TopicRetain),
 		}
 	}
 
 	return &azureEvents
 }
 
-func toAzureTopic(topic Topic) *assets.Topic {
-	if topic.Path == "" {
+func toAzureTopic(topicPath string, topicRetain string) *assets.Topic {
+	// ARM asset topic requires path to be set to make a topic
+	if topicPath == "" {
 		return nil
 	}
 
 	azureTopic := assets.Topic{
-		Path: topic.Path,
+		Path: topicPath,
 	}
 
-	if topic.Retain != "" {
-		azureTopic.Retain = pointer.To(assets.TopicRetainType(topic.Retain))
+	if topicRetain != "" {
+		azureTopic.Retain = pointer.To(assets.TopicRetainType(topicRetain))
 	}
 
 	return &azureTopic
@@ -786,11 +618,13 @@ func toTFDatasets(datasets *[]assets.Dataset) []Dataset {
 
 	tfDatasets := make([]Dataset, len(*datasets))
 	for i, dataset := range *datasets {
+		topicPath, topicRetain := toTFTopic(dataset.Topic)
 		tfDatasets[i] = Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.From(dataset.DatasetConfiguration),
-			Topic:                toTFTopic(dataset.Topic),
 			DataPoints:           toTFDataPoints(dataset.DataPoints),
+			TopicPath:            topicPath,
+			TopicRetain:          topicRetain,
 		}
 	}
 
@@ -822,85 +656,28 @@ func toTFEvents(events *[]assets.Event) []Event {
 
 	tfEvents := make([]Event, len(*events))
 	for i, event := range *events {
+		topicPath, topicRetain := toTFTopic(event.Topic)
 		tfEvents[i] = Event{
 			Name:               event.Name,
 			EventNotifier:      event.EventNotifier,
 			ObservabilityMode:  string(pointer.From(event.ObservabilityMode)),
 			EventConfiguration: pointer.From(event.EventConfiguration),
-			Topic:              toTFTopic(event.Topic),
+			TopicPath:          topicPath,
+			TopicRetain:        topicRetain,
 		}
 	}
 
 	return tfEvents
 }
 
-func toTFTopic(topic *assets.Topic) Topic {
+func toTFTopic(topic *assets.Topic) (string, string) {
 	if topic == nil {
-		return Topic{}
+		return "", ""
 	}
 
-	return Topic{
-		Path:   topic.Path,
-		Retain: string(pointer.From(topic.Retain)),
-	}
-}
-
-func toTFAssetErrorStatuses(errorStatuses *[]assets.AssetStatusError) []ErrorStatus {
-	if errorStatuses == nil {
-		return nil
-	}
-
-	tfErrorStatuses := make([]ErrorStatus, len(*errorStatuses))
-	for i, errorStatus := range *errorStatuses {
-		tfErrorStatuses[i] = ErrorStatus{
-			Code:    string(pointer.From(errorStatus.Code)),
-			Message: pointer.From(errorStatus.Message),
-		}
-	}
-
-	return tfErrorStatuses
-}
-
-func toTFDatasetStatuses(datasetStatuses *[]assets.AssetStatusDataset) []DatasetStatus {
-	if datasetStatuses == nil {
-		return nil
-	}
-
-	tfDatasetStatuses := make([]DatasetStatus, len(*datasetStatuses))
-	for i, datasetStatus := range *datasetStatuses {
-		tfDatasetStatuses[i] = DatasetStatus{
-			Name:                   datasetStatus.Name,
-			MessageSchemaReference: toTFMessageSchemaReference(datasetStatus.MessageSchemaReference),
-		}
-	}
-
-	return tfDatasetStatuses
-}
-
-func toTFEventStatuses(eventStatuses *[]assets.AssetStatusEvent) []EventStatus {
-	if eventStatuses == nil {
-		return nil
-	}
-
-	tfEventStatuses := make([]EventStatus, len(*eventStatuses))
-	for i, eventStatus := range *eventStatuses {
-		tfEventStatuses[i] = EventStatus{
-			Name:                   eventStatus.Name,
-			MessageSchemaReference: toTFMessageSchemaReference(eventStatus.MessageSchemaReference),
-		}
-	}
-
-	return tfEventStatuses
-}
-
-func toTFMessageSchemaReference(messageSchemaReference *assets.MessageSchemaReference) MessageSchemaReference {
-	if messageSchemaReference == nil {
-		return MessageSchemaReference{}
-	}
-
-	return MessageSchemaReference{
-		SchemaRegistryNamespace: messageSchemaReference.SchemaRegistryNamespace,
-		SchemaName:              messageSchemaReference.SchemaName,
-		SchemaVersion:           messageSchemaReference.SchemaVersion,
+	if topic.Retain == nil {
+		return topic.Path, ""
+	} else {
+		return topic.Path, string(pointer.From(topic.Retain))
 	}
 }

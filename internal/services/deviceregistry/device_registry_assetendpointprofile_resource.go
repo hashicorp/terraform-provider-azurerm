@@ -20,33 +20,20 @@ var _ sdk.Resource = AssetEndpointProfileResource{}
 type AssetEndpointProfileResource struct{}
 
 type AssetEndpointProfileResourceModel struct {
-	Name                                          string                     `tfschema:"name"`
-	ResourceGroupName                             string                     `tfschema:"resource_group_name"`
-	Type                                          string                     `tfschema:"type"`
-	Location                                      string                     `tfschema:"location"`
-	Tags                                          map[string]string          `tfschema:"tags"`
-	ExtendedLocationName                          string                     `tfschema:"extended_location_name"`
-	ExtendedLocationType                          string                     `tfschema:"extended_location_type"`
-	ProvisioningState                             string                     `tfschema:"provisioning_state"`
-	Uuid                                          string                     `tfschema:"uuid"`
-	TargetAddress                                 string                     `tfschema:"target_address"`
-	EndpointProfileType                           string                     `tfschema:"endpoint_profile_type"`
-	DiscoveredAssetEndpointProfileRef             string                     `tfschema:"discovered_asset_endpoint_profile_ref"`
-	AdditionalConfiguration                       string                     `tfschema:"additional_configuration"`
-	AuthenticationMethod                          string                     `tfschema:"authentication_method"`
-	UsernamePasswordCredentialsUsernameSecretName string                     `tfschema:"username_password_credentials_username_secret_name"`
-	UsernamePasswordCredentialsPasswordSecretName string                     `tfschema:"username_password_credentials_password_secret_name"`
-	X509CredentialsCertificateSecretName          string                     `tfschema:"x509_credentials_certificate_secret_name"`
-	Status                                        AssetEndpointProfileStatus `tfschema:"status"`
-}
-
-type AssetEndpointProfileStatus struct {
-	Errors []StatusError `tfschema:"errors"`
-}
-
-type StatusError struct {
-	Code    int64  `tfschema:"code"`
-	Message string `tfschema:"message"`
+	Name                                          string            `tfschema:"name"`
+	ResourceGroupName                             string            `tfschema:"resource_group_name"`
+	Location                                      string            `tfschema:"location"`
+	Tags                                          map[string]string `tfschema:"tags"`
+	ExtendedLocationName                          string            `tfschema:"extended_location_name"`
+	ExtendedLocationType                          string            `tfschema:"extended_location_type"`
+	TargetAddress                                 string            `tfschema:"target_address"`
+	EndpointProfileType                           string            `tfschema:"endpoint_profile_type"`
+	DiscoveredAssetEndpointProfileRef             string            `tfschema:"discovered_asset_endpoint_profile_ref"`
+	AdditionalConfiguration                       string            `tfschema:"additional_configuration"`
+	AuthenticationMethod                          string            `tfschema:"authentication_method"`
+	UsernamePasswordCredentialsUsernameSecretName string            `tfschema:"username_password_credentials_username_secret_name"`
+	UsernamePasswordCredentialsPasswordSecretName string            `tfschema:"username_password_credentials_password_secret_name"`
+	X509CredentialsCertificateSecretName          string            `tfschema:"x509_credentials_certificate_secret_name"`
 }
 
 func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
@@ -110,43 +97,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (AssetEndpointProfileResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"uuid": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"status": {
-			Type:     pluginsdk.TypeMap,
-			Computed: true,
-			Elem: map[string]*pluginsdk.Schema{
-				"errors": {
-					Type:     pluginsdk.TypeList,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeMap,
-						Elem: map[string]*pluginsdk.Schema{
-							"code": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-							"message": {
-								Type:     pluginsdk.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (AssetEndpointProfileResource) ModelObject() interface{} {
@@ -314,12 +265,9 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				state.Type = pointer.From(model.Type)
 				state.ExtendedLocationName = model.ExtendedLocation.Name
 				state.ExtendedLocationType = model.ExtendedLocation.Type
 				if props := model.Properties; props != nil {
-					state.Uuid = pointer.From(props.Uuid)
-					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 					state.TargetAddress = props.TargetAddress
 					state.EndpointProfileType = props.EndpointProfileType
 					state.DiscoveredAssetEndpointProfileRef = pointer.From(props.DiscoveredAssetEndpointProfileRef)
@@ -332,11 +280,6 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 						if up := auth.UsernamePasswordCredentials; up != nil {
 							state.UsernamePasswordCredentialsUsernameSecretName = up.UsernameSecretName
 							state.UsernamePasswordCredentialsPasswordSecretName = up.PasswordSecretName
-						}
-					}
-					if status := props.Status; status != nil {
-						state.Status = AssetEndpointProfileStatus{
-							Errors: toTFAssetEndpointProfileErrorStatuses(status.Errors),
 						}
 					}
 				}
@@ -387,45 +330,4 @@ func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpoint
 			PasswordSecretName: config.UsernamePasswordCredentialsPasswordSecretName,
 		}
 	}
-	// switch config.AuthenticationMethod {
-	// case string(assetendpointprofiles.AuthenticationMethodCertificate):
-	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
-	// 		Method: config.AuthenticationMethod,
-	// 		X509Credentials: &assetendpointprofiles.X509Credentials{
-	// 			CertificateSecretName: config.X509CredentialsCertificateSecretName,
-	// 		},
-	// 	}
-	// 	break
-	// case string(assetendpointprofiles.AuthenticationMethodUsernamePassword):
-	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
-	// 		Method: config.AuthenticationMethod,
-	// 		UsernamePasswordCredentials: &assetendpointprofiles.UsernamePasswordCredentials{
-	// 			UsernameSecretName: config.UsernamePasswordCredentialsUsernameSecretName,
-	// 			PasswordSecretName: config.UsernamePasswordCredentialsPasswordSecretName,
-	// 		},
-	// 	}
-	// 	break
-	// case string(assetendpointprofiles.AuthenticationMethodAnonymous):
-	// 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
-	// 		Method: string(assetendpointprofiles.AuthenticationMethodAnonymous),
-	// 	}
-	// 	break
-	// default:
-	// 	// Do not populate the authentication properties if the authentication method is not set
-	// 	return
-	// }
-}
-
-func toTFAssetEndpointProfileErrorStatuses(errors *[]assetendpointprofiles.AssetEndpointProfileStatusError) []StatusError {
-	if errors == nil {
-		return nil
-	}
-	var tfErrors []StatusError
-	for _, err := range pointer.From(errors) {
-		tfErrors = append(tfErrors, StatusError{
-			Code:    pointer.From(err.Code),
-			Message: pointer.From(err.Message),
-		})
-	}
-	return tfErrors
 }
