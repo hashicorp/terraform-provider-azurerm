@@ -43,7 +43,7 @@ output "servicebus_subscription" {
 
 * `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `batched_operations_enabled` - Are batched operations enabled on this ServiceBus Subscription?
+* `batched_operations_enabled` - Whether batched operations are enabled.
 
 * `requires_session` - Whether this ServiceBus Subscription supports session.
 
