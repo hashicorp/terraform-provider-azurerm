@@ -10,7 +10,7 @@ Note blocks are used to provide additional information to users beyond the basic
 
 In the past, there have been different approaches to how notes were formatted, some examples are:
 - Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
-- Casing differences, e.g. `Note:` vs `NOTE:`.
+- Capitalisation differences, e.g. `Note:` vs `NOTE:`.
 - Whether or not a colon is included, e.g. `Note:` vs `Note`.
 
 Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below. 
