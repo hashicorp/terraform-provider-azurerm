@@ -394,7 +394,6 @@ func TestValidateContainerAppContainerName(t *testing.T) {
 		},
 		{
 			Input: "a.",
-
 		},
 		{
 			Input: "a--a",
