@@ -136,7 +136,7 @@ func (r MsSqlJobTargetGroupResource) Create() sdk.ResourceFunc {
 
 			targets, err := expandJobTargets(model.JobTargets)
 			if err != nil {
-				return err
+				return fmt.Errorf("expanding `job_target`: %+v", err)
 			}
 
 			parameters := jobtargetgroups.JobTargetGroup{
@@ -224,7 +224,7 @@ func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("job_target") {
 				targets, err := expandJobTargets(config.JobTargets)
 				if err != nil {
-					return err
+					return fmt.Errorf("expanding `job_target`: %+v", err)
 				}
 				existing.Model.Properties.Members = targets
 			}

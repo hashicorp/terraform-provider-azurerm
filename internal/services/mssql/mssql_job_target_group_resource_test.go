@@ -120,7 +120,7 @@ func (MsSqlJobTargetGroupResourceTest) Exists(ctx context.Context, client *clien
 
 	resp, err := client.MSSQL.JobTargetGroupsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
