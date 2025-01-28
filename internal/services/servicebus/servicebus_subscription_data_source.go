@@ -5,8 +5,9 @@ package servicebus
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
