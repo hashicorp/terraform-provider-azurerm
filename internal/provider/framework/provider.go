@@ -453,6 +453,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
+									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
 									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},

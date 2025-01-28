@@ -121,11 +121,11 @@ func TestDataFactoryDeserializePipelineActivities(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if items == nil && !tc.ExpectErr {
-			t.Fatal("Expected items got nil")
-		}
-
-		if len(*items) != tc.ExpectActivityCount {
+		if items == nil {
+			if !tc.ExpectErr {
+				t.Fatal("Expected items got nil")
+			}
+		} else if len(*items) != tc.ExpectActivityCount {
 			t.Fatal("Failed to deserialise pipeline")
 		}
 	}
