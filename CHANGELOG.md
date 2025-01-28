@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
 * `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types [GH-28453]
+* `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` [GH-27853]
 
 BUG FIXES:
 
