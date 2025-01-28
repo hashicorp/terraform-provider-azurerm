@@ -43,9 +43,9 @@ output "servicebus_subscription" {
 
 * `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `enable_batched_operations` - Are batched operations enabled on this ServiceBus Subscription?
+* `batched_operations_enabled` - Are batched operations enabled on this ServiceBus Subscription?
 
-* `requires_session` - Whether or not this ServiceBus Subscription supports session.
+* `requires_session` - Whether this ServiceBus Subscription supports session.
 
 * `forward_to` - The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.
 
