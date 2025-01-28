@@ -13,7 +13,6 @@ import (
 
 type ServiceBusSubscriptionDataSource struct{}
 
-// testcase.go:173: Step 1/1 error: Check failed: Check 2/2 error: data.azurerm_servicebus_subscription.test: Attribute 'batch_operations_enabled' expected to be set
 func TestAccDataSourceServiceBusSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_subscription", "test")
 	r := ServiceBusSubscriptionDataSource{}
