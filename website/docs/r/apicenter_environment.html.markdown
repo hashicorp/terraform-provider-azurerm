@@ -1,12 +1,12 @@
 ---
 subcategory: "ApiCenter"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_apicenter_environment"
+page_title: "Azure Resource Manager: azurerm_api_center_environment"
 description: |-
   Manages an API Center Environment.
 ---
 
-# azurerm_apicenter_environment
+# azurerm_api_center_environment
 
 Manages an API Center Environment.
 
@@ -32,7 +32,7 @@ resource "azurerm_apicenter_service" "example" {
   }
 }
 
-resource "azurerm_apicenter_environment" "example" {
+resource "azurerm_api_center_environment" "example" {
   name                   = "test"
   service_id             = azurerm_apicenter_service.example.id
   identification         = "exampleid"
@@ -87,5 +87,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 API Center Environment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_apicenter_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ApiCenter/services/example/workspaces/default/environments/example
+terraform import azurerm_api_center_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.ApiCenter/services/example/workspaces/default/environments/example
 ```

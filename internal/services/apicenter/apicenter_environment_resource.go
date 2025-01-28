@@ -62,18 +62,21 @@ func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"development_portal_uri": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"instructions": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"server_type": {
@@ -84,8 +87,9 @@ func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 				false),
 		},
 		"management_portal_uri": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 	}
 }
@@ -99,7 +103,7 @@ func (r ApiCenterEnvironmentResource) ModelObject() interface{} {
 }
 
 func (r ApiCenterEnvironmentResource) ResourceType() string {
-	return "azurerm_apicenter_environment"
+	return "azurerm_api_center_environment"
 }
 
 func (r ApiCenterEnvironmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -110,16 +114,19 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model ApiCenterEnvironmentResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
-			}
+
 			client := metadata.Client.ApiCenter.EnvironmentsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
+			var model ApiCenterEnvironmentResourceModel
+			if err := metadata.Decode(&model); err != nil {
+
+				return fmt.Errorf("decoding %+v", err)
+			}
+
 			service, err := services.ParseServiceID(model.ServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing ApiCenter Service ID %s: %+v", model.ServiceId, err)
+				return err
 			}
 
 			// @favoretti: can't find any workspace creation buttons in the portal, assume everything defaults to "default" for now?
@@ -134,17 +141,31 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			apiCenterEnvironmentProps := environments.EnvironmentProperties{
-				Kind:        environments.EnvironmentKind(model.Type),
-				Description: &model.Description,
-				Onboarding: &environments.Onboarding{
-					DeveloperPortalUri: &[]string{model.DevPortalUri},
-					Instructions:       &model.Instructions,
-				},
-				Server: &environments.EnvironmentServer{
-					Type:                pointer.To(environments.EnvironmentServerType(model.ServerType)),
-					ManagementPortalUri: &[]string{model.MgmtPortalUri},
-				},
+				Kind:  environments.EnvironmentKind(model.Type),
 				Title: model.Name,
+			}
+
+			if model.Description != "" {
+				apiCenterEnvironmentProps.Description = pointer.To(model.Description)
+			}
+
+			apiCenterEnvironmentProps.Onboarding = &environments.Onboarding{}
+			if model.DevPortalUri != "" {
+				apiCenterEnvironmentProps.Onboarding.DeveloperPortalUri = pointer.To([]string{model.DevPortalUri})
+			}
+
+			if model.Instructions != "" {
+				apiCenterEnvironmentProps.Onboarding.Instructions = pointer.To(model.Instructions)
+			}
+
+			apiCenterEnvironmentProps.Server = &environments.EnvironmentServer{}
+
+			if model.ServerType != "" {
+				apiCenterEnvironmentProps.Server.Type = pointer.To(environments.EnvironmentServerType(model.ServerType))
+			}
+
+			if model.MgmtPortalUri != "" {
+				apiCenterEnvironmentProps.Server.ManagementPortalUri = pointer.To([]string{model.MgmtPortalUri})
 			}
 
 			apiCenterEnvironment := environments.Environment{
@@ -154,7 +175,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id, apiCenterEnvironment); err != nil {
-				return fmt.Errorf("creating ApiCenter Environment %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -180,11 +201,11 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading ApiCenter Environment %s: %v", id, err)
+				return fmt.Errorf("reading %s: %v", id, err)
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
-				return fmt.Errorf("updating ApiCenter Service %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -196,35 +217,43 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
-			}
-
 			client := metadata.Client.ApiCenter.EnvironmentsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			resp, err := client.Get(ctx, *id)
+			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				return err
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving ApiCenter Environment %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
-			serviceId := services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 
 			state := ApiCenterEnvironmentResourceModel{
-				Name:           resp.Model.Properties.Title,
-				ServiceId:      serviceId.ID(),
-				Identification: *resp.Model.Name,
-				Description:    *resp.Model.Properties.Description,
-				Type:           string(resp.Model.Properties.Kind),
-				DevPortalUri:   (*resp.Model.Properties.Onboarding.DeveloperPortalUri)[0],
-				MgmtPortalUri:  (*resp.Model.Properties.Server.ManagementPortalUri)[0],
-				Instructions:   *resp.Model.Properties.Onboarding.Instructions,
-				ServerType:     string(*resp.Model.Properties.Server.Type),
+				Name:      id.ServiceName,
+				ServiceId: services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName).ID(),
 			}
+			if model := existing.Model; model != nil {
+				state.Identification = pointer.From(model.Name)
+				if props := existing.Model.Properties; props != nil {
+					state.Description = pointer.From(props.Description)
+					state.Type = string(props.Kind)
+					if server := props.Server; server != nil {
+						state.MgmtPortalUri = pointer.From(server.ManagementPortalUri)[0]
+						state.ServerType = string(pointer.From(server.Type))
+					}
+
+					if onboarding := props.Onboarding; onboarding != nil {
+						state.DevPortalUri = pointer.From(onboarding.DeveloperPortalUri)[0]
+						state.Instructions = pointer.From(onboarding.Instructions)
+					}
+				}
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -234,12 +263,12 @@ func (r ApiCenterEnvironmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiCenter.EnvironmentsClient
+
 			id, err := environments.ParseEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
-
-			client := metadata.Client.ApiCenter.EnvironmentsClient
 
 			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting ApiCenter Environment %s: %+v", *id, err)

@@ -20,8 +20,8 @@ import (
 
 type ApiCenterEnvironmentResource struct{}
 
-func TestAccApicenterEnvironment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_environment", "test")
+func TestAccApiCenterEnvironment_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_environment", "test")
 	r := ApiCenterEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,8 +35,8 @@ func TestAccApicenterEnvironment_basic(t *testing.T) {
 	})
 }
 
-func TestAccApicenterEnvironment_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_environment", "test")
+func TestAccApiCenterEnvironment_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_environment", "test")
 	r := ApiCenterEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,8 +50,8 @@ func TestAccApicenterEnvironment_complete(t *testing.T) {
 	})
 }
 
-func TestAccApicenterEnvironment_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_environment", "test")
+func TestAccApiCenterEnvironment_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_center_environment", "test")
 	r := ApiCenterEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -113,7 +113,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_apicenter_environment" "test" {
+resource "azurerm_api_center_environment" "test" {
   name             = "test"
   service_id       = azurerm_apicenter_service.test.id
   identification   = "testid"
@@ -132,7 +132,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_apicenter_environment" "test" {
+resource "azurerm_api_center_environment" "test" {
   name                   = "test"
   service_id             = azurerm_apicenter_service.test.id
   identification         = "testid"
@@ -151,11 +151,11 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_apicenter_environment" "import" {
-  name             = azurerm_apicenter_environment.test.name
-  service_id       = azurerm_apicenter_environment.test.service_id
-  identification   = azurerm_apicenter_environment.test.identification
-  environment_type = azurerm_apicenter_environment.test.environment_type
+resource "azurerm_api_center_environment" "import" {
+  name             = azurerm_api_center_environment.test.name
+  service_id       = azurerm_api_center_environment.test.service_id
+  identification   = azurerm_api_center_environment.test.identification
+  environment_type = azurerm_api_center_environment.test.environment_type
 }
 `, template)
 }
