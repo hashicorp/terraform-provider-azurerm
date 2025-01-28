@@ -1,5 +1,5 @@
 # Provider Documentation Standards
-<!-- TODO: Should this be a single page, or prefer to split this into multiple? (e.g. docs-notes.md) -->
+
 In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on. 
 
 This page will grow over time, and suggestions are welcome!
@@ -8,9 +8,15 @@ This page will grow over time, and suggestions are welcome!
 
 Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.
 
+In the past, there have been different approaches to how notes were formatted, some examples are:
+- Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
+- Casing differences, e.g. `Note:` vs `NOTE:`.
+- Whether or not a colon is included, e.g. `Note:` vs `Note`.
+
+Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below. 
+
 <!-- 
     - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
-    - TODO: Casing (Note vs NOTE)
 -->
 
 ### Informational Note
