@@ -348,7 +348,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -403,7 +404,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service,
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
@@ -469,7 +471,8 @@ provider "azurerm" {
     resource_group {
       /* Due to the creation of unmanaged Microsoft.Network/networkIntentPolicies in this service, 
       prevent_deletion_if_contains_resources has been added here to allow the test resources to be 
-       deleted until this can be properly investigated
+      deleted until this can be properly investigated
+      tracked by https://github.com/hashicorp/terraform-provider-azurerm/issues/28540
       */
       prevent_deletion_if_contains_resources = false
     }
