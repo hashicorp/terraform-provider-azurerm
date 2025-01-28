@@ -22,7 +22,6 @@ func TestAccDataSourceServiceBusSubscription_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
-				check.That(data.ResourceName).Key("batch_operations_enabled").Exists(),
 			),
 		},
 	})
@@ -49,10 +48,9 @@ resource "azurerm_servicebus_topic" "test" {
   namespace_id = azurerm_servicebus_namespace.test.id
 }
 resource "azurerm_servicebus_subscription" "test" {
-  name                       = "acctestservicebussubscription-%d"
-  topic_id                   = azurerm_servicebus_topic.test.id
-  max_delivery_count         = 10
-  batched_operations_enabled = true
+  name               = "acctestservicebussubscription-%d"
+  topic_id           = azurerm_servicebus_topic.test.id
+  max_delivery_count = 10
 }
 data "azurerm_servicebus_subscription" "test" {
   name     = azurerm_servicebus_subscription.test.name

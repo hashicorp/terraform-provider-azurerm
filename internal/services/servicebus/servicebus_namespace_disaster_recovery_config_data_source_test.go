@@ -22,7 +22,7 @@ func TestAccDataSourceServiceBusNamespaceDisasterRecoveryConfig_basic(t *testing
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("namespace_id").Exists(),
 				check.That(data.ResourceName).Key("partner_namespace_id").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string_alias").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string_alias").Exists(),
