@@ -93,6 +93,8 @@ A `volume` block supports the following:
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
 
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string.
+
 ---
 
 A `init_container` block supports the following:

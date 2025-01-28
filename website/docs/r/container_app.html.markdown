@@ -189,6 +189,8 @@ A `volume` block supports the following:
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
 * `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
+* 
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string.
 
 ---
 
