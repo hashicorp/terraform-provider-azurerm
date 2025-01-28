@@ -72,16 +72,11 @@ func (ApiCenterEnvironmentResource) Exists(ctx context.Context, clients *clients
 	}
 
 	resp, err := clients.ApiCenter.EnvironmentsClient.Get(ctx, *id)
-
-	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
-	}
-
 	if err != nil {
-		return nil, fmt.Errorf("making Read request on ApiCenter Environment %s: %+v", id.ID(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ApiCenterEnvironmentResource) template(data acceptance.TestData) string {
