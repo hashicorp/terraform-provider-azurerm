@@ -1488,6 +1488,11 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"mount_options": {
+					Type:     pluginsdk.TypeString,
+					Required: false,
+				},
 			},
 		},
 	}
