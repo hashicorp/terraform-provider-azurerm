@@ -6,6 +6,7 @@ package containerapps
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 	"time"
 
@@ -28,7 +29,7 @@ import (
 const (
 	LogsDestinationLogAnalytics string = "log-analytics"
 	LogsDestinationAzureMonitor string = "azure-monitor"
-	LogsDestinationAzureNone    string = ""
+	LogsDestinationNone         string = ""
 )
 
 type ContainerAppEnvironmentResource struct{}
@@ -74,7 +75,7 @@ func (r ContainerAppEnvironmentResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -106,12 +107,12 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		"logs_destination": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  LogsDestinationAzureNone,
+			Default:  LogsDestinationNone,
 			ValidateFunc: validation.StringInSlice([]string{
-				LogsDestinationLogAnalytics,
 				LogsDestinationAzureMonitor,
+				LogsDestinationLogAnalytics,
 			}, false),
-			Description: "The destination for the application logs. Possible values are `log-analytics` or `azure-monitor`.",
+			Description: "The destination for the application logs. Possible values include `log-analytics` and `azure-monitor`.  Omitting this value will result in logs being streamed only.",
 		},
 
 		"infrastructure_resource_group_name": {
@@ -170,6 +171,22 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOhBeta() {
+		schema["logs_destination"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true, // O+C as the introduction of this property is a behavioural change where we previously set it behind the scenes if `log_analytics_workspace_id` was set.
+			ValidateFunc: validation.StringInSlice([]string{
+				LogsDestinationAzureMonitor,
+				LogsDestinationNone,
+				LogsDestinationLogAnalytics,
+			}, false),
+			Description: "The destination for the application logs. Possible values include `log-analytics`, `azure-monitor` and `stream-only`.",
+		}
+	}
+
+	return schema
 }
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -274,6 +291,8 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
 				}
+
+				managedEnvironment.Properties.AppLogsConfiguration.Destination = pointer.To(LogsDestinationLogAnalytics)
 
 				managedEnvironment.Properties.AppLogsConfiguration.LogAnalyticsConfiguration = &managedenvironments.LogAnalyticsConfiguration{
 					CustomerId: customerId,
@@ -424,6 +443,11 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
+				// For 4.x we need to be compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
+				if !features.FivePointOhBeta() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
+					state.LogsDestination = LogsDestinationNone
+				}
+
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
 					existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
@@ -431,17 +455,19 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 						LogAnalyticsConfiguration: nil,
 					}
 				case LogsDestinationLogAnalytics:
-					customerId, sharedKey, err := getSharedKeyForWorkspace(ctx, metadata, state.LogAnalyticsWorkspaceId)
-					if err != nil {
-						return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
-					}
+					if state.LogAnalyticsWorkspaceId != "" {
+						customerId, sharedKey, err := getSharedKeyForWorkspace(ctx, metadata, state.LogAnalyticsWorkspaceId)
+						if err != nil {
+							return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
+						}
 
-					existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
-						Destination: pointer.To(LogsDestinationLogAnalytics),
-						LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
-							CustomerId: customerId,
-							SharedKey:  sharedKey,
-						},
+						existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+							Destination: pointer.To(LogsDestinationLogAnalytics),
+							LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+								CustomerId: customerId,
+								SharedKey:  sharedKey,
+							},
+						}
 					}
 
 				default:
@@ -498,8 +524,9 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
+			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") && (metadata.ResourceData != nil && !metadata.ResourceData.IsNewResource()) {
 				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
+				logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
 				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
 				logAnalyticsWorkspaceIDIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsNull()
 
@@ -509,9 +536,9 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 					}
 
-				case LogsDestinationAzureMonitor, LogsDestinationAzureNone:
-					if logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull {
-						return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics`")
+				case LogsDestinationAzureMonitor, LogsDestinationNone:
+					if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
+						return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 					}
 				}
 			}
