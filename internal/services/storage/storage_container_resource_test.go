@@ -23,7 +23,7 @@ import (
 type StorageContainerResource struct{}
 
 func TestAccStorageContainer_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -72,7 +72,7 @@ func TestAccStorageContainer_complete(t *testing.T) {
 }
 
 func TestAccStorageContainer_deleteAndRecreateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -127,7 +127,7 @@ func TestAccStorageContainer_deleteAndRecreate(t *testing.T) {
 }
 
 func TestAccStorageContainer_basicAzureADAuthDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -161,7 +161,7 @@ func TestAccStorageContainer_basicAzureADAuth(t *testing.T) {
 }
 
 func TestAccStorageContainer_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -195,7 +195,7 @@ func TestAccStorageContainer_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageContainer_updateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -245,7 +245,7 @@ func TestAccStorageContainer_update(t *testing.T) {
 }
 
 func TestAccStorageContainer_encryptionScopeDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -279,7 +279,7 @@ func TestAccStorageContainer_encryptionScope(t *testing.T) {
 }
 
 func TestAccStorageContainer_metaDataDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -341,7 +341,7 @@ func TestAccStorageContainer_metaData(t *testing.T) {
 }
 
 func TestAccStorageContainer_rootDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -361,7 +361,7 @@ func TestAccStorageContainer_rootDeprecated(t *testing.T) {
 }
 
 func TestAccStorageContainer_webDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -397,7 +397,7 @@ func TestAccStorageContainer_web(t *testing.T) {
 }
 
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOhBeta() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := containers.ParseContainerID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err

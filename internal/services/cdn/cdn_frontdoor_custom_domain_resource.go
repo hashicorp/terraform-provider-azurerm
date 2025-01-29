@@ -119,7 +119,7 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Optional:   true,

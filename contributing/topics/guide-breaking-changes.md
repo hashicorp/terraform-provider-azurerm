@@ -4,7 +4,7 @@ To keep up with and accommodate the changing pace of Azure, the provider needs t
 
 The `azurerm` provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.
 
-Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOhBeta()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
+Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
 
 Types of breaking changes covered are:
 
@@ -75,7 +75,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             MySqlFlexibleServerResource{},
         }
         
-        if !features.FivePointOhBeta() {
+        if !features.FivePointOh() {
             resources = append(resources, ExampleResource{})
         }
         
@@ -91,7 +91,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     
         }
     
-        if !features.FivePointOhBeta() {
+        if !features.FivePointOh() {
             resources["azurerm_example"] = resourceExample()
         }
     
@@ -103,7 +103,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
     ```go
     func TestAccExample_basic(t *testing.T) {
-        if features.FivePointOhBeta() {
+        if features.FivePointOh() {
             t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 5.0")
         }
         data := acceptance.BuildTestData(t, "azurerm_example", "test")
@@ -170,7 +170,7 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
-      if !features.FivePointOhBeta() {
+      if !features.FivePointOh() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:     pluginsdk.TypeBool,
             Optional: true,
@@ -201,7 +201,7 @@ The following example follows a fictional resource that will have the following 
 
    ```go
    func (ExampleResource) complete(data acceptance.TestData) string {
-   if !features.FivePointOhBeta() {
+   if !features.FivePointOh() {
         return fmt.Sprintf(`
    provider "azurerm" {
      features {}
@@ -359,7 +359,7 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
             },
         }
 
-    if !features.FivePointOhBeta() {
+    if !features.FivePointOh() {
         args["spark_version"].Default = "2.4"
     }
 	

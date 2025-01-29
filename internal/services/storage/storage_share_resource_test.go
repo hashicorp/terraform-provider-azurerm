@@ -22,7 +22,7 @@ import (
 type StorageShareResource struct{}
 
 func TestAccStorageShare_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
@@ -71,7 +71,7 @@ func TestAccStorageShare_complete(t *testing.T) {
 }
 
 func TestAccStorageShare_requiresImportDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -105,7 +105,7 @@ func TestAccStorageShare_requiresImport(t *testing.T) {
 }
 
 func TestAccStorageShare_disappearsDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
@@ -120,7 +120,7 @@ func TestAccStorageShare_disappearsDeprecated(t *testing.T) {
 }
 
 func TestAccStorageShare_deleteAndRecreateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -149,7 +149,7 @@ func TestAccStorageShare_deleteAndRecreateDeprecated(t *testing.T) {
 }
 
 func TestAccStorageShare_metaDataDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -197,7 +197,7 @@ func TestAccStorageShare_metaData(t *testing.T) {
 }
 
 func TestAccStorageShare_aclDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -259,7 +259,7 @@ func TestAccStorageShare_acl(t *testing.T) {
 }
 
 func TestAccStorageShare_aclGhostedRecallDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -293,7 +293,7 @@ func TestAccStorageShare_aclGhostedRecall(t *testing.T) {
 }
 
 func TestAccStorageShare_updateQuotaDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -339,7 +339,7 @@ func TestAccStorageShare_updateQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_largeQuotaDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -387,7 +387,7 @@ func TestAccStorageShare_largeQuota(t *testing.T) {
 }
 
 func TestAccStorageShare_accessTierStandardDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -435,7 +435,7 @@ func TestAccStorageShare_accessTierStandard(t *testing.T) {
 }
 
 func TestAccStorageShare_accessTierPremiumDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -469,7 +469,7 @@ func TestAccStorageShare_accessTierPremium(t *testing.T) {
 }
 
 func TestAccStorageShare_nfsProtocolDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -504,7 +504,7 @@ func TestAccStorageShare_nfsProtocol(t *testing.T) {
 
 // TestAccStorageShare_protocolUpdate is to ensure destroy-then-create of the storage share can tolerant the "ShareBeingDeleted" issue.
 func TestAccStorageShare_protocolUpdateDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 
@@ -552,7 +552,7 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 }
 
 func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	if !features.FivePointOhBeta() && !strings.HasPrefix(state.ID, "/subscriptions") {
+	if !features.FivePointOh() && !strings.HasPrefix(state.ID, "/subscriptions") {
 		id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
 		if err != nil {
 			return nil, err
