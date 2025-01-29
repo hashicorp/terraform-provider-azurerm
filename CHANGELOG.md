@@ -1,3 +1,41 @@
+## 4.16.0 (January 16, 2025)
+
+**NOTE:** This release contains a breaking change reverting `redisenterprise` API version from `2024-10-01` to `2024-06-01-preview` as not all regions are currently supported in the `2024-10-01` version 
+
+BREAKING CHANGES:
+
+* dependencies - `redisenterprise` API version reverted from `2024-10-01` to `2024-06-01-preview` ([#28516](https://github.com/hashicorp/terraform-provider-azurerm/issues/28516))
+
+FEATURES:
+
+* **New Resource**: `azurerm_container_registry_credential_set` ([#27528](https://github.com/hashicorp/terraform-provider-azurerm/issues/27528))
+* **New Resource**: `azurerm_mssql_job` ([#28456](https://github.com/hashicorp/terraform-provider-azurerm/issues/28456))
+* **New Resource**: `azurerm_mssql_job_schedule` ([#28456](https://github.com/hashicorp/terraform-provider-azurerm/issues/28456))
+
+ENHANCEMENTS:
+
+* dependencies - update `hashicorp/go-azure-sdk` to `v0.20250115.1141151` ([#28519](https://github.com/hashicorp/terraform-provider-azurerm/issues/28519))
+* dependencies - `costmanagement` update to use `2023-08-01` ([#27680](https://github.com/hashicorp/terraform-provider-azurerm/issues/27680))
+* dependencies - `postgresql` update API version to `2024-08-01` ([#28474](https://github.com/hashicorp/terraform-provider-azurerm/issues/28474))
+* `azurerm_container_app` – support for the `termination_grace_period_seconds` property ([#28307](https://github.com/hashicorp/terraform-provider-azurerm/issues/28307))
+* `azurerm_cost_anomaly_alert` - add support for the `notification_email` property ([#27680](https://github.com/hashicorp/terraform-provider-azurerm/issues/27680))
+* `azurerm_data_protection_backup_vault` - support for `immutability` property ([#27859](https://github.com/hashicorp/terraform-provider-azurerm/issues/27859))
+* `azurerm_databricks_workspace` - fix `ignore_changes` support ([#28527](https://github.com/hashicorp/terraform-provider-azurerm/issues/28527))
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `temporary_name_for_rotation` property to allow node pool rotation ([#27791](https://github.com/hashicorp/terraform-provider-azurerm/issues/27791))
+* `azurerm_linux_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` ([#28472](https://github.com/hashicorp/terraform-provider-azurerm/issues/28472))
+* `azurerm_linux_web_app` - add  support for node `22` and java `17` support for `JBOSSEAP` ([#28472](https://github.com/hashicorp/terraform-provider-azurerm/issues/28472))
+* `azurerm_windows_function_app` - add  support for node `22` and java `17` support for `JBOSSEAP` ([#28472](https://github.com/hashicorp/terraform-provider-azurerm/issues/28472))
+
+
+BUG FIXES:
+
+* `azurerm_logic_app_standard` - fix setting `public_network_access` for conflicting API properties ([#28465](https://github.com/hashicorp/terraform-provider-azurerm/issues/28465))
+* `azurerm_redis_cache` - `data_persistence_authentication_method` can now be unset ([#27932](https://github.com/hashicorp/terraform-provider-azurerm/issues/27932))
+* `azurerm_mssql_database` - fix bug where verifying TDE might fail to return an error on failure ([#28505](https://github.com/hashicorp/terraform-provider-azurerm/issues/28505))
+* `azurerm_mssql_database` - fix several potential bugs where retry functions could return false negatives for actual errors ([#28505](https://github.com/hashicorp/terraform-provider-azurerm/issues/28505))
+* `azurerm_private_endpoint` - fix a bug where reading Private DNS could error and exit the Read of the resource early without raising an error ([#28505](https://github.com/hashicorp/terraform-provider-azurerm/issues/28505))
+
+
 ## 4.15.0 (January 10, 2025)
 
 FEATURES:
