@@ -129,6 +129,8 @@ The following arguments are supported:
 
 * `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `true`.
 
+* `secondary_type` - (Optional) The type of the secondary Managed Instance. Possible values are `Geo`, `Standby`.
+
 ---
 
 A `read_write_endpoint_failover_policy` block supports the following:
