@@ -79,6 +79,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateKustoClusterID,
+				ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
 			},
 
 			"attached_database_names": {
@@ -164,7 +165,8 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			Deprecated:   "Use `cluster_id` instead.",
 		}
 		resource.Schema["cluster_id"].ConflictsWith = []string{"cluster_resource_id"}
-		resource.Schema["cluster_resource_id"].Required = false
+		resource.Schema["cluster_id"].Required = false
+		resource.Schema["cluster_id"].Optional = true
 	}
 
 	return resource
