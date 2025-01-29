@@ -2570,7 +2570,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 func validateKubernetesClusterUpgradeOverrideSetting(_, new interface{}) error {
 	if new == nil {
-		return fmt.Errorf("upgrade_override cannot be unset")
+		return fmt.Errorf("`upgrade_override` cannot be unset")
 	}
 
 	newOverrideSetting, canConvert := new.([]interface{})
