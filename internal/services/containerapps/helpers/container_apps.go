@@ -2131,7 +2131,7 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
 			Type:        pluginsdk.TypeInt,
 			Computed:    true,
@@ -2219,7 +2219,7 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
 			Type:        pluginsdk.TypeInt,
 			Computed:    true,
@@ -2418,7 +2418,7 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
 			Type:        pluginsdk.TypeInt,
 			Computed:    true,
@@ -2502,7 +2502,7 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
 			Type:        pluginsdk.TypeInt,
 			Computed:    true,
