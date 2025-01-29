@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. 
 
-~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monito`.
+~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
 
 * `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Options are `log-analytics` or `azure-monitor`.
 

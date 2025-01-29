@@ -270,10 +270,6 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
-				if containerAppEnvironment.LogsDestination == LogsDestinationAzureMonitor {
-					return fmt.Errorf("cannot set `log_analytics_workspace_id` when `logs_destination` is %s", LogsDestinationAzureMonitor)
-				}
-
 				customerId, sharedKey, err := getSharedKeyForWorkspace(ctx, metadata, containerAppEnvironment.LogAnalyticsWorkspaceId)
 				if err != nil {
 					return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
