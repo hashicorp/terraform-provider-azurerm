@@ -157,7 +157,6 @@ resource "azurerm_mssql_job_target_group" "test" {
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type              = "SqlServer"
     membership_type   = "Include"
     server_name       = azurerm_mssql_server.test.name
     job_credential_id = azurerm_mssql_job_credential.test.id
@@ -182,7 +181,6 @@ resource "azurerm_mssql_job_target_group" "test" {
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type          = "SqlDatabase"
     server_name   = azurerm_mssql_server.test.name
     database_name = azurerm_mssql_database.test2.name
   }
@@ -219,7 +217,6 @@ resource "azurerm_mssql_job_target_group" "test" {
   job_agent_id = azurerm_mssql_job_agent.test.id
 
   job_target {
-    type              = "SqlElasticPool"
     server_name       = azurerm_mssql_server.test.name
     elastic_pool_name = azurerm_mssql_elasticpool.test.name
     job_credential_id = azurerm_mssql_job_credential.test.id

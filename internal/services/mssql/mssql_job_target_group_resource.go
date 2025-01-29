@@ -33,7 +33,10 @@ type MsSqlJobTarget struct {
 	MembershipType  string `tfschema:"membership_type"`
 }
 
-var _ sdk.ResourceWithUpdate = MsSqlJobTargetGroupResource{}
+var (
+	_ sdk.ResourceWithUpdate        = MsSqlJobTargetGroupResource{}
+	_ sdk.ResourceWithCustomizeDiff = MsSqlJobTargetGroupResource{}
+)
 
 func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -59,15 +62,6 @@ func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validate.ValidateMsSqlServerName,
 					},
-					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(jobtargetgroups.JobTargetTypeSqlDatabase),
-							string(jobtargetgroups.JobTargetTypeSqlElasticPool),
-							string(jobtargetgroups.JobTargetTypeSqlServer),
-						}, false),
-					},
 					"database_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -89,6 +83,10 @@ func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 						Default:      string(jobtargetgroups.JobTargetGroupMembershipTypeInclude),
 						ValidateFunc: validation.StringInSlice(jobtargetgroups.PossibleValuesForJobTargetGroupMembershipType(), false),
 					},
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -97,6 +95,33 @@ func (r MsSqlJobTargetGroupResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MsSqlJobTargetGroupResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r MsSqlJobTargetGroupResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config MsSqlJobTargetGroupResourceModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			for _, v := range config.JobTargets {
+				if v.DatabaseName != "" && v.ElasticPoolName != "" {
+					return fmt.Errorf("`database_name` and `elastic_pool_name` are mutually exclusive")
+				}
+
+				targetType := determineJobTargetType(v)
+				if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
+					if v.JobCredentialId == "" {
+						return fmt.Errorf("`job_credential_id` is required when `membership_type` is `%s` and `type` is `%s`", jobtargetgroups.JobTargetGroupMembershipTypeInclude, targetType)
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r MsSqlJobTargetGroupResource) ModelObject() interface{} {
@@ -134,15 +159,10 @@ func (r MsSqlJobTargetGroupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			targets, err := expandJobTargets(model.JobTargets)
-			if err != nil {
-				return fmt.Errorf("expanding `job_target`: %+v", err)
-			}
-
 			parameters := jobtargetgroups.JobTargetGroup{
 				Name: pointer.To(model.Name),
 				Properties: pointer.To(jobtargetgroups.JobTargetGroupProperties{
-					Members: targets,
+					Members: expandJobTargets(model.JobTargets),
 				}),
 			}
 
@@ -224,11 +244,7 @@ func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("job_target") {
-				targets, err := expandJobTargets(config.JobTargets)
-				if err != nil {
-					return fmt.Errorf("expanding `job_target`: %+v", err)
-				}
-				payload.Properties.Members = targets
+				payload.Properties.Members = expandJobTargets(config.JobTargets)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
@@ -264,46 +280,37 @@ func (r MsSqlJobTargetGroupResource) IDValidationFunc() pluginsdk.SchemaValidate
 	return jobtargetgroups.ValidateTargetGroupID
 }
 
-func expandJobTargets(input []MsSqlJobTarget) ([]jobtargetgroups.JobTarget, error) {
+func expandJobTargets(input []MsSqlJobTarget) []jobtargetgroups.JobTarget {
 	targets := make([]jobtargetgroups.JobTarget, 0)
 	if len(input) == 0 {
-		return targets, nil
+		return targets
 	}
 
 	for _, v := range input {
 		t := jobtargetgroups.JobTarget{
 			MembershipType: pointer.To(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType)),
 			ServerName:     pointer.To(v.ServerName),
-			Type:           jobtargetgroups.JobTargetType(v.Type),
 		}
 
-		if v.MembershipType == string(jobtargetgroups.JobTargetGroupMembershipTypeInclude) && v.Type != string(jobtargetgroups.JobTargetTypeSqlDatabase) {
-			if v.JobCredentialId == "" {
-				return nil, fmt.Errorf("`job_credential_id` is required when `membership_type` is `%s` and `type` is `%s`", jobtargetgroups.JobTargetGroupMembershipTypeInclude, v.Type)
-			}
+		targetType := determineJobTargetType(v)
+		t.Type = targetType
 
+		if isCredentialRequired(jobtargetgroups.JobTargetGroupMembershipType(v.MembershipType), targetType) {
 			t.RefreshCredential = pointer.To(v.JobCredentialId)
 		}
 
-		switch v.Type {
-		case string(jobtargetgroups.JobTargetTypeSqlDatabase):
-			if v.DatabaseName == "" {
-				return nil, fmt.Errorf("`database_name` is required when `type` is `%s`", jobtargetgroups.JobTargetTypeSqlDatabase)
-			}
-
+		if targetType == jobtargetgroups.JobTargetTypeSqlDatabase {
 			t.DatabaseName = pointer.To(v.DatabaseName)
-		case string(jobtargetgroups.JobTargetTypeSqlElasticPool):
-			if v.ElasticPoolName == "" {
-				return nil, fmt.Errorf("`elastic_pool_name` is required when `type` is `%s`", jobtargetgroups.JobTargetTypeSqlElasticPool)
-			}
+		}
 
+		if targetType == jobtargetgroups.JobTargetTypeSqlElasticPool {
 			t.ElasticPoolName = pointer.To(v.ElasticPoolName)
 		}
 
 		targets = append(targets, t)
 	}
 
-	return targets, nil
+	return targets
 }
 
 func flattenJobTargets(input []jobtargetgroups.JobTarget) []MsSqlJobTarget {
@@ -326,4 +333,19 @@ func flattenJobTargets(input []jobtargetgroups.JobTarget) []MsSqlJobTarget {
 	}
 
 	return targets
+}
+
+func determineJobTargetType(input MsSqlJobTarget) jobtargetgroups.JobTargetType {
+	switch {
+	case input.DatabaseName != "":
+		return jobtargetgroups.JobTargetTypeSqlDatabase
+	case input.ElasticPoolName != "":
+		return jobtargetgroups.JobTargetTypeSqlElasticPool
+	default:
+		return jobtargetgroups.JobTargetTypeSqlServer
+	}
+}
+
+func isCredentialRequired(membershipType jobtargetgroups.JobTargetGroupMembershipType, targetType jobtargetgroups.JobTargetType) bool {
+	return membershipType == jobtargetgroups.JobTargetGroupMembershipTypeInclude && targetType != jobtargetgroups.JobTargetTypeSqlDatabase
 }
