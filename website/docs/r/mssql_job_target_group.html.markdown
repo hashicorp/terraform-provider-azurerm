@@ -77,21 +77,23 @@ A `job_target` block supports the following:
 
 * `server_name` - (Required) The name of the MS SQL Server.
 
-* `type` - (Required) The Job Target Type. Possible values are `SqlServer`, `SqlDatabase`, and `SqlElasticPool`.
-
 * `database_name` - (Optional) The name of the MS SQL Database.
 
-~> **Note:** This is required when `type` is `SqlDatabase`.
+~> **Note:** This cannot be set in combination with `elastic_pool_name`.
 
 * `elastic_pool_name` - (Optional) The name of the MS SQL Elastic Pool.
 
-~> **Note:** This is required when `type` is `SqlElasticPool`.
+~> **Note:** This cannot be set in combination with `database_name`.
 
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
 
 ~> **Note:** This is required when `membership_type` is `Include`, unless `type` is `SqlDatabase`.
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
+
+* `type` - The Job Target Type.
+
+-> **Note:** This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`. Possible values are `SqlServer` (when only `server_name` is set), `SqlDatabase` (when both `server_name` and `database_name` are set), and SqlElasticPool (when both `server_name` and `elastic_pool_name` are set)
 
 ## Attributes Reference
 
