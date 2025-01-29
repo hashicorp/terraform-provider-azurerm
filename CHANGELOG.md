@@ -9,11 +9,13 @@ ENHANCEMENTS:
 * dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
 * dependencies: `storage` - update to use `2023-05-01` [GH-27760]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
-* `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types [GH-28453]
-* `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` [GH-27853]
 * `azurerm_cognitive_account` - support for the `bypass` property [GH-28221]
+* `azurerm_container_app_environment` - add support for Azure Monitor as a log destination [GH-26047]
+* `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types [GH-28453]
 * `azurerm_mssql_managed_instance_transparent_data_encryption` - support for the `managed_hsm_key_id` property [GH-28480]
-* `stream_analytics_output_cosmosdb` - support for the `authentication_mode` property [GH-28372]
+* `azurerm_stream_analytics_output_cosmosdb` - support for the `authentication_mode` property [GH-28372]
+* `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` [GH-27853]
+
 
 BUG FIXES:
 
