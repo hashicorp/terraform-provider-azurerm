@@ -117,14 +117,19 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		for _, name := range []string{"batched_operations", "express", "partitioning"} {
-			oldName := fmt.Sprintf("enable_%s", name)
-			newName := fmt.Sprintf("%s_enabled", name)
-			resource.Schema[oldName] = &pluginsdk.Schema{
-				Deprecated: fmt.Sprintf("this property has been deprecated in favour of `%s`", newName),
-				Type:       pluginsdk.TypeBool,
-				Computed:   true,
-			}
+		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+
+		resource.Schema["enable_express"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+
+		resource.Schema["enable_partitioning"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
 		}
 	}
 
