@@ -221,15 +221,17 @@ func (r MsSqlJobTargetGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
 			}
 
+			payload := existing.Model
+
 			if metadata.ResourceData.HasChange("job_target") {
 				targets, err := expandJobTargets(config.JobTargets)
 				if err != nil {
 					return fmt.Errorf("expanding `job_target`: %+v", err)
 				}
-				existing.Model.Properties.Members = targets
+				payload.Properties.Members = targets
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating: %s: %+v", id, err)
 			}
 
