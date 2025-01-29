@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/outboundfirewallrules"
@@ -54,6 +55,7 @@ type Client struct {
 	GeoBackupPoliciesClient                            *geobackuppolicies.GeoBackupPoliciesClient
 	JobAgentsClient                                    *jobagents.JobAgentsClient
 	JobCredentialsClient                               *jobcredentials.JobCredentialsClient
+	JobsClient                                         *jobs.JobsClient
 	JobTargetGroupsClient                              *jobtargetgroups.JobTargetGroupsClient
 	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *outboundfirewallrules.OutboundFirewallRulesClient
@@ -149,6 +151,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Job Credentials Client: %+v", err)
 	}
 	o.Configure(jobCredentialsClient.Client, o.Authorizers.ResourceManager)
+
+	jobsClient, err := jobs.NewJobsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Jobs Client: %+v", err)
+	}
+	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
 
 	jobTargetGroupsClient, err := jobtargetgroups.NewJobTargetGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -300,6 +308,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
 		ElasticPoolsClient:                     elasticPoolsClient,
 		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
+		JobsClient:                             jobsClient,
 		JobTargetGroupsClient:                  jobTargetGroupsClient,
 		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                 replicationLinksClient,

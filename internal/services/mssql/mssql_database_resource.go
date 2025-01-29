@@ -509,9 +509,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
 
-		tde, err := transparentEncryptionClient.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
+		tde, retryErr := transparentEncryptionClient.Get(ctx, id)
+		if retryErr != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, retryErr)
 		}
 
 		currentState := transparentdataencryptions.TransparentDataEncryptionStateDisabled
@@ -523,21 +523,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Submit TDE state only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
 		if !strings.EqualFold(string(currentState), string(state)) {
-			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+			tdePayload := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 				Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
 					State: state,
 				},
 			}
 
-			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, tdePayload); err != nil {
 				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 			}
 
 			// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-			if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-				c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-				if err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
+			if retryErr = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+				c, err2 := client.Get(ctx, id, databases.DefaultGetOperationOptions())
+				if err2 != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err2))
 				}
 				if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
 					if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
@@ -548,8 +548,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 
 				return nil
-			}); err != nil {
-				return nil
+			}); retryErr != nil {
+				return retryErr
 			}
 		} else {
 			log.Print("[DEBUG] Skipping re-writing of Transparent Data Encryption, since encryption state is not changing ...")
@@ -597,7 +597,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
 	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
@@ -1001,7 +1001,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 				return nil
 			}); err != nil {
-				return nil
+				return err
 			}
 		}
 	}
@@ -1050,7 +1050,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
 	if d.HasChange("long_term_retention_policy") {

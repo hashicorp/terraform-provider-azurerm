@@ -107,8 +107,9 @@ type MachineLearningFeatures struct {
 }
 
 type RecoveryServiceFeatures struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy bool
-	PurgeProtectedItemsFromVaultOnDestroy        bool
+	VMBackupStopProtectionAndRetainDataOnDestroy    bool
+	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy           bool
 }
 
 type NetAppFeatures struct {
