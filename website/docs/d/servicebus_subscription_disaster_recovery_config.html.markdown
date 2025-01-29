@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_disaster_recovery_config"
 description: |-
-  Gets information about an existing ServiceBus Subscription disaster recovery config.
+  Gets information about an existing ServiceBus Subscription Disaster Recovery Config.
 ---
 
-# Data Source: azurerm_servicebus_subscription_disaster_recovery_config
+# Data Source: azurerm_servicebus_namespace_disaster_recovery_config
 
-Use this data source to access information about an existing ServiceBus Subscription disaster recovery config.
+Use this data source to access information about an existing ServiceBus Subscription Disaster Recovery Config.
 
 ## Example Usage
 
