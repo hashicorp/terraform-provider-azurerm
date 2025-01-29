@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` [GH-27853]
 * `azurerm_cognitive_account` - support for the `bypass` property [GH-28221]
 * `azurerm_mssql_managed_instance_transparent_data_encryption` - support for the `managed_hsm_key_id` property [GH-28480]
+* `stream_analytics_output_cosmosdb` - support for the `authentication_mode` property [GH-28372]
 
 BUG FIXES:
 
