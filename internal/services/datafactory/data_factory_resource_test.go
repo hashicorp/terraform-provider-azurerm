@@ -857,9 +857,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                    = "acctestDF%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
+  name                = "acctestDF%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   customer_managed_key_id = azurerm_key_vault_key.test.id
 
