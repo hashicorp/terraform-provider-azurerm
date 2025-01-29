@@ -200,8 +200,26 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil {
+			if err != nil || existing.Model == nil {
 				return fmt.Errorf("reading %s: %v", id, err)
+			}
+
+			model := existing.Model
+
+			if metadata.ResourceData.HasChange("description") {
+				model.Properties.Description = pointer.To(state.Description)
+			}
+
+			if metadata.ResourceData.HasChange("development_portal_uri") {
+				model.Properties.Onboarding.DeveloperPortalUri = pointer.To([]string{state.DevPortalUri})
+			}
+
+			if metadata.ResourceData.HasChange("server_type") {
+				model.Properties.Server.Type = pointer.To(environments.EnvironmentServerType(state.ServerType))
+			}
+
+			if metadata.ResourceData.HasChange("management_portal_uri") {
+				model.Properties.Server.ManagementPortalUri = pointer.To([]string{state.MgmtPortalUri})
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {

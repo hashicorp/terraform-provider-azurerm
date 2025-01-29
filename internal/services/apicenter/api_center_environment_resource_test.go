@@ -112,8 +112,7 @@ resource "azurerm_api_center_environment" "test" {
   identification   = "testid"
   environment_type = "testing"
   description      = "testing environment"
-}
-`, template)
+}`, template)
 }
 
 func (r ApiCenterEnvironmentResource) complete(data acceptance.TestData) string {

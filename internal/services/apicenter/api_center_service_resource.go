@@ -54,7 +54,7 @@ func (r ApiCenterServiceResource) ModelObject() interface{} {
 }
 
 func (r ApiCenterServiceResource) ResourceType() string {
-	return "azurerm_apicenter_service"
+	return "azurerm_api_center_service"
 }
 
 func (r ApiCenterServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -65,12 +65,13 @@ func (r ApiCenterServiceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiCenter.ServicesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model ApiCenterServiceResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			client := metadata.Client.ApiCenter.ServicesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := services.NewServiceID(subscriptionId, model.ResourceGroup, model.Name)
 			existing, err := client.Get(ctx, id)
@@ -95,7 +96,7 @@ func (r ApiCenterServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id, apiCenterService); err != nil {
-				return fmt.Errorf("creating ApiCenter Service %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -109,6 +110,7 @@ func (r ApiCenterServiceResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiCenter.ServicesClient
+
 			id, err := services.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -121,7 +123,7 @@ func (r ApiCenterServiceResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading ApiCenter Service %s: %v", id, err)
+				return fmt.Errorf("reading %s: %v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -140,7 +142,7 @@ func (r ApiCenterServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
-				return fmt.Errorf("updating ApiCenter Service %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -152,19 +154,19 @@ func (r ApiCenterServiceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiCenter.ServicesClient
+
 			id, err := services.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
-
-			client := metadata.Client.ApiCenter.ServicesClient
 
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving ApiCenter Service %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			state := ApiCenterServiceResourceModel{
@@ -200,13 +202,13 @@ func (r ApiCenterServiceResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := services.ParseServiceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			client := metadata.Client.ApiCenter.ServicesClient
 
 			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting ApiCenter Service %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

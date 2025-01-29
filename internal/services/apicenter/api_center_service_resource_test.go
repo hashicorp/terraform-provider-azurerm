@@ -21,7 +21,7 @@ import (
 type ApiCenterServiceResource struct{}
 
 func TestAccApicenterService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -36,7 +36,7 @@ func TestAccApicenterService_basic(t *testing.T) {
 }
 
 func TestAccApicenterService_identityUserAssigned(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccApicenterService_identityUserAssigned(t *testing.T) {
 }
 
 func TestAccApicenterService_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_apicenter_service", "test")
+	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -101,7 +101,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_apicenter_service" "test" {
+resource "azurerm_api_center_service" "test" {
   name                = "acctestApiCSvc%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -128,7 +128,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_apicenter_service" "test" {
+resource "azurerm_api_center_service" "test" {
   name                = "acctestApiCSvc%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -148,10 +148,10 @@ func (ApiCenterServiceResource) requiresImport(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_apicenter_service" "import" {
-  name                = azurerm_apicenter_service.test.name
-  resource_group_name = azurerm_apicenter_service.test.resource_group_name
-  location            = azurerm_apicenter_service.test.location
+resource "azurerm_api_center_service" "import" {
+  name                = azurerm_api_center_service.test.name
+  resource_group_name = azurerm_api_center_service.test.resource_group_name
+  location            = azurerm_api_center_service.test.location
 }
 `, template)
 }
