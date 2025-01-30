@@ -148,7 +148,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 			"retrieval_start_date": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
 	}
