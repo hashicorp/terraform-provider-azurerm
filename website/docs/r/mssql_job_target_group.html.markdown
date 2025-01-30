@@ -52,7 +52,6 @@ resource "azurerm_mssql_job_target_group" "example" {
   job_agent_id = azurerm_mssql_job_agent.example.id
 
   job_target {
-    type              = "SqlServer"
     server_name       = azurerm_mssql_server.example.name
     job_credential_id = azurerm_mssql_job_credential.example.id
   }
@@ -87,7 +86,7 @@ A `job_target` block supports the following:
 
 * `job_credential_id` - (Optional) The ID of the job credential to use during execution of jobs.
 
-~> **Note:** This is required when `membership_type` is `Include`, unless `type` is `SqlDatabase`.
+~> **Note:** This is required when `membership_type` is `Include`, unless `database_name` is set.
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 
