@@ -172,11 +172,11 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema["logs_destination"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true, // O+C as the introduction of this property is a behavioural change where we previously set it behind the scenes if `log_analytics_workspace_id` was set.
+			Computed: true, // NOTE: O+C as the introduction of this property is a behavioural change where we previously set it behind the scenes if `log_analytics_workspace_id` was set.
 			ValidateFunc: validation.StringInSlice([]string{
 				LogsDestinationAzureMonitor,
 				LogsDestinationNone,
@@ -443,7 +443,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
 				// For 4.x we need to be compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
-				if !features.FivePointOhBeta() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
+				if !features.FivePointOh() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
 					state.LogsDestination = LogsDestinationNone
 				}
 
@@ -523,7 +523,7 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if !features.FivePointOhBeta() { // in 4.x `logs_destination` is Computed due to legacy code implying destination from presence of a valid id in `log_analytics_workspace_id` so we need to check explicit config values here
+			if !features.FivePointOh() { // in 4.x `logs_destination` is Computed due to legacy code implying destination from presence of a valid id in `log_analytics_workspace_id` so we need to check explicit config values here
 				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
 					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
 					logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
