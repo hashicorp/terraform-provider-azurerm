@@ -43,7 +43,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}

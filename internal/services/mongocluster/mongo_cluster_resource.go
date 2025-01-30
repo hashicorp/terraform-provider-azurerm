@@ -238,6 +238,10 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if state.CreateMode == string(mongoclusters.CreateModeGeoReplica) {
+				if state.SourceServerId == "" {
+					return fmt.Errorf("`source_server_id` is required when `create_mode` is `GeoReplica`")
+				}
+
 				parameter.Properties.ReplicaParameters = &mongoclusters.MongoClusterReplicaParameters{
 					SourceLocation:   state.SourceLocation,
 					SourceResourceId: state.SourceServerId,
@@ -508,9 +512,6 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`version` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
 				}
 			case string(mongoclusters.CreateModeGeoReplica):
-				if state.SourceServerId == "" {
-					return fmt.Errorf("`source_server_id` is required when `create_mode` is `GeoReplica`")
-				}
 				if state.SourceLocation == "" {
 					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
 				}

@@ -227,6 +227,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -327,12 +332,13 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	storageAccountType := ""
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
+	osDiskId := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
 
 		if input.ManagedDisk.Id != nil {
-			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.Id)
+			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -365,6 +371,8 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
 			}
+
+			osDiskId = id.ID()
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
@@ -382,9 +390,10 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                          string(pointer.From(input.Caching)),
-			"disk_size_gb":                     diskSizeGb,
 			"diff_disk_settings":               diffDiskSettings,
 			"disk_encryption_set_id":           diskEncryptionSetId,
+			"disk_size_gb":                     diskSizeGb,
+			"id":                               osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,

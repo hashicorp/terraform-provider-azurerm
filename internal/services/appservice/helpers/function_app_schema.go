@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -276,29 +275,18 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The path to be checked for this function app health.",
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Description:  "The path to be checked for this function app health.",
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -322,7 +310,7 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
 				"cors": CorsSettingsSchema(),
@@ -774,29 +762,18 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The path to be checked for this function app health.",
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Description:  "The path to be checked for this function app health.",
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -820,7 +797,7 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      string(webapps.SupportedTlsVersionsOnePointTwo),
 					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForSupportedTlsVersions(), false),
-					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and  `1.2`. Defaults to `1.2`.",
+					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
 				"cors": CorsSettingsSchema(),
@@ -1132,6 +1109,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"16",
 						"18",
 						"20",
+						"22",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",
