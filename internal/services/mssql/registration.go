@@ -73,6 +73,7 @@ func (r Registration) Resources() []sdk.Resource {
 		MsSqlFailoverGroupResource{},
 		MsSqlJobResource{},
 		MsSqlJobScheduleResource{},
+		MsSqlJobTargetGroupResource{},
 		MsSqlVirtualMachineAvailabilityGroupListenerResource{},
 		MsSqlVirtualMachineGroupResource{},
 		ServerDNSAliasResource{},
