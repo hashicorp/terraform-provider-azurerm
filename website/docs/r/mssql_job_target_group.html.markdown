@@ -103,7 +103,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `job_target` block exports the following:
 
-* `type` - The job target type. This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`. Possible values are `SqlServer` (when only `server_name` is set), `SqlDatabase` (when both `server_name` and `database_name` are set), and `SqlElasticPool` (when both `server_name` and `elastic_pool_name` are set).
+* `type` - The job target type. This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`.
 
 ## Timeouts
 
