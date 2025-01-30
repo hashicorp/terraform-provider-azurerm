@@ -97,6 +97,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
+### `azurerm_container_app_environment`
+
+* The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
