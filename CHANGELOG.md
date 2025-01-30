@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source**: `azurerm_api_management_subscription` [GH-27824]
 * **New Resource**: `azurerm_cognitive_account_rai_policy` [GH-28013]
+* **New Resource**: `azurerm_mssql_job_target_group` [GH-28492]
 
 ENHANCEMENTS:
 
