@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: `network` - update to use `2024-05-01` [GH-28146]
 * dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
 * dependencies: `storage` - update to use `2023-05-01` [GH-27760]
+* `azurerm_api_management` - `capacity` now has a max limit of 50 [GH-28648]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
 * `azurerm_cognitive_account` - support for the `bypass` property [GH-28221]
 * `azurerm_container_app_environment` - add support for Azure Monitor as a log destination [GH-26047]
