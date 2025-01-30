@@ -361,7 +361,7 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -177,7 +177,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -218,7 +218,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -319,7 +319,7 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -430,7 +430,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				targetResourceId = nicId.ID()
 			}
 
-			if !features.FivePointOhBeta() && targetIsNSG {
+			if !features.FivePointOh() && targetIsNSG {
 				d.Set("network_security_group_id", targetResourceId)
 			}
 

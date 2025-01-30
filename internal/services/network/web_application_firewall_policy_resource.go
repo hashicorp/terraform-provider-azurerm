@@ -395,7 +395,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 							*/
 							Optional: true,
 							// We'll remove computed in 5.0 so we don't break existing configurations
-							Computed: !features.FivePointOhBeta(),
+							Computed: !features.FivePointOh(),
 						},
 
 						"max_request_body_size_in_kb": {
