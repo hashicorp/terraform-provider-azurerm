@@ -400,6 +400,8 @@ An `ingress` block supports the following:
 
 ~> **Note:**  if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
+* `additional_port_mapping` - (Optional) One or more `additional_port_mapping` blocks as detailed below.
+
 ---
 
 A `ip_security_restriction` block supports the following:
@@ -431,6 +433,16 @@ A `traffic_weight` block supports the following:
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 
 ~> **Note:** The cumulative values for `weight` must equal 100 exactly and explicitly, no default weights are assumed.
+
+---
+
+An `additional_port_mapping` block supports the following:
+
+* `external` - (Required) Whether the app port is accessible outside of the environment.
+
+* `target_port` - (Required) The additional target port on the container for the Ingress traffic.
+
+* `exposed_port` - (Optional) The additional exposed port for the Ingress traffic.
 
 ---
 
