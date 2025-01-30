@@ -182,7 +182,6 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 				LogsDestinationNone,
 				LogsDestinationLogAnalytics,
 			}, false),
-			Description: "The destination for the application logs. Possible values include `log-analytics`, `azure-monitor` and `stream-only`.",
 		}
 	}
 
