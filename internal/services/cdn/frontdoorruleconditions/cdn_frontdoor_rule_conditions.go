@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoordeliveryruleconditiondiscriminator"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -882,333 +881,10 @@ func ExpandCdnFrontDoorSslProtocolCondition(input []interface{}) (*[]rules.Deliv
 	return &output, nil
 }
 
-func FlattenFrontdoorRemoteAddressCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRemoteAddressCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule remote address condition")
-	}
-
+func FlattenFrontdoorRemoteAddressCondition(input rules.DeliveryRuleRemoteAddressCondition) (map[string]interface{}, error) {
 	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
 
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorRequestMethodCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRequestMethodCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request method condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     flattenRequestMethodMatchValues(params.MatchValues),
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorQueryStringCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleQueryStringCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule query string condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorPostArgsCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRulePostArgsCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule post args condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        &normalizedSelector{name: pointer.To("post_args_name"), value: params.Selector},
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorRequestUriCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRequestUriCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request URI condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorRequestHeaderCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRequestHeaderCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request header condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        &normalizedSelector{name: pointer.To("header_name"), value: params.Selector},
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorRequestBodyCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRequestBodyCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request body condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorRequestSchemeCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleRequestSchemeCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule request scheme condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     flattenRequestSchemeMatchValues(params.MatchValues),
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorUrlPathCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleURLPathCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url path condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorUrlFileExtensionCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleURLFileExtensionCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url file extension condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorUrlFileNameCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleURLFileNameCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url file name condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorHttpVersionCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleHTTPVersionCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule http version condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorCookiesCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleCookiesCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule cookie condition")
-	}
-
-	// create a normalized condition stub first with empty values so we can push that to the state file
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	// if this has values override the stub values for the actual values
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        &normalizedSelector{name: pointer.To("cookie_name"), value: params.Selector},
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
-	}
-
-	// flatten the normalized condition regardless if it is a stub or not...
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorIsDeviceCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleIsDeviceCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule is device condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     flattenIsDeviceMatchValues(params.MatchValues),
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorSocketAddressCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleSocketAddrCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule socket address condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      nil,
-		}
-	}
-
-	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
-}
-
-func FlattenFrontdoorClientPortCondition(input *rules.DeliveryRuleClientPortCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleClientPortCondition(pointer.From(input))
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule client port condition")
-	}
-
-	normalized := createCdnFrontDoorNormalizedConditionStub()
-
-	params := pointer.From(condition)
 	normalized = normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
@@ -1220,69 +896,278 @@ func FlattenFrontdoorClientPortCondition(input *rules.DeliveryRuleClientPortCond
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
 }
 
-func FlattenFrontdoorServerPortCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleServerPortCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule server port condition")
-	}
-
+func FlattenFrontdoorRequestMethodCondition(input rules.DeliveryRuleRequestMethodCondition) (map[string]interface{}, error) {
 	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
 
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      nil,
-		}
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     flattenRequestMethodMatchValues(params.MatchValues),
+		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
 }
 
-func FlattenFrontdoorHostNameCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleHostNameCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule host name condition")
-	}
-
+func FlattenFrontdoorQueryStringCondition(input rules.DeliveryRuleQueryStringCondition) (map[string]interface{}, error) {
 	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
 
-	if params := condition; params != nil {
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     params.MatchValues,
-			transforms:      params.Transforms,
-		}
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
 }
 
-func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleCondition) (map[string]interface{}, error) {
-	condition, ok := frontdoordeliveryruleconditiondiscriminator.AsDeliveryRuleSslProtocolCondition(input)
-	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule ssl protocol condition")
+func FlattenFrontdoorPostArgsCondition(input rules.DeliveryRulePostArgsCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        &normalizedSelector{name: pointer.To("post_args_name"), value: params.Selector},
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
 	}
 
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorRequestUriCondition(input rules.DeliveryRuleRequestUriCondition) (map[string]interface{}, error) {
 	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
 
-	if params := condition; params != nil {
-		matchValues := make([]string, 0)
-		for _, value := range *params.MatchValues {
-			matchValues = append(matchValues, string(value))
-		}
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
 
-		normalized = normalizedCondition{
-			selector:        nil,
-			operator:        string(params.Operator),
-			negateCondition: params.NegateCondition,
-			matchValues:     &matchValues,
-			transforms:      nil,
-		}
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorRequestHeaderCondition(input rules.DeliveryRuleRequestHeaderCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        &normalizedSelector{name: pointer.To("header_name"), value: params.Selector},
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorRequestBodyCondition(input rules.DeliveryRuleRequestBodyCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorRequestSchemeCondition(input rules.DeliveryRuleRequestSchemeCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     flattenRequestSchemeMatchValues(params.MatchValues),
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorUrlPathCondition(input rules.DeliveryRuleURLPathCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorUrlFileExtensionCondition(input rules.DeliveryRuleURLFileExtensionCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorUrlFileNameCondition(input rules.DeliveryRuleURLFileNameCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorHttpVersionCondition(input rules.DeliveryRuleHTTPVersionCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorCookiesCondition(input rules.DeliveryRuleCookiesCondition) (map[string]interface{}, error) {
+	// create a normalized condition stub first with empty values so we can push that to the state file
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        &normalizedSelector{name: pointer.To("cookie_name"), value: params.Selector},
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	// flatten the normalized condition regardless if it is a stub or not...
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorIsDeviceCondition(input rules.DeliveryRuleIsDeviceCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     flattenIsDeviceMatchValues(params.MatchValues),
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorSocketAddressCondition(input rules.DeliveryRuleSocketAddrCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorClientPortCondition(input rules.DeliveryRuleClientPortCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorServerPortCondition(input rules.DeliveryRuleServerPortCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      nil,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorHostNameCondition(input rules.DeliveryRuleHostNameCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     params.MatchValues,
+		transforms:      params.Transforms,
+	}
+
+	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
+}
+
+func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleSslProtocolCondition) (map[string]interface{}, error) {
+	normalized := createCdnFrontDoorNormalizedConditionStub()
+	params := input.Parameters
+
+	matchValues := make([]string, 0)
+	for _, value := range *params.MatchValues {
+		matchValues = append(matchValues, string(value))
+	}
+
+	normalized = normalizedCondition{
+		selector:        nil,
+		operator:        string(params.Operator),
+		negateCondition: params.NegateCondition,
+		matchValues:     &matchValues,
+		transforms:      nil,
 	}
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil

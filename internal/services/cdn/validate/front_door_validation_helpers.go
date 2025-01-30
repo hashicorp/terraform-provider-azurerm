@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoordeliveryruleactiondiscriminator"
 )
 
 func CdnFrontDoorRouteName(i interface{}, k string) (_ []string, errors []error) {
@@ -89,36 +88,21 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 }
 
 func CdnFrontDoorActionsBlock(actions []rules.DeliveryRuleAction) error {
-	routeConfigurationOverride := false
-	responseHeader := false
-	requestHeader := false
 	urlRewrite := false
 	urlRedirect := false
 
 	for _, rule := range actions {
-		if !routeConfigurationOverride {
-			_, routeConfigurationOverride = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleRouteConfigurationOverrideAction(rule)
+		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRewrite {
+			urlRewrite = true
 		}
 
-		if !responseHeader {
-			_, responseHeader = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleResponseHeaderAction(rule)
-		}
-
-		if !requestHeader {
-			_, requestHeader = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleRequestHeaderAction(rule)
-		}
-
-		if !urlRewrite {
-			_, urlRewrite = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleUrlRewriteAction(rule)
-		}
-
-		if !urlRedirect {
-			_, urlRedirect = frontdoordeliveryruleactiondiscriminator.AsDeliveryRuleUrlRedirectAction(rule)
+		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRedirect {
+			urlRedirect = true
 		}
 	}
 
 	if urlRedirect && urlRewrite {
-		return fmt.Errorf("the %q and the %q are both present in the %q match block", "url_redirect_action", "url_rewrite_action", "actions")
+		return fmt.Errorf("the %q and the %q are both present in the %q block which is invalid", "url_redirect_action", "url_rewrite_action", "actions")
 	}
 
 	return nil

@@ -320,18 +320,37 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 	return &output, nil
 }
 
-func FlattenHeaderActionParameters(input *rules.HeaderActionParameters) map[string]interface{} {
+func FlattenRequestHeaderAction(input rules.DeliveryRuleRequestHeaderAction) map[string]interface{} {
 	action := ""
 	name := ""
 	value := ""
 
-	if params := input; params != nil {
-		action = string(params.HeaderAction)
-		name = params.HeaderName
+	params := input.Parameters
+	action = string(params.HeaderAction)
+	name = params.HeaderName
 
-		if params.Value != nil {
-			value = *params.Value
-		}
+	if params.Value != nil {
+		value = *params.Value
+	}
+
+	return map[string]interface{}{
+		"header_action": action,
+		"header_name":   name,
+		"value":         value,
+	}
+}
+
+func FlattenResponseHeaderAction(input rules.DeliveryRuleResponseHeaderAction) map[string]interface{} {
+	action := ""
+	name := ""
+	value := ""
+
+	params := input.Parameters
+	action = string(params.HeaderAction)
+	name = params.HeaderName
+
+	if params.Value != nil {
+		value = *params.Value
 	}
 
 	return map[string]interface{}{

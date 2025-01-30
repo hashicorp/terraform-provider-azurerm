@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	cdnFrontDoorConditionDiscriminator "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoordeliveryruleconditiondiscriminator"
 	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
 	cdnFrontDoorRuleConditions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleconditions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -927,13 +926,10 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 	// input here is the base wrapper object that has all of the data from the model...
 	for _, deliveryRuleCondition := range *input {
 
-		if params, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleClientPortCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.ClientPort.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleClientPortCondition)
 
-			condition := rules.DeliveryRuleClientPortCondition{
-				Name: rules.MatchVariableClientPort,
-			}
-
-			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorClientPortCondition(deliveryRuleCondition)
+			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorClientPortCondition(condition)
 			if err != nil {
 				return nil, err
 			}
@@ -942,7 +938,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleCookiesCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.Cookies.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleCookiesCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorCookiesCondition(condition)
 			if err != nil {
 				return nil, err
@@ -952,7 +950,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleHostNameCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.HostName.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleHostNameCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHostNameCondition(condition)
 			if err != nil {
 				return nil, err
@@ -962,16 +962,22 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleHTTPVersionCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.HttpVersion.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleHTTPVersionCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorHttpVersionCondition(condition)
 			if err != nil {
 				return nil, err
 			}
+
 			httpVersionCondition = append(httpVersionCondition, flattened)
 			continue
+
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleIsDeviceCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.IsDevice.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleIsDeviceCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorIsDeviceCondition(condition)
 			if err != nil {
 				return nil, err
@@ -981,7 +987,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRulePostArgsCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.PostArgs.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRulePostArgsCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorPostArgsCondition(condition)
 			if err != nil {
 				return nil, err
@@ -991,7 +999,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleQueryStringCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.QueryString.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleQueryStringCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorQueryStringCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1001,7 +1011,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRemoteAddressCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RemoteAddress.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRemoteAddressCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRemoteAddressCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1009,9 +1021,12 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 
 			remoteAddressCondition = append(remoteAddressCondition, flattened)
 			continue
+
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRequestBodyCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestBody.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRequestBodyCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestBodyCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1021,7 +1036,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRequestHeaderCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestHeader.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRequestHeaderCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestHeaderCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1031,7 +1048,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRequestMethodCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestMethod.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRequestMethodCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestMethodCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1041,7 +1060,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRequestSchemeCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestScheme.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRequestSchemeCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestSchemeCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1051,7 +1072,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleRequestURICondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestUri.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleRequestUriCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorRequestUriCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1061,7 +1084,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleServerPortCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.ServerPort.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleServerPortCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorServerPortCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1071,7 +1096,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleSocketAddrCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.SocketAddress.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleSocketAddrCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSocketAddressCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1081,7 +1108,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleSslProtocolCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.SslProtocol.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleSslProtocolCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorSslProtocolCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1091,7 +1120,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleURLFileExtensionCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.UrlFileExtension.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleURLFileExtensionCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileExtensionCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1101,7 +1132,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleURLFileNameCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.UrlFilename.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleURLFileNameCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlFileNameCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1111,7 +1144,9 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		if condition, ok := cdnFrontDoorConditionDiscriminator.AsDeliveryRuleURLPathCondition(deliveryRuleCondition); ok {
+		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.UrlPath.Name {
+			condition := deliveryRuleCondition.(rules.DeliveryRuleURLPathCondition)
+
 			flattened, err := cdnFrontDoorRuleConditions.FlattenFrontdoorUrlPathCondition(condition)
 			if err != nil {
 				return nil, err
@@ -1121,7 +1156,7 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 			continue
 		}
 
-		return nil, fmt.Errorf("unknown BasicDeliveryRuleCondition encountered")
+		return nil, fmt.Errorf("unknown DeliveryRuleCondition %q encountered", deliveryRuleCondition.DeliveryRuleCondition().Name)
 	}
 
 	conditions := map[string]interface{}{
@@ -1172,9 +1207,11 @@ func flattenFrontdoorDeliveryRuleActions(input *[]rules.DeliveryRuleAction) ([]i
 	urlRedirectActions := make([]interface{}, 0)
 	urlRewriteActions := make([]interface{}, 0)
 
-	for _, item := range *input {
-		if action, ok := item.AsDeliveryRuleRouteConfigurationOverrideAction(); ok {
-			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(*action)
+	for _, deliveryRuleAction := range *input {
+		if deliveryRuleAction.DeliveryRuleAction().Name == a.RouteConfigurationOverride.Name {
+			action := deliveryRuleAction.(rules.DeliveryRuleRouteConfigurationOverrideAction)
+
+			flattened, err := cdnFrontDoorRuleActions.FlattenCdnFrontDoorRouteConfigurationOverrideAction(action)
 			if err != nil {
 				return nil, fmt.Errorf("'route_configuration_override_action' unable to parse 'cdn_frontdoor_origin_group_id': %+v", err)
 			}
@@ -1183,35 +1220,39 @@ func flattenFrontdoorDeliveryRuleActions(input *[]rules.DeliveryRuleAction) ([]i
 			continue
 		}
 
-		if action, ok := item.AsDeliveryRuleRequestHeaderAction(); ok {
-			if action.Parameters == nil {
-				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Request Header")
-			}
-			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
+		if deliveryRuleAction.DeliveryRuleAction().Name == a.RequestHeader.Name {
+			action := deliveryRuleAction.(rules.DeliveryRuleRequestHeaderAction)
+
+			flattened := cdnFrontDoorRuleActions.FlattenRequestHeaderAction(action)
 			requestHeaderActions = append(requestHeaderActions, flattened)
 			continue
 		}
 
-		if action, ok := item.AsDeliveryRuleResponseHeaderAction(); ok {
-			if action.Parameters == nil {
-				return nil, fmt.Errorf("'parameters' was nil for Delivery Rule Response Header")
-			}
-			flattened := cdnFrontDoorRuleActions.FlattenHeaderActionParameters(action.Parameters)
+		if deliveryRuleAction.DeliveryRuleAction().Name == a.ResponseHeader.Name {
+			action := deliveryRuleAction.(rules.DeliveryRuleResponseHeaderAction)
+
+			flattened := cdnFrontDoorRuleActions.FlattenResponseHeaderAction(action)
 			responseHeaderActions = append(responseHeaderActions, flattened)
 			continue
 		}
 
-		if action, ok := item.AsURLRedirectAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRedirectAction(*action)
+		if deliveryRuleAction.DeliveryRuleAction().Name == a.URLRedirect.Name {
+			action := deliveryRuleAction.(rules.URLRedirectAction)
+
+			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRedirectAction(action)
 			urlRedirectActions = append(urlRedirectActions, flattened)
 			continue
 		}
 
-		if action, ok := item.AsURLRewriteAction(); ok {
-			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRewriteAction(*action)
+		if deliveryRuleAction.DeliveryRuleAction().Name == a.URLRewrite.Name {
+			action := deliveryRuleAction.(rules.URLRewriteAction)
+
+			flattened := cdnFrontDoorRuleActions.FlattenCdnFrontDoorUrlRewriteAction(action)
 			urlRewriteActions = append(urlRewriteActions, flattened)
 			continue
 		}
+
+		return nil, fmt.Errorf("unknown DeliveryRuleAction %q encountered", deliveryRuleAction.DeliveryRuleAction().Name)
 	}
 
 	if len(requestHeaderActions) == 0 && len(responseHeaderActions) == 0 && len(routeConfigOverrideActions) == 0 && len(urlRedirectActions) == 0 && len(urlRewriteActions) == 0 {
