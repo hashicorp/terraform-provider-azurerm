@@ -524,23 +524,26 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") && (metadata.ResourceData != nil && !metadata.ResourceData.IsNewResource()) {
+			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
 				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
 				logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
 				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
 				logAnalyticsWorkspaceIDIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsNull()
 
-				switch logsDestination {
-				case LogsDestinationLogAnalytics:
-					if logAnalyticsWorkspaceIDIsNull {
-						return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
-					}
+				if !logDestinationIsNull || !logAnalyticsWorkspaceIDIsNull {
+					switch logsDestination {
+					case LogsDestinationLogAnalytics:
+						if logAnalyticsWorkspaceIDIsNull {
+							return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+						}
 
-				case LogsDestinationAzureMonitor, LogsDestinationNone:
-					if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
-						return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+					case LogsDestinationAzureMonitor, LogsDestinationNone:
+						if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
+							return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+						}
 					}
 				}
+
 			}
 
 			return nil
