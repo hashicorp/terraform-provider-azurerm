@@ -23,7 +23,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 0,
 		},
