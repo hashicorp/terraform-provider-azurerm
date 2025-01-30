@@ -3,6 +3,11 @@
 
 package features
 
+import (
+	"os"
+	"strings"
+)
+
 // nolint gocritic
 // DeprecatedInFivePointOh returns the deprecation message if the provider
 // is running in 5.0 mode - otherwise returns an empty string (such that
@@ -23,6 +28,12 @@ func DeprecatedInFivePointOh(deprecationMessage string) string {
 //
 // This exists to allow breaking changes to be piped through the provider
 // during the development of 4.x until 5.0 is ready.
+// The environment variable `ARM_FIVEPOINTZERO_BETA` has been added
+// to facilitate testing. But it should be noted that
+// `ARM_FIVEPOINTZERO_BETA` is ** NOT READY FOR PUBLIC USE ** and
+// ** SHOULD NOT BE SET IN PRODUCTION ENVIRONMENTS **
+// Setting `ARM_FIVEPOINTZERO_BETA` will cause irreversible changes
+// to your state.
 func FivePointOh() bool {
-	return false
+	return strings.EqualFold(os.Getenv("ARM_FIVEPOINTZERO_BETA"), "true")
 }
