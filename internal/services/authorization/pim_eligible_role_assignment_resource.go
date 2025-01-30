@@ -321,8 +321,6 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			if condition != "" && conditionVersion != "" {
 				properties.Condition = pointer.To(condition)
 				properties.ConditionVersion = pointer.To(conditionVersion)
-			} else if condition != "" || conditionVersion != "" {
-				return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
 			}
 
 			payload := roleeligibilityschedulerequests.RoleEligibilityScheduleRequest{
