@@ -69,7 +69,7 @@ The following arguments are supported:
 
 ~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
 
-* `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Options are `log-analytics` or `azure-monitor`.
+* `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
 
 * `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
 
