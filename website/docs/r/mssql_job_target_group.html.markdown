@@ -91,15 +91,19 @@ A `job_target` block supports the following:
 
 * `membership_type` - (Optional) The membership type for this job target. Possible values are `Include` and `Exclude`. Defaults to `Include`.
 
-* `type` - The Job Target Type.
-
--> **Note:** This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`. Possible values are `SqlServer` (when only `server_name` is set), `SqlDatabase` (when both `server_name` and `database_name` are set), and SqlElasticPool (when both `server_name` and `elastic_pool_name` are set)
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Elastic Job Target Groups.
+
+* `job_target` - One or more `job_target` blocks as defined below.
+
+---
+
+A `job_target` block exports the following:
+
+* `type` - The job target type. This value is computed based on `server_name`, `database_name`, and `elastic_pool_name`. Possible values are `SqlServer` (when only `server_name` is set), `SqlDatabase` (when both `server_name` and `database_name` are set), and `SqlElasticPool` (when both `server_name` and `elastic_pool_name` are set).
 
 ## Timeouts
 
