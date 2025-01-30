@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `network` - update to use `2024-05-01` [GH-28146]
 * dependencies: `privatedns` - update to use `2024-06-01` [GH-28599]
 * dependencies: `storage` - update to use `2023-05-01` [GH-27760]
 * `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` [GH-27950]
