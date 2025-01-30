@@ -186,7 +186,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				SecurityStyle:            &securityStyle,
 				UsageThreshold:           storageQuotaInGB,
 				ExportPolicy:             exportPolicyRule,
-				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+				SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(networkFeatures)),
