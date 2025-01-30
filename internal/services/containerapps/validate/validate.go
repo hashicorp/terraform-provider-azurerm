@@ -106,8 +106,8 @@ func ManagedEnvironmentName(i interface{}, k string) (warnings []string, errors 
 
 	if matched := regexp.MustCompile(`^([a-zA-Z])[a-zA-Z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
 		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters", k))
-		return
 	}
+
 	return
 }
 

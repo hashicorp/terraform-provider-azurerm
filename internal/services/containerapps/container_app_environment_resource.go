@@ -6,7 +6,6 @@ package containerapps
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strings"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -524,26 +524,44 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
-				logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
-				logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
-				logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
-				logAnalyticsWorkspaceIDIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsNull()
+			if !features.FivePointOhBeta() { // in 4.x `logs_destination` is Computed due to legacy code implying destination from presence of a valid id in `log_analytics_workspace_id` so we need to check explicit config values here
+				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
+					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
+					logDestinationIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["logs_destination"].IsNull()
+					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+					logAnalyticsWorkspaceIDIsNull := metadata.ResourceDiff.GetRawConfig().AsValueMap()["log_analytics_workspace_id"].IsNull()
 
-				if !logDestinationIsNull || !logAnalyticsWorkspaceIDIsNull {
+					if !logDestinationIsNull || !logAnalyticsWorkspaceIDIsNull {
+						switch logsDestination {
+						case LogsDestinationLogAnalytics:
+							if logAnalyticsWorkspaceIDIsNull {
+								return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
+							}
+
+						case LogsDestinationAzureMonitor, LogsDestinationNone:
+							if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
+								return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
+							}
+						}
+					}
+				}
+			} else {
+				if metadata.ResourceDiff.HasChanges("logs_destination", "log_analytics_workspace_id") {
+					logsDestination := metadata.ResourceDiff.Get("logs_destination").(string)
+					logAnalyticsWorkspaceID := metadata.ResourceDiff.Get("log_analytics_workspace_id").(string)
+
 					switch logsDestination {
 					case LogsDestinationLogAnalytics:
-						if logAnalyticsWorkspaceIDIsNull {
+						if logAnalyticsWorkspaceID == "" {
 							return fmt.Errorf("`log_analytics_workspace_id` must be set when `logs_destination` is set to `log-analytics`")
 						}
 
 					case LogsDestinationAzureMonitor, LogsDestinationNone:
-						if (logAnalyticsWorkspaceID != "" || !logAnalyticsWorkspaceIDIsNull) && !logDestinationIsNull {
+						if logAnalyticsWorkspaceID != "" {
 							return fmt.Errorf("`log_analytics_workspace_id` can only be set when `logs_destination` is set to `log-analytics` or omitted")
 						}
 					}
 				}
-
 			}
 
 			return nil
