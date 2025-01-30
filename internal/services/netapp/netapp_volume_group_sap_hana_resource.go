@@ -518,7 +518,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 
 						// Waiting for volume be completely updated
 						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
-							return fmt.Errorf("waiting update %s: %+v", volumeId, err)
+							return fmt.Errorf("waiting for update of %s: %+v", volumeId, err)
 						}
 					}
 				}
