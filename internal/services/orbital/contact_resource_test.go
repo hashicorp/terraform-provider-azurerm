@@ -22,7 +22,7 @@ import (
 type ContactResource struct{}
 
 func TestAccContact_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact` is deprecated and will be removed in 5.0")
 	}
 	skipContact(t)

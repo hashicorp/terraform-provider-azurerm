@@ -35,7 +35,7 @@ resource "azurerm_postgresql_flexible_server_database" "example" {
   name      = "exampledb"
   server_id = azurerm_postgresql_flexible_server.example.id
   collation = "en_US.utf8"
-  charset   = "utf8"
+  charset   = "UTF8"
 
   # prevent the possibility of accidental data loss
   lifecycle {

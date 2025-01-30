@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -129,14 +129,11 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
 			// for existing global module do update instead of raising ImportAsExistsError
-			isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+			isGlobal := existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.IsGlobal)
 			if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-				return tf.ImportAsExistsError("azurerm_automation_powershell72_module", id.ID())
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			parameters := module.ModuleCreateOrUpdateParameters{
