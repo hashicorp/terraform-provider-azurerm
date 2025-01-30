@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -2033,11 +2034,11 @@ type ContainerAppLivenessProbe struct {
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2126,19 +2127,23 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2210,15 +2215,19 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
@@ -2312,11 +2321,11 @@ type ContainerAppStartupProbe struct {
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2405,19 +2414,23 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2485,15 +2498,19 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {
