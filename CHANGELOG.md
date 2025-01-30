@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* Data Source: `azurerm_api_management_subscription` [GH-27824]
+* **New Data Source**: `azurerm_api_management_subscription` [GH-27824]
+* **New Resource**: `azurerm_cognitive_account_rai_policy` [GH-28013]
 
 ENHANCEMENTS:
 
