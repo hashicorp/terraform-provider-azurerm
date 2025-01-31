@@ -114,13 +114,11 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.ApiCenter.EnvironmentsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ApiCenterEnvironmentResourceModel
 			if err := metadata.Decode(&model); err != nil {
-
 				return fmt.Errorf("decoding %+v", err)
 			}
 
@@ -252,21 +250,25 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApiCenterEnvironmentResourceModel{
-				Name:      id.ServiceName,
 				ServiceId: services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName).ID(),
 			}
 			if model := existing.Model; model != nil {
 				state.Identification = pointer.From(model.Name)
 				if props := existing.Model.Properties; props != nil {
+					state.Name = props.Title
 					state.Description = pointer.From(props.Description)
 					state.Type = string(props.Kind)
 					if server := props.Server; server != nil {
-						state.MgmtPortalUri = pointer.From(server.ManagementPortalUri)[0]
+						if pointer.From(server.ManagementPortalUri) != nil && len(pointer.From(server.ManagementPortalUri)) != 0 {
+							state.MgmtPortalUri = pointer.From(server.ManagementPortalUri)[0]
+						}
 						state.ServerType = string(pointer.From(server.Type))
 					}
 
 					if onboarding := props.Onboarding; onboarding != nil {
-						state.DevPortalUri = pointer.From(onboarding.DeveloperPortalUri)[0]
+						if pointer.From(onboarding.DeveloperPortalUri) != nil && len(pointer.From(onboarding.DeveloperPortalUri)) != 0 {
+							state.DevPortalUri = pointer.From(onboarding.DeveloperPortalUri)[0]
+						}
 						state.Instructions = pointer.From(onboarding.Instructions)
 					}
 				}
