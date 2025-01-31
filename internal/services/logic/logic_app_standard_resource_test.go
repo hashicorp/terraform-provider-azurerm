@@ -50,6 +50,8 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Config: r.publicNetworkAccess(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -57,6 +59,17 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Config: r.publicNetworkAccess(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),

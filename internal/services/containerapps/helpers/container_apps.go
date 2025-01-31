@@ -813,16 +813,17 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 }
 
 type ContainerTemplate struct {
-	Containers           []Container           `tfschema:"container"`
-	InitContainers       []BaseContainer       `tfschema:"init_container"`
-	Suffix               string                `tfschema:"revision_suffix"`
-	MinReplicas          int64                 `tfschema:"min_replicas"`
-	MaxReplicas          int64                 `tfschema:"max_replicas"`
-	AzureQueueScaleRules []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
-	CustomScaleRules     []CustomScaleRule     `tfschema:"custom_scale_rule"`
-	HTTPScaleRules       []HTTPScaleRule       `tfschema:"http_scale_rule"`
-	TCPScaleRules        []TCPScaleRule        `tfschema:"tcp_scale_rule"`
-	Volumes              []ContainerVolume     `tfschema:"volume"`
+	Containers             []Container           `tfschema:"container"`
+	InitContainers         []BaseContainer       `tfschema:"init_container"`
+	Suffix                 string                `tfschema:"revision_suffix"`
+	MinReplicas            int64                 `tfschema:"min_replicas"`
+	MaxReplicas            int64                 `tfschema:"max_replicas"`
+	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
+	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
+	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
+	TCPScaleRules          []TCPScaleRule        `tfschema:"tcp_scale_rule"`
+	Volumes                []ContainerVolume     `tfschema:"volume"`
+	TerminationGracePeriod int64                 `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerTemplateSchema() *pluginsdk.Schema {
@@ -868,6 +869,14 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Computed:    true, // Note: O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
+
+				"termination_grace_period_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 600),
+					Description:  "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+				},
 			},
 		},
 	}
@@ -909,6 +918,11 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"termination_grace_period_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -931,6 +945,10 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 			template.Scale = &containerapps.Scale{}
 		}
 		template.Scale.MaxReplicas = pointer.To(config.MaxReplicas)
+	}
+
+	if config.TerminationGracePeriod != 0 {
+		template.TerminationGracePeriodSeconds = pointer.To(config.TerminationGracePeriod)
 	}
 
 	if config.MinReplicas != 0 {
@@ -962,10 +980,11 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		return []ContainerTemplate{}
 	}
 	result := ContainerTemplate{
-		Containers:     flattenContainerAppContainers(input.Containers),
-		InitContainers: flattenInitContainerAppContainers(input.InitContainers),
-		Suffix:         pointer.From(input.RevisionSuffix),
-		Volumes:        flattenContainerAppVolumes(input.Volumes),
+		Containers:             flattenContainerAppContainers(input.Containers),
+		InitContainers:         flattenInitContainerAppContainers(input.InitContainers),
+		Suffix:                 pointer.From(input.RevisionSuffix),
+		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		Volumes:                flattenContainerAppVolumes(input.Volumes),
 	}
 
 	if scale := input.Scale; scale != nil {
