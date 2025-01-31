@@ -45,6 +45,13 @@ func TestAccApiCenterEnvironment_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -84,7 +91,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_apicenter_service" "test" {
+resource "azurerm_api_center_service" "test" {
   name                = "acctestApiCSvc%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -108,7 +115,7 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name             = "test"
-  service_id       = azurerm_apicenter_service.test.id
+  service_id       = azurerm_api_center_service.test.id
   identification   = "testid"
   environment_type = "testing"
   description      = "testing environment"
@@ -126,7 +133,7 @@ provider "azurerm" {
 
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
-  service_id             = azurerm_apicenter_service.test.id
+  service_id             = azurerm_api_center_service.test.id
   identification         = "testid"
   environment_type       = "testing"
   description            = "testing environment"
@@ -134,6 +141,29 @@ resource "azurerm_api_center_environment" "test" {
   instructions           = "Use this wonderful API to CRUD brilliant data."
   server_type            = "Azure API Management"
   management_portal_uri  = "https://azure-apim-mgmt-portal.azure.com"
+}
+`, template)
+}
+
+func (r ApiCenterEnvironmentResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_center_environment" "test" {
+  name                   = "test"
+  service_id             = azurerm_api_center_service.test.id
+  identification         = "testid"
+  environment_type       = "testing"
+  description            = "testing environment 2"
+  development_portal_uri = "https://developer2.com"
+  instructions           = "Use this wonderful API2 to CRUD brilliant data."
+  server_type            = "Azure API2 Management"
+  management_portal_uri  = "https://azure-apim-mgmt-portal2.azure.com"
 }
 `, template)
 }

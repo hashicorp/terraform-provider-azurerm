@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_apicenter_service" "example" {
+resource "azurerm_api_center_service" "example" {
   name                = "apicenter-example"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -34,7 +34,7 @@ resource "azurerm_apicenter_service" "example" {
 
 resource "azurerm_api_center_environment" "example" {
   name                   = "test"
-  service_id             = azurerm_apicenter_service.example.id
+  service_id             = azurerm_api_center_service.example.id
   identification         = "exampleid"
   environment_type       = "testing"
   description            = "example environment"
