@@ -364,7 +364,7 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 }
 
 func TestMinTlsVersionOnServerUpdate(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skip this test since there is only one possible value `TLS1_2` for `ssl_minimal_tls_version_enforced`.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
@@ -407,7 +407,7 @@ func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.C
 
 func (PostgreSQLServerResource) template(data acceptance.TestData, sku, version string) string {
 	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		sslEnabledBlock = `ssl_enforcement_enabled = true`
 	}
 	return fmt.Sprintf(`
