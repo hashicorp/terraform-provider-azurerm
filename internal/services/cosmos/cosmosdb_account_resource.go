@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"regexp"
 	"strings"
@@ -386,7 +387,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Optional:         true,
 							Default:          100,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
-							ValidateFunc:     validation.IntBetween(10, 2147483647), // single region values
+							ValidateFunc:     validation.IntBetween(10, math.MaxInt32), // single region values
 						},
 					},
 				},

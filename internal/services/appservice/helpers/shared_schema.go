@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -89,7 +90,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 					Description:  "The priority value of this `ip_restriction`.",
 				},
 
