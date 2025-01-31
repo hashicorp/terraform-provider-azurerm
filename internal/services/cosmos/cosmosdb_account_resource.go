@@ -771,7 +771,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["minimal_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,

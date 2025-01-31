@@ -326,6 +326,7 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 }
 
 func TestValidateContainerAppName(t *testing.T) {
+	// From Portal: Value must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters.
 	cases := []struct {
 		Input string
 		Valid bool
@@ -376,6 +377,7 @@ func TestValidateContainerAppName(t *testing.T) {
 }
 
 func TestValidateContainerAppContainerName(t *testing.T) {
+	// From Portal: Value must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character. The length must not be more than 46 characters.
 	cases := []struct {
 		Input string
 		Valid bool
@@ -387,20 +389,28 @@ func TestValidateContainerAppContainerName(t *testing.T) {
 			Input: "-",
 		},
 		{
-			Input: "9",
-		},
-		{
 			Input: "a-",
 		},
 		{
 			Input: "a.",
 		},
 		{
-			Input: "a--a",
+			Input: "Cannothavecapitals",
+		},
+		{
+			Input: "invalid1234567890123456789012345678901234567890",
+		},
+		{
+			Input: "9",
 			Valid: true,
 		},
 		{
-			Input: "Cannothavecapitals",
+			Input: "a",
+			Valid: true,
+		},
+		{
+			Input: "a--a",
+			Valid: true,
 		},
 		{
 			Input: "a-a",
@@ -411,7 +421,8 @@ func TestValidateContainerAppContainerName(t *testing.T) {
 			Valid: true,
 		},
 		{
-			Input: "invalid12345678901234567890123456",
+			Input: "validbutverylong123456789012345678901234567890",
+			Valid: true,
 		},
 	}
 
