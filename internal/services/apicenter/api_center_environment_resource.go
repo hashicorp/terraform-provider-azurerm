@@ -220,6 +220,10 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 				model.Properties.Server.ManagementPortalUri = pointer.To([]string{state.MgmtPortalUri})
 			}
 
+			if metadata.ResourceData.HasChange("instructions") {
+				model.Properties.Onboarding.Instructions = pointer.To(state.Instructions)
+			}
+
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}

@@ -162,7 +162,7 @@ resource "azurerm_api_center_environment" "test" {
   description            = "testing environment 2"
   development_portal_uri = "https://developer2.com"
   instructions           = "Use this wonderful API2 to CRUD brilliant data."
-  server_type            = "Azure API2 Management"
+  server_type            = "Apigee API Management"
   management_portal_uri  = "https://azure-apim-mgmt-portal2.azure.com"
 }
 `, template)
