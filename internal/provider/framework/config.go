@@ -297,12 +297,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				return
 			}
 
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 			if !feature[0].PermanentlyDeleteOnDestroy.IsNull() && !feature[0].PermanentlyDeleteOnDestroy.IsUnknown() {
 				f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = feature[0].PermanentlyDeleteOnDestroy.ValueBool()
 			}
 		} else {
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 		}
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
