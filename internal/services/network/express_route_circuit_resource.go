@@ -144,6 +144,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
 
 			"service_provider_provisioning_state": {
 				Type:     pluginsdk.TypeString,
