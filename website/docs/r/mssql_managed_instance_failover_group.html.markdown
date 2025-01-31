@@ -20,7 +20,7 @@ locals {
   primary_name             = "${local.name}-primary"
   primary_location         = "West Europe"
   failover_name            = "${local.name}-failover"
-  failover_paired_location = "North Europe"
+  failover_location = "North Europe"
 }
 
 resource "azurerm_mssql_managed_instance_failover_group" "example" {
@@ -131,7 +131,7 @@ resource "azurerm_virtual_network_peering" "primary_to_failover" {
 ## Secondary (Fail-over) SQL Managed Instance
 resource "azurerm_resource_group" "failover" {
   name     = local.failover_name
-  location = local.failover_paired_location
+  location = local.failover_location
 }
 
 resource "azurerm_virtual_network" "failover" {
@@ -240,7 +240,7 @@ The following arguments are supported:
 
 * `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `true`.
 
-* `secondary_type` - (Optional) The type of the secondary Managed Instance. Possible values are `Geo`, `Standby`.
+* `secondary_type` - (Optional) The type of the secondary Managed Instance. Possible values are `Geo`, `Standby`. Defaults to `Geo`.
 
 ---
 
@@ -282,5 +282,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 SQL Instance Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_managed_instance_failover_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/failoverGroup1
+terraform import azurerm_mssql_managed_instance_failover_group.example /subscriptions/c7694133-4039-4226-8f92-922b1c5449f8/resourceGroups/my-resource-group/providers/Microsoft.Sql/locations/westeurope/instanceFailoverGroups/my-failover-group
 ```

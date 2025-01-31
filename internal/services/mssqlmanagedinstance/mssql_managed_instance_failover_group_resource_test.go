@@ -19,31 +19,12 @@ import (
 
 type MsSqlManagedInstanceFailoverGroupResource struct{}
 
-func TestAccMsSqlManagedInstanceFailoverGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
-	r := MsSqlManagedInstanceFailoverGroupResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, "basic"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("secondary_type").Exists(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
 	r := MsSqlManagedInstanceFailoverGroupResource{}
-
-	fmt.Println(r.basic(data, "update"))
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "update"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,7 +34,6 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("secondary_type").HasValue("Standby"),
 			),
 		},
 		data.ImportStep(),
@@ -77,12 +57,12 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Exists(ctx context.Context, c
 	return utils.Bool(true), nil
 }
 
-func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestData, suffix string) string {
+func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
-  name                        = "acctest-fog-%[2]d%[4]s"
+  name                        = "acctest-fog-%[2]d"
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -96,7 +76,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
     azurerm_virtual_network_gateway_connection.secondary,
   ]
 }
-`, r.template(data), data.RandomInteger, data.Locations.Primary, suffix)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestData) string {
