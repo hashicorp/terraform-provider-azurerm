@@ -321,13 +321,11 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 }
 
 func FlattenRequestHeaderAction(input rules.DeliveryRuleRequestHeaderAction) map[string]interface{} {
-	action := ""
-	name := ""
-	value := ""
+	var value string
 
 	params := input.Parameters
-	action = string(params.HeaderAction)
-	name = params.HeaderName
+	action := string(params.HeaderAction)
+	name := params.HeaderName
 
 	if params.Value != nil {
 		value = *params.Value
@@ -341,13 +339,11 @@ func FlattenRequestHeaderAction(input rules.DeliveryRuleRequestHeaderAction) map
 }
 
 func FlattenResponseHeaderAction(input rules.DeliveryRuleResponseHeaderAction) map[string]interface{} {
-	action := ""
-	name := ""
-	value := ""
+	var value string
 
 	params := input.Parameters
-	action = string(params.HeaderAction)
-	name = params.HeaderName
+	action := string(params.HeaderAction)
+	name := params.HeaderName
 
 	if params.Value != nil {
 		value = *params.Value
@@ -361,12 +357,10 @@ func FlattenResponseHeaderAction(input rules.DeliveryRuleResponseHeaderAction) m
 }
 
 func FlattenCdnFrontDoorUrlRedirectAction(input rules.URLRedirectAction) map[string]interface{} {
-	destinationHost := ""
-	destinationPath := ""
-	queryString := ""
-	destinationProtocol := ""
-	redirectType := ""
-	fragment := ""
+	var destinationHost string
+	var destinationPath string
+	var queryString string
+	var fragment string
 
 	params := input.Parameters
 
@@ -380,8 +374,8 @@ func FlattenCdnFrontDoorUrlRedirectAction(input rules.URLRedirectAction) map[str
 		queryString = *params.CustomQueryString
 	}
 
-	destinationProtocol = string(pointer.From(params.DestinationProtocol))
-	redirectType = string(params.RedirectType)
+	destinationProtocol := string(pointer.From(params.DestinationProtocol))
+	redirectType := string(params.RedirectType)
 
 	if params.CustomFragment != nil {
 		fragment = *params.CustomFragment
@@ -398,15 +392,11 @@ func FlattenCdnFrontDoorUrlRedirectAction(input rules.URLRedirectAction) map[str
 }
 
 func FlattenCdnFrontDoorUrlRewriteAction(input rules.URLRewriteAction) map[string]interface{} {
-	destination := ""
-	preservePath := false
-	sourcePattern := ""
-
 	params := input.Parameters
 
-	destination = params.Destination
-	preservePath = *params.PreserveUnmatchedPath
-	sourcePattern = params.SourcePattern
+	destination := params.Destination
+	preservePath := *params.PreserveUnmatchedPath
+	sourcePattern := params.SourcePattern
 
 	return map[string]interface{}{
 		"destination":             destination,
@@ -416,13 +406,13 @@ func FlattenCdnFrontDoorUrlRewriteAction(input rules.URLRewriteAction) map[strin
 }
 
 func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input rules.DeliveryRuleRouteConfigurationOverrideAction) (map[string]interface{}, error) {
-	queryStringCachingBehavior := ""
-	cacheBehavior := ""
-	compressionEnabled := false
-	cacheDuration := ""
+	var queryStringCachingBehavior string
+	var cacheBehavior string
+	var compressionEnabled bool
+	var cacheDuration string
+	var forwardingProtocol string
+	var originGroupId string
 	queryParameters := make([]interface{}, 0)
-	forwardingProtocol := ""
-	originGroupId := ""
 
 	params := input.Parameters
 

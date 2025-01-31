@@ -688,7 +688,6 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if model := result.Model; model != nil {
-
 		if props := model.Properties; props != nil {
 			d.Set("name", id.RuleName)
 			d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
@@ -925,7 +924,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 
 	// input here is the base wrapper object that has all of the data from the model...
 	for _, deliveryRuleCondition := range *input {
-
 		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.ClientPort.Name {
 			condition := deliveryRuleCondition.(rules.DeliveryRuleClientPortCondition)
 
@@ -972,7 +970,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 
 			httpVersionCondition = append(httpVersionCondition, flattened)
 			continue
-
 		}
 
 		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.IsDevice.Name {
@@ -1021,7 +1018,6 @@ func flattenFrontdoorDeliveryRuleConditions(input *[]rules.DeliveryRuleCondition
 
 			remoteAddressCondition = append(remoteAddressCondition, flattened)
 			continue
-
 		}
 
 		if deliveryRuleCondition.DeliveryRuleCondition().Name == c.RequestBody.Name {

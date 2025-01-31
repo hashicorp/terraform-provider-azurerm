@@ -882,10 +882,9 @@ func ExpandCdnFrontDoorSslProtocolCondition(input []interface{}) (*[]rules.Deliv
 }
 
 func FlattenFrontdoorRemoteAddressCondition(input rules.DeliveryRuleRemoteAddressCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -897,10 +896,9 @@ func FlattenFrontdoorRemoteAddressCondition(input rules.DeliveryRuleRemoteAddres
 }
 
 func FlattenFrontdoorRequestMethodCondition(input rules.DeliveryRuleRequestMethodCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -912,10 +910,9 @@ func FlattenFrontdoorRequestMethodCondition(input rules.DeliveryRuleRequestMetho
 }
 
 func FlattenFrontdoorQueryStringCondition(input rules.DeliveryRuleQueryStringCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -927,10 +924,9 @@ func FlattenFrontdoorQueryStringCondition(input rules.DeliveryRuleQueryStringCon
 }
 
 func FlattenFrontdoorPostArgsCondition(input rules.DeliveryRulePostArgsCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        &normalizedSelector{name: pointer.To("post_args_name"), value: params.Selector},
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -942,10 +938,9 @@ func FlattenFrontdoorPostArgsCondition(input rules.DeliveryRulePostArgsCondition
 }
 
 func FlattenFrontdoorRequestUriCondition(input rules.DeliveryRuleRequestUriCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -957,10 +952,9 @@ func FlattenFrontdoorRequestUriCondition(input rules.DeliveryRuleRequestUriCondi
 }
 
 func FlattenFrontdoorRequestHeaderCondition(input rules.DeliveryRuleRequestHeaderCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        &normalizedSelector{name: pointer.To("header_name"), value: params.Selector},
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -972,10 +966,9 @@ func FlattenFrontdoorRequestHeaderCondition(input rules.DeliveryRuleRequestHeade
 }
 
 func FlattenFrontdoorRequestBodyCondition(input rules.DeliveryRuleRequestBodyCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -987,10 +980,9 @@ func FlattenFrontdoorRequestBodyCondition(input rules.DeliveryRuleRequestBodyCon
 }
 
 func FlattenFrontdoorRequestSchemeCondition(input rules.DeliveryRuleRequestSchemeCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1002,10 +994,9 @@ func FlattenFrontdoorRequestSchemeCondition(input rules.DeliveryRuleRequestSchem
 }
 
 func FlattenFrontdoorUrlPathCondition(input rules.DeliveryRuleURLPathCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1017,10 +1008,9 @@ func FlattenFrontdoorUrlPathCondition(input rules.DeliveryRuleURLPathCondition) 
 }
 
 func FlattenFrontdoorUrlFileExtensionCondition(input rules.DeliveryRuleURLFileExtensionCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1032,10 +1022,9 @@ func FlattenFrontdoorUrlFileExtensionCondition(input rules.DeliveryRuleURLFileEx
 }
 
 func FlattenFrontdoorUrlFileNameCondition(input rules.DeliveryRuleURLFileNameCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1047,10 +1036,9 @@ func FlattenFrontdoorUrlFileNameCondition(input rules.DeliveryRuleURLFileNameCon
 }
 
 func FlattenFrontdoorHttpVersionCondition(input rules.DeliveryRuleHTTPVersionCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1062,11 +1050,9 @@ func FlattenFrontdoorHttpVersionCondition(input rules.DeliveryRuleHTTPVersionCon
 }
 
 func FlattenFrontdoorCookiesCondition(input rules.DeliveryRuleCookiesCondition) (map[string]interface{}, error) {
-	// create a normalized condition stub first with empty values so we can push that to the state file
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        &normalizedSelector{name: pointer.To("cookie_name"), value: params.Selector},
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1079,10 +1065,9 @@ func FlattenFrontdoorCookiesCondition(input rules.DeliveryRuleCookiesCondition) 
 }
 
 func FlattenFrontdoorIsDeviceCondition(input rules.DeliveryRuleIsDeviceCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1094,10 +1079,9 @@ func FlattenFrontdoorIsDeviceCondition(input rules.DeliveryRuleIsDeviceCondition
 }
 
 func FlattenFrontdoorSocketAddressCondition(input rules.DeliveryRuleSocketAddrCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1109,10 +1093,9 @@ func FlattenFrontdoorSocketAddressCondition(input rules.DeliveryRuleSocketAddrCo
 }
 
 func FlattenFrontdoorClientPortCondition(input rules.DeliveryRuleClientPortCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1124,10 +1107,9 @@ func FlattenFrontdoorClientPortCondition(input rules.DeliveryRuleClientPortCondi
 }
 
 func FlattenFrontdoorServerPortCondition(input rules.DeliveryRuleServerPortCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1139,10 +1121,9 @@ func FlattenFrontdoorServerPortCondition(input rules.DeliveryRuleServerPortCondi
 }
 
 func FlattenFrontdoorHostNameCondition(input rules.DeliveryRuleHostNameCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1154,7 +1135,6 @@ func FlattenFrontdoorHostNameCondition(input rules.DeliveryRuleHostNameCondition
 }
 
 func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleSslProtocolCondition) (map[string]interface{}, error) {
-	normalized := createCdnFrontDoorNormalizedConditionStub()
 	params := input.Parameters
 
 	matchValues := make([]string, 0)
@@ -1162,7 +1142,7 @@ func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleSslProtocolCon
 		matchValues = append(matchValues, string(value))
 	}
 
-	normalized = normalizedCondition{
+	normalized := normalizedCondition{
 		selector:        nil,
 		operator:        string(params.Operator),
 		negateCondition: params.NegateCondition,
@@ -1172,22 +1152,6 @@ func FlattenFrontdoorSslProtocolCondition(input rules.DeliveryRuleSslProtocolCon
 
 	return flattenCdnFrontDoorNormalizedCondition(normalized), nil
 }
-
-func createCdnFrontDoorNormalizedConditionStub() normalizedCondition {
-	matchValues := make([]string, 0)
-
-	stub := normalizedCondition{
-		selector:        nil,
-		operator:        "",
-		negateCondition: pointer.To(false),
-		matchValues:     &matchValues,
-		transforms:      nil,
-	}
-
-	return stub
-}
-
-// TODO: Consolidate redundant helper code, also exposed in deliveryruleconditions/delivery_ruleconditions_helper.go
 
 func expandRequestMethodMatchValues(input []interface{}) *[]rules.RequestMethodMatchValue {
 	result := make([]rules.RequestMethodMatchValue, 0)
