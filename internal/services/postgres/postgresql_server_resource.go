@@ -359,7 +359,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["ssl_minimal_tls_version_enforced"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -417,7 +417,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	ssl := servers.SslEnforcementEnumEnabled
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 			ssl = servers.SslEnforcementEnumDisabled
 		}
@@ -638,7 +638,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	ssl := servers.SslEnforcementEnumEnabled
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 			ssl = servers.SslEnforcementEnumDisabled
 		}
@@ -773,7 +773,7 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				sslEnforcement := false
 				if props.SslEnforcement != nil {
 					sslEnforcement = *props.SslEnforcement == servers.SslEnforcementEnumEnabled
