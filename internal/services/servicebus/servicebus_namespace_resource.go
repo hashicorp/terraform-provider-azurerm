@@ -118,7 +118,7 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 
 						"identity_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 
@@ -284,17 +284,16 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 	t := d.Get("tags").(map[string]interface{})
 
 	id := namespaces.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_servicebus_namespace", id.ID())
 	}
 
 	identity, err := expandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -354,14 +353,8 @@ func resourceServiceBusNamespaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(id.ID())
 
-	if d.HasChange("network_rule_set") {
-		networkRuleSet := d.Get("network_rule_set").([]interface{})
-
-		log.Printf("[DEBUG] Creating the Network Rule Set associated with %s..", id)
-		if err = createNetworkRuleSetForNamespace(ctx, client, id, networkRuleSet); err != nil {
-			return err
-		}
-		log.Printf("[DEBUG] Created the Network Rule Set associated with %s", id)
+	if err = createNetworkRuleSetForNamespace(ctx, client, id, d.Get("network_rule_set").([]interface{})); err != nil {
+		return err
 	}
 
 	return resourceServiceBusNamespaceRead(d, meta)
@@ -385,10 +378,10 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if existing.Model == nil {
-		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+		return fmt.Errorf("retrieving  %s: `model` was nil", *id)
 	}
 	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
 	}
 
 	payload := existing.Model
@@ -431,10 +424,7 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("minimum_tls_version") {
-		if tlsValue := d.Get("minimum_tls_version").(string); tlsValue != "" {
-			minimumTls := namespaces.TlsVersion(tlsValue)
-			payload.Properties.MinimumTlsVersion = &minimumTls
-		}
+		payload.Properties.MinimumTlsVersion = pointer.To(namespaces.TlsVersion(d.Get("minimum_tls_version").(string)))
 	}
 
 	if d.HasChange("capacity") {
@@ -466,11 +456,11 @@ func resourceServiceBusNamespaceUpdate(d *pluginsdk.ResourceData, meta interface
 			}
 			log.Printf("[DEBUG] Reset the Existing Network Rule Set associated with %s", id)
 		} else {
-			log.Printf("[DEBUG] Creating/updating the Network Rule Set associated with %s..", id)
+			log.Printf("[DEBUG] Updating the Network Rule Set associated with %s..", id)
 			if err = createNetworkRuleSetForNamespace(ctx, client, *id, newNetworkRuleSet.([]interface{})); err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] Created/updated the Network Rule Set associated with %s", id)
+			log.Printf("[DEBUG] Updated the Network Rule Set associated with %s", id)
 		}
 	}
 
@@ -723,6 +713,9 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if len(input) < 1 || input[0] == nil {
 		return nil
 	}
+
+	log.Printf("[DEBUG] Creating/updating the Network Rule Set associated with %s..", id)
+
 	item := input[0].(map[string]interface{})
 
 	defaultAction := namespaces.DefaultAction(item["default_action"].(string))
@@ -753,6 +746,7 @@ func createNetworkRuleSetForNamespace(ctx context.Context, client *namespaces.Na
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
+	log.Printf("[DEBUG] Created/updated the Network Rule Set associated with %s", id)
 
 	return nil
 }
