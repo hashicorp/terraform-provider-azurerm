@@ -464,8 +464,6 @@ resource "azurerm_postgresql_server" "test" {
   version    = "%[4]s"
   storage_mb = 51200
 
-		%[5]s
-
   identity {
     type = "SystemAssigned"
   }
@@ -503,8 +501,6 @@ resource "azurerm_postgresql_server" "test" {
   sku_name          = "GP_Gen5_2"
   version           = "%[4]s"
   auto_grow_enabled = true
-
-		%[5]s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -786,9 +782,9 @@ resource "azurerm_postgresql_server" "restore" {
   version    = "%[4]s"
   storage_mb = 51200
 
-  create_mode               = "PointInTimeRestore"
-  creation_source_server_id = azurerm_postgresql_server.test.id
-  restore_point_in_time     = "%[3]s"
+  create_mode                   = "PointInTimeRestore"
+  creation_source_server_id     = azurerm_postgresql_server.test.id
+  restore_point_in_time         = "%[3]s"
   public_network_access_enabled = false
 }
 `, r.gp(data, version), data.RandomInteger, restoreTime, version)
