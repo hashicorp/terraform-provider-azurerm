@@ -301,7 +301,7 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("enable_rate_limiting") {
-		payload.Properties.enableDirectPortRateLimit = pointer.To(d.Get("enable_rate_limiting").(bool))
+		payload.Properties.EnableDirectPortRateLimit = pointer.To(d.Get("enable_rate_limiting").(bool))
 	}
 
 	if d.HasChange("bandwidth_in_gbps") {
