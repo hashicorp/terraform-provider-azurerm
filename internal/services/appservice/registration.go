@@ -45,6 +45,7 @@ func (r Registration) Resources() []sdk.Resource {
 		FunctionAppHybridConnectionResource{},
 		LinuxFunctionAppResource{},
 		LinuxFunctionAppSlotResource{},
+		FunctionAppFlexConsumptionResource{},
 		LinuxWebAppResource{},
 		LinuxWebAppSlotResource{},
 		ServicePlanResource{},
