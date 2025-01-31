@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -29,7 +30,7 @@ import (
 )
 
 func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoEventGridDataConnectionCreateUpdate,
 		Update: resourceKustoEventGridDataConnectionCreateUpdate,
 		Read:   resourceKustoEventGridDataConnectionRead,
@@ -138,15 +139,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
-			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
-			"eventgrid_resource_id": {
+			"eventgrid_event_subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: eventsubscriptions.ValidateScopedEventSubscriptionID,
 			},
 
-			// TODO: rename this to `managed_identity_id` in 4.0
-			"managed_identity_resource_id": {
+			"managed_identity_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
@@ -156,6 +155,31 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["eventgrid_event_subscription_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
+			Deprecated:    "Use `eventgrid_resource_id` instead.",
+			ConflictsWith: []string{"eventgrid_resource_id"},
+		}
+		resource.Schema["eventgrid_resource_id"].ConflictsWith = []string{"eventgrid_event_subscription_id"}
+
+		resource.Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateKustoClusterID,
+				commonids.ValidateUserAssignedIdentityID,
+			),
+			Deprecated:    "Use `managed_identity_id` instead.",
+			ConflictsWith: []string{"managed_identity_id"},
+		}
+		resource.Schema["managed_identity_id"].ConflictsWith = []string{"managed_identity_resource_id"}
+	}
+
+	return resource
 }
 
 func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

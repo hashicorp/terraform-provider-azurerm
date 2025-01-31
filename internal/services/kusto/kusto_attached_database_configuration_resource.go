@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -24,7 +25,7 @@ import (
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Read:   resourceKustoAttachedDatabaseConfigurationRead,
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
@@ -73,12 +74,12 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
-			// TODO: this should become `cluster_id` in 4.0
-			"cluster_resource_id": {
+			"cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateKustoClusterID,
+				ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
 			},
 
 			"attached_database_names": {
@@ -154,6 +155,21 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOhBeta() {
+		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateKustoClusterID,
+			Deprecated:   "Use `cluster_id` instead.",
+		}
+		resource.Schema["cluster_id"].ConflictsWith = []string{"cluster_resource_id"}
+		resource.Schema["cluster_id"].Required = false
+		resource.Schema["cluster_id"].Optional = true
+	}
+
+	return resource
 }
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
