@@ -39,6 +39,8 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
 	r := MsSqlManagedInstanceFailoverGroupResource{}
 
+	fmt.Println(r.basic(data, "update"))
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, "update"),
@@ -51,7 +53,7 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("secondary_type").HasValue("Geo"),
+				check.That(data.ResourceName).Key("secondary_type").HasValue("Standby"),
 			),
 		},
 		data.ImportStep(),
@@ -106,7 +108,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
-  secondary_type              = "Geo"
+  secondary_type              = "Standby"
 
   readonly_endpoint_failover_policy_enabled = true
 
