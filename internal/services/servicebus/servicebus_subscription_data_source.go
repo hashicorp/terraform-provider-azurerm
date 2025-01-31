@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -32,7 +34,7 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 
 			"topic_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: topics.ValidateTopicID,
 			},
 
@@ -88,11 +90,41 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
+		resource.Schema["topic_id"].Required = false
+		resource.Schema["topic_id"].Optional = true
+		resource.Schema["topic_id"].ConflictsWith = []string{"topic_name", "resource_group_name", "namespace_name"}
+
+		resource.Schema["topic_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validate.TopicName(),
+			RequiredWith:  []string{"resource_group_name", "namespace_name"},
+			ConflictsWith: []string{"topic_id"},
+			Deprecated:    "`topic_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+		}
+
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			RequiredWith:  []string{"namespace_name", "topic_name"},
+			ConflictsWith: []string{"topic_id"},
+			Deprecated:    "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+		}
+
+		resource.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validate.NamespaceName,
+			RequiredWith:  []string{"resource_group_name", "topic_name"},
+			ConflictsWith: []string{"topic_id"},
+			Deprecated:    "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+		}
+
 		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "Use 'batched_operations_enabled' instead",
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
 		}
 	}
 
@@ -152,6 +184,10 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			d.Set("max_delivery_count", maxDeliveryCount)
+
+			if !features.FivePointOh() {
+				d.Set("enable_batched_operations", props.EnableBatchedOperations)
+			}
 		}
 	}
 

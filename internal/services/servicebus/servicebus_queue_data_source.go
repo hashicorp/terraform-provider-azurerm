@@ -5,6 +5,7 @@ package servicebus
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -35,7 +36,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
@@ -117,6 +118,28 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["namespace_id"].Required = false
+		resource.Schema["naemspace_id"].Optional = true
+		resource.Schema["topic_id"].ConflictsWith = []string{"resource_group_name", "namespace_name"}
+
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  resourcegroups.ValidateName,
+			RequiredWith:  []string{"namespace_name"},
+			ConflictsWith: []string{"topic_id"},
+			Deprecated:    "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+		}
+
+		resource.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  azValidate.NamespaceName,
+			RequiredWith:  []string{"resource_group_name"},
+			ConflictsWith: []string{"topic_id"},
+			Deprecated:    "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+		}
+
 		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -185,7 +208,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				d.Set("enable_batched_operations", props.EnableBatchedOperations)
 				d.Set("enable_express", props.EnableExpress)
 				d.Set("enable_partitioning", props.EnablePartitioning)

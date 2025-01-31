@@ -43,8 +43,8 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 
 // TODO remove test in 5.0
 func TestAccDataSourceServiceBusQueue_withNamespaceName(t *testing.T) {
-	if features.FivePointOhBeta() {
-		t.Skipf("Skipping test for 5.0 beta")
+	if features.FivePointOh() {
+		t.Skipf("Skipping test for 5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")

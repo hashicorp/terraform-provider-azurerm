@@ -1,7 +1,7 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_servicebus_subscription_disaster_recovery_config"
+page_title: "Azure Resource Manager: azurerm_servicebus_namespace_disaster_recovery_config"
 description: |-
   Gets information about an existing ServiceBus Subscription Disaster Recovery Config.
 ---
@@ -13,13 +13,13 @@ Use this data source to access information about an existing ServiceBus Subscrip
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_subscription_disaster_recovery_config" "example" {
+data "azurerm_servicebus_namespace_disaster_recovery_config" "example" {
   name         = "example"
   namespace_id = "example"
 }
 
 output "config" {
-  value = data.azurerm_servicebus_subscription_disaster_recovery_config.example
+  value = data.azurerm_servicebus_namespace_disaster_recovery_config.example
 }
 ```
 
