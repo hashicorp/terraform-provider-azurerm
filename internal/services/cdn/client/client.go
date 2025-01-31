@@ -82,7 +82,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building RuleSet: %+v", err)
 	}
-	o.Configure(frontDoorRulesClient.Client, o.Authorizers.ResourceManager)
+	o.Configure(frontDoorRuleSetsClient.Client, o.Authorizers.ResourceManager)
 
 	customDomainsClient := cdnSdk.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&customDomainsClient.Client, o.ResourceManagerAuthorizer)
