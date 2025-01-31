@@ -916,11 +916,14 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 
 		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring' or 'Log'. Issues 19088 and 19561
 		// This will still work for bot rules as well since it will be the default value of 1.0
-		if version < 2.0 && action == waf.ActionTypeAnomalyScoring {
+		switch {
+		case version < 2.0 && action == waf.ActionTypeAnomalyScoring:
 			return nil, fmt.Errorf("%q is only valid in managed rules 'type' is DRS 2.0 and above, got %q", waf.ActionTypeAnomalyScoring, versionRaw)
-		} else if version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog {
+
+		case version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog:
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
-		} else if !strings.Contains(strings.ToLower(ruleType), "botmanagerruleset") && action == waf.ActionTypeJSChallenge {
+
+		case !strings.Contains(strings.ToLower(ruleType), "botmanagerruleset") && action == waf.ActionTypeJSChallenge:
 			return nil, fmt.Errorf("%q is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got %q", waf.ActionTypeJSChallenge, ruleType)
 		}
 
