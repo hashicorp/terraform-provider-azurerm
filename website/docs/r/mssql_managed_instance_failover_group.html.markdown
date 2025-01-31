@@ -16,10 +16,10 @@ Manages an Azure SQL Managed Instance Failover Group.
 
 ```hcl
 locals {
-  name                     = "mymssqlmitest"
-  primary_name             = "${local.name}-primary"
-  primary_location         = "West Europe"
-  failover_name            = "${local.name}-failover"
+  name              = "mymssqlmitest"
+  primary_name      = "${local.name}-primary"
+  primary_location  = "West Europe"
+  failover_name     = "${local.name}-failover"
   failover_location = "North Europe"
 }
 
