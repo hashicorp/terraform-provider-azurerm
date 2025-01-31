@@ -36,7 +36,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 

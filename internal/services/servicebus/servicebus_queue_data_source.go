@@ -119,8 +119,8 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["namespace_id"].Required = false
-		resource.Schema["naemspace_id"].Optional = true
-		resource.Schema["topic_id"].ConflictsWith = []string{"resource_group_name", "namespace_name"}
+		resource.Schema["namespace_id"].Optional = true
+		resource.Schema["namespace_id"].ConflictsWith = []string{"resource_group_name", "namespace_name"}
 
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
