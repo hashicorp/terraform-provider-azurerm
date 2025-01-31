@@ -361,7 +361,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
-				return fmt.Errorf("waiting create %s: %+v", id, err)
+				return fmt.Errorf("waiting for create of %s: %+v", id, err)
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
