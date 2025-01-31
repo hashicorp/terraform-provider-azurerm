@@ -26,7 +26,10 @@ BUG FIXES:
 * `azurerm_container_app` - update the validation regex for the resource's name [GH-28528]
 * `azurerm_kubernetes_cluster` - parse `oms_agent.log_analytics_workspace_id` insensitively to handle inconsistent casing [GH-28575]
 * `azurerm_kubernetes_flux_configuration` - fix issue where removing `post_build` from a `kustomization` resulted in an error from the API [GH-28590]
+* `azurerm_linux_virtual_machine_scale_set` - Prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block [GH-28549]
+* `azurerm_orchestrated_virtual_machine_scale_set` - Prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block [GH-28549]
 * `azurerm_virtual_machine` - parse `os_disk` insensitively to handle inconsistent casing [GH-28592]
+* `azurerm_windows_virtual_machine_scale_set` - Prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block [GH-28549]
 
 ## 4.16.0 (January 16, 2025)
 
