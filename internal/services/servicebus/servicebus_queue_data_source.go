@@ -128,8 +128,8 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			Optional:      true,
 			ValidateFunc:  resourcegroups.ValidateName,
 			RequiredWith:  []string{"namespace_name"},
-			ConflictsWith: []string{"topic_id"},
-			Deprecated:    "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"namespace_id"},
+			Deprecated:    "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["namespace_name"] = &pluginsdk.Schema{
@@ -137,8 +137,8 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 			Optional:      true,
 			ValidateFunc:  azValidate.NamespaceName,
 			RequiredWith:  []string{"resource_group_name"},
-			ConflictsWith: []string{"topic_id"},
-			Deprecated:    "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"namespace_id"},
+			Deprecated:    "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{

@@ -91,8 +91,8 @@ func (ServiceBusQueueDataSource) withNamespaceName(data acceptance.TestData) str
 %s
 
 data "azurerm_servicebus_queue" "test" {
-  name         = azurerm_servicebus_queue.test.name
-  namespace_id = azurerm_servicebus_namespace.test.id
+  name           = azurerm_servicebus_queue.test.name
+  namespace_name = azurerm_servicebus_namespace.test.name
 }
 `, ServiceBusQueueResource{}.basic(data))
 }
