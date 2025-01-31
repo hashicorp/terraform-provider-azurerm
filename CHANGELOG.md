@@ -1,3 +1,9 @@
+## 4.18.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `cdn_frontdoor_firewall_policy*` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
+
 ## 4.17.0 (January 31, 2025)
 
 FEATURES:
