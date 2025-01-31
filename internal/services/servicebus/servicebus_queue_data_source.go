@@ -5,8 +5,9 @@ package servicebus
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
