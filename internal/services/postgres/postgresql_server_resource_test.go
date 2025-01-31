@@ -442,10 +442,6 @@ func (r PostgreSQLServerResource) basic(data acceptance.TestData, version string
 }
 
 func (PostgreSQLServerResource) basicWithIdentity(data acceptance.TestData, version string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -474,7 +470,7 @@ resource "azurerm_postgresql_server" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
 func (r PostgreSQLServerResource) mo(data acceptance.TestData, version string) string {
@@ -486,10 +482,6 @@ func (r PostgreSQLServerResource) gp(data acceptance.TestData, version string) s
 }
 
 func (PostgreSQLServerResource) autogrow(data acceptance.TestData, version string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -514,14 +506,10 @@ resource "azurerm_postgresql_server" "test" {
 
 		%[5]s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
 func (r PostgreSQLServerResource) requiresImport(data acceptance.TestData) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled`
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -537,17 +525,12 @@ resource "azurerm_postgresql_server" "import" {
   version    = azurerm_postgresql_server.test.version
   storage_mb = azurerm_postgresql_server.test.storage_mb
 
-%[2]s
 
 }
-`, r.basic(data, "10.0"), sslEnabledBlock)
+`, r.basic(data, "10.0"))
 }
 
 func (PostgreSQLServerResource) complete(data acceptance.TestData) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -589,7 +572,6 @@ resource "azurerm_postgresql_server" "test" {
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
   ssl_minimal_tls_version_enforced  = "TLS1_2"
-  %[3]s
 
   threat_detection_policy {
     enabled                    = true
@@ -603,15 +585,10 @@ resource "azurerm_postgresql_server" "test" {
     "ENV" = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (PostgreSQLServerResource) complete2(data acceptance.TestData, version string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = false`
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -648,7 +625,6 @@ resource "azurerm_postgresql_server" "test" {
 
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = true
-  	%[4]s
 
   threat_detection_policy {
     enabled              = true
@@ -659,14 +635,10 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, version)
 }
 
 func (PostgreSQLServerResource) sku(data acceptance.TestData, version, sku string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -688,17 +660,12 @@ resource "azurerm_postgresql_server" "test" {
   sku_name   = "%[4]s"
   storage_mb = 51200
   version    = "%[5]s"
-  %[6]s
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
 
 func (r PostgreSQLServerResource) createReplica(data acceptance.TestData, sku string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -719,16 +686,11 @@ resource "azurerm_postgresql_server" "replica" {
   creation_source_server_id = azurerm_postgresql_server.test.id
 
   public_network_access_enabled = false
-  	%[5]s
 }
-`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku, sslEnabledBlock)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) updateReplicaToDefault(data acceptance.TestData, sku string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -747,16 +709,11 @@ resource "azurerm_postgresql_server" "replica" {
   create_mode = "Default"
 
   public_network_access_enabled = false
-  	%[5]s
 }
-`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku, sslEnabledBlock)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) updateReplicaToDefaultSetPassword(data acceptance.TestData, sku string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -777,16 +734,11 @@ resource "azurerm_postgresql_server" "replica" {
   create_mode = "Default"
 
   public_network_access_enabled = false
-  	%[5]s
 }
-`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku, sslEnabledBlock)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createReplicas(data acceptance.TestData, sku string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -805,8 +757,6 @@ resource "azurerm_postgresql_server" "replica1" {
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
-
-	%[5]s
 }
 
 resource "azurerm_postgresql_server" "replica2" {
@@ -819,17 +769,11 @@ resource "azurerm_postgresql_server" "replica2" {
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
-
-		%[5]s
 }
-`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku, sslEnabledBlock)
+`, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
 
 func (r PostgreSQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 %[1]s
 
@@ -845,18 +789,12 @@ resource "azurerm_postgresql_server" "restore" {
   create_mode               = "PointInTimeRestore"
   creation_source_server_id = azurerm_postgresql_server.test.id
   restore_point_in_time     = "%[3]s"
-
-		%[5]s
   public_network_access_enabled = false
 }
-`, r.gp(data, version), data.RandomInteger, restoreTime, version, sslEnabledBlock)
+`, r.gp(data, version), data.RandomInteger, restoreTime, version)
 }
 
 func (PostgreSQLServerResource) emptyAttrs(data acceptance.TestData, version string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -879,7 +817,6 @@ resource "azurerm_postgresql_server" "test" {
   version                          = "%[3]s"
   storage_mb                       = 640000
   ssl_minimal_tls_version_enforced = "TLS1_2"
-	%[4]s
 
   threat_detection_policy {
     enabled              = true
@@ -888,14 +825,10 @@ resource "azurerm_postgresql_server" "test" {
     retention_days = 7
   }
 }
-`, data.RandomInteger, data.Locations.Primary, version, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, version)
 }
 
 func (PostgreSQLServerResource) beforeUpdate(data acceptance.TestData, version string, tlsVersion string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -923,16 +856,11 @@ resource "azurerm_postgresql_server" "test" {
 
   public_network_access_enabled    = false
   ssl_minimal_tls_version_enforced = "%[4]s"
-  	%[5]s
 }
-`, data.RandomInteger, data.Locations.Primary, version, tlsVersion, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }
 
 func (PostgreSQLServerResource) afterUpdate(data acceptance.TestData, version string, tlsVersion string) string {
-	sslEnabledBlock := ``
-	if !features.FivePointOhBeta() {
-		sslEnabledBlock = `ssl_enforcement_enabled = true`
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -959,8 +887,6 @@ resource "azurerm_postgresql_server" "test" {
   auto_grow_enabled     = true
 
   ssl_minimal_tls_version_enforced = "%[4]s"
-  	%[5]s
-
 }
-`, data.RandomInteger, data.Locations.Primary, version, tlsVersion, sslEnabledBlock)
+`, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }
