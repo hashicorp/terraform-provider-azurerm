@@ -22,7 +22,6 @@ ENHANCEMENTS:
 * `azurerm_stream_analytics_output_cosmosdb` - support for the `authentication_mode` property ([#28372](https://github.com/hashicorp/terraform-provider-azurerm/issues/28372))
 * `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` ([#27853](https://github.com/hashicorp/terraform-provider-azurerm/issues/27853))
 
-
 BUG FIXES:
 
 * `azurerm_container_app` - update the validation regex for the resource's name ([#28528](https://github.com/hashicorp/terraform-provider-azurerm/issues/28528))
