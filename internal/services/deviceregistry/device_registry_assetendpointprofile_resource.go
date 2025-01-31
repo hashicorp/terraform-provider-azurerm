@@ -76,7 +76,6 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 		"authentication_method": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      string(assetendpointprofiles.AuthenticationMethodCertificate),
 			ValidateFunc: validation.StringInSlice(assetendpointprofiles.PossibleValuesForAuthenticationMethod(), false),
 		},
 		"username_password_credentials_username_secret_name": {
@@ -139,12 +138,19 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 					Type: config.ExtendedLocationType,
 				},
 				Properties: &assetendpointprofiles.AssetEndpointProfileProperties{
-					TargetAddress:                     config.TargetAddress,
-					EndpointProfileType:               config.EndpointProfileType,
-					DiscoveredAssetEndpointProfileRef: pointer.To(config.DiscoveredAssetEndpointProfileRef),
-					AdditionalConfiguration:           pointer.To(config.AdditionalConfiguration),
+					TargetAddress:       config.TargetAddress,
+					EndpointProfileType: config.EndpointProfileType,
 				},
 			}
+
+			if config.DiscoveredAssetEndpointProfileRef != "" {
+				param.Properties.DiscoveredAssetEndpointProfileRef = pointer.To(config.DiscoveredAssetEndpointProfileRef)
+			}
+
+			if config.AdditionalConfiguration != "" {
+				param.Properties.AdditionalConfiguration = pointer.To(config.AdditionalConfiguration)
+			}
+
 			populateAuthenticationProperties(&param, config)
 
 			if _, err := client.CreateOrReplace(ctx, id, param); err != nil {
@@ -163,7 +169,7 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
 
-			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Get("id").(string))
+			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -267,16 +273,20 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				state.ExtendedLocationName = model.ExtendedLocation.Name
 				state.ExtendedLocationType = model.ExtendedLocation.Type
+
 				if props := model.Properties; props != nil {
 					state.TargetAddress = props.TargetAddress
 					state.EndpointProfileType = props.EndpointProfileType
 					state.DiscoveredAssetEndpointProfileRef = pointer.From(props.DiscoveredAssetEndpointProfileRef)
 					state.AdditionalConfiguration = pointer.From(props.AdditionalConfiguration)
+
 					if auth := props.Authentication; auth != nil {
 						state.AuthenticationMethod = string(auth.Method)
+
 						if x509 := auth.X509Credentials; x509 != nil {
 							state.X509CredentialsCertificateSecretName = x509.CertificateSecretName
 						}
+
 						if up := auth.UsernamePasswordCredentials; up != nil {
 							state.UsernamePasswordCredentialsUsernameSecretName = up.UsernameSecretName
 							state.UsernamePasswordCredentialsPasswordSecretName = up.PasswordSecretName
@@ -314,6 +324,11 @@ func (AssetEndpointProfileResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func populateAuthenticationProperties(param *assetendpointprofiles.AssetEndpointProfile, config AssetEndpointProfileResourceModel) {
+	// If the authentication method is not set, we don't need to populate the authentication properties
+	if config.AuthenticationMethod == "" {
+		return
+	}
+
 	param.Properties.Authentication = &assetendpointprofiles.Authentication{
 		Method: assetendpointprofiles.AuthenticationMethod(config.AuthenticationMethod),
 	}
