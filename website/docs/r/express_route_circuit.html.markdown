@@ -69,8 +69,6 @@ The following arguments are supported:
 
 * `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
 
-* `enable_rate_limiting` - (Optional) Limit the circuit to the specified bandwidth. Only works with ExpressRoute Direct. Defaults to `false`.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
