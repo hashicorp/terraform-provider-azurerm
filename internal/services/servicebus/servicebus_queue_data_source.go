@@ -176,6 +176,7 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
 	} else {
+		// TODO remove this else block in 5.0
 		resourceGroup = d.Get("resource_group_name").(string)
 		namespaceName = d.Get("namespace_name").(string)
 	}
