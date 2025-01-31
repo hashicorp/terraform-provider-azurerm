@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `import` - (Optional) A `import` block as documented below.
 
+-> **NOTE:** The `display_name`, `description`, `contact`, and `license` fields can be imported by the `import` block, which might cause a drift if these fields are set along with the `import` block.
+
 * `license` - (Optional) A `license` block as documented below.
 
 * `oauth2_authorization` - (Optional) An `oauth2_authorization` block as documented below.
