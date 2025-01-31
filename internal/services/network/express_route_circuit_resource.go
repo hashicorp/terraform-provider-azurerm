@@ -140,6 +140,11 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			},
 
+			"enable_rate_limiting": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+
 			"service_provider_provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -294,6 +299,10 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
 	}
 
+	if d.HasChange("enable_rate_limiting") {
+		payload.Properties.enableDirectPortRateLimit = pointer.To(d.Get("enable_rate_limiting").(bool))
+	}
+
 	if d.HasChange("bandwidth_in_gbps") {
 		payload.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
 	}
@@ -373,6 +382,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
+			d.Set("enable_rate_limiting", props.EnableDirectPortRateLimit)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)
