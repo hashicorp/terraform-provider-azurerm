@@ -1422,9 +1422,10 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 }
 
 type ContainerVolume struct {
-	Name        string `tfschema:"name"`
-	StorageName string `tfschema:"storage_name"`
-	StorageType string `tfschema:"storage_type"`
+	Name         string `tfschema:"name"`
+	StorageName  string `tfschema:"storage_name"`
+	StorageType  string `tfschema:"storage_type"`
+	MountOptions string `tfschema:"mount_options"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1457,6 +1458,12 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ManagedEnvironmentStorageName,
 					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
+
+				"mount_options": {
+					Type:        pluginsdk.TypeString,
+					Required:    false,
+					Description: "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+				},
 			},
 		},
 	}
@@ -1481,6 +1488,11 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 				"storage_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
+				},
+
+				"mount_options": {
+					Type:     pluginsdk.TypeString,
+					Required: false,
 				},
 			},
 		},

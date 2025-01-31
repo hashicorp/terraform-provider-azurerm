@@ -1378,9 +1378,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 2
@@ -1712,9 +1713,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 2
@@ -1806,9 +1808,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 2
@@ -1932,9 +1935,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 2
@@ -2057,9 +2061,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 2
@@ -2165,9 +2170,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     max_replicas = 4
@@ -2285,9 +2291,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666
     }
 
     min_replicas = 1
