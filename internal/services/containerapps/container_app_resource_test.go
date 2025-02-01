@@ -1396,6 +1396,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "http"
+    client_certificate_mode    = "accept"
     traffic_weight {
       latest_revision = true
       percentage      = 100

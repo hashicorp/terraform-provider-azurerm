@@ -159,6 +159,7 @@ type Ingress struct {
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
+	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -214,6 +215,17 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Default:      string(containerapps.IngressTransportMethodAuto),
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
 					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+				},
+
+				"client_certificate_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerapps.IngressClientCertificateModeAccept),
+						string(containerapps.IngressClientCertificateModeRequire),
+						string(containerapps.IngressClientCertificateModeIgnore),
+					}, false),
+					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
 			},
 		},
@@ -290,6 +302,10 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
+	if ingress.ClientCertificateMode != "" {
+		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
+		result.ClientCertificateMode = &clientCertificateMode
+	}
 
 	return result
 }
@@ -313,6 +329,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.Transport != nil {
 		result.Transport = strings.ToLower(string(*ingress.Transport))
+	}
+
+	if ingress.ClientCertificateMode != nil {
+		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
 	}
 
 	return []Ingress{result}
