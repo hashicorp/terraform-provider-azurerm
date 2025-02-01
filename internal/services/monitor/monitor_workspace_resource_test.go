@@ -111,6 +111,27 @@ func TestMonitorWorkspace_publicNetworkAccess(t *testing.T) {
 	})
 }
 
+func TestMonitorWorkspace_privateEndpointConnection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_workspace", "test")
+	r := WorkspaceTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateEndpointConnection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WorkspaceTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := azuremonitorworkspaces.ParseAccountID(state.ID)
 	if err != nil {
@@ -130,6 +151,10 @@ func (r WorkspaceTestResource) Exists(ctx context.Context, clients *clients.Clie
 
 func (r WorkspaceTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
   location = "%s"
@@ -140,10 +165,6 @@ resource "azurerm_resource_group" "test" {
 func (r WorkspaceTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_monitor_workspace" "test" {
@@ -170,10 +191,6 @@ resource "azurerm_monitor_workspace" "import" {
 func (r WorkspaceTestResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_monitor_workspace" "test" {
@@ -190,10 +207,6 @@ resource "azurerm_monitor_workspace" "test" {
 func (r WorkspaceTestResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_monitor_workspace" "test" {
@@ -210,10 +223,6 @@ resource "azurerm_monitor_workspace" "test" {
 func (r WorkspaceTestResource) publicNetworkAccessDisabled(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_monitor_workspace" "test" {
@@ -224,4 +233,27 @@ resource "azurerm_monitor_workspace" "test" {
   public_network_access_enabled = false
 }
 `, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r WorkspaceTestResource) privateEndpointConnection(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "10"
+}
+
+resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
+  grafana_id                   = azurerm_dashboard_grafana.test.id
+  name                         = "acctest-mpe-%d"
+  location                     = azurerm_dashboard_grafana.test.location
+  private_link_resource_id     = azurerm_monitor_workspace.test.id
+  group_ids                    = ["prometheusMetrics"]
+  private_link_resource_region = azurerm_dashboard_grafana.test.location
+}
+`, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
