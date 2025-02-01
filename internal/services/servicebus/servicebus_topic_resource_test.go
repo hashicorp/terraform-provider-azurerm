@@ -6,6 +6,7 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
@@ -216,6 +217,37 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 				check.That(data.ResourceName).Key("default_message_ttl").HasValue("PT30M"),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
 				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").HasValue("PT15M"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.nonPartitionedPremiumNamespaceError(data),
+			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
+		},
+	})
+}
+
+func TestAccServiceBusTopic_partitionedPremiumNamespace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.PremiumNamespacePartitioned(data, false),
+			ExpectError: regexp.MustCompile("non-partitioned entities are not allowed in partitioned namespace"),
+		},
+		{
+			Config: r.PremiumNamespacePartitioned(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -488,6 +520,64 @@ resource "azurerm_servicebus_topic" "test" {
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true
   duplicate_detection_history_time_window = "PT15M"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusTopicResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+
+  partitioning_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
+}
+
+func (ServiceBusTopicResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
+  premium_messaging_partitions = 1
+  capacity                     = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+
+  partitioning_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
