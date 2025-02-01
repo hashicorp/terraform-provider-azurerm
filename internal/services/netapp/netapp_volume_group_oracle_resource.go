@@ -265,7 +265,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						Computed:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
 						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
 					},
 
@@ -273,7 +273,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						Computed:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
 						ValidateFunc: azure.ValidateResourceID,
 					},
 				},

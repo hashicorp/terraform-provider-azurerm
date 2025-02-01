@@ -162,36 +162,25 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
 
 	for _, item := range input {
-		name := item.Name
-		volumePath := item.VolumePath
-		serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
-		subnetID := item.SubnetId
-		capacityPoolID := item.CapacityPoolId
-		protocols := item.Protocols
-		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
-		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
-		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
-		networkFeatures := item.NetworkFeatures
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
-			Name: utils.String(name),
+			Name: pointer.To(item.Name),
 			Properties: volumegroups.VolumeProperties{
-				CapacityPoolResourceId:   utils.String(capacityPoolID),
-				CreationToken:            volumePath,
-				ServiceLevel:             &serviceLevel,
-				SubnetId:                 subnetID,
-				ProtocolTypes:            &protocols,
-				SecurityStyle:            &securityStyle,
+				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
+				CreationToken:            item.VolumePath,
+				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				SubnetId:                 item.SubnetId,
+				ProtocolTypes:            pointer.To(item.Protocols),
+				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
 				UsageThreshold:           storageQuotaInGB,
-				ExportPolicy:             exportPolicyRule,
-				SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
+				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
+				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
-				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(networkFeatures)),
+				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
-					Snapshot: dataProtectionSnapshotPolicy.Snapshot,
+					Snapshot: expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy).Snapshot,
 				},
 			},
 			Tags: &item.Tags,
