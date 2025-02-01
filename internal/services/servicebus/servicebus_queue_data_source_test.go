@@ -51,9 +51,6 @@ func TestAccDataSourceServiceBusQueue_withNamespaceName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueDataSource{}
 
-	fmt.Println(r.withNamespaceName(data))
-	t.Skip()
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.withNamespaceName(data),
