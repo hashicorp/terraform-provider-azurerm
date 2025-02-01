@@ -707,7 +707,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateHyperScale(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
+func (MsSqlElasticPoolResource) templateHyperScale(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string, highAvailabilityReplicaCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -728,10 +728,11 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_elasticpool" "test" {
-  name                = "acctest-pool-vcore-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  server_name         = azurerm_mssql_server.test.name
+  name                            = "acctest-pool-vcore-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  server_name                     = azurerm_mssql_server.test.name
+  high_availability_replica_count = %[10]d
   %[9]s
   sku {
     name     = "%[3]s"
@@ -745,7 +746,7 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %.2[8]f
   }
 }
-`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType, highAvailabilityReplicaCount)
 }
 
 func (MsSqlElasticPoolResource) noLicenseType(data acceptance.TestData) string {
@@ -837,9 +838,9 @@ resource "azurerm_mssql_elasticpool" "test" {
 }
 
 func (r MsSqlElasticPoolResource) hyperScale(data acceptance.TestData, enclaveType string) string {
-	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0.25, 4, enclaveType)
+	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0.25, 4, enclaveType, 1)
 }
 
 func (r MsSqlElasticPoolResource) hyperScaleUpdate(data acceptance.TestData, enclaveType string) string {
-	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4, enclaveType)
+	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4, enclaveType, 0)
 }
