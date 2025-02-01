@@ -45,6 +45,7 @@ type FeatureResourceModel struct {
 	ConfigurationStoreId string                       `tfschema:"configuration_store_id"`
 	Description          string                       `tfschema:"description"`
 	Enabled              bool                         `tfschema:"enabled"`
+	Etag                 string                       `tfschema:"etag"`
 	Key                  string                       `tfschema:"key"`
 	Name                 string                       `tfschema:"name"`
 	Label                string                       `tfschema:"label"`
@@ -393,14 +394,12 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
-				Key:                  strings.TrimPrefix(pointer.From(kv.Key), FeatureKeyPrefix+"/"),
+				Etag:                 pointer.From(kv.Etag),
+				Key:                  strings.TrimPrefix(pointer.From(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
 				Name:                 fv.ID,
 				Label:                pointer.From(kv.Label),
+				Locked:               pointer.From(kv.Locked),
 				Tags:                 tags.Flatten(kv.Tags),
-			}
-
-			if kv.Locked != nil {
-				model.Locked = *kv.Locked
 			}
 
 			if len(fv.Conditions.ClientFilters.Filters) > 0 {
@@ -553,14 +552,37 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			if model.Locked {
-				if _, err = client.PutLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
-					return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+			if metadata.ResourceData.HasChange("locked") {
+				kv.Locked = pointer.To(model.Locked)
+				if model.Locked {
+					if _, err = client.PutLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+						return fmt.Errorf("while locking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+					}
+				} else {
+					if _, err = client.DeleteLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
+						return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
+					}
 				}
-			} else {
-				if _, err = client.DeleteLock(ctx, nestedItemId.Key, model.Label, "", ""); err != nil {
-					return fmt.Errorf("while unlocking key/label pair %s/%s: %+v", model.Name, model.Label, err)
-				}
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context had no deadline")
+			}
+
+			// https://github.com/Azure/AppConfiguration/issues/763
+			metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Feature %q to be synced", model.Key)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   []string{"Syncing"},
+				Target:                    []string{"Synced"},
+				Refresh:                   appConfigurationGetKeyRefreshFuncForUpdate(ctx, client, nestedItemId.Key, model.Label, kv),
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 2,
+				Timeout:                   time.Until(deadline),
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for App Configuration Feature %q to be synced: %+v", nestedItemId.Key, err)
 			}
 
 			return nil
