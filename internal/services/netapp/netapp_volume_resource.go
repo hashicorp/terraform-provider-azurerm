@@ -894,7 +894,9 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 
 				// Breaking replication
-				if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
+				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
 					ForceBreakReplication: utils.Bool(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
