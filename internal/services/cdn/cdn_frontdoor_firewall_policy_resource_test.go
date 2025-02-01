@@ -309,7 +309,6 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
 	})
 }
 
-// TODO: run these tests to make sure they work...
 func TestAccCdnFrontDoorFirewallPolicy_JSChallengeDRSError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
