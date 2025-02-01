@@ -116,6 +116,13 @@ func TestAccCognitiveAzureAIServices_networkACLs(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkACLsBypassUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -504,6 +511,32 @@ resource "azurerm_ai_services" "test" {
   custom_subdomain_name = "acctestcogacc-%d"
 
   network_acls {
+    bypass         = "None"
+    default_action = "Allow"
+    ip_rules       = ["123.0.0.101"]
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_b.id
+    }
+  }
+}
+`, r.networkACLsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r AzureAIServicesResource) networkACLsBypassUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_ai_services" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    bypass         = "AzureServices"
     default_action = "Allow"
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {
