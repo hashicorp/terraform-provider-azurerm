@@ -89,7 +89,6 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			blobContainersClient := metadata.Client.Storage.ResourceManager.BlobContainers
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -101,7 +100,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			account, err := metadata.Client.Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
+			account, err := metadata.Client.Storage.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
 			}
