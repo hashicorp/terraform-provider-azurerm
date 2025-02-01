@@ -24,13 +24,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
-	resource := pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceComputeInstanceCreate,
 		Read:   resourceComputeInstanceRead,
+		Update: resourceComputeInstanceUpdate,
 		Delete: resourceComputeInstanceDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -42,6 +42,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -102,28 +103,31 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"description": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"local_auth_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"ssh": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"public_key": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"username": {
@@ -142,7 +146,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"subnet_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
@@ -150,14 +153,11 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
-			"tags": commonschema.TagsForceNew(),
+			"tags": commonschema.Tags(),
 		},
 	}
-
-	return &resource
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -198,12 +198,9 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
 	}
 
-	// NOTE: The 'ComputeResource' struct contains the information
-	// which is related to the parent resource of the instance that is
-	// to be deployed (e.g., the workspace), which is why we need to
-	// GET the workspace to discover the location it has been deployed to.
-	// If we do not set the correct location, the identity will be created
-	// and then orphaned in the incorrect region.
+	// NOTE: The 'ComputeResource' struct contains the information which is related to the parent resource of the instance that is
+	// to be deployed (e.g., the workspace), which is why we need to GET the workspace to discover the location it has been deployed to.
+	// If we do not set the correct location, the identity will be created and then orphaned in the incorrect region.
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
 		return err
@@ -213,28 +210,8 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if model == nil {
 		return fmt.Errorf("machine learning %s Workspace: model is nil", id)
 	}
-
 	if model.Location == nil {
 		return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
-	}
-
-	parameters := machinelearningcomputes.ComputeResource{
-		Identity: identity,
-		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	// NOTE: In 4.0 the 'location' field will be deprecated...
-	props := machinelearningcomputes.ComputeInstance{
-		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
-			Subnet:                          subnet,
-			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
-			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
-			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
-		},
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
@@ -242,12 +219,29 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// clusters, not compute instances"
 	//
 	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
-
+	var instanceAuthType *machinelearningcomputes.ComputeInstanceAuthorizationType
 	if v, ok := d.GetOk("authorization_type"); ok {
-		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+		instanceAuthType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
 	}
 
-	parameters.Properties = props
+	// NOTE: In 4.0 the 'location' field will be deprecated...
+	parameters := machinelearningcomputes.ComputeResource{
+		Identity: identity,
+		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: machinelearningcomputes.ComputeInstance{
+			Properties: &machinelearningcomputes.ComputeInstanceProperties{
+				VMSize:                           pointer.To(d.Get("virtual_machine_size").(string)),
+				Subnet:                           subnet,
+				SshSettings:                      expandComputeSSHSetting(d.Get("ssh").([]interface{})),
+				PersonalComputeInstanceSettings:  expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+				EnableNodePublicIP:               pointer.To(d.Get("node_public_ip_enabled").(bool)),
+				ComputeInstanceAuthorizationType: instanceAuthType,
+			},
+			Description:      pointer.To(d.Get("description").(string)),
+			DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
+		},
+	}
 
 	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
 	if err != nil {
@@ -258,6 +252,65 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
+
+	return resourceComputeInstanceRead(d, meta)
+}
+
+func resourceComputeInstanceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	var subnet *machinelearningcomputes.ResourceId
+	if subnetId, ok := d.GetOk("subnet_resource_id"); ok {
+		subnet = &machinelearningcomputes.ResourceId{
+			Id: subnetId.(string),
+		}
+	}
+
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	}
+
+	var instanceAuthType *machinelearningcomputes.ComputeInstanceAuthorizationType
+	if v, ok := d.GetOk("authorization_type"); ok {
+		instanceAuthType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+	}
+
+	parameters := machinelearningcomputes.ComputeResource{
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: machinelearningcomputes.ComputeInstance{
+			Properties: &machinelearningcomputes.ComputeInstanceProperties{
+				VMSize:                           pointer.To(d.Get("virtual_machine_size").(string)),
+				Subnet:                           subnet,
+				SshSettings:                      expandComputeSSHSetting(d.Get("ssh").([]interface{})),
+				PersonalComputeInstanceSettings:  expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+				EnableNodePublicIP:               pointer.To(d.Get("node_public_ip_enabled").(bool)),
+				ComputeInstanceAuthorizationType: instanceAuthType,
+			},
+			Description:      pointer.To(d.Get("description").(string)),
+			DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
+		},
+	}
+
+	future, err := client.ComputeCreateOrUpdate(ctx, *id, parameters)
+	if err != nil {
+		return fmt.Errorf("updating Machine Learning Compute %s: %+v", id, err)
+	}
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for update of Machine Learning Compute %s: %+v", id, err)
+	}
 
 	return resourceComputeInstanceRead(d, meta)
 }
@@ -310,19 +363,21 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("description", props.Description)
 
-	if props.Properties != nil {
-		d.Set("virtual_machine_size", props.Properties.VMSize)
-		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
-		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
-		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+	if propsProps := props.Properties; propsProps != nil {
+		d.Set("virtual_machine_size", propsProps.VMSize)
+		d.Set("authorization_type", string(pointer.From(propsProps.ComputeInstanceAuthorizationType)))
+		d.Set("ssh", flattenComputeSSHSetting(propsProps.SshSettings))
+		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(propsProps.PersonalComputeInstanceSettings))
 
-		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+		if propsProps.Subnet != nil {
+			d.Set("subnet_resource_id", propsProps.Subnet.Id)
 		}
 
 		enableNodePublicIP := true
-		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
-			enableNodePublicIP = false
+		if endpoints := propsProps.ConnectivityEndpoints; endpoints != nil {
+			if endpoints.PublicIPAddress == nil {
+				enableNodePublicIP = false
+			}
 		}
 
 		d.Set("node_public_ip_enabled", enableNodePublicIP)
@@ -373,9 +428,15 @@ func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.Compu
 		}
 	}
 	value := input[0].(map[string]interface{})
+
+	enabled := machinelearningcomputes.SshPublicAccessDisabled
+	if value["enabled"].(bool) {
+		enabled = machinelearningcomputes.SshPublicAccessEnabled
+	}
+
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
-		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
-		AdminPublicKey:  utils.String(value["public_key"].(string)),
+		SshPublicAccess: pointer.To(enabled),
+		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 
@@ -392,12 +453,18 @@ func flattenComputePersonalComputeInstanceSetting(settings *machinelearningcompu
 }
 
 func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceSshSettings) interface{} {
-	if settings == nil || strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessDisabled)) {
+	if settings == nil {
 		return []interface{}{}
+	}
+
+	enabled := false
+	if settings.SshPublicAccess != nil {
+		enabled = strings.EqualFold(string(*settings.SshPublicAccess), string(machinelearningcomputes.SshPublicAccessEnabled))
 	}
 
 	return []interface{}{
 		map[string]interface{}{
+			"enabled":    enabled,
 			"public_key": settings.AdminPublicKey,
 			"username":   settings.AdminUserName,
 			"port":       settings.SshPort,
