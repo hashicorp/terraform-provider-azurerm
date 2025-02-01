@@ -37,6 +37,32 @@ func ExpandDynatraceUserInfo(input []UserInfo) *monitors.UserInfo {
 	})
 }
 
+func FlattenDynatraceEnvironmentProperties(input *monitors.DynatraceEnvironmentProperties) []EnvironmentProperties {
+	if input == nil {
+		return []EnvironmentProperties{}
+	}
+
+	environmentInfo := FlattenDynatraceEnvironmentInfo(input.EnvironmentInfo)
+
+	return []EnvironmentProperties{
+		{
+			EnvironmentInfo: environmentInfo,
+		},
+	}
+}
+
+func FlattenDynatraceEnvironmentInfo(input *monitors.EnvironmentInfo) []EnvironmentInfo {
+	if input == nil {
+		return []EnvironmentInfo{}
+	}
+
+	return []EnvironmentInfo{
+		{
+			EnvironmentId: pointer.From(input.EnvironmentId),
+		},
+	}
+}
+
 func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	if input == nil {
 		return []PlanData{}
@@ -73,19 +99,18 @@ func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
 	}
 }
 
-func FlattenDynatraceUserInfo(input []interface{}) []UserInfo {
-	if len(input) == 0 {
+func FlattenDynatraceUserInfo(input *monitors.UserInfo) []UserInfo {
+	if input == nil {
 		return []UserInfo{}
 	}
 
-	v := input[0].(map[string]interface{})
 	return []UserInfo{
 		{
-			Country:      v["country"].(string),
-			EmailAddress: v["email"].(string),
-			FirstName:    v["first_name"].(string),
-			LastName:     v["last_name"].(string),
-			PhoneNumber:  v["phone_number"].(string),
+			Country:      pointer.From(input.Country),
+			EmailAddress: pointer.From(input.EmailAddress),
+			FirstName:    pointer.From(input.FirstName),
+			LastName:     pointer.From(input.LastName),
+			PhoneNumber:  pointer.From(input.PhoneNumber),
 		},
 	}
 }
