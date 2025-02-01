@@ -559,6 +559,10 @@ func flattenNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.TrafficAnalyti
 func expandNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceData) *flowlogs.TrafficAnalyticsProperties {
 	vs := d.Get("traffic_analytics").([]interface{})
 
+	if len(vs) == 0 {
+		return nil
+	}
+
 	v := vs[0].(map[string]interface{})
 	enabled := v["enabled"].(bool)
 	workspaceID := v["workspace_id"].(string)
