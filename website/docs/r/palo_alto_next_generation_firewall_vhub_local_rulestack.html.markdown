@@ -76,6 +76,10 @@ The following arguments are supported:
 
 * `network_profile` - (Required) A `network_profile` block as defined below.
 
+* `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
+
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
+
 ---
 
 * `destination_nat` - (Optional) One or more `destination_nat` blocks as defined below.
