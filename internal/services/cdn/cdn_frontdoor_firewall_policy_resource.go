@@ -932,7 +932,7 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 		// This will still work for bot rules as well since it will be the default value of 1.0
 		switch {
 		case version < 2.0 && action == waf.ActionTypeAnomalyScoring:
-			return nil, fmt.Errorf("%q is only valid in managed rules 'type' is DRS 2.0 and above, got %q", waf.ActionTypeAnomalyScoring, versionRaw)
+			return nil, fmt.Errorf("%q is only valid in managed rules where 'type' is DRS and `version` is '2.0' or above, got %q", waf.ActionTypeAnomalyScoring, versionRaw)
 
 		case version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog:
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
