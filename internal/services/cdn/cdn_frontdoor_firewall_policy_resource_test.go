@@ -196,7 +196,7 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSOnePointOhError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.DRSOnePointOhError(data),
-			ExpectError: regexp.MustCompile("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above"),
+			ExpectError: regexp.MustCompile(`"AnomalyScoring" is only valid in managed rules where 'type' is DRS`),
 		},
 	})
 }
