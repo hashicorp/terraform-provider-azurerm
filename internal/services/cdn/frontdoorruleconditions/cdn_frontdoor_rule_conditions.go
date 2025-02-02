@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -232,7 +232,9 @@ func validateCdnFrontDoorExpandConditionOperatorValues(operator string, matchVal
 		return fmt.Errorf("%q is invalid: no 'operator' value has been set, got %q", m.ConfigName, operator)
 	}
 
-	// NOTE: There are now 14 different "Any" operators in the new API, however they are all the same so I am just hardcoding this here now...
+	// NOTE: There are now 14 different 'Any' operators in the new API, however they are all the same value so I am just hardcoding the value evaluation here,
+	//       the multiple values appears to be by design as they have exposed an "Any" field for each condition type (e.g., 'ClientPortOperatorAny',
+	//       'CookiesOperatorAny', 'HostNameOperatorAny', etc.) due to the swagger issue raised by TomBuildsStuff...
 	if operator == "Any" && len(*matchValues) > 0 {
 		return fmt.Errorf("%q is invalid: the 'match_values' field must not be set if the conditions 'operator' is set to 'Any'", m.ConfigName)
 	}

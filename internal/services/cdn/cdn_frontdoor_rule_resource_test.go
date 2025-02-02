@@ -9,8 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -443,13 +442,11 @@ func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.C
 	}
 
 	client := clients.Cdn.FrontDoorRulesClient
-	result, err := client.Get(ctx, *id)
+	_, err = client.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(result.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 

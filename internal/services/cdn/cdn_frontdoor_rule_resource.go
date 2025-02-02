@@ -5,12 +5,13 @@ package cdn
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorRuleActions "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorruleactions"
@@ -681,21 +682,22 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 	result, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(result.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.Set("name", id.RuleName)
+	d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
+
+	// BUG: RuleSetName is not being returned by the API
+	// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
+	d.Set("cdn_frontdoor_rule_set_name", ruleSet.RuleSetName)
+
 	if model := result.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("name", id.RuleName)
-			d.Set("cdn_frontdoor_rule_set_id", ruleSet.ID())
-
-			// BUG: RuleSetName is not being returned by the API
-			// Tracking issue opened: https://github.com/Azure/azure-rest-api-specs/issues/20560
-			d.Set("cdn_frontdoor_rule_set_name", ruleSet.RuleSetName)
-
 			actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 			if err != nil {
 				return fmt.Errorf("setting 'actions': %+v", err)

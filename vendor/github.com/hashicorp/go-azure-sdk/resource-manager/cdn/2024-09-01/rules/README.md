@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules` Documentation
 
-The `rules` SDK allows for interaction with Azure Resource Manager `cdn` (API Version `2024-02-01`).
+The `rules` SDK allows for interaction with Azure Resource Manager `cdn` (API Version `2024-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rules"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 ```
 
 

@@ -5,6 +5,7 @@ package cdn
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -62,21 +63,20 @@ func resourceCdnFrontDoorRuleSetCreate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	// func NewRuleSetID(subscriptionId string, resourceGroupName string, profileName string, ruleSetName string)
 	id := rulesets.NewRuleSetID(profile.SubscriptionId, profile.ResourceGroupName, profile.ProfileName, d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	// if d.IsNewResource() {
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_rule_set", id.ID())
+	}
+	// }
 	if _, err = client.Create(ctx, id); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -98,6 +98,7 @@ func resourceCdnFrontDoorRuleSetRead(d *pluginsdk.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
