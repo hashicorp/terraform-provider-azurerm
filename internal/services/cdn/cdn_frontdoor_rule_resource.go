@@ -698,6 +698,9 @@ func resourceCdnFrontDoorRuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if model := result.Model; model != nil {
 		if props := model.Properties; props != nil {
+			d.Set("behavior_on_match", props.MatchProcessingBehavior)
+			d.Set("order", props.Order)
+
 			actions, err := flattenFrontdoorDeliveryRuleActions(props.Actions)
 			if err != nil {
 				return fmt.Errorf("setting 'actions': %+v", err)
