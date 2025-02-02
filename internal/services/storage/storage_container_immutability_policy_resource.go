@@ -104,7 +104,7 @@ func (r StorageContainerImmutabilityPolicyResource) CustomizeDiff() sdk.Resource
 
 			if lockedOld.(bool) {
 				if diff.HasChange("immutability_period_in_days") {
-					if periodOld, periodNew := diff.GetChange("immutability_period_in_days"); periodOld.(int) < periodNew.(int) {
+					if periodOld, periodNew := diff.GetChange("immutability_period_in_days"); periodOld.(int) > periodNew.(int) {
 						return fmt.Errorf("`immutability_period_in_days` cannot be decreased once an immutability policy has been locked")
 					}
 				}
@@ -228,28 +228,37 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			options := blobcontainers.CreateOrUpdateImmutabilityPolicyOperationOptions{
-				IfMatch: resp.Model.Etag,
-			}
-
-			updateResp, err := client.CreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, options)
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			// Lock the policy if requested - note that this is a one-way operation that prevents subsequent changes or
-			// deletion to the policy, the container it applies to, and the storage account where it resides.
-			if model.Locked {
-				if updateResp.Model == nil {
-					return fmt.Errorf("preparing to lock %s: model was nil", id)
+			if *resp.Model.Properties.State == blobcontainers.ImmutabilityPolicyStateLocked {
+				// Only extending the immutability policy is allowed when the policy is locked
+				options := blobcontainers.ExtendImmutabilityPolicyOperationOptions{
+					IfMatch: resp.Model.Etag,
+				}
+				if _, err := client.ExtendImmutabilityPolicy(ctx, *containerId, input, options); err != nil {
+					return fmt.Errorf("extending %s: %+v", id, err)
+				}
+			} else {
+				options := blobcontainers.CreateOrUpdateImmutabilityPolicyOperationOptions{
+					IfMatch: resp.Model.Etag,
+				}
+				updateResp, err := client.CreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, options)
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
 				}
 
-				lockOptions := blobcontainers.LockImmutabilityPolicyOperationOptions{
-					IfMatch: updateResp.Model.Etag,
-				}
+				// Lock the policy if requested - note that this is a one-way operation that prevents subsequent changes or
+				// deletion to the policy, the container it applies to, and the storage account where it resides.
+				if model.Locked {
+					if updateResp.Model == nil {
+						return fmt.Errorf("preparing to lock %s: model was nil", id)
+					}
 
-				if _, err = client.LockImmutabilityPolicy(ctx, *containerId, lockOptions); err != nil {
-					return fmt.Errorf("locking %s: %+v", id, err)
+					lockOptions := blobcontainers.LockImmutabilityPolicyOperationOptions{
+						IfMatch: updateResp.Model.Etag,
+					}
+
+					if _, err = client.LockImmutabilityPolicy(ctx, *containerId, lockOptions); err != nil {
+						return fmt.Errorf("locking %s: %+v", id, err)
+					}
 				}
 			}
 
