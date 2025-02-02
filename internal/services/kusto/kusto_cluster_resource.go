@@ -252,15 +252,15 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				oldSubnetId, newSubnetId := d.GetChange("virtual_network_configuration.0.subnet_id")
-				if oldSubnetId != "" && newSubnetId != "" && oldSubnetId != newSubnetId {
+				if oldSubnetId != newSubnetId {
 					return fmt.Errorf("changing `virtual_network_configuration.0.subnet_id` is not supported")
 				}
 				oldPublicIpId, newPublicIpId := d.GetChange("virtual_network_configuration.0.engine_public_ip_id")
-				if oldPublicIpId != "" && newPublicIpId != "" && oldPublicIpId != newPublicIpId {
+				if oldPublicIpId != newPublicIpId {
 					return fmt.Errorf("changing `virtual_network_configuration.0.engine_public_ip_id` is not supported")
 				}
 				oldDataManagementPublicIpId, newDataManagementPublicIpId := d.GetChange("virtual_network_configuration.0.data_management_public_ip_id")
-				if oldDataManagementPublicIpId != "" && newDataManagementPublicIpId != "" && oldDataManagementPublicIpId != newDataManagementPublicIpId {
+				if oldDataManagementPublicIpId != newDataManagementPublicIpId {
 					return fmt.Errorf("changing `virtual_network_configuration.0.data_management_public_ip_id` is not supported")
 				}
 

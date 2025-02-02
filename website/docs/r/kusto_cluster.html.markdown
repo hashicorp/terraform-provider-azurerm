@@ -102,9 +102,9 @@ A `virtual_network_configuration` block supports the following:
 
 * `subnet_id` - (Required) The subnet resource id. This property could not be changed after the cluster is created.
 
-* `engine_public_ip_id` - (Required) Engine service's public IP address resource id. This property could not be changed after the cluster is created.
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id. This property cannot be changed after the cluster is created.
 
-* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id. This property could not be changed after the cluster is created.
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id. This property cannot be changed after the cluster is created.
 
 ---
 
