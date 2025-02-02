@@ -322,7 +322,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"secure_boot_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true,
+				ForceNew: false,
 			},
 
 			"source_image_id": {
@@ -364,7 +364,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true,
+				ForceNew: false,
 			},
 
 			"platform_fault_domain": {
