@@ -156,15 +156,15 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
-		resource.Schema["eventgrid_event_subscription_id"] = &pluginsdk.Schema{
+	if !features.FivePointOh() {
+		resource.Schema["eventgrid_resource_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
-			Deprecated:    "Use `eventgrid_resource_id` instead.",
-			ConflictsWith: []string{"eventgrid_resource_id"},
+			Deprecated:    "Use `eventgrid_event_subscription_id` instead.",
+			ConflictsWith: []string{"eventgrid_event_subscription_id"},
 		}
-		resource.Schema["eventgrid_resource_id"].ConflictsWith = []string{"eventgrid_event_subscription_id"}
+		resource.Schema["eventgrid_event_subscription_id"].ConflictsWith = []string{"eventgrid_resource_id"}
 
 		resource.Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
