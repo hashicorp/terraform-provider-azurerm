@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -149,7 +150,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."

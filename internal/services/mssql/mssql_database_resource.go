@@ -1824,7 +1824,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		atLeastOneOf := []string{
 			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
 			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",

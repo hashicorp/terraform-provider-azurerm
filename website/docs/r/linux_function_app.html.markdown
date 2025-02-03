@@ -10,9 +10,7 @@ description: |-
 
 Manages a Linux Function App.
 
-> [!NOTE]
-> This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized. With the current toolset, application code deployment must typically be performed individually for each Function App. It is also important to note that after a Terraform deployment, particularly if the `azurerm_linux_function_app` resource is recreated due to changes in critical properties (such as the OS type, runtime stack, or App Service Plan), previously deployed application code may be removed, necessitating redeployment. This process can, however, be streamlined and automated using custom scripts or CI/CD pipelines.
-
+-> **Note:** This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized, however application code deployment must typically be performed individually for each Function App.
 
 ## Example Usage
 

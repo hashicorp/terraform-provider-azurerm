@@ -6,6 +6,7 @@ package cdn
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -75,6 +76,15 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			// NOTE: Through local testing, the new API js challenge expiration is always
+			// enabled no matter what and cannot be disabled...
+			"js_challenge_cookie_expiration_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Default:      30,
+				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
 			"redirect_url": {
@@ -419,16 +429,13 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 													},
 												},
 
+												// NOTE: 'ActionTypeAnomalyScoring' is only valid with 2.0 and above
+												//       'ActionTypeJSChallenge' is only valid with BotManagerRuleSets
 												"action": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(waf.ActionTypeAllow),
-														string(waf.ActionTypeLog),
-														string(waf.ActionTypeBlock),
-														string(waf.ActionTypeRedirect),
-														string(waf.ActionTypeAnomalyScoring), // Only valid with 2.0 and above
-													}, false),
+													ValidateFunc: validation.StringInSlice(waf.PossibleValuesForActionType(),
+														false),
 												},
 											},
 										},
@@ -490,6 +497,7 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	sku := d.Get("sku_name").(string)
 	mode := waf.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
+	jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
@@ -509,9 +517,10 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
-				EnabledState:     pointer.To(enabled),
-				Mode:             pointer.To(mode),
-				RequestBodyCheck: pointer.To(requestBodyCheck),
+				EnabledState:                           pointer.To(enabled),
+				Mode:                                   pointer.To(mode),
+				RequestBodyCheck:                       pointer.To(requestBodyCheck),
+				JavascriptChallengeExpirationInMinutes: pointer.To(jsChallengeExpirationInMinutes),
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
@@ -570,7 +579,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled") {
+	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -580,10 +589,12 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		if d.Get("request_body_check_enabled").(bool) {
 			requestBodyCheck = waf.PolicyRequestBodyCheckEnabled
 		}
+
 		props.PolicySettings = &waf.PolicySettings{
-			EnabledState:     pointer.To(enabled),
-			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
-			RequestBodyCheck: pointer.To(requestBodyCheck),
+			EnabledState:                           pointer.To(enabled),
+			Mode:                                   pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			RequestBodyCheck:                       pointer.To(requestBodyCheck),
+			JavascriptChallengeExpirationInMinutes: pointer.To(int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))),
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -679,6 +690,7 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
+				d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
 			}
 		}
 
@@ -826,7 +838,7 @@ func expandCdnFrontDoorFirewallManagedRules(input []interface{}) (*waf.ManagedRu
 			return nil, fmt.Errorf("the managed rule set type %q and version %q is not supported. If you wish to use the 'Microsoft_DefaultRuleSet' type please update your 'version' field to be '1.1', '2.0' or '2.1', got %q", ruleType, version, version)
 		}
 
-		ruleGroupOverrides, err := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides, version, fVersion)
+		ruleGroupOverrides, err := expandCdnFrontDoorFirewallManagedRuleGroupOverride(overrides, version, fVersion, ruleType)
 		if err != nil {
 			return nil, err
 		}
@@ -873,7 +885,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[
 	return &results
 }
 
-func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64) (*[]waf.ManagedRuleGroupOverride, error) {
+func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]waf.ManagedRuleGroupOverride, error) {
 	result := make([]waf.ManagedRuleGroupOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
@@ -884,7 +896,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(override["exclusion"].([]interface{}))
 		ruleGroupName := override["rule_group_name"].(string)
-		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), versionRaw, version)
+		rules, err := expandCdnFrontDoorFirewallRuleOverride(override["rule"].([]interface{}), versionRaw, version, ruleType)
 		if err != nil {
 			return nil, err
 		}
@@ -899,7 +911,7 @@ func expandCdnFrontDoorFirewallManagedRuleGroupOverride(input []interface{}, ver
 	return &result, nil
 }
 
-func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64) (*[]waf.ManagedRuleOverride, error) {
+func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw string, version float64, ruleType string) (*[]waf.ManagedRuleOverride, error) {
 	result := make([]waf.ManagedRuleOverride, 0)
 	if len(input) == 0 {
 		return nil, nil
@@ -918,10 +930,15 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 
 		// NOTE: Default Rule Sets(DRS) 2.0 and above rules only use action type of 'AnomalyScoring' or 'Log'. Issues 19088 and 19561
 		// This will still work for bot rules as well since it will be the default value of 1.0
-		if version < 2.0 && action == waf.ActionTypeAnomalyScoring {
-			return nil, fmt.Errorf("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above, got %q", versionRaw)
-		} else if version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog {
+		switch {
+		case version < 2.0 && action == waf.ActionTypeAnomalyScoring:
+			return nil, fmt.Errorf("%q is only valid in managed rules where 'type' is DRS and `version` is '2.0' or above, got %q", waf.ActionTypeAnomalyScoring, versionRaw)
+
+		case version >= 2.0 && action != waf.ActionTypeAnomalyScoring && action != waf.ActionTypeLog:
 			return nil, fmt.Errorf("the managed rules 'action' field must be set to 'AnomalyScoring' or 'Log' if the managed rule is DRS 2.0 or above, got %q", action)
+
+		case !strings.Contains(strings.ToLower(ruleType), "botmanagerruleset") && action == waf.ActionTypeJSChallenge:
+			return nil, fmt.Errorf("%q is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got %q", waf.ActionTypeJSChallenge, ruleType)
 		}
 
 		exclusions := expandCdnFrontDoorFirewallManagedRuleGroupExclusion(rule["exclusion"].([]interface{}))
