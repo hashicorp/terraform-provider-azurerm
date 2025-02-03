@@ -79,7 +79,6 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateKustoClusterID,
-				ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
 			},
 
 			"attached_database_names": {
@@ -156,10 +155,13 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
+		resource.Schema["cluster_id"].Required = false
+		resource.Schema["cluster_id"].Optional = true
+		resource.Schema["cluster_id"].AtLeastOneOf = []string{"cluster_id", "cluster_resource_id"}
 		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Required:     false,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKustoClusterID,
 			Deprecated:   "Use `cluster_id` instead.",
