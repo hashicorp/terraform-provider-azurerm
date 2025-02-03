@@ -83,7 +83,6 @@ data "azurerm_servicebus_queue" "test" {
 `, ServiceBusQueueResource{}.basic(data))
 }
 
-// TODO remove function in 5.0
 func (ServiceBusQueueDataSource) withNamespaceName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
