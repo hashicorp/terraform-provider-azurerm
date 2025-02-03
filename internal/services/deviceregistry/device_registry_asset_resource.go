@@ -175,6 +175,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+			RequiredWith: []string{"default_topic_path"},
 		},
 		"datasets": {
 			Type:     pluginsdk.TypeList,
@@ -308,34 +309,81 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 					Type: config.ExtendedLocationType,
 				},
 				Properties: &assets.AssetProperties{
-					AssetEndpointProfileRef:      config.AssetEndpointProfileRef,
-					Enabled:                      pointer.To(config.Enabled),
-					ExternalAssetId:              pointer.To(config.ExternalAssetId),
-					DisplayName:                  pointer.To(config.DisplayName),
-					Description:                  pointer.To(config.Description),
-					Manufacturer:                 pointer.To(config.Manufacturer),
-					ManufacturerUri:              pointer.To(config.ManufacturerUri),
-					Model:                        pointer.To(config.Model),
-					ProductCode:                  pointer.To(config.ProductCode),
-					HardwareRevision:             pointer.To(config.HardwareRevision),
-					SoftwareRevision:             pointer.To(config.SoftwareRevision),
-					DocumentationUri:             pointer.To(config.DocumentationUri),
-					SerialNumber:                 pointer.To(config.SerialNumber),
-					Attributes:                   pointer.To(config.Attributes),
-					DiscoveredAssetRefs:          pointer.To(config.DiscoveredAssetRefs),
-					DefaultDatasetsConfiguration: pointer.To(config.DefaultDatasetsConfiguration),
-					DefaultEventsConfiguration:   pointer.To(config.DefaultEventsConfiguration),
-					DefaultTopic:                 toAzureTopic(config.DefaultTopicPath, config.DefaultTopicRetain),
+					AssetEndpointProfileRef: config.AssetEndpointProfileRef,
 				},
 			}
 
-			if len(config.Datasets) > 0 {
-				param.Properties.Datasets = toAzureDatasets(config.Datasets)
+			// Enabled in config will be default set to false if not explicitly set in Terraform.
+			// We must check the raw value if it is null so we don't just send false if user didn't specify
+			if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enabled") {
+				param.Properties.Enabled = pointer.To(config.Enabled)
 			}
 
-			if len(config.Events) > 0 {
-				param.Properties.Events = toAzureEvents(config.Events)
+			if config.ExternalAssetId != "" {
+				param.Properties.ExternalAssetId = pointer.To(config.ExternalAssetId)
 			}
+
+			if config.DisplayName != "" {
+				param.Properties.DisplayName = pointer.To(config.DisplayName)
+			}
+
+			if config.Description != "" {
+				param.Properties.Description = pointer.To(config.Description)
+			}
+
+			if config.Manufacturer != "" {
+				param.Properties.Manufacturer = pointer.To(config.Manufacturer)
+			}
+
+			if config.ManufacturerUri != "" {
+				param.Properties.ManufacturerUri = pointer.To(config.ManufacturerUri)
+			}
+
+			if config.Model != "" {
+				param.Properties.Model = pointer.To(config.Model)
+			}
+
+			if config.ProductCode != "" {
+				param.Properties.ProductCode = pointer.To(config.ProductCode)
+			}
+
+			if config.HardwareRevision != "" {
+				param.Properties.HardwareRevision = pointer.To(config.HardwareRevision)
+			}
+
+			if config.SoftwareRevision != "" {
+				param.Properties.SoftwareRevision = pointer.To(config.SoftwareRevision)
+			}
+
+			if config.DocumentationUri != "" {
+				param.Properties.DocumentationUri = pointer.To(config.DocumentationUri)
+			}
+
+			if config.SerialNumber != "" {
+				param.Properties.SerialNumber = pointer.To(config.SerialNumber)
+			}
+
+			if config.Attributes != nil {
+				param.Properties.Attributes = pointer.To(config.Attributes)
+			}
+
+			if config.DiscoveredAssetRefs != nil {
+				param.Properties.DiscoveredAssetRefs = pointer.To(config.DiscoveredAssetRefs)
+			}
+
+			if config.DefaultDatasetsConfiguration != "" {
+				param.Properties.DefaultDatasetsConfiguration = pointer.To(config.DefaultDatasetsConfiguration)
+			}
+
+			if config.DefaultEventsConfiguration != "" {
+				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
+			}
+
+			param.Properties.DefaultTopic = toAzureTopic(config.DefaultTopicPath, config.DefaultTopicRetain)
+
+			param.Properties.Datasets = toAzureDatasets(config.Datasets)
+
+			param.Properties.Events = toAzureEvents(config.Events)
 
 			if _, err := client.CreateOrReplace(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -353,7 +401,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DeviceRegistry.AssetClient
 
-			id, err := assets.ParseAssetID(metadata.ResourceData.Get("id").(string))
+			id, err := assets.ParseAssetID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -388,10 +436,18 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
-			if metadata.ResourceData.HasChange("default_topic_path") || metadata.ResourceData.HasChange("default_topic_retain") {
-				param.Properties.DefaultTopic = &assets.TopicUpdate{
-					Path:   pointer.To(config.DefaultTopicPath),
-					Retain: pointer.To(assets.TopicRetainType(config.DefaultTopicRetain)),
+			defaultTopicPathChanged := metadata.ResourceData.HasChange("default_topic_path")
+			defaultTopicRetainChanged := metadata.ResourceData.HasChange("default_topic_retain")
+			if defaultTopicPathChanged || defaultTopicRetainChanged {
+				param.Properties.DefaultTopic = &assets.TopicUpdate{}
+				if defaultTopicPathChanged {
+					param.Properties.DefaultTopic.Path = pointer.To(config.DefaultTopicPath)
+				}
+				if defaultTopicRetainChanged {
+					// Bug with `go-azure-sdk` library: you can't set retain to null because empty string will cause
+					// ARM to throw validation error (retain must be one of the possible enum values),
+					// and go-azure-sdk library will ignore the retain field if it's set to nil, even if explicitly set.
+					param.Properties.DefaultTopic.Retain = pointer.To(assets.TopicRetainType(config.DefaultTopicRetain))
 				}
 			}
 
@@ -540,7 +596,7 @@ func (AssetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func toAzureDatasets(datasets []Dataset) *[]assets.Dataset {
-	if len(datasets) == 0 {
+	if datasets == nil {
 		return nil
 	}
 
@@ -558,7 +614,7 @@ func toAzureDatasets(datasets []Dataset) *[]assets.Dataset {
 }
 
 func toAzureDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
-	if len(dataPoints) == 0 {
+	if dataPoints == nil {
 		return nil
 	}
 
@@ -576,7 +632,7 @@ func toAzureDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
 }
 
 func toAzureEvents(events []Event) *[]assets.Event {
-	if len(events) == 0 {
+	if events == nil {
 		return nil
 	}
 
@@ -595,8 +651,7 @@ func toAzureEvents(events []Event) *[]assets.Event {
 }
 
 func toAzureTopic(topicPath string, topicRetain string) *assets.Topic {
-	// ARM asset topic requires path to be set to make a topic
-	if topicPath == "" {
+	if topicPath == "" && topicRetain == "" {
 		return nil
 	}
 
@@ -604,6 +659,7 @@ func toAzureTopic(topicPath string, topicRetain string) *assets.Topic {
 		Path: topicPath,
 	}
 
+	// Topic retain is optional, but if it's set, it must be one of the possible values
 	if topicRetain != "" {
 		azureTopic.Retain = pointer.To(assets.TopicRetainType(topicRetain))
 	}
