@@ -186,8 +186,8 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   blob_storage_event_type = "Microsoft.Storage.BlobRenamed"
   skip_first_record       = true
 
-  database_routing_type = "Multi"
-  eventgrid_resource_id = azurerm_eventgrid_event_subscription.test.id
+  database_routing_type           = "Multi"
+  eventgrid_event_subscription_id = azurerm_eventgrid_event_subscription.test.id
 
   depends_on = [azurerm_eventgrid_event_subscription.test]
 }
@@ -231,7 +231,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   storage_account_id           = azurerm_storage_account.test.id
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+  managed_identity_id          = azurerm_user_assigned_identity.test.id
   depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
@@ -249,7 +249,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
   storage_account_id           = azurerm_storage_account.test.id
   eventhub_id                  = azurerm_eventhub.test.id
   eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
-  managed_identity_resource_id = azurerm_kusto_cluster.test.id
+  managed_identity_id          = azurerm_kusto_cluster.test.id
   depends_on                   = [azurerm_eventgrid_event_subscription.test]
 }
 `, r.template(data), data.RandomInteger)
