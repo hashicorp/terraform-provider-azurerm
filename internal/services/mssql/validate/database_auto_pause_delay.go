@@ -14,7 +14,7 @@ func DatabaseAutoPauseDelay(i interface{}, k string) (warnings []string, errors 
 	min := 15
 	max := 10080
 	if (v < min || v > max) && v != -1 {
-		errors = append(errors, fmt.Errorf("expected %s to be in the range (%d - %d) and divisible by 10 or -1, got %d", k, min, max, v))
+		errors = append(errors, fmt.Errorf("expected %s to be in the range (%d - %d) or -1, got %d", k, min, max, v))
 		return warnings, errors
 	}
 
