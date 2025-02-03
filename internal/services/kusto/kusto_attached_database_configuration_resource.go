@@ -239,11 +239,15 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			if parseErr != nil {
 				return parseErr
 			}
-			d.Set("cluster_resource_id", clusterResourceId.ID())
+			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+
+			if !features.FivePointOh() {
+				d.Set("cluster_resource_id", clusterResourceId.ID())
+			}
 		}
 	}
 
@@ -275,7 +279,11 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceData) *attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties {
 	AttachedDatabaseConfigurationProperties := &attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties{}
 
-	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
+		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+	}
+
+	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); !features.FivePointOh() && ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
 	}
 

@@ -235,11 +235,19 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 		dataConnection.Properties.DatabaseRouting = &databaseRoutingType
 	}
 
-	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); ok {
+	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {
 		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
 	}
 
-	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); ok {
+	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); !features.FivePointOh() && ok {
+		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
+	}
+
+	if managedIdentityRID, ok := d.GetOk("managed_identity_id"); ok {
+		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
+	}
+
+	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); !features.FivePointOh() && ok {
 		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
 	}
 
@@ -290,7 +298,11 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 				d.Set("mapping_rule_name", props.MappingRuleName)
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
-				d.Set("eventgrid_resource_id", props.EventGridResourceId)
+				d.Set("eventgrid_event_subscription_id", props.EventGridResourceId)
+
+				if !features.FivePointOh() {
+					d.Set("eventgrid_resource_id", props.EventGridResourceId)
+				}
 
 				managedIdentityResourceId := ""
 				if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
@@ -307,7 +319,12 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 						}
 					}
 				}
-				d.Set("managed_identity_resource_id", managedIdentityResourceId)
+
+				d.Set("managed_identity_id", managedIdentityResourceId)
+
+				if !features.FivePointOh() {
+					d.Set("managed_identity_resource_id", managedIdentityResourceId)
+				}
 			}
 		}
 	}
