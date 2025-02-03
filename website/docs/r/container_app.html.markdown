@@ -124,6 +124,8 @@ A `template` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
+* `termination_grace_period_seconds` - (Optional)   The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+
 * `volume` - (Optional) A `volume` block as detailed below.
 
 ---
@@ -268,8 +270,6 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -343,8 +343,6 @@ A `startup_probe` block supports the following:
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 

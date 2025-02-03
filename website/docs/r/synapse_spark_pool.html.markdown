@@ -77,6 +77,8 @@ EOF
     filename = "config.txt"
   }
 
+  spark_version = 3.2
+
   tags = {
     ENV = "Production"
   }
@@ -94,6 +96,8 @@ The following arguments are supported:
 * `node_size_family` - (Required) The kind of nodes that the Spark Pool provides. Possible values are `HardwareAcceleratedFPGA`, `HardwareAcceleratedGPU`, `MemoryOptimized`, and `None`.
 
 * `node_size` - (Required) The level of node in the Spark Pool. Possible values are `Small`, `Medium`, `Large`, `None`, `XLarge`, `XXLarge` and `XXXLarge`.
+
+* `spark_version` - (Required) The Apache Spark version. Possible values are `3.2`, `3.3`, and `3.4`.
 
 * `node_count` - (Optional) The number of nodes in the Spark Pool. Exactly one of `node_count` or `auto_scale` must be specified.
 
@@ -122,8 +126,6 @@ The following arguments are supported:
 * `spark_log_folder` - (Optional) The default folder where Spark logs will be written. Defaults to `/logs`.
 
 * `spark_events_folder` - (Optional) The Spark events folder. Defaults to `/events`.
-
-* `spark_version` - (Optional) The Apache Spark version. Possible values are `2.4` , `3.1` , `3.2`, `3.3`, and `3.4`. Defaults to `2.4`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Spark Pool.
 

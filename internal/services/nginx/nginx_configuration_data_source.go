@@ -88,7 +88,7 @@ func (m ConfigurationDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataSource["protected_file"].Elem.(*pluginsdk.Resource).Schema["content"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
