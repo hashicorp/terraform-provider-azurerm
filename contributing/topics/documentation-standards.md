@@ -13,7 +13,15 @@ In the past, there have been different approaches to how notes were formatted, s
 - Capitalisation differences, e.g. `Note:` vs `NOTE:`.
 - Whether or not a colon is included, e.g. `Note:` vs `Note`.
 
-Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below. 
+Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
+
+Breaking changes have previously been added as notes to the resource documentation.
+These should no longer be included, instead follow these guidelines:
+
+- Breaking changes in a minor version should be added to the top of the changelog.
+- Breaking changes in a major version should be added to the upgrade guide.
+
+> We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.
 
 <!-- 
     - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
