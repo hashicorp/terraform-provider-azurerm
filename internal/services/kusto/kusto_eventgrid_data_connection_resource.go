@@ -315,7 +315,7 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 						if userAssignedIdentityIdErr == nil {
 							managedIdentityResourceId = userAssignedIdentityId.ID()
 						} else {
-							return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+							return fmt.Errorf("parsing `managed_identity_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
 						}
 					}
 				}
