@@ -118,7 +118,6 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-
 		resource.Schema["namespace_id"].AtLeastOneOf = []string{"namespace_id", "namespace_name", "resource_group_name"}
 
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
