@@ -200,37 +200,35 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 				param.Properties.AdditionalConfiguration = pointer.To(config.AdditionalConfiguration)
 			}
 
-			if metadata.ResourceData.HasChange("authentication_method") {
-				param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{
-					Method: pointer.To(assetendpointprofiles.AuthenticationMethod(config.AuthenticationMethod)),
-				}
-			}
+			authenticationMethodChanged := metadata.ResourceData.HasChange("authentication_method")
+			usernameSecretNameChanged := metadata.ResourceData.HasChange("username_password_credentials_username_secret_name")
+			passwordSecretNameChanged := metadata.ResourceData.HasChange("username_password_credentials_password_secret_name")
+			certificateSecretNameChanged := metadata.ResourceData.HasChange("x509_credentials_certificate_secret_name")
+			if authenticationMethodChanged || usernameSecretNameChanged || passwordSecretNameChanged || certificateSecretNameChanged {
+				authentication := assetendpointprofiles.AuthenticationUpdate{}
+				param.Properties.Authentication = &authentication
 
-			if metadata.ResourceData.HasChange("username_password_credentials_username_secret_name") {
-				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
+				if authenticationMethodChanged {
+					authentication.Method = pointer.To(assetendpointprofiles.AuthenticationMethod(config.AuthenticationMethod))
 				}
-				param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentialsUpdate{
-					UsernameSecretName: pointer.To(config.UsernamePasswordCredentialsUsernameSecretName),
-				}
-			}
 
-			if metadata.ResourceData.HasChange("username_password_credentials_password_secret_name") {
-				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
-				}
-				if param.Properties.Authentication.UsernamePasswordCredentials == nil {
-					param.Properties.Authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
-				}
-				param.Properties.Authentication.UsernamePasswordCredentials.PasswordSecretName = pointer.To(config.UsernamePasswordCredentialsPasswordSecretName)
-			}
+				if usernameSecretNameChanged || passwordSecretNameChanged {
+					usernamePasswordCreds := assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
+					authentication.UsernamePasswordCredentials = &usernamePasswordCreds
 
-			if metadata.ResourceData.HasChange("x509_credentials_certificate_secret_name") {
-				if param.Properties.Authentication == nil {
-					param.Properties.Authentication = &assetendpointprofiles.AuthenticationUpdate{}
+					if usernameSecretNameChanged {
+						usernamePasswordCreds.UsernameSecretName = pointer.To(config.UsernamePasswordCredentialsUsernameSecretName)
+					}
+
+					if passwordSecretNameChanged {
+						usernamePasswordCreds.PasswordSecretName = pointer.To(config.UsernamePasswordCredentialsPasswordSecretName)
+					}
 				}
-				param.Properties.Authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
-					CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
+
+				if certificateSecretNameChanged {
+					authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
+						CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
+					}
 				}
 			}
 
