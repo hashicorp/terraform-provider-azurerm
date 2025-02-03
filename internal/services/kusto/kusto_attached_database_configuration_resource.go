@@ -161,10 +161,11 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		resource.Schema["cluster_id"].ExactlyOneOf = []string{"cluster_id", "cluster_resource_id"}
 		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     false,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKustoClusterID,
 			Deprecated:   "Use `cluster_id` instead.",
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
 		}
 	}
 
