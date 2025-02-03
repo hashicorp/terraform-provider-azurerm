@@ -9,6 +9,7 @@ This page will grow over time, and suggestions are welcome!
 Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.
 
 In the past, there have been different approaches to how notes were formatted, some examples are:
+
 - Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
 - Capitalisation differences, e.g. `Note:` vs `NOTE:`.
 - Whether or not a colon is included, e.g. `Note:` vs `Note`.
