@@ -36,7 +36,7 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
@@ -78,23 +78,20 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfig() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["namespace_id"].Required = false
-		resource.Schema["namespace_id"].Optional = true
+		resource.Schema["namespace_id"].AtLeastOneOf = []string{"resource_group_name", "namespace_name", "namespace_id"}
 		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  validate.NamespaceName,
-			RequiredWith:  []string{"resource_group_name"},
-			ConflictsWith: []string{"namespace_id"},
-			Deprecated:    "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.NamespaceName,
+			AtLeastOneOf: []string{"resource_group_name", "namespace_name", "namespace_id"},
+			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			RequiredWith:  []string{"namespace_name"},
-			ConflictsWith: []string{"namespace_id"},
-			Deprecated:    "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: resourcegroups.ValidateName,
+			AtLeastOneOf: []string{"resource_group_name", "namespace_name", "namespace_id"},
+			Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 	}
 
