@@ -34,7 +34,7 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 
 			"topic_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: topics.ValidateTopicID,
 			},
 
@@ -91,35 +91,30 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["topic_id"].Required = false
-		resource.Schema["topic_id"].Optional = true
-		resource.Schema["topic_id"].ConflictsWith = []string{"topic_name", "resource_group_name", "namespace_name"}
+		resource.Schema["topic_id"].AtLeastOneOf = []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"}
 
 		resource.Schema["topic_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  validate.TopicName(),
-			RequiredWith:  []string{"resource_group_name", "namespace_name"},
-			ConflictsWith: []string{"topic_id"},
-			Deprecated:    "`topic_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.TopicName(),
+			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
+			Deprecated:   "`topic_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			RequiredWith:  []string{"namespace_name", "topic_name"},
-			ConflictsWith: []string{"topic_id"},
-			Deprecated:    "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: resourcegroups.ValidateName,
+			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
+			Deprecated:   "`resource_group_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  validate.NamespaceName,
-			RequiredWith:  []string{"resource_group_name", "topic_name"},
-			ConflictsWith: []string{"topic_id"},
-			Deprecated:    "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.NamespaceName,
+			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
+			Deprecated:   "`namespace_name` will be removed in favour of the property `topic_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{

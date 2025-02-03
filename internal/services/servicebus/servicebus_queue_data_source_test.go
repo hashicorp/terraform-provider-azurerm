@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type ServiceBusQueueDataSource struct{}
@@ -42,10 +41,9 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 	})
 }
 
-// TODO remove test in 5.0
 func TestAccDataSourceServiceBusQueue_withNamespaceName(t *testing.T) {
 	if features.FivePointOh() {
-		t.Skipf("Skipping test for 5.0")
+		t.Skipf("This test includes attributes that were removed in 5.0 -- skipping.")
 	}
 
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")

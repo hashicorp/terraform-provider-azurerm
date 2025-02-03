@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -36,7 +36,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
@@ -118,26 +118,23 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["namespace_id"].Required = false
-		resource.Schema["namespace_id"].Optional = true
-		resource.Schema["namespace_id"].ConflictsWith = []string{"resource_group_name", "namespace_name"}
+
+		resource.Schema["namespace_id"].AtLeastOneOf = []string{"namespace_id", "namespace_name", "resource_group_name"}
 
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  resourcegroups.ValidateName,
-			RequiredWith:  []string{"namespace_name"},
-			ConflictsWith: []string{"namespace_id"},
-			Deprecated:    "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: resourcegroups.ValidateName,
+			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
+			Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["namespace_name"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  azValidate.NamespaceName,
-			RequiredWith:  []string{"resource_group_name"},
-			ConflictsWith: []string{"namespace_id"},
-			Deprecated:    "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: azValidate.NamespaceName,
+			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
+			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 5.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["enable_batched_operations"] = &pluginsdk.Schema{
@@ -174,8 +171,9 @@ func dataSourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		resourceGroup = namespaceId.ResourceGroupName
 		namespaceName = namespaceId.NamespaceName
-	} else {
-		// TODO remove this else block in 5.0
+	}
+
+	if !features.FivePointOh() && resourceGroup == "" {
 		resourceGroup = d.Get("resource_group_name").(string)
 		namespaceName = d.Get("namespace_name").(string)
 	}
