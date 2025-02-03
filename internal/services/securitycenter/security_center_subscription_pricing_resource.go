@@ -15,6 +15,7 @@ import (
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	res := &pluginsdk.Resource{
 		Create: resourceSecurityCenterSubscriptionPricingCreate,
 		Read:   resourceSecurityCenterSubscriptionPricingRead,
 		Update: resourceSecurityCenterSubscriptionPricingUpdate,
@@ -108,6 +109,15 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		res.Schema["subplan"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		}
+	}
+
+	return res
 }
 
 func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta interface{}) error {

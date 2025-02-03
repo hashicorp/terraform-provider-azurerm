@@ -99,7 +99,7 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 }
 
 func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		t.Skipf("the `subplan` forces new in 4.0, but should be updated in 5.0.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")

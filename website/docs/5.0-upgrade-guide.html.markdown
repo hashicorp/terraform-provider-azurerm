@@ -167,6 +167,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_security_center_princing_tier`
+
+* Changing the property `subplan` now forces a new resource to be created.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
