@@ -160,15 +160,18 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 		resource.Schema["eventgrid_resource_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
+			Computed:      true,
 			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
 			Deprecated:    "Use `eventgrid_event_subscription_id` instead.",
 			ConflictsWith: []string{"eventgrid_event_subscription_id"},
 		}
 		resource.Schema["eventgrid_event_subscription_id"].ConflictsWith = []string{"eventgrid_resource_id"}
+		resource.Schema["eventgrid_event_subscription_id"].Computed = true
 
 		resource.Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ValidateFunc: validation.Any(
 				commonids.ValidateKustoClusterID,
 				commonids.ValidateUserAssignedIdentityID,
@@ -177,6 +180,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			ConflictsWith: []string{"managed_identity_id"},
 		}
 		resource.Schema["managed_identity_id"].ConflictsWith = []string{"managed_identity_resource_id"}
+		resource.Schema["managed_identity_id"].Computed = true
 	}
 
 	return resource

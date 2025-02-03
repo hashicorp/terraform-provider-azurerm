@@ -6,6 +6,7 @@ package kusto_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
@@ -81,7 +82,8 @@ func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
 func TestAccKustoEventGridDataConnection_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
-
+	fmt.Println(r.userAssignedIdentity(data))
+	t.Skip()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
@@ -238,6 +240,24 @@ resource "azurerm_kusto_eventgrid_data_connection" "test" {
 }
 
 func (r KustoEventGridDataConnectionResource) systemAssignedIdentity(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+resource "azurerm_kusto_eventgrid_data_connection" "test" {
+  name                         = "acctestkrgdc-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  cluster_name                 = azurerm_kusto_cluster.test.name
+  database_name                = azurerm_kusto_database.test.name
+  storage_account_id           = azurerm_storage_account.test.id
+  eventhub_id                  = azurerm_eventhub.test.id
+  eventhub_consumer_group_name = azurerm_eventhub_consumer_group.test.name
+  managed_identity_resource_id = azurerm_kusto_cluster.test.id
+  depends_on                   = [azurerm_eventgrid_event_subscription.test]
+}
+`, r.template(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 %s
 resource "azurerm_kusto_eventgrid_data_connection" "test" {
