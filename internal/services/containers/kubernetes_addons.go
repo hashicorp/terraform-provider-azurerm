@@ -503,7 +503,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		useAADAuth := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
-			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
+			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}

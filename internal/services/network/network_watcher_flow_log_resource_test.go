@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/flowlogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -331,7 +331,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) basicConfig(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -372,7 +372,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) basicConfigWithVirtualNetwork(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -509,7 +509,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -550,7 +550,7 @@ resource "azurerm_network_watcher_flow_log" "import" {
 }
 
 func (r NetworkWatcherFlowLogResource) retentionPolicyConfig(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -591,7 +591,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) retentionPolicyConfigUpdateStorageAccount(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -654,7 +654,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) disabledConfig(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -697,7 +697,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsEnabledConfig(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -768,7 +768,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsUpdateInterval(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -841,7 +841,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) TrafficAnalyticsDisabledConfig(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -913,7 +913,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) versionConfig(data acceptance.TestData, version int) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -986,7 +986,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) location(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 
@@ -1029,7 +1029,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
 }
 
 func (r NetworkWatcherFlowLogResource) tags(data acceptance.TestData, v string) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %s
 

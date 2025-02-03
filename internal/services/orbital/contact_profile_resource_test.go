@@ -21,7 +21,7 @@ import (
 type ContactProfileResource struct{}
 
 func TestAccContactProfile_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
@@ -39,7 +39,7 @@ func TestAccContactProfile_basic(t *testing.T) {
 }
 
 func TestAccContactProfile_multipleChannels(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
@@ -57,7 +57,7 @@ func TestAccContactProfile_multipleChannels(t *testing.T) {
 }
 
 func TestAccContactProfile_addChannel(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
@@ -82,7 +82,7 @@ func TestAccContactProfile_addChannel(t *testing.T) {
 }
 
 func TestAccContactProfile_update(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
@@ -106,7 +106,7 @@ func TestAccContactProfile_update(t *testing.T) {
 }
 
 func TestAccContactProfile_complete(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_contact_profile` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")

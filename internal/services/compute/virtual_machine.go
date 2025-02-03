@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -338,7 +339,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
 
 		if input.ManagedDisk.Id != nil {
-			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.Id)
+			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -548,7 +549,7 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
