@@ -102,7 +102,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -374,7 +374,7 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 			Enabled:  true,
 		}
 
-		if !features.FivePointOhBeta() {
+		if !features.FivePointOh() {
 			if len(v["retention_policy"].([]interface{})) != 0 && v["retention_policy"].([]interface{})[0] != nil {
 				policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
 				retentionDays := policyRaw["days"].(int)
@@ -412,7 +412,7 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 			"category": category,
 		}
 
-		if !features.FivePointOhBeta() {
+		if !features.FivePointOh() {
 			policies := make([]interface{}, 0)
 			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
 				if inputPolicy.Days != 0 || inputPolicy.Enabled {

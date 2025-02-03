@@ -9,10 +9,11 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -27,6 +28,22 @@ func TestAccCdnFrontDoorFirewallPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicyJsChallenge_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicJsChallenge(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
 			),
 		},
 		data.ImportStep(),
@@ -70,6 +87,45 @@ func TestAccCdnFrontDoorFirewallPolicy_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check:  acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicyJsChallenge_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicJsChallenge(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicJsChallengeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("1440"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -254,14 +310,14 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
 }
 
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorFirewallPolicyID(state.ID)
+	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cdn.FrontDoorLegacyFirewallPoliciesClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	result, err := clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -299,6 +355,38 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) basicJsChallenge(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  js_challenge_cookie_expiration_in_minutes = 45
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) basicJsChallengeUpdate(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  js_challenge_cookie_expiration_in_minutes = 1440
 }
 `, tmp, data.RandomInteger)
 }
@@ -388,6 +476,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   redirect_url                      = "https://www.contoso.com"
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  js_challenge_cookie_expiration_in_minutes = 30
 
   custom_rule {
     name                           = "Rule1"

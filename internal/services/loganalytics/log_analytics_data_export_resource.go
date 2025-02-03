@@ -15,9 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/dataexport"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -165,6 +167,14 @@ func resourceOperationalinsightsDataExportCreateUpdate(d *pluginsdk.ResourceData
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/31399
+	log.Printf("[DEBUG] Waiting for Log Analytics Workspace Data Export Rule %q to become ready", id.ID())
+	pollerType := custompollers.NewLogAnalyticsDataExportPoller(client, id)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())

@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -2420,7 +2420,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			tempAgentProfile.Name = &temporaryNodePoolName
 			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 			if tempExisting.Model == nil {
-				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 				}
 			}
@@ -2433,7 +2433,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			// create the default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+			if err := retryNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
 				// if creation of the default node pool fails we automatically fall back to the temporary node pool
 				// in func findDefaultNodePool
 				log.Printf("[DEBUG] Creation of resized default node pool failed")
@@ -4574,8 +4574,8 @@ func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedCluste
 	return pointer.From(input.CostAnalysis.Enabled)
 }
 
-func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
-	// retries the creation of a system node pool 3 times
+func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a node pool 3 times
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
 		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
