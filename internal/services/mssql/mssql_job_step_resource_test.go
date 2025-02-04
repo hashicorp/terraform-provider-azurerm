@@ -130,7 +130,7 @@ resource "azurerm_mssql_job_step" "test" {
 
   job_step_index = 1
   sql_script     = <<EOT
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE [name] = N'Pets')
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE [name] = N'Person')
   CREATE TABLE Person (
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
@@ -152,7 +152,7 @@ resource "azurerm_mssql_job_step" "import" {
 
   job_step_index = 1
   sql_script     = <<EOT
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE [name] = N'Pets')
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE [name] = N'Person')
   CREATE TABLE Person (
     FirstName NVARCHAR(50),
     LastName NVARCHAR(50),
