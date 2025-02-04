@@ -23,6 +23,7 @@ func TestAccNginxConfigurationDataSource_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("root_file").Exists(),
 				check.That(data.ResourceName).Key("config_file.0.content").Exists(),
+				check.That(data.ResourceName).Key("protected_file.0.content_hash").Exists(),
 			),
 		},
 	})
