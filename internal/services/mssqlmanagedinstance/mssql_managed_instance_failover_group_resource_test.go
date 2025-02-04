@@ -22,6 +22,7 @@ type MsSqlManagedInstanceFailoverGroupResource struct{}
 func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance_failover_group", "test")
 	r := MsSqlManagedInstanceFailoverGroupResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -85,7 +86,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestDa
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
-  location                    = "%[2]s"
+  location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
   secondary_type              = "Standby"
@@ -200,5 +201,5 @@ resource "azurerm_virtual_network_gateway_connection" "secondary" {
 
   shared_key = var.shared_key
 }
-`, MsSqlManagedInstanceResource{}.dnsZonePartner(data))
+`, MsSqlManagedInstanceResource{}.dnsZonePartner(data), data.RandomInteger)
 }
