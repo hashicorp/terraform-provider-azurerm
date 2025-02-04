@@ -63,8 +63,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
-  name                        = "acctest-fog-${random_pet.this.id}"
-  location                    = "%[2]s"
+  name                        = "acctest-fog-%[2]d"
+  location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
 
@@ -84,10 +84,8 @@ func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestDa
 	return fmt.Sprintf(`
 %[1]s
 
-resource "random_pet" "this" {}
-
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
-  name                        = "acctest-fog-${random_pet.this.id}"
+  name                        = "acctest-fog-%[2]d"
   location                    = "%[2]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
@@ -105,7 +103,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
     azurerm_virtual_network_gateway_connection.secondary,
   ]
 }
-`, r.template(data), data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) template(data acceptance.TestData) string {
@@ -124,7 +122,7 @@ resource "azurerm_subnet" "gateway_snet_test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-${random_pet.this.id}"
+  name                = "acctest-pip-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
@@ -132,7 +130,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-vnetgway-${random_pet.this.id}"
+  name                = "acctest-vnetgway-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -149,7 +147,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctest-gwc-${random_pet.this.id}"
+  name                = "acctest-gwc-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -168,7 +166,7 @@ resource "azurerm_subnet" "gateway_snet_secondary" {
 }
 
 resource "azurerm_public_ip" "secondary" {
-  name                = "acctest-pip2-${random_pet.this.id}"
+  name                = "acctest-pip2-%[2]d"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
   allocation_method   = "Dynamic"
@@ -176,7 +174,7 @@ resource "azurerm_public_ip" "secondary" {
 }
 
 resource "azurerm_virtual_network_gateway" "secondary" {
-  name                = "acctest-vnetgway2-${random_pet.this.id}"
+  name                = "acctest-vnetgway2-%[2]d"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
 
@@ -193,7 +191,7 @@ resource "azurerm_virtual_network_gateway" "secondary" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "secondary" {
-  name                = "acctest-gwc2-${random_pet.this.id}"
+  name                = "acctest-gwc2-%[2]d"
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
 
