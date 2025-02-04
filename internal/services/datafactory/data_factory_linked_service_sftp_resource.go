@@ -5,9 +5,12 @@ package datafactory
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -20,6 +23,9 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
+	privateKeyRegex, _ := regexp.Compile(`ssh-(ed25519|rsa|dss|ecdsa) AAAA(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})( [^@]+@[^@]+)?
+`)
+
 	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceSFTPCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceSFTPRead,
@@ -56,7 +62,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"authentication_type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice(linkedservices.PossibleValuesForSftpAuthenticationType(), false),
 			},
 
 			"host": {
@@ -73,14 +79,18 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"username": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Description:  "The user who has access to the SFTP server",
 				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"password", "private_key_content", "private_key_path"},
 			},
 
 			"password": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Required:      false,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
+				AtLeastOneOf:  []string{"private_key_content", "private_key_path"},
 			},
 
 			"description": {
@@ -129,6 +139,29 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"private_key_path": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"private_key_content", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"private_key_content": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Base64 encoded SSH private key content. SSH private key should be OpenSSH format",
+				ValidateFunc:  validation.StringMatch(privateKeyRegex, "Provided key content is not in OpenSSH format"),
+				ConflictsWith: []string{"private_key_path", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"passphrase": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
+				ConflictsWith: []string{"password"},
+			},
 		},
 	}
 }
@@ -171,12 +204,25 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 		Type:  datafactory.TypeSecureString,
 	}
 
+	privateKeyContent := datafactory.SecureString{
+		Value: pointer.To(d.Get("private_key_content").(string)),
+		Type:  datafactory.TypeSecureString,
+	}
+
+	passphrase := datafactory.SecureString{
+		Value: pointer.To(d.Get("passphrase").(string)),
+		Type:  datafactory.TypeSecureString,
+	}
+
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
-		Host:               utils.String(host),
+		Host:               pointer.To(host),
 		Port:               port,
 		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
-		UserName:           utils.String(username),
+		UserName:           pointer.To(username),
 		Password:           &passwordSecureString,
+		PrivateKeyContent:  &privateKeyContent,
+		PrivateKeyPath:     d.Get("private_key_path").(string),
+		PassPhrase:         &passphrase,
 	}
 
 	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
@@ -253,6 +299,9 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	d.Set("username", sftp.UserName)
 	d.Set("port", sftp.Port)
 	d.Set("host", sftp.Host)
+	d.Set("private_key_content", sftp.PrivateKeyContent)
+	d.Set("private_key_path", sftp.PrivateKeyPath)
+	d.Set("passphrase", sftp.PassPhrase)
 
 	d.Set("additional_properties", sftp.AdditionalProperties)
 	d.Set("description", sftp.Description)
