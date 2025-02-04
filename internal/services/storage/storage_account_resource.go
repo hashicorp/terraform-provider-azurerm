@@ -2413,6 +2413,12 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 
 	v := input[0].(map[string]interface{})
 
+	if expandedIdentity.Type == identity.TypeUserAssigned {
+		if userAssignedIdentityID, ok := v["user_assigned_identity_id"]; ok && userAssignedIdentityID == "" {
+			return nil, fmt.Errorf("user_assigned_identity_id is required when using a UserAssigned identity")
+		}
+	}
+
 	var keyName, keyVersion, keyVaultURI *string
 	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
