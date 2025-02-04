@@ -124,10 +124,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Default:  string(instancefailovergroups.SecondaryInstanceTypeGeo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(instancefailovergroups.SecondaryInstanceTypeGeo),
-				string(instancefailovergroups.SecondaryInstanceTypeStandby),
-			}, false),
+			ValidateFunc: validation.StringInSlice(instancefailovergroups.PossibleValuesForSecondaryInstanceType(), false),
 		},
 	}
 }
@@ -393,9 +390,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					if secondaryType := props.SecondaryType; secondaryType != nil {
-						model.SecondaryType = string(pointer.From(props.SecondaryType))
-					}
+					model.SecondaryType = string(pointer.From(props.SecondaryType))
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{
