@@ -156,7 +156,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 
 			"subnet_resource_id": {
 				Type: pluginsdk.TypeString,
-				// NOTE: O + C as you don't have to specify it for Azure to assign one to the cluster
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
