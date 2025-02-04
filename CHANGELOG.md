@@ -4,8 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: update `azurerm_cdn_frontdoor_rule` to API version `2024-02-01` [GH-28308]
 * dependencies: update `azurerm_cdn_frontdoor_ruleset` to API version `2024-02-01` [GH-28308]
-* `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
 * Data Source: `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
+* Data Source: `azurerm_nginx_configuration` - add support for the `protected_file.content_hash` property [GH-28532]
+* `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
+* `azurerm_nginx_configuration` - add support for the `protected_file.content_hash` property [GH-28532]
 
 BUG FIXES:
 
