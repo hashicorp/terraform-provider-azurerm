@@ -234,7 +234,7 @@ resource "azurerm_nginx_deployment" "test" {
   }
 
   network_interface {
-    subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test2.id
   }
 
   capacity = 20
@@ -349,10 +349,27 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "subbet%[1]d"
+  name                 = "subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "NGINX.NGINXPLUS/nginxDeployments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
   delegation {
     name = "delegation"
 
