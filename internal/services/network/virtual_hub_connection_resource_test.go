@@ -700,6 +700,12 @@ resource "azurerm_virtual_hub_connection" "test" {
 
   routing {
     static_vnet_propagate_static_routes = true
+
+    static_vnet_route {
+      name                = "testvnetroute6"
+      address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
+      next_hop_ip_address = "10.0.6.5"
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
