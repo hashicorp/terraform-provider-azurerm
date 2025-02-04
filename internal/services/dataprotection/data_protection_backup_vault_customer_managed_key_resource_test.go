@@ -32,7 +32,7 @@ func TestAccDataProtectionBackupVaultCustomerManagedKey_complete(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountCustomerManagedKey_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupVaultCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault_customer_managed_key", "test")
 	r := DataProtectionBackupVaultCustomerManagedKeyResource{}
 
