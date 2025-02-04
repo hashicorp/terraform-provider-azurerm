@@ -299,9 +299,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	d.Set("username", sftp.UserName)
 	d.Set("port", sftp.Port)
 	d.Set("host", sftp.Host)
-	d.Set("private_key_content", sftp.PrivateKeyContent)
 	d.Set("private_key_path", sftp.PrivateKeyPath)
-	d.Set("passphrase", sftp.PassPhrase)
 
 	d.Set("additional_properties", sftp.AdditionalProperties)
 	d.Set("description", sftp.Description)
