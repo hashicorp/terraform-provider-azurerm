@@ -86,7 +86,6 @@ func (EventGridPartnerConfigurationResource) ResourceType() string {
 func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.EventGrid.PartnerConfigurations
 
@@ -113,7 +112,7 @@ func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 				Location: pointer.To("global"),
 				Properties: &partnerconfigurations.PartnerConfigurationProperties{
 					PartnerAuthorization: &partnerconfigurations.PartnerAuthorization{
-						DefaultMaximumExpirationTimeInDays: pointer.To(int64(config.DefaultMaximumExpirationTimeInDays)),
+						DefaultMaximumExpirationTimeInDays: pointer.To(config.DefaultMaximumExpirationTimeInDays),
 						AuthorizedPartnersList:             expandAuthorizedPartnersList(&config.PartnerAuthorizations),
 					},
 				},
@@ -155,7 +154,7 @@ func (r EventGridPartnerConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("default_maximum_expiration_time_in_days") {
-				existing.Model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays = pointer.To(int64(config.DefaultMaximumExpirationTimeInDays))
+				existing.Model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays = pointer.To(config.DefaultMaximumExpirationTimeInDays)
 			}
 
 			if metadata.ResourceData.HasChange("partner_authorization") {
@@ -176,7 +175,7 @@ func (r EventGridPartnerConfigurationResource) Update() sdk.ResourceFunc {
 
 func (r EventGridPartnerConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.EventGrid.PartnerConfigurations
 
