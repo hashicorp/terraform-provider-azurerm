@@ -61,7 +61,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 	return fmt.Sprintf(`
 %[1]s
 
-resource "random_pet" "this" {}
 
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-${random_pet.this.id}"

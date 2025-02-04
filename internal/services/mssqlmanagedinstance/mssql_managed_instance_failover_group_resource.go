@@ -390,9 +390,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					if secondaryType := props.SecondaryType; secondaryType != nil {
-						model.SecondaryType = string(pointer.From(props.SecondaryType))
-					}
+					model.SecondaryType = string(pointer.From(props.SecondaryType))
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{
 						{
