@@ -61,7 +61,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) basic(data acceptance.TestDat
 	return fmt.Sprintf(`
 %[1]s
 
-
 resource "azurerm_mssql_managed_instance_failover_group" "test" {
   name                        = "acctest-fog-%[2]d"
   location                    = "%[3]s"
@@ -77,7 +76,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
     azurerm_virtual_network_gateway_connection.secondary,
   ]
 }
-`, r.template(data), data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) update(data acceptance.TestData) string {
