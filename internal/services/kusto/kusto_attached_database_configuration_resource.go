@@ -156,17 +156,20 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["cluster_id"].Required = false
-		resource.Schema["cluster_id"].Optional = true
-		resource.Schema["cluster_id"].Computed = true
-		resource.Schema["cluster_id"].ExactlyOneOf = []string{"cluster_id", "cluster_resource_id"}
+		resource.Schema["cluster_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
+			ValidateFunc: commonids.ValidateKustoClusterID,
+		}
 		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKustoClusterID,
-			Deprecated:   "Use `cluster_id` instead.",
+			Deprecated:   "`cluster_resource_id` has been deprecated in favour of the `cluster_id` property and will be removed in v5.0 of the AzureRM Provider.",
 			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
 		}
 	}

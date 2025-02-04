@@ -162,7 +162,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
-			Deprecated:    "Use `eventgrid_event_subscription_id` instead.",
+			Deprecated:    "`eventgrid_resource_id` has been deprecated in favour of the `eventgrid_event_subscription_id` property and will be removed in v5.0 of the AzureRM Provider.",
 			ConflictsWith: []string{"eventgrid_event_subscription_id"},
 		}
 		resource.Schema["eventgrid_event_subscription_id"].ConflictsWith = []string{"eventgrid_resource_id"}
@@ -176,7 +176,7 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				commonids.ValidateKustoClusterID,
 				commonids.ValidateUserAssignedIdentityID,
 			),
-			Deprecated:    "Use `managed_identity_id` instead.",
+			Deprecated:    "`managed_identity_resource_id` has been deprecated in favour of the `managed_identity_id` property and will be removed in v5.0 of the AzureRM Provider.",
 			ConflictsWith: []string{"managed_identity_id"},
 		}
 		resource.Schema["managed_identity_id"].ConflictsWith = []string{"managed_identity_resource_id"}
