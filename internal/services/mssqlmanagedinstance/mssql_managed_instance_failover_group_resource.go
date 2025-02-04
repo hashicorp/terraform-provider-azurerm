@@ -121,9 +121,9 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Arguments() map[string]*plugi
 		},
 
 		"secondary_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(instancefailovergroups.SecondaryInstanceTypeGeo),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(instancefailovergroups.SecondaryInstanceTypeGeo),
 			ValidateFunc: validation.StringInSlice(instancefailovergroups.PossibleValuesForSecondaryInstanceType(), false),
 		},
 	}
