@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -116,7 +117,6 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	parameterValues := expandConnectionParameterValues(d.Get("parameter_values").(map[string]interface{}))
 	model := connections.ApiConnectionDefinition{
 		Location: utils.String(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
@@ -124,7 +124,7 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 				Id: utils.String(managedAppId.ID()),
 			},
 			DisplayName:     utils.String(d.Get("display_name").(string)),
-			ParameterValues: parameterValues,
+			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -172,8 +172,7 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			d.Set("managed_api_id", apiId)
 
-			parameterValues := flattenConnectionParameterValues(props.ParameterValues)
-			if err := d.Set("parameter_values", parameterValues); err != nil {
+			if err := d.Set("parameter_values", props.ParameterValues); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 		}
@@ -228,14 +227,6 @@ func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func expandConnectionParameterValues(input map[string]interface{}) *map[string]string {
-	parameterValues := make(map[string]string)
-	for k, v := range input {
-		parameterValues[k] = v.(string)
-	}
-	return &parameterValues
 }
 
 func flattenConnectionParameterValues(input *map[string]string) map[string]interface{} {

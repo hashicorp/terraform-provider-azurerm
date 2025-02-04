@@ -98,9 +98,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		ClientCertificatePassword: getEnvStringOrDefault(data.ClientCertificatePassword, "ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
 		ClientSecret:              *clientSecret,
 
-		OIDCAssertionToken:          *oidcToken,
-		GitHubOIDCTokenRequestURL:   oidcReqURL,
-		GitHubOIDCTokenRequestToken: oidcReqToken,
+		OIDCAssertionToken:    *oidcToken,
+		OIDCTokenRequestURL:   oidcReqURL,
+		OIDCTokenRequestToken: oidcReqToken,
 
 		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 
