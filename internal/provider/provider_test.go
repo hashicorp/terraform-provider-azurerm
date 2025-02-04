@@ -679,8 +679,8 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			Environment:                         *env,
 			TenantID:                            *tenantId,
 			ClientID:                            *clientId,
-			GitHubOIDCTokenRequestToken:         d.Get("oidc_request_token").(string),
-			GitHubOIDCTokenRequestURL:           d.Get("oidc_request_url").(string),
+			OIDCTokenRequestToken:               d.Get("oidc_request_token").(string),
+			OIDCTokenRequestURL:                 d.Get("oidc_request_url").(string),
 			EnableAuthenticationUsingGitHubOIDC: true,
 		}
 
