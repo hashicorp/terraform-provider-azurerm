@@ -23,7 +23,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
-	privateKeyRegex, _ := regexp.Compile(`ssh-(ed25519|rsa|dss|ecdsa) AAAA(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})( [^@]+@[^@]+)?
+	privateKeyRegex := regexp.MustCompile(`ssh-(ed25519|rsa|dss|ecdsa) AAAA(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})( [^@]+@[^@]+)?
 `)
 
 	return &pluginsdk.Resource{
@@ -86,7 +86,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 
 			"password": {
 				Type:          pluginsdk.TypeString,
-				Required:      false,
+				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
