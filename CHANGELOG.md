@@ -1,3 +1,38 @@
+## 4.17.0 (January 31, 2025)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_api_management_subscription` ([#27824](https://github.com/hashicorp/terraform-provider-azurerm/issues/27824))
+* **New Resource**: `azurerm_cognitive_account_rai_policy` ([#28013](https://github.com/hashicorp/terraform-provider-azurerm/issues/28013))
+* **New Resource**: `azurerm_mssql_job_target_group` ([#28492](https://github.com/hashicorp/terraform-provider-azurerm/issues/28492))
+
+ENHANCEMENTS:
+
+* dependencies: `network` - update to use `2024-05-01` ([#28146](https://github.com/hashicorp/terraform-provider-azurerm/issues/28146))
+* dependencies: `privatedns` - update to use `2024-06-01` ([#28599](https://github.com/hashicorp/terraform-provider-azurerm/issues/28599))
+* dependencies: `storage` - update to use `2023-05-01` ([#27760](https://github.com/hashicorp/terraform-provider-azurerm/issues/27760))
+* Data Source: `azure_communication_service` - add support for the `hostname` property ([#28620](https://github.com/hashicorp/terraform-provider-azurerm/issues/28620))
+* `azurerm_api_management` - `capacity` now has a max limit of 50 ([#28648](https://github.com/hashicorp/terraform-provider-azurerm/issues/28648))
+* `azurerm_backup_protected_vm` - add support for feature `vm_backup_suspend_protection_and_retain_data_on_destroy` ([#27950](https://github.com/hashicorp/terraform-provider-azurerm/issues/27950))
+* `azurerm_cognitive_account` - support for the `bypass` property ([#28221](https://github.com/hashicorp/terraform-provider-azurerm/issues/28221))
+* `azure_communication_service` - add support for the `hostname` property ([#28620](https://github.com/hashicorp/terraform-provider-azurerm/issues/28620))
+* `azurerm_container_app_environment` - add support for Azure Monitor as a log destination ([#26047](https://github.com/hashicorp/terraform-provider-azurerm/issues/26047))
+* `azurerm_mssql_elasticpool`- add support for `MOPRMS` pool type and update validation for `PRMS` and `Gen5` pool types ([#28453](https://github.com/hashicorp/terraform-provider-azurerm/issues/28453))
+* `azurerm_mssql_managed_instance_transparent_data_encryption` - support for the `managed_hsm_key_id` property ([#28480](https://github.com/hashicorp/terraform-provider-azurerm/issues/28480))
+* `azurerm_stream_analytics_output_cosmosdb` - support for the `authentication_mode` property ([#28372](https://github.com/hashicorp/terraform-provider-azurerm/issues/28372))
+* `azurerm_stream_analytics_stream_input_blob` - add support for `authentication_mode` ([#27853](https://github.com/hashicorp/terraform-provider-azurerm/issues/27853))
+
+BUG FIXES:
+
+* `azurerm_container_app` - update the validation regex for the resource's name ([#28528](https://github.com/hashicorp/terraform-provider-azurerm/issues/28528))
+* `azurerm_kubernetes_cluster` - parse `oms_agent.log_analytics_workspace_id` insensitively to handle inconsistent casing ([#28575](https://github.com/hashicorp/terraform-provider-azurerm/issues/28575))
+* `azurerm_kubernetes_flux_configuration` - fix issue where removing `post_build` from a `kustomization` resulted in an error from the API ([#28590](https://github.com/hashicorp/terraform-provider-azurerm/issues/28590))
+* `azurerm_linux_virtual_machine_scale_set` - prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block ([#28549](https://github.com/hashicorp/terraform-provider-azurerm/issues/28549))
+* `azurerm_log_analytics_storage_insights` - use subscription from workspace ID when building the resource ID ([#28469](https://github.com/hashicorp/terraform-provider-azurerm/issues/28469))
+* `azurerm_orchestrated_virtual_machine_scale_set` - prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block ([#28549](https://github.com/hashicorp/terraform-provider-azurerm/issues/28549))
+* `azurerm_virtual_machine` - parse `os_disk` insensitively to handle inconsistent casing ([#28592](https://github.com/hashicorp/terraform-provider-azurerm/issues/28592))
+* `azurerm_windows_virtual_machine_scale_set` - Prevent crash caused by ommited `extensions_to_provision_after_vm_creation` block ([#28549](https://github.com/hashicorp/terraform-provider-azurerm/issues/28549))
+
 ## 4.16.0 (January 16, 2025)
 
 **NOTE:** This release contains a breaking change reverting `redisenterprise` API version from `2024-10-01` to `2024-06-01-preview` as not all regions are currently supported in the `2024-10-01` version 

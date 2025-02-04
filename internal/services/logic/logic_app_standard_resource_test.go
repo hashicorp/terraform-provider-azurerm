@@ -959,7 +959,7 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 }
 
 func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping since `site_config.public_network_access_enabled` is removed in v5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")

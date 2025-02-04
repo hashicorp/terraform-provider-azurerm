@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -382,15 +383,15 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"max_server_memory_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      2147483647,
-							ValidateFunc: validation.IntBetween(128, 2147483647),
+							Default:      math.MaxInt32,
+							ValidateFunc: validation.IntBetween(128, math.MaxInt32),
 						},
 
 						"min_server_memory_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 					},
 				},
@@ -1420,7 +1421,7 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 		maxDop = *input.MaxDop
 	}
 
-	var maxServerMemoryMB int64 = 2147483647
+	var maxServerMemoryMB int64 = math.MaxInt32
 	if input.MaxServerMemoryMB != nil {
 		maxServerMemoryMB = *input.MaxServerMemoryMB
 	}

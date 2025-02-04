@@ -29,7 +29,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return []sdk.Resource{
 			SpacecraftResource{},
 			ContactProfileResource{},

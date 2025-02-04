@@ -748,7 +748,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 						return err
 					}
 
-					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					ctx2, cancel := context.WithTimeout(ctx, 60*time.Minute)
 					defer cancel()
 					options := virtualmachinescalesets.DefaultGetOperationOptions()
 					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
@@ -2427,6 +2427,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 resource "azurerm_lb" "test" {
