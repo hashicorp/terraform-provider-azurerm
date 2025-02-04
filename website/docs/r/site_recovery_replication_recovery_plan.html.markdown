@@ -274,7 +274,7 @@ A `failover_recovery_group` block supports the following:
 
 A `boot_recovery_group` block supports the following:
 
-* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
+* `replicated_protected_items` - (Optional) One or more protected VM IDs.
 
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 

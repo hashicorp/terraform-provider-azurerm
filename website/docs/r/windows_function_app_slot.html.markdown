@@ -331,7 +331,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - (Required) The ID of the GitHub app used for login..
+* `client_id` - (Required) The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -687,7 +687,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
-* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.ENDEXPERIMENT
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** Exactly one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
@@ -770,8 +770,8 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Windows Function App Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Windows Function App Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Windows Function App Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Windows Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Windows Function App Slot.
 
 ## Import
