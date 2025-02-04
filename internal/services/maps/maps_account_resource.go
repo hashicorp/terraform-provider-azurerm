@@ -56,7 +56,12 @@ func resourceMapsAccount() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": commonschema.Location(),
+			"location": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "global",
+				ForceNew: true,
+			},
 
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
