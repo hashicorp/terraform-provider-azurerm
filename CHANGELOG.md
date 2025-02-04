@@ -7,6 +7,9 @@ ENHANCEMENTS:
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
 * Data Source: `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
 
+BUG FIXES:
+
+* `azurerm_logic_app_action_http` - fix issue where `queries` would be set to an empty map instead of null when omitted from the configuration [GH-28447]
 
 ## 4.17.0 (January 31, 2025)
 
