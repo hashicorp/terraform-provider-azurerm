@@ -191,15 +191,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.Resour
 				return fmt.Errorf("customer managed key for %s does not exist", *id)
 			}
 
-			model.Properties.SecuritySettings.EncryptionSettings = &backupvaults.EncryptionSettings{
-				State: pointer.To(backupvaults.EncryptionStateDisabled),
-				KeyVaultProperties: &backupvaults.CmkKeyVaultProperties{
-					KeyUri: nil,
-				},
-				KekIdentity: &backupvaults.CmkKekIdentity{
-					IdentityType: nil,
-				},
-			}
+			model.Properties.SecuritySettings.EncryptionSettings = nil
 
 			err = client.CreateOrUpdateThenPoll(ctx, *id, *model, backupvaults.DefaultCreateOrUpdateOperationOptions())
 			if err != nil {
