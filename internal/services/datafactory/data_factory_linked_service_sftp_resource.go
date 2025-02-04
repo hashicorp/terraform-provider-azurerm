@@ -56,7 +56,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"authentication_type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice(linkedservices.PossibleValuesForSftpAuthenticationType(), false),
 			},
 
 			"host": {
@@ -73,14 +73,18 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"username": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Description:  "The user who has access to the SFTP server",
 				ValidateFunc: validation.StringIsNotEmpty,
+				AtLeastOneOf: []string{"password", "private_key_content", "private_key_path"},
 			},
 
 			"password": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Required:      false,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
+				AtLeastOneOf:  []string{"private_key_content", "private_key_path"},
 			},
 
 			"description": {
@@ -128,6 +132,28 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
+			},
+
+			"private_key_path": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"private_key_content", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"private_key_content": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Base64 encoded SSH private key content. SSH private key should be OpenSSH format",
+				ConflictsWith: []string{"private_key_path", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"passphrase": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
+				ConflictsWith: []string{"password"},
 			},
 		},
 	}
