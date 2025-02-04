@@ -78,10 +78,13 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
 	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
 
+	adoPipelineServiceConnectionID := getEnvStringOrDefault(data.ADOPipelineServiceConnectionID, "ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "")
+
 	oidcReqURL := getEnvStringOrDefault(data.OIDCRequestURL, "ARM_OIDC_REQUEST_URL", "")
 	if oidcReqURL == "" {
 		oidcReqURL = getEnvStringOrDefault(data.OIDCRequestURL, "ACTIONS_ID_TOKEN_REQUEST_URL", "")
 	}
+
 	oidcReqToken := getEnvStringOrDefault(data.OIDCRequestToken, "ARM_OIDC_REQUEST_TOKEN", "")
 	if oidcReqToken == "" {
 		oidcReqToken = getEnvStringOrDefault(data.OIDCRequestToken, "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
@@ -101,6 +104,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		OIDCAssertionToken:    *oidcToken,
 		OIDCTokenRequestURL:   oidcReqURL,
 		OIDCTokenRequestToken: oidcReqToken,
+
+		ADOPipelineServiceConnectionID: adoPipelineServiceConnectionID,
 
 		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 

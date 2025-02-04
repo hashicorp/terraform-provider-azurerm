@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceConnection() *pluginsdk.Resource {
@@ -118,18 +117,18 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	location := location.Normalize(managedAppId.LocationName)
 	model := connections.ApiConnectionDefinition{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
-				Id: utils.String(managedAppId.ID()),
+				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     utils.String(d.Get("display_name").(string)),
+			DisplayName:     pointer.To(d.Get("display_name").(string)),
 			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if v := d.Get("display_name").(string); v != "" {
-		model.Properties.DisplayName = utils.String(v)
+		model.Properties.DisplayName = pointer.To(v)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
