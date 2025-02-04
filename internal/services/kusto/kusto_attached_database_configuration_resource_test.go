@@ -6,8 +6,9 @@ package kusto_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
