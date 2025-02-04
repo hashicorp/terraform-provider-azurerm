@@ -156,7 +156,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 
 			"subnet_resource_id": {
 				Type: pluginsdk.TypeString,
-				// O + C as you don't have to specify it for Azure to assign one to the cluster
+				// NOTE: O + C as you don't have to specify it for Azure to assign one to the cluster
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -212,12 +212,6 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-	}
-
-	if workspaceModel.Properties != nil &&
-		workspaceModel.Properties.ManagedNetwork != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status.Status != nil {
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
