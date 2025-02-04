@@ -82,8 +82,6 @@ func TestAccKustoEventGridDataConnection_mappingRule(t *testing.T) {
 func TestAccKustoEventGridDataConnection_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventgrid_data_connection", "test")
 	r := KustoEventGridDataConnectionResource{}
-	fmt.Println(r.userAssignedIdentity(data))
-	t.Skip()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentity(data),
