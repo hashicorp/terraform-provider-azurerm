@@ -228,13 +228,3 @@ func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 }
-
-func flattenConnectionParameterValues(input *map[string]string) map[string]interface{} {
-	parameterValues := make(map[string]interface{})
-	if input != nil {
-		for k, v := range *input {
-			parameterValues[k] = v
-		}
-	}
-	return parameterValues
-}
