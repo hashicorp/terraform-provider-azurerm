@@ -133,7 +133,7 @@ func resource() *pluginsdk.Resource {
                 Type:       pluginsdk.TypeBool,
                 Optional:   true,
                 Computed:   !features.FivePointOh()  // Conditionally computed to avoid diffs when both properties are set into state
-                ConflictsWith: func() []string{          // Conditionally conflict with the deprecated property which will no longer exist in the next major release
+                ConflictsWith: func() []string{      // Conditionally conflict with the deprecated property which will no longer exist in the next major release
                 	if !features.FivePointOh() {
                 		return []string{"public_network_access_enabled"}
                     }      
