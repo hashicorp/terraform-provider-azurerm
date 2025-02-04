@@ -190,22 +190,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Asset.
 
-## Attributes Reference
-
-In addition to the Arguments listed above - the following Attributes are exported: 
-
-* `id` - The ID of the Asset.
-
-* `provisioning_state` - Provisioning state of the resource.
-
-* `status` - Read only object to reflect changes that have occurred on the Edge. Similar to Kubernetes status property for custom resources.
-
-* `type` - Azure resource type. Defaults to `Microsoft.DeviceRegistry/Assets`.
-
-* `uuid` - Globally unique, immutable, non-reusable id."
-
-* `version` - An integer that is incremented each time the resource is modified.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

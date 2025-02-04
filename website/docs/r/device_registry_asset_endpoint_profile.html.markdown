@@ -97,20 +97,6 @@ The following arguments are supported:
 
 * `x509_credentials_certificate_secret_name` - (Optional) The name of the secret containing the certificate and private key (e.g. stored as .der/.pem or .der/.pfx) for authentication mode Certificate.
 
-## Attributes Reference
-
-In addition to the Arguments listed above - the following Attributes are exported: 
-
-* `id` - The ID of the Asset Endpoint Profile.
-
-* `provisioning_state` - Provisioning state of the resource.
-
-* `status` - Read only object to reflect changes that have occurred on the Edge. Similar to Kubernetes status property for custom resources.
-
-* `type` - Azure resource type. Defaults to `Microsoft.DeviceRegistry/AssetEndpointProfiles`.
-
-* `uuid` - Globally unique, immutable, non-reusable id.
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
