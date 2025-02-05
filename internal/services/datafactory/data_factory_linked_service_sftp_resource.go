@@ -81,7 +81,6 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Required:     true,
 				Description:  "The user who has access to the SFTP server",
 				ValidateFunc: validation.StringIsNotEmpty,
-				AtLeastOneOf: []string{"password", "private_key_content", "private_key_path"},
 			},
 
 			"password": {
