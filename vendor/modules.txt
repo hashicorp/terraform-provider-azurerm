@@ -3,7 +3,6 @@
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security
@@ -309,7 +308,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles
+github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/rulesets
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/securitypolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01
