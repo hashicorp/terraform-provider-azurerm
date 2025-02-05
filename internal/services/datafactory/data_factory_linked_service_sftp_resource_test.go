@@ -33,6 +33,21 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateKeyContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
@@ -184,6 +199,36 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceSFTPResource) privateKeyContent(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "Basic"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  private_key_content = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICsAOqrYOIKq3/JQKWWyWRawxxawwKL4jDTlYKOAI1Y/ user@host"
+  pass_phrase         = "test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
