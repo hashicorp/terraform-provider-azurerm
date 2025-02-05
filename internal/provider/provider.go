@@ -240,7 +240,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"ado_pipeline_service_connection_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, false),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, nil),
 				Description: "The Azure DevOps Pipeline Service Connection ID.",
 			},
 

@@ -126,8 +126,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 			},
 
 			"ado_pipeline_service_connection_id": schema.StringAttribute{
-				Optional: true,
-				// DefaultFunc: schema.EnvDefaultFunc("ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", false),
+				Optional:    true,
 				Description: "The Azure DevOps Pipeline Service Connection ID.",
 			},
 
