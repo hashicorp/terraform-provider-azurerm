@@ -67,7 +67,7 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `password` - (Required if using Basic Authentication) Password to log on to the SFTP Server for Basic Authentication.
 
-* `private_key_content` - (Required if using `SshPublicKey` Authentication and not `private_key_path`) The private key content in OpenSSH format used to log on to the SFTP server.
+* `private_key_content` - (Required if using `SshPublicKey` Authentication and not `private_key_path`) The private key content in OpenSSH format or the URL of an Azure Key Vault Secret of the same used to log on to the SFTP server.
 
 * `private_key_path` - (Required if using `SshPublicKey` Authentication and not `private_key_content`) The path to the private key file in OpenSSH format used to log on to the SFTP server.
 
