@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas` Documentation
 
-The `replicas` SDK allows for interaction with Azure Resource Manager `appconfiguration` (API Version `2023-03-01`).
+The `replicas` SDK allows for interaction with Azure Resource Manager `appconfiguration` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 ```
 
 
