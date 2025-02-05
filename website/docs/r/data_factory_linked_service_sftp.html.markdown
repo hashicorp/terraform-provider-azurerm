@@ -57,7 +57,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to SFTP Linked Service:
 
-* `authentication_type` - (Required) The type of authentication used to connect to the web table source. Valid options are `Anonymous`, `Basic` and `ClientCertificate`.
+* `authentication_type` - (Required) The type of authentication used to connect to the web table source. Valid options are `MultiFactor`, `Basic` and `SshPublicKey`.
 
 * `host` - (Required) The SFTP server hostname.
 
@@ -65,7 +65,11 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `username` - (Required) The username used to log on to the SFTP server.
 
-* `password` - (Required) Password to logon to the SFTP Server for Basic Authentication.
+* `password` - (Required if using Basic Authentication) Password to log on to the SFTP Server for Basic Authentication.
+
+* `private_key_content` - (Required if using `SshPublicKey` Authentication and not `private_key_path`) The private key content in OpenSSH format used to log on to the SFTP server.
+
+* `private_key_path` - (Required if using `SshPublicKey` Authentication and not `private_key_content`) The path to the private key file in OpenSSH format used to log on to the SFTP server.
 
 * `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
 

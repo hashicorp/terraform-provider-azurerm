@@ -6,7 +6,6 @@ package datafactory
 import (
 	"fmt"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -23,9 +22,6 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
-	privateKeyRegex := regexp.MustCompile(`ssh-(ed25519|rsa|dss|ecdsa) AAAA(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})( [^@]+@[^@]+)?
-`)
-
 	return &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceSFTPCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceSFTPRead,
@@ -150,7 +146,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Description:   "Base64 encoded SSH private key content. SSH private key should be OpenSSH format",
-				ValidateFunc:  validation.StringMatch(privateKeyRegex, "Provided key content is not in OpenSSH format"),
+				ValidateFunc:  validate.PrivateSSHKey,
 				ConflictsWith: []string{"private_key_path", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
