@@ -241,13 +241,15 @@ var MachineLearningAttributes = map[string]attr.Type{
 }
 
 type RecoveryService struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy types.Bool `tfsdk:"vm_backup_stop_protection_and_retain_data_on_destroy"`
-	PurgeProtectedItemsFromVaultOnDestroy        types.Bool `tfsdk:"purge_protected_items_from_vault_on_destroy"`
+	VMBackupStopProtectionAndRetainDataOnDestroy    types.Bool `tfsdk:"vm_backup_stop_protection_and_retain_data_on_destroy"`
+	VMBackupSuspendProtectionAndRetainDataOnDestroy types.Bool `tfsdk:"vm_backup_suspend_protection_and_retain_data_on_destroy"`
+	PurgeProtectedItemsFromVaultOnDestroy           types.Bool `tfsdk:"purge_protected_items_from_vault_on_destroy"`
 }
 
 var RecoveryServiceAttributes = map[string]attr.Type{
-	"vm_backup_stop_protection_and_retain_data_on_destroy": types.BoolType,
-	"purge_protected_items_from_vault_on_destroy":          types.BoolType,
+	"vm_backup_stop_protection_and_retain_data_on_destroy":    types.BoolType,
+	"vm_backup_suspend_protection_and_retain_data_on_destroy": types.BoolType,
+	"purge_protected_items_from_vault_on_destroy":             types.BoolType,
 }
 
 type RecoveryServiceVaults struct {

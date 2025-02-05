@@ -21,7 +21,7 @@ import (
 type SpacecraftResource struct{}
 
 func TestAccSpacecraft_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
@@ -39,7 +39,7 @@ func TestAccSpacecraft_basic(t *testing.T) {
 }
 
 func TestAccSpacecraft_update(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
@@ -63,7 +63,7 @@ func TestAccSpacecraft_update(t *testing.T) {
 }
 
 func TestAccSpacecraft_complete(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
