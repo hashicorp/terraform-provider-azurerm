@@ -203,10 +203,14 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
 	}
 
+	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
+		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
+	}
+
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 	if _, ok := d.GetOk("express_route_port_id"); ok {
 		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
-	} else {
+	} else {C
 		erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
 	}
 
