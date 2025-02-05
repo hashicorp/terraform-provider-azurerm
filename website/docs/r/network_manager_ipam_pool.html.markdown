@@ -31,11 +31,11 @@ resource "azurerm_network_manager" "example" {
 }
 
 resource "azurerm_network_manager_ipam_pool" "example" {
-  name = "example-ipam-pool"
-  location = "West Europe"
+  name               = "example-ipam-pool"
+  location           = "West Europe"
   network_manager_id = azurerm_network_manager.example.id
-  display_name = "example-pool"
-  address_prefixes = [ "10.0.0.0/24" ]
+  display_name       = "example-pool"
+  address_prefixes   = ["10.0.0.0/24"]
 }
 ```
 
