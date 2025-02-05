@@ -86,7 +86,7 @@ func resourceRouteServer() *pluginsdk.Resource {
 			"hub_routing_preference": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualwans.HubRoutingPreferenceASPath),
 					string(virtualwans.HubRoutingPreferenceExpressRoute),
