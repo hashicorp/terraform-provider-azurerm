@@ -490,6 +490,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticatingUsingManagedIdentity:   enableManagedIdentity,
 			EnableAuthenticationUsingOIDC:              enableOidc,
 			EnableAuthenticationUsingGitHubOIDC:        enableOidc,
+			EnableAuthenticationUsingADOPipelineOIDC:   enableOidc,
 		}
 
 		return buildClient(ctx, p, d, authConfig)
