@@ -14,8 +14,8 @@ Use this data source to access information about an existing Stack HCI Logical N
 
 ```hcl
 data "azurerm_stack_hci_logical_network" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-hci-logical-network-name"
+  resource_group_name = "example-rg"
 }
 
 output "id" {
@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Stack HCI Logical Network. Changing this forces a new Stack HCI Logical Network to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Stack HCI Logical Network exists. Changing this forces a new Stack HCI Logical Network to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Stack HCI Logical Network exists.
 
 ## Attributes Reference
 
@@ -86,4 +86,3 @@ A `subnet` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stack HCI Logical Network.
-
