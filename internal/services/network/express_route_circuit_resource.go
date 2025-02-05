@@ -210,7 +210,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 	if _, ok := d.GetOk("express_route_port_id"); ok {
 		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
-	} else {C
+	} else {
 		erc.Properties.ServiceProviderProperties = &expressroutecircuits.ExpressRouteCircuitServiceProviderProperties{}
 	}
 
