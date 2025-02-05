@@ -110,13 +110,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOh() {
-		res.Schema["subplan"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-		}
-	}
-
 	return res
 }
 
