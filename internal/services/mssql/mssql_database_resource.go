@@ -1197,8 +1197,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("license_type", d.Get("license_type").(string))
 			}
 
-			// Get it from config as the API returns not the specified value but the maximum value.
-			d.Set("max_size_gb", d.Get("max_size_gb").(float64))
+			// when `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
+			// directly set `max_size_gb` when API returns `104857600` or `524288000`.
+			size := float64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
+			switch pointer.From(props.MaxSizeBytes) {
+			case 104857600:
+				size = 0.1
+			case 524288000:
+				size = 0.5
+			}
+			d.Set("max_size_gb", size)
 
 			if props.CurrentServiceObjectiveName != nil {
 				skuName = *props.CurrentServiceObjectiveName
