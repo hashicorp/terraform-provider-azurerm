@@ -14,8 +14,8 @@ Use this data source to access information about an existing Stack HCI Storage P
 
 ```hcl
 data "azurerm_stack_hci_storage_path" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-hci-storage-path-name"
+  resource_group_name = "example-rg"
 }
 
 output "id" {
@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Stack HCI Storage Path.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Stack HCI Storage Path exists. Changing this forces a new Stack HCI Storage Path to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Stack HCI Storage Path exists.
 
 ## Attributes Reference
 
@@ -50,4 +50,3 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stack HCI Storage Path.
-

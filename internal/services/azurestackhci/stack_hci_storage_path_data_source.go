@@ -49,7 +49,7 @@ func (r StackHCIStoragePathDataSource) Arguments() map[string]*pluginsdk.Schema 
 			),
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
@@ -88,7 +88,7 @@ func (r StackHCIStoragePathDataSource) Read() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("%s does not exist", id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
