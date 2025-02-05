@@ -349,12 +349,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -370,7 +370,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlsweb%[1]d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "SshPublicKey"
   host                = "http://www.bing.com"
@@ -380,7 +380,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                       = "examplekeyvault"
+  name                       = "%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = azurerm_data_factory.test.identity[0].tenant_id
@@ -403,12 +403,12 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_secret" "example" {
   name         = "ssh-key"
   value        = <<EOF
-%s
+%[3]s
 EOF
 
   key_vault_id = azurerm_key_vault.example.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateKey)
+`, data.RandomInteger, data.Locations.Primary, privateKey)
 }
 
 func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData, privateKeyPath string) string {
