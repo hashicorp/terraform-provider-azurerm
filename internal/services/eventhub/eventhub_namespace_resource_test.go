@@ -476,7 +476,7 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")

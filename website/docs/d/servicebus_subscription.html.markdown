@@ -33,7 +33,7 @@ output "servicebus_subscription" {
 
 * `max_delivery_count` - The maximum number of deliveries.
 
-* `auto_delete_on_idle` - The idle interval after which the topic is automatically deleted.
+* `auto_delete_on_idle` - The idle interval after which the Subscription is automatically deleted.
 
 * `default_message_ttl` - The Default message timespan to live. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 

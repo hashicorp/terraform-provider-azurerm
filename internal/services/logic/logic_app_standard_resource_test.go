@@ -50,6 +50,8 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Config: r.publicNetworkAccess(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -57,6 +59,17 @@ func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
 			Config: r.publicNetworkAccess(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -946,7 +959,7 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 }
 
 func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping since `site_config.public_network_access_enabled` is removed in v5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")

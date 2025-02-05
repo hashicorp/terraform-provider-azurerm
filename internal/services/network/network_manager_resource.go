@@ -358,10 +358,11 @@ func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNe
 }
 
 func flattenNetworkManagerScopeAccesses(input *[]networkmanagers.ConfigurationType) []string {
+	result := make([]string, 0)
 	if input == nil {
-		return make([]string, 0)
+		return result
 	}
-	result := make([]string, 0, len(*input))
+
 	for _, v := range *input {
 		result = append(result, string(v))
 	}

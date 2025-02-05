@@ -62,6 +62,7 @@ func TestAccCommunicationService_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("hostname").Exists(),
 			),
 		},
 		data.ImportStep(),

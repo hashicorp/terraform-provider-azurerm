@@ -86,7 +86,7 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 

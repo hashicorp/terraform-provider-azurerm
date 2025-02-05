@@ -112,13 +112,12 @@ func TestAccNetorkManagerIpamPool_complete(t *testing.T) {
 }
 
 func (r ManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	clusterClient := client.Network.IPamPools
 	id, err := ipampools.ParseIPamPoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clusterClient.Get(ctx, *id)
+	resp, err := client.Network.IPamPools.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

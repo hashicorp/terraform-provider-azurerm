@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_manager_ipam_pool"
 description: |-
-  Manages a Network Manager IPAM Pool.
+  Manages a Network Manager IP Address Management(IPAM) Pool.
 ---
 
 # azurerm_network_manager_ipam_pool
 
-Manages a Network Manager IPAM Pool.
+Manages a Network Manager IP Address Management(IPAM) Pool.
 
 ## Example Usage
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Network Manager IPAM Pool.
 

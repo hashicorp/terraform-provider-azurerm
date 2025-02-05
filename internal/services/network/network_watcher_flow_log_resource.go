@@ -79,6 +79,8 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(
 					networksecuritygroups.ValidateNetworkSecurityGroupID,
 					commonids.ValidateVirtualNetworkID,
+					commonids.ValidateSubnetID,
+					commonids.ValidateNetworkInterfaceID,
 				),
 			},
 
@@ -175,7 +177,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -216,7 +218,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -317,7 +319,7 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -422,9 +424,13 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				targetIsNSG = true
 			} else if vnetId, err := commonids.ParseVirtualNetworkIDInsensitively(props.TargetResourceId); err == nil {
 				targetResourceId = vnetId.ID()
+			} else if subnetId, err := commonids.ParseSubnetIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = subnetId.ID()
+			} else if nicId, err := commonids.ParseNetworkInterfaceIDInsensitively(props.TargetResourceId); err == nil {
+				targetResourceId = nicId.ID()
 			}
 
-			if !features.FivePointOhBeta() && targetIsNSG {
+			if !features.FivePointOh() && targetIsNSG {
 				d.Set("network_security_group_id", targetResourceId)
 			}
 
