@@ -470,7 +470,9 @@ service/purview:
     - internal/services/purview/**/*
 
 service/qumulo:
-  - internal/services/qumulo/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
 
 service/recovery-services:
 - changed-files:

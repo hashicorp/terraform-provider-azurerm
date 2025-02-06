@@ -12,7 +12,6 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-
 	fileSystemsClient, err := filesystems.NewFileSystemsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building FileSystems client: %+v", err)

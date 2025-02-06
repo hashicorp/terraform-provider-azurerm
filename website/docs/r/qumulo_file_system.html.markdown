@@ -3,12 +3,12 @@ subcategory: "Qumulo"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_qumulo_file_system"
 description: |-
-  Manages a File System.
+  Manages a Azure Native Qumulo Scalable File System.
 ---
 
 # azurerm_qumulo_file_system
 
-Manages a Qumulo File System.
+Manages a Azure Native Qumulo Scalable File System.
 
 ## Example Usage
 
@@ -47,7 +47,6 @@ resource "azurerm_qumulo_file_system" "example" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.example.id
-  initial_capacity    = 21
   marketplace_plan_id = "qumulo-on-azure-v1%%gmz7xq9ge3py%%P1M"
   storage_sku         = "Standard"
   user_email_address  = "test@test.com"
@@ -61,19 +60,17 @@ resource "azurerm_qumulo_file_system" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of this Qumulo File System resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of this Azure Native Qumulo Scalable File System resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Qumulo File System should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Azure Native Qumulo Scalable File System should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Qumulo File System should exist. Changing this forces a new resource to be created.
- 
-* `admin_password` - (Required) Initial administrator password of the Qumulo File System. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Azure Native Qumulo Scalable File System should exist. Changing this forces a new resource to be created.
 
-* `initial_capacity` - (Required) Storage capacity in TB. Changing this forces a new resource to be created.
+* `admin_password` - (Required) Initial administrator password of the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
 
 * `marketplace_plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
 
-* `storage_sku` - (Required) Storage Sku. Possible values are `Performance` and `Standard`. Changing this forces a new resource to be created.
+* `storage_sku` - (Required) The storage Sku. Possible values are `Cold_LRS`, `Hot_LRS` and `Hot_ZRS`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
 
@@ -95,10 +92,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating this File System.
-* `delete` - (Defaults to 60 minutes) Used when deleting this File System.
-* `read` - (Defaults to 5 minutes) Used when retrieving this File System.
-* `update` - (Defaults to 90 minutes) Used when updating this File System.
+* `create` - (Defaults to 90 minutes) Used when creating this Azure Native Qumulo Scalable File System.
+* `delete` - (Defaults to 60 minutes) Used when deleting this Azure Native Qumulo Scalable File System.
+* `read` - (Defaults to 5 minutes) Used when retrieving this Azure Native Qumulo Scalable File System.
+* `update` - (Defaults to 90 minutes) Used when updating this Azure Native Qumulo Scalable File System.
 
 ## Import
 

@@ -38,7 +38,6 @@ func (r FileSystemResource) ModelObject() interface{} {
 
 type FileSystemResourceSchema struct {
 	AdminPassword     string                 `tfschema:"admin_password"`
-	InitialCapacity   int64                  `tfschema:"initial_capacity"`
 	Location          string                 `tfschema:"location"`
 	MarketplacePlanId string                 `tfschema:"marketplace_plan_id"`
 	Name              string                 `tfschema:"name"`
@@ -76,25 +75,23 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 
-		"initial_capacity": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IntBetween(18, 1000),
-		},
-
 		"marketplace_plan_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// the value includes but is not limitted to ["azure-native-qumulo-v3"]
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"storage_sku": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(filesystems.PossibleValuesForStorageSku(), false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Cold_LRS",
+				"Hot_LRS",
+				"Hot_ZRS",
+			}, false),
 		},
 
 		"subnet_id": {
@@ -111,7 +108,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"zone": commonschema.ZoneSingleOptionalForceNew(),
+		"zone": commonschema.ZoneSingleRequiredForceNew(),
 
 		"location": commonschema.Location(),
 
@@ -153,22 +150,21 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			payload := filesystems.FileSystemResource{
+			payload := filesystems.LiftrBaseStorageFileSystemResource{
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
-				Properties: filesystems.FileSystemResourceProperties{
+				Properties: &filesystems.LiftrBaseStorageFileSystemResourceProperties{
 					AdminPassword:     config.AdminPassword,
 					AvailabilityZone:  pointer.To(config.Zone),
 					DelegatedSubnetId: config.SubnetId,
-					InitialCapacity:   config.InitialCapacity,
-					StorageSku:        filesystems.StorageSku(config.StorageSku),
-					UserDetails: filesystems.UserDetails{
+					StorageSku:        config.StorageSku,
+					UserDetails: filesystems.LiftrBaseUserDetails{
 						Email: config.UserEmailAddress,
 					},
-					MarketplaceDetails: filesystems.MarketplaceDetails{
+					MarketplaceDetails: filesystems.LiftrBaseMarketplaceDetails{
 						OfferId:     offerId,
 						PlanId:      config.MarketplacePlanId,
-						PublisherId: publisherId,
+						PublisherId: pointer.To(publisherId),
 					},
 				},
 			}
@@ -213,9 +209,8 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				// model.Properties and model.Properties.MarketplaceDetails is not pointer, so we don't need to check nil
 				config.Zone = pointer.From(model.Properties.AvailabilityZone)
-				config.InitialCapacity = model.Properties.InitialCapacity
 				config.MarketplacePlanId = model.Properties.MarketplaceDetails.PlanId
-				config.StorageSku = string(model.Properties.StorageSku)
+				config.StorageSku = model.Properties.StorageSku
 				config.Location = location.Normalize(model.Location)
 				config.Tags = tags.Flatten(model.Tags)
 
@@ -267,7 +262,7 @@ func (r FileSystemResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			payload := filesystems.FileSystemResourceUpdate{}
+			payload := filesystems.LiftrBaseStorageFileSystemResourceUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = tags.Expand(config.Tags)
