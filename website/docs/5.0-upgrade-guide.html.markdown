@@ -143,7 +143,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_mssql_virtual_machine`
 
-* The deprecated `encryption_enabled` property has been removed.
+* The deprecated `auto_backup.encryption_enabled` property has been removed.
 
 ## Breaking Changes in Data Sources
 

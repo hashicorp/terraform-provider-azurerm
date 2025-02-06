@@ -5,7 +5,6 @@ package mssql
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"regexp"
@@ -481,12 +480,6 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 		return d.ForceNew("auto_backup")
 	}
 
-	// Check access_key is base64 string
-	if storage_account_access_key, ok := d.GetOk("auto_backup.0.storage_account_access_key"); ok {
-		_, err := base64.StdEncoding.DecodeString(storage_account_access_key.(string))
-		if err != nil {
-			return fmt.Errorf("auto_backup: `storage_account_access_key` should be a Storage Account Access Key (base64 string)")
-		}
 	}
 
 	return nil
@@ -853,10 +846,10 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 		}
 
 		if v, ok := config["encryption_password"]; ok && v.(string) != "" {
-			ret.EnableEncryption = utils.Bool(true)
+			ret.EnableEncryption = pointer.To(true)
 			ret.Password = utils.String(v.(string))
 		} else {
-			ret.EnableEncryption = utils.Bool(false)
+			ret.EnableEncryption = pointer.To(false)
 		}
 
 		if v, ok := config["system_databases_backup_enabled"]; ok {
