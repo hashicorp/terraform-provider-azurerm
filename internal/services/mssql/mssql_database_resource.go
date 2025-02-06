@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -119,7 +119,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
@@ -135,7 +135,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []armsql.ReplicationRole{armsql.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -236,7 +236,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	skuName := d.Get("sku_name").(string)
 	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []armsql.ReplicationRole{armsql.ReplicationRoleSecondary, armsql.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -644,7 +644,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -829,7 +829,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []armsql.ReplicationRole{armsql.ReplicationRoleSecondary, armsql.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}

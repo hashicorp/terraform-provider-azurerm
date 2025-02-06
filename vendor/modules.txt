@@ -14,6 +14,39 @@ github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/back
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
+# github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.0
+## explicit; go 1.18
+github.com/Azure/azure-sdk-for-go/sdk/azcore
+github.com/Azure/azure-sdk-for-go/sdk/azcore/arm
+github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/internal/resource
+github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/policy
+github.com/Azure/azure-sdk-for-go/sdk/azcore/arm/runtime
+github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/exported
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/log
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers/async
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers/body
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers/fake
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers/loc
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/pollers/op
+github.com/Azure/azure-sdk-for-go/sdk/azcore/internal/shared
+github.com/Azure/azure-sdk-for-go/sdk/azcore/log
+github.com/Azure/azure-sdk-for-go/sdk/azcore/policy
+github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime
+github.com/Azure/azure-sdk-for-go/sdk/azcore/tracing
+# github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.0
+## explicit; go 1.18
+github.com/Azure/azure-sdk-for-go/sdk/internal/diag
+github.com/Azure/azure-sdk-for-go/sdk/internal/errorinfo
+github.com/Azure/azure-sdk-for-go/sdk/internal/exported
+github.com/Azure/azure-sdk-for-go/sdk/internal/log
+github.com/Azure/azure-sdk-for-go/sdk/internal/poller
+github.com/Azure/azure-sdk-for-go/sdk/internal/temporal
+github.com/Azure/azure-sdk-for-go/sdk/internal/uuid
+# github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql v1.2.0
+## explicit; go 1.18
+github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql
 # github.com/Azure/go-autorest v14.2.0+incompatible
 ## explicit
 github.com/Azure/go-autorest
@@ -1008,6 +1041,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyas
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys
@@ -1426,8 +1460,6 @@ github.com/jackofallops/kermit/sdk/web/2022-09-01/web
 github.com/jackofallops/kermit/version
 # github.com/kr/pretty v0.3.0
 ## explicit; go 1.12
-# github.com/kylelemons/godebug v1.1.0
-## explicit; go 1.11
 # github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20220407025246-3a3ee0ab24a8
 ## explicit; go 1.16
 github.com/magodo/terraform-provider-azurerm-example-gen/examplegen
