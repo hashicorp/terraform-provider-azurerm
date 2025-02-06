@@ -28,10 +28,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
@@ -76,13 +78,6 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"encryption_enabled": {
-							Type:       pluginsdk.TypeBool,
-							Optional:   true,
-							Default:    false,
-							Deprecated: "This argument is no longer used. Encryption is enabled when encryption_password is set; otherwise disabled.",
-						},
-
 						"encryption_password": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -160,7 +155,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"storage_account_access_key": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"system_databases_backup_enabled": {
@@ -470,6 +465,17 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["auto_backup"].Elem.(*pluginsdk.Resource).Schema["encryption_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "This argument is no longer used. Encryption is enabled when encryption_password is set; otherwise disabled.",
+		}
+	}
+
+	return resource
 }
 
 func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -478,8 +484,6 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 	old, new := d.GetChange("auto_backup")
 	if len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0 {
 		return d.ForceNew("auto_backup")
-	}
-
 	}
 
 	return nil
