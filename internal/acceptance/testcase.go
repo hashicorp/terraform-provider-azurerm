@@ -168,7 +168,7 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
-	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm")
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm", "azurerm-alt")
 
 	resource.ParallelTest(t, testCase)
 }
@@ -185,6 +185,10 @@ func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 		"azuread": {
 			VersionConstraint: "=2.47.0",
 			Source:            "registry.terraform.io/hashicorp/azuread",
+		},
+		"random": {
+			VersionConstraint: "=3.6.3",
+			Source:            "registry.terraform.io/hashicorp/random",
 		},
 		"time": {
 			VersionConstraint: "=0.9.1",

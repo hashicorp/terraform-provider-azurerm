@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_software_update_configuration
 
-Manages an Automation Software Update Configuraion.
+Manages an Automation Software Update Configuration.
 
 ## Example Usage
 

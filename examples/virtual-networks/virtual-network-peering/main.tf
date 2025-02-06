@@ -17,8 +17,8 @@ resource "azurerm_virtual_network" "first" {
   address_space       = ["10.0.0.0/24"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.0.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.0.0/24"]
   }
 }
 
@@ -29,8 +29,8 @@ resource "azurerm_virtual_network" "second" {
   address_space       = ["192.168.0.0/24"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "192.168.0.0/24"
+    name             = "subnet1"
+    address_prefixes = ["192.168.0.0/24"]
   }
 }
 

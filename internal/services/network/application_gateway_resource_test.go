@@ -1678,6 +1678,18 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
   }
+
+  rewrite_rule_set {
+    name = "add_headers_for_signin"
+    rewrite_rule {
+      name          = "SetHeaders"
+      rule_sequence = 100
+      request_header_configuration {
+        header_name  = "X-Forwarded-Prefix"
+        header_value = "/adminportal"
+      }
+    }
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

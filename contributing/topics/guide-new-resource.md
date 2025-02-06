@@ -62,7 +62,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		GroupsClient: groupsClient,
-	}
+	}, nil
 }
 ```
 
@@ -166,6 +166,14 @@ func (ResourceGroupExampleResource) ResourceType() string {
 
 These functions define a Resource called `azurerm_resource_group_example`, which has two Required arguments (`name` and `location`) and one Optional argument (`tags`). We'll come back to `ModelObject` later.
 
+Schema fields should be ordered as follows:
+
+1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`)
+2. The `location` field.
+3. Required fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically.
+5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
+
 ---
 
 Let's start by implementing the Create function:
@@ -237,7 +245,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Resource.GroupsClient
 
 			// parse the existing Resource ID from the State
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Get("id").(string))
+			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -249,7 +257,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			// update the Resource Group
 			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
 			// API and then conditionally updating it when fields in the config have been updated, which
-			// can be determined by using `d.HasChanges` - for example:
+			// can be determined by using `metadata.ResourceData.HasChange` - for example:
 			//
 			//   existing, err := client.Get(ctx, *id)
 			//   if err != nil {
@@ -265,13 +273,13 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 			//      return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			//   }
 			//
-			//   if d.HasChanges("tags") {
-			//     existing.Model.Properties.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			//   if metadata.ResourceData.HasChange("tags") {
+			//     existing.Model.Properties.Tags = tags.Expand(config.Tags)
 			//   }
 			//
 			// doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
 			//
-			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
+			// However since a Resource Group only has one field which is updatable (tags) we'll only
 			// enter the update function if `tags` has been updated.
 			param := resources.Group{
 				Location: pointer.To(location.Normalize(config.Location)),
@@ -453,7 +461,7 @@ func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return &ResourceGroupExampleResourceModel
+	return &ResourceGroupExampleResourceModel{}
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
@@ -501,7 +509,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.GroupsClient
 
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Get("id").(string))
+			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -681,46 +689,61 @@ In Go tests are expected to be in a file name in the format `{original_file_name
 package resource_test
 
 import (
-    "context"
-    "fmt"
-    "testing"
+	"context"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupExampleTestResource struct{}
 
 func TestAccResourceGroupExample_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.RequiresImportErrorStep(testResource.requiresImportConfig),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccResourceGroupExample_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.completeConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.completeConfig, testResource),
+	r := ResourceGroupExampleTestResource{}
+	
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -739,7 +762,7 @@ func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupExampleTestResource) basicConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -752,8 +775,8 @@ resource "azurerm_resource_group_example" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ResourceGroupExampleTestResource) requiresImportConfig(data acceptance.TestData) string {
-	template := r.basicConfig(data)
+func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -764,7 +787,7 @@ resource "azurerm_resource_group_example" "import" {
 `, template)
 }
 
-func (ResourceGroupExampleTestResource) completeConfig(data acceptance.TestData) string {
+func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

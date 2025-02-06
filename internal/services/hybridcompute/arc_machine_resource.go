@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/machines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,10 +20,12 @@ import (
 )
 
 type ArcMachineResourceModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	Location          string `tfschema:"location"`
-	Kind              string `tfschema:"kind"`
+	Name              string                         `tfschema:"name"`
+	ResourceGroupName string                         `tfschema:"resource_group_name"`
+	Location          string                         `tfschema:"location"`
+	Kind              string                         `tfschema:"kind"`
+	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
+	Tags              map[string]string              `tfschema:"tags"`
 }
 
 type ArcMachineResource struct{}
@@ -58,6 +61,10 @@ func (r ArcMachineResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(machines.PossibleValuesForArcKindEnum(), false),
 		},
+
+		"identity": commonschema.SystemAssignedIdentityOptional(),
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -92,6 +99,12 @@ func (r ArcMachineResource) Create() sdk.ResourceFunc {
 			parameters := machines.Machine{
 				Location: location.Normalize(model.Location),
 				Kind:     pointer.To(machines.ArcKindEnum(model.Kind)),
+				Tags:     pointer.To(model.Tags),
+			}
+
+			parameters.Identity, err = identity.ExpandSystemAssignedFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters, machines.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -130,9 +143,56 @@ func (r ArcMachineResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Kind = string(pointer.From(model.Kind))
+				state.Identity = identity.FlattenSystemAssignedToModel(model.Identity)
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r ArcMachineResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.HybridCompute.HybridComputeClient_v2024_07_10.Machines
+
+			var model ArcMachineResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id, err := machines.ParseMachineID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id, machines.DefaultGetOperationOptions())
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			payload := resp.Model
+
+			if metadata.ResourceData.HasChange("identity") {
+				payload.Identity, err = identity.ExpandSystemAssignedFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *payload, machines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			return nil
 		},
 	}
 }
