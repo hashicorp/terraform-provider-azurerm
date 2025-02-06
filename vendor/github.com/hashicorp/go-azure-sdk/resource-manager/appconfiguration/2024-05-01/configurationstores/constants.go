@@ -50,6 +50,47 @@ func parseActionsRequired(input string) (*ActionsRequired, error) {
 	return &out, nil
 }
 
+type AuthenticationMode string
+
+const (
+	AuthenticationModeLocal               AuthenticationMode = "Local"
+	AuthenticationModePassNegativethrough AuthenticationMode = "Pass-through"
+)
+
+func PossibleValuesForAuthenticationMode() []string {
+	return []string{
+		string(AuthenticationModeLocal),
+		string(AuthenticationModePassNegativethrough),
+	}
+}
+
+func (s *AuthenticationMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAuthenticationMode(input string) (*AuthenticationMode, error) {
+	vals := map[string]AuthenticationMode{
+		"local":        AuthenticationModeLocal,
+		"pass-through": AuthenticationModePassNegativethrough,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AuthenticationMode(input)
+	return &out, nil
+}
+
 type ConnectionStatus string
 
 const (
@@ -135,6 +176,47 @@ func parseCreateMode(input string) (*CreateMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := CreateMode(input)
+	return &out, nil
+}
+
+type PrivateLinkDelegation string
+
+const (
+	PrivateLinkDelegationDisabled PrivateLinkDelegation = "Disabled"
+	PrivateLinkDelegationEnabled  PrivateLinkDelegation = "Enabled"
+)
+
+func PossibleValuesForPrivateLinkDelegation() []string {
+	return []string{
+		string(PrivateLinkDelegationDisabled),
+		string(PrivateLinkDelegationEnabled),
+	}
+}
+
+func (s *PrivateLinkDelegation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkDelegation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateLinkDelegation(input string) (*PrivateLinkDelegation, error) {
+	vals := map[string]PrivateLinkDelegation{
+		"disabled": PrivateLinkDelegationDisabled,
+		"enabled":  PrivateLinkDelegationEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkDelegation(input)
 	return &out, nil
 }
 
