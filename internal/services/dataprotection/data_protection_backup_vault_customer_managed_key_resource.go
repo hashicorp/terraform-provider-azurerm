@@ -6,6 +6,7 @@ package dataprotection
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -161,43 +162,9 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Read() sdk.Resource
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DataProtection.BackupVaultClient
-
-			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			locks.ByID(id.ID())
-			defer locks.UnlockByID(id.ID())
-
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("%s was not found", *id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: `model` is nil", *id)
-			}
-
-			if model.Properties.SecuritySettings == nil || model.Properties.SecuritySettings.EncryptionSettings == nil ||
-				model.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties == nil || model.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties.KeyUri == nil {
-				return fmt.Errorf("customer managed key for %s does not exist", *id)
-			}
-
-			model.Properties.SecuritySettings.EncryptionSettings = nil
-
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *model, backupvaults.DefaultCreateOrUpdateOperationOptions())
-			if err != nil {
-				return fmt.Errorf("deleting Data Protection Backup Vault Customer Managed Key for %s: %+v", *id, err)
-			}
-
+			log.Printf(`[INFO] Customer Managed Keys cannot be removed from Data Protection Backup Vaults once added. To remove the Customer Managed Key delete and recreate the parent Data Protection Backup Vault`)
 			return nil
 		},
 	}
