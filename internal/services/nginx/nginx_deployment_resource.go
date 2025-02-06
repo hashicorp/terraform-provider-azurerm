@@ -77,6 +77,7 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
 	// Deprecated: remove in next major version
 	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
 	Tags          map[string]string `tfschema:"tags"`
@@ -235,7 +236,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource["managed_resource_group"] = &pluginsdk.Schema{
 			Deprecated:   "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
@@ -274,6 +275,10 @@ func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"ip_address": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"dataplane_api_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -322,7 +327,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if len(model.LoggingStorageAccount) > 0 {
 					prop.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{
@@ -462,9 +467,10 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					output.IpAddress = pointer.ToString(props.IPAddress)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
-					if !features.FivePointOhBeta() {
+					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
@@ -575,7 +581,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 					req.Properties.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{

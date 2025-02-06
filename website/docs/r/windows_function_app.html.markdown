@@ -59,7 +59,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Windows Function App. Changing this forces a new Windows Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
+* `resource_group_name` - (Required) The na
+* 
+* me of the Resource Group where the Windows Function App should exist. Changing this forces a new Windows Function App to be created.
 
 * `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
