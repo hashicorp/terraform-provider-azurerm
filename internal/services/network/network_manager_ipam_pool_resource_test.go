@@ -15,7 +15,7 @@ import (
 
 type ManagerIpamPoolResource struct{}
 
-func TestAccNetorkManagerIpamPool_basic(t *testing.T) {
+func testAccNetorkManagerIpamPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -30,7 +30,7 @@ func TestAccNetorkManagerIpamPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetorkManagerIpamPool_basicIpv6(t *testing.T) {
+func testAccNetorkManagerIpamPool_basicIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -45,7 +45,7 @@ func TestAccNetorkManagerIpamPool_basicIpv6(t *testing.T) {
 	})
 }
 
-func TestAccNetorkManagerIpamPool_update(t *testing.T) {
+func testAccNetorkManagerIpamPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -81,7 +81,7 @@ func TestAccNetorkManagerIpamPool_update(t *testing.T) {
 	})
 }
 
-func TestAccNetorkManagerIpamPool_requiresImport(t *testing.T) {
+func testAccNetorkManagerIpamPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -96,7 +96,7 @@ func TestAccNetorkManagerIpamPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetorkManagerIpamPool_complete(t *testing.T) {
+func testAccNetorkManagerIpamPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 

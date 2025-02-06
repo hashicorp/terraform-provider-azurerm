@@ -95,6 +95,13 @@ func TestAccNetworkManager(t *testing.T) {
 			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
 		},
+		"IPAMPool": {
+			"basic":          testAccNetorkManagerIpamPool_basic,
+			"basicIPv6":      testAccNetorkManagerIpamPool_basicIPv6,
+			"complete":       testAccNetorkManagerIpamPool_complete,
+			"update":         testAccNetorkManagerIpamPool_update,
+			"requiresImport": testAccNetorkManagerIpamPool_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
