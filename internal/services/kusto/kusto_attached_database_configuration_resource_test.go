@@ -191,7 +191,7 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   cluster_name        = azurerm_kusto_cluster.cluster1.name
-  cluster_resource_id = azurerm_kusto_cluster.cluster2.id   ### <-- Testing this deprecated property
+  cluster_resource_id = azurerm_kusto_cluster.cluster2.id ### <-- Testing this deprecated property
   database_name       = azurerm_kusto_database.test.name
 
   sharing {
