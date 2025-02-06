@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name      = azurerm_resource_group.example.name
   sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
   location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
   diagnose_support_enabled = true
 
   frontend_public {
@@ -149,6 +148,14 @@ A `protected_file` (Protected File) block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Nginx Configuration.
+
+* `protected_file` - Zero or more `protected_file` blocks with sensitive information as defined below.
+
+---
+
+A `protected_file` block exports the following:
+
+* `content_hash` - The hash of the contents of this configuration file prefixed by the algorithm used.
 
 ## Timeouts
 
