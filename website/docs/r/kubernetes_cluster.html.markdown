@@ -10,6 +10,8 @@ description: |-
 
 Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
+!> **Note:** As per Microsoft's AKS preview API [deprecation plan](https://learn.microsoft.com/en-us/azure/aks/concepts-preview-api-life-cycle#upcoming-deprecations) several preview APIs have a deprecation schedule and Microsoft recommends performing updates before the deprecation date. Additionally, Microsoft and HashiCorp recommend upgrading to the penultimate 3.x version v3.116.0 to avoid disruption or, ideally, to the latest 4.x provider version to take advantage of the most current API version that the provider supports. Please see [this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/28707) for more details.
+
 -> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).

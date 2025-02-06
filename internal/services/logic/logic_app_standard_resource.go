@@ -6,6 +6,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -1003,7 +1004,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {

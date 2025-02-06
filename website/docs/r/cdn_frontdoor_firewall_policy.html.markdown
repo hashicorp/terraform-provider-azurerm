@@ -127,6 +127,26 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 }
 ```
 
+## Example Usage: JSChallenge Override
+
+```hcl
+managed_rule {
+  type    = "Microsoft_BotManagerRuleSet"
+  version = "1.1"
+  action  = "Log"
+
+  override {
+    rule_group_name = "BadBots"
+
+    rule {
+      action  = "JSChallenge"
+      enabled = true
+      rule_id = "Bot100200"
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -143,7 +163,7 @@ The following arguments are supported:
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie lifetime in minutes, after which the user will be revalidated. Possible values are between `5` to `1440` minutes. Defaults to `30` minutes.
 
-!> **Important:** Azure Web Application Firewall JavaScript challenge is currently in **PREVIEW**. See the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+!> **Note:** Azure Web Application Firewall JavaScript challenge is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
@@ -205,9 +225,9 @@ A `managed_rule` block supports the following:
 
 * `type` - (Required) The name of the managed rule to use with this resource. Possible values include `DefaultRuleSet`, `Microsoft_DefaultRuleSet`, `BotProtection` or `Microsoft_BotManagerRuleSet`.
 
-* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which DRS type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0` or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the possible values include `1.0` and `1.1`.
+* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which default rule set type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0` or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the possible values include `1.0` and `1.1`.
 
-* `action` - (Required) The action to perform for all DRS rules when the managed rule is matched or when the anomaly score is 5 or greater depending on which version of the DRS you are using. Possible values include `Allow`, `Log`, `Block`, and `Redirect`.
+* `action` - (Required) The action to perform for all default rule set rules when the managed rule is matched or when the anomaly score is 5 or greater depending on which version of the default rule set you are using. Possible values include `Allow`, `Log`, `Block`, and `Redirect`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
@@ -229,9 +249,11 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values for DRS `1.1` and below are `Allow`, `Log`, `Block`, and `Redirect`. For DRS `2.0` and above the possible values are `Log` or `AnomalyScoring`.
+* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values for `DefaultRuleSet 1.1` and below are `Allow`, `Log`, `Block`, or `Redirect`. Possible values for `DefaultRuleSet 2.0` and above are `Log` or `AnomalyScoring`. Possible values for `Microsoft_BotManagerRuleSet` are `Allow`, `Log`, `Block`, `Redirect` or `JSChallenge`.
 
-->**Note:** Please see the DRS [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) for more information.
+-> **Note:** Please see the `DefaultRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) or the `Microsoft_BotManagerRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview) for more information.
+
+!> **Note:** The `action` field value `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 

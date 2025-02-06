@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -405,7 +406,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								"sa_data_size_in_kilobytes": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1024, 2147483647),
+									ValidateFunc: validation.IntBetween(1024, math.MaxInt32),
 								},
 							},
 						},

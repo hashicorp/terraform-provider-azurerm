@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorFirewallPolicyResource struct{}
@@ -197,7 +196,7 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSOnePointOhError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.DRSOnePointOhError(data),
-			ExpectError: regexp.MustCompile("'AnomalyScoring' is only valid in managed rules that are DRS 2.0 and above"),
+			ExpectError: regexp.MustCompile(`"AnomalyScoring" is only valid in managed rules where 'type' is DRS`),
 		},
 	})
 }
@@ -309,21 +308,71 @@ func TestAccCdnFrontDoorFirewallPolicy_DRSTwoPointOneActionError(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_JSChallengeDRSError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.JSChallengeDRSError(data),
+			ExpectError: regexp.MustCompile(`"JSChallenge" is only valid if the managed rules 'type' is 'Microsoft_BotManagerRuleSet', got "DefaultRuleSet"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_JSChallengeBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.JSChallengeBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_JSChallengeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.JSChallengeBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.JSChallengeRemove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.JSChallengeBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
+	_, err = clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(result.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (CdnFrontDoorFirewallPolicyResource) template(data acceptance.TestData) string {
@@ -879,6 +928,98 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
         action  = "Redirect"
       }
     }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) JSChallengeDRSError(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "preview-0.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933100"
+        enabled = false
+        action  = "JSChallenge"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) JSChallengeBasic(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "Microsoft_BotManagerRuleSet"
+    version = "1.0"
+    action  = "Log"
+
+    override {
+      rule_group_name = "BadBots"
+
+      rule {
+        rule_id = "Bot100200"
+        enabled = true
+        action  = "JSChallenge"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) JSChallengeRemove(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "Microsoft_BotManagerRuleSet"
+    version = "1.0"
+    action  = "Log"
   }
 }
 `, tmp, data.RandomInteger)

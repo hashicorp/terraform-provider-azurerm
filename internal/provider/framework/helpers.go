@@ -124,13 +124,27 @@ func getEnvStringIfValueAbsent(val types.String, envVar string) string {
 	return val.ValueString()
 }
 
-// getEnvStringIfValueAbsent takes a Framework StringValue and a corresponding Environment Variable name and returns
-// either the string value set in the StringValue if not Null / Unknown _or_ the os.GetEnv() value of the Environment
-// Variable provided. If both of these are empty, an empty string "" is returned.
+// getEnvStringOrDefault is similar to getEnvStringIfValueAbsent, except when both the value and the env var are absent,
+// the defaultValue will be used, instead of the empty string.
 func getEnvStringOrDefault(val types.String, envVar string, defaultValue string) string {
 	if val.IsNull() || val.IsUnknown() {
 		if v := os.Getenv(envVar); v != "" {
 			return os.Getenv(envVar)
+		}
+		return defaultValue
+	}
+
+	return val.ValueString()
+}
+
+// getEnvStringsOrDefault is similar to getEnvStringOrDefault, except an array of env vars are checked, where the first non-empty
+// env var will be returned, if any.
+func getEnvStringsOrDefault(val types.String, envVars []string, defaultValue string) string {
+	if val.IsNull() || val.IsUnknown() {
+		for _, envVar := range envVars {
+			if v := os.Getenv(envVar); v != "" {
+				return os.Getenv(envVar)
+			}
 		}
 		return defaultValue
 	}
