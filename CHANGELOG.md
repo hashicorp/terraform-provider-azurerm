@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - add support for the `marketplace_offer_id` and `plan_id` properties [GH-28537]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - add support for the `marketplace_offer_id` and `plan_id` properties [GH-28537]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` - add support for the `marketplace_offer_id` and `plan_id` properties [GH-28537]
+* `azurerm_route_server` - add support for the `hub_routing_preference` property [GH-28363]
 
 BUG FIXES:
 
