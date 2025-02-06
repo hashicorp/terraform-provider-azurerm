@@ -634,7 +634,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
-    encryption_enabled = true
+    encryption_enabled              = true
     encryption_password             = "P@55w0rD!!%[2]s"
     retention_period_in_days        = 23
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
