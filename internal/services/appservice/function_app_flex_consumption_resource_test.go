@@ -1002,7 +1002,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "blobforfc"
+  name                  = "acctestblobforfc"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }

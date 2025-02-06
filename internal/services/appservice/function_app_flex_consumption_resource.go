@@ -78,12 +78,6 @@ type FunctionAppFlexConsumptionModel struct {
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
 
-var _ sdk.ResourceWithStateMigration = FunctionAppFlexConsumptionResource{}
-
-func (r FunctionAppFlexConsumptionResource) StateUpgraders() sdk.StateUpgradeData {
-	return sdk.StateUpgradeData{}
-}
-
 func (r FunctionAppFlexConsumptionResource) ModelObject() interface{} {
 	return &FunctionAppFlexConsumptionModel{}
 }
@@ -336,6 +330,11 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.WebAppsClient
+			resourcesClient := metadata.Client.AppService.ResourceProvidersClient
+			servicePlanClient := metadata.Client.AppService.ServicePlanClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
 			if !ok {
 				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
@@ -345,11 +344,6 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&functionAppFlexConsumption); err != nil {
 				return err
 			}
-
-			client := metadata.Client.AppService.WebAppsClient
-			resourcesClient := metadata.Client.AppService.ResourceProvidersClient
-			servicePlanClient := metadata.Client.AppService.ServicePlanClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := commonids.NewAppServiceID(subscriptionId, functionAppFlexConsumption.ResourceGroup, functionAppFlexConsumption.Name)
 
@@ -377,7 +371,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			isFlexConsumptionSku := helpers.PlanIsFlexConsumption(planSKU)
 			if !isFlexConsumptionSku {
-				return fmt.Errorf("the sku name is %s which is not valid for flex consumption function app", *planSKU)
+				return fmt.Errorf("the sku name is %s which is not valid for a flex consumption function app", *planSKU)
 			}
 
 			existing, err := client.Get(ctx, id)
@@ -417,7 +411,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				storageName := endpoint[:storageNameIndex]
 				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
 			} else {
-				return fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
+				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 			}
 			storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 				Type: &storageAuthType,
@@ -432,9 +426,8 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
 					if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
 						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
-					} else {
-						storageAuth.UserAssignedIdentityResourceId = &functionAppFlexConsumption.StorageUserAssignedIdentityID
 					}
+					storageAuth.UserAssignedIdentityResourceId = &functionAppFlexConsumption.StorageUserAssignedIdentityID
 				}
 			}
 
@@ -525,7 +518,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppFlexConsumption.Backup)
 			if err != nil {
-				return fmt.Errorf("expanding backup configuration for %s: %+v", id, err)
+				return fmt.Errorf("expanding `backup` for %s: %+v", id, err)
 			}
 			if backupConfig.Properties != nil {
 				if _, err := client.UpdateBackupConfiguration(ctx, id, *backupConfig); err != nil {
@@ -578,22 +571,22 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(functionAppFlexConsumption.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading App Settings for %s: %+v", id, err)
+				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
 			}
 
 			connectionStrings, err := client.ListConnectionStrings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Connection String information for %s: %+v", id, err)
+				return fmt.Errorf("retrieving Connection String information for %s: %+v", id, err)
 			}
 
 			stickySettings, err := client.ListSlotConfigurationNames(ctx, *id)
 			if err != nil || stickySettings.Model == nil {
-				return fmt.Errorf("reading Sticky Settings for %s: %+v", id, err)
+				return fmt.Errorf("retrieving Sticky Settings for %s: %+v", id, err)
 			}
 
 			siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
@@ -603,14 +596,14 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 			auth, err := client.GetAuthSettings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading Auth Settings for %s: %+v", id, err)
+				return fmt.Errorf("retrieving Auth Settings for %s: %+v", id, err)
 			}
 
 			var authV2 webapps.SiteAuthSettingsV2
 			if auth.Model != nil && auth.Model.Properties != nil && strings.EqualFold(pointer.From(auth.Model.Properties.ConfigVersion), "v2") {
 				authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for %s: %+v", *id, err)
+					return fmt.Errorf("retrieving authV2 settings for %s: %+v", *id, err)
 				}
 				authV2 = *authV2Resp.Model
 			}
@@ -618,7 +611,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 			backup, err := client.GetBackupConfiguration(ctx, *id)
 			if err != nil {
 				if !response.WasNotFound(backup.HttpResponse) {
-					return fmt.Errorf("reading Backup Settings for %s: %+v", id, err)
+					return fmt.Errorf("retrieving Backup Settings for %s: %+v", id, err)
 				}
 			}
 
@@ -629,105 +622,108 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				basicAuthWebDeploy = csmProps.Allow
 			}
 
-			if model := functionAppFlexConsumption.Model; model != nil {
-				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+			model := functionAppFlexConsumption.Model
+			if model == nil {
+				return fmt.Errorf("function app %s : model is nil", id)
+			}
+			flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			state := FunctionAppFlexConsumptionModel{
+				Name:                             id.SiteName,
+				ResourceGroup:                    id.ResourceGroupName,
+				Location:                         location.Normalize(model.Location),
+				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+				StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
+				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
+				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
+				Backup:                           helpers.FlattenBackupConfig(backup.Model),
+				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
+				Tags:                             pointer.From(model.Tags),
+				Kind:                             pointer.From(model.Kind),
+				Identity:                         pointer.From(flattenedIdentity),
+			}
+
+			if props := model.Properties; props != nil {
+				state.Enabled = pointer.From(props.Enabled)
+				state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+				state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+				state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+				state.DefaultHostname = pointer.From(props.DefaultHostName)
+				state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+
+				servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
+					return err
 				}
-				state := FunctionAppFlexConsumptionModel{
-					Name:                             id.SiteName,
-					ResourceGroup:                    id.ResourceGroupName,
-					Location:                         location.Normalize(model.Location),
-					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
-					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
-					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
-					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
-					Backup:                           helpers.FlattenBackupConfig(backup.Model),
-					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
-					Tags:                             pointer.From(model.Tags),
-					Kind:                             pointer.From(model.Kind),
-					Identity:                         pointer.From(flattenedIdentity),
+				state.ServicePlanId = servicePlanId.ID()
+
+				if v := props.OutboundIPAddresses; v != nil {
+					state.OutboundIPAddresses = *v
+					state.OutboundIPAddressList = strings.Split(*v, ",")
 				}
 
-				if props := model.Properties; props != nil {
-					state.Enabled = pointer.From(props.Enabled)
-					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
-					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
-					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
-					state.DefaultHostname = pointer.From(props.DefaultHostName)
-					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+				if v := props.PossibleOutboundIPAddresses; v != nil {
+					state.PossibleOutboundIPAddresses = *v
+					state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
+				}
 
-					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
+				configResp, err := client.GetConfiguration(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("retrieving Function App Configuration %q: %+v", id.SiteName, err)
+				}
+
+				siteConfig, err := helpers.FlattenSiteConfigFunctionAppFlexConsumption(configResp.Model.Properties)
+				if err != nil {
+					return fmt.Errorf("retrieving Site Config for %s: %+v", id, err)
+				}
+				state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
+
+				if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
+					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
+						storageConfig := *faConfigDeployment.Storage
+						state.StorageContainerType = string(pointer.From(storageConfig.Type))
+						state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
+						if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
+							state.StorageAuthType = string(pointer.From(storageConfig.Authentication.Type))
+							if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
+								state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
+							}
+						}
+					}
+
+					if faConfigRuntime := functionAppConfig.Runtime; faConfigRuntime != nil {
+						state.RuntimeName = string(pointer.From(faConfigRuntime.Name))
+						state.RuntimeVersion = pointer.From(faConfigRuntime.Version)
+					}
+
+					if faConfigScale := functionAppConfig.ScaleAndConcurrency; faConfigScale != nil {
+						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
+						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
+					}
+				}
+
+				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
+
+				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+
+				if props.VirtualNetworkSubnetId != nil && pointer.From(props.VirtualNetworkSubnetId) != "" {
+					subnetId, err := commonids.ParseSubnetID(*props.VirtualNetworkSubnetId)
 					if err != nil {
 						return err
 					}
-					state.ServicePlanId = servicePlanId.ID()
-
-					if v := props.OutboundIPAddresses; v != nil {
-						state.OutboundIPAddresses = *v
-						state.OutboundIPAddressList = strings.Split(*v, ",")
-					}
-
-					if v := props.PossibleOutboundIPAddresses; v != nil {
-						state.PossibleOutboundIPAddresses = *v
-						state.PossibleOutboundIPAddressList = strings.Split(*v, ",")
-					}
-
-					configResp, err := client.GetConfiguration(ctx, *id)
-					if err != nil {
-						return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-					}
-
-					siteConfig, err := helpers.FlattenSiteConfigFunctionAppFlexConsumption(configResp.Model.Properties)
-					if err != nil {
-						return fmt.Errorf("reading Site Config for %s: %+v", id, err)
-					}
-					state.SiteConfig = []helpers.SiteConfigFunctionAppFlexConsumption{*siteConfig}
-
-					if functionAppConfig := props.FunctionAppConfig; functionAppConfig != nil {
-						if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
-							storageConfig := *faConfigDeployment.Storage
-							state.StorageContainerType = string(pointer.From(storageConfig.Type))
-							state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
-							if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
-								state.StorageAuthType = string(pointer.From(storageConfig.Authentication.Type))
-								if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
-									state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
-								}
-							}
-						}
-
-						if faConfigRuntime := functionAppConfig.Runtime; faConfigRuntime != nil {
-							state.RuntimeName = string(pointer.From(faConfigRuntime.Name))
-							state.RuntimeVersion = pointer.From(faConfigRuntime.Version)
-						}
-
-						if faConfigScale := functionAppConfig.ScaleAndConcurrency; faConfigScale != nil {
-							state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
-							state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
-						}
-					}
-
-					state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
-
-					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
-
-					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
-						state.VirtualNetworkSubnetID = subnetId
-					}
-
-					// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
-					if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
-						state.ZipDeployFile = deployFile
-					}
-
-					if err := metadata.Encode(&state); err != nil {
-						return fmt.Errorf("encoding: %+v", err)
-					}
+					state.VirtualNetworkSubnetID = subnetId.ID()
 				}
+
+				// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
+				if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
+					state.ZipDeployFile = deployFile
+				}
+
 			}
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -778,14 +774,14 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 			if existing.Model == nil {
-				return fmt.Errorf("reading %s: `model` was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("reading %s: `properties` was nil", id)
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			model := *existing.Model
@@ -839,7 +835,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					storageName := endpoint[:storageNameIndex]
 					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
 				} else {
-					return fmt.Errorf("reading storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
+					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
 				}
 			}
 
@@ -859,9 +855,8 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					if state.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
 						if state.StorageUserAssignedIdentityID == "" {
 							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
-						} else {
-							storageAuth.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
 						}
+						storageAuth.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
 					}
 				}
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &storageAuth
