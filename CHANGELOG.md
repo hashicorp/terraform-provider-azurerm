@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_logic_app_action_http` - fix issue where `queries` would be set to an empty map instead of null when omitted from the configuration [GH-28447]
+* `azurerm_oracle_autonomous_database` - fix incorrect type for the `supported_regions_to_clone_to` property [GH-28536]
 
 ## 4.17.0 (January 31, 2025)
 
