@@ -65,7 +65,8 @@ func (r MobileNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^\d{3}$`),
 				"Mobile country code should be three digits.",
-			)},
+			),
+		},
 
 		"mobile_network_code": {
 			Type:     pluginsdk.TypeString,
@@ -74,7 +75,8 @@ func (r MobileNetworkResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^\d{2,3}$`),
 				"Mobile network code should be two or three digits.",
-			)},
+			),
+		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -247,7 +249,7 @@ func (r MobileNetworkResource) Delete() sdk.ResourceFunc {
 				Refresh: func() (result interface{}, state string, err error) {
 					resp, err := client.Delete(ctx, *id)
 					if err != nil {
-						if resp.HttpResponse.StatusCode == http.StatusConflict {
+						if resp.HttpResponse != nil && resp.HttpResponse.StatusCode == http.StatusConflict {
 							return nil, "409", nil
 						}
 						return nil, "", err

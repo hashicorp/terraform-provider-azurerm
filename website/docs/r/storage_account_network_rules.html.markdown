@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 
-* `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
+* `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. Defaults to `["AzureServices"]`.
 
 -> **NOTE** User has to explicitly set `bypass` to empty slice (`[]`) to remove it.
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
-* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+* `private_link_access` - (Optional) One or more `private_link_access` block as defined below.
 
 ---
 

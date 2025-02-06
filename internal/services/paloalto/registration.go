@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto
 
 import (
@@ -12,9 +15,7 @@ func (r Registration) AssociatedGitHubLabel() string {
 	return "service/paloalto"
 }
 
-var (
-	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-)
+var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) Name() string {
 	return "Palo Alto"

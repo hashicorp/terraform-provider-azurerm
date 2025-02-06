@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeSelfHostedResource struct{}
+type SynapseIntegrationRuntimeSelfHostedResource struct{}
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := SynapseIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSynapseIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeSelfHosted_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_self_hosted", "test")
-	r := IntegrationRuntimeSelfHostedResource{}
+	r := SynapseIntegrationRuntimeSelfHostedResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccSynapseIntegrationRuntimeSelfHosted_requiresImport(t *testing.T) {
 	})
 }
 
-func (r IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SynapseIntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r IntegrationRuntimeSelfHostedResource) Exists(ctx context.Context, client
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r IntegrationRuntimeSelfHostedResource) template(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -112,7 +112,7 @@ resource "azurerm_synapse_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r IntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -124,7 +124,7 @@ resource "azurerm_synapse_integration_runtime_self_hosted" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r IntegrationRuntimeSelfHostedResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeSelfHostedResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

@@ -1,10 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package releasesjson
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -52,7 +55,7 @@ type Releases struct {
 
 func NewReleases() *Releases {
 	return &Releases{
-		logger:  log.New(ioutil.Discard, "", 0),
+		logger:  log.New(io.Discard, "", 0),
 		BaseURL: defaultBaseURL,
 	}
 }
@@ -62,7 +65,7 @@ func (r *Releases) SetLogger(logger *log.Logger) {
 }
 
 func (r *Releases) ListProductVersions(ctx context.Context, productName string) (ProductVersionsMap, error) {
-	client := httpclient.NewHTTPClient()
+	client := httpclient.NewHTTPClient(r.logger)
 
 	productIndexURL := fmt.Sprintf("%s/%s/index.json",
 		r.BaseURL,
@@ -92,7 +95,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 
 	r.logger.Printf("received %s", resp.Status)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -112,13 +115,6 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 			continue
 		}
 
-		if ok, _ := versionIsSupported(v); !ok {
-			// Remove (currently unsupported) enterprise
-			// version and any other "custom" build
-			delete(p.Versions, rawVersion)
-			continue
-		}
-
 		p.Versions[rawVersion].Version = v
 	}
 
@@ -126,11 +122,7 @@ func (r *Releases) ListProductVersions(ctx context.Context, productName string) 
 }
 
 func (r *Releases) GetProductVersion(ctx context.Context, product string, version *version.Version) (*ProductVersion, error) {
-	if ok, err := versionIsSupported(version); !ok {
-		return nil, fmt.Errorf("%s: %w", product, err)
-	}
-
-	client := httpclient.NewHTTPClient()
+	client := httpclient.NewHTTPClient(r.logger)
 
 	indexURL := fmt.Sprintf("%s/%s/%s/index.json",
 		r.BaseURL,
@@ -161,7 +153,7 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 
 	r.logger.Printf("received %s", resp.Status)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -174,13 +166,4 @@ func (r *Releases) GetProductVersion(ctx context.Context, product string, versio
 	}
 
 	return pv, nil
-}
-
-func versionIsSupported(v *version.Version) (bool, error) {
-	isSupported := v.Metadata() == ""
-	if !isSupported {
-		return false, fmt.Errorf("cannot obtain %s (enterprise versions are not supported)",
-			v.String())
-	}
-	return true, nil
 }

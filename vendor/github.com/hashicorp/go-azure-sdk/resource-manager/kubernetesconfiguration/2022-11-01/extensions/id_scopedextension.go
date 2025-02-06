@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedExtensionId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedExtensionId{})
+}
+
+var _ resourceids.ResourceId = &ScopedExtensionId{}
 
 // ScopedExtensionId is a struct representing the Resource ID for a Scoped Extension
 type ScopedExtensionId struct {
@@ -28,21 +33,15 @@ func NewScopedExtensionID(scope string, extensionName string) ScopedExtensionId 
 
 // ParseScopedExtensionID parses 'input' into a ScopedExtensionId
 func ParseScopedExtensionID(input string) (*ScopedExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedExtensionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExtensionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedExtensionID(input string) (*ScopedExtensionId, error) {
 // ParseScopedExtensionIDInsensitively parses 'input' case-insensitively into a ScopedExtensionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedExtensionIDInsensitively(input string) (*ScopedExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedExtensionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedExtensionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedExtensionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ExtensionName, ok = input.Parsed["extensionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "extensionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedExtensionID checks that 'input' can be parsed as a Scoped Extension ID
@@ -99,7 +106,7 @@ func (id ScopedExtensionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKubernetesConfiguration", "Microsoft.KubernetesConfiguration", "Microsoft.KubernetesConfiguration"),
 		resourceids.StaticSegment("staticExtensions", "extensions", "extensions"),
-		resourceids.UserSpecifiedSegment("extensionName", "extensionValue"),
+		resourceids.UserSpecifiedSegment("extensionName", "extensionName"),
 	}
 }
 

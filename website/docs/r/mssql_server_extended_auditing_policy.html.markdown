@@ -85,7 +85,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_mssql_server.example.identity.0.principal_id
+  principal_id         = azurerm_mssql_server.example.identity[0].principal_id
 }
 
 resource "azurerm_mssql_server" "example" {
@@ -225,7 +225,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "example" {
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name                           = "example-diagnotic-setting"
-  target_resource_id             = "${azurerm_mssql_server.example.id}/databases/master”
+  target_resource_id             = "${azurerm_mssql_server.example.id}/databases/master"
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
   eventhub_name                  = azurerm_eventhub.example.name
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.example.id
@@ -269,6 +269,10 @@ The following arguments are supported:
 * `log_monitoring_enabled` - (Optional) Enable audit events to Azure Monitor? To enable server audit events to Azure Monitor, please enable its main database audit events to Azure Monitor. Defaults to `true`.
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
+
+* `predicate_expression` - (Optional) Specifies condition of where clause when creating an audit.
+
+* `audit_actions_and_groups` - (Optional) A list of Actions-Groups and Actions to audit.
 
 ## Attributes Reference
 

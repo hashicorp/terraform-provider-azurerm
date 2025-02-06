@@ -6,16 +6,17 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type NetworkInterfaceApplicationSecurityGroupAssociationResource struct{}
@@ -103,72 +104,78 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *tes
 }
 
 func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	splitId := strings.Split(state.ID, "|")
-	if len(splitId) != 2 {
-		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
-	}
-
-	id, err := parse.NetworkInterfaceID(splitId[0])
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 	if err != nil {
 		return nil, err
 	}
-	applicationSecurityGroupId := splitId[1]
 
-	read, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	read, err := clients.Network.Client.NetworkInterfaces.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
 	found := false
-	for _, config := range *read.InterfacePropertiesFormat.IPConfigurations {
-		if config.ApplicationSecurityGroups != nil {
-			for _, group := range *config.ApplicationSecurityGroups {
-				if *group.ID == applicationSecurityGroupId {
-					found = true
-					break
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.IPConfigurations != nil {
+				for _, config := range *props.IPConfigurations {
+					if ipConfigProps := config.Properties; ipConfigProps != nil {
+						if ipConfigProps.ApplicationSecurityGroups != nil {
+							for _, group := range *ipConfigProps.ApplicationSecurityGroups {
+								if *group.Id == id.Second.ID() {
+									found = true
+									break
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 
-	return utils.Bool(found), nil
+	return pointer.To(found), nil
 }
 
 func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 	if err != nil {
 		return err
 	}
 
-	applicationSecurityGroupId := state.Attributes["application_security_group_id"]
-
-	read, err := client.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	read, err := client.Network.Client.NetworkInterfaces.Get(ctx2, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *nicID, err)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
+	}
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
+	}
+	if read.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+	if read.Model.Properties.IPConfigurations == nil {
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id.First)
 	}
 
-	configs := *read.InterfacePropertiesFormat.IPConfigurations
+	configs := *read.Model.Properties.IPConfigurations
 	for _, config := range configs {
-		if config.ApplicationSecurityGroups != nil {
-			groups := make([]network.ApplicationSecurityGroup, 0)
-			for _, group := range *config.ApplicationSecurityGroups {
-				if *group.ID != applicationSecurityGroupId {
+		if props := config.Properties; props != nil {
+			groups := make([]networkinterfaces.ApplicationSecurityGroup, 0)
+			for _, group := range *props.ApplicationSecurityGroups {
+				if *group.Id != id.Second.ID() {
 					groups = append(groups, group)
 				}
 			}
-			config.ApplicationSecurityGroups = &groups
+			props.ApplicationSecurityGroups = &groups
 		}
 	}
 
-	read.InterfacePropertiesFormat.IPConfigurations = &configs
+	read.Model.Properties.IPConfigurations = &configs
 
-	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
-	if err != nil {
-		return fmt.Errorf("removing Application Security Group Association for %s: %+v", *nicID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Security Group Association for %s: %+v", *nicID, err)
+	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
+		return fmt.Errorf("removing Application Security Group Association for %s: %+v", id.First, err)
 	}
 
 	return nil

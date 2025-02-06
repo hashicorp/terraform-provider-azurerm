@@ -19,7 +19,20 @@ type ListByCacheOperationResponse struct {
 }
 
 type ListByCacheCompleteResult struct {
-	Items []StorageTarget
+	LatestHttpResponse *http.Response
+	Items              []StorageTarget
+}
+
+type ListByCacheCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByCacheCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByCache ...
@@ -30,6 +43,7 @@ func (c StorageTargetsClient) ListByCache(ctx context.Context, id CacheId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByCacheCustomPager{},
 		Path:       fmt.Sprintf("%s/storageTargets", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c StorageTargetsClient) ListByCacheCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListByCache(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c StorageTargetsClient) ListByCacheCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListByCacheCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

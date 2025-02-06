@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers` Documentation
 
-The `providers` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2022-09-01`).
+The `providers` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerName")
 
 read, err := client.Get(ctx, id, providers.DefaultGetOperationOptions())
 if err != nil {
@@ -40,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewProviderID("providerValue")
+id := providers.NewProviderID("providerName")
 
 read, err := client.GetAtTenantScope(ctx, id, providers.DefaultGetAtTenantScopeOperationOptions())
 if err != nil {
@@ -56,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, providers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, providers.DefaultListOperationOptions())
@@ -90,14 +91,15 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerName")
 
-read, err := client.ProviderPermissions(ctx, id)
+// alternatively `client.ProviderPermissions(ctx, id)` can be used to do batched pagination
+items, err := client.ProviderPermissionsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -106,14 +108,15 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerName")
 
-read, err := client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
+// alternatively `client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())` can be used to do batched pagination
+items, err := client.ProviderResourceTypesListComplete(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -122,7 +125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerName")
 
 payload := providers.ProviderRegistrationRequest{
 	// ...
@@ -143,7 +146,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewProviders2ID("groupIdValue", "providerValue")
+id := providers.NewProviders2ID("groupId", "providerName")
 
 read, err := client.RegisterAtManagementGroupScope(ctx, id)
 if err != nil {
@@ -159,7 +162,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
+id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerName")
 
 read, err := client.Unregister(ctx, id)
 if err != nil {

@@ -36,6 +36,7 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SourceLocation                   string              `tfschema:"source_location"`
 	SourceResourceId                 string              `tfschema:"source_resource_id"`
 	MaintenanceWindow                []MaintenanceWindow `tfschema:"maintenance_window"`
+	ServerNames                      []ServerNameItem    `tfschema:"servers"`
 	NodeCount                        int64               `tfschema:"node_count"`
 	NodePublicIPAccessEnabled        bool                `tfschema:"node_public_ip_access_enabled"`
 	NodeServerEdition                string              `tfschema:"node_server_edition"`
@@ -46,6 +47,11 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SqlVersion                       string              `tfschema:"sql_version"`
 	Tags                             map[string]string   `tfschema:"tags"`
 	EarliestRestoreTime              string              `tfschema:"earliest_restore_time"`
+}
+
+type ServerNameItem struct {
+	Name                     string `tfschema:"name"`
+	FullyQualifiedDomainName string `tfschema:"fqdn"`
 }
 
 type MaintenanceWindow struct {
@@ -83,37 +89,6 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"administrator_login_password": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringLenBetween(8, 256),
-		},
-
-		"coordinator_storage_quota_in_mb": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ValidateFunc: validation.All(
-				validation.IntBetween(32768, 16777216),
-				validation.IntDivisibleBy(1024),
-			),
-		},
-
-		"coordinator_vcore_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ValidateFunc: validation.IntInSlice([]int{
-				1,
-				2,
-				4,
-				8,
-				16,
-				32,
-				64,
-				96,
-			}),
-		},
-
 		"node_count": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -121,6 +96,13 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				validation.IntBetween(0, 20),
 				validation.IntNotInSlice([]int{1}),
 			),
+		},
+
+		"administrator_login_password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 
 		"citus_version": {
@@ -142,6 +124,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.1",
 				"11.2",
 				"11.3",
+				"12.1",
 			}, false),
 		},
 
@@ -162,6 +145,30 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"GeneralPurpose",
 				"MemoryOptimized",
 			}, false),
+		},
+
+		"coordinator_storage_quota_in_mb": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(32768, 16777216),
+				validation.IntDivisibleBy(1024),
+			),
+		},
+
+		"coordinator_vcore_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				1,
+				2,
+				4,
+				8,
+				16,
+				32,
+				64,
+				96,
+			}),
 		},
 
 		"ha_enabled": {
@@ -289,6 +296,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"13",
 				"14",
 				"15",
+				"16",
 			}, false),
 		},
 
@@ -301,6 +309,22 @@ func (r CosmosDbPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Sc
 		"earliest_restore_time": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+		"servers": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"fqdn": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
@@ -374,8 +398,15 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SourceLocation = &model.SourceLocation
 			}
 
-			if v := model.SourceResourceId; v != "" {
+			switch {
+			case model.SourceResourceId != "":
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
+			case model.AdministratorLoginPassword == "":
+				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+			case model.CoordinatorStorageQuotaInMb == 0:
+				return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
+			case model.CoordinatorVCoreCount == 0:
+				return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
 			}
 
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
@@ -421,6 +452,10 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
+				if model.SourceResourceId == "" && model.AdministratorLoginPassword == "" {
+					return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 
@@ -437,10 +472,18 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("coordinator_storage_quota_in_mb") {
+				if model.SourceResourceId == "" && model.CoordinatorStorageQuotaInMb == 0 {
+					return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.CoordinatorStorageQuotaInMb = &model.CoordinatorStorageQuotaInMb
 			}
 
 			if metadata.ResourceData.HasChange("coordinator_vcore_count") {
+				if model.SourceResourceId == "" && model.CoordinatorVCoreCount == 0 {
+					return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.CoordinatorVCores = &model.CoordinatorVCoreCount
 			}
 
@@ -537,6 +580,7 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
 				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
 				state.CoordinatorVCoreCount = pointer.From(props.CoordinatorVCores)
+				state.ServerNames = flattenServerNames(props.ServerNames)
 				state.HaEnabled = pointer.From(props.EnableHa)
 				state.NodeCount = pointer.From(props.NodeCount)
 				state.NodePublicIPAccessEnabled = pointer.From(props.NodeEnablePublicIPAccess)
@@ -614,4 +658,20 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 			StartMinute: pointer.From(input.StartMinute),
 		},
 	}
+}
+
+func flattenServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
+	if input == nil {
+		return []ServerNameItem{}
+	}
+
+	output := make([]ServerNameItem, 0, len(*input))
+	for _, v := range *input {
+		output = append(output, ServerNameItem{
+			FullyQualifiedDomainName: *v.FullyQualifiedDomainName,
+			Name:                     *v.Name,
+		})
+	}
+
+	return output
 }

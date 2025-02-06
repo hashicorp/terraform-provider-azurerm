@@ -109,7 +109,6 @@ func resourceSentinelAlertRuleMsSecurityIncident() *pluginsdk.Resource {
 			"display_name_filter": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true, // remove in 3.0
 				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
@@ -143,7 +142,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
@@ -178,7 +177,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 		}
@@ -188,7 +187,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
@@ -207,7 +206,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	resp, err := client.AlertRulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Ms Security Incident %q was not found - removing from state!", id)
@@ -223,28 +222,27 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 		}
 
-		modelPtr := *model
-		rule := modelPtr.(alertrules.MicrosoftSecurityIncidentCreationAlertRule)
+		if rule, ok := model.(alertrules.MicrosoftSecurityIncidentCreationAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
+			if prop := rule.Properties; prop != nil {
+				d.Set("product_filter", string(prop.ProductFilter))
+				d.Set("display_name", prop.DisplayName)
+				d.Set("description", prop.Description)
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-		if prop := rule.Properties; prop != nil {
-			d.Set("product_filter", string(prop.ProductFilter))
-			d.Set("display_name", prop.DisplayName)
-			d.Set("description", prop.Description)
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-
-			if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
-				return fmt.Errorf(`setting "display_name_filter": %+v`, err)
-			}
-			if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
-				return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
-			}
-			if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
-				return fmt.Errorf(`setting "severity_filter": %+v`, err)
+				if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+					return fmt.Errorf(`setting "display_name_filter": %+v`, err)
+				}
+				if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+					return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
+				}
+				if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
+					return fmt.Errorf(`setting "severity_filter": %+v`, err)
+				}
 			}
 		}
 	}
@@ -262,7 +260,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 

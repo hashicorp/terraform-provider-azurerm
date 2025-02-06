@@ -1,14 +1,14 @@
 ---
-subcategory: "VMware (AVS)"
+subcategory: "Azure VMware Solution"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_vmware_private_cloud"
 description: |-
-  Gets information about an existing VMware Private Cloud.
+  Gets information about an existing Azure VMware Solution Private Cloud.
 ---
 
 # Data Source: azurerm_vmware_private_cloud
 
-Use this data source to access information about an existing VMware Private Cloud.
+Use this data source to access information about an existing Azure VMware Solution Private Cloud.
 
 ## Example Usage
 
@@ -29,45 +29,45 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this VMware Private Cloud.
+* `name` - (Required) The name of this Azure VMware Solution Private Cloud.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the VMware Private Cloud exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Azure VMware Solution Private Cloud exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the VMware Private Cloud.
+* `id` - The ID of the Azure VMware Solution Private Cloud.
 
-* `location` - The Azure Region where the VMware Private Cloud exists.
+* `location` - The Azure Region where the Azure VMware Solution Private Cloud exists.
 
 * `circuit` - A `circuit` block as defined below.
 
-* `internet_connection_enabled` - Is the VMware Private Cluster connected to the internet?
+* `internet_connection_enabled` - Is the Azure VMware Solution Private Cloud connected to the internet?
 
 * `management_cluster` - A `management_cluster` block as defined below.
 
-* `network_subnet_cidr` - The subnet CIDR of the VMware Private Cloud.
+* `network_subnet_cidr` - The subnet CIDR of the Azure VMware Solution Private Cloud.
 
-* `hcx_cloud_manager_endpoint` - The endpoint for the HCX Cloud Manager.
+* `hcx_cloud_manager_endpoint` - The endpoint for the VMware HCX Cloud Manager.
 
-* `nsxt_manager_endpoint` - The endpoint for the NSX-T Data Center manager.
+* `nsxt_manager_endpoint` - The endpoint for the VMware NSX Manager.
 
-* `vcsa_endpoint` - The endpoint for Virtual Center Server Appliance.
+* `vcsa_endpoint` - The endpoint for VMware vCenter Server Appliance.
 
-* `sku_name` - The Name of the SKU used for this Private Cloud.
+* `sku_name` - The Name of the SKU used for this Azure VMware Solution Private Cloud.
 
-* `nsxt_certificate_thumbprint` - The thumbprint of the NSX-T Manager SSL certificate.
+* `nsxt_certificate_thumbprint` - The thumbprint of the VMware NSX Manager SSL certificate.
 
-* `vcenter_certificate_thumbprint` - The thumbprint of the vCenter Server SSL certificate.
+* `vcenter_certificate_thumbprint` - The thumbprint of the VMware vCenter Server SSL certificate.
 
-* `management_subnet_cidr` - The network used to access vCenter Server and NSX-T Manager.
+* `management_subnet_cidr` - The network used to access VMware vCenter Server and NSX Manager.
 
 * `provisioning_subnet_cidr` - The network which isused for virtual machine cold migration, cloning, and snapshot migration.
 
 * `vmotion_subnet_cidr` - The network which is used for live migration of virtual machines.
 
-* `tags` - A mapping of tags assigned to the VMware Private Cloud.
+* `tags` - A mapping of tags assigned to the Azure VMware Solution Private Cloud.
 
 ---
 

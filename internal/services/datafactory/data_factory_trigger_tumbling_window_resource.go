@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryTriggerTumblingWindow() *pluginsdk.Resource {
@@ -439,7 +439,7 @@ func expandDataFactoryTriggerDependency(input []interface{}) *[]datafactory.Basi
 		return nil
 	}
 
-	var result []datafactory.BasicDependencyReference
+	result := make([]datafactory.BasicDependencyReference, 0, len(input))
 	for _, item := range input {
 		raw := item.(map[string]interface{})
 

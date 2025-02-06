@@ -58,6 +58,8 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(synapse.NodeSizeFamilyHardwareAcceleratedFPGA),
+					string(synapse.NodeSizeFamilyHardwareAcceleratedGPU),
 					string(synapse.NodeSizeFamilyMemoryOptimized),
 					string(synapse.NodeSizeFamilyNone),
 				}, false),
@@ -107,8 +109,10 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			},
 
 			"node_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C There is a bug in the API where this gets set when auto_scale is enabled resulting in a diff
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(3, 200),
 				ExactlyOneOf: []string{"node_count", "auto_scale"},
 			},
@@ -210,13 +214,11 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "2.4",
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"2.4",
-					"3.1",
 					"3.2",
 					"3.3",
+					"3.4",
 				}, false),
 			},
 

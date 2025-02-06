@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -91,6 +92,28 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"replica": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"location": commonschema.LocationComputed(),
+						"endpoint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"primary_read_key": {
@@ -256,6 +279,19 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
+
+		replicasClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+		resp, err := replicasClient.ListByConfigurationStoreComplete(ctx, replicas.NewConfigurationStoreID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName))
+		if err != nil {
+			return fmt.Errorf("retrieving replicas for %s: %+v", id, err)
+		}
+
+		replica, err := flattenAppConfigurationReplicas(resp.Items)
+		if err != nil {
+			return fmt.Errorf("flattening replicas for %s: %+v", id, err)
+		}
+
+		d.Set("replica", replica)
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

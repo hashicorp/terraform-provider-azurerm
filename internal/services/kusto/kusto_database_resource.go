@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +35,7 @@ func resourceKustoDatabase() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := databases.ParseDatabaseID(id)
+			_, err := commonids.ParseKustoDatabaseID(id)
 			return err
 		}),
 
@@ -90,7 +91,7 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := databases.NewDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
+	id := commonids.NewKustoDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("cluster_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -107,7 +108,6 @@ func resourceKustoDatabaseCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	databaseProperties := expandKustoDatabaseProperties(d)
 
 	readWriteDatabase := databases.ReadWriteDatabase{
-		Name:       utils.String(id.DatabaseName),
 		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: databaseProperties,
 	}
@@ -126,7 +126,7 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := databases.ParseDatabaseID(d.Id())
+	id, err := commonids.ParseKustoDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,14 +144,14 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: response was nil", *id)
 	}
 
-	database, ok := (*resp.Model).(databases.ReadWriteDatabase)
+	database, ok := resp.Model.(databases.ReadWriteDatabase)
 	if !ok {
 		return fmt.Errorf("%s was not a Read/Write Database", *id)
 	}
 
-	d.Set("name", id.DatabaseName)
+	d.Set("name", id.KustoDatabaseName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("cluster_name", id.ClusterName)
+	d.Set("cluster_name", id.KustoClusterName)
 	d.Set("location", location.NormalizeNilable(database.Location))
 
 	if props := database.Properties; props != nil {
@@ -171,7 +171,7 @@ func resourceKustoDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := databases.ParseDatabaseID(d.Id())
+	id, err := commonids.ParseKustoDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}

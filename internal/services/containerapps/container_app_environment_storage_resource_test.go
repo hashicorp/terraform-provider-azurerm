@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2022-03-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,7 +89,6 @@ func (r ContainerAppEnvironmentStorageResource) Exists(ctx context.Context, clie
 	}
 
 	return pointer.To(true), nil
-
 }
 
 func (r ContainerAppEnvironmentStorageResource) basic(data acceptance.TestData) string {
@@ -125,7 +124,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   account_name                 = azurerm_storage_account.test.name
   access_key                   = azurerm_storage_account.test.secondary_access_key
   share_name                   = azurerm_storage_share.test.name
-  access_mode                  = "ReadOnly"
+  access_mode                  = "ReadWrite"
 }
 `, r.template(data), data.RandomInteger)
 }

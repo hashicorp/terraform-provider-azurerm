@@ -95,7 +95,6 @@ output "action_group_id" {
 `event_hub_receiver` supports the following:
 
 * `name` - The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_id` - The resource ID of the respective Event Hub.
 * `event_hub_name` - The name of the specific Event Hub queue.
 * `event_hub_namespace` - The namespace name of the Event Hub.
 * `subscription_id` - The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.

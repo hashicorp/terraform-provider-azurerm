@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateLinkScopeId{}
+func init() {
+	recaser.RegisterResourceId(&PrivateLinkScopeId{})
+}
+
+var _ resourceids.ResourceId = &PrivateLinkScopeId{}
 
 // PrivateLinkScopeId is a struct representing the Resource ID for a Private Link Scope
 type PrivateLinkScopeId struct {
@@ -30,25 +35,15 @@ func NewPrivateLinkScopeID(subscriptionId string, resourceGroupName string, priv
 
 // ParsePrivateLinkScopeID parses 'input' into a PrivateLinkScopeId
 func ParsePrivateLinkScopeID(input string) (*PrivateLinkScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkScopeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParsePrivateLinkScopeID(input string) (*PrivateLinkScopeId, error) {
 // ParsePrivateLinkScopeIDInsensitively parses 'input' case-insensitively into a PrivateLinkScopeId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateLinkScopeIDInsensitively(input string) (*PrivateLinkScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkScopeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateLinkScopeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateLinkScopeName, ok = input.Parsed["privateLinkScopeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateLinkScopeID checks that 'input' can be parsed as a Private Link Scope ID
@@ -112,7 +115,7 @@ func (id PrivateLinkScopeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeValue"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeName"),
 	}
 }
 

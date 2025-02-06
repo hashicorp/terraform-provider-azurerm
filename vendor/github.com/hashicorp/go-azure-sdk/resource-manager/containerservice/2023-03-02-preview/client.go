@@ -4,7 +4,8 @@ package v2023_03_02_preview
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/managedclusters"
@@ -14,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/resolveprivatelinkserviceid"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -28,44 +31,70 @@ type Client struct {
 	TrustedAccess               *trustedaccess.TrustedAccessClient
 }
 
-func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Client)) Client {
-
-	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(endpoint)
-	configureAuthFunc(&agentPoolsClient.Client)
-
-	maintenanceConfigurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(endpoint)
-	configureAuthFunc(&maintenanceConfigurationsClient.Client)
-
-	managedClusterSnapshotsClient := managedclustersnapshots.NewManagedClusterSnapshotsClientWithBaseURI(endpoint)
-	configureAuthFunc(&managedClusterSnapshotsClient.Client)
-
-	managedClustersClient := managedclusters.NewManagedClustersClientWithBaseURI(endpoint)
-	configureAuthFunc(&managedClustersClient.Client)
-
-	privateEndpointConnectionsClient := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(endpoint)
-	configureAuthFunc(&privateEndpointConnectionsClient.Client)
-
-	privateLinkResourcesClient := privatelinkresources.NewPrivateLinkResourcesClientWithBaseURI(endpoint)
-	configureAuthFunc(&privateLinkResourcesClient.Client)
-
-	resolvePrivateLinkServiceIdClient := resolveprivatelinkserviceid.NewResolvePrivateLinkServiceIdClientWithBaseURI(endpoint)
-	configureAuthFunc(&resolvePrivateLinkServiceIdClient.Client)
-
-	snapshotsClient := snapshots.NewSnapshotsClientWithBaseURI(endpoint)
-	configureAuthFunc(&snapshotsClient.Client)
-
-	trustedAccessClient := trustedaccess.NewTrustedAccessClientWithBaseURI(endpoint)
-	configureAuthFunc(&trustedAccessClient.Client)
-
-	return Client{
-		AgentPools:                  &agentPoolsClient,
-		MaintenanceConfigurations:   &maintenanceConfigurationsClient,
-		ManagedClusterSnapshots:     &managedClusterSnapshotsClient,
-		ManagedClusters:             &managedClustersClient,
-		PrivateEndpointConnections:  &privateEndpointConnectionsClient,
-		PrivateLinkResources:        &privateLinkResourcesClient,
-		ResolvePrivateLinkServiceId: &resolvePrivateLinkServiceIdClient,
-		Snapshots:                   &snapshotsClient,
-		TrustedAccess:               &trustedAccessClient,
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	agentPoolsClient, err := agentpools.NewAgentPoolsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building AgentPools client: %+v", err)
 	}
+	configureFunc(agentPoolsClient.Client)
+
+	maintenanceConfigurationsClient, err := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building MaintenanceConfigurations client: %+v", err)
+	}
+	configureFunc(maintenanceConfigurationsClient.Client)
+
+	managedClusterSnapshotsClient, err := managedclustersnapshots.NewManagedClusterSnapshotsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedClusterSnapshots client: %+v", err)
+	}
+	configureFunc(managedClusterSnapshotsClient.Client)
+
+	managedClustersClient, err := managedclusters.NewManagedClustersClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedClusters client: %+v", err)
+	}
+	configureFunc(managedClustersClient.Client)
+
+	privateEndpointConnectionsClient, err := privateendpointconnections.NewPrivateEndpointConnectionsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateEndpointConnections client: %+v", err)
+	}
+	configureFunc(privateEndpointConnectionsClient.Client)
+
+	privateLinkResourcesClient, err := privatelinkresources.NewPrivateLinkResourcesClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateLinkResources client: %+v", err)
+	}
+	configureFunc(privateLinkResourcesClient.Client)
+
+	resolvePrivateLinkServiceIdClient, err := resolveprivatelinkserviceid.NewResolvePrivateLinkServiceIdClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building ResolvePrivateLinkServiceId client: %+v", err)
+	}
+	configureFunc(resolvePrivateLinkServiceIdClient.Client)
+
+	snapshotsClient, err := snapshots.NewSnapshotsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building Snapshots client: %+v", err)
+	}
+	configureFunc(snapshotsClient.Client)
+
+	trustedAccessClient, err := trustedaccess.NewTrustedAccessClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building TrustedAccess client: %+v", err)
+	}
+	configureFunc(trustedAccessClient.Client)
+
+	return &Client{
+		AgentPools:                  agentPoolsClient,
+		MaintenanceConfigurations:   maintenanceConfigurationsClient,
+		ManagedClusterSnapshots:     managedClusterSnapshotsClient,
+		ManagedClusters:             managedClustersClient,
+		PrivateEndpointConnections:  privateEndpointConnectionsClient,
+		PrivateLinkResources:        privateLinkResourcesClient,
+		ResolvePrivateLinkServiceId: resolvePrivateLinkServiceIdClient,
+		Snapshots:                   snapshotsClient,
+		TrustedAccess:               trustedAccessClient,
+	}, nil
 }

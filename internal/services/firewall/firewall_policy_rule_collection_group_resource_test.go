@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -137,17 +137,17 @@ func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 }
 
 func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(state.ID)
+	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.FirewallPolicyRuleGroupClient.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
+	resp, err := clients.Network.FirewallPolicyRuleCollectionGroups.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.FirewallPolicyRuleCollectionGroupProperties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (FirewallPolicyRuleCollectionGroupResource) basic(data acceptance.TestData) string {
@@ -259,6 +259,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     action   = "Deny"
     rule {
       name                  = "network_rule_collection1_rule1"
+      description           = "network_rule_collection1_rule1"
       protocols             = ["TCP", "UDP"]
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["192.168.1.1", "ApiManagement"]
@@ -266,6 +267,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     }
     rule {
       name              = "network_rule_collection1_rule2"
+      description       = "network_rule_collection1_rule2"
       protocols         = ["TCP", "UDP"]
       source_addresses  = ["10.0.0.1"]
       destination_fqdns = ["time.windows.com"]
@@ -292,6 +294,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     action   = "Dnat"
     rule {
       name                = "nat_rule_collection1_rule1"
+      description         = "nat_rule_collection1_rule1"
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
@@ -516,6 +519,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar"
+      }
+      http_headers {
+        name  = "head_bar"
+        value = "value2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
@@ -737,6 +748,7 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-RCG-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
   dns {
     proxy_enabled = true
   }
@@ -791,6 +803,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar2"
+      }
+      http_headers {
+        name  = "head_bar2"
+        value = "value_bar2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"

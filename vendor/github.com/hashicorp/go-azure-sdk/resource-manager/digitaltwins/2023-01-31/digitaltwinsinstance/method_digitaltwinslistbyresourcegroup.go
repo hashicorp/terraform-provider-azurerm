@@ -20,7 +20,20 @@ type DigitalTwinsListByResourceGroupOperationResponse struct {
 }
 
 type DigitalTwinsListByResourceGroupCompleteResult struct {
-	Items []DigitalTwinsDescription
+	LatestHttpResponse *http.Response
+	Items              []DigitalTwinsDescription
+}
+
+type DigitalTwinsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DigitalTwinsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // DigitalTwinsListByResourceGroup ...
@@ -31,6 +44,7 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroup(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DigitalTwinsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroupCompleteMatch
 
 	resp, err := c.DigitalTwinsListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroupCompleteMatch
 	}
 
 	result = DigitalTwinsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

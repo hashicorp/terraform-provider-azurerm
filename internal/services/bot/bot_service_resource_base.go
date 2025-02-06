@@ -8,17 +8,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type botBaseResource struct{}
@@ -70,16 +72,18 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// This field for the api key isn't returned at all from Azure
-				return (new == d.Get(k).(string)) && (old == "")
-			},
 		},
 
 		"developer_app_insights_application_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsUUID,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"cmk_key_vault_key_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
 		},
 
 		"microsoft_app_msi_id": {
@@ -107,6 +111,12 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			}, false),
 		},
 
+		"local_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"luis_app_ids": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -123,10 +133,23 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"streaming_endpoint_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
+		},
+
+		"icon_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png",
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"tags": tags.Schema(),
@@ -167,6 +190,11 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 				displayName = id.Name
 			}
 
+			publicNetworkEnabled := botservice.PublicNetworkAccessEnabled
+			if !metadata.ResourceData.Get("public_network_access_enabled").(bool) {
+				publicNetworkEnabled = botservice.PublicNetworkAccessDisabled
+			}
+
 			props := botservice.Bot{
 				Location: utils.String(metadata.ResourceData.Get("location").(string)),
 				Sku: &botservice.Sku{
@@ -174,17 +202,26 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 				},
 				Kind: botservice.Kind(botKind),
 				Properties: &botservice.BotProperties{
-					DisplayName:                       utils.String(displayName),
-					Endpoint:                          utils.String(metadata.ResourceData.Get("endpoint").(string)),
-					MsaAppID:                          utils.String(metadata.ResourceData.Get("microsoft_app_id").(string)),
-					DeveloperAppInsightKey:            utils.String(metadata.ResourceData.Get("developer_app_insights_key").(string)),
-					DeveloperAppInsightsAPIKey:        utils.String(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
-					DeveloperAppInsightsApplicationID: utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
+					DisplayName:                       pointer.To(displayName),
+					Endpoint:                          pointer.To(metadata.ResourceData.Get("endpoint").(string)),
+					MsaAppID:                          pointer.To(metadata.ResourceData.Get("microsoft_app_id").(string)),
+					DeveloperAppInsightKey:            pointer.To(metadata.ResourceData.Get("developer_app_insights_key").(string)),
+					DeveloperAppInsightsAPIKey:        pointer.To(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
+					DeveloperAppInsightsApplicationID: pointer.To(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
+					DisableLocalAuth:                  pointer.To(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
+					IsCmekEnabled:                     utils.Bool(false),
+					CmekKeyVaultURL:                   pointer.To(metadata.ResourceData.Get("cmk_key_vault_key_url").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
-					LuisKey:                           utils.String(metadata.ResourceData.Get("luis_key").(string)),
-					IsStreamingSupported:              utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
+					LuisKey:                           pointer.To(metadata.ResourceData.Get("luis_key").(string)),
+					PublicNetworkAccess:               publicNetworkEnabled,
+					IsStreamingSupported:              pointer.To(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool)),
+					IconURL:                           pointer.To(metadata.ResourceData.Get("icon_url").(string)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+
+			if _, ok := metadata.ResourceData.GetOk("cmk_key_vault_key_url"); ok {
+				props.Properties.IsCmekEnabled = utils.Bool(true)
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_type"); ok {
@@ -192,11 +229,11 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_tenant_id"); ok {
-				props.Properties.MsaAppTenantID = utils.String(v.(string))
+				props.Properties.MsaAppTenantID = pointer.To(v.(string))
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_msi_id"); ok {
-				props.Properties.MsaAppMSIResourceID = utils.String(v.(string))
+				props.Properties.MsaAppMSIResourceID = pointer.To(v.(string))
 			}
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.Name, props); err != nil {
@@ -204,129 +241,6 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (br botBaseResource) readFunc() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Bot.BotClient
-
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			metadata.ResourceData.Set("name", id.Name)
-			metadata.ResourceData.Set("resource_group_name", id.ResourceGroup)
-			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
-
-			sku := ""
-			if v := resp.Sku; v != nil {
-				sku = string(v.Name)
-			}
-			metadata.ResourceData.Set("sku", sku)
-
-			metadata.ResourceData.Set("tags", tags.FlattenAndSet(metadata.ResourceData, resp.Tags))
-
-			if props := resp.Properties; props != nil {
-				msAppId := ""
-				if v := props.MsaAppID; v != nil {
-					msAppId = *v
-				}
-				metadata.ResourceData.Set("microsoft_app_id", msAppId)
-
-				displayName := ""
-				if v := props.DisplayName; v != nil {
-					displayName = *v
-				}
-				metadata.ResourceData.Set("display_name", displayName)
-
-				endpoint := ""
-				if v := props.Endpoint; v != nil {
-					endpoint = *v
-				}
-				metadata.ResourceData.Set("endpoint", endpoint)
-
-				key := ""
-				if v := props.DeveloperAppInsightKey; v != nil {
-					key = *v
-				}
-				metadata.ResourceData.Set("developer_app_insights_key", key)
-
-				apiKey := ""
-				if v := props.DeveloperAppInsightsAPIKey; v != nil {
-					apiKey = *v
-				}
-				metadata.ResourceData.Set("developer_app_insights_api_key", apiKey)
-
-				appInsightsId := ""
-				if v := props.DeveloperAppInsightsApplicationID; v != nil {
-					appInsightsId = *v
-				}
-				metadata.ResourceData.Set("developer_app_insights_application_id", appInsightsId)
-
-				msaAppType := ""
-				if v := props.MsaAppType; v != "" {
-					msaAppType = string(v)
-				}
-				metadata.ResourceData.Set("microsoft_app_type", msaAppType)
-
-				msaAppTenantId := ""
-				if v := props.MsaAppTenantID; v != nil {
-					msaAppTenantId = *v
-				}
-				metadata.ResourceData.Set("microsoft_app_tenant_id", msaAppTenantId)
-
-				msaAppMSIId := ""
-				if v := props.MsaAppMSIResourceID; v != nil {
-					msaAppMSIId = *v
-				}
-				metadata.ResourceData.Set("microsoft_app_msi_id", msaAppMSIId)
-
-				var luisAppIds []string
-				if v := props.LuisAppIds; v != nil {
-					luisAppIds = *v
-				}
-				metadata.ResourceData.Set("luis_app_ids", utils.FlattenStringSlice(&luisAppIds))
-
-				streamingEndpointEnabled := false
-				if v := props.IsStreamingSupported; v != nil {
-					streamingEndpointEnabled = *v
-				}
-				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
-			}
-
-			return nil
-		},
-	}
-}
-
-func (br botBaseResource) deleteFunc() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Bot.BotClient
-			id, err := parse.BotServiceID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
 			return nil
 		},
 	}
@@ -367,6 +281,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				existing.Properties.DeveloperAppInsightsApplicationID = utils.String(metadata.ResourceData.Get("developer_app_insights_application_id").(string))
 			}
 
+			if metadata.ResourceData.HasChange("local_authentication_enabled") {
+				existing.Properties.DisableLocalAuth = utils.Bool(!metadata.ResourceData.Get("local_authentication_enabled").(bool))
+			}
+
 			if metadata.ResourceData.HasChange("luis_app_ids") {
 				existing.Properties.LuisAppIds = utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{}))
 			}
@@ -375,12 +293,166 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("luis_key").(string))
 			}
 
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if metadata.ResourceData.Get("public_network_access_enabled").(bool) {
+					existing.Properties.PublicNetworkAccess = botservice.PublicNetworkAccessEnabled
+				} else {
+					existing.Properties.PublicNetworkAccess = botservice.PublicNetworkAccessDisabled
+				}
+			}
+
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
 				existing.Properties.IsStreamingSupported = utils.Bool(metadata.ResourceData.Get("streaming_endpoint_enabled").(bool))
 			}
 
+			if metadata.ResourceData.HasChange("icon_url") {
+				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
+			}
+
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (br botBaseResource) readFunc() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Bot.BotClient
+
+			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			metadata.ResourceData.Set("name", id.Name)
+			metadata.ResourceData.Set("resource_group_name", id.ResourceGroup)
+			metadata.ResourceData.Set("location", location.NormalizeNilable(resp.Location))
+
+			sku := ""
+			if v := resp.Sku; v != nil {
+				sku = string(v.Name)
+			}
+			metadata.ResourceData.Set("sku", sku)
+
+			metadata.ResourceData.Set("tags", tags.ToTypedObject(resp.Tags))
+
+			// The API doesn't return this property, so we need to set the value from config into state
+			if apiKey, ok := metadata.ResourceData.GetOk("developer_app_insights_api_key"); ok && apiKey.(string) != "" {
+				metadata.ResourceData.Set("developer_app_insights_api_key", apiKey.(string))
+			}
+
+			if props := resp.Properties; props != nil {
+				msAppId := ""
+				if v := props.MsaAppID; v != nil {
+					msAppId = *v
+				}
+				metadata.ResourceData.Set("microsoft_app_id", msAppId)
+
+				displayName := ""
+				if v := props.DisplayName; v != nil {
+					displayName = *v
+				}
+				metadata.ResourceData.Set("display_name", displayName)
+
+				endpoint := ""
+				if v := props.Endpoint; v != nil {
+					endpoint = *v
+				}
+				metadata.ResourceData.Set("endpoint", endpoint)
+
+				key := ""
+				if v := props.DeveloperAppInsightKey; v != nil {
+					key = *v
+				}
+				metadata.ResourceData.Set("developer_app_insights_key", key)
+
+				appInsightsId := ""
+				if v := props.DeveloperAppInsightsApplicationID; v != nil {
+					appInsightsId = *v
+				}
+				metadata.ResourceData.Set("developer_app_insights_application_id", appInsightsId)
+
+				msaAppType := ""
+				if v := props.MsaAppType; v != "" {
+					msaAppType = string(v)
+				}
+				metadata.ResourceData.Set("microsoft_app_type", msaAppType)
+
+				msaAppTenantId := ""
+				if v := props.MsaAppTenantID; v != nil {
+					msaAppTenantId = *v
+				}
+				metadata.ResourceData.Set("microsoft_app_tenant_id", msaAppTenantId)
+
+				msaAppMSIId := ""
+				if v := props.MsaAppMSIResourceID; v != nil {
+					msaAppMSIId = *v
+				}
+				metadata.ResourceData.Set("microsoft_app_msi_id", msaAppMSIId)
+
+				localAuthEnabled := true
+				if v := props.DisableLocalAuth; v != nil {
+					localAuthEnabled = !*v
+				}
+				metadata.ResourceData.Set("local_authentication_enabled", localAuthEnabled)
+
+				publicNetworkAccessEnabled := true
+				if v := props.PublicNetworkAccess; v != botservice.PublicNetworkAccessEnabled {
+					publicNetworkAccessEnabled = false
+				}
+				metadata.ResourceData.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+				var luisAppIds []string
+				if v := props.LuisAppIds; v != nil {
+					luisAppIds = *v
+				}
+				metadata.ResourceData.Set("luis_app_ids", utils.FlattenStringSlice(&luisAppIds))
+
+				streamingEndpointEnabled := false
+				if v := props.IsStreamingSupported; v != nil {
+					streamingEndpointEnabled = *v
+				}
+				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
+
+				metadata.ResourceData.Set("icon_url", pointer.From(props.IconURL))
+
+				metadata.ResourceData.Set("cmk_key_vault_key_url", pointer.From(props.CmekKeyVaultURL))
+			}
+
+			return nil
+		},
+	}
+}
+
+func (br botBaseResource) deleteFunc() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Bot.BotClient
+			id, err := parse.BotServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil

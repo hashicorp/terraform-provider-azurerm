@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProtectedItemId{}
+func init() {
+	recaser.RegisterResourceId(&ProtectedItemId{})
+}
+
+var _ resourceids.ResourceId = &ProtectedItemId{}
 
 // ProtectedItemId is a struct representing the Resource ID for a Protected Item
 type ProtectedItemId struct {
@@ -36,37 +41,15 @@ func NewProtectedItemID(subscriptionId string, resourceGroupName string, vaultNa
 
 // ParseProtectedItemID parses 'input' into a ProtectedItemId
 func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectedItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectedItemId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupFabricName, ok = parsed.Parsed["backupFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", *parsed)
-	}
-
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", *parsed)
-	}
-
-	if id.ProtectedItemName, ok = parsed.Parsed["protectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +58,48 @@ func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
 // ParseProtectedItemIDInsensitively parses 'input' case-insensitively into a ProtectedItemId
 // note: this method should only be used for API response data and not user input
 func ParseProtectedItemIDInsensitively(input string) (*ProtectedItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectedItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectedItemId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProtectedItemId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupFabricName, ok = parsed.Parsed["backupFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", *parsed)
-	}
-
-	if id.ProtectionContainerName, ok = parsed.Parsed["protectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", *parsed)
-	}
-
-	if id.ProtectedItemName, ok = parsed.Parsed["protectedItemName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProtectedItemId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.BackupFabricName, ok = input.Parsed["backupFabricName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "backupFabricName", input)
+	}
+
+	if id.ProtectionContainerName, ok = input.Parsed["protectionContainerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "protectionContainerName", input)
+	}
+
+	if id.ProtectedItemName, ok = input.Parsed["protectedItemName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "protectedItemName", input)
+	}
+
+	return nil
 }
 
 // ValidateProtectedItemID checks that 'input' can be parsed as a Protected Item ID
@@ -142,13 +133,13 @@ func (id ProtectedItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupFabrics", "backupFabrics", "backupFabrics"),
-		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricValue"),
+		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricName"),
 		resourceids.StaticSegment("staticProtectionContainers", "protectionContainers", "protectionContainers"),
-		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerValue"),
+		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerName"),
 		resourceids.StaticSegment("staticProtectedItems", "protectedItems", "protectedItems"),
-		resourceids.UserSpecifiedSegment("protectedItemName", "protectedItemValue"),
+		resourceids.UserSpecifiedSegment("protectedItemName", "protectedItemName"),
 	}
 }
 

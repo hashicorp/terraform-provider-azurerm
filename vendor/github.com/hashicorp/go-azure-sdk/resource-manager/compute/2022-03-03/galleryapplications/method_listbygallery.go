@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -19,17 +20,31 @@ type ListByGalleryOperationResponse struct {
 }
 
 type ListByGalleryCompleteResult struct {
-	Items []GalleryApplication
+	LatestHttpResponse *http.Response
+	Items              []GalleryApplication
+}
+
+type ListByGalleryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByGalleryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByGallery ...
-func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id GalleryId) (result ListByGalleryOperationResponse, err error) {
+func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id commonids.SharedImageGalleryId) (result ListByGalleryOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByGalleryCustomPager{},
 		Path:       fmt.Sprintf("%s/applications", id.ID()),
 	}
 
@@ -61,16 +76,17 @@ func (c GalleryApplicationsClient) ListByGallery(ctx context.Context, id Gallery
 }
 
 // ListByGalleryComplete retrieves all the results into a single object
-func (c GalleryApplicationsClient) ListByGalleryComplete(ctx context.Context, id GalleryId) (ListByGalleryCompleteResult, error) {
+func (c GalleryApplicationsClient) ListByGalleryComplete(ctx context.Context, id commonids.SharedImageGalleryId) (ListByGalleryCompleteResult, error) {
 	return c.ListByGalleryCompleteMatchingPredicate(ctx, id, GalleryApplicationOperationPredicate{})
 }
 
 // ListByGalleryCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c GalleryApplicationsClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context, id GalleryId, predicate GalleryApplicationOperationPredicate) (result ListByGalleryCompleteResult, err error) {
+func (c GalleryApplicationsClient) ListByGalleryCompleteMatchingPredicate(ctx context.Context, id commonids.SharedImageGalleryId, predicate GalleryApplicationOperationPredicate) (result ListByGalleryCompleteResult, err error) {
 	items := make([]GalleryApplication, 0)
 
 	resp, err := c.ListByGallery(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +99,8 @@ func (c GalleryApplicationsClient) ListByGalleryCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByGalleryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

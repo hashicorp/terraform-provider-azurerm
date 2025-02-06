@@ -71,6 +71,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		MsSqlFailoverGroupResource{},
+		MsSqlJobResource{},
+		MsSqlJobScheduleResource{},
+		MsSqlJobTargetGroupResource{},
 		MsSqlVirtualMachineAvailabilityGroupListenerResource{},
 		MsSqlVirtualMachineGroupResource{},
 		ServerDNSAliasResource{},

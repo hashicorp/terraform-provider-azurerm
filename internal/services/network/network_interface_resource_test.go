@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -44,6 +44,34 @@ func TestAccNetworkInterface_disappears(t *testing.T) {
 	})
 }
 
+func TestAccNetworkInterface_auxiliary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.auxiliaryNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.auxiliaryAcceleratedConnections(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.auxiliaryNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetworkInterface_dnsServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	r := NetworkInterfaceResource{}
@@ -57,6 +85,13 @@ func TestAccNetworkInterface_dnsServers(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.dnsServersUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dnsServersRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -388,16 +423,73 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string {
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// To not affect other testcases of `Network`, hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  accelerated_networking_enabled = true
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    fastpathenabled = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptance.TestData) string {
+	// Auxiliary Mode Nic is enabled in specific regions (https://learn.microsoft.com/en-us/azure/networking/nva-accelerated-connections#supported-regions) for now
+	// To not affect other testcases of `Network`, hard-code to that for now
+	data.Locations.Primary = "westus"
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  auxiliary_mode                 = "AcceleratedConnections"
+  auxiliary_sku                  = "A2"
+  accelerated_networking_enabled = true
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    fastpathenabled = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
 func (r NetworkInterfaceResource) withMultipleParameters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                    = "acctestni-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_ip_forwarding    = true
-  internal_dns_name_label = "acctestni-%s"
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  internal_dns_name_label        = "acctestni-%s"
 
   dns_servers = [
     "10.0.0.5",
@@ -422,11 +514,12 @@ func (r NetworkInterfaceResource) updateMultipleParameters(data acceptance.TestD
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                    = "acctestni-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_ip_forwarding    = true
-  internal_dns_name_label = "acctestni-%s"
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = false
+  accelerated_networking_enabled = false
+  internal_dns_name_label        = "acctestni-%s"
 
   dns_servers = [
     "10.0.0.5",
@@ -492,6 +585,24 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceResource) dnsServersRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r NetworkInterfaceResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
@@ -519,10 +630,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -545,10 +657,10 @@ func (r NetworkInterfaceResource) enableAcceleratedNetworking(data acceptance.Te
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  enable_accelerated_networking = %t
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  accelerated_networking_enabled = %t
 
   ip_configuration {
     name                          = "primary"
@@ -564,10 +676,10 @@ func (r NetworkInterfaceResource) enableIPForwarding(data acceptance.TestData, e
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                 = "acctestni-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  enable_ip_forwarding = %t
+  name                  = "acctestni-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  ip_forwarding_enabled = %t
 
   ip_configuration {
     name                          = "primary"
@@ -885,6 +997,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
+
 }
 
 resource "azurerm_subnet" "test" {

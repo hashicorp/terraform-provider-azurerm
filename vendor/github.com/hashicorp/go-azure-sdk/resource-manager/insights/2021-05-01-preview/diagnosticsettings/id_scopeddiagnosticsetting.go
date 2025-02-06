@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedDiagnosticSettingId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedDiagnosticSettingId{})
+}
+
+var _ resourceids.ResourceId = &ScopedDiagnosticSettingId{}
 
 // ScopedDiagnosticSettingId is a struct representing the Resource ID for a Scoped Diagnostic Setting
 type ScopedDiagnosticSettingId struct {
@@ -28,21 +33,15 @@ func NewScopedDiagnosticSettingID(resourceUri string, diagnosticSettingName stri
 
 // ParseScopedDiagnosticSettingID parses 'input' into a ScopedDiagnosticSettingId
 func ParseScopedDiagnosticSettingID(input string) (*ScopedDiagnosticSettingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDiagnosticSettingId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedDiagnosticSettingID(input string) (*ScopedDiagnosticSettingId, e
 // ParseScopedDiagnosticSettingIDInsensitively parses 'input' case-insensitively into a ScopedDiagnosticSettingId
 // note: this method should only be used for API response data and not user input
 func ParseScopedDiagnosticSettingIDInsensitively(input string) (*ScopedDiagnosticSettingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDiagnosticSettingId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DiagnosticSettingName, ok = parsed.Parsed["diagnosticSettingName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedDiagnosticSettingId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceUri, ok = input.Parsed["resourceUri"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", input)
+	}
+
+	if id.DiagnosticSettingName, ok = input.Parsed["diagnosticSettingName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedDiagnosticSettingID checks that 'input' can be parsed as a Scoped Diagnostic Setting ID
@@ -99,7 +106,7 @@ func (id ScopedDiagnosticSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDiagnosticSettings", "diagnosticSettings", "diagnosticSettings"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingName", "diagnosticSettingValue"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingName", "diagnosticSettingName"),
 	}
 }
 

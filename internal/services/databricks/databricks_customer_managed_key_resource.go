@@ -10,8 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -35,6 +37,8 @@ func resourceDatabricksWorkspaceCustomerManagedKey() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The resource `azurerm_databricks_workspace_customer_managed_key` will be removed in v5.0 of the AzureRM Provider in favour of the `azurerm_databricks_workspace_root_dbfs_customer_managed_key` resource.",
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := workspaces.ParseWorkspaceID(id)
@@ -102,12 +106,24 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	keySource := workspaces.KeySourceDefault
+	var params *workspaces.WorkspaceCustomParameters
+
 	if model := workspace.Model; model != nil {
-		if parameters := model.Properties.Parameters; parameters != nil {
-			if parameters.PrepareEncryption != nil {
+		if params = model.Properties.Parameters; params != nil {
+			if params.PrepareEncryption != nil {
 				encryptionEnabled = model.Properties.Parameters.PrepareEncryption.Value
 			}
+
+			if params.Encryption != nil && params.Encryption.Value != nil && params.Encryption.Value.KeySource != nil {
+				keySource = pointer.From(params.Encryption.Value.KeySource)
+			}
+		} else {
+			return fmt.Errorf("`WorkspaceCustomParameters` were nil")
 		}
+	} else {
+		return fmt.Errorf("`Workspace` was nil")
 	}
 
 	if !encryptionEnabled {
@@ -115,15 +131,15 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	// make sure the key vault exists
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, meta.(*clients.Client).Resource, key.KeyVaultBaseUrl)
+	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
 
-	if d.IsNewResource() {
-		if workspace.Model != nil && workspace.Model.Properties.Parameters != nil && workspace.Model.Properties.Parameters.Encryption != nil {
-			return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
-		}
+	// Only throw the import error if the keysource value has been set to something other than default...
+	if params.Encryption != nil && params.Encryption.Value != nil && keySource != workspaces.KeySourceDefault {
+		return tf.ImportAsExistsError("azurerm_databricks_workspace_customer_managed_key", id.ID())
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -132,14 +148,12 @@ func databricksWorkspaceCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData
 	// resource will be lost and overwritten as nil. ¯\_(ツ)_/¯
 	// NOTE: 'workspace.Parameters' will never be nil as 'customer_managed_key_enabled' and 'infrastructure_encryption_enabled'
 	// fields have a default value in the parent workspace resource.
-	keySource := workspaces.KeySourceMicrosoftPointKeyvault
-	params := workspace.Model.Properties.Parameters
 	params.Encryption = &workspaces.WorkspaceEncryptionParameter{
 		Value: &workspaces.Encryption{
-			KeySource:   &keySource,
-			KeyName:     &key.Name,
-			Keyversion:  &key.Version,
-			Keyvaulturi: &key.KeyVaultBaseUrl,
+			KeySource:   pointer.To(workspaces.KeySourceMicrosoftPointKeyvault),
+			KeyName:     pointer.To(key.Name),
+			Keyversion:  pointer.To(key.Version),
+			Keyvaulturi: pointer.To(key.KeyVaultBaseUrl),
 		},
 	}
 

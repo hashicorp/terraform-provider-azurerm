@@ -72,9 +72,9 @@ The following arguments are supported:
 
 * `traffic_view_enabled` - (Optional) Indicates whether Traffic View is enabled for the Traffic Manager profile.
 
-* `dns_config` - (Required) This block specifies the DNS configuration of the Profile, it supports the fields documented below.
+* `dns_config` - (Required) This block specifies the DNS configuration of the Profile. One `dns_config` block as defined below.
 
-* `monitor_config` - (Required) This block specifies the Endpoint monitoring configuration for the Profile, it supports the fields documented below.
+* `monitor_config` - (Required) This block specifies the Endpoint monitoring configuration for the Profile. One `monitor_config` block as defined below.
 
 * `max_return` - (Optional) The amount of endpoints to return for DNS queries to this Profile. Possible values range from `1` to `8`.
 

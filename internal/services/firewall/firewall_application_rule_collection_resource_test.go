@@ -8,14 +8,15 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type FirewallApplicationRuleCollectionResource struct{}
@@ -391,16 +392,18 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
+
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
-	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.ApplicationRuleCollections == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.ApplicationRuleCollections == nil {
 		return nil, fmt.Errorf("retrieving Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
-	for _, rule := range *resp.AzureFirewallPropertiesFormat.ApplicationRuleCollections {
+	for _, rule := range *resp.Model.Properties.ApplicationRuleCollections {
 		if rule.Name == nil {
 			continue
 		}
@@ -431,37 +434,36 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Cont
 }
 
 func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-	client := clients.Firewall.AzureFirewallsClient
+	client := clients.Network.AzureFirewalls
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
 	id, err := parse.FirewallApplicationRuleCollectionID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
+
+	resp, err := client.Get(ctx, firewallId)
 	if err != nil {
 		return fmt.Errorf("retrieving Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
-	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NatRuleCollections == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.ApplicationRuleCollections == nil {
 		return fmt.Errorf("retrieving Firewall  Application Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
-	rules := make([]network.AzureFirewallApplicationRuleCollection, 0)
-	for _, collection := range *resp.AzureFirewallPropertiesFormat.ApplicationRuleCollections {
+	rules := make([]azurefirewalls.AzureFirewallApplicationRuleCollection, 0)
+	for _, collection := range *resp.Model.Properties.ApplicationRuleCollections {
 		if *collection.Name != id.ApplicationRuleCollectionName {
 			rules = append(rules, collection)
 		}
 	}
 
-	resp.AzureFirewallPropertiesFormat.ApplicationRuleCollections = &rules
+	resp.Model.Properties.ApplicationRuleCollections = &rules
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.AzureFirewallName, resp)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, firewallId, *resp.Model); err != nil {
 		return fmt.Errorf("removing Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the removal of Firewall Application Rule Collection %q (Firewall %q / Resource Group %q): %v", id.ApplicationRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
 	return FirewallApplicationRuleCollectionResource{}.doesNotExist(ctx, clients, state)

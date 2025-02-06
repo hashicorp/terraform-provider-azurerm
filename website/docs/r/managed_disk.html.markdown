@@ -82,14 +82,7 @@ The following arguments are supported:
 
 -> **Note:** Azure Ultra Disk Storage is only available in a region that support availability zones and can only enabled on the following VM series: `ESv3`, `DSv3`, `FSv3`, `LSv2`, `M` and `Mv2`. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 
-  * `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include:
-  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
-  * `ImportSecure` - Securely import a VHD file in to the managed disk (VHD specified with `source_uri`).
-  * `Empty` - Create an empty managed disk.
-  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
-  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
-  * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
-  * `Upload` - Upload a VHD disk with the help of SAS URL (to be used with `upload_size_bytes`).
+* `create_option` - (Required) The method to use when creating the managed disk. Changing this forces a new resource to be created. Possible values include: * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`). * `ImportSecure` - Securely import a VHD file in to the managed disk (VHD specified with `source_uri`). * `Empty` - Create an empty managed disk. * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`). * `FromImage` - Copy a Platform Image (specified with `image_reference_id`) * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`). * `Upload` - Upload a VHD disk with the help of SAS URL (to be used with `upload_size_bytes`).
 
 ---
 
@@ -132,6 +125,12 @@ The following arguments are supported:
 * `logical_sector_size` - (Optional) Logical Sector Size. Possible values are: `512` and `4096`. Defaults to `4096`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** Setting logical sector size is supported only with `UltraSSD_LRS` disks and `PremiumV2_LRS` disks.
+
+* `optimized_frequent_attach_enabled` - (Optional) Specifies whether this Managed Disk should be optimized for frequent disk attachments (where a disk is attached/detached more than 5 times in a day). Defaults to `false`.
+
+-> **Note:** Setting `optimized_frequent_attach_enabled` to `true` causes the disks to not align with the fault domain of the Virtual Machine, which can have operational implications.
+
+* `performance_plus_enabled` - (Optional) Specifies whether Performance Plus is enabled for this Managed Disk. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) Specify a value when the source of an `Import`, `ImportSecure` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
 

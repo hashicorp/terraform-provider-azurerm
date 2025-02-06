@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores` Documentation
 
-The `deletedconfigurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2023-03-01`).
+The `deletedconfigurationstores` SDK allows for interaction with Azure Resource Manager `appconfiguration` (API Version `2023-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedConfigurationStoreValue")
+id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationName", "deletedConfigurationStoreName")
 
 read, err := client.ConfigurationStoresGetDeleted(ctx, id)
 if err != nil {
@@ -40,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := deletedconfigurationstores.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ConfigurationStoresListDeleted(ctx, id)` can be used to do batched pagination
 items, err := client.ConfigurationStoresListDeletedComplete(ctx, id)
@@ -57,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationValue", "deletedConfigurationStoreValue")
+id := deletedconfigurationstores.NewDeletedConfigurationStoreID("12345678-1234-9876-4563-123456789012", "locationName", "deletedConfigurationStoreName")
 
 if err := client.ConfigurationStoresPurgeDeletedThenPoll(ctx, id); err != nil {
 	// handle the error

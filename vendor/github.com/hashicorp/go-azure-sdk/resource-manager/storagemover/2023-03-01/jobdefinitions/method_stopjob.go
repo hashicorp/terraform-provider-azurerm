@@ -44,7 +44,9 @@ func (c JobDefinitionsClient) StopJob(ctx context.Context, id JobDefinitionId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JobRunResourceId
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

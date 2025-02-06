@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AppServiceId{}
+var _ resourceids.ResourceId = &AppServiceId{}
 
 // AppServiceId is a struct representing the Resource ID for an App Service
 type AppServiceId struct {
@@ -30,25 +30,15 @@ func NewAppServiceID(subscriptionId string, resourceGroupName string, siteName s
 
 // ParseAppServiceID parses 'input' into a AppServiceId
 func ParseAppServiceID(input string) (*AppServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SiteName, ok = parsed.Parsed["siteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "siteName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseAppServiceID(input string) (*AppServiceId, error) {
 // ParseAppServiceIDInsensitively parses 'input' case-insensitively into a AppServiceId
 // note: this method should only be used for API response data and not user input
 func ParseAppServiceIDInsensitively(input string) (*AppServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AppServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&AppServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AppServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SiteName, ok = parsed.Parsed["siteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "siteName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AppServiceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SiteName, ok = input.Parsed["siteName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "siteName", input)
+	}
+
+	return nil
 }
 
 // ValidateAppServiceID checks that 'input' can be parsed as a App Service ID

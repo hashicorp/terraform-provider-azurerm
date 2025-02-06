@@ -8,25 +8,28 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudCustomizedAcceleratorModel struct {
 	Name                     string               `tfschema:"name"`
 	SpringCloudAcceleratorId string               `tfschema:"spring_cloud_accelerator_id"`
 	AcceleratorTags          []string             `tfschema:"accelerator_tags"`
+	AcceleratorType          string               `tfschema:"accelerator_type"`
 	Description              string               `tfschema:"description"`
 	DisplayName              string               `tfschema:"display_name"`
 	GitRepository            []GitRepositoryModel `tfschema:"git_repository"`
-	IconUrl                  string               `tfschema:"icon_url"`
+	IconURL                  string               `tfschema:"icon_url"`
 }
 
 type GitRepositoryModel struct {
@@ -36,8 +39,9 @@ type GitRepositoryModel struct {
 	CaCertificateId   string           `tfschema:"ca_certificate_id"`
 	Commit            string           `tfschema:"commit"`
 	GitTag            string           `tfschema:"git_tag"`
-	IntervalInSeconds int              `tfschema:"interval_in_seconds"`
+	IntervalInSeconds int64            `tfschema:"interval_in_seconds"`
 	Url               string           `tfschema:"url"`
+	Path              string           `tfschema:"path"`
 }
 
 type BasicAuthModel struct {
@@ -53,7 +57,10 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudCustomizedAcceleratorResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+)
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"
@@ -64,7 +71,16 @@ func (s SpringCloudCustomizedAcceleratorResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudCustomizedAcceleratorResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudCustomizedAcceleratorID
+	return appplatform.ValidateCustomizedAcceleratorID
+}
+
+func (s SpringCloudCustomizedAcceleratorResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudCustomizedAcceleratorV0ToV1{},
+		},
+	}
 }
 
 func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema.Schema {
@@ -76,12 +92,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"spring_cloud_accelerator_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudAcceleratorID,
-		},
+		"spring_cloud_accelerator_id": commonschema.ResourceIDReferenceRequiredForceNew(&appplatform.ApplicationAcceleratorId{}),
 
 		"git_repository": {
 			Type:     pluginsdk.TypeList,
@@ -182,6 +193,12 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(10),
 					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 				},
 			},
 		},
@@ -193,6 +210,16 @@ func (s SpringCloudCustomizedAcceleratorResource) Arguments() map[string]*schema
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+		},
+
+		"accelerator_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  appplatform.CustomizedAcceleratorTypeAccelerator,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(appplatform.CustomizedAcceleratorTypeAccelerator),
+				string(appplatform.CustomizedAcceleratorTypeFragment),
+			}, false),
 		},
 
 		"description": {
@@ -228,37 +255,34 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.CustomizedAcceleratorClient
-			springAcceleratorId, err := parse.SpringCloudAcceleratorID(model.SpringCloudAcceleratorId)
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			springAcceleratorId, err := appplatform.ParseApplicationAcceleratorID(model.SpringCloudAcceleratorId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := parse.NewSpringCloudCustomizedAcceleratorID(springAcceleratorId.SubscriptionId, springAcceleratorId.ResourceGroup, springAcceleratorId.SpringName, springAcceleratorId.ApplicationAcceleratorName, model.Name)
+			id := appplatform.NewCustomizedAcceleratorID(springAcceleratorId.SubscriptionId, springAcceleratorId.ResourceGroupName, springAcceleratorId.SpringName, springAcceleratorId.ApplicationAcceleratorName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.CustomizedAcceleratorsGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(s.ResourceType(), id)
 			}
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: &appplatform.CustomizedAcceleratorProperties{
-					DisplayName:     utils.String(model.DisplayName),
-					Description:     utils.String(model.Description),
-					IconURL:         utils.String(model.IconUrl),
-					AcceleratorTags: utils.ToPtr(model.AcceleratorTags),
+					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
+					DisplayName:     pointer.To(model.DisplayName),
+					Description:     pointer.To(model.Description),
+					IconURL:         pointer.To(model.IconURL),
+					AcceleratorTags: pointer.To(model.AcceleratorTags),
 					GitRepository:   expandSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository),
 				},
 			}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName, CustomizedAcceleratorResource)
+			err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, id, CustomizedAcceleratorResource)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -271,9 +295,9 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.CustomizedAcceleratorClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudCustomizedAcceleratorID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseCustomizedAcceleratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -283,12 +307,12 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName)
+			resp, err := client.CustomizedAcceleratorsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			properties := resp.Properties
+			properties := resp.Model.Properties
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
@@ -301,6 +325,10 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 				properties.AcceleratorTags = &model.AcceleratorTags
 			}
 
+			if metadata.ResourceData.HasChange("accelerator_type") {
+				properties.AcceleratorType = pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType))
+			}
+
 			if metadata.ResourceData.HasChange("description") {
 				properties.Description = &model.Description
 			}
@@ -310,19 +338,15 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("icon_url") {
-				properties.IconURL = &model.IconUrl
+				properties.IconURL = &model.IconURL
 			}
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
 				Properties: properties,
 			}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName, CustomizedAcceleratorResource)
+			err = client.CustomizedAcceleratorsCreateOrUpdateThenPoll(ctx, *id, CustomizedAcceleratorResource)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -334,16 +358,16 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.CustomizedAcceleratorClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudCustomizedAcceleratorID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseCustomizedAcceleratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName)
+			resp, err := client.CustomizedAcceleratorsGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -351,12 +375,15 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 			}
 			state := SpringCloudCustomizedAcceleratorModel{
 				Name:                     id.CustomizedAcceleratorName,
-				SpringCloudAcceleratorId: parse.NewSpringCloudAcceleratorID(id.SubscriptionId, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName).ID(),
+				SpringCloudAcceleratorId: appplatform.NewApplicationAcceleratorID(id.SubscriptionId, id.ResourceGroupName, id.SpringName, id.ApplicationAcceleratorName).ID(),
 			}
 
-			if props := resp.Properties; props != nil {
+			if props := resp.Model.Properties; props != nil {
 				if props.AcceleratorTags != nil {
 					state.AcceleratorTags = *props.AcceleratorTags
+				}
+				if props.AcceleratorType != nil {
+					state.AcceleratorType = string(*props.AcceleratorType)
 				}
 				if props.Description != nil {
 					state.Description = *props.Description
@@ -364,15 +391,15 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 				if props.DisplayName != nil {
 					state.DisplayName = *props.DisplayName
 				}
-				if props.GitRepository != nil {
-					var model SpringCloudCustomizedAcceleratorModel
-					if err := metadata.Decode(&model); err != nil {
-						return fmt.Errorf("decoding: %+v", err)
-					}
-					state.GitRepository = flattenSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository, props.GitRepository)
+
+				var model SpringCloudCustomizedAcceleratorModel
+				if err := metadata.Decode(&model); err != nil {
+					return fmt.Errorf("decoding: %+v", err)
 				}
+				state.GitRepository = flattenSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository, props.GitRepository)
+
 				if props.IconURL != nil {
-					state.IconUrl = *props.IconURL
+					state.IconURL = *props.IconURL
 				}
 			}
 
@@ -385,22 +412,16 @@ func (s SpringCloudCustomizedAcceleratorResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.CustomizedAcceleratorClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudCustomizedAcceleratorID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseCustomizedAcceleratorID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ApplicationAcceleratorName, id.CustomizedAcceleratorName)
+			err = client.CustomizedAcceleratorsDeleteThenPoll(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				if !response.WasNotFound(future.Response()) {
-					return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-				}
 			}
 
 			return nil
@@ -408,65 +429,62 @@ func (s SpringCloudCustomizedAcceleratorResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitRepositoryModel) *appplatform.AcceleratorGitRepository {
+func expandSpringCloudCustomizedAcceleratorGitRepository(repository []GitRepositoryModel) appplatform.AcceleratorGitRepository {
 	if len(repository) == 0 {
-		return nil
+		return appplatform.AcceleratorGitRepository{}
 	}
 	repo := repository[0]
-	var authSetting appplatform.BasicAcceleratorAuthSetting
+	var authSetting appplatform.AcceleratorAuthSetting
 	var caCertResourceID *string
 	if repo.CaCertificateId != "" {
-		caCertResourceID = utils.String(repo.CaCertificateId)
+		caCertResourceID = pointer.To(repo.CaCertificateId)
 	}
 	authSetting = appplatform.AcceleratorPublicSetting{
-		CaCertResourceID: caCertResourceID,
+		CaCertResourceId: caCertResourceID,
 	}
 	if len(repo.BasicAuth) != 0 {
 		basicAuth := repo.BasicAuth[0]
 		authSetting = appplatform.AcceleratorBasicAuthSetting{
-			Username:         utils.String(basicAuth.Username),
-			Password:         utils.String(basicAuth.Password),
-			CaCertResourceID: caCertResourceID,
+			Username:         basicAuth.Username,
+			Password:         pointer.To(basicAuth.Password),
+			CaCertResourceId: caCertResourceID,
 		}
 	}
 	if len(repo.SshAuth) != 0 {
 		sshAuth := repo.SshAuth[0]
-		authSetting = appplatform.AcceleratorSSHSetting{
-			HostKey:          utils.String(sshAuth.HostKey),
-			HostKeyAlgorithm: utils.String(sshAuth.PrivateKeyAlgorithm),
-			PrivateKey:       utils.String(sshAuth.PrivateKey),
+		authSetting = appplatform.AcceleratorSshSetting{
+			HostKey:          pointer.To(sshAuth.HostKey),
+			HostKeyAlgorithm: pointer.To(sshAuth.PrivateKeyAlgorithm),
+			PrivateKey:       pointer.To(sshAuth.PrivateKey),
 		}
 	}
-	res := &appplatform.AcceleratorGitRepository{
-		URL:         utils.String(repo.Url),
-		Branch:      utils.String(repo.Branch),
-		Commit:      utils.String(repo.Commit),
-		GitTag:      utils.String(repo.GitTag),
+	res := appplatform.AcceleratorGitRepository{
+		Url:         repo.Url,
+		Branch:      pointer.To(repo.Branch),
+		Commit:      pointer.To(repo.Commit),
+		GitTag:      pointer.To(repo.GitTag),
 		AuthSetting: authSetting,
+		SubPath:     pointer.To(repo.Path),
 	}
 	if repo.IntervalInSeconds != 0 {
-		res.IntervalInSeconds = utils.Int32(int32(repo.IntervalInSeconds))
+		res.IntervalInSeconds = pointer.To(repo.IntervalInSeconds)
 	}
 	return res
 }
 
-func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryModel, input *appplatform.AcceleratorGitRepository) []GitRepositoryModel {
-	if input == nil {
-		return []GitRepositoryModel{}
-	}
-
+func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryModel, input appplatform.AcceleratorGitRepository) []GitRepositoryModel {
 	basicAuth := make([]BasicAuthModel, 0)
 
 	caCertificateId := ""
-	if publicAuthSetting, ok := input.AuthSetting.AsAcceleratorPublicSetting(); ok && publicAuthSetting != nil && publicAuthSetting.CaCertResourceID != nil {
-		certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*publicAuthSetting.CaCertResourceID)
+	if publicAuthSetting, ok := input.AuthSetting.(appplatform.AcceleratorPublicSetting); ok && publicAuthSetting.CaCertResourceId != nil {
+		certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*publicAuthSetting.CaCertResourceId)
 		if err == nil {
 			caCertificateId = certificatedId.ID()
 		}
 	}
-	if basicAuthSetting, ok := input.AuthSetting.AsAcceleratorBasicAuthSetting(); ok && basicAuthSetting != nil {
-		if basicAuthSetting.CaCertResourceID != nil {
-			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*basicAuthSetting.CaCertResourceID)
+	if basicAuthSetting, ok := input.AuthSetting.(appplatform.AcceleratorBasicAuthSetting); ok {
+		if basicAuthSetting.CaCertResourceId != nil {
+			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*basicAuthSetting.CaCertResourceId)
 			if err == nil {
 				caCertificateId = certificatedId.ID()
 			}
@@ -476,13 +494,13 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 			basicAuthState = state[0].BasicAuth[0]
 		}
 		basicAuth = append(basicAuth, BasicAuthModel{
-			Username: *basicAuthSetting.Username,
+			Username: basicAuthSetting.Username,
 			Password: basicAuthState.Password,
 		})
 	}
 
 	sshAuth := make([]SshAuthModel, 0)
-	if sshAuthSetting, ok := input.AuthSetting.AsAcceleratorSSHSetting(); ok && sshAuthSetting != nil {
+	if _, ok := input.AuthSetting.(appplatform.AcceleratorSshSetting); ok {
 		var sshAuthState SshAuthModel
 		if len(state) != 0 && len(state[0].SshAuth) != 0 {
 			sshAuthState = state[0].SshAuth[0]
@@ -505,15 +523,17 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 		gitTag = *input.GitTag
 	}
 
-	intervalInSeconds := 0
+	var intervalInSeconds int64
 	if input.IntervalInSeconds != nil {
-		intervalInSeconds = int(*input.IntervalInSeconds)
+		intervalInSeconds = *input.IntervalInSeconds
 	}
 
-	url := ""
-	if input.URL != nil {
-		url = *input.URL
+	subPath := ""
+	if input.SubPath != nil {
+		subPath = *input.SubPath
 	}
+
+	url := input.Url
 
 	return []GitRepositoryModel{
 		{
@@ -525,6 +545,7 @@ func flattenSpringCloudCustomizedAcceleratorGitRepository(state []GitRepositoryM
 			GitTag:            gitTag,
 			IntervalInSeconds: intervalInSeconds,
 			Url:               url,
+			Path:              subPath,
 		},
 	}
 }

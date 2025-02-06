@@ -69,14 +69,14 @@ func TestAccSpringCloudBuildDeployment_addon(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addon(data, "app/dev"),
+			Config: r.addon(data, "auth-service"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addon(data, "app/prod"),
+			Config: r.addon(data, "gateway"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -157,10 +157,11 @@ func (r SpringCloudBuildDeploymentResource) complete(data acceptance.TestData) s
 %s
 
 resource "azurerm_spring_cloud_build_deployment" "test" {
-  name                = "acctest-scjd%s"
-  spring_cloud_app_id = azurerm_spring_cloud_app.test.id
-  build_result_id     = "<default>"
-  instance_count      = 2
+  name                                   = "acctest-scjd%s"
+  spring_cloud_app_id                    = azurerm_spring_cloud_app.test.id
+  build_result_id                        = "<default>"
+  instance_count                         = 2
+  application_performance_monitoring_ids = [azurerm_spring_cloud_application_insights_application_performance_monitoring.test.id]
 
   environment_variables = {
     "Foo" : "Bar"
@@ -204,25 +205,43 @@ resource "azurerm_spring_cloud_build_deployment" "test" {
 func (SpringCloudBuildDeploymentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-spring-%d"
-  location = "%s"
+  name     = "acctestRG-spring-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
+  name                = "acctest-sc-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "E0"
 }
 
 resource "azurerm_spring_cloud_app" "test" {
-  name                = "acctest-sca-%d"
+  name                = "acctest-sca-%[2]d"
   resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
   service_name        = azurerm_spring_cloud_service.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctest-ai-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_spring_cloud_application_insights_application_performance_monitoring" "test" {
+  name                    = "acctest-apm-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  connection_string       = azurerm_application_insights.test.instrumentation_key
+}
+`, data.Locations.Primary, data.RandomInteger)
 }

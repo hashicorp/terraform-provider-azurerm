@@ -33,6 +33,28 @@ func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAlertRuleScheduled_upgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "1.0.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeVersion(data, "1.0.5"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSentinelAlertRuleScheduled_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 	r := SentinelAlertRuleScheduledResource{}
@@ -135,14 +157,13 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Sentinel.AlertRulesClient.AlertRulesGet(ctx, *id)
+	resp, err := clients.Sentinel.AlertRulesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Sentinel Alert Rule Scheduled %q: %v", id, err)
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.ScheduledAlertRule)
+		rule, ok := model.(alertrules.ScheduledAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}
@@ -185,16 +206,16 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   techniques                 = ["T1560", "T1123"]
   severity                   = "Low"
   enabled                    = false
-  incident_configuration {
-    create_incident = true
+  incident {
+    create_incident_enabled = true
     grouping {
       enabled                 = true
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
       entity_matching_method  = "Selected"
-      group_by_entities       = ["Host"]
-      group_by_alert_details  = ["DisplayName"]
-      group_by_custom_details = ["OperatingSystemType", "OperatingSystemName"]
+      by_entities             = ["Host"]
+      by_alert_details        = ["DisplayName"]
+      by_custom_details       = ["OperatingSystemType", "OperatingSystemName"]
     }
   }
   query                = "Heartbeat"
@@ -339,6 +360,28 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
+func (r SentinelAlertRuleScheduledResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                        = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name                = "Some Rule"
+  alert_rule_template_guid    = "173f8699-6af5-484a-8b06-8c47ba89b380"
+  alert_rule_template_version = "%[3]s"
+  severity                    = "Medium"
+  query                       = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+}
+`, r.template(data), data.RandomInteger, version)
+}
+
 func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -355,19 +398,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
-}
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {

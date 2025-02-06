@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -45,12 +43,6 @@ func EnvironmentName() string {
 	return envName
 }
 
-func Environment() (*azure.Environment, error) {
-	envName := EnvironmentName()
-	metadataURL := os.Getenv("ARM_METADATA_HOSTNAME")
-	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
-}
-
 func GetAuthConfig(t *testing.T) *auth.Credentials {
 	if os.Getenv(resource.EnvTfAcc) == "" {
 		t.Skipf("Acceptance test skipped unless env '%s' set", resource.EnvTfAcc)
@@ -68,7 +60,7 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 	)
 
 	if metadataHost != "" {
-		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 			t.Fatalf("building test client: %+v", err)
 			return nil
 		}

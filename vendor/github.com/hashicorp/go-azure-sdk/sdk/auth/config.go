@@ -21,6 +21,9 @@ type Credentials struct {
 
 	// EnableAuthenticatingUsingAzureCLI specifies whether Azure CLI authentication should be checked.
 	EnableAuthenticatingUsingAzureCLI bool
+	// AzureCliSubscriptionIDHint is the subscription to target when selecting an account with which to obtain an access token
+	// Used to hint to Azure CLI which of its signed-in accounts it should select, based on apparent access to the subscription.
+	AzureCliSubscriptionIDHint string
 
 	// EnableAuthenticatingUsingClientCertificate specifies whether Client Certificate authentication should be checked.
 	EnableAuthenticatingUsingClientCertificate bool

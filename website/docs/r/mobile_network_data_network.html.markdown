@@ -65,7 +65,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Data Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Data Network.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Data Network.
+* `update` - (Defaults to 30 minutes) Used when updating the Mobile Network Data Network.
 * `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Data Network.
 
 ## Import

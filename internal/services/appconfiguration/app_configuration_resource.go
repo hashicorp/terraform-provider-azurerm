@@ -5,6 +5,7 @@ package appconfiguration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,9 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/deletedconfigurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/operations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
@@ -41,16 +42,24 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		Delete: resourceAppConfigurationDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := configurationstores.ParseConfigurationStoreID(id)
 			return err
 		}),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// sku cannot be downgraded
+			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
+			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old == "premium" || new == "free"
+			}),
+		),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -106,6 +115,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
 					"standard",
+					"premium",
 				}, false),
 			},
 
@@ -130,6 +140,31 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      nil,
 				ValidateFunc: validation.StringInSlice(configurationstores.PossibleValuesForPublicNetworkAccess(), true),
+			},
+
+			"replica": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Set:      resourceConfigurationStoreReplicaHash,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ConfigurationStoreReplicaName,
+						},
+						"location": commonschema.LocationWithoutForceNew(),
+						"endpoint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"primary_read_key": {
@@ -256,7 +291,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 
 	recoverSoftDeleted := false
 	if meta.(*clients.Client).Features.AppConfiguration.RecoverSoftDeleted {
@@ -264,7 +299,7 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		deleted, err := deletedConfigurationStoresClient.ConfigurationStoresGetDeleted(ctx, deletedConfigurationStoresId)
 		if err != nil {
 			if response.WasStatusCode(deleted.HttpResponse, http.StatusForbidden) {
-				return fmt.Errorf(userIsMissingNecessaryPermission(name, location))
+				return errors.New(userIsMissingNecessaryPermission(name, location))
 			}
 			if !response.WasNotFound(deleted.HttpResponse) {
 				return fmt.Errorf("checking for presence of deleted %s: %+v", deletedConfigurationStoresId, err)
@@ -324,6 +359,20 @@ func resourceAppConfigurationCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", resourceId)
 	}
 	meta.(*clients.Client).AppConfiguration.AddToCache(resourceId, *resp.Model.Properties.Endpoint)
+
+	expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*pluginsdk.Set).List(), name, location)
+	if err != nil {
+		return fmt.Errorf("expanding `replica`: %+v", err)
+	}
+
+	replicaClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+	for _, replica := range *expandedReplicas {
+		replicaId := replicas.NewReplicaID(resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.ConfigurationStoreName, *replica.Name)
+
+		if err := replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
+			return fmt.Errorf("creating %s: %+v", replicaId, err)
+		}
+	}
 
 	return resourceAppConfigurationRead(d, meta)
 }
@@ -434,6 +483,67 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
+	if d.HasChange("replica") {
+		replicaClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+		operationsClient := meta.(*clients.Client).AppConfiguration.OperationsClient
+
+		// check if a replica has been removed from config and if so, delete it
+		deleteReplicaIds := make([]replicas.ReplicaId, 0)
+		unchangedReplicaNames := make(map[string]struct{}, 0)
+		oldReplicas, newReplicas := d.GetChange("replica")
+		for _, oldReplica := range oldReplicas.(*pluginsdk.Set).List() {
+			isRemoved := true
+			oldReplicaMap := oldReplica.(map[string]interface{})
+
+			for _, newReplica := range newReplicas.(*pluginsdk.Set).List() {
+				newReplicaMap := newReplica.(map[string]interface{})
+
+				if strings.EqualFold(oldReplicaMap["name"].(string), newReplicaMap["name"].(string)) && strings.EqualFold(location.Normalize(oldReplicaMap["location"].(string)), location.Normalize(newReplicaMap["location"].(string))) {
+					unchangedReplicaNames[oldReplicaMap["name"].(string)] = struct{}{}
+					isRemoved = false
+					break
+				}
+			}
+
+			if isRemoved {
+				deleteReplicaIds = append(deleteReplicaIds, replicas.NewReplicaID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName, oldReplicaMap["name"].(string)))
+			}
+		}
+
+		if err := deleteReplicas(ctx, replicaClient, operationsClient, deleteReplicaIds); err != nil {
+			return err
+		}
+
+		expandedReplicas, err := expandAppConfigurationReplicas(d.Get("replica").(*pluginsdk.Set).List(), id.ConfigurationStoreName, location.Normalize(existing.Model.Location))
+		if err != nil {
+			return fmt.Errorf("expanding `replica`: %+v", err)
+		}
+
+		// check if a replica has been added or an existing one changed its location, (re)create it
+		for _, replica := range *expandedReplicas {
+			if _, isUnchanged := unchangedReplicaNames[*replica.Name]; isUnchanged {
+				continue
+			}
+
+			replicaId := replicas.NewReplicaID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName, *replica.Name)
+
+			existingReplica, err := replicaClient.Get(ctx, replicaId)
+			if err != nil {
+				if !response.WasNotFound(existingReplica.HttpResponse) {
+					return fmt.Errorf("retrieving %s: %+v", replicaId, err)
+				}
+			}
+
+			if !response.WasNotFound(existingReplica.HttpResponse) {
+				return fmt.Errorf("updating %s: replica %s already exists", *id, replicaId)
+			}
+
+			if err = replicaClient.CreateThenPoll(ctx, replicaId, replica); err != nil {
+				return fmt.Errorf("creating %s: %+v", replicaId, err)
+			}
+		}
+	}
+
 	return resourceAppConfigurationRead(d, meta)
 }
 
@@ -507,6 +617,18 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
+
+		replicasClient := meta.(*clients.Client).AppConfiguration.ReplicasClient
+		resp, err := replicasClient.ListByConfigurationStoreComplete(ctx, replicas.NewConfigurationStoreID(id.SubscriptionId, id.ResourceGroupName, id.ConfigurationStoreName))
+		if err != nil {
+			return fmt.Errorf("retrieving replicas for %s: %+v", *id, err)
+		}
+
+		replica, err := flattenAppConfigurationReplicas(resp.Items)
+		if err != nil {
+			return fmt.Errorf("flattening replicas for %s: %+v", *id, err)
+		}
+		d.Set("replica", replica)
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
@@ -647,11 +769,12 @@ type flattenedAccessKeys struct {
 }
 
 func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	encryptionParam := input[0].(map[string]interface{})
+
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
@@ -663,6 +786,46 @@ func expandAppConfigurationEncryption(input []interface{}) *configurationstores.
 		result.KeyVaultProperties.KeyIdentifier = &v
 	}
 	return result
+}
+
+func expandAppConfigurationReplicas(input []interface{}, configurationStoreName, configurationStoreLocation string) (*[]replicas.Replica, error) {
+	result := make([]replicas.Replica, 0)
+
+	// check if there are duplicated replica names or locations
+	// location cannot be same as original configuration store and other replicas
+	locationSet := make(map[string]string, 0)
+	replicaNameSet := make(map[string]struct{}, 0)
+
+	for _, v := range input {
+		replica := v.(map[string]interface{})
+		replicaName := replica["name"].(string)
+		replicaLocation := location.Normalize(replica["location"].(string))
+		if strings.EqualFold(replicaLocation, configurationStoreLocation) {
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with original configuration store %q", replicaLocation, replicaName, configurationStoreName)
+		}
+
+		if name, ok := locationSet[replicaLocation]; ok {
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with replica %q", replicaLocation, replicaName, name)
+		}
+		locationSet[replicaLocation] = replicaName
+
+		normalizedReplicaName := strings.ToLower(replicaName)
+		if _, ok := replicaNameSet[normalizedReplicaName]; ok {
+			return nil, fmt.Errorf("replica name %q is duplicated", replicaName)
+		}
+		replicaNameSet[normalizedReplicaName] = struct{}{}
+
+		if len(replicaName)+len(configurationStoreName) > 60 {
+			return nil, fmt.Errorf("replica name %q is too long, the total length of replica name and configuration store name should be less or equal than 60", replicaName)
+		}
+
+		result = append(result, replicas.Replica{
+			Name:     pointer.To(replicaName),
+			Location: pointer.To(replicaLocation),
+		})
+	}
+
+	return &result, nil
 }
 
 func flattenAppConfigurationAccessKeys(values []configurationstores.ApiKey) flattenedAccessKeys {
@@ -748,7 +911,7 @@ An existing soft-deleted App Configuration exists with the Name %q in the locati
 the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
 You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
 can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, location)
 }
 
@@ -766,13 +929,11 @@ func resourceConfigurationStoreWaitForNameAvailable(ctx context.Context, client 
 		Timeout:                   time.Until(deadline),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
-		return fmt.Errorf("waiting for the Name from %s to become available: %+v", configurationStoreId, err)
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the name from %s to become available: %+v", configurationStoreId, err)
 	}
 
 	return nil
-
 }
 
 func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreId configurationstores.ConfigurationStoreId) pluginsdk.StateRefreshFunc {
@@ -797,6 +958,75 @@ func resourceConfigurationStoreNameAvailabilityRefreshFunc(ctx context.Context, 
 
 		if resp.Model.NameAvailable == nil {
 			return resp, "Error", fmt.Errorf("unexpected null NameAvailable property of %s", configurationStoreId)
+		}
+
+		if !*resp.Model.NameAvailable {
+			return resp, "Unavailable", nil
+		}
+		return resp, "Available", nil
+	}
+}
+
+func deleteReplicas(ctx context.Context, replicaClient *replicas.ReplicasClient, operationClient *operations.OperationsClient, configurationStoreReplicaIds []replicas.ReplicaId) error {
+	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
+		log.Printf("[DEBUG] Deleting Replica %q", configurationStoreReplicaId)
+		if err := replicaClient.DeleteThenPoll(ctx, configurationStoreReplicaId); err != nil {
+			return fmt.Errorf("deleting replica %q: %+v", configurationStoreReplicaId, err)
+		}
+	}
+
+	for _, configurationStoreReplicaId := range configurationStoreReplicaIds {
+		if err := resourceConfigurationStoreReplicaWaitForNameAvailable(ctx, operationClient, configurationStoreReplicaId); err != nil {
+			return fmt.Errorf("waiting for replica %q name to be released: %+v", configurationStoreReplicaId, err)
+		}
+	}
+
+	return nil
+}
+
+func resourceConfigurationStoreReplicaWaitForNameAvailable(ctx context.Context, client *operations.OperationsClient, configurationStoreReplicaId replicas.ReplicaId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+		Pending:                   []string{"Unavailable"},
+		Target:                    []string{"Available"},
+		Refresh:                   resourceConfigurationStoreReplicaNameAvailabilityRefreshFunc(ctx, client, configurationStoreReplicaId),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for the name from %s to become available: %+v", configurationStoreReplicaId, err)
+	}
+
+	return nil
+}
+
+func resourceConfigurationStoreReplicaNameAvailabilityRefreshFunc(ctx context.Context, client *operations.OperationsClient, configurationStoreReplicaId replicas.ReplicaId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if the name for %s is available ..", configurationStoreReplicaId)
+
+		subscriptionId := commonids.NewSubscriptionID(configurationStoreReplicaId.SubscriptionId)
+
+		parameters := operations.CheckNameAvailabilityParameters{
+			Name: fmt.Sprintf("%s-%s", configurationStoreReplicaId.ConfigurationStoreName, configurationStoreReplicaId.ReplicaName),
+			Type: operations.ConfigurationResourceTypeMicrosoftPointAppConfigurationConfigurationStores,
+		}
+
+		resp, err := client.CheckNameAvailability(ctx, subscriptionId, parameters)
+		if err != nil {
+			return resp, "Error", fmt.Errorf("retrieving Deployment: %+v", err)
+		}
+
+		if resp.Model == nil {
+			return resp, "Error", fmt.Errorf("unexpected null model of %s", configurationStoreReplicaId)
+		}
+
+		if resp.Model.NameAvailable == nil {
+			return resp, "Error", fmt.Errorf("unexpected null NameAvailable property of %s", configurationStoreReplicaId)
 		}
 
 		if !*resp.Model.NameAvailable {

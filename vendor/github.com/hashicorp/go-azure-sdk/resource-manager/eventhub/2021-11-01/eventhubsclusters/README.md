@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters` Documentation
 
-The `eventhubsclusters` SDK allows for interaction with the Azure Resource Manager Service `eventhub` (API Version `2021-11-01`).
+The `eventhubsclusters` SDK allows for interaction with Azure Resource Manager `eventhub` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := eventhubsclusters.Cluster{
 	// ...
@@ -41,7 +42,7 @@ if err := client.ClustersCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 if err := client.ClustersDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.ClustersDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 read, err := client.ClustersGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ClustersListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ClustersListByResourceGroupComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ClustersListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ClustersListBySubscriptionComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := eventhubsclusters.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
 
 payload := eventhubsclusters.Cluster{
 	// ...

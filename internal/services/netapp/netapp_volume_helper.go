@@ -6,81 +6,23 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppVolumeGroupVolume struct {
-	Id                           string                         `tfschema:"id"`
-	Name                         string                         `tfschema:"name"`
-	VolumePath                   string                         `tfschema:"volume_path"`
-	ServiceLevel                 string                         `tfschema:"service_level"`
-	SubnetId                     string                         `tfschema:"subnet_id"`
-	Protocols                    []string                       `tfschema:"protocols"`
-	SecurityStyle                string                         `tfschema:"security_style"`
-	StorageQuotaInGB             int64                          `tfschema:"storage_quota_in_gb"`
-	ThroughputInMibps            float64                        `tfschema:"throughput_in_mibps"`
-	Tags                         map[string]string              `tfschema:"tags"`
-	SnapshotDirectoryVisible     bool                           `tfschema:"snapshot_directory_visible"`
-	CapacityPoolId               string                         `tfschema:"capacity_pool_id"`
-	ProximityPlacementGroupId    string                         `tfschema:"proximity_placement_group_id"`
-	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
-	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
-	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
-	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
-	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
-}
-
-type ExportPolicyRule struct {
-	RuleIndex         int    `tfschema:"rule_index"`
-	AllowedClients    string `tfschema:"allowed_clients"`
-	Nfsv3Enabled      bool   `tfschema:"nfsv3_enabled"`
-	Nfsv41Enabled     bool   `tfschema:"nfsv41_enabled"`
-	UnixReadOnly      bool   `tfschema:"unix_read_only"`
-	UnixReadWrite     bool   `tfschema:"unix_read_write"`
-	RootAccessEnabled bool   `tfschema:"root_access_enabled"`
-}
-
-type DataProtectionReplication struct {
-	EndpointType           string `tfschema:"endpoint_type"`
-	RemoteVolumeLocation   string `tfschema:"remote_volume_location"`
-	RemoteVolumeResourceId string `tfschema:"remote_volume_resource_id"`
-	ReplicationFrequency   string `tfschema:"replication_frequency"`
-}
-
-type DataProtectionSnapshotPolicy struct {
-	DataProtectionSnapshotPolicy string `tfschema:"snapshot_policy_id"`
-}
-
-type ReplicationSchedule string
-
-const (
-	ReplicationSchedule10Minutes ReplicationSchedule = "10minutes"
-	ReplicationScheduleDaily     ReplicationSchedule = "daily"
-	ReplicationScheduleHourly    ReplicationSchedule = "hourly"
-)
-
-func PossibleValuesForReplicationSchedule() []string {
-	return []string{
-		string(ReplicationSchedule10Minutes),
-		string(ReplicationScheduleDaily),
-		string(ReplicationScheduleHourly),
-	}
-}
-
-func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
-
+func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPolicyRule) *volumegroups.VolumePropertiesExportPolicy {
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesExportPolicy{}
 	}
@@ -88,7 +30,6 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 	results := make([]volumegroups.ExportPolicyRule, 0)
 
 	for _, item := range input {
-
 		// Hard-Coded values, for AVG these cannot be set differently
 		// they are not exposed as TF configuration
 		// but PUT request requires those fields to succeed
@@ -105,7 +46,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 			Cifs:                utils.Bool(cifsEnabled),
 			Nfsv3:               utils.Bool(item.Nfsv3Enabled),
 			Nfsv41:              utils.Bool(item.Nfsv41Enabled),
-			RuleIndex:           utils.Int64(int64(item.RuleIndex)),
+			RuleIndex:           utils.Int64(item.RuleIndex),
 			UnixReadOnly:        utils.Bool(item.UnixReadOnly),
 			UnixReadWrite:       utils.Bool(item.UnixReadWrite),
 			HasRootAccess:       utils.Bool(item.RootAccessEnabled),
@@ -125,7 +66,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []ExportPolicyRule) *vo
 	}
 }
 
-func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
+func expandNetAppVolumeGroupDataProtectionReplication(input []netAppModels.DataProtectionReplication) *volumegroups.VolumePropertiesDataProtection {
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
@@ -146,7 +87,7 @@ func expandNetAppVolumeGroupDataProtectionReplication(input []DataProtectionRepl
 	}
 }
 
-func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
+func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []netAppModels.DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
 	if len(input) == 0 {
 		return &volumegroups.VolumePropertiesDataProtection{}
 	}
@@ -159,7 +100,7 @@ func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []DataProtectionS
 	}
 }
 
-func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
+func expandNetAppVolumeGroupVolumes(input []netAppModels.NetAppVolumeGroupVolume) (*[]volumegroups.VolumeGroupVolumeProperties, error) {
 	if len(input) == 0 {
 		return &[]volumegroups.VolumeGroupVolumeProperties{}, fmt.Errorf("received empty NetAppVolumeGroupVolume slice")
 	}
@@ -176,7 +117,6 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumeg
 		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
 		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		proximityPlacementGroupId := utils.NormalizeNilableString(&item.ProximityPlacementGroupId)
 		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
@@ -194,7 +134,6 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumeg
 				ExportPolicy:             exportPolicyRule,
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
-				ProximityPlacementGroup:  &proximityPlacementGroupId,
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
 					Replication: dataProtectionReplication.Replication,
@@ -202,6 +141,10 @@ func expandNetAppVolumeGroupVolumes(input []NetAppVolumeGroupVolume) (*[]volumeg
 				},
 			},
 			Tags: &item.Tags,
+		}
+
+		if v := item.ProximityPlacementGroupId; v != "" {
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
 		results = append(results, *volumeProperties)
@@ -330,28 +273,80 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 	}
 }
 
-func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]NetAppVolumeGroupVolume, error) {
-	results := make([]NetAppVolumeGroupVolume, 0)
+func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
+	if len(input) == 0 || input == nil {
+		return &volumes.VolumePropertiesDataProtection{}
+	}
+
+	backupPolicyObject := volumes.VolumeBackupProperties{}
+
+	backupRaw := input[0].(map[string]interface{})
+
+	if v, ok := backupRaw["backup_policy_id"]; ok {
+		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+	}
+
+	if v, ok := backupRaw["policy_enabled"]; ok {
+		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+	}
+
+	if v, ok := backupRaw["backup_vault_id"]; ok {
+		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePropertiesDataProtection{
+		Backup: &backupPolicyObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+	if len(input) == 0 || input == nil {
+		return &volumes.VolumePatchPropertiesDataProtection{}
+	}
+
+	backupPolicyObject := volumes.VolumeBackupProperties{}
+
+	backupRaw := input[0].(map[string]interface{})
+
+	if v, ok := backupRaw["backup_policy_id"]; ok {
+		backupPolicyObject.BackupPolicyId = utils.String(v.(string))
+	}
+
+	if v, ok := backupRaw["policy_enabled"]; ok {
+		backupPolicyObject.PolicyEnforced = utils.Bool(v.(bool))
+	}
+
+	if v, ok := backupRaw["backup_vault_id"]; ok {
+		backupPolicyObject.BackupVaultId = utils.String(v.(string))
+	}
+
+	return &volumes.VolumePatchPropertiesDataProtection{
+		Backup: &backupPolicyObject,
+	}
+}
+
+func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupVolume, error) {
+	results := make([]netAppModels.NetAppVolumeGroupVolume, 0)
 
 	if input == nil || len(pointer.From(input)) == 0 {
 		return results, fmt.Errorf("received empty volumegroups.VolumeGroupVolumeProperties slice")
 	}
 
 	for _, item := range *input {
-		volumeGroupVolume := NetAppVolumeGroupVolume{}
+		volumeGroupVolume := netAppModels.NetAppVolumeGroupVolume{}
 
 		props := item.Properties
 		volumeGroupVolume.Name = getUserDefinedVolumeName(item.Name)
 		volumeGroupVolume.VolumePath = props.CreationToken
 		volumeGroupVolume.ServiceLevel = string(pointer.From(props.ServiceLevel))
 		volumeGroupVolume.SubnetId = props.SubnetId
-		volumeGroupVolume.CapacityPoolId = utils.NormalizeNilableString(props.CapacityPoolResourceId)
+		volumeGroupVolume.CapacityPoolId = pointer.From(props.CapacityPoolResourceId)
 		volumeGroupVolume.Protocols = pointer.From(props.ProtocolTypes)
 		volumeGroupVolume.SecurityStyle = string(pointer.From(props.SecurityStyle))
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
-		volumeGroupVolume.ProximityPlacementGroupId = utils.NormalizeNilableString(props.ProximityPlacementGroup)
+		volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)
 
 		if props.UsageThreshold > 0 {
@@ -372,12 +367,12 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 		volumeClient := metadata.Client.NetApp.VolumeClient
 		id, err := volumes.ParseVolumeID(pointer.From(item.Id))
 		if err != nil {
-			return []NetAppVolumeGroupVolume{}, err
+			return []netAppModels.NetAppVolumeGroupVolume{}, err
 		}
 
 		standaloneVol, err := volumeClient.Get(ctx, pointer.From(id))
 		if err != nil {
-			return []NetAppVolumeGroupVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
+			return []netAppModels.NetAppVolumeGroupVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Replication != nil {
@@ -396,17 +391,17 @@ func flattenNetAppVolumeGroupVolumes(ctx context.Context, input *[]volumegroups.
 	return results, nil
 }
 
-func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportPolicyRule) []ExportPolicyRule {
-	results := make([]ExportPolicyRule, 0)
+func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportPolicyRule) []netAppModels.ExportPolicyRule {
+	results := make([]netAppModels.ExportPolicyRule, 0)
 
 	if input == nil || len(pointer.From(input)) == 0 {
 		return results
 	}
 
 	for _, item := range pointer.From(input) {
-		rule := ExportPolicyRule{}
+		rule := netAppModels.ExportPolicyRule{}
 
-		rule.RuleIndex = int(pointer.From(item.RuleIndex))
+		rule.RuleIndex = pointer.From(item.RuleIndex)
 		rule.AllowedClients = pointer.From(item.AllowedClients)
 		rule.Nfsv3Enabled = pointer.From(item.Nfsv3)
 		rule.Nfsv41Enabled = pointer.From(item.Nfsv41)
@@ -436,12 +431,12 @@ func flattenNetAppVolumeGroupVolumesMountIpAddresses(input *[]volumegroups.Mount
 	return results
 }
 
-func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObject) []DataProtectionReplication {
+func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObject) []netAppModels.DataProtectionReplication {
 	if input == nil {
-		return []DataProtectionReplication{}
+		return []netAppModels.DataProtectionReplication{}
 	}
 	if string(pointer.From(input.EndpointType)) == "" || !strings.EqualFold(string(pointer.From(input.EndpointType)), string(volumes.EndpointTypeDst)) {
-		return []DataProtectionReplication{}
+		return []netAppModels.DataProtectionReplication{}
 	}
 
 	replicationFrequency := ""
@@ -449,7 +444,7 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 		replicationFrequency = translateSDKSchedule(strings.ToLower(string(pointer.From(input.ReplicationSchedule))))
 	}
 
-	return []DataProtectionReplication{
+	return []netAppModels.DataProtectionReplication{
 		{
 			EndpointType:           strings.ToLower(string(pointer.From(input.EndpointType))),
 			RemoteVolumeLocation:   pointer.From(input.RemoteVolumeRegion),
@@ -459,12 +454,12 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 	}
 }
 
-func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapshotProperties) []DataProtectionSnapshotPolicy {
+func flattenNetAppVolumeGroupVolumesDPSnapshotPolicy(input *volumes.VolumeSnapshotProperties) []netAppModels.DataProtectionSnapshotPolicy {
 	if input == nil {
-		return []DataProtectionSnapshotPolicy{}
+		return []netAppModels.DataProtectionSnapshotPolicy{}
 	}
 
-	return []DataProtectionSnapshotPolicy{
+	return []netAppModels.DataProtectionSnapshotPolicy{
 		{
 			DataProtectionSnapshotPolicy: pointer.From(input.SnapshotPolicyId),
 		},
@@ -493,7 +488,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 
 	existing, err := client.Get(ctx, pointer.From(id))
 	if err != nil {
-		if existing.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(existing.HttpResponse) {
 			return metadata.MarkAsGone(id)
 		}
 		return fmt.Errorf("retrieving %s: %v", id, err)
@@ -550,7 +545,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 	}
 
-	// Deleting volume and waiting for it fo fully complete the operation
+	// Deleting volume and waiting for it to fully complete the operation
 	if err = client.DeleteThenPoll(ctx, pointer.From(id), volumes.DeleteOperationOptions{
 		ForceDelete: utils.Bool(true),
 	}); err != nil {
@@ -697,6 +692,28 @@ func waitForVolumeDeletion(ctx context.Context, client *volumes.VolumesClient, i
 	return nil
 }
 
+func waitForBackupRelationshipStateForDeletion(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200"}, // 200 means not in the state we need for backup
+		Target:                    []string{"204"}, // 204 means backup is in a state that need (! transitioning)
+		Refresh:                   netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to not be in the transferring state", id)
+	}
+
+	return nil
+}
+
 func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesClient, id volumes.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
@@ -716,7 +733,7 @@ func netappVolumeStateRefreshFunc(ctx context.Context, client *volumes.VolumesCl
 
 func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups.VolumeGroupsClient, id volumegroups.VolumeGroupId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.VolumeGroupsGet(ctx, id)
+		res, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(res.HttpResponse) {
 				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
@@ -760,6 +777,25 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 	}
 }
 
+func netappVolumeBackupRelationshipStateForDeletionRefreshFunc(ctx context.Context, client *backups.BackupsClient, id backups.VolumeId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetLatestStatus(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving backup relationship status information from %s: %s", id, err)
+			}
+		}
+
+		response := 200
+		if res.Model != nil && res.Model.RelationshipStatus != nil && *res.Model.RelationshipStatus != backups.RelationshipStatusTransferring {
+			// return 204 if state matches desired state
+			response = 204
+		}
+
+		return res, strconv.Itoa(response), nil
+	}
+}
+
 func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.VolumesReplicationStatus(ctx, id)
@@ -780,7 +816,7 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volume
 }
 
 func translateTFSchedule(scheduleName string) string {
-	if strings.EqualFold(scheduleName, string(ReplicationSchedule10Minutes)) {
+	if strings.EqualFold(scheduleName, string(netAppModels.ReplicationSchedule10Minutes)) {
 		return string(volumegroups.ReplicationScheduleOneZerominutely)
 	}
 
@@ -789,7 +825,7 @@ func translateTFSchedule(scheduleName string) string {
 
 func translateSDKSchedule(scheduleName string) string {
 	if strings.EqualFold(scheduleName, string(volumegroups.ReplicationScheduleOneZerominutely)) {
-		return string(ReplicationSchedule10Minutes)
+		return string(netAppModels.ReplicationSchedule10Minutes)
 	}
 
 	return scheduleName

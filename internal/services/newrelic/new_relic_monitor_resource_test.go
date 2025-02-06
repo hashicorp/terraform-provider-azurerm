@@ -6,11 +6,12 @@ package newrelic_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,18 +57,44 @@ func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_complete(t *testing.T) {
+	const AccountIdEnv = "ARM_ACCTEST_NEW_RELIC_ACCOUNT_ID"
+	const OrgIdEnv = "ARM_ACCTEST_NEW_RELIC_ORG_ID"
+
+	accountId := os.Getenv(AccountIdEnv)
+	orgId := os.Getenv(OrgIdEnv)
+
+	if accountId == "" || orgId == "" {
+		t.Skipf("Acceptance test skipped unless env '%s' and '%s' set", AccountIdEnv, OrgIdEnv)
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	email := "b9ba4f77-5e63-4f1e-9445-b982d35f635b@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, effectiveDate, email),
+			Config: r.complete(data, effectiveDate, email, accountId, orgId),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("ingestion_key"),
+	})
+}
+
+func TestAccNewRelicMonitor_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
+	r := NewRelicMonitorResource{}
+	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	email := "fdfc9282-8817-442f-9f32-605ab174b610@example.com"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data, effectiveDate, email),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -119,6 +146,9 @@ resource "azurerm_new_relic_monitor" "test" {
     last_name    = "last"
     phone_number = "123456"
   }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }
@@ -141,52 +171,79 @@ resource "azurerm_new_relic_monitor" "import" {
     last_name    = azurerm_new_relic_monitor.test.user[0].last_name
     phone_number = azurerm_new_relic_monitor.test.user[0].phone_number
   }
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, config)
 }
 
-func (r NewRelicMonitorResource) complete(data acceptance.TestData, effectiveDate string, email string) string {
+func (r NewRelicMonitorResource) complete(data acceptance.TestData, effectiveDate string, email string, accountId string, orgId string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%[1]s
 
-resource "azurerm_new_relic_monitor" "org" {
-  name                = "acctest-nrmo-%[2]d"
+resource "azurerm_new_relic_monitor" "test" {
+  name                = "acctest-nrm-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
+  location            = azurerm_resource_group.test.location
   plan {
-    effective_date = "%[4]s"
+    billing_cycle  = "MONTHLY"
+    effective_date = "%[3]s"
+    plan_id        = "newrelic-pay-as-you-go-free-live"
+    usage_type     = "PAYG"
   }
   user {
-    email        = "%[5]s"
+    email        = "%[4]s"
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
   }
+  identity {
+    type = "SystemAssigned"
+  }
+  account_creation_source = "LIFTR"
+  account_id              = "%[5]s"
+  ingestion_key           = "wltnimmhqt"
+  organization_id         = "%[6]s"
+  org_creation_source     = "LIFTR"
+  user_id                 = "123456"
+}
+`, template, data.RandomInteger, effectiveDate, email, accountId, orgId)
 }
 
+func (r NewRelicMonitorResource) identity(data acceptance.TestData, effectiveDate string, email string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
 resource "azurerm_new_relic_monitor" "test" {
-  name                = "acctest-nrm-%[2]d"
-  resource_group_name = azurerm_new_relic_monitor.org.resource_group_name
-  location            = azurerm_new_relic_monitor.org.location
+  name                = "acctest-nrm-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
   plan {
-    billing_cycle  = azurerm_new_relic_monitor.org.plan[0].billing_cycle
-    effective_date = "%[4]s"
-    plan_id        = azurerm_new_relic_monitor.org.plan[0].plan_id
-    usage_type     = azurerm_new_relic_monitor.org.plan[0].usage_type
+    effective_date = "%s"
   }
   user {
-    email        = azurerm_new_relic_monitor.org.user[0].email
-    first_name   = azurerm_new_relic_monitor.org.user[0].first_name
-    last_name    = azurerm_new_relic_monitor.org.user[0].last_name
-    phone_number = azurerm_new_relic_monitor.org.user[0].phone_number
+    email        = "%s"
+    first_name   = "first"
+    last_name    = "last"
+    phone_number = "123456"
   }
-  account_creation_source = azurerm_new_relic_monitor.org.account_creation_source
-  account_id              = azurerm_new_relic_monitor.org.account_id
-  ingestion_key           = "wltnimmhqt"
-  organization_id         = azurerm_new_relic_monitor.org.organization_id
-  org_creation_source     = azurerm_new_relic_monitor.org.org_creation_source
-  user_id                 = "123456"
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Monitoring Reader"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azurerm_new_relic_monitor.test.identity[0].principal_id
 }
 `, template, data.RandomInteger, data.Locations.Primary, effectiveDate, email)
 }

@@ -19,7 +19,20 @@ type ListByCommunicationsGatewayOperationResponse struct {
 }
 
 type ListByCommunicationsGatewayCompleteResult struct {
-	Items []TestLine
+	LatestHttpResponse *http.Response
+	Items              []TestLine
+}
+
+type ListByCommunicationsGatewayCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByCommunicationsGatewayCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByCommunicationsGateway ...
@@ -30,6 +43,7 @@ func (c TestLinesClient) ListByCommunicationsGateway(ctx context.Context, id Com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByCommunicationsGatewayCustomPager{},
 		Path:       fmt.Sprintf("%s/testLines", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c TestLinesClient) ListByCommunicationsGatewayCompleteMatchingPredicate(ct
 
 	resp, err := c.ListByCommunicationsGateway(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c TestLinesClient) ListByCommunicationsGatewayCompleteMatchingPredicate(ct
 	}
 
 	result = ListByCommunicationsGatewayCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

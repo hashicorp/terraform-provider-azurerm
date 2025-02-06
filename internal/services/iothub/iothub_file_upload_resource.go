@@ -18,14 +18,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 type IotHubFileUploadResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
-)
+var _ sdk.ResourceWithUpdate = IotHubFileUploadResource{}
 
 type IotHubFileUploadResourceModel struct {
 	AuthenticationType   string `tfschema:"authentication_type"`
@@ -35,7 +33,7 @@ type IotHubFileUploadResourceModel struct {
 	IdentityId           string `tfschema:"identity_id"`
 	IotHubId             string `tfschema:"iothub_id"`
 	LockDuration         string `tfschema:"lock_duration"`
-	MaxDeliveryCount     int    `tfschema:"max_delivery_count"`
+	MaxDeliveryCount     int64  `tfschema:"max_delivery_count"`
 	NotificationsEnabled bool   `tfschema:"notifications_enabled"`
 	SasTTL               string `tfschema:"sas_ttl"`
 }
@@ -258,7 +256,7 @@ func (r IotHubFileUploadResource) Read() sdk.ResourceFunc {
 						state.LockDuration = *v
 					}
 					if v := messagingEndpoint.MaxDeliveryCount; v != nil {
-						state.MaxDeliveryCount = int(*v)
+						state.MaxDeliveryCount = int64(*v)
 					}
 				}
 

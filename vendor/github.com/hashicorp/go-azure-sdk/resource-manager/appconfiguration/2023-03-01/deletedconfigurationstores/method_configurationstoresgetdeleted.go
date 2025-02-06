@@ -43,7 +43,9 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresGetDeleted(ctx cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeletedConfigurationStore
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

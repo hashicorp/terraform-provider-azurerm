@@ -13,7 +13,7 @@ import (
 
 type MsSqlManagedInstanceDataSource struct{}
 
-func TestAccDataSourceSqlManagedInstance_basic(t *testing.T) {
+func TestAccDataSourceMsSqlManagedInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_instance", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -24,6 +24,7 @@ func TestAccDataSourceSqlManagedInstance_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("dns_zone").Exists(),
 			),
 		},
 	})

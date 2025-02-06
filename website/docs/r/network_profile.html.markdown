@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `container_network_interface` - (Required) A `container_network_interface` block as documented below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 

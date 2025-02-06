@@ -88,7 +88,7 @@ An `identity` block exports the following:
 `ip_configuration` exports the following:
 
 * `name` - The name of the IP configuration.
-* `subnet_id` - The the identifier of the subnet.
+* `subnet_id` - The identifier of the subnet.
 * `application_gateway_backend_address_pool_ids` - An array of references to backend address pools of application gateways.
 * `load_balancer_backend_address_pool_ids` - An array of references to backend address pools of load balancers.
 * `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.

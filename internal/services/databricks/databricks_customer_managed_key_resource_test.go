@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,10 @@ import (
 type DatabricksWorkspaceCustomerManagedKeyResource struct{}
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Resource no longer exists in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -38,6 +43,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Resource no longer exists in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -64,6 +73,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Resource no longer exists in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -81,6 +94,10 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Resource no longer exists in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_customer_managed_key", "test")
 	parent := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceCustomerManagedKeyResource{}
@@ -126,8 +143,20 @@ func (DatabricksWorkspaceCustomerManagedKeyResource) Exists(ctx context.Context,
 	return utils.Bool(false), nil
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+	cmkTemplate := r.cmkTemplate()
+	template := r.basic(data, cmkTemplate)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_databricks_workspace_customer_managed_key" "import" {
+  workspace_id     = azurerm_databricks_workspace.test.id
+  key_vault_key_id = azurerm_key_vault_key.test.id
+}
+`, template)
+}
+
+func (r DatabricksWorkspaceCustomerManagedKeyResource) basic(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,21 +185,8 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, "eastus2", keyVault, cmk)
 }
 
-func (DatabricksWorkspaceCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	cmkTemplate := DatabricksWorkspaceCustomerManagedKeyResource{}.cmkTemplate()
-	template := DatabricksWorkspaceCustomerManagedKeyResource{}.basic(data, cmkTemplate)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_databricks_workspace_customer_managed_key" "import" {
-  workspace_id     = azurerm_databricks_workspace.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
-}
-`, template)
-}
-
-func (DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
-	keyVault := DatabricksWorkspaceCustomerManagedKeyResource{}.keyVaultTemplate(data)
+func (r DatabricksWorkspaceCustomerManagedKeyResource) noip(data acceptance.TestData, cmk string) string {
+	keyVault := r.keyVaultTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

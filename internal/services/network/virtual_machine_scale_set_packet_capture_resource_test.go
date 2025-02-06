@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -168,8 +168,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -336,7 +336,6 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
 
   machine_scope {
     include_instance_ids = ["0", "1"]
-    exclude_instance_ids = ["2", "3"]
   }
 
   depends_on = [azurerm_virtual_machine_scale_set_extension.test]

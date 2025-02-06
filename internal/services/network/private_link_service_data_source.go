@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
@@ -96,72 +96,75 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	client := meta.(*clients.Client).Network.PrivateLinkServices
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := privatelinkservices.NewPrivateLinkServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, privatelinkservices.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.PrivateLinkServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.PrivateLinkServiceProperties; props != nil {
-		d.Set("alias", props.Alias)
-		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+		if props := model.Properties; props != nil {
+			d.Set("alias", props.Alias)
+			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
 
-		if autoApproval := props.AutoApproval; autoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
-				return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
+			if autoApproval := props.AutoApproval; autoApproval != nil {
+				if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
+					return fmt.Errorf("setting `auto_approval_subscription_ids`: %+v", err)
+				}
+			}
+			if visibility := props.Visibility; visibility != nil {
+				if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
+					return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
+				}
+			}
+
+			if props.IPConfigurations != nil {
+				if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+					return fmt.Errorf("setting `nat_ip_configuration`: %+v", err)
+				}
+			}
+			if props.LoadBalancerFrontendIPConfigurations != nil {
+				if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+					return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+				}
 			}
 		}
-		if visibility := props.Visibility; visibility != nil {
-			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
-				return fmt.Errorf("setting `visibility_subscription_ids`: %+v", err)
-			}
-		}
-
-		if props.IPConfigurations != nil {
-			if err := d.Set("nat_ip_configuration", flattenPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-				return fmt.Errorf("setting `nat_ip_configuration`: %+v", err)
-			}
-		}
-		if props.LoadBalancerFrontendIPConfigurations != nil {
-			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
-				return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
-			}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
-
 	d.SetId(id.ID())
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
+func dataSourceFlattenPrivateLinkServiceFrontendIPConfiguration(input *[]privatelinkservices.FrontendIPConfiguration) []string {
 	results := make([]string, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if id := item.ID; id != nil {
+		if id := item.Id; id != nil {
 			results = append(results, *id)
 		}
 	}

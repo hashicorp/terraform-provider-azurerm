@@ -54,13 +54,13 @@ The following arguments are supported:
 
 * `configuration_settings` - (Optional) Configuration settings, as name-value pairs for configuring this extension.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
+* `identity` - (Required) An `identity` block as defined below. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
 * `release_train` - (Optional) The release train used by this extension. Possible values include but are not limited to `Stable`, `Preview`. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
 * `release_namespace` - (Optional) Namespace where the extension release must be placed for a cluster scoped extension. If this namespace does not exist, it will be created. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
-* `target_namespace` - (Optional) Namespace where the extension will be created for a namespace scoped extension.  If this namespace does not exist, it will be created. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
+* `target_namespace` - (Optional) Namespace where the extension will be created for a namespace scoped extension. If this namespace does not exist, it will be created. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
 * `version` - (Optional) User-specified version that the extension should pin to. If it is not set, Azure will use the latest version and auto upgrade it. Changing this forces a new Arc Kubernetes Cluster Extension to be created.
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity. The only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

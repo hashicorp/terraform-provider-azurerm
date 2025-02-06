@@ -151,7 +151,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeOne
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.Name),
@@ -206,7 +206,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			roleType := mongorbacs.MongoRoleDefinitionTypeOne
+			roleType := mongorbacs.MongoRoleDefinitionTypeCustomRole
 			parameters := mongorbacs.MongoRoleDefinitionCreateUpdateParameters{
 				Properties: &mongorbacs.MongoRoleDefinitionResource{
 					DatabaseName: pointer.To(databaseId.Name),
@@ -292,8 +292,7 @@ func expandPrivilege(input []Privilege) *[]mongorbacs.Privilege {
 		return nil
 	}
 
-	var result []mongorbacs.Privilege
-
+	result := make([]mongorbacs.Privilege, 0, len(input))
 	for _, v := range input {
 		output := mongorbacs.Privilege{
 			Actions:  pointer.To(v.Actions),
@@ -307,11 +306,11 @@ func expandPrivilege(input []Privilege) *[]mongorbacs.Privilege {
 }
 
 func flattenPrivilege(input *[]mongorbacs.Privilege) []Privilege {
-	var result []Privilege
 	if input == nil {
-		return result
+		return []Privilege{}
 	}
 
+	result := make([]Privilege, 0, len(*input))
 	for _, input := range *input {
 		privilege := Privilege{
 			Actions:  pointer.From(input.Actions),
@@ -362,8 +361,7 @@ func expandInheritedRoles(input []string, dbName string) *[]mongorbacs.Role {
 		return nil
 	}
 
-	var result []mongorbacs.Role
-
+	result := make([]mongorbacs.Role, 0, len(input))
 	for _, v := range input {
 		inheritedRole := mongorbacs.Role{
 			Db:   pointer.To(dbName),
@@ -377,11 +375,11 @@ func expandInheritedRoles(input []string, dbName string) *[]mongorbacs.Role {
 }
 
 func flattenInheritedRoles(input *[]mongorbacs.Role) []string {
-	var result []string
 	if input == nil {
-		return result
+		return []string{}
 	}
 
+	result := make([]string, 0, len(*input))
 	for _, v := range *input {
 		result = append(result, pointer.From(v.Role))
 	}

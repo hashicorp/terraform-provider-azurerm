@@ -31,12 +31,12 @@ output "network_interface_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Network Interface.
+* `accelerated_networking_enabled` - Indicates if accelerated networking is set on the specified Network Interface.
 * `applied_dns_servers` - List of DNS servers applied to the specified Network Interface.
-* `enable_accelerated_networking` - Indicates if accelerated networking is set on the specified Network Interface.
-* `enable_ip_forwarding` - Indicate if IP forwarding is set on the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
 * `internal_dns_name_label` - The internal DNS name label of the specified Network Interface.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
+* `ip_forwarding_enabled` - Indicate if IP forwarding is set on the specified Network Interface.
 * `location` - The location of the specified Network Interface.
 * `mac_address` - The MAC address used by the specified Network Interface.
 * `network_security_group_id` - The ID of the network security group associated to the specified Network Interface.

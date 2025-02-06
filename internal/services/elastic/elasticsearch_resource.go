@@ -43,7 +43,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			// Required
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -68,7 +67,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 				ValidateFunc: validate.ElasticEmailAddress,
 			},
 
-			// Optional
 			"monitoring_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -79,7 +77,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 			"logs": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -133,7 +130,6 @@ func resourceElasticsearch() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
-			// Computed
 			"elastic_cloud_deployment_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -268,14 +264,14 @@ func resourceElasticsearchRead(d *pluginsdk.ResourceData, meta interface{}) erro
 					// AzureSubscriptionId is the same as the subscription deployed into, so no point exposing it
 					// ElasticsearchRegion is `{Cloud}-{Region}` - so the same as location/not worth exposing for now?
 					d.Set("elastic_cloud_deployment_id", elastic.ElasticCloudDeployment.DeploymentId)
-					d.Set("elasticsearch_service_url", elastic.ElasticCloudDeployment.ElasticsearchServiceUrl)
-					d.Set("kibana_service_url", elastic.ElasticCloudDeployment.KibanaServiceUrl)
-					d.Set("kibana_sso_uri", elastic.ElasticCloudDeployment.KibanaSsoUrl)
+					d.Set("elasticsearch_service_url", elastic.ElasticCloudDeployment.ElasticsearchServiceURL)
+					d.Set("kibana_service_url", elastic.ElasticCloudDeployment.KibanaServiceURL)
+					d.Set("kibana_sso_uri", elastic.ElasticCloudDeployment.KibanaSsoURL)
 				}
 				if elastic.ElasticCloudUser != nil {
 					d.Set("elastic_cloud_user_id", elastic.ElasticCloudUser.Id)
 					d.Set("elastic_cloud_email_address", elastic.ElasticCloudUser.EmailAddress)
-					d.Set("elastic_cloud_sso_default_url", elastic.ElasticCloudUser.ElasticCloudSsoDefaultUrl)
+					d.Set("elastic_cloud_sso_default_url", elastic.ElasticCloudUser.ElasticCloudSsoDefaultURL)
 				}
 			}
 		}

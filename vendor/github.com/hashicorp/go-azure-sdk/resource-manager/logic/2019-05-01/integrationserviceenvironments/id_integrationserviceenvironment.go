@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IntegrationServiceEnvironmentId{}
+func init() {
+	recaser.RegisterResourceId(&IntegrationServiceEnvironmentId{})
+}
+
+var _ resourceids.ResourceId = &IntegrationServiceEnvironmentId{}
 
 // IntegrationServiceEnvironmentId is a struct representing the Resource ID for a Integration Service Environment
 type IntegrationServiceEnvironmentId struct {
@@ -30,25 +35,15 @@ func NewIntegrationServiceEnvironmentID(subscriptionId string, resourceGroup str
 
 // ParseIntegrationServiceEnvironmentID parses 'input' into a IntegrationServiceEnvironmentId
 func ParseIntegrationServiceEnvironmentID(input string) (*IntegrationServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntegrationServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntegrationServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntegrationServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.IntegrationServiceEnvironmentName, ok = parsed.Parsed["integrationServiceEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseIntegrationServiceEnvironmentID(input string) (*IntegrationServiceEnvi
 // ParseIntegrationServiceEnvironmentIDInsensitively parses 'input' case-insensitively into a IntegrationServiceEnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseIntegrationServiceEnvironmentIDInsensitively(input string) (*IntegrationServiceEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntegrationServiceEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntegrationServiceEnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntegrationServiceEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroup, ok = parsed.Parsed["resourceGroup"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", *parsed)
-	}
-
-	if id.IntegrationServiceEnvironmentName, ok = parsed.Parsed["integrationServiceEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IntegrationServiceEnvironmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroup, ok = input.Parsed["resourceGroup"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroup", input)
+	}
+
+	if id.IntegrationServiceEnvironmentName, ok = input.Parsed["integrationServiceEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "integrationServiceEnvironmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateIntegrationServiceEnvironmentID checks that 'input' can be parsed as a Integration Service Environment ID
@@ -112,7 +115,7 @@ func (id IntegrationServiceEnvironmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationServiceEnvironments", "integrationServiceEnvironments", "integrationServiceEnvironments"),
-		resourceids.UserSpecifiedSegment("integrationServiceEnvironmentName", "integrationServiceEnvironmentValue"),
+		resourceids.UserSpecifiedSegment("integrationServiceEnvironmentName", "integrationServiceEnvironmentName"),
 	}
 }
 

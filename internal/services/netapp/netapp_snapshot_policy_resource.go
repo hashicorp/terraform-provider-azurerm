@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshotpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -71,7 +71,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -93,7 +92,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -121,7 +119,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -159,7 +156,6 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"snapshots_to_keep": {
@@ -195,6 +191,24 @@ func resourceNetAppSnapshotPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("hourly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("daily_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("weekly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+
+			pluginsdk.ForceNewIfChange("monthly_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -439,7 +453,7 @@ func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpol
 }
 
 func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicy.HourlySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.Minute == nil && input.SnapshotsToKeep == nil) {
 		return []interface{}{}
 	}
 
@@ -452,7 +466,7 @@ func flattenNetAppVolumeSnapshotPolicyHourlySchedule(input *snapshotpolicy.Hourl
 }
 
 func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicy.DailySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 
@@ -466,7 +480,7 @@ func flattenNetAppVolumeSnapshotPolicyDailySchedule(input *snapshotpolicy.DailyS
 }
 
 func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicy.WeeklySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.Day == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 
@@ -488,7 +502,7 @@ func flattenNetAppVolumeSnapshotPolicyWeeklySchedule(input *snapshotpolicy.Weekl
 }
 
 func flattenNetAppVolumeSnapshotPolicyMonthlySchedule(input *snapshotpolicy.MonthlySchedule) []interface{} {
-	if input == nil {
+	if input == nil || (input.SnapshotsToKeep == nil && input.DaysOfMonth == nil && input.Hour == nil && input.Minute == nil) {
 		return []interface{}{}
 	}
 

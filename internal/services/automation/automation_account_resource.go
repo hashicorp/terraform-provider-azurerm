@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -157,7 +158,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,9 +196,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
-	}
+	parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -216,7 +215,7 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -247,8 +246,8 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if localAuth := d.Get("local_authentication_enabled").(bool); !localAuth {
-		parameters.Properties.DisableLocalAuth = utils.Bool(true)
+	if d.HasChange("local_authentication_enabled") {
+		parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
 	}
 
 	if tagsVal := tags.Expand(d.Get("tags").(map[string]interface{})); tagsVal != nil {
@@ -263,7 +262,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,7 +283,8 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := registrationClient.Get(ctx, id.ResourceGroupName, id.AutomationAccountName)
+	infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
+	keysResp, err := registrationClient.Get(ctx, infoId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Agent Registration Info for %s was not found - removing from state!", *id)
@@ -298,60 +298,61 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.AutomationAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Model.Location))
-	publicNetworkAccessEnabled := true
-	if resp.Model == nil || resp.Model.Properties == nil {
-		return fmt.Errorf("retrieving Automation Account got empty Model")
-	}
-	prop := resp.Model.Properties
-	if prop.PublicNetworkAccess != nil {
-		publicNetworkAccessEnabled = *prop.PublicNetworkAccess
-	}
-	d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-	skuName := ""
-	if sku := prop.Sku; sku != nil {
-		skuName = string(prop.Sku.Name)
-	}
-	d.Set("sku_name", skuName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if props := model.Properties; props != nil {
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = *props.PublicNetworkAccess
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-	localAuthEnabled := true
-	if val := prop.DisableLocalAuth; val != nil && *val {
-		localAuthEnabled = false
-	}
-	d.Set("local_authentication_enabled", localAuthEnabled)
+			skuName := ""
+			if sku := props.Sku; sku != nil {
+				skuName = string(sku.Name)
+			}
+			d.Set("sku_name", skuName)
 
-	if err := d.Set("encryption", flattenEncryption(prop.Encryption)); err != nil {
-		return fmt.Errorf("setting `encryption`: %+v", err)
-	}
+			localAuthEnabled := true
+			if val := props.DisableLocalAuth; val != nil && *val {
+				localAuthEnabled = false
+			}
+			d.Set("local_authentication_enabled", localAuthEnabled)
 
-	d.Set("dsc_server_endpoint", keysResp.Endpoint)
-	if keys := keysResp.Keys; keys != nil {
-		d.Set("dsc_primary_access_key", keys.Primary)
-		d.Set("dsc_secondary_access_key", keys.Secondary)
-	}
+			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
+				return fmt.Errorf("setting `encryption`: %+v", err)
+			}
+			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 
-	d.Set("hybrid_service_url", prop.AutomationHybridServiceUrl)
+			identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
 
-	identity, err := identity.FlattenSystemAndUserAssignedMap(resp.Model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+			d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(props.PrivateEndpointConnections))
+		}
 
-	if resp.Model != nil && resp.Model.Properties != nil {
-		d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(resp.Model.Properties.PrivateEndpointConnections))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	if resp.Model.Tags != nil {
-		return flattenAndSetTags(d, *resp.Model.Tags)
+	if model := keysResp.Model; model != nil {
+		d.Set("dsc_server_endpoint", model.Endpoint)
+		if keys := model.Keys; keys != nil {
+			d.Set("dsc_primary_access_key", keys.Primary)
+			d.Set("dsc_secondary_access_key", keys.Secondary)
+		}
 	}
+
 	return nil
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AccountClient
+	client := meta.(*clients.Client).Automation.AutomationAccount
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -387,11 +388,14 @@ func expandEncryption(input []interface{}) (*automationaccount.EncryptionPropert
 		return nil, fmt.Errorf("read encryption user identity id error")
 	}
 	prop := &automationaccount.EncryptionProperties{
-		Identity: &automationaccount.EncryptionPropertiesIdentity{
-			UserAssignedIdentity: &id,
-		},
 		KeySource: pointer.To(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),
 	}
+	if id != "" {
+		prop.Identity = &automationaccount.EncryptionPropertiesIdentity{
+			UserAssignedIdentity: &id,
+		}
+	}
+
 	if keyIdStr := v["key_vault_key_id"].(string); keyIdStr != "" {
 		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyIdStr)
 		if err != nil {
@@ -439,4 +443,19 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			"key_source": "",
 		},
 	}
+}
+
+func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, item := range *input {
+		output = append(output, map[string]interface{}{
+			"id":   pointer.From(item.Id),
+			"name": pointer.From(item.Name),
+		})
+	}
+	return output
 }

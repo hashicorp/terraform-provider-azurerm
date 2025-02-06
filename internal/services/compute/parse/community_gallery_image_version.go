@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = CommunityGalleryImageVersionId{}
+var _ resourceids.ResourceId = &CommunityGalleryImageVersionId{}
 
 type CommunityGalleryImageVersionId struct {
 	GalleryName string
@@ -56,20 +56,20 @@ func (id CommunityGalleryImageVersionId) Segments() []resourceids.Segment {
 // CommunityGalleryImageVersionID parses a CommunityGalleryImageVersion Unique ID into an CommunityGalleryImageVersionId struct
 func CommunityGalleryImageVersionID(input string) (*CommunityGalleryImageVersionId, error) {
 	id := CommunityGalleryImageVersionId{}
-	parsed, err := resourceids.NewParserFromResourceIdType(id).Parse(input, false)
+	parsed, err := resourceids.NewParserFromResourceIdType(&id).Parse(input, false)
 	if err != nil {
 		return nil, err
 	}
 
 	var ok bool
 	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
+		return nil, resourceids.NewSegmentNotSpecifiedError(&id, "galleryName", *parsed)
 	}
 	if id.ImageName, ok = parsed.Parsed["imageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "imageName", *parsed)
+		return nil, resourceids.NewSegmentNotSpecifiedError(&id, "imageName", *parsed)
 	}
 	if id.Version, ok = parsed.Parsed["version"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "version", *parsed)
+		return nil, resourceids.NewSegmentNotSpecifiedError(&id, "version", *parsed)
 	}
 
 	// Additional validation for version, it can be the word "latest" or
@@ -90,4 +90,22 @@ func CommunityGalleryImageVersionID(input string) (*CommunityGalleryImageVersion
 	}
 
 	return &id, nil
+}
+
+func (id *CommunityGalleryImageVersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.GalleryName, ok = input.Parsed["galleryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "galleryName", input)
+	}
+
+	if id.ImageName, ok = input.Parsed["imageName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "imageName", input)
+	}
+
+	if id.Version, ok = input.Parsed["version"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "imageName", input)
+	}
+
+	return nil
 }

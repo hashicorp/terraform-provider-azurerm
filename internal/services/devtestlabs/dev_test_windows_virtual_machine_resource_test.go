@@ -83,32 +83,6 @@ func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	})
 }
 
-func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
-	r := DevTestVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.storage(data, "Standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
-				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-		{
-			Config: r.storage(data, "Premium"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("MicrosoftWindowsServer"),
-				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-			),
-		},
-	})
-}
-
 func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
@@ -216,32 +190,6 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger%1000000)
 }
 
-func (r DevTestVirtualMachineResource) storage(data acceptance.TestData, storageType string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_dev_test_windows_virtual_machine" "test" {
-  name                   = "acctestvm%d"
-  lab_name               = azurerm_dev_test_lab.test.name
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  size                   = "Standard_B1ms"
-  username               = "acct5stU5er"
-  password               = "Pa$w0rd1234!"
-  lab_virtual_network_id = azurerm_dev_test_virtual_network.test.id
-  lab_subnet_name        = azurerm_dev_test_virtual_network.test.subnet[0].name
-  storage_type           = "%s"
-
-  gallery_image_reference {
-    offer     = "WindowsServer"
-    publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger%1000000, storageType)
-}
-
 func (DevTestVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -267,6 +215,17 @@ resource "azurerm_dev_test_virtual_network" "test" {
   subnet {
     use_public_ip_address           = "Allow"
     use_in_virtual_machine_creation = "Allow"
+
+    shared_public_ip_address {
+      allowed_ports {
+        backend_port       = 22
+        transport_protocol = "Tcp"
+      }
+      allowed_ports {
+        backend_port       = 3389
+        transport_protocol = "Tcp"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

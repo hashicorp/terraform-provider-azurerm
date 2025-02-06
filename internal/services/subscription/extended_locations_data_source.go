@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceExtendedLocations() *pluginsdk.Resource {
@@ -40,26 +41,30 @@ func dataSourceExtendedLocations() *pluginsdk.Resource {
 }
 
 func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Subscription.Client
+	client := meta.(*clients.Client).Subscription.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewSubscriptionID(subscriptionId)
-	includeExtendedLocations := utils.Bool(true)
-	resp, err := client.ListLocations(ctx, id.SubscriptionId, includeExtendedLocations)
+	opts := subscriptions.DefaultListLocationsOperationOptions()
+	opts.IncludeExtendedLocations = pointer.To(true)
+	resp, err := client.ListLocations(ctx, id, opts)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
 
 	normalizedLocation := location.Normalize(d.Get("location").(string))
 	d.SetId(fmt.Sprintf("%s/locations/%s", id.ID(), normalizedLocation))
 
-	extendedLocations := getExtendedLocations(resp.Value, normalizedLocation)
+	extendedLocations := getExtendedLocations(resp.Model.Value, normalizedLocation)
 	if len(extendedLocations) == 0 {
 		return fmt.Errorf("no extended locations were found for the location %q", normalizedLocation)
 	}
@@ -77,7 +82,11 @@ func getExtendedLocations(input *[]subscriptions.Location, normalizedLocation st
 	}
 
 	for _, item := range *input {
-		if item.Type != subscriptions.LocationTypeEdgeZone || item.Metadata == nil || item.Metadata.HomeLocation == nil || item.Name == nil {
+		if item.Type == nil || item.Metadata == nil || item.Metadata.HomeLocation == nil || item.Name == nil {
+			continue
+		}
+
+		if *item.Type != subscriptions.LocationTypeEdgeZone {
 			continue
 		}
 

@@ -6,16 +6,16 @@ package network
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourcePublicIPs() *pluginsdk.Resource {
@@ -52,8 +52,8 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(network.IPAllocationMethodDynamic),
-				string(network.IPAllocationMethodStatic),
+				string(publicipaddresses.IPAllocationMethodDynamic),
+				string(publicipaddresses.IPAllocationMethodStatic),
 			}, false),
 		},
 
@@ -89,50 +89,55 @@ func dataSourcePublicIPSchema() map[string]*pluginsdk.Schema {
 }
 
 func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Network.PublicIPAddresses
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
+	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, d.Get("resource_group_name").(string))
 
-	log.Printf("[DEBUG] Reading Public IP's in Resource Group %q", resourceGroup)
-	resp, err := client.List(ctx, resourceGroup)
+	resp, err := client.List(ctx, resourceGroupId)
 	if err != nil {
-		return fmt.Errorf("listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
+		return fmt.Errorf("listing Public IP Addresses in %s: %v", resourceGroupId, err)
 	}
 
 	prefix := d.Get("name_prefix").(string)
 	attachmentStatus, attachmentStatusOk := d.GetOk("attachment_status")
 	allocationType := d.Get("allocation_type").(string)
 
-	filteredIPAddresses := make([]network.PublicIPAddress, 0)
-	for _, element := range resp.Values() {
-		nicIsAttached := element.IPConfiguration != nil || element.NatGateway != nil
+	filteredIPAddresses := make([]publicipaddresses.PublicIPAddress, 0)
 
-		if prefix != "" {
-			if !strings.HasPrefix(*element.Name, prefix) {
-				continue
+	if model := resp.Model; model != nil {
+		for _, address := range *model {
+			if props := address.Properties; props != nil {
+				nicIsAttached := props.IPConfiguration != nil || props.NatGateway != nil
+
+				if prefix != "" {
+					if !strings.HasPrefix(*address.Name, prefix) {
+						continue
+					}
+				}
+
+				if attachmentStatusOk && attachmentStatus.(string) == "Attached" && !nicIsAttached {
+					continue
+				}
+				if attachmentStatusOk && attachmentStatus.(string) == "Unattached" && nicIsAttached {
+					continue
+				}
+
+				if allocationType != "" {
+					allocation := publicipaddresses.IPAllocationMethod(allocationType)
+					if props.PublicIPAllocationMethod != nil && *props.PublicIPAllocationMethod != allocation {
+						continue
+					}
+				}
 			}
-		}
 
-		if attachmentStatusOk && attachmentStatus.(string) == "Attached" && !nicIsAttached {
-			continue
+			filteredIPAddresses = append(filteredIPAddresses, address)
 		}
-		if attachmentStatusOk && attachmentStatus.(string) == "Unattached" && nicIsAttached {
-			continue
-		}
-
-		if allocationType != "" {
-			allocation := network.IPAllocationMethod(allocationType)
-			if element.PublicIPAllocationMethod != allocation {
-				continue
-			}
-		}
-
-		filteredIPAddresses = append(filteredIPAddresses, element)
 	}
 
-	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroup, prefix, attachmentStatus, allocationType)
+	id := fmt.Sprintf("networkPublicIPs/resourceGroup/%s/namePrefix=%s;attachmentStatus=%s;allocationType=%s", resourceGroupId.ResourceGroupName, prefix, attachmentStatus, allocationType)
 	d.SetId(base64.StdEncoding.EncodeToString([]byte(id)))
 
 	results := flattenDataSourcePublicIPs(filteredIPAddresses)
@@ -143,7 +148,7 @@ func dataSourcePublicIPsRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
+func flattenDataSourcePublicIPs(input []publicipaddresses.PublicIPAddress) []interface{} {
 	results := make([]interface{}, 0)
 
 	for _, element := range input {
@@ -154,10 +159,10 @@ func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
 	return results
 }
 
-func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
+func flattenDataSourcePublicIP(input publicipaddresses.PublicIPAddress) map[string]string {
 	id := ""
-	if input.ID != nil {
-		id = *input.ID
+	if input.Id != nil {
+		id = *input.Id
 	}
 
 	name := ""
@@ -168,8 +173,8 @@ func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string 
 	domainNameLabel := ""
 	fqdn := ""
 	ipAddress := ""
-	if props := input.PublicIPAddressPropertiesFormat; props != nil {
-		if dns := props.DNSSettings; dns != nil {
+	if props := input.Properties; props != nil {
+		if dns := props.DnsSettings; dns != nil {
 			if dns.Fqdn != nil {
 				fqdn = *dns.Fqdn
 			}

@@ -4,12 +4,18 @@
 package compute_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
@@ -161,17 +167,15 @@ func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
-			Config: r.otherUserData(data, "Goodbye Wolrd"),
+			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			// removed
@@ -182,7 +186,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 	})
 }
@@ -428,44 +431,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabledWithExtensionDisable
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_updateHealthProbeSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.updateLoadBalancerHealthProbeSKU(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.updateLoadBalancerHealthProbeSKU(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherScaleInPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_otherScaleIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -528,49 +493,17 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 	})
 }
 
-// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
-func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// old: terminate_notification
-		{
-			Config: r.otherTerminateNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// new: termination_notification
-		{
-			Config: r.otherTerminationNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn automatic repair on
 		{
-			Config: r.otherAutomaticRepairsPolicyEnabled(data),
+			Config: r.otherAutomaticRepairsPolicy(data, "Restart"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair off
 		{
 			Config: r.otherAutomaticRepairsPolicyDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -578,7 +511,20 @@ func TestAccLinuxVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *testing.T
 			),
 		},
 		data.ImportStep("admin_password"),
-		// turn automatic repair on again
+		{
+			Config: r.otherAutomaticRepairsPolicy(data, "Reimage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherAutomaticRepairsPolicyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherAutomaticRepairsPolicyEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -684,14 +630,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -783,6 +729,90 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testi
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherCancelRollingUpgrades(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					// This function manually updates the value for the image sku which triggers rolling upgrades
+					// and simulates the scenario where rolling upgrades are running when we try to delete a VMSS
+					client := clients.Compute.VirtualMachineScaleSetsClient
+
+					id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.Attributes["id"])
+					if err != nil {
+						return err
+					}
+
+					ctx2, cancel := context.WithTimeout(ctx, 60*time.Minute)
+					defer cancel()
+					options := virtualmachinescalesets.DefaultGetOperationOptions()
+					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+					existing, err := client.Get(ctx2, *id, options)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", *id, err)
+					}
+
+					existingImageReference := existing.Model.Properties.VirtualMachineProfile.StorageProfile.ImageReference
+
+					imageReference := virtualmachinescalesets.ImageReference{
+						Publisher: existingImageReference.Publisher,
+						Offer:     existingImageReference.Offer,
+						Sku:       pointer.To("22_04-lts"),
+						Version:   existingImageReference.Version,
+					}
+
+					updateProps := virtualmachinescalesets.VirtualMachineScaleSetUpdateProperties{
+						VirtualMachineProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateVMProfile{
+							StorageProfile: &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{
+								ImageReference: &imageReference,
+							},
+						},
+						UpgradePolicy: existing.Model.Properties.UpgradePolicy,
+					}
+					update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
+						Properties: &updateProps,
+					}
+
+					if err := client.UpdateThenPoll(ctx2, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
+						return fmt.Errorf("updating %s: %+v", *id, err)
+					}
+
+					return nil
+				}, data.ResourceName),
+			),
+		},
+
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_otherDisableReimageOnManualUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherDisableReimageOnManualUpgrade(data, "Standard_F2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherDisableReimageOnManualUpgrade(data, "Standard_F4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r LinuxVirtualMachineScaleSetResource) otherBootDiagnostics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -808,8 +838,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -861,8 +891,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -912,8 +942,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -936,6 +966,87 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
+func (r LinuxVirtualMachineScaleSetResource) otherCancelRollingUpgrades(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Rolling"
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 90
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
+    pause_time_between_batches              = "PT30S"
+  }
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "sleep 5m"
+    })
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [source_image_reference.0.sku]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r LinuxVirtualMachineScaleSetResource) otherComputerNamePrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -954,8 +1065,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -995,8 +1106,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1037,8 +1148,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1068,6 +1179,10 @@ func (r LinuxVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1086,10 +1201,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1106,8 +1223,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1135,8 +1252,7 @@ func (r LinuxVirtualMachineScaleSetResource) otherForceDelete(data acceptance.Te
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
-      force_delete                 = true
-      roll_instances_when_required = true
+      force_delete = true
     }
   }
 }
@@ -1156,8 +1272,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1177,7 +1293,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
@@ -1199,8 +1315,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1243,8 +1359,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1285,8 +1401,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1326,8 +1442,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "import" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1367,8 +1483,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1416,8 +1532,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1457,8 +1573,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1650,8 +1766,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1697,8 +1813,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1743,8 +1859,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1788,8 +1904,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1835,8 +1951,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1874,11 +1990,12 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   disable_password_authentication = false
   provision_vm_agent              = %t
+  extension_operations_enabled    = false
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1920,8 +2037,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1940,170 +2057,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineScaleSetResource) updateLoadBalancerHealthProbeSKU(data acceptance.TestData, isStandardSku bool) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_public_ip" "test" {
-  count = 2
-
-  name                    = "acctestpip${count.index}-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = count.index == 0 ? "Dynamic" : "Static"
-  idle_timeout_in_minutes = 4
-  sku                     = count.index == 0 ? "Basic" : "Standard"
-}
-
-resource "azurerm_lb" "test" {
-  count = 2
-
-  name                = "acctestlb${count.index}-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = count.index == 0 ? "Basic" : "Standard"
-
-  frontend_ip_configuration {
-    name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.test[count.index].id
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "test" {
-  count = 2
-
-  name            = "test${count.index}"
-  loadbalancer_id = azurerm_lb.test[count.index].id
-}
-
-resource "azurerm_lb_nat_pool" "test" {
-  count = 2
-
-  name                           = "test${count.index}"
-  resource_group_name            = azurerm_resource_group.test.name
-  loadbalancer_id                = azurerm_lb.test[count.index].id
-  frontend_ip_configuration_name = "internal"
-  protocol                       = "Tcp"
-  frontend_port_start            = 80
-  frontend_port_end              = 81
-  backend_port                   = 8080
-}
-
-resource "azurerm_lb_probe" "test" {
-  count = 2
-
-  loadbalancer_id = azurerm_lb.test[count.index].id
-  name            = "acctest-lb-probe${count.index}"
-  port            = 22
-  protocol        = "Tcp"
-}
-
-resource "azurerm_lb_rule" "test" {
-  count = 2
-
-  name                           = "AccTestLBRule${count.index}"
-  loadbalancer_id                = azurerm_lb.test[count.index].id
-  probe_id                       = azurerm_lb_probe.test[count.index].id
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test[count.index].id]
-  frontend_ip_configuration_name = "internal"
-  protocol                       = "Tcp"
-  frontend_port                  = 22
-  backend_port                   = 22
-}
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = %[3]t ? azurerm_lb_probe.test[1].id : azurerm_lb_probe.test[0].id
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  data_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-    disk_size_gb         = 10
-    lun                  = 10
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name                                   = "internal"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = %[3]t ? [azurerm_lb_backend_address_pool.test[1].id] : [azurerm_lb_backend_address_pool.test[0].id]
-      load_balancer_inbound_nat_rules_ids    = %[3]t ? [azurerm_lb_nat_pool.test[1].id] : [azurerm_lb_nat_pool.test[0].id]
-    }
-  }
-
-  depends_on = [azurerm_lb_rule.test]
-}
-`, r.template(data), data.RandomInteger, isStandardSku)
-}
-
-func (r LinuxVirtualMachineScaleSetResource) otherScaleInPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    disk_size_gb         = 30
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  scale_in_policy = "Default"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -2125,8 +2078,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2170,8 +2123,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2200,53 +2153,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-// TODO remove otherTerminateNotification in 4.0
-func (r LinuxVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    disk_size_gb         = 30
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  terminate_notification {
-    enabled = %t
-  }
-}
-`, r.template(data), data.RandomInteger, enabled)
-}
-
 func (r LinuxVirtualMachineScaleSetResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -2264,8 +2170,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2302,6 +2208,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2310,7 +2217,6 @@ resource "azurerm_lb" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
-
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2352,15 +2258,14 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
-
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
 
   source_image_reference {
@@ -2385,7 +2290,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   network_interface {
     name    = "example"
     primary = true
-
     ip_configuration {
       name                                   = "internal"
       primary                                = true
@@ -2397,7 +2301,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   automatic_instance_repair {
     enabled      = true
-    grace_period = "PT1H"
+    grace_period = "PT30M"
   }
 
   depends_on = [azurerm_lb_rule.test]
@@ -2405,7 +2309,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2414,6 +2318,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 
@@ -2422,7 +2327,6 @@ resource "azurerm_lb" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Basic"
-
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2464,17 +2368,15 @@ resource "azurerm_lb_rule" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-  health_probe_id     = azurerm_lb_probe.test.id
-
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
   disable_password_authentication = false
-
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -2497,7 +2399,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   network_interface {
     name    = "example"
     primary = true
-
     ip_configuration {
       name                                   = "internal"
       primary                                = true
@@ -2507,6 +2408,105 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
+  automatic_instance_repair {
+    enabled      = true
+    grace_period = "PT30M"
+    action       = "%[3]s"
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger, action)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherAutomaticRepairsPolicyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Dynamic"
+  sku                     = "Basic"
+  idle_timeout_in_minutes = 4
+}
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "test"
+  loadbalancer_id = azurerm_lb.test.id
+}
+resource "azurerm_lb_nat_pool" "test" {
+  name                           = "test"
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port_start            = 80
+  frontend_port_end              = 81
+  backend_port                   = 8080
+}
+resource "azurerm_lb_probe" "test" {
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "acctest-lb-probe"
+  port            = 22
+  protocol        = "Tcp"
+}
+resource "azurerm_lb_rule" "test" {
+  name                           = "AccTestLBRule"
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = "internal"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%[2]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  health_probe_id                 = azurerm_lb_probe.test.id
+  disable_password_authentication = false
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+  data_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 10
+    lun                  = 10
+  }
+  network_interface {
+    name    = "example"
+    primary = true
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
+    }
+  }
   automatic_instance_repair {
     enabled = false
   }
@@ -2533,8 +2533,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2566,10 +2566,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptan
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2583,8 +2579,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2626,8 +2622,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2675,8 +2671,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2701,7 +2697,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool, maximum_surge_instances bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2760,6 +2756,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   upgrade_mode    = "Rolling"
   health_probe_id = azurerm_lb_probe.test.id
+  overprovision   = false
 
   rolling_upgrade_policy {
     cross_zone_upgrades_enabled             = %t
@@ -2768,12 +2765,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
     prioritize_unhealthy_instances_enabled  = %t
+    maximum_surge_instances_enabled         = %t
   }
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2796,7 +2794,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled, maximum_surge_instances)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
@@ -2871,8 +2869,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -2970,8 +2968,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -3001,10 +2999,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data accepta
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3018,8 +3012,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
@@ -3048,10 +3042,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.Te
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3065,8 +3055,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
@@ -3108,8 +3098,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -3153,8 +3143,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -3254,4 +3244,55 @@ resource "azurerm_gallery_application_version" "test" {
 }
 
 `, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherDisableReimageOnManualUpgrade(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      reimage_on_manual_upgrade    = false
+      roll_instances_when_required = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Manual"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.templateWithOutProvider(data), data.RandomInteger, sku)
 }

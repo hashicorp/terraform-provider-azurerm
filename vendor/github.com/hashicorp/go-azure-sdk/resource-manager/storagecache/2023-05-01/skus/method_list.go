@@ -20,7 +20,20 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ResourceSku
+	LatestHttpResponse *http.Response
+	Items              []ResourceSku
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -31,6 +44,7 @@ func (c SKUsClient) List(ctx context.Context, id commonids.SubscriptionId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.StorageCache/skus", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c SKUsClient) ListCompleteMatchingPredicate(ctx context.Context, id common
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c SKUsClient) ListCompleteMatchingPredicate(ctx context.Context, id common
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

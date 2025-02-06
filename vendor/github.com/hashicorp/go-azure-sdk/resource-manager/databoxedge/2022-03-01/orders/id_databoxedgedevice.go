@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataBoxEdgeDeviceId{}
+func init() {
+	recaser.RegisterResourceId(&DataBoxEdgeDeviceId{})
+}
+
+var _ resourceids.ResourceId = &DataBoxEdgeDeviceId{}
 
 // DataBoxEdgeDeviceId is a struct representing the Resource ID for a Data Box Edge Device
 type DataBoxEdgeDeviceId struct {
@@ -30,25 +35,15 @@ func NewDataBoxEdgeDeviceID(subscriptionId string, resourceGroupName string, dat
 
 // ParseDataBoxEdgeDeviceID parses 'input' into a DataBoxEdgeDeviceId
 func ParseDataBoxEdgeDeviceID(input string) (*DataBoxEdgeDeviceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataBoxEdgeDeviceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataBoxEdgeDeviceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataBoxEdgeDeviceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataBoxEdgeDeviceName, ok = parsed.Parsed["dataBoxEdgeDeviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataBoxEdgeDeviceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDataBoxEdgeDeviceID(input string) (*DataBoxEdgeDeviceId, error) {
 // ParseDataBoxEdgeDeviceIDInsensitively parses 'input' case-insensitively into a DataBoxEdgeDeviceId
 // note: this method should only be used for API response data and not user input
 func ParseDataBoxEdgeDeviceIDInsensitively(input string) (*DataBoxEdgeDeviceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataBoxEdgeDeviceId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataBoxEdgeDeviceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataBoxEdgeDeviceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DataBoxEdgeDeviceName, ok = parsed.Parsed["dataBoxEdgeDeviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataBoxEdgeDeviceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataBoxEdgeDeviceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DataBoxEdgeDeviceName, ok = input.Parsed["dataBoxEdgeDeviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataBoxEdgeDeviceName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataBoxEdgeDeviceID checks that 'input' can be parsed as a Data Box Edge Device ID
@@ -112,7 +115,7 @@ func (id DataBoxEdgeDeviceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataBoxEdge", "Microsoft.DataBoxEdge", "Microsoft.DataBoxEdge"),
 		resourceids.StaticSegment("staticDataBoxEdgeDevices", "dataBoxEdgeDevices", "dataBoxEdgeDevices"),
-		resourceids.UserSpecifiedSegment("dataBoxEdgeDeviceName", "dataBoxEdgeDeviceValue"),
+		resourceids.UserSpecifiedSegment("dataBoxEdgeDeviceName", "dataBoxEdgeDeviceName"),
 	}
 }
 

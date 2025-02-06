@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OnboardingStateId{}
+func init() {
+	recaser.RegisterResourceId(&OnboardingStateId{})
+}
+
+var _ resourceids.ResourceId = &OnboardingStateId{}
 
 // OnboardingStateId is a struct representing the Resource ID for a Onboarding State
 type OnboardingStateId struct {
@@ -32,29 +37,15 @@ func NewOnboardingStateID(subscriptionId string, resourceGroupName string, works
 
 // ParseOnboardingStateID parses 'input' into a OnboardingStateId
 func ParseOnboardingStateID(input string) (*OnboardingStateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OnboardingStateId{})
+	parser := resourceids.NewParserFromResourceIdType(&OnboardingStateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OnboardingStateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.OnboardingStateName, ok = parsed.Parsed["onboardingStateName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "onboardingStateName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseOnboardingStateID(input string) (*OnboardingStateId, error) {
 // ParseOnboardingStateIDInsensitively parses 'input' case-insensitively into a OnboardingStateId
 // note: this method should only be used for API response data and not user input
 func ParseOnboardingStateIDInsensitively(input string) (*OnboardingStateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OnboardingStateId{})
+	parser := resourceids.NewParserFromResourceIdType(&OnboardingStateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OnboardingStateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.OnboardingStateName, ok = parsed.Parsed["onboardingStateName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "onboardingStateName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *OnboardingStateId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.OnboardingStateName, ok = input.Parsed["onboardingStateName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "onboardingStateName", input)
+	}
+
+	return nil
 }
 
 // ValidateOnboardingStateID checks that 'input' can be parsed as a Onboarding State ID
@@ -122,11 +121,11 @@ func (id OnboardingStateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticProviders2", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurityInsights", "Microsoft.SecurityInsights", "Microsoft.SecurityInsights"),
 		resourceids.StaticSegment("staticOnboardingStates", "onboardingStates", "onboardingStates"),
-		resourceids.UserSpecifiedSegment("onboardingStateName", "onboardingStateValue"),
+		resourceids.UserSpecifiedSegment("onboardingStateName", "onboardingStateName"),
 	}
 }
 

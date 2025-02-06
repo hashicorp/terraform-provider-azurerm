@@ -19,7 +19,20 @@ type DedicatedHsmListOutboundNetworkDependenciesEndpointsOperationResponse struc
 }
 
 type DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult struct {
-	Items []OutboundEnvironmentEndpoint
+	LatestHttpResponse *http.Response
+	Items              []OutboundEnvironmentEndpoint
+}
+
+type DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // DedicatedHsmListOutboundNetworkDependenciesEndpoints ...
@@ -30,6 +43,7 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DedicatedHsmListOutboundNetworkDependenciesEndpointsCustomPager{},
 		Path:       fmt.Sprintf("%s/outboundNetworkDependenciesEndpoints", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 
 	resp, err := c.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 	}
 
 	result = DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

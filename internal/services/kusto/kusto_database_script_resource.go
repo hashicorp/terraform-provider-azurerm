@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/scripts"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,7 +57,7 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: databases.ValidateDatabaseID,
+				ValidateFunc: commonids.ValidateKustoDatabaseID,
 			},
 
 			"continue_on_errors_enabled": {
@@ -108,8 +107,11 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	databaseId, _ := databases.ParseDatabaseID(d.Get("database_id").(string))
-	id := scripts.NewScriptID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.ClusterName, databaseId.DatabaseName, d.Get("name").(string))
+	databaseId, err := commonids.ParseKustoDatabaseID(d.Get("database_id").(string))
+	if err != nil {
+		return err
+	}
+	id := scripts.NewScriptID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.KustoClusterName, databaseId.KustoDatabaseName, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -122,7 +124,7 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	clusterId := clusters.NewClusterID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.ClusterName)
+	clusterId := commonids.NewKustoClusterID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.KustoClusterName)
 	locks.ByID(clusterId.ID())
 	defer locks.UnlockByID(clusterId.ID())
 
@@ -139,19 +141,18 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if scriptURL, ok := d.GetOk("url"); ok {
-		parameters.Properties.ScriptUrl = utils.String(scriptURL.(string))
+		parameters.Properties.ScriptURL = utils.String(scriptURL.(string))
 	}
 
 	if scriptURLSasToken, ok := d.GetOk("sas_token"); ok {
-		parameters.Properties.ScriptUrlSasToken = utils.String(scriptURLSasToken.(string))
+		parameters.Properties.ScriptURLSasToken = utils.String(scriptURLSasToken.(string))
 	}
 
 	if scriptContent, ok := d.GetOk("script_content"); ok {
 		parameters.Properties.ScriptContent = utils.String(scriptContent.(string))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
@@ -179,13 +180,13 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	d.Set("name", id.ScriptName)
-	d.Set("database_id", databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName).ID())
+	d.Set("database_id", commonids.NewKustoDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName).ID())
 
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
 			d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
 			d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
-			d.Set("url", props.ScriptUrl)
+			d.Set("url", props.ScriptURL)
 		}
 	}
 	return nil

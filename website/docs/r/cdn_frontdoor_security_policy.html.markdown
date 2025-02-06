@@ -21,6 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-profile"
   resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
@@ -51,6 +52,23 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   }
 }
 
+resource "azurerm_dns_zone" "example" {
+  name                = "sub-domain.domain.com"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain" "example" {
+  name                     = "example-customDomain"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
+  dns_zone_id              = azurerm_dns_zone.example.id
+  host_name                = "contoso.fabrikam.com"
+
+  tls {
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
+  }
+}
+
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
   name                     = "Example-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
@@ -61,7 +79,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
       association {
         domain {
-          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.domain1.id
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.example.id
         }
         patterns_to_match = ["/*"]
       }

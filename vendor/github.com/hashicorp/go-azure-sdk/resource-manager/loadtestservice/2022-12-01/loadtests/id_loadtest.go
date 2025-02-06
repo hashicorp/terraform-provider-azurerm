@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LoadTestId{}
+func init() {
+	recaser.RegisterResourceId(&LoadTestId{})
+}
+
+var _ resourceids.ResourceId = &LoadTestId{}
 
 // LoadTestId is a struct representing the Resource ID for a Load Test
 type LoadTestId struct {
@@ -30,25 +35,15 @@ func NewLoadTestID(subscriptionId string, resourceGroupName string, loadTestName
 
 // ParseLoadTestID parses 'input' into a LoadTestId
 func ParseLoadTestID(input string) (*LoadTestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadTestId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadTestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LoadTestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadTestName, ok = parsed.Parsed["loadTestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadTestName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseLoadTestID(input string) (*LoadTestId, error) {
 // ParseLoadTestIDInsensitively parses 'input' case-insensitively into a LoadTestId
 // note: this method should only be used for API response data and not user input
 func ParseLoadTestIDInsensitively(input string) (*LoadTestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadTestId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadTestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LoadTestId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadTestName, ok = parsed.Parsed["loadTestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadTestName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LoadTestId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LoadTestName, ok = input.Parsed["loadTestName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "loadTestName", input)
+	}
+
+	return nil
 }
 
 // ValidateLoadTestID checks that 'input' can be parsed as a Load Test ID
@@ -112,7 +115,7 @@ func (id LoadTestId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLoadTestService", "Microsoft.LoadTestService", "Microsoft.LoadTestService"),
 		resourceids.StaticSegment("staticLoadTests", "loadTests", "loadTests"),
-		resourceids.UserSpecifiedSegment("loadTestName", "loadTestValue"),
+		resourceids.UserSpecifiedSegment("loadTestName", "loadTestName"),
 	}
 }
 

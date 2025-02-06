@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SharedImageResource struct{}
@@ -34,7 +34,7 @@ func TestAccSharedImage_basic(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+func TestAccSharedImage_basicHyperVGenerationV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,7 +50,7 @@ func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_Arm(t *testing.T) {
+func TestAccSharedImage_basicArmArchitecture(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -92,7 +92,7 @@ func TestAccSharedImage_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_type").HasValue("Linux"),
 				check.That(data.ResourceName).Key("hyper_v_generation").HasValue("V1"),
-				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dub"),
+				check.That(data.ResourceName).Key("description").HasValue("Wubba lubba dub dubs"),
 				check.That(data.ResourceName).Key("eula").HasValue("Do you agree there's infinite Rick's and Infinite Morty's?"),
 				check.That(data.ResourceName).Key("privacy_statement_uri").HasValue("https://council.of.ricks/privacy-statement"),
 				check.That(data.ResourceName).Key("release_note_uri").HasValue("https://council.of.ricks/changelog.md"),
@@ -122,6 +122,20 @@ func TestAccSharedImage_withTrustedLaunchEnabled(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTrustedLaunchEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImage_withTrustedLaunchSupported(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTrustedLaunchSupported(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -164,6 +178,34 @@ func TestAccSharedImage_withAcceleratedNetworkSupportEnabled(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAcceleratedNetworkSupportEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImage_withHibernationEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withHibernationEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImage_withDiskControllerTypeNVMeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
+	r := SharedImageResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withDiskControllerTypeNVMeEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -310,17 +352,17 @@ func TestAccSharedImage_recommended(t *testing.T) {
 }
 
 func (t SharedImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SharedImageID(state.ID)
+	id, err := galleryimages.ParseGalleryImageID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+	resp, err := clients.Compute.GalleryImagesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Shared Image %q", id.String())
+		return nil, fmt.Errorf("retrieving %s", id)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SharedImageResource) basic(data acceptance.TestData) string {
@@ -602,6 +644,41 @@ resource "azurerm_shared_image" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func (SharedImageResource) withTrustedLaunchSupported(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                     = "acctestimg%d"
+  gallery_name             = azurerm_shared_image_gallery.test.name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  os_type                  = "Linux"
+  hyper_v_generation       = "V2"
+  trusted_launch_supported = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func (SharedImageResource) withTrustedLaunchEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -662,6 +739,76 @@ resource "azurerm_shared_image" "test" {
   os_type             = "Linux"
 
   accelerated_network_support_enabled = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SharedImageResource) withHibernationEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  hibernation_enabled = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (SharedImageResource) withDiskControllerTypeNVMeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+
+  disk_controller_type_nvme_enabled = true
 
   identifier {
     publisher = "AccTesPublisher%d"

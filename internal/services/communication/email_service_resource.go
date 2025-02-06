@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -19,9 +19,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = EmailCommunicationServiceResource{}
+var _ sdk.ResourceWithUpdate = EmailCommunicationServiceResource{}
 
 type EmailCommunicationServiceResource struct{}
+
+type EmailCommunicationServiceResourceModel struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	DataLocation      string            `tfschema:"data_location"`
+	Tags              map[string]string `tfschema:"tags"`
+}
 
 func (EmailCommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -55,6 +62,7 @@ func (EmailCommunicationServiceResource) Arguments() map[string]*pluginsdk.Schem
 				"UAE",
 				"UK",
 				"United States",
+				"usgov",
 			}, false),
 		},
 
@@ -67,7 +75,7 @@ func (EmailCommunicationServiceResource) Attributes() map[string]*pluginsdk.Sche
 }
 
 func (EmailCommunicationServiceResource) ModelObject() interface{} {
-	return nil
+	return &EmailCommunicationServiceResourceModel{}
 }
 
 func (EmailCommunicationServiceResource) ResourceType() string {
@@ -81,7 +89,12 @@ func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Communication.EmailServicesClient
 
-			id := emailservices.NewEmailServiceID(subscriptionId, metadata.ResourceData.Get("resource_group_name").(string), metadata.ResourceData.Get("name").(string))
+			var model EmailCommunicationServiceResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id := emailservices.NewEmailServiceID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -95,15 +108,17 @@ func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 				// The location is always `global` from the Azure Portal
 				Location: location.Normalize("global"),
 				Properties: &emailservices.EmailServiceProperties{
-					DataLocation: metadata.ResourceData.Get("data_location").(string),
+					DataLocation: model.DataLocation,
 				},
-				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Tags: pointer.To(model.Tags),
 			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -115,25 +130,40 @@ func (r EmailCommunicationServiceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.EmailServicesClient
 
+			var model EmailCommunicationServiceResourceModel
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
 			id, err := emailservices.ParseEmailServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			param := emailservices.EmailServiceResource{
-				// The location is always `global` from the Azure Portal
-				Location: location.Normalize("global"),
-				Properties: &emailservices.EmailServiceProperties{
-					DataLocation: metadata.ResourceData.Get("data_location").(string),
-				},
-				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			existing, err := client.Get(ctx, *id)
+			if err != nil || existing.Model == nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
+			emailService := *existing.Model
+
+			props := pointer.From(emailService.Properties)
+
+			if metadata.ResourceData.HasChange("data_location") {
+				props.DataLocation = model.DataLocation
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				emailService.Tags = pointer.To(model.Tags)
+			}
+
+			emailService.Properties = &props
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, emailService); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -144,6 +174,8 @@ func (EmailCommunicationServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.EmailServicesClient
+
+			state := EmailCommunicationServiceResourceModel{}
 
 			id, err := emailservices.ParseEmailServiceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -158,20 +190,19 @@ func (EmailCommunicationServiceResource) Read() sdk.ResourceFunc {
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			metadata.ResourceData.Set("name", id.EmailServiceName)
-			metadata.ResourceData.Set("resource_group_name", id.ResourceGroupName)
+
+			state.Name = id.EmailServiceName
+			state.ResourceGroupName = id.ResourceGroupName
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					metadata.ResourceData.Set("data_location", props.DataLocation)
+					state.DataLocation = props.DataLocation
 				}
 
-				if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
-					return err
-				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }

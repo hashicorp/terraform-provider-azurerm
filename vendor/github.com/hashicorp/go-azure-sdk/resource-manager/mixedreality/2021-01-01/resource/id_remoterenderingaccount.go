@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RemoteRenderingAccountId{}
+func init() {
+	recaser.RegisterResourceId(&RemoteRenderingAccountId{})
+}
+
+var _ resourceids.ResourceId = &RemoteRenderingAccountId{}
 
 // RemoteRenderingAccountId is a struct representing the Resource ID for a Remote Rendering Account
 type RemoteRenderingAccountId struct {
@@ -30,25 +35,15 @@ func NewRemoteRenderingAccountID(subscriptionId string, resourceGroupName string
 
 // ParseRemoteRenderingAccountID parses 'input' into a RemoteRenderingAccountId
 func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RemoteRenderingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&RemoteRenderingAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RemoteRenderingAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RemoteRenderingAccountName, ok = parsed.Parsed["remoteRenderingAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remoteRenderingAccountName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, err
 // ParseRemoteRenderingAccountIDInsensitively parses 'input' case-insensitively into a RemoteRenderingAccountId
 // note: this method should only be used for API response data and not user input
 func ParseRemoteRenderingAccountIDInsensitively(input string) (*RemoteRenderingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RemoteRenderingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&RemoteRenderingAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RemoteRenderingAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RemoteRenderingAccountName, ok = parsed.Parsed["remoteRenderingAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remoteRenderingAccountName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RemoteRenderingAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RemoteRenderingAccountName, ok = input.Parsed["remoteRenderingAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "remoteRenderingAccountName", input)
+	}
+
+	return nil
 }
 
 // ValidateRemoteRenderingAccountID checks that 'input' can be parsed as a Remote Rendering Account ID
@@ -112,7 +115,7 @@ func (id RemoteRenderingAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMixedReality", "Microsoft.MixedReality", "Microsoft.MixedReality"),
 		resourceids.StaticSegment("staticRemoteRenderingAccounts", "remoteRenderingAccounts", "remoteRenderingAccounts"),
-		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountValue"),
+		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountName"),
 	}
 }
 

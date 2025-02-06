@@ -20,7 +20,8 @@ type WorkbooksListBySubscriptionOperationResponse struct {
 }
 
 type WorkbooksListBySubscriptionCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 type WorkbooksListBySubscriptionOperationOptions struct {
@@ -41,6 +42,7 @@ func (o WorkbooksListBySubscriptionOperationOptions) ToHeaders() *client.Headers
 
 func (o WorkbooksListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -58,6 +60,18 @@ func (o WorkbooksListBySubscriptionOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
+type WorkbooksListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkbooksListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkbooksListBySubscription ...
 func (c WorkbooksAPIsClient) WorkbooksListBySubscription(ctx context.Context, id commonids.SubscriptionId, options WorkbooksListBySubscriptionOperationOptions) (result WorkbooksListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +80,9 @@ func (c WorkbooksAPIsClient) WorkbooksListBySubscription(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 		OptionsObject: options,
+		Pager:         &WorkbooksListBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Insights/workbooks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -108,6 +123,7 @@ func (c WorkbooksAPIsClient) WorkbooksListBySubscriptionCompleteMatchingPredicat
 
 	resp, err := c.WorkbooksListBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -120,7 +136,8 @@ func (c WorkbooksAPIsClient) WorkbooksListBySubscriptionCompleteMatchingPredicat
 	}
 
 	result = WorkbooksListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

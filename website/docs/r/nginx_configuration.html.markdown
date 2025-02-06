@@ -1,5 +1,5 @@
 ---
-subcategory: "Nginx"
+subcategory: "NGINX"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_configuration"
 description: |-
@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name      = azurerm_resource_group.example.name
   sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
   location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
   diagnose_support_enabled = true
 
   frontend_public {
@@ -116,17 +115,17 @@ The following arguments are supported:
 
 * `nginx_deployment_id` - (Required) The ID of the Nginx Deployment. Changing this forces a new Nginx Configuration to be created.
 
-* `root_file` - (Required) Specify the root file path of this Nginx Configuration.
+* `root_file` - (Required) Specifies the root file path of this Nginx Configuration.
 
 ---
 
 -> **NOTE:** Either `package_data` or `config_file` must be specified - but not both.
 
-* `package_data` - (Optional) Specify the package data for this configuration.
+* `package_data` - (Optional) Specifies the package data for this configuration.
 
 * `config_file` - (Optional) One or more `config_file` blocks as defined below.
 
-* `protected_file` - (Optional) One or more `protected_file` (Protected File) blocks with sensitive information as defined below. If specified `config_file` must also be specified.
+* `protected_file` - (Optional) One or more `protected_file` blocks with sensitive information as defined below. If specified `config_file` must also be specified.
 
 ---
 
@@ -134,7 +133,7 @@ A `config_file` block supports the following:
 
 * `content` - (Required) Specifies the base-64 encoded contents of this config file.
 
-* `virtual_path` - (Required) Specify the path of this config file.
+* `virtual_path` - (Required) Specifies the path of this config file.
 
 ---
 
@@ -142,13 +141,21 @@ A `protected_file` (Protected File) block supports the following:
 
 * `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
 
-* `virtual_path` - (Required) Specify the path of this config file.
+* `virtual_path` - (Required) Specifies the path of this config file.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of this Nginx Configuration.
+
+* `protected_file` - Zero or more `protected_file` blocks with sensitive information as defined below.
+
+---
+
+A `protected_file` block exports the following:
+
+* `content_hash` - The hash of the contents of this configuration file prefixed by the algorithm used.
 
 ## Timeouts
 
@@ -161,7 +168,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Nginxs can be imported using the `resource id`, e.g.
+An Nginx Configuration can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nginx_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/dep1/configurations/default

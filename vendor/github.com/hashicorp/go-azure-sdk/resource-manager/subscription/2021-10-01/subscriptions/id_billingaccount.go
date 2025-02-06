@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BillingAccountId{}
+func init() {
+	recaser.RegisterResourceId(&BillingAccountId{})
+}
+
+var _ resourceids.ResourceId = &BillingAccountId{}
 
 // BillingAccountId is a struct representing the Resource ID for a Billing Account
 type BillingAccountId struct {
@@ -26,17 +31,15 @@ func NewBillingAccountID(billingAccountId string) BillingAccountId {
 
 // ParseBillingAccountID parses 'input' into a BillingAccountId
 func ParseBillingAccountID(input string) (*BillingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BillingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&BillingAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BillingAccountId{}
-
-	if id.BillingAccountId, ok = parsed.Parsed["billingAccountId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "billingAccountId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseBillingAccountID(input string) (*BillingAccountId, error) {
 // ParseBillingAccountIDInsensitively parses 'input' case-insensitively into a BillingAccountId
 // note: this method should only be used for API response data and not user input
 func ParseBillingAccountIDInsensitively(input string) (*BillingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BillingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&BillingAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BillingAccountId{}
-
-	if id.BillingAccountId, ok = parsed.Parsed["billingAccountId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "billingAccountId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BillingAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.BillingAccountId, ok = input.Parsed["billingAccountId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "billingAccountId", input)
+	}
+
+	return nil
 }
 
 // ValidateBillingAccountID checks that 'input' can be parsed as a Billing Account ID
@@ -88,7 +99,7 @@ func (id BillingAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftBilling", "Microsoft.Billing", "Microsoft.Billing"),
 		resourceids.StaticSegment("staticBillingAccounts", "billingAccounts", "billingAccounts"),
-		resourceids.UserSpecifiedSegment("billingAccountId", "billingAccountIdValue"),
+		resourceids.UserSpecifiedSegment("billingAccountId", "billingAccountId"),
 	}
 }
 

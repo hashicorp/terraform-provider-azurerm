@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var postgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
+
 func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFlexibleServerConfigurationUpdate,
@@ -79,6 +81,9 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
+	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+
 	props := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
 			Value:  utils.String(d.Get("value").(string)),
@@ -100,11 +105,13 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
-					return fmt.Errorf("restarting server %s: %+v", id, err)
+					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+						return fmt.Errorf("restarting server %s: %+v", id, err)
+					}
 				}
 			}
 		}
@@ -160,6 +167,9 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
+	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -186,11 +196,13 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
-					return fmt.Errorf("restarting server %s: %+v", id, err)
+					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+						return fmt.Errorf("restarting server %s: %+v", id, err)
+					}
 				}
 			}
 		}

@@ -4,13 +4,15 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/functions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -24,35 +26,56 @@ type Client struct {
 	EndpointsClient       *privateendpoints.PrivateEndpointsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	functionsClient := functions.NewFunctionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&functionsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	functionsClient, err := functions.NewFunctionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Functions client : %+v", err)
+	}
+	o.Configure(functionsClient.Client, o.Authorizers.ResourceManager)
 
-	jobsClient := streamingjobs.NewStreamingJobsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&jobsClient.Client, o.ResourceManagerAuthorizer)
+	jobsClient, err := streamingjobs.NewStreamingJobsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Jobs client : %+v", err)
+	}
+	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
 
-	inputsClient := inputs.NewInputsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&inputsClient.Client, o.ResourceManagerAuthorizer)
+	inputsClient, err := inputs.NewInputsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Inputs client : %+v", err)
+	}
+	o.Configure(inputsClient.Client, o.Authorizers.ResourceManager)
 
-	outputsClient := outputs.NewOutputsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&outputsClient.Client, o.ResourceManagerAuthorizer)
+	outputsClient, err := outputs.NewOutputsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Outputs client : %+v", err)
+	}
+	o.Configure(outputsClient.Client, o.Authorizers.ResourceManager)
 
-	transformationsClient := transformations.NewTransformationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&transformationsClient.Client, o.ResourceManagerAuthorizer)
+	transformationsClient, err := transformations.NewTransformationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Transformations client : %+v", err)
+	}
+	o.Configure(transformationsClient.Client, o.Authorizers.ResourceManager)
 
-	clustersClient := clusters.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+	clustersClient, err := clusters.NewClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Clusters client : %+v", err)
+	}
+	o.Configure(clustersClient.Client, o.Authorizers.ResourceManager)
 
-	endpointsClient := privateendpoints.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&endpointsClient.Client, o.ResourceManagerAuthorizer)
+	endpointsClient, err := privateendpoints.NewPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Endpoints client : %+v", err)
+	}
+	o.Configure(endpointsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		FunctionsClient:       &functionsClient,
-		JobsClient:            &jobsClient,
-		InputsClient:          &inputsClient,
-		OutputsClient:         &outputsClient,
-		TransformationsClient: &transformationsClient,
-		ClustersClient:        &clustersClient,
-		EndpointsClient:       &endpointsClient,
-	}
+		FunctionsClient:       functionsClient,
+		JobsClient:            jobsClient,
+		InputsClient:          inputsClient,
+		OutputsClient:         outputsClient,
+		TransformationsClient: transformationsClient,
+		ClustersClient:        clustersClient,
+		EndpointsClient:       endpointsClient,
+	}, nil
 }

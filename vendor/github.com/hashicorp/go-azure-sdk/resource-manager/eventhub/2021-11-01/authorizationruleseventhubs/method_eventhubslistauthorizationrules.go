@@ -19,7 +19,20 @@ type EventHubsListAuthorizationRulesOperationResponse struct {
 }
 
 type EventHubsListAuthorizationRulesCompleteResult struct {
-	Items []AuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []AuthorizationRule
+}
+
+type EventHubsListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *EventHubsListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // EventHubsListAuthorizationRules ...
@@ -30,6 +43,7 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRules(ctx c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &EventHubsListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComple
 
 	resp, err := c.EventHubsListAuthorizationRules(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c AuthorizationRulesEventHubsClient) EventHubsListAuthorizationRulesComple
 	}
 
 	result = EventHubsListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mobilenetwork
 
 import (
@@ -80,7 +83,6 @@ func (r AttachedDataNetworkDataSource) Arguments() map[string]*pluginsdk.Schema 
 
 func (r AttachedDataNetworkDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"dns_addresses": {

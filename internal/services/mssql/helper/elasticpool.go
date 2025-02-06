@@ -4,6 +4,7 @@
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -125,20 +126,21 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			24: 4096,
 		},
 		"gen5": {
-			2:  512,
-			4:  756,
-			6:  1536,
-			8:  2048,
-			10: 2048,
-			12: 2048,
-			14: 2048,
-			16: 2048,
-			18: 3072,
-			20: 3072,
-			24: 3072,
-			32: 4096,
-			40: 4096,
-			80: 4096,
+			2:   512,
+			4:   756,
+			6:   1536,
+			8:   2048,
+			10:  2048,
+			12:  2048,
+			14:  2048,
+			16:  2048,
+			18:  3072,
+			20:  3072,
+			24:  3072,
+			32:  4096,
+			40:  4096,
+			80:  4096,
+			128: 4096,
 		},
 		"fsv2": {
 			8:  1024,
@@ -175,19 +177,20 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 			24: 1024,
 		},
 		"gen5": {
-			4:  1024,
-			6:  1536,
-			8:  2048,
-			10: 2048,
-			12: 3072,
-			14: 3072,
-			16: 3072,
-			18: 3072,
-			20: 3072,
-			24: 4096,
-			32: 4096,
-			40: 4096,
-			80: 4096,
+			4:   1024,
+			6:   1536,
+			8:   2048,
+			10:  2048,
+			12:  3072,
+			14:  3072,
+			16:  3072,
+			18:  3072,
+			20:  3072,
+			24:  4096,
+			32:  4096,
+			40:  4096,
+			80:  4096,
+			128: 4096,
 		},
 		"dc": {
 			2: 768,
@@ -198,19 +201,52 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 	},
 	"hyperscale": {
 		"gen5": {
-			4:  1024,
-			6:  1536,
-			8:  2048,
-			10: 2048,
-			12: 3072,
-			14: 3072,
-			16: 3072,
-			18: 3072,
-			20: 3072,
-			24: 4096,
-			32: 4096,
-			40: 4096,
-			80: 4096,
+			4:  128000,
+			6:  128000,
+			8:  128000,
+			10: 128000,
+			12: 128000,
+			14: 128000,
+			16: 128000,
+			18: 128000,
+			20: 128000,
+			24: 128000,
+			32: 128000,
+			40: 128000,
+			80: 128000,
+		},
+		"prms": {
+			4:   128000,
+			6:   128000,
+			8:   128000,
+			10:  128000,
+			12:  128000,
+			14:  128000,
+			16:  128000,
+			18:  128000,
+			20:  128000,
+			24:  128000,
+			32:  128000,
+			40:  128000,
+			64:  128000,
+			80:  128000,
+			128: 128000,
+		},
+		"moprms": {
+			4:  128000,
+			6:  128000,
+			8:  128000,
+			10: 128000,
+			12: 128000,
+			14: 128000,
+			16: 128000,
+			18: 128000,
+			20: 128000,
+			24: 128000,
+			32: 128000,
+			40: 128000,
+			64: 128000,
+			80: 128000,
 		},
 	},
 }
@@ -233,6 +269,8 @@ var getTierFromName = map[string]string{
 	"bc_gen5":      "BusinessCritical",
 	"bc_dc":        "BusinessCritical",
 	"hs_gen5":      "HyperScale",
+	"hs_prms":      "HyperScale",
+	"hs_moprms":    "HyperScale",
 }
 
 func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
@@ -244,6 +282,7 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	maxSizeGb := diff.Get("max_size_gb")
 	minCapacity := diff.Get("per_database_settings.0.min_capacity")
 	maxCapacity := diff.Get("per_database_settings.0.max_capacity")
+	enclaveType := diff.Get("enclave_type")
 
 	s := sku{
 		Name:        name.(string),
@@ -269,17 +308,22 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 
 	// Universal check for both DTU and vCore based SKUs
 	if !nameTierIsValid(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
+		return fmt.Errorf("mismatch between SKU name '%s' and tier '%s', expected 'tier' to be '%s'", s.Name, s.Tier, getTierFromName[strings.ToLower(s.Name)])
 	}
 
 	// Verify that Family is valid
 	if s.SkuType == DTU && s.Family != "" {
-		return fmt.Errorf("Invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
+		return fmt.Errorf("invalid attribute 'family'(%s) for service tier '%s', remove the 'family' attribute from the configuration file", s.Family, s.Tier)
 	} else if s.SkuType == VCore && !nameContainsFamily(s) {
-		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
+		return fmt.Errorf("mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
-	// get max GB and do validation based on SKU type
+	// Validate if 'enclave_type' is valid for this SKU type
+	if enclaveType != "" && strings.Contains(strings.ToLower(s.Name), "_dc") {
+		return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", s.Name)
+	}
+
+	// Get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
 		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
 		return doDTUSKUValidation(s)
@@ -379,7 +423,7 @@ func buildErrorString(stub string, m map[int]float64) string {
 
 func doDTUSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getDTUCapacityErrorMsg(s))
+		return errors.New(getDTUCapacityErrorMsg(s))
 	}
 
 	if strings.EqualFold(s.Name, "BasicPool") {
@@ -399,7 +443,7 @@ func doDTUSKUValidation(s sku) error {
 
 		// Check to see if the max_size_gb value is valid for this SKU type and capacity
 		if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
-			return fmt.Errorf(getDTUNotValidSizeErrorMsg(s))
+			return errors.New(getDTUNotValidSizeErrorMsg(s))
 		}
 	}
 
@@ -417,7 +461,7 @@ func doDTUSKUValidation(s sku) error {
 
 func doVCoreSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getVCoreCapacityErrorMsg(s))
+		return errors.New(getVCoreCapacityErrorMsg(s))
 	}
 
 	if s.MaxSizeGb > s.MaxAllowedGB {

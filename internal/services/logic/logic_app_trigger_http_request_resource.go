@@ -141,7 +141,7 @@ func resourceLogicAppTriggerHttpRequestRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	t, app, url, err := retrieveLogicAppHttpTrigger(d, meta, *id)
+	t, app, url, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}

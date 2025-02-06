@@ -6,10 +6,13 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -132,37 +135,66 @@ func TestAccStorageAccountCustomerManagedKey_userAssignedIdentity(t *testing.T) 
 	})
 }
 
+func TestAccStorageAccountCustomerManagedKey_userAssignedIdentityWithFederatedIdentity(t *testing.T) {
+	// Multiple tenants are needed for this test
+	altTenantId := os.Getenv("ARM_TENANT_ID_ALT")
+	subscriptionIdAltTenant := os.Getenv("ARM_SUBSCRIPTION_ID_ALT_TENANT")
+
+	if altTenantId == "" || subscriptionIdAltTenant == "" {
+		t.Skip("One of ARM_TENANT_ID_ALT, ARM_SUBSCRIPTION_ID_ALT_TENANT are not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.federatedIdentity(data, altTenantId, subscriptionIdAltTenant),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("federated_identity_client_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	accountId, err := commonids.ParseStorageAccountID(state.Attributes["id"])
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}
 
-	if utils.ResponseWasNotFound(resp.Response) {
+	if response.WasNotFound(resp.HttpResponse) {
 		return fmt.Errorf("Bad: %s does not exist", accountId)
 	}
 
-	if props := resp.AccountProperties; props != nil {
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if !*services.Blob.Enabled {
-					return fmt.Errorf("enable_blob_encryption not set to default")
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if encryption := props.Encryption; encryption != nil {
+				if services := encryption.Services; services != nil {
+					if !*services.Blob.Enabled {
+						return fmt.Errorf("enable_blob_encryption not set to default")
+					}
+					if !*services.File.Enabled {
+						return fmt.Errorf("enable_file_encryption not set to default")
+					}
 				}
-				if !*services.File.Enabled {
-					return fmt.Errorf("enable_file_encryption not set to default")
-				}
-			}
 
-			if encryption.KeySource != storage.KeySourceMicrosoftStorage {
-				return fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftStorage))
+				if encryption.KeySource != nil && *encryption.KeySource != storageaccounts.KeySourceMicrosoftPointStorage {
+					return fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointStorage))
+				}
+			} else {
+				return fmt.Errorf("storage account encryption properties not found")
 			}
-		} else {
-			return fmt.Errorf("storage account encryption properties not found")
 		}
 	}
 
@@ -175,25 +207,25 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+
 		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}
 
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if encryption := props.Encryption; encryption != nil {
+				if encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
+					return utils.Bool(true), nil
+				}
 
-	if resp.AccountProperties == nil {
-		return nil, fmt.Errorf("storage account encryption properties not found")
-	}
-	props := *resp.AccountProperties
-	if encryption := props.Encryption; encryption != nil {
-		if encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
-			return utils.Bool(true), nil
+				return nil, fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
+			}
 		}
-
-		return nil, fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftKeyvault))
 	}
 
 	return utils.Bool(false), nil
@@ -550,4 +582,146 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (r StorageAccountCustomerManagedKeyResource) federatedIdentity(data acceptance.TestData, altTenantId, subscriptionIdAltTenant string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  tenant_id       = "%[1]s"
+  subscription_id = "%[2]s"
+
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+provider "azuread" {}
+
+provider "azuread" {
+  alias     = "alt"
+  tenant_id = "%[1]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+data "azurerm_client_config" "remote" {
+  provider = azurerm-alt
+}
+
+data "azuread_client_config" "current" {}
+
+data "azuread_client_config" "remote" {
+  provider = azuread.alt
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[3]d"
+  location = "%[4]s"
+}
+
+resource "azuread_application" "test" {
+  display_name     = "acctestapp-%[5]s"
+  sign_in_audience = "AzureADMultipleOrgs"
+  owners           = [data.azuread_client_config.current.object_id]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi-%[5]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azuread_application_federated_identity_credential" "test" {
+  application_object_id = azuread_application.test.object_id
+  display_name          = "acctestcred-%[5]s"
+  description           = "Federated Identity Credential for CMK"
+  audiences             = ["api://AzureADTokenExchange"]
+  issuer                = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+  subject               = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_resource_group" "remotetest" {
+  provider = azurerm-alt
+  name     = "acctestRG-alt-%[3]d"
+  location = "%[4]s"
+}
+
+resource "azuread_service_principal" "remotetest" {
+  provider       = azuread.alt
+  owners         = [data.azuread_client_config.remote.object_id]
+  application_id = azuread_application.test.application_id
+}
+
+resource "azurerm_key_vault" "remotetest" {
+  provider = azurerm-alt
+
+  name                     = "acctestkv%[5]s"
+  location                 = azurerm_resource_group.remotetest.location
+  resource_group_name      = azurerm_resource_group.remotetest.name
+  tenant_id                = data.azurerm_client_config.remote.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.remote.tenant_id
+    object_id = data.azurerm_client_config.remote.object_id
+
+    key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
+    secret_permissions = ["Get"]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.remote.tenant_id
+    object_id = azuread_service_principal.remotetest.object_id
+
+    key_permissions = [
+      "Get", "List", "UnwrapKey", "WrapKey",
+    ]
+  }
+
+}
+
+resource "azurerm_key_vault_key" "remotetest" {
+  provider = azurerm-alt
+
+  name         = "remote"
+  key_vault_id = azurerm_key_vault.remotetest.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[5]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  lifecycle {
+    ignore_changes = [customer_managed_key]
+  }
+}
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_uri      = azurerm_key_vault.remotetest.vault_uri
+  key_name           = azurerm_key_vault_key.remotetest.name
+
+  user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+  federated_identity_client_id = azuread_application.test.application_id
+}
+`, altTenantId, subscriptionIdAltTenant, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

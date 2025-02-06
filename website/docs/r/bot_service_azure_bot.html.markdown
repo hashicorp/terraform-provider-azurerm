@@ -74,15 +74,25 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
+* `icon_url` - (Optional) The Icon Url of the Azure Bot Service. Defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
+
 * `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
+
+* `cmk_key_vault_key_url` - (Optional) The CMK Key Vault Key URL that will be used to encrypt the Bot with the Customer Managed Encryption Key.
+
+~> **Note:** In order to utilize CMEK, you must add the `Key Vault Crypto Service Encryption User` role to the Azure-defined `Bot Service CMEK Prod` Service Principal. You must also enable `soft_delete_enabled` and `purge_protection_enabled` on the `azurerm_key_vault` that `cmk_key_vault_key_url` refers to. [See Azure Documentation](https://learn.microsoft.com/en-us/azure/bot-service/bot-service-encryption?view=azure-bot-service-4.0#how-to-configure-your-azure-key-vault-instance)
 
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
 
+* `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
+
 * `luis_app_ids` - (Optional) A list of LUIS App IDs to associate with this Azure Bot Service.
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
 
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 

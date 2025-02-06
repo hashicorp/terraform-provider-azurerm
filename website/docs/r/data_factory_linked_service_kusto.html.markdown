@@ -60,8 +60,8 @@ resource "azurerm_kusto_database_principal_assignment" "example" {
   cluster_name        = azurerm_kusto_cluster.example.name
   database_name       = azurerm_kusto_database.example.name
 
-  tenant_id      = azurerm_data_factory.example.identity.0.tenant_id
-  principal_id   = azurerm_data_factory.example.identity.0.principal_id
+  tenant_id      = azurerm_data_factory.example.identity[0].tenant_id
+  principal_id   = azurerm_data_factory.example.identity[0].principal_id
   principal_type = "App"
   role           = "Viewer"
 }

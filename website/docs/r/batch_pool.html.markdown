@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `vm_size` - (Required) Specifies the size of the VM created in the Batch pool. Changing this forces a new resource to be created.
 
-* `storage_image_reference` - (Required) A `storage_image_reference` for the virtual machines that will compose the Batch pool. Changing this forces a new resource to be created.
+* `storage_image_reference` - (Required) A `storage_image_reference` block for the virtual machines that will compose the Batch pool as defined below. Changing this forces a new resource to be created.
 
 * `data_disks` - (Optional) A `data_disks` block describes the data disk settings as defined below.
 
@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `extensions` - (Optional) An `extensions` block as defined below.
 
-* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. If not specified, this value defaults to `Disabled`. Values allowed are `Disabled` and `Enabled`.
+* `inter_node_communication` - (Optional) Whether the pool permits direct communication between nodes. This imposes restrictions on which nodes can be assigned to the pool. Enabling this value can reduce the chance of the requested number of nodes to be allocated in the pool. Values allowed are `Disabled` and `Enabled`. Defaults to `Enabled`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -153,7 +153,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool as defined below.
 
-* `container_configuration` - (Optional) The container configuration used in the pool's VMs.
+* `container_configuration` - (Optional) The container configuration used in the pool's VMs. One `container_configuration` block as defined below.
 
 * `metadata` - (Optional) A map of custom batch pool metadata.
 
@@ -165,9 +165,11 @@ The following arguments are supported:
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
-* `target_node_communication_mode` - (Optional) The desired node communication mode for the pool.
+* `security_profile` - (Optional) A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
 
-* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool. If not specified, the default is spread as defined below.
+* `target_node_communication_mode` - (Optional) The desired node communication mode for the pool. Possible values are `Classic`, `Default` and `Simplified`.
+
+* `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool as defined below. If not specified, the default is spread as defined below.
 
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
@@ -191,11 +193,11 @@ A `data_disks` block supports the following:
 
 * `lun` - (Required) The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun. The value must be between 0 and 63, inclusive.
 
-* `caching` - (Optional) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. The default value for caching is "none". For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+* `caching` - (Optional) Values are: "none" - The caching mode for the disk is not enabled. "readOnly" - The caching mode for the disk is read only. "readWrite" - The caching mode for the disk is read and write. For information about the caching options see: <https://blogs.msdn.microsoft.com/windowsazurestorage/2012/06/27/exploring-windows-azure-drives-disks-and-images/>. Possible values are `None`, `ReadOnly` and `ReadWrite`. Defaults to `ReadOnly`.
 
 * `disk_size_gb` - (Required) The initial disk size in GB when creating new data disk.
 
-* `storage_account_type` - (Optional) The storage account type to be used for the data disk. If omitted, the default is "Standard_LRS". Values are: "Standard_LRS" - The data disk should use standard locally redundant storage. "Premium_LRS" - The data disk should use premium locally redundant storage.
+* `storage_account_type` - (Optional) The storage account type to be used for the data disk. Values are: Possible values are `Standard_LRS` - The data disk should use standard locally redundant storage. `Premium_LRS` - The data disk should use premium locally redundant storage. Defaults to `Standard_LRS`.
 
 ---
 
@@ -222,9 +224,13 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 * `auto_upgrade_minor_version` - (Optional) Indicates whether the extension should use a newer minor version if one is available at deployment time. Once deployed, however, the extension will not upgrade minor versions unless redeployed, even with this property set to true.
 
-* `settings_json` - (Optional) JSON formatted public settings for the extension.
+* `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
-* `protected_settings` - (Optional) The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
+~> **NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
+
+* `settings_json` - (Optional) JSON formatted public settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function.
+
+* `protected_settings` - (Optional) JSON formatted protected settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function. The extension can contain either `protected_settings` or `provision_after_extensions` or no protected settings at all.
 
 * `provision_after_extensions` - (Optional) The collection of extension names. Collection of extension names after which this extension needs to be provisioned.
 
@@ -234,7 +240,7 @@ A `node_placement` block supports the following:
 
 Node placement Policy type on Batch Pools. Allocation policy used by Batch Service to provision the nodes. If not specified, Batch will use the regional policy.
 
-* `policy` - (Optional) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing.
+* `policy` - (Optional) The placement policy for allocating nodes in the pool. Values are: "Regional": All nodes in the pool will be allocated in the same region; "Zonal": Nodes in the pool will be spread across different zones with the best effort balancing. Defaults to `Regional`.
 
 ---
 
@@ -282,7 +288,7 @@ A `start_task` block supports the following:
 
 * `command_line` - (Required) The command line executed by the start task.
 
-* `container` - (Optional) A `container` block is the settings for the container under which the start task runs. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
+* `container` - (Optional) A `container` block is the settings for the container under which the start task runs as defined below. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
 
 * `task_retry_maximum` - (Optional) The number of retry count.
 
@@ -302,9 +308,9 @@ A `container` block supports the following:
 
 * `run_options` - (Optional) Additional options to the container create command. These additional options are supplied as arguments to the "docker create" command, in addition to those controlled by the Batch Service.
 
-* `registry` - (Optional) The same reference as `container_registries` block defined as below.
+* `registry` - (Optional) The `container_registries` block defined as below.
 
-* `working_directory` - (Optional) A flag to indicate where the container task working directory is. The default is `TaskWorkingDirectory`, an alternative value is `ContainerImageDefault`.
+* `working_directory` - (Optional) A flag to indicate where the container task working directory is. Possible values are `TaskWorkingDirectory` and `ContainerImageDefault`.
 
 ---
 
@@ -334,7 +340,7 @@ A `certificate` block supports the following:
 
  -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
-* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used. The default value is `My`.
+* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used.
 
 * `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate. Possible values are `StartTask`, `Task` and `RemoteUser`.
 
@@ -372,7 +378,7 @@ A `resource_file` block supports the following:
 
 A `container_registries` block supports the following:
 
-* `registry_server` - (Required) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+* `registry_server` - (Required) The container registry URL. Changing this forces a new resource to be created.
 
 * `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
@@ -454,13 +460,15 @@ A `nfs_mount` block supports the following:
 
 A `network_configuration` block supports the following:
 
-* `subnet_id` - (Required) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
+* `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`. Changing this forces a new resource to be created.
+* `dynamic_vnet_assignment_scope` - (Optional) The scope of dynamic vnet assignment. Allowed values: `none`, `job`. Changing this forces a new resource to be created. Defaults to `none`.
+
+* `accelerated_networking_enabled` - (Optional) Whether to enable accelerated networking. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `public_ips` - (Optional) A list of public IP ids that will be allocated to nodes. Changing this forces a new resource to be created.
 
-* `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
+* `endpoint_configuration` - (Optional) A list of `endpoint_configuration` blocks that can be used to address specific ports on an individual compute node externally as defined below. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
 * `public_address_provisioning_type` - (Optional) Type of public IP address provisioning. Supported values are `BatchManaged`, `UserManaged` and `NoPublicIPAddresses`.
 
@@ -495,6 +503,21 @@ A `network_security_group_rules` block supports the following:
 A `task_scheduling_policy` block supports the following:
 
 * `node_fill_type` - (Optional) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
+
+---
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - (Optional) Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+* `security_type` - (Optional) The security type of the Virtual Machine. Possible values are `confidentialVM` and `trustedLaunch`. Changing this forces a new resource to be created.
+
+* `secure_boot_enabled` - (Optional) Whether to enable secure boot for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+* `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+~> **NOTE:** `security_profile` block can only be specified during creation and does not support updates.
+
+~> **NOTE:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
 
 ---
 
@@ -532,7 +555,7 @@ A `windows` block supports the following:
 
 Windows operating system settings on the virtual machine. This property must not be specified if the imageReference specifies a Linux OS image.
 
-* `enable_automatic_updates` - (Optional) Whether automatic updates are enabled on the virtual machine. If omitted, the default value is true.
+* `enable_automatic_updates` - (Optional) Whether automatic updates are enabled on the virtual machine. Defaults to `true`.
 
 ---
 

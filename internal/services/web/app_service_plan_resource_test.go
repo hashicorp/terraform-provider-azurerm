@@ -243,12 +243,12 @@ func (r AppServicePlanResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving App Service Plan %q (Resource Group %q): %+v", id.ServerFarmName, id.ResourceGroup, err)
 	}
 
 	// The SDK defines 404 as an "ok" status code..

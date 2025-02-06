@@ -7,16 +7,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourcePublicIP() *pluginsdk.Resource {
@@ -104,70 +106,67 @@ func dataSourcePublicIP() *pluginsdk.Resource {
 }
 
 func dataSourcePublicIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPublicIpAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewPublicIPAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on %s: %s", id, err)
+		return fmt.Errorf("retrieving %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
-
-	if resp.PublicIPAddressPropertiesFormat == nil {
-		return fmt.Errorf("retreving %s: `properties` was nil", id)
-	}
-
-	skuName := ""
-	if sku := resp.Sku; sku != nil {
-		skuName = string(sku.Name)
-	}
-	d.Set("sku", skuName)
-
-	props := *resp.PublicIPAddressPropertiesFormat
-
-	domainNameLabel := ""
-	fqdn := ""
-	reverseFqdn := ""
-	if dnsSettings := props.DNSSettings; dnsSettings != nil {
-		if dnsSettings.DomainNameLabel != nil {
-			domainNameLabel = *dnsSettings.DomainNameLabel
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		skuName := ""
+		if sku := model.Sku; sku != nil {
+			skuName = string(pointer.From(sku.Name))
 		}
-		if dnsSettings.Fqdn != nil {
-			fqdn = *dnsSettings.Fqdn
+		d.Set("sku", skuName)
+
+		if props := model.Properties; props != nil {
+			domainNameLabel := ""
+			fqdn := ""
+			reverseFqdn := ""
+			if dnsSettings := props.DnsSettings; dnsSettings != nil {
+				if dnsSettings.DomainNameLabel != nil {
+					domainNameLabel = *dnsSettings.DomainNameLabel
+				}
+				if dnsSettings.Fqdn != nil {
+					fqdn = *dnsSettings.Fqdn
+				}
+				if dnsSettings.ReverseFqdn != nil {
+					reverseFqdn = *dnsSettings.ReverseFqdn
+				}
+			}
+
+			if ddosSetting := props.DdosSettings; ddosSetting != nil {
+				d.Set("ddos_protection_mode", string(pointer.From(ddosSetting.ProtectionMode)))
+				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
+					d.Set("ddos_protection_plan_id", subResource.Id)
+				}
+			}
+
+			d.Set("domain_name_label", domainNameLabel)
+			d.Set("fqdn", fqdn)
+			d.Set("reverse_fqdn", reverseFqdn)
+
+			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
+			d.Set("ip_address", props.IPAddress)
+			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
+			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+
+			d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
 		}
-		if dnsSettings.ReverseFqdn != nil {
-			reverseFqdn = *dnsSettings.ReverseFqdn
-		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	if ddosSetting := props.DdosSettings; ddosSetting != nil {
-		d.Set("ddos_protection_mode", string(ddosSetting.ProtectionMode))
-		if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
-			d.Set("ddos_protection_plan_id", subResource.ID)
-		}
-	}
-
-	d.Set("domain_name_label", domainNameLabel)
-	d.Set("fqdn", fqdn)
-	d.Set("reverse_fqdn", reverseFqdn)
-
-	d.Set("allocation_method", string(props.PublicIPAllocationMethod))
-	d.Set("ip_address", props.IPAddress)
-	d.Set("ip_version", string(props.PublicIPAddressVersion))
-	d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
-
-	d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

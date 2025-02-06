@@ -14,6 +14,14 @@ type MetricAlertSingleResourceMultipleMetricCriteria struct {
 	AllOf *[]MetricCriteria `json:"allOf,omitempty"`
 
 	// Fields inherited from MetricAlertCriteria
+
+	OdataType Odatatype `json:"odata.type"`
+}
+
+func (s MetricAlertSingleResourceMultipleMetricCriteria) MetricAlertCriteria() BaseMetricAlertCriteriaImpl {
+	return BaseMetricAlertCriteriaImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = MetricAlertSingleResourceMultipleMetricCriteria{}
@@ -27,9 +35,10 @@ func (s MetricAlertSingleResourceMultipleMetricCriteria) MarshalJSON() ([]byte, 
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling MetricAlertSingleResourceMultipleMetricCriteria: %+v", err)
 	}
+
 	decoded["odata.type"] = "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
 
 	encoded, err = json.Marshal(decoded)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRoleAssignmentScheduleRequestId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedRoleAssignmentScheduleRequestId{})
+}
+
+var _ resourceids.ResourceId = &ScopedRoleAssignmentScheduleRequestId{}
 
 // ScopedRoleAssignmentScheduleRequestId is a struct representing the Resource ID for a Scoped Role Assignment Schedule Request
 type ScopedRoleAssignmentScheduleRequestId struct {
@@ -28,21 +33,15 @@ func NewScopedRoleAssignmentScheduleRequestID(scope string, roleAssignmentSchedu
 
 // ParseScopedRoleAssignmentScheduleRequestID parses 'input' into a ScopedRoleAssignmentScheduleRequestId
 func ParseScopedRoleAssignmentScheduleRequestID(input string) (*ScopedRoleAssignmentScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleAssignmentScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleAssignmentScheduleRequestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleAssignmentScheduleRequestId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleAssignmentScheduleRequestName, ok = parsed.Parsed["roleAssignmentScheduleRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleAssignmentScheduleRequestName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedRoleAssignmentScheduleRequestID(input string) (*ScopedRoleAssign
 // ParseScopedRoleAssignmentScheduleRequestIDInsensitively parses 'input' case-insensitively into a ScopedRoleAssignmentScheduleRequestId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRoleAssignmentScheduleRequestIDInsensitively(input string) (*ScopedRoleAssignmentScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleAssignmentScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleAssignmentScheduleRequestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRoleAssignmentScheduleRequestId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.RoleAssignmentScheduleRequestName, ok = parsed.Parsed["roleAssignmentScheduleRequestName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleAssignmentScheduleRequestName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRoleAssignmentScheduleRequestId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.RoleAssignmentScheduleRequestName, ok = input.Parsed["roleAssignmentScheduleRequestName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "roleAssignmentScheduleRequestName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRoleAssignmentScheduleRequestID checks that 'input' can be parsed as a Scoped Role Assignment Schedule Request ID
@@ -99,7 +106,7 @@ func (id ScopedRoleAssignmentScheduleRequestId) Segments() []resourceids.Segment
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticRoleAssignmentScheduleRequests", "roleAssignmentScheduleRequests", "roleAssignmentScheduleRequests"),
-		resourceids.UserSpecifiedSegment("roleAssignmentScheduleRequestName", "roleAssignmentScheduleRequestValue"),
+		resourceids.UserSpecifiedSegment("roleAssignmentScheduleRequestName", "roleAssignmentScheduleRequestName"),
 	}
 }
 

@@ -26,9 +26,9 @@ import (
 
 func resourceEventGridTopic() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridTopicCreateUpdate,
+		Create: resourceEventGridTopicCreate,
 		Read:   resourceEventGridTopicRead,
-		Update: resourceEventGridTopicCreateUpdate,
+		Update: resourceEventGridTopicUpdate,
 		Delete: resourceEventGridTopicDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -155,8 +155,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			"inbound_ip_rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				MaxItems:   128,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   128,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
@@ -197,10 +197,10 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.Topics
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := topics.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -250,6 +250,60 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	return resourceEventGridTopicRead(d, meta)
+}
+
+func resourceEventGridTopicUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.Topics
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := topics.ParseTopicID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := topics.TopicUpdateParameters{Properties: &topics.TopicUpdateParameterProperties{}}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := topics.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = topics.PublicNetworkAccessEnabled
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChange("local_auth_enabled") {
+		payload.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
+	}
+
+	if d.HasChange("inbound_ip_rule") {
+		inboundIpRule := d.Get("inbound_ip_rule").([]interface{})
+
+		if len(inboundIpRule) == 0 {
+			payload.Properties.InboundIPRules = pointer.To([]topics.InboundIPRule{})
+		} else {
+			payload.Properties.InboundIPRules = expandTopicInboundIPRules(inboundIpRule)
+		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourceEventGridTopicRead(d, meta)
 }
 

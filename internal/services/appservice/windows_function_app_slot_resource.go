@@ -12,64 +12,73 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WindowsFunctionAppSlotResource struct{}
 
 type WindowsFunctionAppSlotModel struct {
-	Name                          string                                     `tfschema:"name"`
-	FunctionAppID                 string                                     `tfschema:"function_app_id"`
-	ServicePlanID                 string                                     `tfschema:"service_plan_id"`
-	StorageAccountName            string                                     `tfschema:"storage_account_name"`
-	StorageAccountKey             string                                     `tfschema:"storage_account_access_key"`
-	StorageUsesMSI                bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
-	StorageKeyVaultSecretID       string                                     `tfschema:"storage_key_vault_secret_id"`
-	AppSettings                   map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                  []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                        []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled             bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths      string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings             []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota          int                                        `tfschema:"daily_memory_time_quota"`
-	Enabled                       bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion     string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare      bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                     bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID   string                                     `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess           bool                                       `tfschema:"public_network_access_enabled"`
-	SiteConfig                    []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
-	Tags                          map[string]string                          `tfschema:"tags"`
-	CustomDomainVerificationId    string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                  string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname               string                                     `tfschema:"default_hostname"`
-	Kind                          string                                     `tfschema:"kind"`
-	OutboundIPAddresses           string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials               []helpers.SiteCredential                   `tfschema:"site_credential"`
-	StorageAccounts               []helpers.StorageAccount                   `tfschema:"storage_account"`
-	VirtualNetworkSubnetID        string                                     `tfschema:"virtual_network_subnet_id"`
+	Name                             string                                     `tfschema:"name"`
+	FunctionAppID                    string                                     `tfschema:"function_app_id"`
+	ServicePlanID                    string                                     `tfschema:"service_plan_id"`
+	StorageAccountName               string                                     `tfschema:"storage_account_name"`
+	StorageAccountKey                string                                     `tfschema:"storage_account_access_key"`
+	StorageUsesMSI                   bool                                       `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
+	StorageKeyVaultSecretID          string                                     `tfschema:"storage_key_vault_secret_id"`
+	AppSettings                      map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                           []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                   bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota             int64                                      `tfschema:"daily_memory_time_quota"`
+	Enabled                          bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion        string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare         bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                        bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	SiteConfig                       []helpers.SiteConfigWindowsFunctionAppSlot `tfschema:"site_config"`
+	Tags                             map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                  string                                     `tfschema:"default_hostname"`
+	Kind                             string                                     `tfschema:"kind"`
+	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
+	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
+	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
+
+var _ sdk.ResourceWithStateMigration = WindowsFunctionAppSlotResource{}
 
 func (r WindowsFunctionAppSlotResource) ModelObject() interface{} {
 	return &WindowsFunctionAppSlotModel{}
@@ -80,7 +89,7 @@ func (r WindowsFunctionAppSlotResource) ResourceType() string {
 }
 
 func (r WindowsFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.FunctionAppSlotID
+	return webapps.ValidateSlotID
 }
 
 func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
@@ -97,14 +106,14 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.FunctionAppID,
+			ValidateFunc: commonids.ValidateFunctionAppID,
 			Description:  "The ID of the Windows Function App this Slot is a member of.",
 		},
 
 		"service_plan_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validate.ServicePlanID,
+			ValidateFunc: commonids.ValidateAppServicePlanID,
 		},
 
 		"storage_account_name": {
@@ -182,15 +191,11 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"client_certificate_mode": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  web.ClientCertModeOptional,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
-			}, false),
-			Description: "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      webapps.ClientCertModeOptional,
+			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
+			Description:  "The mode of the Function App Slot's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.",
 		},
 
 		"client_certificate_exclusion_paths": {
@@ -253,6 +258,18 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Default:  true,
 		},
 
+		"webdeploy_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"ftp_publish_basic_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"site_config": helpers.SiteConfigSchemaWindowsFunctionAppSlot(),
 
 		"storage_account": helpers.StorageAccountSchemaWindows(),
@@ -263,6 +280,13 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 	}
 }
@@ -343,7 +367,8 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			functionAppId, err := parse.FunctionAppID(functionAppSlot.FunctionAppID)
+			resourceProvidersClient := metadata.Client.AppService.ResourceProvidersClient
+			functionAppId, err := commonids.ParseFunctionAppID(functionAppSlot.FunctionAppID)
 			if err != nil {
 				return err
 			}
@@ -352,90 +377,107 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			servicePlanClient := metadata.Client.AppService.ServicePlanClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := parse.NewFunctionAppSlotID(subscriptionId, functionAppId.ResourceGroup, functionAppId.SiteName, functionAppSlot.Name)
+			id := webapps.NewSlotID(subscriptionId, functionAppId.ResourceGroupName, functionAppId.SiteName, functionAppSlot.Name)
 
-			functionApp, err := client.Get(ctx, functionAppId.ResourceGroup, functionAppId.SiteName)
-			if err != nil {
+			functionApp, err := client.Get(ctx, *functionAppId)
+			if err != nil || functionApp.Model == nil {
 				return fmt.Errorf("retrieving parent Windows %s: %+v", *functionAppId, err)
 			}
-			if functionApp.Location == nil {
-				return fmt.Errorf("could not determine location for %s: %+v", id, err)
+
+			var servicePlanId *commonids.AppServicePlanId
+			differentServicePlanToParent := false
+			if functionApp.Model.Properties == nil || functionApp.Model.Properties.ServerFarmId == nil {
+				return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
 			}
 
-			var servicePlanId *parse.ServicePlanId
+			servicePlanId, err = commonids.ParseAppServicePlanIDInsensitively(*functionApp.Model.Properties.ServerFarmId)
+			if err != nil {
+				return err
+			}
+
 			if functionAppSlot.ServicePlanID != "" {
-				servicePlanId, err = parse.ServicePlanID(functionAppSlot.ServicePlanID)
+				newServicePlanId, err := commonids.ParseAppServicePlanID(functionAppSlot.ServicePlanID)
 				if err != nil {
 					return err
 				}
-			} else {
-				if props := functionApp.SiteProperties; props == nil || props.ServerFarmID == nil {
-					return fmt.Errorf("could not determine Service Plan ID for %s: %+v", id, err)
-				} else {
-					servicePlanId, err = parse.ServicePlanID(*props.ServerFarmID)
-					if err != nil {
-						return err
-					}
+				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
+				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
+				// we'll error here if the `service_plan_id` equals the parent `service_plan_id`
+				if strings.EqualFold(newServicePlanId.ID(), servicePlanId.ID()) {
+					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
+
+				servicePlanId = newServicePlanId
+				differentServicePlanToParent = true
 			}
-			servicePlan, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
+
+			servicePlan, err := servicePlanClient.Get(ctx, *servicePlanId)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", servicePlanId, err)
 			}
 
+			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
+				Name: fmt.Sprintf("%s-%s", id.SiteName, id.SlotName),
+				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
+			}
+
 			var planSKU *string
-			if sku := servicePlan.Sku; sku != nil && sku.Name != nil {
-				planSKU = sku.Name
-			} else {
-				return fmt.Errorf("could not determine Service Plan SKU type")
+			if model := servicePlan.Model; model != nil {
+				if sku := model.Sku; sku != nil && sku.Name != nil {
+					planSKU = sku.Name
+				} else {
+					return fmt.Errorf("could not determine Service Plan SKU type")
+				}
+
+				if model.Properties != nil {
+					if ase := model.Properties.HostingEnvironmentProfile; ase != nil {
+						// Attempt to check the ASE for the appropriate suffix for the name availability request.
+						// This varies between internal and external ASE Types, and potentially has other names in other clouds
+						// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
+						nameSuffix := "appserviceenvironment.net"
+						if ase.Id != nil {
+							aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
+							nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
+							if err != nil {
+								metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
+							} else {
+								existingASE, err := aseClient.Get(ctx, *aseId)
+								if err != nil || existingASE.Model == nil {
+									metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
+								} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
+									nameSuffix = *props.DnsSuffix
+								}
+							}
+						}
+
+						availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
+						availabilityRequest.IsFqdn = pointer.To(true)
+
+						if !functionAppSlot.VnetImagePullEnabled {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						}
+					}
+				}
 			}
 			// Only send for Dynamic and ElasticPremium
 			sendContentSettings := (helpers.PlanIsConsumption(planSKU) || helpers.PlanIsElastic(planSKU)) && !functionAppSlot.ForceDisableContentShare
 
-			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.GetSlot(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing Windows %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			availabilityRequest := web.ResourceNameAvailabilityRequest{
-				Name: pointer.To(fmt.Sprintf("%s-%s", id.SiteName, id.SlotName)),
-				Type: web.CheckNameResourceTypesMicrosoftWebsites,
-			}
-
-			if ase := servicePlan.HostingEnvironmentProfile; ase != nil {
-				// Attempt to check the ASE for the appropriate suffix for the name availability request.
-				// This varies between internal and external ASE Types, and potentially has other names in other clouds
-				// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
-				nameSuffix := "appserviceenvironment.net"
-				if ase.ID != nil {
-					aseId, err := parse.AppServiceEnvironmentID(*ase.ID)
-					nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
-					if err != nil {
-						metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
-					} else {
-						existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
-						if err != nil {
-							metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
-						} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-							nameSuffix = *props.DNSSuffix
-						}
-					}
-				}
-
-				availabilityRequest.Name = pointer.To(fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix))
-				availabilityRequest.IsFqdn = pointer.To(true)
-			}
-
-			checkName, err := client.CheckNameAvailability(ctx, availabilityRequest)
-			if err != nil {
+			subscriptionID := commonids.NewSubscriptionID(subscriptionId)
+			checkName, err := resourceProvidersClient.CheckNameAvailability(ctx, subscriptionID, availabilityRequest)
+			if err != nil || checkName.Model == nil {
 				return fmt.Errorf("checking name availability for Windows %s: %+v", id, err)
 			}
-			if checkName.NameAvailable != nil && !*checkName.NameAvailable {
-				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Message)
+			if checkName.Model.NameAvailable != nil && !*checkName.Model.NameAvailable {
+				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *checkName.Model.Message)
 			}
 
 			storageString := functionAppSlot.StorageAccountName
@@ -483,26 +525,29 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, functionAppSlot.AppSettings)
 
-			expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(functionAppSlot.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			siteEnvelope := web.Site{
-				Location: functionApp.Location,
-				Tags:     tags.FromTypedObject(functionAppSlot.Tags),
+			siteEnvelope := webapps.Site{
+				Location: location.Normalize(functionApp.Model.Location),
+				Tags:     pointer.To(functionAppSlot.Tags),
 				Kind:     pointer.To("functionapp"),
 				Identity: expandedIdentity,
-				SiteProperties: &web.SiteProperties{
-					ServerFarmID:         pointer.To(servicePlanId.ID()),
+				Properties: &webapps.SiteProperties{
 					Enabled:              pointer.To(functionAppSlot.Enabled),
 					HTTPSOnly:            pointer.To(functionAppSlot.HttpsOnly),
 					SiteConfig:           siteConfig,
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
-					ClientCertMode:       web.ClientCertMode(functionAppSlot.ClientCertMode),
-					DailyMemoryTimeQuota: pointer.To(int32(functionAppSlot.DailyMemoryTimeQuota)),
+					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
+					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
+			}
+			if differentServicePlanToParent {
+				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -511,66 +556,82 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
-			siteEnvelope.PublicNetworkAccess = pointer.To(pna)
-			siteEnvelope.SiteConfig.PublicNetworkAccess = siteEnvelope.PublicNetworkAccess
+			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
+			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
-				siteEnvelope.SiteProperties.VirtualNetworkSubnetID = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
 			if functionAppSlot.KeyVaultReferenceIdentityID != "" {
-				siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppSlot.KeyVaultReferenceIdentityID)
 			}
 
 			if functionAppSlot.ClientCertExclusionPaths != "" {
-				siteEnvelope.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
+				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionAppSlot.ClientCertExclusionPaths)
 			}
 
-			future, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
-			if err != nil {
+			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("creating Windows %s: %+v", id, err)
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
+			if !functionAppSlot.PublishingDeployBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: false,
+					},
+				}
+				if _, err = client.UpdateScmAllowedSlot(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
 			}
 
-			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)
-			if err != nil {
+			if !functionAppSlot.PublishingFTPBasicAuthEnabled {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: false,
+					},
+				}
+				if _, err = client.UpdateFtpAllowedSlot(ctx, id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if err = client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
-			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of Windows %s: %+v", id, err)
-			}
+
+			metadata.SetID(id)
 
 			backupConfig, err := helpers.ExpandBackupConfig(functionAppSlot.Backup)
 			if err != nil {
 				return fmt.Errorf("expanding backup configuration for Windows %s: %+v", id, err)
 			}
 
-			if backupConfig.BackupRequestProperties != nil {
-				if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupConfig, id.SlotName); err != nil {
+			if backupConfig.Properties != nil {
+				if _, err := client.UpdateBackupConfigurationSlot(ctx, id, *backupConfig); err != nil {
 					return fmt.Errorf("adding Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			auth := helpers.ExpandAuthSettings(functionAppSlot.AuthSettings)
-			if auth.SiteAuthSettingsProperties != nil {
-				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *auth, id.SlotName); err != nil {
+			if auth.Properties != nil {
+				if _, err := client.UpdateAuthSettingsSlot(ctx, id, *auth); err != nil {
 					return fmt.Errorf("setting Authorisation Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			authv2 := helpers.ExpandAuthV2Settings(functionAppSlot.AuthV2Settings)
-			if authv2.SiteAuthSettingsV2Properties != nil {
-				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authv2, id.SlotName); err != nil {
+			if authv2.Properties != nil {
+				if _, err = client.UpdateAuthSettingsV2Slot(ctx, id, *authv2); err != nil {
 					return fmt.Errorf("updating AuthV2 settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
-				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageConfig, id.SlotName); err != nil {
+				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
 					if err != nil {
 						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 					}
@@ -579,19 +640,18 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			connectionStrings := helpers.ExpandConnectionStrings(functionAppSlot.ConnectionStrings)
 			if connectionStrings.Properties != nil {
-				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStrings, id.SlotName); err != nil {
+				if _, err := client.UpdateConnectionStringsSlot(ctx, id, *connectionStrings); err != nil {
 					return fmt.Errorf("setting Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if _, ok := metadata.ResourceData.GetOk("site_config.0.app_service_logs"); ok {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(functionAppSlot.SiteConfig[0].AppServiceLogs)
-				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
+				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id, appServiceLogs); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -602,156 +662,163 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			functionAppSlot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			functionAppSlot, err := client.GetSlot(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(functionAppSlot.Response) {
+				if response.WasNotFound(functionAppSlot.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Windows %s: %+v", id, err)
 			}
 
-			if functionAppSlot.SiteProperties == nil {
-				return fmt.Errorf("reading properties of Windows %s", id)
-			}
-			props := *functionAppSlot.SiteProperties
+			functionAppId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
-			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 			}
 
-			connectionStrings, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			connectionStrings, err := client.ListConnectionStringsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Connection String information for Windows %s: %+v", id, err)
 			}
 
-			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			storageAccounts, err := client.ListAzureStorageAccountsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Storage Account information for Windows %s: %+v", id, err)
 			}
 
-			siteCredentialsFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			siteCredentials, err := helpers.ListPublishingCredentialsSlot(ctx, client, *id)
 			if err != nil {
-				return fmt.Errorf("listing Site Publishing Credential information for Windows %s: %+v", id, err)
+				return fmt.Errorf("listing Site Publishing Credential information for %s: %+v", *id, err)
 			}
 
-			if err := siteCredentialsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for Site Publishing Credential information for Windows %s: %+v", id, err)
-			}
-			siteCredentials, err := siteCredentialsFuture.Result(*client)
-			if err != nil {
-				return fmt.Errorf("reading Site Publishing Credential information for Windows %s: %+v", id, err)
-			}
-
-			auth, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			auth, err := client.GetAuthSettingsSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading Auth Settings for Windows %s: %+v", id, err)
 			}
 
-			var authV2 web.SiteAuthSettingsV2
-			if strings.EqualFold(pointer.From(auth.ConfigVersion), "v2") {
-				authV2, err = client.GetAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			var authV2 webapps.SiteAuthSettingsV2
+			if auth.Model != nil && auth.Model.Properties != nil && strings.EqualFold(pointer.From(auth.Model.Properties.ConfigVersion), "v2") {
+				authV2Resp, err := client.GetAuthSettingsV2Slot(ctx, *id)
 				if err != nil {
-					return fmt.Errorf("reading authV2 settings for Windows %s: %+v", *id, err)
+					return fmt.Errorf("reading authV2 settings for Linux %s: %+v", *id, err)
 				}
+				authV2 = *authV2Resp.Model
 			}
 
-			backup, err := client.GetBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			backup, err := client.GetBackupConfigurationSlot(ctx, *id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(backup.Response) {
+				if !response.WasNotFound(backup.HttpResponse) {
 					return fmt.Errorf("reading Backup Settings for Windows %s: %+v", id, err)
 				}
 			}
 
-			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			logs, err := client.GetDiagnosticLogsConfigurationSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading logs configuration for Windows %s: %+v", id, err)
 			}
 
+			basicAuthFTP := true
+			if basicAuthFTPResp, err := client.GetFtpAllowedSlot(ctx, *id); err != nil || basicAuthFTPResp.Model == nil {
+				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
+				basicAuthFTP = csmProps.Allow
+			}
+
+			basicAuthWebDeploy := true
+			if basicAuthWebDeployResp, err := client.GetScmAllowedSlot(ctx, *id); err != nil || basicAuthWebDeployResp.Model == nil {
+				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
+			} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
+				basicAuthWebDeploy = csmProps.Allow
+			}
 			state := WindowsFunctionAppSlotModel{
-				Name:                        id.SlotName,
-				FunctionAppID:               parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				Enabled:                     pointer.From(functionAppSlot.Enabled),
-				ClientCertMode:              string(functionAppSlot.ClientCertMode),
-				ClientCertExclusionPaths:    pointer.From(functionAppSlot.ClientCertExclusionPaths),
-				DailyMemoryTimeQuota:        int(pointer.From(props.DailyMemoryTimeQuota)),
-				Tags:                        tags.ToTypedObject(functionAppSlot.Tags),
-				Kind:                        pointer.From(functionAppSlot.Kind),
-				KeyVaultReferenceIdentityID: pointer.From(props.KeyVaultReferenceIdentity),
-				CustomDomainVerificationId:  pointer.From(props.CustomDomainVerificationID),
-				DefaultHostname:             pointer.From(props.DefaultHostName),
-				PublicNetworkAccess:         !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled),
+				Name:                             id.SlotName,
+				FunctionAppID:                    functionAppId.ID(),
+				PublishingFTPBasicAuthEnabled:    basicAuthFTP,
+				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
+				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
+				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
+				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
+				Backup:                           helpers.FlattenBackupConfig(backup.Model),
+				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 			}
+			if model := functionAppSlot.Model; model != nil {
+				state.Tags = pointer.From(model.Tags)
+				state.Kind = pointer.From(model.Kind)
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
 
-			if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-				state.HostingEnvId = pointer.From(hostingEnv.ID)
-			}
+				state.Identity = pointer.From(flattenedIdentity)
 
-			functionApp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
-				return fmt.Errorf("reading parent Function App for Windows %s: %+v", *id, err)
-			}
-			if functionApp.SiteProperties == nil || functionApp.SiteProperties.ServerFarmID == nil {
-				return fmt.Errorf("reading parent Function App Service Plan information for Windows %s: %+v", *id, err)
-			}
-			parentAppFarmId, err := parse.ServicePlanIDInsensitively(*functionApp.SiteProperties.ServerFarmID)
-			if err != nil {
-				return err
-			}
+				if props := model.Properties; props != nil {
+					state.Enabled = pointer.From(props.Enabled)
+					state.ClientCertMode = string(pointer.From(props.ClientCertMode))
+					state.ClientCertExclusionPaths = pointer.From(props.ClientCertExclusionPaths)
+					state.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
+					state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
+					state.DefaultHostname = pointer.From(props.DefaultHostName)
+					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
-			if slotPlanId := props.ServerFarmID; slotPlanId != nil && parentAppFarmId.ID() != *slotPlanId {
-				state.ServicePlanID = *slotPlanId
-			}
+					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
+						state.HostingEnvId = pointer.From(hostingEnv.Id)
+					}
 
-			configResp, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-			if err != nil {
-				return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
-			}
+					functionApp, err := client.Get(ctx, functionAppId)
+					if err != nil {
+						return fmt.Errorf("reading parent Function App for Windows %s: %+v", *id, err)
+					}
+					if functionApp.Model == nil || functionApp.Model.Properties == nil || functionApp.Model.Properties.ServerFarmId == nil {
+						return fmt.Errorf("reading parent Function App Service Plan information for Windows %s: %+v", *id, err)
+					}
+					parentAppFarmId, err := commonids.ParseAppServicePlanIDInsensitively(*functionApp.Model.Properties.ServerFarmId)
+					if err != nil {
+						return fmt.Errorf("parsing parent Service Plan ID for %s: %+v", *id, err)
+					}
 
-			siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.SiteConfig)
-			if err != nil {
-				return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
-			}
-			state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
+					if slotPlanIdRaw := props.ServerFarmId; slotPlanIdRaw != nil && !strings.EqualFold(parentAppFarmId.ID(), *slotPlanIdRaw) {
+						slotPlanId, err := commonids.ParseAppServicePlanIDInsensitively(*slotPlanIdRaw)
+						if err != nil {
+							return fmt.Errorf("parsing Service Plan ID for %s: %+v", *id, err)
+						}
+						state.ServicePlanID = slotPlanId.ID()
+					}
 
-			state.unpackWindowsFunctionAppSettings(appSettingsResp, metadata)
+					state.HttpsOnly = pointer.From(props.HTTPSOnly)
+					state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 
-			state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
+						state.VirtualNetworkSubnetID = subnetId
+					}
+				}
 
-			state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+				configResp, err := client.GetConfigurationSlot(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("making Read request on AzureRM Function App Configuration %q: %+v", id.SiteName, err)
+				}
 
-			state.AuthSettings = helpers.FlattenAuthSettings(auth)
+				siteConfig, err := helpers.FlattenSiteConfigWindowsFunctionAppSlot(configResp.Model.Properties)
+				if err != nil {
+					return fmt.Errorf("reading Site Config for Windows %s: %+v", id, err)
+				}
+				state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
 
-			state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+				state.unpackWindowsFunctionAppSettings(appSettingsResp.Model, metadata)
 
-			state.Backup = helpers.FlattenBackupConfig(backup)
+				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 
-			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
-
-			state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts)
-
-			state.HttpsOnly = pointer.From(functionAppSlot.HTTPSOnly)
-			state.ClientCertEnabled = pointer.From(functionAppSlot.ClientCertEnabled)
-
-			if subnetId := pointer.From(props.VirtualNetworkSubnetID); subnetId != "" {
-				state.VirtualNetworkSubnetID = subnetId
-			}
-
-			if err := metadata.Encode(&state); err != nil {
-				return fmt.Errorf("encoding: %+v", err)
-			}
-
-			flattenedIdentity, err := flattenIdentity(functionAppSlot.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := metadata.ResourceData.Set("identity", flattenedIdentity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
+				if err := metadata.Encode(&state); err != nil {
+					return fmt.Errorf("encoding: %+v", err)
+				}
 			}
 
 			return nil
@@ -764,16 +831,19 @@ func (r WindowsFunctionAppSlotResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting Windows %s", *id)
 
-			deleteMetrics := true
-			deleteEmptyServerFarm := false
-			if _, err := client.DeleteSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+			delOpts := webapps.DeleteSlotOperationOptions{
+				DeleteEmptyServerFarm: pointer.To(false),
+				DeleteMetrics:         pointer.To(false),
+			}
+
+			if _, err := client.DeleteSlot(ctx, *id, delOpts); err != nil {
 				return fmt.Errorf("deleting Windows %s: %+v", id, err)
 			}
 			return nil
@@ -792,7 +862,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
 			}
 
-			id, err := parse.FunctionAppSlotID(metadata.ResourceData.Id())
+			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -802,24 +872,26 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-			if err != nil {
+			existing, err := client.GetSlot(ctx, *id)
+			if err != nil || existing.Model == nil {
 				return fmt.Errorf("reading Windows %s: %v", id, err)
 			}
 
-			_, planSKU, err := helpers.ServicePlanInfoForApp(ctx, metadata, *id)
+			model := *existing.Model
+
+			_, planSKU, err := helpers.ServicePlanInfoForAppSlot(ctx, metadata, *id)
 			if err != nil {
 				return err
 			}
 
 			if metadata.ResourceData.HasChange("service_plan_id") {
 				o, n := metadata.ResourceData.GetChange("service_plan_id")
-				oldPlan, err := parse.ServicePlanID(o.(string))
+				oldPlan, err := commonids.ParseAppServicePlanID(o.(string))
 				if err != nil {
 					return err
 				}
 
-				newPlan, err := parse.ServicePlanID(n.(string))
+				newPlan, err := commonids.ParseAppServicePlanID(n.(string))
 				if err != nil {
 					return err
 				}
@@ -827,10 +899,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				defer locks.UnlockByID(oldPlan.ID())
 				locks.ByID(newPlan.ID())
 				defer locks.UnlockByID(newPlan.ID())
-				if existing.SiteProperties == nil {
+				if model.Properties == nil {
 					return fmt.Errorf("updating Service Plan for Windows %s: Slot SiteProperties was nil", *id)
 				}
-				existing.SiteProperties.ServerFarmID = pointer.To(newPlan.ID())
+				model.Properties.ServerFarmId = pointer.To(newPlan.ID())
 			}
 
 			// Only send for Dynamic and ElasticPremium
@@ -838,57 +910,61 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			// Some service plan updates are allowed - see customiseDiff for exceptions
 			if metadata.ResourceData.HasChange("enabled") {
-				existing.SiteProperties.Enabled = pointer.To(state.Enabled)
+				model.Properties.Enabled = pointer.To(state.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("https_only") {
-				existing.SiteProperties.HTTPSOnly = pointer.To(state.HttpsOnly)
+				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
-				existing.SiteProperties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
+				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_mode") {
-				existing.SiteProperties.ClientCertMode = web.ClientCertMode(state.ClientCertMode)
+				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
-				existing.SiteProperties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
+				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := expandIdentity(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				existing.Identity = expandedIdentity
+				model.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
-				existing.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = tags.FromTypedObject(state.Tags)
+				model.Tags = pointer.To(state.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
-					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+					if _, err = client.DeleteSwiftVirtualNetworkSlot(ctx, *id); err != nil {
 						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
 					}
 					var empty *string
-					existing.SiteProperties.VirtualNetworkSubnetID = empty
+					model.Properties.VirtualNetworkSubnetId = empty
 				} else {
-					existing.SiteProperties.VirtualNetworkSubnetID = pointer.To(subnetId)
+					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
 				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
-				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id.ResourceGroup, id.SiteName, *storageAccountUpdate, id.SlotName); err != nil {
+				if _, err = client.UpdateAzureStorageAccountsSlot(ctx, *id, *storageAccountUpdate); err != nil {
 					return fmt.Errorf("updating Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
@@ -903,18 +979,18 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			}
 
 			if sendContentSettings {
-				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, *id)
 				if err != nil {
 					return fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 				}
 				if state.AppSettings == nil {
 					state.AppSettings = make(map[string]string)
 				}
-				state.AppSettings = helpers.ParseContentSettings(appSettingsResp, state.AppSettings)
+				state.AppSettings = helpers.ParseContentSettings(appSettingsResp.Model, state.AppSettings)
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(state.SiteConfig, existing.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
+			siteConfig, err := helpers.ExpandSiteConfigWindowsFunctionAppSlot(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
 			if state.BuiltinLogging {
 				if state.AppSettings == nil && !state.StorageUsesMSI {
 					state.AppSettings = make(map[string]string)
@@ -930,11 +1006,11 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding Site Config for Windows %s: %+v", id, err)
 				}
-				existing.SiteConfig = siteConfig
-				existing.VnetRouteAllEnabled = existing.SiteConfig.VnetRouteAllEnabled
+				model.Properties.SiteConfig = siteConfig
+				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
 			}
 
-			existing.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
+			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				pna := helpers.PublicNetworkAccessEnabled
@@ -943,28 +1019,46 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
-				existing.PublicNetworkAccess = pointer.To(pna)
-				existing.SiteConfig.PublicNetworkAccess = existing.PublicNetworkAccess
+				model.Properties.PublicNetworkAccess = pointer.To(pna)
+				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
 			}
 
-			updateFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, existing, id.SlotName)
-			if err != nil {
+			if err = client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating Windows %s: %+v", id, err)
 			}
-			if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting to update %s: %+v", id, err)
+
+			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: state.PublishingFTPBasicAuthEnabled,
+					},
+				}
+				if _, err = client.UpdateFtpAllowedSlot(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
+				}
 			}
 
-			if _, err := client.UpdateConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, web.SiteConfigResource{SiteConfig: siteConfig}, id.SlotName); err != nil {
+			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
+				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
+					Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+						Allow: state.PublishingDeployBasicAuthEnabled,
+					},
+				}
+				if _, err = client.UpdateScmAllowedSlot(ctx, *id, sitePolicy); err != nil {
+					return fmt.Errorf("setting basic auth for deploy publishing credentials for %s: %+v", id, err)
+				}
+			}
+
+			if _, err = client.UpdateConfigurationSlot(ctx, *id, webapps.SiteConfigResource{Properties: siteConfig}); err != nil {
 				return fmt.Errorf("updating Site Config for Windows %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if connectionStringUpdate.Properties == nil {
-					connectionStringUpdate.Properties = map[string]*web.ConnStringValueTypePair{}
+					connectionStringUpdate.Properties = &map[string]webapps.ConnStringValueTypePair{}
 				}
-				if _, err := client.UpdateConnectionStringsSlot(ctx, id.ResourceGroup, id.SiteName, *connectionStringUpdate, id.SlotName); err != nil {
+				if _, err = client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
 					return fmt.Errorf("updating Connection Strings for Windows %s: %+v", id, err)
 				}
 			}
@@ -972,8 +1066,8 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("auth_settings") {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
-				if authUpdate.SiteAuthSettingsProperties == nil {
-					authUpdate.SiteAuthSettingsProperties = &web.SiteAuthSettingsProperties{
+				if authUpdate.Properties == nil {
+					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
 						Enabled:                           pointer.To(false),
 						ClientSecret:                      pointer.To(""),
 						ClientSecretSettingName:           pointer.To(""),
@@ -985,14 +1079,14 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 						MicrosoftAccountClientSecret:      pointer.To(""),
 					}
 				}
-				if _, err := client.UpdateAuthSettingsSlot(ctx, id.ResourceGroup, id.SiteName, *authUpdate, id.SlotName); err != nil {
+				if _, err = client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Windows %s: %+v", id, err)
 				}
 			}
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
-				if _, err := client.UpdateAuthSettingsV2Slot(ctx, id.ResourceGroup, id.SiteName, *authV2Update, id.SlotName); err != nil {
+				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 			}
@@ -1003,12 +1097,12 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding backup configuration for Windows %s: %+v", *id, err)
 				}
 
-				if backupUpdate.BackupRequestProperties == nil {
-					if _, err := client.DeleteBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
+				if backupUpdate.Properties == nil {
+					if _, err = client.DeleteBackupConfigurationSlot(ctx, *id); err != nil {
 						return fmt.Errorf("removing Backup Settings for Windows %s: %+v", id, err)
 					}
 				} else {
-					if _, err := client.UpdateBackupConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, *backupUpdate, id.SlotName); err != nil {
+					if _, err = client.UpdateBackupConfigurationSlot(ctx, *id, *backupUpdate); err != nil {
 						return fmt.Errorf("updating Backup Settings for Windows %s: %+v", id, err)
 					}
 				}
@@ -1016,7 +1110,7 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
 				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
-				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, id.ResourceGroup, id.SiteName, appServiceLogs, id.SlotName); err != nil {
+				if _, err = client.UpdateDiagnosticLogsConfigSlot(ctx, *id, appServiceLogs); err != nil {
 					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
 				}
 			}
@@ -1026,8 +1120,8 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web.StringDictionary, metadata sdk.ResourceMetaData) {
-	if input.Properties == nil {
+func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input *webapps.StringDictionary, metadata sdk.ResourceMetaData) {
+	if input == nil || input.Properties == nil {
 		return
 	}
 
@@ -1035,56 +1129,56 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 	var dockerSettings helpers.ApplicationStackDocker
 	m.BuiltinLogging = false
 
-	for k, v := range input.Properties {
+	for k, v := range *input.Properties {
 		switch k {
 		case "FUNCTIONS_EXTENSION_VERSION":
-			m.FunctionExtensionsVersion = pointer.From(v)
+			m.FunctionExtensionsVersion = v
 
 		case "WEBSITE_NODE_DEFAULT_VERSION":
 			if len(m.SiteConfig[0].ApplicationStack) == 0 {
 				m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackWindowsFunctionApp{{}}
 			}
-			m.SiteConfig[0].ApplicationStack[0].NodeVersion = pointer.From(v)
+			m.SiteConfig[0].ApplicationStack[0].NodeVersion = v
 
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
-				appSettings[k] = pointer.From(v)
+				appSettings[k] = v
 			}
 
 		case "WEBSITE_CONTENTSHARE":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
-				appSettings[k] = pointer.From(v)
+				appSettings[k] = v
 			}
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
 			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
-				appSettings[k] = pointer.From(v)
+				appSettings[k] = v
 			}
-			switch *v {
+			switch v {
 			case "dotnet-isolated":
 				m.SiteConfig[0].ApplicationStack[0].DotNetIsolated = true
 			case "custom":
 				m.SiteConfig[0].ApplicationStack[0].CustomHandler = true
 			}
 		case "DOCKER_REGISTRY_SERVER_URL":
-			dockerSettings.RegistryURL = pointer.From(v)
+			dockerSettings.RegistryURL = v
 
 		case "DOCKER_REGISTRY_SERVER_USERNAME":
-			dockerSettings.RegistryUsername = pointer.From(v)
+			dockerSettings.RegistryUsername = v
 
 		case "DOCKER_REGISTRY_SERVER_PASSWORD":
-			dockerSettings.RegistryPassword = pointer.From(v)
+			dockerSettings.RegistryPassword = v
 
 		case "APPINSIGHTS_INSTRUMENTATIONKEY":
-			m.SiteConfig[0].AppInsightsInstrumentationKey = pointer.From(v)
+			m.SiteConfig[0].AppInsightsInstrumentationKey = v
 
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
-			m.SiteConfig[0].AppInsightsConnectionString = pointer.From(v)
+			m.SiteConfig[0].AppInsightsConnectionString = v
 
 		case "AzureWebJobsStorage":
-			if v != nil && strings.HasPrefix(*v, "@Microsoft.KeyVault") {
-				trimmed := strings.TrimPrefix(strings.TrimSuffix(*v, ")"), "@Microsoft.KeyVault(SecretUri=")
+			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
 				m.StorageKeyVaultSecretID = trimmed
 			} else {
 				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
@@ -1093,12 +1187,12 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
-			i, _ := strconv.Atoi(pointer.From(v))
-			m.SiteConfig[0].HealthCheckEvictionTime = pointer.From(&i)
+			i, _ := strconv.Atoi(v)
+			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		case "AzureWebJobsStorage__accountName":
 			m.StorageUsesMSI = true
-			m.StorageAccountName = pointer.From(v)
+			m.StorageAccountName = v
 
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
@@ -1107,9 +1201,50 @@ func (m *WindowsFunctionAppSlotModel) unpackWindowsFunctionAppSettings(input web
 			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 
 		default:
-			appSettings[k] = pointer.From(v)
+			appSettings[k] = v
 		}
 	}
 
 	m.AppSettings = appSettings
+}
+
+func (r WindowsFunctionAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.WindowsFunctionAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			appClient := metadata.Client.AppService.WebAppsClient
+			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				appId := rd.Get("function_app_id")
+				if appId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
+				if err != nil {
+					return err
+				}
+
+				functionApp, err := appClient.Get(ctx, *functionAppId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
+				}
+				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
+					}
+				}
+			}
+			return nil
+		},
+	}
 }

@@ -47,7 +47,9 @@ func (c LabsClient) Update(ctx context.Context, id LabId, input UpdateResource) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Lab
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

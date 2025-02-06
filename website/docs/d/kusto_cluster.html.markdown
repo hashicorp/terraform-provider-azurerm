@@ -37,6 +37,20 @@ The following attributes are exported:
 
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Kusto Cluster.
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs to be assigned to this Kusto Cluster.
+
+* `principal_id` - The Principal ID associated with this System Assigned Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this System Assigned Managed Service Identity.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

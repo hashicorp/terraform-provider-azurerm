@@ -20,7 +20,20 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ProvisioningServiceDescription
+	LatestHttpResponse *http.Response
+	Items              []ProvisioningServiceDescription
+}
+
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscription ...
@@ -31,6 +44,7 @@ func (c IotDpsResourceClient) ListBySubscription(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Devices/provisioningServices", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c IotDpsResourceClient) ListBySubscriptionCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c IotDpsResourceClient) ListBySubscriptionCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

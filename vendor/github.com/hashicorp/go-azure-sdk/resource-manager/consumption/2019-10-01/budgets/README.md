@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets` Documentation
 
-The `budgets` SDK allows for interaction with the Azure Resource Manager Service `consumption` (API Version `2019-10-01`).
+The `budgets` SDK allows for interaction with Azure Resource Manager `consumption` (API Version `2019-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetValue")
+id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetName")
 
 payload := budgets.Budget{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetValue")
+id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetValue")
+id := budgets.NewScopedBudgetID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "budgetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := budgets.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)

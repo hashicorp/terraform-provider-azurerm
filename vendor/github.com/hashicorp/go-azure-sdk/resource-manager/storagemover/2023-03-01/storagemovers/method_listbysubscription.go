@@ -20,7 +20,20 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []StorageMover
+	LatestHttpResponse *http.Response
+	Items              []StorageMover
+}
+
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscription ...
@@ -31,6 +44,7 @@ func (c StorageMoversClient) ListBySubscription(ctx context.Context, id commonid
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.StorageMover/storageMovers", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c StorageMoversClient) ListBySubscriptionCompleteMatchingPredicate(ctx con
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c StorageMoversClient) ListBySubscriptionCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

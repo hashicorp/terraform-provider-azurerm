@@ -20,7 +20,20 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ProximityPlacementGroup
+	LatestHttpResponse *http.Response
+	Items              []ProximityPlacementGroup
+}
+
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscription ...
@@ -31,6 +44,7 @@ func (c ProximityPlacementGroupsClient) ListBySubscription(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Compute/proximityPlacementGroups", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c ProximityPlacementGroupsClient) ListBySubscriptionCompleteMatchingPredic
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c ProximityPlacementGroupsClient) ListBySubscriptionCompleteMatchingPredic
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

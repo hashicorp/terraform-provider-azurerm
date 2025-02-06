@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs` Documentation
 
-The `streamingjobs` SDK allows for interaction with the Azure Resource Manager Service `streamanalytics` (API Version `2020-03-01`).
+The `streamingjobs` SDK allows for interaction with Azure Resource Manager `streamanalytics` (API Version `2020-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 payload := streamingjobs.StreamingJob{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrReplaceThenPoll(ctx, id, payload, streamingjobs.Default
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 read, err := client.Get(ctx, id, streamingjobs.DefaultGetOperationOptions())
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, streamingjobs.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, streamingjobs.DefaultListOperationOptions())
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, streamingjobs.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, streamingjobs.DefaultListByResourceGroupOperationOptions())
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 payload := streamingjobs.ScaleStreamingJobParameters{
 	// ...
@@ -120,7 +121,7 @@ if err := client.ScaleThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 payload := streamingjobs.StartStreamingJobParameters{
 	// ...
@@ -137,7 +138,7 @@ if err := client.StartThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -149,7 +150,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobValue")
+id := streamingjobs.NewStreamingJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "streamingJobName")
 
 payload := streamingjobs.StreamingJob{
 	// ...

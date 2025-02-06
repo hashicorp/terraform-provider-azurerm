@@ -19,7 +19,8 @@ type ListRegionalByResourceGroupOperationResponse struct {
 }
 
 type ListRegionalByResourceGroupCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListRegionalByResourceGroupOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListRegionalByResourceGroupOperationOptions) ToHeaders() *client.Headers
 
 func (o ListRegionalByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o ListRegionalByResourceGroupOperationOptions) ToQuery() *client.QueryPara
 	return &out
 }
 
+type ListRegionalByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListRegionalByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListRegionalByResourceGroup ...
 func (c EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Context, id ProviderLocationId, options ListRegionalByResourceGroupOperationOptions) (result ListRegionalByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c EventSubscriptionsClient) ListRegionalByResourceGroup(ctx context.Contex
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListRegionalByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c EventSubscriptionsClient) ListRegionalByResourceGroupCompleteMatchingPre
 
 	resp, err := c.ListRegionalByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c EventSubscriptionsClient) ListRegionalByResourceGroupCompleteMatchingPre
 	}
 
 	result = ListRegionalByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

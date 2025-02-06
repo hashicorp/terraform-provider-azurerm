@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,10 +32,11 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiManagementPolicyV0ToV1{},
 			1: migration.ApiManagementPolicyV1ToV2{},
+			2: migration.ApiManagementPolicyV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -115,7 +117,7 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if parameters.Properties == nil {
-		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
+		return errors.New("Either `xml_content` or `xml_link` must be set")
 	}
 
 	policyServiceId := policy.NewServiceID(apiMgmtId.SubscriptionId, resourceGroup, serviceName)

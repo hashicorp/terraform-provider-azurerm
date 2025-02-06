@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis` Documentation
 
-The `activitylogalertsapis` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2020-10-01`).
+The `activitylogalertsapis` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2020-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertValue")
+id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertName")
 
 payload := activitylogalertsapis.ActivityLogAlertResource{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertValue")
+id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertName")
 
 read, err := client.ActivityLogAlertsDelete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertValue")
+id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertName")
 
 read, err := client.ActivityLogAlertsGet(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ActivityLogAlertsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ActivityLogAlertsListByResourceGroupComplete(ctx, id)
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ActivityLogAlertsListBySubscriptionId(ctx, id)` can be used to do batched pagination
 items, err := client.ActivityLogAlertsListBySubscriptionIdComplete(ctx, id)
@@ -111,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertValue")
+id := activitylogalertsapis.NewActivityLogAlertID("12345678-1234-9876-4563-123456789012", "example-resource-group", "activityLogAlertName")
 
 payload := activitylogalertsapis.AlertRulePatchObject{
 	// ...

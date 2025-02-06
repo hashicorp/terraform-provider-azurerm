@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AgentPoolId{}
+func init() {
+	recaser.RegisterResourceId(&AgentPoolId{})
+}
+
+var _ resourceids.ResourceId = &AgentPoolId{}
 
 // AgentPoolId is a struct representing the Resource ID for a Agent Pool
 type AgentPoolId struct {
@@ -32,29 +37,15 @@ func NewAgentPoolID(subscriptionId string, resourceGroupName string, registryNam
 
 // ParseAgentPoolID parses 'input' into a AgentPoolId
 func ParseAgentPoolID(input string) (*AgentPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgentPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgentPoolId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgentPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseAgentPoolID(input string) (*AgentPoolId, error) {
 // ParseAgentPoolIDInsensitively parses 'input' case-insensitively into a AgentPoolId
 // note: this method should only be used for API response data and not user input
 func ParseAgentPoolIDInsensitively(input string) (*AgentPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgentPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgentPoolId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AgentPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.AgentPoolName, ok = parsed.Parsed["agentPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AgentPoolId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RegistryName, ok = input.Parsed["registryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registryName", input)
+	}
+
+	if id.AgentPoolName, ok = input.Parsed["agentPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "agentPoolName", input)
+	}
+
+	return nil
 }
 
 // ValidateAgentPoolID checks that 'input' can be parsed as a Agent Pool ID
@@ -122,9 +121,9 @@ func (id AgentPoolId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerRegistry", "Microsoft.ContainerRegistry", "Microsoft.ContainerRegistry"),
 		resourceids.StaticSegment("staticRegistries", "registries", "registries"),
-		resourceids.UserSpecifiedSegment("registryName", "registryValue"),
+		resourceids.UserSpecifiedSegment("registryName", "registryName"),
 		resourceids.StaticSegment("staticAgentPools", "agentPools", "agentPools"),
-		resourceids.UserSpecifiedSegment("agentPoolName", "agentPoolValue"),
+		resourceids.UserSpecifiedSegment("agentPoolName", "agentPoolName"),
 	}
 }
 

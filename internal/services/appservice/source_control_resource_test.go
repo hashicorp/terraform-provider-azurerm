@@ -9,10 +9,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -121,6 +122,21 @@ func TestAccSourceControlResource_linuxExternalGit(t *testing.T) {
 	})
 }
 
+func TestAccSourceControlResource_linuxFunctionAppExternalGit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
+	r := AppServiceSourceControlResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxFunctionAppExternalGit(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSourceControlResource_linuxLocalGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
 	r := AppServiceSourceControlResource{}
@@ -178,19 +194,19 @@ func TestAccSourceControlResource_linuxGitHub(t *testing.T) {
 }
 
 func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppID(state.ID)
+	id, err := commonids.ParseWebAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.WebAppsClient.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.AppService.WebAppsClient.GetSourceControl(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Source Control for %s: %v", id, err)
 	}
-	if resp.SiteSourceControlProperties == nil || resp.SiteSourceControlProperties.RepoURL == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.RepoURL == nil {
 		return utils.Bool(false), nil
 	}
 
@@ -242,6 +258,19 @@ resource "azurerm_app_service_source_control" "test" {
   use_manual_integration = true
 }
 `, r.baseLinuxAppTemplate(data))
+}
+
+func (r AppServiceSourceControlResource) linuxFunctionAppExternalGit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_source_control" "test" {
+  app_id                 = azurerm_linux_function_app.test.id
+  repo_url               = "https://github.com/Azure-Samples/flask-app-on-azure-functions.git"
+  branch                 = "main"
+  use_manual_integration = true
+}
+`, LinuxFunctionAppResource{}.appStackPython(data, SkuBasicPlan, "3.11"))
 }
 
 func (r AppServiceSourceControlResource) windowsLocalGit(data acceptance.TestData) string {

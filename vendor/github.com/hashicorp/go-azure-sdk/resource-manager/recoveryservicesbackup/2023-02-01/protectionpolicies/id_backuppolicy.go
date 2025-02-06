@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BackupPolicyId{}
+func init() {
+	recaser.RegisterResourceId(&BackupPolicyId{})
+}
+
+var _ resourceids.ResourceId = &BackupPolicyId{}
 
 // BackupPolicyId is a struct representing the Resource ID for a Backup Policy
 type BackupPolicyId struct {
@@ -32,29 +37,15 @@ func NewBackupPolicyID(subscriptionId string, resourceGroupName string, vaultNam
 
 // ParseBackupPolicyID parses 'input' into a BackupPolicyId
 func ParseBackupPolicyID(input string) (*BackupPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BackupPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupPolicyName, ok = parsed.Parsed["backupPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupPolicyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseBackupPolicyID(input string) (*BackupPolicyId, error) {
 // ParseBackupPolicyIDInsensitively parses 'input' case-insensitively into a BackupPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseBackupPolicyIDInsensitively(input string) (*BackupPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BackupPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.BackupPolicyName, ok = parsed.Parsed["backupPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupPolicyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BackupPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.BackupPolicyName, ok = input.Parsed["backupPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "backupPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateBackupPolicyID checks that 'input' can be parsed as a Backup Policy ID
@@ -122,9 +121,9 @@ func (id BackupPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupPolicies", "backupPolicies", "backupPolicies"),
-		resourceids.UserSpecifiedSegment("backupPolicyName", "backupPolicyValue"),
+		resourceids.UserSpecifiedSegment("backupPolicyName", "backupPolicyName"),
 	}
 }
 

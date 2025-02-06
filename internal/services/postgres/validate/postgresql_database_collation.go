@@ -13,11 +13,11 @@ func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, er
 	originalValue, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return
+		return warnings, errors
 	}
 
 	if _, isSpecialCase := specialCases[originalValue]; isSpecialCase {
-		return
+		return warnings, errors
 	}
 
 	value := strings.ToLower(originalValue)
@@ -25,7 +25,7 @@ func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, er
 
 	// based on the string format, determine what we're validating
 	if _, isLanguageCode := languageCodes[value]; isLanguageCode {
-		return
+		return warnings, errors
 	}
 
 	// either `en-GB`, `en_GB`, ja_001` or `jv_java_id`
@@ -38,7 +38,7 @@ func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, er
 	containsUnderscore := strings.Contains(value, "_")
 	if containsDash && containsUnderscore {
 		errors = append(errors, databaseCollationDidNotMatchError(k, originalValue))
-		return
+		return warnings, errors
 	}
 
 	var split []string
@@ -49,14 +49,14 @@ func PostgresqlDatabaseCollation(v interface{}, k string) (warnings []string, er
 	}
 	if len(split) == 0 {
 		errors = append(errors, databaseCollationDidNotMatchError(k, originalValue))
-		return
+		return warnings, errors
 	}
 
 	// validate the language code is valid
 	languageCode := split[0]
 	if _, languageCodeIsValid := languageCodes[languageCode]; !languageCodeIsValid {
 		errors = append(errors, databaseCollationDidNotMatchError(k, originalValue))
-		return
+		return warnings, errors
 	}
 
 	// we can't do much about the locale, so we'll assume that's fine for now
@@ -271,12 +271,15 @@ var languageCodes = map[string]struct{}{
 }
 
 var specialCases = map[string]struct{}{
-	".utf8":                      {},
-	"C":                          {},
-	"POSIX":                      {},
-	"English_United States.1252": {},
-	"ucs_basic":                  {},
-	"default":                    {},
+	".utf8":                       {},
+	"C":                           {},
+	"POSIX":                       {},
+	"English_United Kingdom.1252": {},
+	"English_United States.1252":  {},
+	"French_France.1252":          {},
+	"Norwegian_Norway.1252":       {},
+	"ucs_basic":                   {},
+	"default":                     {},
 }
 
 var databaseCollationDidNotMatchError = func(fieldName, value string) error {

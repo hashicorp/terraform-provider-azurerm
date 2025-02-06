@@ -25,9 +25,10 @@ func RedisEnterpriseClusterLocationFlashSkuSupport(input string) error {
 }
 
 func invalidRedisEnterpriseClusterFlashLocations() []string {
-	var validFlash []string
+	locations := friendlyInvalidRedisEnterpriseClusterFlashLocations()
+	validFlash := make([]string, 0, len(locations))
 
-	for _, v := range friendlyInvalidRedisEnterpriseClusterFlashLocations() {
+	for _, v := range locations {
 		validFlash = append(validFlash, location.Normalize(v))
 	}
 
@@ -37,7 +38,6 @@ func invalidRedisEnterpriseClusterFlashLocations() []string {
 func friendlyInvalidRedisEnterpriseClusterFlashLocations() []string {
 	return []string{
 		"Australia Southeast",
-		"Brazil South",
 		"Central US",
 		"Central US EUAP",
 		"East Asia",

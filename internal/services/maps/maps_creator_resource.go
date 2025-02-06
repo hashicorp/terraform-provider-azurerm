@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/creators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,6 +33,8 @@ func resourceMapsCreator() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The `azurerm_maps_creator` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := creators.ParseCreatorID(id)

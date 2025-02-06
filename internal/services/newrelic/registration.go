@@ -9,9 +9,7 @@ import (
 
 type Registration struct{}
 
-var (
-	_ sdk.TypedServiceRegistration = Registration{}
-)
+var _ sdk.TypedServiceRegistration = Registration{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
@@ -27,6 +25,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		NewRelicMonitorResource{},
+		NewRelicTagRuleResource{},
 	}
 }
 

@@ -99,7 +99,7 @@ A `static_ip_configuration` block supports the following:
 
 * `attached_data_network_id` - (Required) The ID of attached data network on which the static IP address will be used. The combination of attached data network and slice defines the network scope of the IP address.
 
-* `slice` - (Required) The ID of network slice on which the static IP address will be used. The combination of attached data network and slice defines the network scope of the IP address.
+* `slice_id` - (Required) The ID of network slice on which the static IP address will be used. The combination of attached data network and slice defines the network scope of the IP address.
 
 * `static_ipv4_address` - (Optional) The IPv4 address assigned to the SIM at this network scope. This address must be in the userEquipmentStaticAddressPoolPrefix defined in the attached data network.
 

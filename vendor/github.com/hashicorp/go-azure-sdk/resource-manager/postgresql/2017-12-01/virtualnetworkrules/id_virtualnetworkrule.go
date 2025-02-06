@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualNetworkRuleId{}
+func init() {
+	recaser.RegisterResourceId(&VirtualNetworkRuleId{})
+}
+
+var _ resourceids.ResourceId = &VirtualNetworkRuleId{}
 
 // VirtualNetworkRuleId is a struct representing the Resource ID for a Virtual Network Rule
 type VirtualNetworkRuleId struct {
@@ -32,29 +37,15 @@ func NewVirtualNetworkRuleID(subscriptionId string, resourceGroupName string, se
 
 // ParseVirtualNetworkRuleID parses 'input' into a VirtualNetworkRuleId
 func ParseVirtualNetworkRuleID(input string) (*VirtualNetworkRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverName", *parsed)
-	}
-
-	if id.VirtualNetworkRuleName, ok = parsed.Parsed["virtualNetworkRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseVirtualNetworkRuleID(input string) (*VirtualNetworkRuleId, error) {
 // ParseVirtualNetworkRuleIDInsensitively parses 'input' case-insensitively into a VirtualNetworkRuleId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualNetworkRuleIDInsensitively(input string) (*VirtualNetworkRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverName", *parsed)
-	}
-
-	if id.VirtualNetworkRuleName, ok = parsed.Parsed["virtualNetworkRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualNetworkRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServerName, ok = input.Parsed["serverName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serverName", input)
+	}
+
+	if id.VirtualNetworkRuleName, ok = input.Parsed["virtualNetworkRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualNetworkRuleID checks that 'input' can be parsed as a Virtual Network Rule ID
@@ -122,9 +121,9 @@ func (id VirtualNetworkRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDBforPostgreSQL", "Microsoft.DBforPostgreSQL", "Microsoft.DBforPostgreSQL"),
 		resourceids.StaticSegment("staticServers", "servers", "servers"),
-		resourceids.UserSpecifiedSegment("serverName", "serverValue"),
+		resourceids.UserSpecifiedSegment("serverName", "serverName"),
 		resourceids.StaticSegment("staticVirtualNetworkRules", "virtualNetworkRules", "virtualNetworkRules"),
-		resourceids.UserSpecifiedSegment("virtualNetworkRuleName", "virtualNetworkRuleValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkRuleName", "virtualNetworkRuleName"),
 	}
 }
 

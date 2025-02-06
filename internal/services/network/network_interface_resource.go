@@ -14,18 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkinterfaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var networkInterfaceResourceName = "azurerm_network_interface"
@@ -106,7 +103,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.PublicIpAddressID,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 
 						"primary": {
@@ -126,10 +123,23 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 
 			// Optional
+			"auxiliary_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliaryMode(), false),
+				RequiredWith: []string{"auxiliary_sku"},
+			},
+
+			"auxiliary_sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(networkinterfaces.PossibleValuesForNetworkInterfaceAuxiliarySku(), false),
+				RequiredWith: []string{"auxiliary_mode"},
+			},
+
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -138,15 +148,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_accelerated_networking": {
+			"accelerated_networking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_ip_forwarding": {
+			"ip_forwarding_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -155,7 +163,6 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"internal_dns_name_label": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -204,7 +211,7 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NetworkInterfaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewNetworkInterfaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -219,10 +226,10 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		return tf.ImportAsExistsError("azurerm_network_interface", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
-	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	var enableIpForwarding, enableAcceleratedNetworking bool
+
+	enableIpForwarding = d.Get("ip_forwarding_enabled").(bool)
+	enableAcceleratedNetworking = d.Get("accelerated_networking_enabled").(bool)
 
 	properties := networkinterfaces.NetworkInterfacePropertiesFormat{
 		EnableIPForwarding:          &enableIpForwarding,
@@ -231,6 +238,14 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	locks.ByName(id.NetworkInterfaceName, networkInterfaceResourceName)
 	defer locks.UnlockByName(id.NetworkInterfaceName, networkInterfaceResourceName)
+
+	if auxiliaryMode, hasAuxiliaryMode := d.GetOk("auxiliary_mode"); hasAuxiliaryMode {
+		properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode.(string)))
+	}
+
+	if auxiliarySku, hasAuxiliarySku := d.GetOk("auxiliary_sku"); hasAuxiliarySku {
+		properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku.(string)))
+	}
 
 	dns, hasDns := d.GetOk("dns_servers")
 	nameLabel, hasNameLabel := d.GetOk("internal_dns_name_label")
@@ -244,7 +259,7 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if hasNameLabel {
-			dnsSettings.InternalDnsNameLabel = utils.String(nameLabel.(string))
+			dnsSettings.InternalDnsNameLabel = pointer.To(nameLabel.(string))
 		}
 
 		properties.DnsSettings = &dnsSettings
@@ -270,9 +285,9 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 	iface := networkinterfaces.NetworkInterface{
 		Name:             pointer.To(id.NetworkInterfaceName),
 		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
-		Location:         utils.String(location),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties:       &properties,
-		Tags:             tags.Expand(t),
+		Tags:             tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, iface)
@@ -314,36 +329,41 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	// then pull out things we need to lock on
 	info := parseFieldsFromNetworkInterface(*existing.Model.Properties)
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	update := networkinterfaces.NetworkInterface{
-		Name:             utils.String(id.NetworkInterfaceName),
-		ExtendedLocation: expandEdgeZoneModel(d.Get("edge_zone").(string)),
-		Location:         utils.String(location),
-		Properties: &networkinterfaces.NetworkInterfacePropertiesFormat{
-			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
-			DnsSettings:                 &networkinterfaces.NetworkInterfaceDnsSettings{},
-		},
+	payload := existing.Model
+
+	if d.HasChange("auxiliary_mode") {
+		if auxiliaryMode := d.Get("auxiliary_mode").(string); auxiliaryMode != "" {
+			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		} else {
+			payload.Properties.AuxiliaryMode = nil
+		}
+	}
+
+	if d.HasChange("auxiliary_sku") {
+		if auxiliarySku := d.Get("auxiliary_sku").(string); auxiliarySku != "" {
+			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		} else {
+			payload.Properties.AuxiliarySku = nil
+		}
 	}
 
 	if d.HasChange("dns_servers") {
 		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
-		update.Properties.DnsSettings.DnsServers = &dnsServers
-	} else {
-		update.Properties.DnsSettings.DnsServers = existing.Model.Properties.DnsSettings.DnsServers
+		payload.Properties.DnsSettings.DnsServers = &dnsServers
 	}
 
-	if d.HasChange("enable_ip_forwarding") {
-		update.Properties.EnableIPForwarding = utils.Bool(d.Get("enable_ip_forwarding").(bool))
-	} else {
-		update.Properties.EnableIPForwarding = existing.Model.Properties.EnableIPForwarding
+	if d.HasChange("accelerated_networking_enabled") {
+		payload.Properties.EnableAcceleratedNetworking = pointer.To(d.Get("accelerated_networking_enabled").(bool))
+	}
+
+	if d.HasChange("ip_forwarding_enabled") {
+		payload.Properties.EnableIPForwarding = pointer.To(d.Get("ip_forwarding_enabled").(bool))
 	}
 
 	if d.HasChange("internal_dns_name_label") {
-		update.Properties.DnsSettings.InternalDnsNameLabel = utils.String(d.Get("internal_dns_name_label").(string))
-	} else {
-		update.Properties.DnsSettings.InternalDnsNameLabel = existing.Model.Properties.DnsSettings.InternalDnsNameLabel
+		payload.Properties.DnsSettings.InternalDnsNameLabel = pointer.To(d.Get("internal_dns_name_label").(string))
 	}
 
 	if d.HasChange("ip_configuration") {
@@ -363,22 +383,15 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		// then map the fields managed in other resources back
 		ipConfigs = mapFieldsToNetworkInterface(ipConfigs, info)
 
-		update.Properties.IPConfigurations = ipConfigs
-	} else {
-		update.Properties.IPConfigurations = existing.Model.Properties.IPConfigurations
+		payload.Properties.IPConfigurations = ipConfigs
 	}
 
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
-		update.Tags = tags.Expand(tagsRaw)
-	} else {
-		update.Tags = existing.Model.Tags
+		payload.Tags = tags.Expand(tagsRaw)
 	}
 
-	// this can be managed in another resource, so just port it over
-	update.Properties.NetworkSecurityGroup = existing.Model.Properties.NetworkSecurityGroup
-
-	err = client.CreateOrUpdateThenPoll(ctx, *id, update)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -462,8 +475,21 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `applied_dns_servers`: %+v", err)
 			}
 
-			d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-			d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+			auxiliaryMode := ""
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != networkinterfaces.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = string(*props.AuxiliaryMode)
+			}
+
+			d.Set("auxiliary_mode", auxiliaryMode)
+
+			auxiliarySku := ""
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != networkinterfaces.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = string(*props.AuxiliarySku)
+			}
+
+			d.Set("auxiliary_sku", auxiliarySku)
+			d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
+			d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 			d.Set("internal_dns_name_label", internalDnsNameLabel)
 			d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 			d.Set("mac_address", props.MacAddress)
@@ -572,7 +598,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if v, ok := data["primary"]; ok {
-			properties.Primary = utils.Bool(v.(bool))
+			properties.Primary = pointer.To(v.(bool))
 		}
 
 		if v := data["gateway_load_balancer_frontend_ip_configuration_id"].(string); v != "" {

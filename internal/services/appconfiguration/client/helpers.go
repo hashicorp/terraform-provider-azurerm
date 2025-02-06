@@ -11,13 +11,12 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
-	ConfigurationStoreCache = map[string]ConfigurationStoreDetails{}
+	configurationStoreCache = map[string]ConfigurationStoreDetails{}
 	keysmith                = &sync.RWMutex{}
 	lock                    = map[string]*sync.RWMutex{}
 )
@@ -27,18 +26,18 @@ type ConfigurationStoreDetails struct {
 	dataPlaneEndpoint    string
 }
 
-func (c Client) AddToCache(configurationStoreId configurationstores.ConfigurationStoreId, dataPlaneEndpoint string) {
+func (c *Client) AddToCache(configurationStoreId configurationstores.ConfigurationStoreId, dataPlaneEndpoint string) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
-	ConfigurationStoreCache[cacheKey] = ConfigurationStoreDetails{
+	configurationStoreCache[cacheKey] = ConfigurationStoreDetails{
 		configurationStoreId: configurationStoreId.ID(),
 		dataPlaneEndpoint:    dataPlaneEndpoint,
 	}
 	keysmith.Unlock()
 }
 
-func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesClient *resourcesClient.Client, configurationStoreEndpoint string) (*string, error) {
-	configurationStoreName, err := c.parseNameFromEndpoint(configurationStoreEndpoint)
+func (c *Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, subscriptionId commonids.SubscriptionId, configurationStoreEndpoint, domainSuffix string) (*string, error) {
+	configurationStoreName, err := c.parseNameFromEndpoint(configurationStoreEndpoint, domainSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -52,53 +51,41 @@ func (c Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, resourcesC
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
-	if v, ok := ConfigurationStoreCache[cacheKey]; ok {
+	// first check the cache
+	if v, ok := configurationStoreCache[cacheKey]; ok {
 		return &v.configurationStoreId, nil
 	}
 
-	filter := fmt.Sprintf("resourceType eq 'Microsoft.AppConfiguration/configurationStores' and name eq '%s'", *configurationStoreName)
-	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
+	// If it's not present, populate the entire cache
+	configurationStores, err := c.ConfigurationStoresClient.ListComplete(ctx, subscriptionId)
 	if err != nil {
-		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
+		return nil, fmt.Errorf("retrieving the list of Configuration Stores in %s: %+v", subscriptionId, err)
+	}
+	for _, item := range configurationStores.Items {
+		if item.Id == nil || item.Properties == nil || item.Properties.Endpoint == nil {
+			continue
+		}
+
+		itemId := *item.Id
+		endpointUri := *item.Properties.Endpoint
+		configurationStoreId, err := configurationstores.ParseConfigurationStoreIDInsensitively(itemId)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", itemId, err)
+		}
+
+		c.AddToCache(*configurationStoreId, endpointUri)
 	}
 
-	for result.NotDone() {
-		for _, v := range result.Values() {
-			if v.ID == nil {
-				continue
-			}
-
-			id, err := configurationstores.ParseConfigurationStoreIDInsensitively(*v.ID)
-			if err != nil {
-				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
-			}
-			if !strings.EqualFold(id.ConfigurationStoreName, *configurationStoreName) {
-				continue
-			}
-
-			resp, err := c.ConfigurationStoresClient.Get(ctx, *id)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Endpoint == nil {
-				return nil, fmt.Errorf("retrieving %s: `model.properties.Endpoint` was nil", *id)
-			}
-
-			c.AddToCache(*id, *resp.Model.Properties.Endpoint)
-
-			return utils.String(id.ID()), nil
-		}
-
-		if err := result.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("iterating over results: %+v", err)
-		}
+	// finally try and pull this from the cache
+	if v, ok := configurationStoreCache[cacheKey]; ok {
+		return &v.configurationStoreId, nil
 	}
 
 	// we haven't found it, but Data Sources and Resources need to handle this error separately
 	return nil, nil
 }
 
-func (c Client) EndpointForConfigurationStore(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (*string, error) {
+func (c *Client) EndpointForConfigurationStore(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (*string, error) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
@@ -108,7 +95,7 @@ func (c Client) EndpointForConfigurationStore(ctx context.Context, configuration
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
-	if v, ok := ConfigurationStoreCache[cacheKey]; ok {
+	if v, ok := configurationStoreCache[cacheKey]; ok {
 		return &v.dataPlaneEndpoint, nil
 	}
 
@@ -126,7 +113,7 @@ func (c Client) EndpointForConfigurationStore(ctx context.Context, configuration
 	return resp.Model.Properties.Endpoint, nil
 }
 
-func (c Client) Exists(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (bool, error) {
+func (c *Client) Exists(ctx context.Context, configurationStoreId configurationstores.ConfigurationStoreId) (bool, error) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
@@ -136,7 +123,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
-	if _, ok := ConfigurationStoreCache[cacheKey]; ok {
+	if _, ok := configurationStoreCache[cacheKey]; ok {
 		return true, nil
 	}
 
@@ -157,7 +144,7 @@ func (c Client) Exists(ctx context.Context, configurationStoreId configurationst
 	return true, nil
 }
 
-func (c Client) RemoveFromCache(configurationStoreId configurationstores.ConfigurationStoreId) {
+func (c *Client) RemoveFromCache(configurationStoreId configurationstores.ConfigurationStoreId) {
 	cacheKey := c.cacheKeyForConfigurationStore(configurationStoreId.ConfigurationStoreName)
 	keysmith.Lock()
 	if lock[cacheKey] == nil {
@@ -165,25 +152,27 @@ func (c Client) RemoveFromCache(configurationStoreId configurationstores.Configu
 	}
 	keysmith.Unlock()
 	lock[cacheKey].Lock()
-	delete(ConfigurationStoreCache, cacheKey)
+	delete(configurationStoreCache, cacheKey)
 	lock[cacheKey].Unlock()
 }
 
-func (c Client) cacheKeyForConfigurationStore(name string) string {
+func (c *Client) cacheKeyForConfigurationStore(name string) string {
 	return strings.ToLower(name)
 }
 
-func (c Client) parseNameFromEndpoint(input string) (*string, error) {
+func (c *Client) parseNameFromEndpoint(input, domainSuffix string) (*string, error) {
 	uri, err := url.ParseRequestURI(input)
 	if err != nil {
 		return nil, err
 	}
 
 	// https://the-appconfiguration.azconfig.io
+	// https://the-appconfiguration.azconfig.azure.cn
+	// https://the-appconfiguration.azconfig.azure.us
+	if !strings.HasSuffix(uri.Host, domainSuffix) {
+		return nil, fmt.Errorf("expected a URI in the format `https://somename.%s` but got %q", domainSuffix, uri.Host)
+	}
 
 	segments := strings.Split(uri.Host, ".")
-	if len(segments) < 3 || segments[1] != "azconfig" || segments[2] != "io" {
-		return nil, fmt.Errorf("expected a URI in the format `https://the-appconfiguration.azconfig.io` but got %q", uri.Host)
-	}
 	return &segments[0], nil
 }

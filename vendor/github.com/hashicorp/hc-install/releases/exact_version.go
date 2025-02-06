@@ -1,9 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package releases
 
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,13 +27,23 @@ type ExactVersion struct {
 	InstallDir string
 	Timeout    time.Duration
 
+	// LicenseDir represents directory path where to install license files
+	// (required for enterprise versions, optional for Community editions).
+	LicenseDir string
+
+	// Enterprise indicates installation of enterprise version (leave nil for Community editions)
+	Enterprise *EnterpriseOptions
+
 	SkipChecksumVerification bool
 
 	// ArmoredPublicKey is a public PGP key in ASCII/armor format to use
 	// instead of built-in pubkey to verify signature of downloaded checksums
 	ArmoredPublicKey string
 
-	apiBaseURL    string
+	// ApiBaseURL is an optional field that specifies a custom URL to download the product from.
+	// If ApiBaseURL is set, the product will be downloaded from this base URL instead of the default site.
+	// Note: The directory structure of the custom URL must match the HashiCorp releases site (including the index.json files).
+	ApiBaseURL    string
 	logger        *log.Logger
 	pathsToRemove []string
 }
@@ -64,6 +76,10 @@ func (ev *ExactVersion) Validate() error {
 		return fmt.Errorf("unknown version")
 	}
 
+	if err := validateEnterpriseOptions(ev.Enterprise, ev.LicenseDir); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -83,7 +99,7 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	if dstDir == "" {
 		var err error
 		dirName := fmt.Sprintf("%s_*", ev.Product.Name)
-		dstDir, err = ioutil.TempDir("", dirName)
+		dstDir, err = os.MkdirTemp("", dirName)
 		if err != nil {
 			return "", err
 		}
@@ -93,11 +109,15 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	ev.log().Printf("will install into dir at %s", dstDir)
 
 	rels := rjson.NewReleases()
-	if ev.apiBaseURL != "" {
-		rels.BaseURL = ev.apiBaseURL
+	if ev.ApiBaseURL != "" {
+		rels.BaseURL = ev.ApiBaseURL
 	}
 	rels.SetLogger(ev.log())
-	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, ev.Version)
+	installVersion := ev.Version
+	if ev.Enterprise != nil {
+		installVersion = versionWithMetadata(installVersion, enterpriseVersionMetadata(ev.Enterprise))
+	}
+	pv, err := rels.GetProductVersion(ctx, ev.Product.Name, installVersion)
 	if err != nil {
 		return "", err
 	}
@@ -111,13 +131,14 @@ func (ev *ExactVersion) Install(ctx context.Context) (string, error) {
 	if ev.ArmoredPublicKey != "" {
 		d.ArmoredPublicKey = ev.ArmoredPublicKey
 	}
-	if ev.apiBaseURL != "" {
-		d.BaseURL = ev.apiBaseURL
+	if ev.ApiBaseURL != "" {
+		d.BaseURL = ev.ApiBaseURL
 	}
 
-	zipFilePath, err := d.DownloadAndUnpack(ctx, pv, dstDir)
-	if zipFilePath != "" {
-		ev.pathsToRemove = append(ev.pathsToRemove, zipFilePath)
+	licenseDir := ev.LicenseDir
+	up, err := d.DownloadAndUnpack(ctx, pv, dstDir, licenseDir)
+	if up != nil {
+		ev.pathsToRemove = append(ev.pathsToRemove, up.PathsToRemove...)
 	}
 	if err != nil {
 		return "", err
@@ -147,4 +168,22 @@ func (ev *ExactVersion) Remove(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// versionWithMetadata returns a new version by combining the given version with the given metadata
+func versionWithMetadata(v *version.Version, metadata string) *version.Version {
+	if v == nil {
+		return nil
+	}
+
+	if metadata == "" {
+		return v
+	}
+
+	v2, err := version.NewVersion(fmt.Sprintf("%s+%s", v.Core(), metadata))
+	if err != nil {
+		return nil
+	}
+
+	return v2
 }

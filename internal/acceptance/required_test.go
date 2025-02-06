@@ -25,13 +25,11 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 
 	builder := clients.ClientBuilder{
 		AuthConfig:                  config,
-		TerraformVersion:            "0.0.0",
-		PartnerID:                   "",
 		DisableCorrelationRequestID: true,
 		DisableTerraformPartnerID:   false,
-		// this test intentionally checks all the RP's are registered - so this is intentional
-		SkipProviderRegistration: true,
-		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
+		PartnerID:                   "",
+		SubscriptionID:              os.Getenv("ARM_SUBSCRIPTION_ID"),
+		TerraformVersion:            "0.0.0",
 	}
 	armClient, err := clients.Build(context.Background(), builder)
 	if err != nil {
@@ -41,7 +39,7 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	client := armClient.Resource.ResourceProvidersClient
 	ctx := armClient.StopContext
 
-	requiredResourceProviders := resourceproviders.Required()
+	requiredResourceProviders := resourceproviders.Legacy()
 	subscriptionId := commonids.NewSubscriptionID(armClient.Account.SubscriptionId)
 
 	if err = resourceproviders.EnsureRegistered(ctx, client, subscriptionId, requiredResourceProviders); err != nil {

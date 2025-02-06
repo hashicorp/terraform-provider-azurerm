@@ -19,7 +19,20 @@ type ListAuthorizationRulesOperationResponse struct {
 }
 
 type ListAuthorizationRulesCompleteResult struct {
-	Items []AuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []AuthorizationRule
+}
+
+type ListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListAuthorizationRules ...
@@ -30,6 +43,7 @@ func (c NamespacesClient) ListAuthorizationRules(ctx context.Context, id Namespa
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c NamespacesClient) ListAuthorizationRulesCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListAuthorizationRules(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c NamespacesClient) ListAuthorizationRulesCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

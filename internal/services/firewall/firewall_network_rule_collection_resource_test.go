@@ -8,14 +8,15 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type FirewallNetworkRuleCollectionResource struct{}
@@ -339,16 +340,18 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, id.AzureFirewallName)
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
+
+	resp, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): %v", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup, err)
 	}
 
-	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NetworkRuleCollections == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.NetworkRuleCollections == nil {
 		return nil, fmt.Errorf("retrieving Firewall  Network Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", id.NetworkRuleCollectionName, id.AzureFirewallName, id.ResourceGroup)
 	}
 
-	for _, rule := range *resp.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+	for _, rule := range *resp.Model.Properties.NetworkRuleCollections {
 		if rule.Name == nil {
 			continue
 		}
@@ -362,23 +365,28 @@ func (FirewallNetworkRuleCollectionResource) Exists(ctx context.Context, clients
 
 func (r FirewallNetworkRuleCollectionResource) checkFirewallNetworkRuleCollectionDoesNotExist(collectionName string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+		defer cancel()
 		// Ensure we have enough information in state to look up in API
 		id, err := parse.FirewallNetworkRuleCollectionID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		firewallName := id.AzureFirewallName
-		resourceGroup := id.ResourceGroup
+		firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-		read, err := clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
+		read, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 		if err != nil {
 			return err
 		}
 
-		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+		if read.Model == nil || read.Model.Properties == nil || read.Model.Properties.NetworkRuleCollections == nil {
+			return fmt.Errorf("one of model/properties/networkRuleCollections was nil for %s", firewallId)
+		}
+
+		for _, collection := range *read.Model.Properties.NetworkRuleCollections {
 			if *collection.Name == collectionName {
-				return fmt.Errorf("Network Rule Collection %q exists in Firewall %q: %+v", collectionName, firewallName, collection)
+				return fmt.Errorf("network Rule Collection %q exists in Firewall %q: %+v", collectionName, firewallId.AzureFirewallName, collection)
 			}
 		}
 
@@ -392,35 +400,31 @@ func (FirewallNetworkRuleCollectionResource) Destroy(ctx context.Context, client
 		return nil, err
 	}
 
-	name := id.NetworkRuleCollectionName
-	firewallName := id.AzureFirewallName
-	resourceGroup := id.ResourceGroup
+	firewallId := azurefirewalls.NewAzureFirewallID(id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName)
 
-	read, err := clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
+	read, err := clients.Network.AzureFirewalls.Get(ctx, firewallId)
 	if err != nil {
 		return utils.Bool(false), err
 	}
 
-	rules := make([]network.AzureFirewallNetworkRuleCollection, 0)
-	for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
-		if *collection.Name != name {
+	if read.Model == nil || read.Model.Properties == nil || read.Model.Properties.NetworkRuleCollections == nil {
+		return utils.Bool(false), fmt.Errorf("one of model/properties/networkRuleCollections was nil for %s", firewallId)
+	}
+
+	rules := make([]azurefirewalls.AzureFirewallNetworkRuleCollection, 0)
+	for _, collection := range *read.Model.Properties.NetworkRuleCollections {
+		if *collection.Name != id.NetworkRuleCollectionName {
 			rules = append(rules, collection)
 		}
 	}
 
-	read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
+	read.Model.Properties.NetworkRuleCollections = &rules
 
-	future, err := clients.Firewall.AzureFirewallsClient.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
-	if err != nil {
+	if err = clients.Network.AzureFirewalls.CreateOrUpdateThenPoll(ctx, firewallId, *read.Model); err != nil {
 		return utils.Bool(false), fmt.Errorf("removing Network Rule Collection from Firewall: %+v", err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, clients.Firewall.AzureFirewallsClient.Client); err != nil {
-		return utils.Bool(false), fmt.Errorf("waiting for the removal of Network Rule Collection from Firewall: %+v", err)
-	}
-
-	_, err = clients.Firewall.AzureFirewallsClient.Get(ctx, resourceGroup, firewallName)
-	return utils.Bool(err == nil), err
+	return utils.Bool(true), nil
 }
 
 func (FirewallNetworkRuleCollectionResource) basic(data acceptance.TestData) string {
@@ -875,7 +879,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
+`, FirewallResource{}.enableDNS(data, true, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {

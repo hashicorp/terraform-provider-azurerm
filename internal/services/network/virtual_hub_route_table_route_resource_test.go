@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualHubRouteTableRouteResource struct{}
@@ -96,27 +97,32 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 }
 
 func (t VirtualHubRouteTableRouteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	route, err := parse.HubRouteTableRouteID(state.ID)
+	id, err := parse.HubRouteTableRouteID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.HubRouteTableClient.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
+	routeTableId := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.HubRouteTableName)
+
+	resp, err := clients.Network.VirtualWANs.HubRouteTablesGet(ctx, routeTableId)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Hub Route Table (%s): %+v", route, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if props := resp.HubRouteTableProperties; props != nil {
-		if routes := props.Routes; routes != nil {
-			for _, r := range *routes {
-				if *r.Name == route.RouteName {
-					return utils.Bool(true), nil
+	found := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if routes := props.Routes; routes != nil {
+				for _, r := range *routes {
+					if r.Name == id.RouteName {
+						found = true
+					}
 				}
 			}
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(found), nil
 }
 
 func (VirtualHubRouteTableRouteResource) template(data acceptance.TestData) string {

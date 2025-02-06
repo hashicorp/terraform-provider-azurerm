@@ -41,6 +41,50 @@ func TestAccWebPubsub_basic(t *testing.T) {
 	})
 }
 
+func TestAccWebPubsub_premiumP1(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P1", 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsub_premiumP2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
+	r := WebPubsubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P2", 100),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWebPubsub_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub", "test")
 	r := WebPubsubResource{}
@@ -262,6 +306,20 @@ resource "azurerm_web_pubsub" "test" {
   capacity            = 1
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r WebPubsubResource) premium(data acceptance.TestData, sku string, capacity int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_web_pubsub" "test" {
+  name                = "acctestWebPubsub-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "%s"
+  capacity            = %d
+}
+`, r.template(data), data.RandomInteger, sku, capacity)
 }
 
 func (r WebPubsubResource) complete(data acceptance.TestData) string {

@@ -26,7 +26,7 @@ func (c AccountClient) ListKeys(ctx context.Context, id AccountId) (result ListK
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/listkeys", id.ID()),
+		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -44,7 +44,9 @@ func (c AccountClient) ListKeys(ctx context.Context, id AccountId) (result ListK
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

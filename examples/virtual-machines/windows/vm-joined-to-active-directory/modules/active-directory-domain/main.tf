@@ -55,7 +55,7 @@ resource "azurerm_virtual_machine_extension" "create-ad-forest" {
   publisher            = "Microsoft.Compute"
   type                 = "CustomScriptExtension"
   type_handler_version = "1.9"
-  settings = <<SETTINGS
+  settings             = <<SETTINGS
   {
     "commandToExecute": "powershell.exe -Command \"${local.powershell_command}\""
   }

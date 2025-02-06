@@ -39,7 +39,7 @@ func BlobPropertiesDefaultServiceVersion(i interface{}, k string) (warnings []st
 		"2020-02-10",
 		"2020-04-08",
 		"2020-06-12",
-		"2020-08-04",
+		"2023-11-03",
 		"2020-10-02",
 		"2020-12-06",
 		"2021-02-12",

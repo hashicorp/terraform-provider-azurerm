@@ -44,13 +44,15 @@ The following arguments are supported:
 
 * `rbac_authorization` - (Optional) A `rbac_authorization` block as defined below. Changing this forces a new resource to be created.
 
+* `self_contained_interactive_authoring_enabled` - (Optional) Specifies whether enable interactive authoring function when your self-hosted integration runtime is unable to establish a connection with Azure Relay.
+
 ---
 
 A `rbac_authorization` block supports the following:
 
 * `resource_id` - (Required) The resource identifier of the integration runtime to be shared.
 
--> **Please Note**: RBAC Authorization creates a [linked Self-hosted Integration Runtime targeting the Shared Self-hosted Integration Runtime in resource_id](https://docs.microsoft.com/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#share-the-self-hosted-integration-runtime-with-another-data-factory). The linked Self-hosted Integration Runtime needs Contributor access granted to the Shared Self-hosted Data Factory. See example [Shared Self-hosted](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/data-factory/shared-self-hosted).
+-> **Please Note:** RBAC Authorization creates a [linked Self-hosted Integration Runtime targeting the Shared Self-hosted Integration Runtime in resource_id](https://docs.microsoft.com/azure/data-factory/create-shared-self-hosted-integration-runtime-powershell#share-the-self-hosted-integration-runtime-with-another-data-factory). The linked Self-hosted Integration Runtime needs Contributor access granted to the Shared Self-hosted Data Factory. See example [Shared Self-hosted](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/data-factory/shared-self-hosted).
 
 For more information on the configuration, please check out the [Azure documentation](https://docs.microsoft.com/rest/api/datafactory/integrationruntimes/createorupdate#linkedintegrationruntimerbacauthorization)
 

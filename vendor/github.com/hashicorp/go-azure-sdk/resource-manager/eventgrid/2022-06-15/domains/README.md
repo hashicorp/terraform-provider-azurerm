@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains` Documentation
 
-The `domains` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `domains` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 payload := domains.Domain{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, domains.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, domains.DefaultListByResourceGroupOperationOptions())
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := domains.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id, domains.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, domains.DefaultListBySubscriptionOperationOptions())
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 read, err := client.ListSharedAccessKeys(ctx, id)
 if err != nil {
@@ -119,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 payload := domains.DomainRegenerateKeyRequest{
 	// ...
@@ -140,7 +141,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainValue")
+id := domains.NewDomainID("12345678-1234-9876-4563-123456789012", "example-resource-group", "domainName")
 
 payload := domains.DomainUpdateParameters{
 	// ...

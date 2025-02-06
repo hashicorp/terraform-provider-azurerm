@@ -26,9 +26,9 @@ import (
 
 func resourceEventGridDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceEventGridDomainCreateUpdate,
+		Create: resourceEventGridDomainCreate,
 		Read:   resourceEventGridDomainRead,
-		Update: resourceEventGridDomainCreateUpdate,
+		Update: resourceEventGridDomainUpdate,
 		Delete: resourceEventGridDomainDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -167,8 +167,8 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"inbound_ip_rule": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				MaxItems:   128,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   128,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
@@ -209,24 +209,23 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.Domains
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := domains.NewDomainID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_eventgrid_domain", id.ID())
 	}
 
 	inboundIPRules := expandDomainInboundIPRules(d.Get("inbound_ip_rule").([]interface{}))
@@ -258,10 +257,72 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, domain); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceEventGridDomainRead(d, meta)
+}
+
+func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.Domains
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := domains.ParseDomainID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := domains.DomainUpdateParameters{Properties: &domains.DomainUpdateParameterProperties{}}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := domains.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = domains.PublicNetworkAccessEnabled
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChange("local_auth_enabled") {
+		payload.Properties.DisableLocalAuth = pointer.To(!d.Get("local_auth_enabled").(bool))
+	}
+
+	if d.HasChange("auto_create_topic_with_first_subscription") {
+		payload.Properties.AutoCreateTopicWithFirstSubscription = pointer.To(d.Get("auto_create_topic_with_first_subscription").(bool))
+	}
+
+	if d.HasChange("auto_delete_topic_with_last_subscription") {
+		payload.Properties.AutoDeleteTopicWithLastSubscription = pointer.To(d.Get("auto_delete_topic_with_last_subscription").(bool))
+	}
+
+	if d.HasChange("inbound_ip_rule") {
+		inboundIpRule := d.Get("inbound_ip_rule").([]interface{})
+
+		if len(inboundIpRule) == 0 {
+			payload.Properties.InboundIPRules = pointer.To([]domains.InboundIPRule{})
+		} else {
+			payload.Properties.InboundIPRules = expandDomainInboundIPRules(inboundIpRule)
+		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %s", id, err)
+	}
+
 	return resourceEventGridDomainRead(d, meta)
 }
 
@@ -555,7 +616,7 @@ func expandDomainInboundIPRules(input []interface{}) *[]domains.InboundIPRule {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, domains.InboundIPRule{
 			Action: pointer.To(domains.IPActionType(rawRule["action"].(string))),
-			IPMask: utils.String(rawRule["ip_mask"].(string)),
+			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}
 	return &rules

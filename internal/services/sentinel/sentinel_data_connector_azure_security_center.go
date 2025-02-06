@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 func resourceSentinelDataConnectorAzureSecurityCenter() *pluginsdk.Resource {
@@ -25,10 +25,7 @@ func resourceSentinelDataConnectorAzureSecurityCenter() *pluginsdk.Resource {
 		Read:   resourceSentinelDataConnectorAzureSecurityCenterRead,
 		Delete: resourceSentinelDataConnectorAzureSecurityCenterDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.DataConnectorID(id)
-			return err
-		}, importSentinelDataConnector(securityinsight.DataConnectorKindAzureSecurityCenter)),
+		Importer: importDataConnectorUntyped(securityinsight.DataConnectorKindAzureSecurityCenter),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

@@ -10,9 +10,20 @@ description: |-
 
 Manages a NetApp Volume.
 
+!>**IMPORTANT:** This resource uses a feature to prevent deletion called `prevent_volume_destruction`, defaulting to `true`. It is intentionally set to `true` to prevent the possibility of accidental data loss. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
+
 ## NetApp Volume Usage
 
 ```hcl
+provider "azurerm" {
+  features {
+    netapp {
+      prevent_volume_destruction             = true
+      delete_backups_on_backup_vault_destroy = false
+    }
+  }
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -47,6 +58,24 @@ resource "azurerm_netapp_account" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
+resource "azurerm_netapp_backup_vault" "example" {
+  name                = "example-netappbackupvault"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  account_name        = azurerm_netapp_account.example.name
+}
+
+resource "azurerm_netapp_backup_policy" "example" {
+  name                    = "example-netappbackuppolicy"
+  resource_group_name     = azurerm_resource_group.example.name
+  location                = azurerm_resource_group.example.location
+  account_name            = azurerm_netapp_account.example.name
+  daily_backups_to_keep   = 2
+  weekly_backups_to_keep  = 2
+  monthly_backups_to_keep = 2
+  enabled                 = true
+}
+
 resource "azurerm_netapp_pool" "example" {
   name                = "example-netapppool"
   location            = azurerm_resource_group.example.location
@@ -57,10 +86,6 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
   zone                       = "1"
@@ -70,7 +95,6 @@ resource "azurerm_netapp_volume" "example" {
   volume_path                = "my-unique-file-path"
   service_level              = "Premium"
   subnet_id                  = azurerm_subnet.example.id
-  network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
   security_style             = "unix"
   storage_quota_in_gb        = 100
@@ -92,6 +116,18 @@ resource "azurerm_netapp_volume" "example" {
   # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
+
+  # Enabling backup policy
+  data_protection_backup_policy {
+    backup_vault_id  = azurerm_netapp_backup_vault.example.id
+    backup_policy_id = azurerm_netapp_backup_policy.example.id
+    policy_enabled   = true
+  }
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
   }
 }
 ```
@@ -124,7 +160,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
-* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features). Changing this forces a new resource to be created.
+* `network_features` - (Optional) Indicates which network feature to use, accepted values are `Basic` or `Standard`, it defaults to `Basic` if not defined. This is a feature in public preview and for more information about it and how to register, please refer to [Configure network features for an Azure NetApp Files volume](https://docs.microsoft.com/en-us/azure/azure-netapp-files/configure-network-features).
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
@@ -136,9 +172,27 @@ The following arguments are supported:
 
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
 
+* `data_protection_backup_policy` - (Optional) A `data_protection_backup_policy` block as defined below.
+
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
 * `throughput_in_mibps` - (Optional) Throughput of this volume in Mibps.
+
+* `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
+
+* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules.
+
+~> **NOTE:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in a failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
+
+* `key_vault_private_endpoint_id` - (Optional) The Private Endpoint ID for Key Vault, which is required when using customer-managed keys. This is required with `encryption_key_source`. Changing this forces a new resource to be created.
+
+* `smb_non_browsable_enabled` - (Optional) Limits clients from browsing for an SMB share by hiding the share from view in Windows Explorer or when listing shares in "net view." Only end users that know the absolute paths to the share are able to find the share. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=Non%2Dbrowsable%20shares,find%20the%20share.)
+
+* `smb_access_based_enumeration_enabled` - (Optional) Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share. For instance, if a user doesn't have access to read a file or folder in a share with access-based enumeration enabled, then the file or folder doesn't show up in directory listings. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=security%20for%20administrators.-,Access%2Dbased%20enumeration,in%20an%20Azure%20NetApp%20Files%20SMB%20volume.%20Only%20contosoadmin%20has%20access.,-In%20the%20below)
+
+* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
+
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -159,6 +213,18 @@ An `export_policy_rule` block supports the following:
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
 * `root_access_enabled` - (Optional) Is root access permitted to this volume?
+
+* `kerberos_5_read_only_enabled` - (Optional) Is Kerberos 5 read-only access permitted to this volume?
+
+* `kerberos_5_read_write_enabled` - (Optional) Is Kerberos 5 read/write permitted to this volume?
+
+* `kerberos_5i_read_only_enabled` - (Optional) Is Kerberos 5i read-only permitted to this volume?
+
+* `kerberos_5i_read_write_enabled` - (Optional) Is Kerberos 5i read/write permitted to this volume?
+
+* `kerberos_5p_read_only_enabled` - (Optional) Is Kerberos 5p read-only permitted to this volume?
+
+* `kerberos_5p_read_write_enabled` - (Optional) Is Kerberos 5p read/write permitted to this volume?
 
 ---
 
@@ -186,6 +252,18 @@ A full example of the `data_protection_snapshot_policy` attribute usage can be f
   
 ~> **NOTE:** `data_protection_snapshot_policy` block can be used alone or with data_protection_replication in the primary volume only, if enabling it in the secondary, an error will be thrown.
 
+---
+
+A `data_protection_backup_policy` block is used to setup automatic backups through a specific backup policy. It supports the following:
+
+* `backup_vault_id` - (Required) Resource ID of the backup backup vault to associate this volume to.
+
+* `backup_policy_id` - (Required) Resource ID of the backup policy to apply to the volume.
+
+* `policy_enabled` - (Optional) Enables the backup policy on the volume, defaults to `true`.
+
+For more information on Azure NetApp Files Backup feature please see [Understand Azure NetApp Files backup](https://learn.microsoft.com/en-us/azure/azure-netapp-files/backup-introduction)
+  
 ---
 
 ## Attributes Reference

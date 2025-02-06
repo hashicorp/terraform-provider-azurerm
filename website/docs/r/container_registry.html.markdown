@@ -63,7 +63,6 @@ resource "azurerm_container_registry" "acr" {
   }
 
   encryption {
-    enabled            = true
     key_vault_key_id   = data.azurerm_key_vault_key.example.id
     identity_client_id = azurerm_user_assigned_identity.example.client_id
   }
@@ -123,7 +122,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 resource "azurerm_role_assignment" "example" {
-  principal_id                     = azurerm_kubernetes_cluster.example.kubelet_identity[0].object_id
+  principal_id                     = azurerm_kubernetes_cluster.example.kubelet_identity[0].principal_id
   role_definition_name             = "AcrPull"
   scope                            = azurerm_container_registry.example.id
   skip_service_principal_aad_check = true
@@ -139,7 +138,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. 
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU name of the container registry. Possible values are `Basic`, `Standard` and `Premium`.
 
@@ -147,7 +146,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplications` - (Optional) A `georeplications` block as documented below.
+* `georeplications` - (Optional) One or more `georeplications` blocks as documented below.
 
 ~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
@@ -161,15 +160,15 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy` - (Optional) A `retention_policy` block as documented below.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
 
-* `trust_policy` - (Optional) A `trust_policy` block as documented below.
+* `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
-* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`. 
+* `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this Container Registry? Changing this forces a new resource to be created. Defaults to `false`.
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
-  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy`, `trust_policy`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -187,7 +186,7 @@ The `georeplications` block supports the following:
 
 * `location` - (Required) A location where the container registry should be geo-replicated.
 
-* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry? 
+* `regional_endpoint_enabled` - (Optional) Whether regional endpoint is enabled for this Container Registry?
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
@@ -203,8 +202,6 @@ The `network_rule_set` block supports the following:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
-
 ~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
@@ -219,28 +216,6 @@ The `ip_rule` block supports the following:
 
 ---
 
-The `virtual_network` block supports the following:
-
-* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
-
-* `subnet_id` - (Required) The subnet id from which requests will match the rule.
-
----
-
-The `trust_policy` block supports the following:
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
-
----
-
-The `retention_policy` block supports the following:
-
-* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
-
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
-
----
-
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Registry. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
@@ -252,8 +227,6 @@ An `identity` block supports the following:
 ---
 
 The `encryption` block supports the following:
-
-* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
@@ -285,7 +258,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
 
 ---
 

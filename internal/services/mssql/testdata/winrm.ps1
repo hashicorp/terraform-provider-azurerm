@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 $Cert = New-SelfSignedCertificate -DnsName $RemoteHostName, $ComputerName `
     -CertStoreLocation "cert:\LocalMachine\My" `
     -FriendlyName "Test WinRM Cert"

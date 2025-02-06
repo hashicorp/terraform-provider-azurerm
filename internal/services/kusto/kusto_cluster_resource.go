@@ -17,15 +17,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,10 +31,10 @@ import (
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
-	s := &pluginsdk.Resource{
-		Create: resourceKustoClusterCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceKustoClusterCreate,
 		Read:   resourceKustoClusterRead,
-		Update: resourceKustoClusterCreateUpdate,
+		Update: resourceKustoClusterUpdate,
 		Delete: resourceKustoClusterDelete,
 
 		SchemaVersion: 1,
@@ -45,7 +43,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters.ParseClusterID(id)
+			_, err := commonids.ParseKustoClusterID(id)
 			return err
 		}),
 
@@ -145,34 +143,29 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"virtual_network_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: commonids.ValidateSubnetID,
 						},
 						"engine_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ForceNew:     true,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 						"data_management_public_ip_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: networkValidate.PublicIpAddressID,
+							ForceNew:     true,
+							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
 					},
 				},
-			},
-
-			"engine": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Deprecated:   "This property has been deprecated as it will no longer be supported by the API. It will be removed in a future version of the provider.",
-				ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForEngineType(), false),
 			},
 
 			"uri": {
@@ -183,6 +176,25 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			"data_ingestion_uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"language_extensions": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+						},
+						"image": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+						},
+					},
+				},
 			},
 
 			"public_ip_type": {
@@ -240,41 +252,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		},
 	}
 
-	if features.FourPointOhBeta() {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ConflictsWith: []string{"language_extensions"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
-					},
-					"image": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
-					},
-				},
-			},
-		}
-	} else {
-		s.Schema["language_extensions"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{"R", "PYTHON", "PYTHON_3.10.8"}, false),
-			},
-		}
-	}
-
-	return s
+	return resource
 }
 
-func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -282,20 +263,18 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
 
-	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil && !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
-		}
+	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
+	if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		return fmt.Errorf("checking for existing %s: %+v", id, err)
 	}
 
-	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_kusto_cluster", id.ID())
+	}
+
+	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
@@ -315,12 +294,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		if *sku.Capacity > optimizedAutoScale.Maximum {
 			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
 		}
-
-		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
-		if d.HasChange("sku.0.capacity") && !d.IsNewResource() {
-			return fmt.Errorf("cannot change `sku.capacity` when `optimized_auto_scaling.enabled` is set to `true`")
-		}
-
 		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
 			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
 		}
@@ -351,11 +324,11 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
-		clusterProperties.AllowedFqdnList, _ = expandKustoListString(v.([]interface{}))
+		clusterProperties.AllowedFqdnList = expandKustoListString(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("allowed_ip_ranges"); ok {
-		clusterProperties.AllowedIPRangeList, _ = expandKustoListString(v.([]interface{}))
+		clusterProperties.AllowedIPRangeList = expandKustoListString(v.([]interface{}))
 	}
 
 	restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
@@ -366,13 +339,9 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
-	if features.FourPointOhBeta() {
-		if v, ok := d.GetOk("language_extensions"); ok {
-			extList := v.([]interface{})
-			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
-		}
-	} else {
-		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensions(d)
+	if v, ok := d.GetOk("language_extensions"); ok {
+		extList := v.([]interface{})
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -381,7 +350,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	kustoCluster := clusters.Cluster{
-		Name:       utils.String(id.ClusterName),
 		Location:   location.Normalize(d.Get("location").(string)),
 		Identity:   expandedIdentity,
 		Sku:        *sku,
@@ -395,11 +363,175 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
+	return resourceKustoClusterRead(d, meta)
+}
+
+func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Kusto.ClustersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseKustoClusterID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
+	}
+	model := existing.Model
+	props := model.Properties
+
+	if d.HasChange("sku") || d.HasChange("optimized_auto_scale") {
+		sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
+		if err != nil {
+			return err
+		}
+
+		optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+
+		if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
+			if sku.Capacity == nil {
+				return fmt.Errorf("sku.capacity cannot be empty")
+			}
+			// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+			if *sku.Capacity < optimizedAutoScale.Minimum {
+				sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+			}
+			if *sku.Capacity > optimizedAutoScale.Maximum {
+				sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+			}
+			if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
+				return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+			}
+		}
+		model.Sku = *sku
+		// optimized_auto_scale can't be updated when the sku is also being updated, so we'll update sku first and then optimized_auto_scale
+		if d.HasChange("optimized_auto_scale") && d.HasChange("sku") {
+			model.Properties.OptimizedAutoscale = nil
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+		}
+		props.OptimizedAutoscale = optimizedAutoScale
+	}
+
+	if d.HasChange("location") {
+		model.Location = location.Normalize(d.Get("location").(string))
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		model.Identity = expandedIdentity
+	}
+
+	if d.HasChange("allowed_fqdns") {
+		props.AllowedFqdnList = expandKustoListString(d.Get("allowed_fqdns").([]interface{}))
+	}
+
+	if d.HasChange("allowed_ip_ranges") {
+		props.AllowedIPRangeList = expandKustoListString(d.Get("allowed_ip_ranges").([]interface{}))
+	}
+
+	if d.HasChange("auto_stop_enabled") {
+		props.EnableAutoStop = utils.Bool(d.Get("auto_stop_enabled").(bool))
+	}
+
+	if d.HasChange("disk_encryption_enabled") {
+		props.EnableDiskEncryption = utils.Bool(d.Get("disk_encryption_enabled").(bool))
+	}
+
+	if d.HasChange("double_encryption_enabled") {
+		props.EnableDoubleEncryption = utils.Bool(d.Get("double_encryption_enabled").(bool))
+	}
+
+	if d.HasChange("language_extensions") {
+		if v, ok := d.GetOk("language_extensions"); ok {
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
+		}
+	}
+
+	if d.HasChange("outbound_network_access_restricted") {
+		restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
+		if d.Get("outbound_network_access_restricted").(bool) {
+			restrictOutboundNetworkAccess = clusters.ClusterNetworkAccessFlagEnabled
+		}
+		props.RestrictOutboundNetworkAccess = pointer.To(restrictOutboundNetworkAccess)
+	}
+
+	if d.HasChange("purge_enabled") {
+		props.EnablePurge = utils.Bool(d.Get("purge_enabled").(bool))
+	}
+
+	if d.HasChange("public_ip_type") {
+		publicIPType := clusters.PublicIPType(d.Get("public_ip_type").(string))
+		props.PublicIPType = pointer.To(publicIPType)
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := clusters.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = clusters.PublicNetworkAccessDisabled
+		}
+		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	}
+
+	if d.HasChange("streaming_ingestion_enabled") {
+		props.EnableStreamingIngest = utils.Bool(d.Get("streaming_ingestion_enabled").(bool))
+	}
+
+	if d.HasChange("trusted_external_tenants") {
+		props.TrustedExternalTenants = expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
+	}
+
+	if d.HasChange("virtual_network_configuration") {
+		if v, ok := d.GetOk("virtual_network_configuration"); ok {
+			if vnetConfig := expandKustoClusterVNET(v.([]interface{})); vnetConfig != nil {
+				props.VirtualNetworkConfiguration = vnetConfig
+			}
+		} else {
+			// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
+			// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
+			props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
+		}
+	}
+
+	if d.HasChange("zones") {
+		zoneList := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		model.Zones = pointer.To(zoneList)
+		if len(zoneList) > 0 {
+			model.Zones = &zoneList
+		} else {
+			model.Zones = nil
+		}
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	model.Properties = props
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
 	return resourceKustoClusterRead(d, meta)
 }
 
@@ -408,7 +540,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -422,7 +554,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.KustoClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -466,12 +598,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
-			if features.FourPointOhBeta() {
-				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
-			} else {
-				d.Set("language_extensions", flattenKustoClusterLanguageExtensions(props.LanguageExtensions))
-			}
-
+			d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -487,7 +614,7 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -528,18 +655,14 @@ func flattenOptimizedAutoScale(optimizedAutoScale *clusters.OptimizedAutoscale) 
 	}
 }
 
-func expandKustoListString(input []interface{}) (*[]string, error) {
-	if len(input) == 0 {
-		return nil, fmt.Errorf("list of string is empty")
-	}
-
+func expandKustoListString(input []interface{}) *[]string {
 	result := make([]string, 0)
 
 	for _, v := range input {
 		result = append(result, v.(string))
 	}
 
-	return &result, nil
+	return &result
 }
 
 func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
@@ -578,47 +701,13 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
 
 	return &clusters.VirtualNetworkConfiguration{
+		// 'State' is hardcoded to 'Enabled' for the 'None' pattern.
+		// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
 		SubnetId:                 subnetID,
 		EnginePublicIPId:         enginePublicIPID,
 		DataManagementPublicIPId: dataManagementPublicIPID,
+		State:                    pointer.To(clusters.VnetStateEnabled),
 	}
-}
-
-func expandKustoClusterLanguageExtensions(d *pluginsdk.ResourceData) *clusters.LanguageExtensionsList {
-	if v, ok := d.GetOk("language_extensions"); ok {
-		extList := v.(*pluginsdk.Set).List()
-		if len(extList) > 0 {
-			extensions := make([]clusters.LanguageExtension, 0)
-			for _, language := range extList {
-				name := language.(string)
-				lanExt := clusters.LanguageExtension{}
-				switch name {
-				case "R":
-					n := clusters.LanguageExtensionNameR
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNameR
-					lanExt.LanguageExtensionImageName = &imageName
-				case "PYTHON":
-					n := clusters.LanguageExtensionNamePYTHON
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNamePythonThreeSixFive
-					lanExt.LanguageExtensionImageName = &imageName
-				case "PYTHON_3.10.8":
-					n := clusters.LanguageExtensionNamePYTHON
-					lanExt.LanguageExtensionName = &n
-					imageName := clusters.LanguageExtensionImageNamePythonThreeOneZeroEight
-					lanExt.LanguageExtensionImageName = &imageName
-				default:
-					continue
-				}
-				extensions = append(extensions, lanExt)
-			}
-			return &clusters.LanguageExtensionsList{
-				Value: &extensions,
-			}
-		}
-	}
-	return nil
 }
 
 func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
@@ -659,7 +748,7 @@ func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
 }
 
 func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []interface{} {
-	if vnet == nil {
+	if vnet == nil || *vnet.State == clusters.VnetStateDisabled {
 		return []interface{}{}
 	}
 
@@ -670,30 +759,6 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 	}
 
 	return []interface{}{output}
-}
-
-func flattenKustoClusterLanguageExtensions(extensions *clusters.LanguageExtensionsList) []interface{} {
-	if extensions == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-	if extensions.Value != nil {
-		for _, v := range *extensions.Value {
-			if v.LanguageExtensionImageName != nil {
-				switch *v.LanguageExtensionImageName {
-				case clusters.LanguageExtensionImageNameR:
-					output = append(output, "R")
-				case clusters.LanguageExtensionImageNamePythonThreeSixFive:
-					output = append(output, "PYTHON")
-				case clusters.LanguageExtensionImageNamePythonThreeOneZeroEight:
-					output = append(output, "PYTHON_3.10.8")
-				}
-			}
-		}
-	}
-
-	return output
 }
 
 func flattenKustoClusterLanguageExtensionList(extensions *clusters.LanguageExtensionsList) []interface{} {

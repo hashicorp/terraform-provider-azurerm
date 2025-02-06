@@ -79,7 +79,6 @@ func TestAccDataSourceManagedDisk_encryptionSettings(t *testing.T) {
 			Config: r.encryptionSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("encryption_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.secret_url").Exists(),
 				check.That(data.ResourceName).Key("encryption_settings.0.disk_encryption_key.0.source_vault_id").Exists(),
@@ -273,8 +272,6 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "1"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = "${azurerm_key_vault_secret.test.id}"
       source_vault_id = "${azurerm_key_vault.test.id}"

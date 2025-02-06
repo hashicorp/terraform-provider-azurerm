@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceNatGateway() *pluginsdk.Resource {
@@ -78,43 +79,61 @@ func dataSourceNatGateway() *pluginsdk.Resource {
 }
 
 func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatGatewayClient
+	client := meta.(*clients.Client).Network.Client.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := natgateways.NewNatGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", resp.Sku.Name)
+	d.Set("name", id.NatGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		sku := ""
+		if model.Sku != nil {
+			sku = string(pointer.From(model.Sku.Name))
+		}
+		d.Set("sku_name", sku)
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		if props := model.Properties; props != nil {
+			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+			d.Set("resource_guid", props.ResourceGuid)
+
+			if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
+				return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
+			}
+
+			if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
+				return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
+			}
+		}
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+	return nil
+}
+
+func flattenNetworkSubResourceID(input *[]natgateways.SubResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
-
-	if props := resp.NatGatewayPropertiesFormat; props != nil {
-		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
-		d.Set("resource_guid", props.ResourceGUID)
-
-		if err := d.Set("public_ip_address_ids", flattenNetworkSubResourceID(props.PublicIPAddresses)); err != nil {
-			return fmt.Errorf("setting `public_ip_address_ids`: %+v", err)
-		}
-
-		if err := d.Set("public_ip_prefix_ids", flattenNetworkSubResourceID(props.PublicIPPrefixes)); err != nil {
-			return fmt.Errorf("setting `public_ip_prefix_ids`: %+v", err)
+	for _, item := range *input {
+		if item.Id != nil {
+			results = append(results, *item.Id)
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return results
 }

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/timeseriesdatabaseconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/validate"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
@@ -37,7 +37,7 @@ type TimeSeriesDatabaseConnectionModel struct {
 type TimeSeriesDatabaseConnectionResource struct{}
 
 func (m TimeSeriesDatabaseConnectionResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -77,7 +77,7 @@ func (m TimeSeriesDatabaseConnectionResource) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: clusters.ValidateClusterID,
+			ValidateFunc: commonids.ValidateKustoClusterID,
 		},
 
 		"kusto_cluster_uri": {
@@ -105,11 +105,13 @@ func (m TimeSeriesDatabaseConnectionResource) Arguments() map[string]*pluginsdk.
 		"kusto_table_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "AdtPropertyEvents",
 			ForceNew:     true,
 			ValidateFunc: kustoValidate.EntityName,
 		},
 	}
+
+	return resource
 }
 
 func (m TimeSeriesDatabaseConnectionResource) Attributes() map[string]*pluginsdk.Schema {
@@ -216,7 +218,7 @@ func (m TimeSeriesDatabaseConnectionResource) Read() sdk.ResourceFunc {
 				output.EventhubNamespaceEndpointUri = properties.EventHubEndpointUri
 				output.EventhubNamespaceId = properties.EventHubNamespaceResourceId
 
-				kustoClusterId, err := clusters.ParseClusterIDInsensitively(properties.AdxResourceId)
+				kustoClusterId, err := commonids.ParseKustoClusterIDInsensitively(properties.AdxResourceId)
 				if err != nil {
 					return fmt.Errorf("parsing `kusto_cluster_uri`: %+v", err)
 				}

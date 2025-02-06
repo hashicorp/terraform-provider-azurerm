@@ -108,4 +108,12 @@ const (
 	// will be installed if a binary is not found at the given path. No version
 	// checks are performed against an existing binary.
 	EnvTfAccTerraformPath = "TF_ACC_TERRAFORM_PATH"
+
+	// EnvTfAccPersistWorkingDir environment variable enables persisting
+	// the working directory and the files generated during execution of
+	// TestStep(s). Default is disabled, in which case the working directory
+	// and the files it contains are deleted at the end of each acceptance
+	// test. Can be set to any value to persist the working directory and
+	// its contents, however "1" is conventional.
+	EnvTfAccPersistWorkingDir = "TF_ACC_PERSIST_WORKING_DIR"
 )

@@ -119,7 +119,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"querystring_caching_behaviour": {
@@ -137,7 +136,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"content_types_to_compress": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -152,7 +150,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"probe_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"geo_filter": {

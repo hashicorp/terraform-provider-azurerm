@@ -34,6 +34,8 @@ Common Topics/Guides:
 * [Adding a new Resource](topics/guide-new-resource.md)
 * [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md)
 * [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md)
+* [Adding State Migrations](topics/guide-state-migrations.md)
+* [Breaking Changes and Deprecations](topics/guide-breaking-changes.md)
 * [When to create a new Resource vs Inline Block](topics/guide-new-resource-vs-inline.md)
 
 References:
@@ -42,6 +44,7 @@ References:
 * [Best Practices](topics/best-practices.md)
 * [Glossary](topics/reference-glossary.md)
 * [Naming](topics/reference-naming.md)
+* [Resource IDs](topics/guide-resource-ids.md)
 * [Schema Design](topics/schema-design-considerations.md)
 * [Working with Errors](topics/reference-errors.md)
 

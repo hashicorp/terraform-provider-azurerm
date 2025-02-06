@@ -11,12 +11,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -217,10 +215,6 @@ func redisEnterpriseDatabaseSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		s["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
-	}
-
 	return s
 }
 
@@ -341,13 +335,8 @@ func resourceRedisEnterpriseDatabaseRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.DatabaseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 	clusterId := redisenterprise.NewRedisEnterpriseID(id.SubscriptionId, id.ResourceGroupName, id.RedisEnterpriseName)
 	d.Set("cluster_id", clusterId.ID())
-
-	if !features.FourPointOhBeta() {
-		d.Set("resource_group_name", id.ResourceGroupName)
-	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -486,6 +475,7 @@ func resourceRedisEnterpriseDatabaseDelete(d *pluginsdk.ResourceData, meta inter
 
 	return nil
 }
+
 func redisEnterpriseDatabaseDeleteRefreshFunc(ctx context.Context, databaseClient *databases.DatabasesClient, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId redisenterprise.RedisEnterpriseId, databaseId databases.DatabaseId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		cluster, err := clusterClient.Get(ctx, clusterId)
@@ -546,7 +536,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 		if item.Args != nil {
 			args = *item.Args
 			// new behavior if you do not pass args the RP sets the args to "PARTITIONS AUTO" by default
-			// (for RediSearch) which causes the the database to be force new on every plan after creation
+			// (for RediSearch) which causes the database to be force new on every plan after creation
 			// feels like an RP bug, but I added this workaround...
 			// NOTE: You also cannot set the args to PARTITIONS AUTO by default else you will get an error on create:
 			// Code="InvalidRequestBody" Message="The value of the parameter 'properties.modules' is invalid."
@@ -569,6 +559,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 
 	return results
 }
+
 func expandArmGeoLinkedDatabase(inputId []interface{}, parentDBId string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {

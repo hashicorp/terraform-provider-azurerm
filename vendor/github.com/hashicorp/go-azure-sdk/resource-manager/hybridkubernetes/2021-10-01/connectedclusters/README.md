@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters` Documentation
 
-The `connectedclusters` SDK allows for interaction with the Azure Resource Manager Service `hybridkubernetes` (API Version `2021-10-01`).
+The `connectedclusters` SDK allows for interaction with Azure Resource Manager `hybridkubernetes` (API Version `2021-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterValue")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ConnectedCluster{
 	// ...
@@ -41,7 +42,7 @@ if err := client.ConnectedClusterCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterValue")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 if err := client.ConnectedClusterDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.ConnectedClusterDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterValue")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 read, err := client.ConnectedClusterGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ConnectedClusterListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ConnectedClusterListByResourceGroupComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ConnectedClusterListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ConnectedClusterListBySubscriptionComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterValue")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ListClusterUserCredentialProperties{
 	// ...
@@ -124,7 +125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterValue")
+id := connectedclusters.NewConnectedClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "connectedClusterName")
 
 payload := connectedclusters.ConnectedClusterPatch{
 	// ...

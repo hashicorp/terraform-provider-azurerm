@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,12 +30,34 @@ func TestAccResourceAnomalyAlert_update(t *testing.T) {
 	})
 }
 
+func TestAccResourceAnomalyAlert_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
+	testResource := AnomalyAlertResource{}
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.completeConfig, testResource),
+		data.ImportStep(),
+		data.ApplyStep(testResource.updateConfig, testResource),
+		data.ImportStep(),
+	})
+}
+
 func TestAccResourceAnomalyAlert_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
 	testResource := AnomalyAlertResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basicConfig, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
+	})
+}
+
+func TestAccResourceAnomalyAlert_emailAddressSender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_anomaly_alert", "test")
+	testResource := AnomalyAlertResource{}
+	data.ResourceTest(t, testResource, []acceptance.TestStep{
+		data.ApplyStep(testResource.notificationEmailConfig, testResource),
+		data.ImportStep(),
+		data.ApplyStep(testResource.updateConfig, testResource),
+		data.ImportStep(),
 	})
 }
 
@@ -69,6 +91,25 @@ resource "azurerm_cost_anomaly_alert" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
+func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_cost_anomaly_alert" "test" {
+  name            = "-acctest-%d"
+  display_name    = "acctest %d"
+  subscription_id = data.azurerm_subscription.test.id
+  email_subject   = "Hi"
+  email_addresses = ["test@test.com", "test@hashicorp.developer"]
+  message         = "Cost anomaly complete test"
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
 func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) string {
 	template := r.basicConfig(data)
 	return fmt.Sprintf(`
@@ -96,6 +137,23 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_subject   = "Hi you!"
   email_addresses = ["tester@test.com", "test2@hashicorp.developer"]
   message         = "An updated cost anomaly for you"
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (AnomalyAlertResource) notificationEmailConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_cost_anomaly_alert" "test" {
+  name               = "-acctest-%d"
+  display_name       = "acctest %d"
+  email_subject      = "Hi"
+  email_addresses    = ["test@test.com", "test@hashicorp.developer"]
+  notification_email = "othertest@hashicorp.developer"
+  message            = "Custom sender email configured"
 }
 `, data.RandomInteger, data.RandomInteger)
 }

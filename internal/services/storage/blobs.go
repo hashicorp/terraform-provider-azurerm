@@ -8,19 +8,17 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
-
-const pollingInterval = time.Second * 15
 
 type BlobUpload struct {
 	Client *blobs.Client
@@ -29,16 +27,17 @@ type BlobUpload struct {
 	BlobName      string
 	ContainerName string
 
-	BlobType      string
-	CacheControl  string
-	ContentType   string
-	ContentMD5    string
-	MetaData      map[string]string
-	Parallelism   int
-	Size          int
-	Source        string
-	SourceContent string
-	SourceUri     string
+	BlobType        string
+	CacheControl    string
+	ContentType     string
+	ContentMD5      string
+	EncryptionScope string
+	MetaData        map[string]string
+	Parallelism     int
+	Size            int
+	Source          string
+	SourceContent   string
+	SourceUri       string
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
@@ -46,11 +45,11 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	if blobType == "append" {
 		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
-			return fmt.Errorf("A source cannot be specified for an Append blob")
+			return errors.New("A source cannot be specified for an Append blob")
 		}
 
 		if sbu.ContentMD5 != "" {
-			return fmt.Errorf("`content_md5` cannot be specified for an Append blob")
+			return errors.New("`content_md5` cannot be specified for an Append blob")
 		}
 
 		return sbu.createEmptyAppendBlob(ctx)
@@ -73,13 +72,13 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	if blobType == "page" {
 		if sbu.ContentMD5 != "" {
-			return fmt.Errorf("`content_md5` cannot be specified for a Page blob")
+			return errors.New("`content_md5` cannot be specified for a Page blob")
 		}
 		if sbu.SourceUri != "" {
 			return sbu.copy(ctx)
 		}
 		if sbu.SourceContent != "" {
-			return fmt.Errorf("`source_content` cannot be specified for a Page blob")
+			return sbu.uploadPageBlobFromContent(ctx)
 		}
 		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
@@ -88,7 +87,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 		return sbu.createEmptyPageBlob(ctx)
 	}
 
-	return fmt.Errorf("Unsupported Blob Type: %q", blobType)
+	return fmt.Errorf("unsupported Blob Type: %q", blobType)
 }
 
 func (sbu BlobUpload) copy(ctx context.Context) error {
@@ -96,7 +95,10 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 		CopySource: sbu.SourceUri,
 		MetaData:   sbu.MetaData,
 	}
-	if err := sbu.Client.CopyAndWait(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input, pollingInterval); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if err := sbu.Client.CopyAndWait(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("copy/waiting: %s", err)
 	}
 
@@ -105,10 +107,13 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 	input := blobs.PutAppendBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutAppendBlob: %s", err)
 	}
 
@@ -117,14 +122,17 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	if sbu.ContentMD5 != "" {
-		return fmt.Errorf("`content_md5` cannot be specified for empty Block blobs")
+		return errors.New("`content_md5` cannot be specified for empty Block blobs")
 	}
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutBlockBlob: %s", err)
 	}
 
@@ -155,13 +163,16 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	defer file.Close()
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
+		ContentType: pointer.To(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
 	if sbu.ContentMD5 != "" {
-		input.ContentMD5 = utils.String(sbu.ContentMD5)
+		input.ContentMD5 = pointer.To(sbu.ContentMD5)
 	}
-	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("PutBlockBlobFromFile: %s", err)
 	}
 
@@ -170,24 +181,43 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	if sbu.Size == 0 {
-		return fmt.Errorf("`size` cannot be zero for a page blob")
+		return errors.New("`size` cannot be zero for a page blob")
 	}
 
 	input := blobs.PutPageBlobInput{
 		BlobContentLengthBytes: int64(sbu.Size),
-		ContentType:            utils.String(sbu.ContentType),
+		ContentType:            pointer.To(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
 	return nil
 }
 
+func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
+	tmpFile, err := os.CreateTemp(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadPageBlob(ctx)
+}
+
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	if sbu.Size != 0 {
-		return fmt.Errorf("`size` cannot be set for an uploaded page blob")
+		return errors.New("`size` cannot be set for an uploaded page blob")
 	}
 
 	// determine the details about the file
@@ -209,10 +239,13 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	// first let's create a file of the specified file size
 	input := blobs.PutPageBlobInput{
 		BlobContentLengthBytes: fileSize,
-		ContentType:            utils.String(sbu.ContentType),
+		ContentType:            pointer.To(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if sbu.EncryptionScope != "" {
+		input.EncryptionScope = pointer.To(sbu.EncryptionScope)
+	}
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
@@ -317,7 +350,7 @@ func (sbu BlobUpload) storageBlobPageSplit(file io.ReaderAt, fileSize int64) ([]
 		}
 	}
 
-	var pages []storageBlobPage
+	pages := make([]storageBlobPage, 0, len(nonEmptyRanges))
 	for _, nonEmptyRange := range nonEmptyRanges {
 		pages = append(pages, storageBlobPage{
 			offset:  nonEmptyRange.offset,
@@ -357,7 +390,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 			Content:   chunk,
 		}
 
-		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 			uploadCtx.errors <- fmt.Errorf("writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
 			uploadCtx.wg.Done()
 			continue

@@ -33,7 +33,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_access_policy" "server" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_postgresql_server.example.identity.0.principal_id
+  object_id    = azurerm_postgresql_server.example.identity[0].principal_id
 
   key_permissions    = ["Get", "UnwrapKey", "WrapKey"]
   secret_permissions = ["Get"]

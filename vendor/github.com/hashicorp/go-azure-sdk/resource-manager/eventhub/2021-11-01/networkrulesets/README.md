@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets` Documentation
 
-The `networkrulesets` SDK allows for interaction with the Azure Resource Manager Service `eventhub` (API Version `2021-11-01`).
+The `networkrulesets` SDK allows for interaction with Azure Resource Manager `eventhub` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 payload := networkrulesets.NetworkRuleSet{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 read, err := client.NamespacesGetNetworkRuleSet(ctx, id)
 if err != nil {
@@ -61,13 +61,14 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := networkrulesets.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
-read, err := client.NamespacesListNetworkRuleSet(ctx, id)
+// alternatively `client.NamespacesListNetworkRuleSet(ctx, id)` can be used to do batched pagination
+items, err := client.NamespacesListNetworkRuleSetComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

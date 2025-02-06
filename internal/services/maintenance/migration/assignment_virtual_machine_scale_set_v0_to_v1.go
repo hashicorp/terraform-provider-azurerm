@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -5,15 +8,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ pluginsdk.StateUpgrade = AssignmentVirtualMachineScaleSetV0ToV1{}
 
-type AssignmentVirtualMachineScaleSetV0ToV1 struct {
-}
+type AssignmentVirtualMachineScaleSetV0ToV1 struct{}
 
 func (AssignmentVirtualMachineScaleSetV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -45,7 +47,7 @@ func (AssignmentVirtualMachineScaleSetV0ToV1) UpgradeFunc() pluginsdk.StateUpgra
 			return nil, fmt.Errorf("parsing old id %q: %+v", oldIdRaw, err)
 		}
 
-		virtualMachineScaleSetId, err := parseCompute.VirtualMachineScaleSetIDInsensitively(oldId.Scope)
+		virtualMachineScaleSetId, err := commonids.ParseVirtualMachineScaleSetIDInsensitively(oldId.Scope)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a virtual machine scale set id: %+v", oldId.Scope, err)
 		}

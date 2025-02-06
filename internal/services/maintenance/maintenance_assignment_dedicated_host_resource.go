@@ -4,16 +4,17 @@
 package maintenance
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/migration"
@@ -41,7 +42,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 				return err
 			}
 
-			if _, err := dedicatedhosts.ParseHostID(parsed.Scope); err != nil {
+			if _, err := commonids.ParseDedicatedHostID(parsed.Scope); err != nil {
 				return fmt.Errorf("parsing %q as a Dedicated Host ID: %+v", parsed.Scope, err)
 			}
 
@@ -68,7 +69,7 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: dedicatedhosts.ValidateHostID,
+				ValidateFunc: commonids.ValidateDedicatedHostID,
 			},
 		},
 	}
@@ -84,7 +85,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	dedicatedHostId, err := dedicatedhosts.ParseHostID(d.Get("dedicated_host_id").(string))
+	dedicatedHostId, err := commonids.ParseDedicatedHostID(d.Get("dedicated_host_id").(string))
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdateParent(ctx, id, configurationAssignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
-				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
+				return pluginsdk.RetryableError(errors.New("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("issuing creating request for %s: %+v", id, err))
 		}
@@ -150,7 +151,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
 	}
 
-	dedicatedHostId, err := dedicatedhosts.ParseHostID(id.Scope)
+	dedicatedHostId, err := commonids.ParseDedicatedHostID(id.Scope)
 	if err != nil {
 		return fmt.Errorf("parsing %q as a dedicated host id: %+v", id.Scope, err)
 	}

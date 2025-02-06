@@ -104,7 +104,36 @@ func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scalingOverProvisionDisabled(data),
+			Config: r.scalingOverProvision(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingOverProvision(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingOverProvision(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingOverProvision(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -225,6 +254,28 @@ func TestAccWindowsVirtualMachineScaleSet_scalingZonesMultiple(t *testing.T) {
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingZonesMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingZonesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingZonesSingle(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 		{
 			Config: r.scalingZonesMultiple(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -425,7 +476,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctestDH-%[2]d"
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
   location                = azurerm_resource_group.test.location
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 
@@ -553,7 +604,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), instanceCount)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) scalingOverProvisionDisabled(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) scalingOverProvision(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -565,7 +616,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 3
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  overprovision       = false
+  overprovision       = %t
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -590,7 +641,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.template(data), enabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) scalingProximityPlacementGroup(data acceptance.TestData) string {

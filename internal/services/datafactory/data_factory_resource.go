@@ -88,9 +88,8 @@ func resourceDataFactory() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"git_url": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 						"repository_name": {
 							Type:         pluginsdk.TypeString,
@@ -101,6 +100,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publishing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
 						},
 					},
 				},
@@ -142,6 +146,11 @@ func resourceDataFactory() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
+						},
+						"publishing_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Default:  true,
+							Optional: true,
 						},
 					},
 				},
@@ -269,7 +278,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseUrl: keyVaultKey.KeyVaultBaseUrl,
+			VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &factories.CMKIdentityDefinition{
@@ -364,12 +373,12 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			customerManagedKeyId := ""
 			customerManagedKeyIdentityId := ""
 			if enc := props.Encryption; enc != nil {
-				if enc.VaultBaseUrl != "" && enc.KeyName != "" && enc.KeyVersion != nil {
+				if enc.VaultBaseURL != "" && enc.KeyName != "" && enc.KeyVersion != nil {
 					version := ""
 					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
 						version = *enc.KeyVersion
 					}
-					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseUrl, enc.KeyName, version)
+					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseURL, enc.KeyName, version)
 					if err != nil {
 						return fmt.Errorf("parsing Nested Item ID: %+v", err)
 					}
@@ -531,6 +540,7 @@ func expandGitHubRepoConfiguration(input []interface{}) *factories.FactoryGitHub
 	return &factories.FactoryGitHubConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publishing_enabled"].(bool)),
 		HostName:            pointer.To(item["git_url"].(string)),
 		RepositoryName:      item["repository_name"].(string),
 		RootFolder:          item["root_folder"].(string),
@@ -545,12 +555,17 @@ func flattenGitHubRepoConfiguration(input factories.FactoryRepoConfiguration) []
 		if v.HostName != nil {
 			gitUrl = *v.HostName
 		}
+		publishingEnabled := true
+		if v.DisablePublish != nil {
+			publishingEnabled = !*v.DisablePublish
+		}
 		output = append(output, map[string]interface{}{
-			"account_name":    v.AccountName,
-			"branch_name":     v.CollaborationBranch,
-			"git_url":         gitUrl,
-			"repository_name": v.RepositoryName,
-			"root_folder":     v.RootFolder,
+			"account_name":       v.AccountName,
+			"branch_name":        v.CollaborationBranch,
+			"git_url":            gitUrl,
+			"publishing_enabled": publishingEnabled,
+			"repository_name":    v.RepositoryName,
+			"root_folder":        v.RootFolder,
 		})
 	}
 
@@ -566,6 +581,7 @@ func expandVSTSRepoConfiguration(input []interface{}) *factories.FactoryVSTSConf
 	return &factories.FactoryVSTSConfiguration{
 		AccountName:         item["account_name"].(string),
 		CollaborationBranch: item["branch_name"].(string),
+		DisablePublish:      pointer.To(!item["publishing_enabled"].(bool)),
 		ProjectName:         item["project_name"].(string),
 		RepositoryName:      item["repository_name"].(string),
 		RootFolder:          item["root_folder"].(string),
@@ -581,13 +597,18 @@ func flattenVSTSRepoConfiguration(input factories.FactoryRepoConfiguration) []in
 		if v.TenantId != nil {
 			tenantId = *v.TenantId
 		}
+		publishingEnabled := true
+		if v.DisablePublish != nil {
+			publishingEnabled = !*v.DisablePublish
+		}
 		output = append(output, map[string]interface{}{
-			"account_name":    v.AccountName,
-			"branch_name":     v.CollaborationBranch,
-			"project_name":    v.ProjectName,
-			"repository_name": v.RepositoryName,
-			"root_folder":     v.RootFolder,
-			"tenant_id":       tenantId,
+			"account_name":       v.AccountName,
+			"branch_name":        v.CollaborationBranch,
+			"project_name":       v.ProjectName,
+			"publishing_enabled": publishingEnabled,
+			"repository_name":    v.RepositoryName,
+			"root_folder":        v.RootFolder,
+			"tenant_id":          tenantId,
 		})
 	}
 

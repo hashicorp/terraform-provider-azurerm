@@ -19,7 +19,20 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []SessionHost
+	LatestHttpResponse *http.Response
+	Items              []SessionHost
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -30,6 +43,7 @@ func (c SessionHostClient) List(ctx context.Context, id HostPoolId) (result List
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/sessionHosts", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c SessionHostClient) ListCompleteMatchingPredicate(ctx context.Context, id
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c SessionHostClient) ListCompleteMatchingPredicate(ctx context.Context, id
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

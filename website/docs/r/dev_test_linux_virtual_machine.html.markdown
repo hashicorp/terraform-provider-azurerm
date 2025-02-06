@@ -53,9 +53,9 @@ resource "azurerm_dev_test_linux_virtual_machine" "example" {
   notes                  = "Some notes about this Virtual Machine."
 
   gallery_image_reference {
-    offer     = "UbuntuServer"
     publisher = "Canonical"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `size` - (Required) The Machine Size to use for this Virtual Machine, such as `Standard_F2`. Changing this forces a new resource to be created.
 
-* `storage_type` - (Required) The type of Storage to use on this Virtual Machine. Possible values are `Standard` and `Premium`.
+* `storage_type` - (Required) The type of Storage to use on this Virtual Machine. Possible values are `Standard` and `Premium`. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username associated with the local administrator on this Virtual Machine. Changing this forces a new resource to be created.
 

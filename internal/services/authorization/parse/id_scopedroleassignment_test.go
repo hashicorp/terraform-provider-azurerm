@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package parse
 
 import (
@@ -81,7 +84,6 @@ func TestValidateScopedRoleAssignmentID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			Input: "",
 			Valid: false,

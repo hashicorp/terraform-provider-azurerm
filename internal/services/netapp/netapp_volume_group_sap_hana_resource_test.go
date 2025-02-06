@@ -6,10 +6,10 @@ package netapp_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/volumegroups"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -135,10 +135,9 @@ func (t NetAppVolumeGroupSapHanaResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.NetApp.VolumeGroupClient.VolumeGroupsGet(ctx, *id)
-
+	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
 	if err != nil {
-		if resp.HttpResponse.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -1547,8 +1546,8 @@ resource "azurerm_linux_virtual_machine" "test_secondary" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -1605,6 +1604,10 @@ provider "azurerm" {
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
     }
   }
 }
@@ -1733,8 +1736,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

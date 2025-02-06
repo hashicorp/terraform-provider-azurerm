@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors` Documentation
 
-The `frontdoors` SDK allows for interaction with the Azure Resource Manager Service `frontdoor` (API Version `2020-05-01`).
+The `frontdoors` SDK allows for interaction with Azure Resource Manager `frontdoor` (API Version `2020-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 payload := frontdoors.FrontDoor{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 payload := frontdoors.PurgeParameters{
 	// ...
@@ -70,7 +71,7 @@ if err := client.EndpointsPurgeContentThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "frontendEndpointValue")
+id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "frontendEndpointName")
 
 if err := client.FrontendEndpointsDisableHTTPSThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -82,7 +83,7 @@ if err := client.FrontendEndpointsDisableHTTPSThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "frontendEndpointValue")
+id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "frontendEndpointName")
 
 payload := frontdoors.CustomHTTPSConfiguration{
 	// ...
@@ -99,7 +100,7 @@ if err := client.FrontendEndpointsEnableHTTPSThenPoll(ctx, id, payload); err != 
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "frontendEndpointValue")
+id := frontdoors.NewFrontendEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "frontendEndpointName")
 
 read, err := client.FrontendEndpointsGet(ctx, id)
 if err != nil {
@@ -115,7 +116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 // alternatively `client.FrontendEndpointsListByFrontDoor(ctx, id)` can be used to do batched pagination
 items, err := client.FrontendEndpointsListByFrontDoorComplete(ctx, id)
@@ -132,7 +133,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -148,7 +149,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -165,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -182,7 +183,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "rulesEngineValue")
+id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "rulesEngineName")
 
 payload := frontdoors.RulesEngine{
 	// ...
@@ -199,7 +200,7 @@ if err := client.RulesEnginesCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "rulesEngineValue")
+id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "rulesEngineName")
 
 if err := client.RulesEnginesDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -211,7 +212,7 @@ if err := client.RulesEnginesDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue", "rulesEngineValue")
+id := frontdoors.NewRulesEngineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName", "rulesEngineName")
 
 read, err := client.RulesEnginesGet(ctx, id)
 if err != nil {
@@ -227,7 +228,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 // alternatively `client.RulesEnginesListByFrontDoor(ctx, id)` can be used to do batched pagination
 items, err := client.RulesEnginesListByFrontDoorComplete(ctx, id)
@@ -244,7 +245,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorValue")
+id := frontdoors.NewFrontDoorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "frontDoorName")
 
 payload := frontdoors.ValidateCustomDomainInput{
 	// ...

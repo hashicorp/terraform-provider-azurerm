@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccessConnectorId{}
+func init() {
+	recaser.RegisterResourceId(&AccessConnectorId{})
+}
+
+var _ resourceids.ResourceId = &AccessConnectorId{}
 
 // AccessConnectorId is a struct representing the Resource ID for a Access Connector
 type AccessConnectorId struct {
@@ -30,25 +35,15 @@ func NewAccessConnectorID(subscriptionId string, resourceGroupName string, acces
 
 // ParseAccessConnectorID parses 'input' into a AccessConnectorId
 func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessConnectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessConnectorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccessConnectorName, ok = parsed.Parsed["accessConnectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessConnectorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseAccessConnectorID(input string) (*AccessConnectorId, error) {
 // ParseAccessConnectorIDInsensitively parses 'input' case-insensitively into a AccessConnectorId
 // note: this method should only be used for API response data and not user input
 func ParseAccessConnectorIDInsensitively(input string) (*AccessConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessConnectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessConnectorId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AccessConnectorName, ok = parsed.Parsed["accessConnectorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessConnectorName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AccessConnectorId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AccessConnectorName, ok = input.Parsed["accessConnectorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accessConnectorName", input)
+	}
+
+	return nil
 }
 
 // ValidateAccessConnectorID checks that 'input' can be parsed as a Access Connector ID
@@ -112,7 +115,7 @@ func (id AccessConnectorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatabricks", "Microsoft.Databricks", "Microsoft.Databricks"),
 		resourceids.StaticSegment("staticAccessConnectors", "accessConnectors", "accessConnectors"),
-		resourceids.UserSpecifiedSegment("accessConnectorName", "accessConnectorValue"),
+		resourceids.UserSpecifiedSegment("accessConnectorName", "accessConnectorName"),
 	}
 }
 

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TagRuleId{}
+func init() {
+	recaser.RegisterResourceId(&TagRuleId{})
+}
+
+var _ resourceids.ResourceId = &TagRuleId{}
 
 // TagRuleId is a struct representing the Resource ID for a Tag Rule
 type TagRuleId struct {
@@ -32,29 +37,15 @@ func NewTagRuleID(subscriptionId string, resourceGroupName string, monitorName s
 
 // ParseTagRuleID parses 'input' into a TagRuleId
 func ParseTagRuleID(input string) (*TagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TagRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
-	}
-
-	if id.TagRuleName, ok = parsed.Parsed["tagRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tagRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseTagRuleID(input string) (*TagRuleId, error) {
 // ParseTagRuleIDInsensitively parses 'input' case-insensitively into a TagRuleId
 // note: this method should only be used for API response data and not user input
 func ParseTagRuleIDInsensitively(input string) (*TagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TagRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
-	}
-
-	if id.TagRuleName, ok = parsed.Parsed["tagRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tagRuleName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TagRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MonitorName, ok = input.Parsed["monitorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "monitorName", input)
+	}
+
+	if id.TagRuleName, ok = input.Parsed["tagRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "tagRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateTagRuleID checks that 'input' can be parsed as a Tag Rule ID
@@ -122,9 +121,9 @@ func (id TagRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDatadog", "Microsoft.Datadog", "Microsoft.Datadog"),
 		resourceids.StaticSegment("staticMonitors", "monitors", "monitors"),
-		resourceids.UserSpecifiedSegment("monitorName", "monitorValue"),
+		resourceids.UserSpecifiedSegment("monitorName", "monitorName"),
 		resourceids.StaticSegment("staticTagRules", "tagRules", "tagRules"),
-		resourceids.UserSpecifiedSegment("tagRuleName", "tagRuleValue"),
+		resourceids.UserSpecifiedSegment("tagRuleName", "tagRuleName"),
 	}
 }
 

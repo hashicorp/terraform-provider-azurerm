@@ -19,7 +19,20 @@ type ListVhdsOperationResponse struct {
 }
 
 type ListVhdsCompleteResult struct {
-	Items []LabVhd
+	LatestHttpResponse *http.Response
+	Items              []LabVhd
+}
+
+type ListVhdsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListVhdsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListVhds ...
@@ -30,6 +43,7 @@ func (c LabsClient) ListVhds(ctx context.Context, id LabId) (result ListVhdsOper
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListVhdsCustomPager{},
 		Path:       fmt.Sprintf("%s/listVhds", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id La
 
 	resp, err := c.ListVhds(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id La
 	}
 
 	result = ListVhdsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

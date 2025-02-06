@@ -670,7 +670,7 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.Fron
 				AcceptedProtocols:  expandFrontDoorAcceptedProtocols(acceptedProtocols),
 				PatternsToMatch:    &patternsToMatch,
 				EnabledState:       &enabled,
-				RouteConfiguration: &routingConfiguration,
+				RouteConfiguration: routingConfiguration,
 			},
 		}
 
@@ -906,9 +906,8 @@ func flattenExplicitResourceOrder(backendPools, frontendEndpoints, routingRules,
 
 func combineBackendPools(allPools []frontdoors.BackendPool, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
 	output := make([]interface{}, 0)
-	found := false
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
+	// first find all the ones in the ordered mapping list and add them in the correct order
 	for _, v := range orderedIds {
 		for _, backend := range allPools {
 			if strings.EqualFold(v.(string), *backend.Id) {
@@ -925,7 +924,7 @@ func combineBackendPools(allPools []frontdoors.BackendPool, orderedIds []interfa
 
 	// Now check to see if items were added to the resource via the portal and add them to the state file
 	for _, backend := range allPools {
-		found = false
+		found := false
 		for _, orderedId := range orderedIds {
 			if strings.EqualFold(orderedId.(string), *backend.Id) {
 				found = true
@@ -1111,9 +1110,8 @@ func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoors
 
 func combineFrontEndEndpoints(allEndpoints []frontdoors.FrontendEndpoint, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
 	output := make([]interface{}, 0)
-	found := false
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
+	// first find all the ones in the ordered mapping list and add them in the correct order
 	for _, v := range orderedIds {
 		for _, frontendEndpoint := range allEndpoints {
 			if strings.EqualFold(v.(string), *frontendEndpoint.Id) {
@@ -1130,7 +1128,7 @@ func combineFrontEndEndpoints(allEndpoints []frontdoors.FrontendEndpoint, ordere
 
 	// Now check to see if items were added to the resource via the portal and add them to the state file
 	for _, frontendEndpoint := range allEndpoints {
-		found = false
+		found := false
 		for _, orderedId := range orderedIds {
 			if strings.EqualFold(orderedId.(string), *frontendEndpoint.Id) {
 				found = true
@@ -1231,9 +1229,8 @@ func flattenSingleFrontEndEndpoints(input frontdoors.FrontendEndpoint, frontDoor
 
 func combineHealthProbeSettingsModel(allHealthProbeSettings []frontdoors.HealthProbeSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
 	output := make([]interface{}, 0)
-	found := false
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
+	// first find all the ones in the ordered mapping list and add them in the correct order
 	for _, v := range orderedIds {
 		for _, healthProbeSetting := range allHealthProbeSettings {
 			if strings.EqualFold(v.(string), *healthProbeSetting.Id) {
@@ -1246,7 +1243,7 @@ func combineHealthProbeSettingsModel(allHealthProbeSettings []frontdoors.HealthP
 
 	// Now check to see if items were added to the resource via the portal and add them to the state file
 	for _, healthProbeSetting := range allHealthProbeSettings {
-		found = false
+		found := false
 		for _, orderedId := range orderedIds {
 			if strings.EqualFold(orderedId.(string), *healthProbeSetting.Id) {
 				found = true
@@ -1337,9 +1334,8 @@ func flattenSingleFrontDoorHealthProbeSettingsModel(input *frontdoors.HealthProb
 
 func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.LoadBalancingSettingsModel, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) []interface{} {
 	output := make([]interface{}, 0)
-	found := false
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
+	// first find all the ones in the ordered mapping list and add them in the correct order
 	for _, v := range orderedIds {
 		for _, loadBalancingSetting := range allLoadBalancingSettings {
 			if strings.EqualFold(v.(string), *loadBalancingSetting.Id) {
@@ -1352,7 +1348,7 @@ func combineLoadBalancingSettingsModel(allLoadBalancingSettings []frontdoors.Loa
 
 	// Now check to see if items were added to the resource via the portal and add them to the state file
 	for _, loadBalanceSetting := range allLoadBalancingSettings {
-		found = false
+		found := false
 		for _, orderedId := range orderedIds {
 			if strings.EqualFold(orderedId.(string), *loadBalanceSetting.Id) {
 				found = true
@@ -1431,9 +1427,8 @@ func flattenSingleFrontDoorLoadBalancingSettingsModel(input *frontdoors.LoadBala
 
 func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks interface{}, orderedIds []interface{}, frontDoorId frontdoors.FrontDoorId) ([]interface{}, error) {
 	output := make([]interface{}, 0)
-	found := false
 
-	// first find all of the ones in the ordered mapping list and add them in the correct order
+	// first find all the ones in the ordered mapping list and add them in the correct order
 	for _, v := range orderedIds {
 		for _, routingRule := range allRoutingRules {
 			if strings.EqualFold(v.(string), *routingRule.Id) {
@@ -1450,7 +1445,7 @@ func combineRoutingRules(allRoutingRules []frontdoors.RoutingRule, oldBlocks int
 
 	// Now check to see if items were added to the resource via the portal and add them to the state file
 	for _, routingRule := range allRoutingRules {
-		found = false
+		found := false
 		for _, orderedId := range orderedIds {
 			if strings.EqualFold(orderedId.(string), *routingRule.Id) {
 				found = true

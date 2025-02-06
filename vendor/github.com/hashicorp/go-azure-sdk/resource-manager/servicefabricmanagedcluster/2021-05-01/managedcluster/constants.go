@@ -1,6 +1,10 @@
 package managedcluster
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAccess() []string {
 		string(AccessAllow),
 		string(AccessDeny),
 	}
+}
+
+func (s *Access) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAccess(input string) (*Access, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForAddonFeatures() []string {
 		string(AddonFeaturesDnsService),
 		string(AddonFeaturesResourceMonitorService),
 	}
+}
+
+func (s *AddonFeatures) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAddonFeatures(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAddonFeatures(input string) (*AddonFeatures, error) {
@@ -86,6 +116,19 @@ func PossibleValuesForClusterState() []string {
 	}
 }
 
+func (s *ClusterState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterState(input string) (*ClusterState, error) {
 	vals := map[string]ClusterState{
 		"baselineupgrade": ClusterStateBaselineUpgrade,
@@ -120,6 +163,19 @@ func PossibleValuesForClusterUpgradeCadence() []string {
 	}
 }
 
+func (s *ClusterUpgradeCadence) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterUpgradeCadence(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterUpgradeCadence(input string) (*ClusterUpgradeCadence, error) {
 	vals := map[string]ClusterUpgradeCadence{
 		"wave1": ClusterUpgradeCadenceWaveOne,
@@ -149,6 +205,19 @@ func PossibleValuesForClusterUpgradeMode() []string {
 	}
 }
 
+func (s *ClusterUpgradeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterUpgradeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterUpgradeMode(input string) (*ClusterUpgradeMode, error) {
 	vals := map[string]ClusterUpgradeMode{
 		"automatic": ClusterUpgradeModeAutomatic,
@@ -175,6 +244,19 @@ func PossibleValuesForDirection() []string {
 		string(DirectionInbound),
 		string(DirectionOutbound),
 	}
+}
+
+func (s *Direction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDirection(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDirection(input string) (*Direction, error) {
@@ -219,6 +301,19 @@ func PossibleValuesForManagedResourceProvisioningState() []string {
 		string(ManagedResourceProvisioningStateSucceeded),
 		string(ManagedResourceProvisioningStateUpdating),
 	}
+}
+
+func (s *ManagedResourceProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedResourceProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseManagedResourceProvisioningState(input string) (*ManagedResourceProvisioningState, error) {
@@ -267,6 +362,19 @@ func PossibleValuesForNsgProtocol() []string {
 	}
 }
 
+func (s *NsgProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNsgProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNsgProtocol(input string) (*NsgProtocol, error) {
 	vals := map[string]NsgProtocol{
 		"ah":    NsgProtocolAh,
@@ -302,6 +410,19 @@ func PossibleValuesForProbeProtocol() []string {
 	}
 }
 
+func (s *ProbeProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProbeProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProbeProtocol(input string) (*ProbeProtocol, error) {
 	vals := map[string]ProbeProtocol{
 		"http":  ProbeProtocolHTTP,
@@ -331,6 +452,19 @@ func PossibleValuesForProtocol() []string {
 	}
 }
 
+func (s *Protocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProtocol(input string) (*Protocol, error) {
 	vals := map[string]Protocol{
 		"tcp": ProtocolTcp,
@@ -357,6 +491,19 @@ func PossibleValuesForSkuName() []string {
 		string(SkuNameBasic),
 		string(SkuNameStandard),
 	}
+}
+
+func (s *SkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSkuName(input string) (*SkuName, error) {

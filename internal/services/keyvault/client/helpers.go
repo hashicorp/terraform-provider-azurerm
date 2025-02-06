@@ -12,8 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -111,7 +109,7 @@ func (c *Client) Exists(ctx context.Context, keyVaultId commonids.KeyVaultId) (b
 	return true, nil
 }
 
-func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *resourcesClient.Client, keyVaultBaseUrl string) (*string, error) {
+func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commonids.SubscriptionId, keyVaultBaseUrl string) (*string, error) {
 	keyVaultName, err := c.parseNameFromBaseUrl(keyVaultBaseUrl)
 	if err != nil {
 		return nil, err
@@ -126,53 +124,22 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, resourcesClient *res
 	lock[cacheKey].Lock()
 	defer lock[cacheKey].Unlock()
 
+	// Check the cache to determine if we have an entry for this key vault
 	if v, ok := keyVaultsCache[cacheKey]; ok {
 		return &v.keyVaultId, nil
 	}
 
-	filter := fmt.Sprintf("resourceType eq 'Microsoft.KeyVault/vaults' and name eq '%s'", *keyVaultName)
-	result, err := resourcesClient.ResourcesClient.List(ctx, filter, "", utils.Int32(5))
-	if err != nil {
-		return nil, fmt.Errorf("listing resources matching %q: %+v", filter, err)
+	// Populate the cache
+	if err := c.populateCache(ctx, subscriptionId); err != nil {
+		return nil, fmt.Errorf("populating the Key Vaults cache for %s: %+v", subscriptionId, err)
 	}
 
-	for result.NotDone() {
-		for _, v := range result.Values() {
-			if v.ID == nil {
-				continue
-			}
-
-			id, err := commonids.ParseKeyVaultID(*v.ID)
-			if err != nil {
-				return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
-			}
-			if !strings.EqualFold(id.VaultName, *keyVaultName) {
-				continue
-			}
-
-			resp, err := c.VaultsClient.Get(ctx, *id)
-			if err != nil {
-				return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-			vaultUri := ""
-			if model := resp.Model; model != nil {
-				if model.Properties.VaultUri != nil {
-					vaultUri = *model.Properties.VaultUri
-				}
-			}
-			if vaultUri == "" {
-				return nil, fmt.Errorf("retrieving %s: `properties.VaultUri` was nil", id)
-			}
-			c.AddToCache(*id, vaultUri)
-			return utils.String(id.ID()), nil
-		}
-
-		if err := result.NextWithContext(ctx); err != nil {
-			return nil, fmt.Errorf("iterating over results: %+v", err)
-		}
+	// Now that the cache has been repopulated, check if we have the key vault or not
+	if v, ok := keyVaultsCache[cacheKey]; ok {
+		return &v.keyVaultId, nil
 	}
 
-	// we haven't found it, but Data Sources and Resources need to handle this error separately
+	// We haven't found it, but Data Sources and Resources need to handle this error separately
 	return nil, nil
 }
 

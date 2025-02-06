@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateEndpointConnectionId{}
+func init() {
+	recaser.RegisterResourceId(&PrivateEndpointConnectionId{})
+}
+
+var _ resourceids.ResourceId = &PrivateEndpointConnectionId{}
 
 // PrivateEndpointConnectionId is a struct representing the Resource ID for a Private Endpoint Connection
 type PrivateEndpointConnectionId struct {
@@ -32,29 +37,15 @@ func NewPrivateEndpointConnectionID(subscriptionId string, resourceGroupName str
 
 // ParsePrivateEndpointConnectionID parses 'input' into a PrivateEndpointConnectionId
 func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParsePrivateEndpointConnectionID(input string) (*PrivateEndpointConnectionI
 // ParsePrivateEndpointConnectionIDInsensitively parses 'input' case-insensitively into a PrivateEndpointConnectionId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateEndpointConnectionIDInsensitively(input string) (*PrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateEndpointConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProvisioningServiceName, ok = parsed.Parsed["provisioningServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateEndpointConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProvisioningServiceName, ok = input.Parsed["provisioningServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "provisioningServiceName", input)
+	}
+
+	if id.PrivateEndpointConnectionName, ok = input.Parsed["privateEndpointConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateEndpointConnectionID checks that 'input' can be parsed as a Private Endpoint Connection ID
@@ -122,9 +121,9 @@ func (id PrivateEndpointConnectionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevices", "Microsoft.Devices", "Microsoft.Devices"),
 		resourceids.StaticSegment("staticProvisioningServices", "provisioningServices", "provisioningServices"),
-		resourceids.UserSpecifiedSegment("provisioningServiceName", "provisioningServiceValue"),
+		resourceids.UserSpecifiedSegment("provisioningServiceName", "provisioningServiceName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

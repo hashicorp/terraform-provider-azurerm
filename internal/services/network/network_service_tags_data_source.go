@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/servicetags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/servicetags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -31,6 +31,11 @@ func dataSourceNetworkServiceTags() *pluginsdk.Resource {
 			"service": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+			},
+
+			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"location_filter": commonschema.LocationOptional(),
@@ -91,6 +96,8 @@ func dataSourceNetworkServiceTagsRead(d *pluginsdk.ResourceData, meta interface{
 			}
 
 			if location.NormalizeNilable(props.Region) == locationFilter {
+				d.Set("name", value.Name)
+
 				addressPrefixes := make([]string, 0)
 				if props.AddressPrefixes != nil {
 					addressPrefixes = *props.AddressPrefixes
@@ -149,5 +156,15 @@ func isServiceTagOf(stName, serviceName string) bool {
 	if len(stNameComponents) != 1 && len(stNameComponents) != 2 {
 		return false
 	}
-	return stNameComponents[0] == serviceName
+
+	// Adds support for "AzureFrontDoor.Frontend" service tag
+	serviceNameComponents := strings.Split(serviceName, ".")
+	if len(serviceNameComponents) != 1 && len(serviceNameComponents) != 2 {
+		return false
+	}
+
+	if len(serviceNameComponents) == 1 {
+		return stNameComponents[0] == serviceNameComponents[0]
+	}
+	return stNameComponents[0] == serviceNameComponents[0] && stNameComponents[1] == serviceNameComponents[1]
 }

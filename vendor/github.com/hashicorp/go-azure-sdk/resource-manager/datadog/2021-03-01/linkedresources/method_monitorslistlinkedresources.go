@@ -19,7 +19,20 @@ type MonitorsListLinkedResourcesOperationResponse struct {
 }
 
 type MonitorsListLinkedResourcesCompleteResult struct {
-	Items []LinkedResource
+	LatestHttpResponse *http.Response
+	Items              []LinkedResource
+}
+
+type MonitorsListLinkedResourcesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListLinkedResourcesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // MonitorsListLinkedResources ...
@@ -30,6 +43,7 @@ func (c LinkedResourcesClient) MonitorsListLinkedResources(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &MonitorsListLinkedResourcesCustomPager{},
 		Path:       fmt.Sprintf("%s/listLinkedResources", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c LinkedResourcesClient) MonitorsListLinkedResourcesCompleteMatchingPredic
 
 	resp, err := c.MonitorsListLinkedResources(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c LinkedResourcesClient) MonitorsListLinkedResourcesCompleteMatchingPredic
 	}
 
 	result = MonitorsListLinkedResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

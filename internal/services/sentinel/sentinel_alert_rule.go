@@ -22,7 +22,7 @@ func importSentinelAlertRule(expectKind alertrules.AlertRuleKind) pluginsdk.Impo
 		}
 
 		client := meta.(*clients.Client).Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -42,7 +42,7 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 		}
 
 		client := metadata.Client.Sentinel.AlertRulesClient
-		resp, err := client.AlertRulesGet(ctx, *id)
+		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule %q: %+v", id, err)
 		}
@@ -54,14 +54,13 @@ func importSentinelAlertRuleForTypedSdk(expectKind alertrules.AlertRuleKind) sdk
 	}
 }
 
-func assertAlertRuleKind(rule *alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
+func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertRuleKind) error {
 	if rule == nil {
 		return fmt.Errorf("model was nil")
 	}
 
-	rulePtr := *rule
 	var kind alertrules.AlertRuleKind
-	switch rulePtr.(type) {
+	switch rule.(type) {
 	case alertrules.MLBehaviorAnalyticsAlertRule:
 		kind = alertrules.AlertRuleKindMLBehaviorAnalytics
 	case alertrules.FusionAlertRule:
@@ -311,8 +310,7 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 		return nil
 	}
 
-	var output []alertrules.AlertPropertyMapping
-
+	output := make([]alertrules.AlertPropertyMapping, 0, len(input))
 	for _, v := range input {
 		b := v.(map[string]interface{})
 		property := alertrules.AlertProperty(b["name"].(string))
@@ -326,11 +324,11 @@ func expandAlertRuleAlertDynamicProperties(input []interface{}) *[]alertrules.Al
 }
 
 func flattenAlertRuleAlertDynamicProperties(input *[]alertrules.AlertPropertyMapping) []interface{} {
-	output := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
-		return output
+		return []interface{}{}
 	}
 
+	output := make([]interface{}, 0, len(*input))
 	for _, i := range *input {
 		name := ""
 		if i.AlertProperty != nil {
@@ -350,8 +348,7 @@ func expandAlertRuleEntityMapping(input []interface{}) *[]alertrules.EntityMappi
 		return nil
 	}
 
-	result := make([]alertrules.EntityMapping, 0)
-
+	result := make([]alertrules.EntityMapping, 0, len(input))
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		mappingType := alertrules.EntityMappingType(b["entity_type"].(string))
@@ -369,8 +366,7 @@ func flattenAlertRuleEntityMapping(input *[]alertrules.EntityMapping) []interfac
 		return []interface{}{}
 	}
 
-	output := make([]interface{}, 0)
-
+	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
 		entityType := ""
 		if e.EntityType != nil {
@@ -390,8 +386,7 @@ func expandAlertRuleFieldMapping(input []interface{}) *[]alertrules.FieldMapping
 		return nil
 	}
 
-	result := make([]alertrules.FieldMapping, 0)
-
+	result := make([]alertrules.FieldMapping, 0, len(input))
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		result = append(result, alertrules.FieldMapping{
@@ -408,8 +403,7 @@ func flattenAlertRuleFieldMapping(input *[]alertrules.FieldMapping) []interface{
 		return []interface{}{}
 	}
 
-	output := make([]interface{}, 0)
-
+	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
 		var identifier string
 		if e.Identifier != nil {
@@ -435,8 +429,7 @@ func expandAlertRuleSentinelEntityMapping(input []interface{}) *[]alertrules.Sen
 		return nil
 	}
 
-	result := make([]alertrules.SentinelEntityMapping, 0)
-
+	result := make([]alertrules.SentinelEntityMapping, 0, len(input))
 	for _, e := range input {
 		b := e.(map[string]interface{})
 		result = append(result, alertrules.SentinelEntityMapping{
@@ -452,8 +445,7 @@ func flattenAlertRuleSentinelEntityMapping(input *[]alertrules.SentinelEntityMap
 		return []interface{}{}
 	}
 
-	output := make([]interface{}, 0)
-
+	output := make([]interface{}, 0, len(*input))
 	for _, e := range *input {
 		var columnName string
 		if e.ColumnName != nil {

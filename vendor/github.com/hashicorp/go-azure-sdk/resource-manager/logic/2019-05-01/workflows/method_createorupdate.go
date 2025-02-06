@@ -48,7 +48,9 @@ func (c WorkflowsClient) CreateOrUpdate(ctx context.Context, id WorkflowId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workflow
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,7 +15,7 @@ type TestLinesClient struct {
 }
 
 func NewTestLinesClientWithBaseURI(sdkApi sdkEnv.Api) (*TestLinesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "testlines", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "testlines", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TestLinesClient: %+v", err)
 	}

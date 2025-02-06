@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
@@ -143,7 +144,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
 			keyVaultClient := metadata.Client.KeyVault
-			resourcesClient := metadata.Client.Resource
 			id, err := signalr.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -164,7 +164,8 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
 
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, vaultBasedUri)
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
 			if err != nil {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}
@@ -190,7 +191,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
-				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
+				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
 			return metadata.Encode(&state)

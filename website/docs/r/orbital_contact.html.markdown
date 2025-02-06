@@ -1,7 +1,7 @@
 ---
 subcategory: "Orbital"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_orbital_contact_profile"
+page_title: "Azure Resource Manager: azurerm_orbital_contact"
 description: |-
   Manages an orbital contact resource.
 ---
@@ -9,6 +9,8 @@ description: |-
 # azurerm_orbital_contact
 
 Manages an orbital contact.
+
+~> **Note:** The `azurerm_orbital_contact` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider.
 
 ## Example Usage
 
@@ -107,7 +109,7 @@ resource "azurerm_orbital_contact" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Contact. Changing this forces a new resource to be created.
 
 * `spacecraft_id` - (Required) The ID of the spacecraft which the contact will be made to. Changing this forces a new resource to be created.
 

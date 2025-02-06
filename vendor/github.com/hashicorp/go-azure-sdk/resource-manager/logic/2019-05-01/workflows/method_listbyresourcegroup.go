@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []Workflow
+	LatestHttpResponse *http.Response
+	Items              []Workflow
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -40,6 +41,7 @@ func (o ListByResourceGroupOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +56,18 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c WorkflowsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +76,9 @@ func (c WorkflowsClient) ListByResourceGroup(ctx context.Context, id commonids.R
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Logic/workflows", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Logic/workflows", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +119,7 @@ func (c WorkflowsClient) ListByResourceGroupCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -116,7 +132,8 @@ func (c WorkflowsClient) ListByResourceGroupCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

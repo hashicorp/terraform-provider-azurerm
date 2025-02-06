@@ -9,17 +9,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -83,6 +85,29 @@ func resourceSnapshot() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"network_access_policy": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
+				Default:      string(snapshots.NetworkAccessPolicyAllowAll),
+			},
+
+			"disk_access_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: diskaccesses.ValidateDiskAccessID,
+				// TODO:
+				// the snapshot API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/29187
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"source_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -114,9 +139,6 @@ func resourceSnapshot() *pluginsdk.Resource {
 		// Encryption Settings cannot be disabled once enabled
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("encryption_settings", func(ctx context.Context, old, new, meta interface{}) bool {
-				if !features.FourPointOhBeta() {
-					return false
-				}
 				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
 			}),
 		),
@@ -170,6 +192,19 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.Properties.CreationData.StorageAccountId = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("network_access_policy"); ok {
+		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
+	}
+
+	if v, ok := d.GetOk("disk_access_id"); ok {
+		properties.Properties.DiskAccessId = utils.String(v.(string))
+	}
+
+	properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessEnabled)
+	if !d.Get("public_network_access_enabled").(bool) {
+		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessDisabled)
+	}
+
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
 		properties.Properties.DiskSizeGB = utils.Int64(int64(diskSizeGB))
@@ -217,6 +252,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			data := props.CreationData
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
+			d.Set("disk_access_id", pointer.From(props.DiskAccessId))
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
@@ -227,6 +263,18 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
 			}
+
+			networkAccessPolicy := snapshots.NetworkAccessPolicyAllowAll
+			if props.NetworkAccessPolicy != nil {
+				networkAccessPolicy = *props.NetworkAccessPolicy
+			}
+			d.Set("network_access_policy", string(networkAccessPolicy))
+
+			publicNetworkAccessEnabled := true
+			if v := props.PublicNetworkAccess; v != nil && *v != snapshots.PublicNetworkAccessEnabled {
+				publicNetworkAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 			incrementalEnabled := false
 			if props.Incremental != nil {

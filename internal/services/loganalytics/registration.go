@@ -25,8 +25,11 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		LogAnalyticsClusterResource{},
 		LogAnalyticsQueryPackResource{},
 		LogAnalyticsQueryPackQueryResource{},
+		LogAnalyticsSolutionResource{},
+		LogAnalyticsWorkspaceTableResource{},
 	}
 }
 
@@ -52,7 +55,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_log_analytics_cluster":                                resourceLogAnalyticsCluster(),
 		"azurerm_log_analytics_cluster_customer_managed_key":           resourceLogAnalyticsClusterCustomerManagedKey(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceLogAnalyticsDataSourceWindowsEvent(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceLogAnalyticsDataSourceWindowsPerformanceCounter(),
@@ -60,7 +62,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_log_analytics_linked_service":                         resourceLogAnalyticsLinkedService(),
 		"azurerm_log_analytics_linked_storage_account":                 resourceLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceLogAnalyticsSavedSearch(),
-		"azurerm_log_analytics_solution":                               resourceLogAnalyticsSolution(),
 		"azurerm_log_analytics_storage_insights":                       resourceLogAnalyticsStorageInsights(),
 		"azurerm_log_analytics_workspace":                              resourceLogAnalyticsWorkspace(),
 	}

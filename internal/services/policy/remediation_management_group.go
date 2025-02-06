@@ -9,12 +9,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	managmentGroupParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managmentGroupValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
@@ -101,29 +102,6 @@ func resourceArmManagementGroupPolicyRemediation() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.PolicyDefinitionID,
-			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
-		}
-	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["resource_discovery_mode"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(remediations.ResourceDiscoveryModeExistingNonCompliant),
-				string(remediations.ResourceDiscoveryModeReEvaluateCompliance),
-			}, false),
-			Deprecated: "`resource_discovery_mode` will be removed in version 4.0 of the AzureRM Provider as evaluating compliance before remediation is only supported at subscription scope and below.",
-		}
-	}
 	return resource
 }
 
@@ -139,22 +117,43 @@ func resourceArmManagementGroupPolicyRemediationCreateUpdate(d *pluginsdk.Resour
 	id := remediations.NewProviders2RemediationID(managementID.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.RemediationsGetAtManagementGroup(ctx, id)
+		existing, err := client.GetAtManagementGroup(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_management_group_policy_remediation", *existing.Model.Id)
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_management_group_policy_remediation", id.ID())
 		}
 	}
 
-	parameters := remediations.Remediation{
-		Properties: readRemediationProperties(d),
+	var parameters remediations.Remediation
+	props := &remediations.RemediationProperties{
+		Filters: &remediations.RemediationFilters{
+			Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
+		},
+		PolicyAssignmentId:          pointer.To(d.Get("policy_assignment_id").(string)),
+		PolicyDefinitionReferenceId: pointer.To(d.Get("policy_definition_reference_id").(string)),
 	}
 
-	if _, err := client.RemediationsCreateOrUpdateAtManagementGroup(ctx, id, parameters); err != nil {
+	if v := d.Get("failure_percentage").(float64); v != 0 {
+		props.FailureThreshold = &remediations.RemediationPropertiesFailureThreshold{
+			Percentage: pointer.To(v),
+		}
+	}
+	if v := d.Get("parallel_deployments").(int); v != 0 {
+		props.ParallelDeployments = pointer.To(int64(v))
+	}
+	if v := d.Get("resource_count").(int); v != 0 {
+		props.ResourceCount = pointer.To(int64(v))
+	}
+
+	parameters = remediations.Remediation{
+		Properties: props,
+	}
+
+	if _, err := client.CreateOrUpdateAtManagementGroup(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -173,7 +172,7 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("reading Policy Remediation: %+v", err)
 	}
 
-	resp, err := client.RemediationsGetAtManagementGroup(ctx, *id)
+	resp, err := client.GetAtManagementGroup(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -187,7 +186,26 @@ func resourceArmManagementGroupPolicyRemediationRead(d *pluginsdk.ResourceData, 
 	managementGroupID := managmentGroupParse.NewManagementGroupId(id.ManagementGroupId)
 	d.Set("management_group_id", managementGroupID.ID())
 
-	return setRemediationProperties(d, resp.Model.Properties)
+	if props := resp.Model.Properties; props != nil {
+		locations := make([]interface{}, 0)
+		if filters := props.Filters; filters != nil {
+			locations = utils.FlattenStringSlice(filters.Locations)
+		}
+		if err := d.Set("location_filters", locations); err != nil {
+			return fmt.Errorf("setting `location_filters`: %+v", err)
+		}
+
+		d.Set("policy_assignment_id", props.PolicyAssignmentId)
+		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceId)
+
+		d.Set("resource_count", props.ResourceCount)
+		d.Set("parallel_deployments", props.ParallelDeployments)
+		if props.FailureThreshold != nil {
+			d.Set("failure_percentage", props.FailureThreshold.Percentage)
+		}
+	}
+
+	return nil
 }
 
 func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -202,7 +220,7 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.RemediationsGetAtManagementGroup(ctx, *id)
+	existing, err := client.GetAtManagementGroup(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -212,7 +230,7 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 
 	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
-			_, err := client.RemediationsCancelAtManagementGroup(ctx, *id)
+			_, err := client.CancelAtManagementGroup(ctx, *id)
 			return err
 		},
 		managementGroupPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
@@ -220,15 +238,16 @@ func resourceArmManagementGroupPolicyRemediationDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	_, err = client.RemediationsDeleteAtManagementGroup(ctx, *id)
+	_, err = client.DeleteAtManagementGroup(ctx, *id)
 
 	return err
 }
 
 func managementGroupPolicyRemediationCancellationRefreshFunc(ctx context.Context,
-	client *remediations.RemediationsClient, id remediations.Providers2RemediationId) pluginsdk.StateRefreshFunc {
+	client *remediations.RemediationsClient, id remediations.Providers2RemediationId,
+) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.RemediationsGetAtManagementGroup(ctx, id)
+		resp, err := client.GetAtManagementGroup(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
 		}

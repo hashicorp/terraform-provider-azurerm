@@ -6,52 +6,53 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apidiagnostic"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationtag"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apipolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apirelease"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apischema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apitag"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apitagdescription"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apiversionset"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apiversionsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/authorizationserver"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/backend"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/cache"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/certificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/diagnostic"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/emailtemplates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gateway"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewayapi"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewaycertificateauthority"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/gatewayhostnameconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/group"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/groupuser"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/identityprovider"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/logger"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/namedvalue"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientemail"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientuser"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/openidconnectprovider"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productapi"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productgroup"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/productpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/producttag"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/subscription"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tag"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/tenantaccess"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/user"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apipolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apirelease"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitagdescription"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/authorizationserver"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/cache"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/diagnostic"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewaycertificateauthority"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayhostnameconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/group"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/groupuser"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/openidconnectprovider"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/producttag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subscription"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -90,6 +91,7 @@ type Client struct {
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
 	PolicyClient                       *policy.PolicyClient
+	PolicyFragmentClient               *policyfragment.PolicyFragmentClient
 	ProductApisClient                  *productapi.ProductApiClient
 	ProductGroupsClient                *productgroup.ProductGroupClient
 	ProductPoliciesClient              *productpolicy.ProductPolicyClient
@@ -309,6 +311,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(policyClient.Client, o.Authorizers.ResourceManager)
 
+	policyFragmentClient, err := policyfragment.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
+	}
+	o.Configure(policyFragmentClient.Client, o.Authorizers.ResourceManager)
+
 	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Products client: %+v", err)
@@ -416,6 +424,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
 		OpenIdConnectClient:                openIdConnectClient,
 		PolicyClient:                       policyClient,
+		PolicyFragmentClient:               policyFragmentClient,
 		ProductApisClient:                  productApisClient,
 		ProductGroupsClient:                productGroupsClient,
 		ProductPoliciesClient:              productPoliciesClient,

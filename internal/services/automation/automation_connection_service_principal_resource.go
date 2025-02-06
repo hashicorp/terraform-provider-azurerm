@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connection"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -89,7 +89,7 @@ func resourceAutomationConnectionServicePrincipal() *pluginsdk.Resource {
 }
 
 func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +139,7 @@ func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.Resou
 }
 
 func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -164,7 +164,6 @@ func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData,
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			description := ""
 			if props.Description != nil {
 				description = *props.Description
@@ -193,7 +192,7 @@ func resourceAutomationConnectionServicePrincipalRead(d *pluginsdk.ResourceData,
 }
 
 func resourceAutomationConnectionServicePrincipalDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ConnectionClient
+	client := meta.(*clients.Client).Automation.Connection
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

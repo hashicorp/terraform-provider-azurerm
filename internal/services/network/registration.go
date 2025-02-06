@@ -4,6 +4,7 @@
 package network
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -33,7 +34,11 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
+		ManagerConnectivityConfigurationDataSource{},
+		VPNServerConfigurationDataSource{},
+		VirtualNetworkPeeringDataSource{},
 	}
 }
 
@@ -53,6 +58,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
+		VirtualHubRoutingIntentResource{},
 	}
 }
 
@@ -63,7 +69,9 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                              dataSourceBastionHost(),
 		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
+		"azurerm_express_route_circuit_peering":             dataSourceExpressRouteCircuitPeering(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
+		"azurerm_ip_groups":                                 dataSourceIpGroups(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                         dataSourceNetworkInterface(),
@@ -94,7 +102,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	resources := map[string]*pluginsdk.Resource{
 		"azurerm_application_gateway":                      resourceApplicationGateway(),
 		"azurerm_application_security_group":               resourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                             resourceBastionHost(),
@@ -122,7 +130,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_network_interface_nat_rule_association":                                 resourceNetworkInterfaceNatRuleAssociation(),
 		"azurerm_network_interface_security_group_association":                           resourceNetworkInterfaceSecurityGroupAssociation(),
 
-		"azurerm_network_packet_capture":                    resourceNetworkPacketCapture(),
 		"azurerm_network_profile":                           resourceNetworkProfile(),
 		"azurerm_point_to_site_vpn_gateway":                 resourcePointToSiteVPNGateway(),
 		"azurerm_private_endpoint":                          resourcePrivateEndpoint(),
@@ -167,4 +174,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_vpn_site":                                  resourceVpnSite(),
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}
+
+	if !features.FivePointOh() {
+		resources["azurerm_network_packet_capture"] = resourceNetworkPacketCapture()
+	}
+
+	return resources
 }

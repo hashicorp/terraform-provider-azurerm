@@ -161,6 +161,26 @@ func TestDatabaseSkuName(t *testing.T) {
 			input: "HS_S_8IM_48",
 			valid: false,
 		},
+		{
+			name:  "Valid Premium 8IM",
+			input: "HS_PRMS_8",
+			valid: true,
+		},
+		{
+			name:  "Invalid Premium 8IM",
+			input: "HS_PRMS_28",
+			valid: false,
+		},
+		{
+			name:  "Valid Premium 8IH",
+			input: "HS_MOPRMS_8",
+			valid: true,
+		},
+		{
+			name:  "Invalid Premium 8IH",
+			input: "HS_MOPRMS_128",
+			valid: false,
+		},
 	}
 	validationFunction := DatabaseSkuName()
 	for _, tt := range tests {

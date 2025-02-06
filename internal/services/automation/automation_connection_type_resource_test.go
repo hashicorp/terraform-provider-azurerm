@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connectiontype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +24,7 @@ func (a AutomationConnectionTypeResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.ConnectionTypeClient.Get(ctx, *id)
+	resp, err := client.Automation.ConnectionType.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Connection Type %s: %+v", *id, err)
 	}

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DomainEventSubscriptionId{}
+func init() {
+	recaser.RegisterResourceId(&DomainEventSubscriptionId{})
+}
+
+var _ resourceids.ResourceId = &DomainEventSubscriptionId{}
 
 // DomainEventSubscriptionId is a struct representing the Resource ID for a Domain Event Subscription
 type DomainEventSubscriptionId struct {
@@ -32,29 +37,15 @@ func NewDomainEventSubscriptionID(subscriptionId string, resourceGroupName strin
 
 // ParseDomainEventSubscriptionID parses 'input' into a DomainEventSubscriptionId
 func ParseDomainEventSubscriptionID(input string) (*DomainEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DomainEventSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DomainName, ok = parsed.Parsed["domainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "domainName", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseDomainEventSubscriptionID(input string) (*DomainEventSubscriptionId, e
 // ParseDomainEventSubscriptionIDInsensitively parses 'input' case-insensitively into a DomainEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseDomainEventSubscriptionIDInsensitively(input string) (*DomainEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DomainEventSubscriptionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DomainName, ok = parsed.Parsed["domainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "domainName", *parsed)
-	}
-
-	if id.EventSubscriptionName, ok = parsed.Parsed["eventSubscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DomainEventSubscriptionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DomainName, ok = input.Parsed["domainName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "domainName", input)
+	}
+
+	if id.EventSubscriptionName, ok = input.Parsed["eventSubscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventSubscriptionName", input)
+	}
+
+	return nil
 }
 
 // ValidateDomainEventSubscriptionID checks that 'input' can be parsed as a Domain Event Subscription ID
@@ -122,9 +121,9 @@ func (id DomainEventSubscriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticDomains", "domains", "domains"),
-		resourceids.UserSpecifiedSegment("domainName", "domainValue"),
+		resourceids.UserSpecifiedSegment("domainName", "domainName"),
 		resourceids.StaticSegment("staticEventSubscriptions", "eventSubscriptions", "eventSubscriptions"),
-		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionValue"),
+		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionName"),
 	}
 }
 

@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 ```
@@ -43,9 +43,19 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Container which should be created within the Storage Account. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
+
+~> **Note** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
+
+* `default_encryption_scope` - (Optional) The default encryption scope to use for blobs uploaded to this container. Changing this forces a new resource to be created.
+
+* `encryption_scope_override_enabled` - (Optional) Whether to allow blobs to override the default encryption scope for this container. Can only be set when specifying `default_encryption_scope`. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `metadata` - (Optional) A mapping of MetaData for this Container. All metadata keys should be lowercase.
 
@@ -72,8 +82,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Containers can be imported using the `resource id`, e.g.
+Storage Containers can be imported using the `resource manager id`, e.g.
 
 ```shell
-terraform import azurerm_storage_container.container1 https://example.blob.core.windows.net/container
+terraform import azurerm_storage_container.container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer
 ```

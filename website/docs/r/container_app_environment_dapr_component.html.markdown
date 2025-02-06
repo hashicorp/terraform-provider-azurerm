@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name for this Dapr component. Changing this forces a new resource to be created.
 
-* `type` - (Required) The Dapr Component Type. For example `state.azure.blobstorage`. Changing this forces a new resource to be created.
+* `component_type` - (Required) The Dapr Component Type. For example `state.azure.blobstorage`. Changing this forces a new resource to be created.
 
 * `version` - (Required) The version of the component.
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `ignore_errors` - (Optional) Should the Dapr sidecar to continue initialisation if the component fails to load. Defaults to `false`
 
-* `init_timeout` - The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`. Defaults to `5s`
+* `init_timeout` - (Optional) The timeout for component initialisation as a `ISO8601` formatted string. e.g. `5s`, `2h`, `1m`. Defaults to `5s`.
 
 * `metadata` - (Optional) One or more `metadata` blocks as detailed below.
 

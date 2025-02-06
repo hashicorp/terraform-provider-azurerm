@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
@@ -42,7 +43,7 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_fields": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -76,7 +77,7 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
-			//lintignore:XS003
+			// lintignore:XS003
 			"input_mapping_default_values": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -138,6 +139,8 @@ func dataSourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.TagsDataSource(),
+
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 		},
 	}
 }
@@ -201,6 +204,14 @@ func dataSourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) 
 			inboundIPRules := flattenDomainInboundIPRules(props.InboundIPRules)
 			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
 				return fmt.Errorf("setting `inbound_ip_rule` in %s: %+v", id, err)
+			}
+
+			flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", flattenedIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 		}
 

@@ -43,7 +43,25 @@ The following attributes are exported:
 
 * `key_vault_key_url` - The URL for the Key Vault Key or Key Vault Secret that is currently being used by the service.
 
+* `managed_hsm_key_id` - Key ID of a key in a managed HSM.
+
+~> Note: Only one of `key_vault_key_url` and `managed_hsm_key_id` will be set, depending on where the encryption key is stored.
+
+* `identity` - An `identity` block as defined below.
+
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Disk Encryption Set.
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this Disk Encryption Set.
+
+* `principal_id` - The (Client) ID of the Service Principal.
+
+* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 

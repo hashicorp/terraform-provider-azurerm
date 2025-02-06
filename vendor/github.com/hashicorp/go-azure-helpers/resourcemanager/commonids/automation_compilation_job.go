@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = AutomationCompilationJobId{}
+var _ resourceids.ResourceId = &AutomationCompilationJobId{}
 
 // AutomationCompilationJobId is a struct representing the Resource ID for a Compilation Job
 type AutomationCompilationJobId struct {
@@ -32,29 +32,15 @@ func NewAutomationCompilationJobID(subscriptionId string, resourceGroupName stri
 
 // ParseAutomationCompilationJobID parses 'input' into a AutomationCompilationJobId
 func ParseAutomationCompilationJobID(input string) (*AutomationCompilationJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationCompilationJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationCompilationJobId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationCompilationJobId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.CompilationJobId, ok = parsed.Parsed["compilationJobId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "compilationJobId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseAutomationCompilationJobID(input string) (*AutomationCompilationJobId,
 // ParseAutomationCompilationJobIDInsensitively parses 'input' case-insensitively into a AutomationCompilationJobId
 // note: this method should only be used for API response data and not user input
 func ParseAutomationCompilationJobIDInsensitively(input string) (*AutomationCompilationJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationCompilationJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationCompilationJobId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationCompilationJobId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.CompilationJobId, ok = parsed.Parsed["compilationJobId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "compilationJobId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AutomationCompilationJobId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.CompilationJobId, ok = input.Parsed["compilationJobId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "compilationJobId", input)
+	}
+
+	return nil
 }
 
 // ValidateAutomationCompilationJobID checks that 'input' can be parsed as a Compilation Job ID

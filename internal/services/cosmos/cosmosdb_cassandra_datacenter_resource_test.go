@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/managedcassandras"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -24,9 +24,11 @@ func testAccCassandraDatacenter_basic(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, 3),
+			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("seed_node_ip_addresses.#").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -55,21 +57,54 @@ func testAccCassandraDatacenter_update(t *testing.T) {
 	})
 }
 
+func testAccCassandraDatacenter_updateSku(t *testing.T) {
+	// Regression test case for MS IcM
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_cassandra_datacenter", "test")
+	r := CassandraDatacenterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicSku(data, "Standard_E8s_v5"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E8s_v5"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_E16s_v5"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CassandraDatacenterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CassandraDatacenterID(state.ID)
+	id, err := managedcassandras.ParseDataCenterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Cosmos.CassandraDatacentersClient.Get(ctx, id.ResourceGroup, id.CassandraClusterName, id.DataCenterName)
+	resp, err := clients.Cosmos.ManagedCassandraClient.CassandraDataCentersGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %q: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CassandraDatacenterResource) basic(data acceptance.TestData, nodeCount int) string {
+func (r CassandraDatacenterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -78,12 +113,28 @@ resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
   cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
   location                       = azurerm_cosmosdb_cassandra_cluster.test.location
   delegated_management_subnet_id = azurerm_subnet.test.id
-  node_count                     = %d
+  node_count                     = 3
   disk_count                     = 4
-  sku_name                       = "Standard_DS14_v2"
   availability_zones_enabled     = false
 }
-`, r.template(data), data.RandomInteger, nodeCount)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CassandraDatacenterResource) basicSku(data acceptance.TestData, skuName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_cassandra_datacenter" "test" {
+  name                           = "acctca-mi-dc-%d"
+  cassandra_cluster_id           = azurerm_cosmosdb_cassandra_cluster.test.id
+  location                       = azurerm_cosmosdb_cassandra_cluster.test.location
+  delegated_management_subnet_id = azurerm_subnet.test.id
+  node_count                     = 3
+  disk_count                     = 4
+  sku_name                       = "%s"
+  availability_zones_enabled     = false
+}
+`, r.template(data), data.RandomInteger, skuName)
 }
 
 func (r CassandraDatacenterResource) complete(data acceptance.TestData, nodeCount int) string {
@@ -308,7 +359,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ca-%d"
+  name     = "acctestRG-cassandra-%d"
   location = "%s"
 }
 

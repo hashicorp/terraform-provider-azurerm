@@ -7,20 +7,20 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 const (
@@ -28,6 +28,11 @@ const (
 	FluxGitCommit       string = "commit"
 	FluxGitReferenceTag string = "tag"
 	FluxGitSemverRange  string = "semver"
+)
+
+const (
+	SubstituteFromKindConfigMap string = "ConfigMap"
+	SubstituteFromKindSecret    string = "Secret"
 )
 
 type KubernetesFluxConfigurationModel struct {
@@ -88,14 +93,27 @@ type GitRepositoryDefinitionModel struct {
 }
 
 type KustomizationDefinitionModel struct {
-	Name                   string   `tfschema:"name"`
-	Path                   string   `tfschema:"path"`
-	TimeoutInSeconds       int64    `tfschema:"timeout_in_seconds"`
-	SyncIntervalInSeconds  int64    `tfschema:"sync_interval_in_seconds"`
-	RetryIntervalInSeconds int64    `tfschema:"retry_interval_in_seconds"`
-	Force                  bool     `tfschema:"recreating_enabled"`
-	Prune                  bool     `tfschema:"garbage_collection_enabled"`
-	DependsOn              []string `tfschema:"depends_on"`
+	Name                   string                     `tfschema:"name"`
+	Path                   string                     `tfschema:"path"`
+	TimeoutInSeconds       int64                      `tfschema:"timeout_in_seconds"`
+	SyncIntervalInSeconds  int64                      `tfschema:"sync_interval_in_seconds"`
+	RetryIntervalInSeconds int64                      `tfschema:"retry_interval_in_seconds"`
+	Force                  bool                       `tfschema:"recreating_enabled"`
+	Prune                  bool                       `tfschema:"garbage_collection_enabled"`
+	DependsOn              []string                   `tfschema:"depends_on"`
+	PostBuild              []PostBuildDefinitionModel `tfschema:"post_build"`
+	Wait                   bool                       `tfschema:"wait"`
+}
+
+type PostBuildDefinitionModel struct {
+	Substitute     map[string]string               `tfschema:"substitute"`
+	SubstituteFrom []SubstituteFromDefinitionModel `tfschema:"substitute_from"`
+}
+
+type SubstituteFromDefinitionModel struct {
+	Kind     string `tfschema:"kind"`
+	Name     string `tfschema:"name"`
+	Optional bool   `tfschema:"optional"`
 }
 
 type ManagedIdentityDefinitionModel struct {
@@ -104,9 +122,7 @@ type ManagedIdentityDefinitionModel struct {
 
 type KubernetesFluxConfigurationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = KubernetesFluxConfigurationResource{}
-)
+var _ sdk.ResourceWithUpdate = KubernetesFluxConfigurationResource{}
 
 func (r KubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_kubernetes_flux_configuration"
@@ -219,6 +235,55 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+					},
+
+					"post_build": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"substitute": {
+									Type:     pluginsdk.TypeMap,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+								"substitute_from": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"kind": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													SubstituteFromKindConfigMap,
+													SubstituteFromKindSecret,
+												}, false),
+											},
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringIsNotEmpty,
+											},
+											"optional": {
+												Type:     pluginsdk.TypeBool,
+												Optional: true,
+												Default:  false,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"wait": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
 					},
 				},
 			},
@@ -589,7 +654,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -643,7 +708,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -682,6 +747,12 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
 				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+			}
+
+			if properties.Properties.ConfigurationProtectedSettings == nil {
+				if err := setConfigurationProtectedSettings(metadata, model, properties); err != nil {
+					return err
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -729,7 +800,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					blobStorage, err := flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 					if err != nil {
 						return fmt.Errorf("flattening `blob_storage`: %+v", err)
 					}
@@ -774,7 +845,7 @@ func (r KubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
+func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel, storageDomainSuffix string) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
@@ -791,13 +862,13 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*flux
 	}
 
 	if input.ContainerID != "" {
-		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := containers.ParseContainerID(input.ContainerID, storageDomainSuffix)
 		if err != nil {
 			return nil, err
 		}
 
-		output.ContainerName = &id.Name
-		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
+		output.ContainerName = &id.ContainerName
+		output.Url = pointer.To(id.AccountId.ID())
 	}
 
 	if input.LocalAuthRef != "" {
@@ -833,14 +904,20 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 	outputList := make(map[string]fluxconfiguration.KustomizationDefinition)
 	for _, v := range inputList {
 		input := v
+		// updated item in a set is considered a new item, and the old item still exists in the set but with empty values, so we need to skip it
+		if input.Name == "" {
+			continue
+		}
 		output := fluxconfiguration.KustomizationDefinition{
 			DependsOn:              &input.DependsOn,
 			Force:                  &input.Force,
 			Name:                   &input.Name,
+			PostBuild:              expandPostBuildDefinitionModel(input.PostBuild),
 			Prune:                  &input.Prune,
 			RetryIntervalInSeconds: &input.RetryIntervalInSeconds,
 			SyncIntervalInSeconds:  &input.SyncIntervalInSeconds,
 			TimeoutInSeconds:       &input.TimeoutInSeconds,
+			Wait:                   &input.Wait,
 		}
 
 		if input.Path != "" {
@@ -851,6 +928,45 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 	}
 
 	return &outputList
+}
+
+func expandPostBuildDefinitionModel(inputList []PostBuildDefinitionModel) *fluxconfiguration.PostBuildDefinition {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := inputList[0]
+
+	output := fluxconfiguration.PostBuildDefinition{}
+
+	if len(input.Substitute) > 0 {
+		output.Substitute = &input.Substitute
+	}
+
+	if len(input.SubstituteFrom) > 0 {
+		output.SubstituteFrom = expandSubstituteFromDefinitionModel(input.SubstituteFrom)
+	}
+
+	return &output
+}
+
+func expandSubstituteFromDefinitionModel(inputList []SubstituteFromDefinitionModel) *[]fluxconfiguration.SubstituteFromDefinition {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := inputList
+	output := make([]fluxconfiguration.SubstituteFromDefinition, 0)
+
+	for _, v := range input {
+		output = append(output, fluxconfiguration.SubstituteFromDefinition{
+			Kind:     &v.Kind,
+			Name:     &v.Name,
+			Optional: &v.Optional,
+		})
+	}
+
+	return &output
 }
 
 func expandServicePrincipalDefinitionModel(inputList []ServicePrincipalDefinitionModel) *fluxconfiguration.ServicePrincipalDefinition {
@@ -914,7 +1030,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.SecretKey != "" {
 		configSettings["bucketSecretKey"] = input.SecretKey
 	}
@@ -965,7 +1081,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.HttpsKey != "" {
 		configSettings["httpsKey"] = input.HttpsKey
 	}
@@ -996,16 +1112,18 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
+func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel, storageDomainSuffix string) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
 		return outputList, nil
 	}
 
-	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
 	}
+
+	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))
 
 	output := AzureBlobDefinitionModel{
 		ContainerID:           id.ID(),
@@ -1051,10 +1169,46 @@ func flattenKustomizationDefinitionModel(inputList *map[string]fluxconfiguration
 			Force:                  pointer.From(input.Force),
 			Name:                   pointer.From(input.Name),
 			Path:                   pointer.From(input.Path),
+			PostBuild:              flattenPostBuildDefinitionModel(input.PostBuild),
 			Prune:                  pointer.From(input.Prune),
 			RetryIntervalInSeconds: pointer.From(input.RetryIntervalInSeconds),
 			SyncIntervalInSeconds:  pointer.From(input.SyncIntervalInSeconds),
 			TimeoutInSeconds:       pointer.From(input.TimeoutInSeconds),
+			Wait:                   pointer.From(input.Wait),
+		}
+
+		outputList = append(outputList, output)
+	}
+
+	return outputList
+}
+
+func flattenPostBuildDefinitionModel(input *fluxconfiguration.PostBuildDefinition) []PostBuildDefinitionModel {
+	outputList := make([]PostBuildDefinitionModel, 0)
+
+	if input == nil {
+		return outputList
+	}
+
+	output := PostBuildDefinitionModel{
+		Substitute:     pointer.From(input.Substitute),
+		SubstituteFrom: flattenSubstituteFromDefinitionModel(input.SubstituteFrom),
+	}
+
+	return append(outputList, output)
+}
+
+func flattenSubstituteFromDefinitionModel(input *[]fluxconfiguration.SubstituteFromDefinition) []SubstituteFromDefinitionModel {
+	outputList := make([]SubstituteFromDefinitionModel, 0)
+	if input == nil {
+		return outputList
+	}
+
+	for _, v := range *input {
+		output := SubstituteFromDefinitionModel{
+			Kind:     pointer.From(v.Kind),
+			Name:     pointer.From(v.Name),
+			Optional: pointer.From(v.Optional),
 		}
 
 		outputList = append(outputList, output)
@@ -1176,5 +1330,18 @@ func validateKubernetesFluxConfigurationModel(model *KubernetesFluxConfiguration
 		allKeys[k.Name] = true
 	}
 
+	return nil
+}
+
+func setConfigurationProtectedSettings(metadata sdk.ResourceMetaData, model KubernetesFluxConfigurationModel, properties *fluxconfiguration.FluxConfiguration) error {
+	if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+		_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+		if err != nil {
+			return err
+		}
+		properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+	} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+		_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+	}
 	return nil
 }

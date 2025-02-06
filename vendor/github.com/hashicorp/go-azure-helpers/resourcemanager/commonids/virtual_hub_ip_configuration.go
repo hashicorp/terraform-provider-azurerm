@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualHubIPConfigurationId{}
+var _ resourceids.ResourceId = &VirtualHubIPConfigurationId{}
 
 // VirtualHubIPConfigurationId is a struct representing the Resource ID for a Virtual Hub I P Configuration
 type VirtualHubIPConfigurationId struct {
@@ -32,29 +32,15 @@ func NewVirtualHubIPConfigurationID(subscriptionId string, resourceGroupName str
 
 // ParseVirtualHubIPConfigurationID parses 'input' into a VirtualHubIPConfigurationId
 func ParseVirtualHubIPConfigurationID(input string) (*VirtualHubIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualHubIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualHubIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualHubIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.IpConfigName, ok = parsed.Parsed["ipConfigName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseVirtualHubIPConfigurationID(input string) (*VirtualHubIPConfigurationI
 // ParseVirtualHubIPConfigurationIDInsensitively parses 'input' case-insensitively into a VirtualHubIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualHubIPConfigurationIDInsensitively(input string) (*VirtualHubIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualHubIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualHubIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualHubIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.IpConfigName, ok = parsed.Parsed["ipConfigName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipConfigName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualHubIPConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualHubName, ok = input.Parsed["virtualHubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", input)
+	}
+
+	if id.IpConfigName, ok = input.Parsed["ipConfigName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "ipConfigName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualHubIPConfigurationID checks that 'input' can be parsed as a Virtual Hub I P Configuration ID

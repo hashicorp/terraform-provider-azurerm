@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -246,8 +246,6 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
-			defer cancel()
 
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
@@ -277,14 +275,8 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport("azurerm_service_fabric_managed_cluster", managedClusterId)
 			}
 
-			resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
-			if err != nil {
-				return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
-			}
-			// Wait for the cluster creation operation to be completed
-			err = resp.Poller.PollUntilDone()
-			if err != nil {
-				return fmt.Errorf("while waiting for cluster %q to get created: : %+v", model.Name, err)
+			if err := clusterClient.CreateOrUpdateThenPoll(ctx, managedClusterId, cluster); err != nil {
+				return fmt.Errorf("creating %s: %+v", managedClusterId, err)
 			}
 
 			toDelete := make([]string, 0)
@@ -312,68 +304,27 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
-			// Delete the old nodetypes
-			for _, nt := range toDelete {
-				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
-				if err != nil {
-					return fmt.Errorf("while deleting node type %q of cluster %q: %+v", nt, model.Name, err)
-				}
-
-				if resp.HttpResponse != nil {
-					deleteResponses = append(deleteResponses, resp)
+			// Delete the old Node Types
+			for _, nodeType := range toDelete {
+				nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nodeType)
+				if err := nodeTypeClient.DeleteThenPoll(ctx, nodeTypeId); err != nil {
+					return fmt.Errorf("deleting %s: %+v", nodeTypeId, err)
 				}
 			}
 
-			if len(deleteResponses) > 0 {
-				lastResp := deleteResponses[len(model.NodeTypes)-1]
-				if err = lastResp.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-				}
-
-				for idx, resp := range deleteResponses {
-					if idx == len(deleteResponses)-1 {
-						continue
-					}
-					if err = resp.Poller.PollUntilDone(); err != nil {
-						return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-					}
-				}
-			}
-
-			// Send all Create NodeType requests, and store all responses to a list.
-			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
-			for idx, nt := range model.NodeTypes {
+			// Then provision the Node Types
+			for _, nt := range model.NodeTypes {
 				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
 				if err != nil {
 					return fmt.Errorf("while expanding node type %q: %+v", nt.Name, err)
 				}
+
 				nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt.Name)
-				nodeTypeInput := nodetype.NodeType{
-					Name:       nil,
+				payload := nodetype.NodeType{
 					Properties: nodeTypeProperties,
 				}
-
-				if resp, err := nodeTypeClient.CreateOrUpdate(ctx, nodeTypeId, nodeTypeInput); err == nil {
-					nodeTypeResponses[idx] = resp
-				} else {
-					return fmt.Errorf("while adding node type %q to cluster %q: %+v", nt.Name, model.Name, err)
-				}
-			}
-
-			if len(nodeTypeResponses) > 0 {
-				lastResp := nodeTypeResponses[len(model.NodeTypes)-1]
-				if err = lastResp.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-				}
-
-				for idx, resp := range nodeTypeResponses {
-					if idx == len(nodeTypeResponses)-1 {
-						continue
-					}
-					if err = resp.Poller.PollUntilDone(); err != nil {
-						return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-					}
+				if err := nodeTypeClient.CreateOrUpdateThenPoll(ctx, nodeTypeId, payload); err != nil {
+					return fmt.Errorf("adding %s: %+v", nodeTypeId, err)
 				}
 			}
 
@@ -388,34 +339,32 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 func (k ClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			resourceId, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
-			if err != nil {
-				return fmt.Errorf("while parsing resourceID: %+v", err)
-			}
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
 
-			cluster, err := clusterClient.Get(ctx, *resourceId)
+			id, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
 			if err != nil {
-				if response.WasNotFound(cluster.HttpResponse) {
-					return metadata.MarkAsGone(resourceId)
-				}
-				return fmt.Errorf("while reading data for cluster %q: %+v", resourceId.ManagedClusterName, err)
+				return err
 			}
 
-			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, nodetype.ManagedClusterId{
-				SubscriptionId:     resourceId.SubscriptionId,
-				ResourceGroupName:  resourceId.ResourceGroupName,
-				ManagedClusterName: resourceId.ManagedClusterName,
-			})
+			cluster, err := clusterClient.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", resourceId.ManagedClusterName, err)
+				if response.WasNotFound(cluster.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("while reading data for cluster %q: %+v", id.ManagedClusterName, err)
+			}
+
+			clusterId := nodetype.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
+			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, clusterId)
+			if err != nil {
+				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", id.ManagedClusterName, err)
 			}
 
 			model := flattenClusterProperties(cluster.Model)
 			// Password is read-only
 			model.Password = metadata.ResourceData.Get("password").(string)
-			model.ResourceGroup = resourceId.ResourceGroupName
+			model.ResourceGroup = id.ResourceGroupName
 			model.NodeTypes = make([]NodeType, 0)
 			for _, nt := range nts.Items {
 				provState := nt.Properties.ProvisioningState
@@ -437,20 +386,22 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			ctx, cancel := timeouts.ForCreate(ctx, metadata.ResourceData)
-			defer cancel()
 
 			clusterClient := metadata.Client.ServiceFabricManaged.ManagedClusterClient
 			nodeTypeClient := metadata.Client.ServiceFabricManaged.NodeTypeClient
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			id, err := managedcluster.ParseManagedClusterID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
 
-			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
 				Properties: expandClusterProperties(&model),
-				Sku:        &managedcluster.Sku{Name: model.Sku},
+				Sku: &managedcluster.Sku{
+					Name: model.Sku,
+				},
 			}
 
 			tagsMap := make(map[string]string)
@@ -459,14 +410,8 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 			}
 			cluster.Tags = &tagsMap
 
-			resp, err := clusterClient.CreateOrUpdate(ctx, managedClusterId, cluster)
-			if err != nil {
-				return fmt.Errorf("while creating cluster %q: %+v", model.Name, err)
-			}
-			// Wait for the cluster creation operation to be completed
-			err = resp.Poller.PollUntilDone()
-			if err != nil {
-				return fmt.Errorf("while waiting for cluster %q to get created: : %+v", model.Name, err)
+			if err := clusterClient.CreateOrUpdateThenPoll(ctx, *id, cluster); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			toDelete := make([]string, 0)
@@ -494,68 +439,27 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			deleteResponses := make([]nodetype.DeleteOperationResponse, 0)
-			// Delete the old nodetypes
-			for _, nt := range toDelete {
-				resp, err := nodeTypeClient.Delete(ctx, nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt))
+			// Delete the old Node Types
+			for _, nodeType := range toDelete {
+				nodeTypeId := nodetype.NewNodeTypeID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, nodeType)
+
+				if err := nodeTypeClient.DeleteThenPoll(ctx, nodeTypeId); err != nil {
+					return fmt.Errorf("deleting %s: %+v", nodeTypeId, err)
+				}
+			}
+
+			// Ensure the remaining Node Types are up-to-date
+			for _, nodeType := range model.NodeTypes {
+				props, err := expandNodeTypeProperties(&nodeType)
 				if err != nil {
-					return fmt.Errorf("while deleting node type %q of cluster %q: %+v", nt, model.Name, err)
+					return fmt.Errorf("while expanding node type %q: %+v", nodeType.Name, err)
 				}
-
-				if resp.HttpResponse != nil {
-					deleteResponses = append(deleteResponses, resp)
+				nodeTypeId := nodetype.NewNodeTypeID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, nodeType.Name)
+				payload := nodetype.NodeType{
+					Properties: props,
 				}
-			}
-
-			if len(deleteResponses) > 0 {
-				lastResp := deleteResponses[len(model.NodeTypes)-1]
-				if err = lastResp.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-				}
-
-				for idx, resp := range deleteResponses {
-					if idx == len(deleteResponses)-1 {
-						continue
-					}
-					if err = resp.Poller.PollUntilDone(); err != nil {
-						return fmt.Errorf("while polling for deletion of node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-					}
-				}
-			}
-
-			// Send all Create NodeType requests, and store all responses to a list.
-			nodeTypeResponses := make([]nodetype.CreateOrUpdateOperationResponse, len(model.NodeTypes))
-			for idx, nt := range model.NodeTypes {
-				nodeTypeProperties, err := expandNodeTypeProperties(&nt)
-				if err != nil {
-					return fmt.Errorf("while expanding node type %q: %+v", nt.Name, err)
-				}
-				nodeTypeId := nodetype.NewNodeTypeID(subscriptionId, model.ResourceGroup, model.Name, nt.Name)
-				nodeTypeInput := nodetype.NodeType{
-					Name:       nil,
-					Properties: nodeTypeProperties,
-				}
-
-				if resp, err := nodeTypeClient.CreateOrUpdate(ctx, nodeTypeId, nodeTypeInput); err == nil {
-					nodeTypeResponses[idx] = resp
-				} else {
-					return fmt.Errorf("while adding node type %q to cluster %q: %+v", nt.Name, model.Name, err)
-				}
-			}
-
-			if len(nodeTypeResponses) > 0 {
-				lastResp := nodeTypeResponses[len(model.NodeTypes)-1]
-				if err = lastResp.Poller.PollUntilDone(); err != nil {
-					return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[len(model.NodeTypes)-1].Name, model.Name, err)
-				}
-
-				for idx, resp := range nodeTypeResponses {
-					if idx == len(nodeTypeResponses)-1 {
-						continue
-					}
-					if err = resp.Poller.PollUntilDone(); err != nil {
-						return fmt.Errorf("while polling for node type %q in cluster %q: %+v", model.NodeTypes[idx].Name, model.Name, err)
-					}
+				if err := nodeTypeClient.CreateOrUpdateThenPoll(ctx, nodeTypeId, payload); err != nil {
+					return fmt.Errorf("adding/updating %s: %+v", nodeTypeId, err)
 				}
 			}
 
@@ -655,7 +559,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		return model
 	}
 
-	model.Name = utils.NormalizeNilableString(cluster.Name)
+	model.Name = pointer.From(cluster.Name)
 	model.Location = cluster.Location
 	if sku := cluster.Sku; sku != nil {
 		model.Sku = sku.Name
@@ -684,9 +588,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		adModels := make([]ADAuthentication, 0)
 
 		adModel := ADAuthentication{}
-		adModel.ClientApp = utils.NormalizeNilableString(aad.ClientApplication)
-		adModel.ClusterApp = utils.NormalizeNilableString(aad.ClusterApplication)
-		adModel.TenantId = utils.NormalizeNilableString(aad.TenantId)
+		adModel.ClientApp = pointer.From(aad.ClientApplication)
+		adModel.ClusterApp = pointer.From(aad.ClusterApplication)
+		adModel.TenantId = pointer.From(aad.TenantId)
 
 		adModels = append(adModels, adModel)
 		model.Authentication[0].ADAuth = adModels
@@ -701,8 +605,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 			}
 			certs[idx] = ThumbprintAuth{
 				CertificateType: t,
-				CommonName:      utils.NormalizeNilableString(client.CommonName),
-				Thumbprint:      utils.NormalizeNilableString(client.Thumbprint),
+				CommonName:      pointer.From(client.CommonName),
+				Thumbprint:      pointer.From(client.Thumbprint),
 			}
 		}
 		if len(model.Authentication) == 0 {
@@ -725,8 +629,8 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 		model.CustomFabricSettings = cfs
 	}
 
-	model.ClientConnectionPort = utils.NormaliseNilableInt64(properties.ClientConnectionPort)
-	model.HTTPGatewayPort = utils.NormaliseNilableInt64(properties.HTTPGatewayConnectionPort)
+	model.ClientConnectionPort = pointer.From(properties.ClientConnectionPort)
+	model.HTTPGatewayPort = pointer.From(properties.HTTPGatewayConnectionPort)
 
 	if lbrules := properties.LoadBalancingRules; lbrules != nil {
 		model.LBRules = make([]LBRule, len(*lbrules))
@@ -735,7 +639,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.NormalizeNilableString(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.From(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 		}
@@ -748,7 +652,12 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	if t := cluster.Tags; t != nil {
 		modelTags := make(map[string]interface{})
 		for tag, value := range *t {
-			modelTags[tag] = value
+			// This tag is temporary and will be removed at a later date.
+			// More info can be found here https://azure.microsoft.com/en-us/updates/default-outbound-access-for-vms-in-azure-will-be-retired-transition-to-a-new-method-of-internet-access/
+			// In the meantime, we'll ignore it when setting tags into state
+			if !strings.Contains(tag, "SFRP.DisableDefaultOutboundAccess") {
+				modelTags[tag] = value
+			}
 		}
 		model.Tags = modelTags
 	}
@@ -758,20 +667,20 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 	props := nt.Properties
 	if props == nil {
-		return NodeType{Name: utils.NormalizeNilableString(nt.Name)}
+		return NodeType{Name: pointer.From(nt.Name)}
 	}
 
 	out := NodeType{
 		DataDiskSize:     nt.Properties.DataDiskSizeGB,
-		Name:             utils.NormalizeNilableString(nt.Name),
+		Name:             pointer.From(nt.Name),
 		Primary:          props.IsPrimary,
-		VmImageOffer:     utils.NormalizeNilableString(props.VMImageOffer),
-		VmImagePublisher: utils.NormalizeNilableString(props.VMImagePublisher),
-		VmImageSku:       utils.NormalizeNilableString(props.VMImageSku),
-		VmImageVersion:   utils.NormalizeNilableString(props.VMImageVersion),
+		VmImageOffer:     pointer.From(props.VMImageOffer),
+		VmImagePublisher: pointer.From(props.VMImagePublisher),
+		VmImageSku:       pointer.From(props.VMImageSku),
+		VmImageVersion:   pointer.From(props.VMImageVersion),
 		VmInstanceCount:  props.VMInstanceCount,
-		VmSize:           utils.NormalizeNilableString(props.VMSize),
-		Id:               utils.NormalizeNilableString(nt.Id),
+		VmSize:           pointer.From(props.VMSize),
+		Id:               pointer.From(nt.Id),
 	}
 
 	if appPorts := props.ApplicationPorts; appPorts != nil {
@@ -817,11 +726,11 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 			for idx, cert := range sec.VaultCertificates {
 				certs[idx] = VaultCertificates{
 					Store: cert.CertificateStore,
-					Url:   cert.CertificateUrl,
+					Url:   cert.CertificateURL,
 				}
 			}
 			secs[idx] = VmSecrets{
-				SourceVault:  utils.NormalizeNilableString(sec.SourceVault.Id),
+				SourceVault:  pointer.From(sec.SourceVault.Id),
 				Certificates: certs,
 			}
 		}
@@ -946,7 +855,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 		for cidx, cert := range secret.Certificates {
 			vcs[cidx] = nodetype.VaultCertificate{
 				CertificateStore: cert.Store,
-				CertificateUrl:   cert.Url,
+				CertificateURL:   cert.Url,
 			}
 		}
 		vmSecrets[idx] = nodetype.VaultSecretGroup{

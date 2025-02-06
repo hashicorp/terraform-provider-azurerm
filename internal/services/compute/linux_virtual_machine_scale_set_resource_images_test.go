@@ -23,14 +23,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesAutomaticUpdate(data, "16.04-LTS"),
+			Config: r.imagesAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.imagesAutomaticUpdate(data, "18.04-LTS"),
+			Config: r.imagesAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -45,14 +45,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesDisableAutomaticUpdate(data, "16.04-LTS"),
+			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.imagesDisableAutomaticUpdate(data, "18.04-LTS"),
+			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -106,14 +106,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesManualUpdate(data, "16.04-LTS"),
+			Config: r.imagesManualUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.imagesManualUpdate(data, "18.04-LTS"),
+			Config: r.imagesManualUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -128,14 +128,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesManualUpdateExternalRoll(data, "16.04-LTS"),
+			Config: r.imagesManualUpdateExternalRoll(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.imagesManualUpdateExternalRoll(data, "18.04-LTS"),
+			Config: r.imagesManualUpdateExternalRoll(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -150,14 +150,14 @@ func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesRollingUpdate(data, "16.04-LTS"),
+			Config: r.imagesRollingUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.imagesRollingUpdate(data, "18.04-LTS"),
+			Config: r.imagesRollingUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -190,7 +190,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	})
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesAutomaticUpdate(data acceptance.TestData, version string) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesAutomaticUpdate(data acceptance.TestData, offer, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -261,7 +261,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "%s"
     sku       = "%s"
     version   = "latest"
   }
@@ -298,10 +298,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, offer, sku)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesDisableAutomaticUpdate(data acceptance.TestData, version string) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesDisableAutomaticUpdate(data acceptance.TestData, offer, sku string) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -318,7 +318,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "%s"
     sku       = "%s"
     version   = "latest"
   }
@@ -351,7 +351,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 }
-`, r.template(data), data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, offer, sku)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) imagesFromVirtualMachinePrerequisites(data acceptance.TestData) string {
@@ -363,6 +363,7 @@ resource "azurerm_public_ip" "source" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "source" {
@@ -408,8 +409,8 @@ resource "azurerm_virtual_machine" "source" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -506,7 +507,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.imagesFromVirtualMachinePrerequisitesWithImage(data), data.RandomInteger, image)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdate(data acceptance.TestData, version string) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdate(data acceptance.TestData, offer, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -523,7 +524,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "%s"
     sku       = "%s"
     version   = "latest"
   }
@@ -544,10 +545,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, offer, sku)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdateExternalRoll(data acceptance.TestData, version string) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesManualUpdateExternalRoll(data acceptance.TestData, offer, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -571,7 +572,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "%s"
     sku       = "%s"
     version   = "latest"
   }
@@ -592,10 +593,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, version)
+`, r.templateWithOutProvider(data), data.RandomInteger, offer, sku)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, version string) string {
+func (r LinuxVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, offer, sku string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -666,7 +667,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
+    offer     = "%s"
     sku       = "%s"
     version   = "latest"
   }
@@ -698,7 +699,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, offer, sku)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) imagesPlan(data acceptance.TestData, publisher string, offer string, sku string) string {

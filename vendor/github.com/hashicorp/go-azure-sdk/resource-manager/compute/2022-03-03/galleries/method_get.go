@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -35,6 +36,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,15 +52,15 @@ func (o GetOperationOptions) ToQuery() *client.QueryParams {
 }
 
 // Get ...
-func (c GalleriesClient) Get(ctx context.Context, id GalleryId, options GetOperationOptions) (result GetOperationResponse, err error) {
+func (c GalleriesClient) Get(ctx context.Context, id commonids.SharedImageGalleryId, options GetOperationOptions) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -76,7 +78,9 @@ func (c GalleriesClient) Get(ctx context.Context, id GalleryId, options GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Gallery
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

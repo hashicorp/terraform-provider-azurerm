@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VerifiedPartnerId{}
+func init() {
+	recaser.RegisterResourceId(&VerifiedPartnerId{})
+}
+
+var _ resourceids.ResourceId = &VerifiedPartnerId{}
 
 // VerifiedPartnerId is a struct representing the Resource ID for a Verified Partner
 type VerifiedPartnerId struct {
@@ -26,17 +31,15 @@ func NewVerifiedPartnerID(verifiedPartnerName string) VerifiedPartnerId {
 
 // ParseVerifiedPartnerID parses 'input' into a VerifiedPartnerId
 func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VerifiedPartnerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VerifiedPartnerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VerifiedPartnerId{}
-
-	if id.VerifiedPartnerName, ok = parsed.Parsed["verifiedPartnerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
 // ParseVerifiedPartnerIDInsensitively parses 'input' case-insensitively into a VerifiedPartnerId
 // note: this method should only be used for API response data and not user input
 func ParseVerifiedPartnerIDInsensitively(input string) (*VerifiedPartnerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VerifiedPartnerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VerifiedPartnerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VerifiedPartnerId{}
-
-	if id.VerifiedPartnerName, ok = parsed.Parsed["verifiedPartnerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VerifiedPartnerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.VerifiedPartnerName, ok = input.Parsed["verifiedPartnerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "verifiedPartnerName", input)
+	}
+
+	return nil
 }
 
 // ValidateVerifiedPartnerID checks that 'input' can be parsed as a Verified Partner ID
@@ -88,7 +99,7 @@ func (id VerifiedPartnerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticVerifiedPartners", "verifiedPartners", "verifiedPartners"),
-		resourceids.UserSpecifiedSegment("verifiedPartnerName", "verifiedPartnerValue"),
+		resourceids.UserSpecifiedSegment("verifiedPartnerName", "verifiedPartnerName"),
 	}
 }
 

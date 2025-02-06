@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationGroupId{}
+func init() {
+	recaser.RegisterResourceId(&ApplicationGroupId{})
+}
+
+var _ resourceids.ResourceId = &ApplicationGroupId{}
 
 // ApplicationGroupId is a struct representing the Resource ID for a Application Group
 type ApplicationGroupId struct {
@@ -30,25 +35,15 @@ func NewApplicationGroupID(subscriptionId string, resourceGroupName string, appl
 
 // ParseApplicationGroupID parses 'input' into a ApplicationGroupId
 func ParseApplicationGroupID(input string) (*ApplicationGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseApplicationGroupID(input string) (*ApplicationGroupId, error) {
 // ParseApplicationGroupIDInsensitively parses 'input' case-insensitively into a ApplicationGroupId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationGroupIDInsensitively(input string) (*ApplicationGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplicationGroupName, ok = parsed.Parsed["applicationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ApplicationGroupName, ok = input.Parsed["applicationGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationGroupID checks that 'input' can be parsed as a Application Group ID
@@ -112,7 +115,7 @@ func (id ApplicationGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticApplicationGroups", "applicationGroups", "applicationGroups"),
-		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupValue"),
+		resourceids.UserSpecifiedSegment("applicationGroupName", "applicationGroupName"),
 	}
 }
 

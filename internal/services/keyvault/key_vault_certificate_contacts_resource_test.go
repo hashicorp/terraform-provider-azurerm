@@ -102,6 +102,37 @@ func TestAccKeyVaultCertificateContacts_nonExistentVault(t *testing.T) {
 	})
 }
 
+func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
+	r := KeyVaultCertificateContactsResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.remove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("contact").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("contact").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.CertificateContactsID(state.ID)
 	if err != nil {
@@ -229,9 +260,7 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days = 7
 
   lifecycle {
-    ignore_changes = [
-      contact
-    ]
+    ignore_changes = [contact]
   }
 }
 
@@ -254,4 +283,19 @@ resource "azurerm_key_vault_access_policy" "test" {
   ]
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (r KeyVaultCertificateContactsResource) remove(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_certificate_contacts" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.test
+  ]
+}
+`, template)
 }

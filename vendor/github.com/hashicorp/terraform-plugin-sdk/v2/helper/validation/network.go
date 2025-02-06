@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validation
 
 import (
@@ -89,15 +92,15 @@ func IsCIDR(i interface{}, k string) (warnings []string, errors []error) {
 	}
 
 	if _, _, err := net.ParseCIDR(v); err != nil {
-		errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 Value, got %v: %v", k, i, err))
+		errors = append(errors, fmt.Errorf("expected %q to be a valid CIDR Value, got %v: %v", k, i, err))
 	}
 
 	return warnings, errors
 }
 
 // IsCIDRNetwork returns a SchemaValidateFunc which tests if the provided value
-// is of type string, is in valid Value network notation, and has significant bits between min and max (inclusive)
-func IsCIDRNetwork(min, max int) schema.SchemaValidateFunc {
+// is of type string, is in valid Value network notation, and has significant bits between minVal and maxVal (inclusive)
+func IsCIDRNetwork(minVal, maxVal int) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
@@ -117,8 +120,8 @@ func IsCIDRNetwork(min, max int) schema.SchemaValidateFunc {
 		}
 
 		sigbits, _ := ipnet.Mask.Size()
-		if sigbits < min || sigbits > max {
-			errors = append(errors, fmt.Errorf("expected %q to contain a network Value with between %d and %d significant bits, got: %d", k, min, max, sigbits))
+		if sigbits < minVal || sigbits > maxVal {
+			errors = append(errors, fmt.Errorf("expected %q to contain a network Value with between %d and %d significant bits, got: %d", k, minVal, maxVal, sigbits))
 		}
 
 		return warnings, errors

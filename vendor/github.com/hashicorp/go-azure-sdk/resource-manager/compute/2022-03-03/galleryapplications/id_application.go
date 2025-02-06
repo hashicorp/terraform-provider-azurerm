@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationId{}
+func init() {
+	recaser.RegisterResourceId(&ApplicationId{})
+}
+
+var _ resourceids.ResourceId = &ApplicationId{}
 
 // ApplicationId is a struct representing the Resource ID for a Application
 type ApplicationId struct {
@@ -32,29 +37,15 @@ func NewApplicationID(subscriptionId string, resourceGroupName string, galleryNa
 
 // ParseApplicationID parses 'input' into a ApplicationId
 func ParseApplicationID(input string) (*ApplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
-	}
-
-	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseApplicationID(input string) (*ApplicationId, error) {
 // ParseApplicationIDInsensitively parses 'input' case-insensitively into a ApplicationId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationIDInsensitively(input string) (*ApplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.GalleryName, ok = parsed.Parsed["galleryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "galleryName", *parsed)
-	}
-
-	if id.ApplicationName, ok = parsed.Parsed["applicationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.GalleryName, ok = input.Parsed["galleryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "galleryName", input)
+	}
+
+	if id.ApplicationName, ok = input.Parsed["applicationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationName", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationID checks that 'input' can be parsed as a Application ID
@@ -122,9 +121,9 @@ func (id ApplicationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticGalleries", "galleries", "galleries"),
-		resourceids.UserSpecifiedSegment("galleryName", "galleryValue"),
+		resourceids.UserSpecifiedSegment("galleryName", "galleryName"),
 		resourceids.StaticSegment("staticApplications", "applications", "applications"),
-		resourceids.UserSpecifiedSegment("applicationName", "applicationValue"),
+		resourceids.UserSpecifiedSegment("applicationName", "applicationName"),
 	}
 }
 

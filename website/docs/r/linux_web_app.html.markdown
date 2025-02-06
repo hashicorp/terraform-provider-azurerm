@@ -41,7 +41,7 @@ resource "azurerm_linux_web_app" "example" {
 
 ```
 
-## Arguments Reference
+## Argument Reference
 
 The following arguments are supported:
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_certificate_enabled` is `false`
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_certificate_enabled` is `false`. Defaults to `Required`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
@@ -79,9 +79,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
 
-* `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
-* `public_network_access_enabled` - Should public network access be enabled for the Web App. Defaults to `true`.
+* `https_only` - (Optional) Should the Linux Web App require HTTPS connections. Defaults to `false`.
+
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -99,8 +101,12 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
+
+~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
+
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
-			
+
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the Azure docs on [running the Web App directly from the Zip package](https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package), or [automating the build for Zip deploy](https://learn.microsoft.com/en-us/azure/app-service/deploy-zip#enable-build-automation-for-zip-deploy) for further details.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Web App.
@@ -133,7 +139,7 @@ An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Required) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include: `Off`, `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -150,7 +156,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0` and `7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0`, `8.0` and `9.0`.
 
 * `go_version` - (Optional) The version of Go to use. Possible values include `1.18`, and `1.19`.
 
@@ -160,21 +166,23 @@ An `application_stack` block supports the following:
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
-* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, and `17`.
+* `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, `17`, and `21`.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
+~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --os-type linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, and `18-lts`. This property conflicts with `java_version`.
+~> **NOTE:** `java_server`, `java_server_version`, and `java_version` must all be specified if building a java app
+
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, `18-lts` and `20-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `8.0`, `8.1` and `8.2`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2` and `8.3`.
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
 
-* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
+* `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
 
 ---
 
@@ -222,9 +230,9 @@ An `auth_settings_v2` block supports the following:
 
 * `runtime_version` - (Optional) The Runtime Version of the Authentication and Authorisation feature of this App. Defaults to `~1`.
 
-* `config_file_path` - (Optional) The path to the App Auth settings. 
+* `config_file_path` - (Optional) The path to the App Auth settings.
 
-* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -236,11 +244,13 @@ An `auth_settings_v2` block supports the following:
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
+
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
 * `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
 
-* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`.
+* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `NoProxy`, `Standard`, `Custom`. Defaults to `NoProxy`.
 
 * `forward_proxy_custom_host_header_name` - (Optional) The name of the custom header containing the host of the request.
 
@@ -264,7 +274,7 @@ An `auth_settings_v2` block supports the following:
 
 * `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
 
-* `login` - (Optional) A `login` block as defined below.
+* `login` - (Required) A `login` block as defined below.
 
 ---
 
@@ -286,7 +296,9 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
+
+~> **NOTE:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
@@ -294,13 +306,13 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
@@ -428,7 +440,7 @@ A `login` block supports the following:
 
 * `preserve_url_fragments_for_logins` - (Optional) Should the fragments from the request be preserved after the login request is made. Defaults to `false`.
 
-* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends. 
+* `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends.
 
 ~> **Note:** URLs within the current domain are always implicitly allowed.
 
@@ -484,7 +496,7 @@ A `connection_string` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) Specifies a list of origins that should be allowed to make cross-origin calls.
+* `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Whether CORS requests with credentials are allowed. Defaults to `false`
 
@@ -550,7 +562,7 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined below.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined above.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
 
@@ -576,7 +588,7 @@ An `identity` block supports the following:
 
 An `ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -591,6 +603,8 @@ An `ip_restriction` block supports the following:
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 ---
 
@@ -644,7 +658,7 @@ A `schedule` block supports the following:
 
 A `scm_ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -659,6 +673,8 @@ A `scm_ip_restriction` block supports the following:
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 ---
 
@@ -676,8 +692,6 @@ A `site_config` block supports the following:
 
 * `application_stack` - (Optional) A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - (Optional) Should Auto heal rules be enabled? Required with `auto_heal_setting`.
-
 * `auto_heal_setting` - (Optional) A `auto_heal_setting` block as defined above. Required with `auto_heal`.
 
 * `container_registry_managed_identity_client_id` - (Optional) The Client ID of the Managed Service Identity to use for connections to the Azure Container Registry.
@@ -688,7 +702,7 @@ A `site_config` block supports the following:
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
 
-* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`.
+* `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`. Defaults to `Disabled`.
 
 ~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
 
@@ -700,19 +714,23 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
 
-* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`.
+* `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include `Integrated`, and `Classic`. Defaults to `Integrated`.
 
-* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
@@ -736,6 +754,16 @@ A `slow_request` block supports the following:
 
 * `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
 
+---
+
+A `slow_request_with_path` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
 * `path` - (Optional) The path for which this slow request rule applies.
 
 ---
@@ -752,11 +780,11 @@ A `status_code` block supports the following:
 
 * `sub_status` - (Optional) The Request Sub Status of the Status Code.
 
-* `win32_status` - (Optional) The Win32 Status Code of the Request.
+* `win32_status_code` - (Optional) The Win32 Status Code of the Request.
 
 ---
 
-A `sticky_settings` block exports the following:
+A `sticky_settings` block supports the following:
 
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Web App will not swap between Slots when a swap operation is triggered.
 
@@ -784,7 +812,9 @@ A `trigger` block supports the following:
 
 * `requests` - (Optional) A `requests` block as defined above.
 
-* `slow_request` - (Optional) One or more `slow_request` blocks as defined above.
+* `slow_request` - (Optional) A `slow_request` blocks as defined above.
+
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 
 * `status_code` - (Optional) One or more `status_code` blocks as defined above.
 
@@ -816,7 +846,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`.
 
-* `possible_outbound_ip_address_list` - A `possible_outbound_ip_address_list` block as defined below.
+* `possible_outbound_ip_address_list` - A list of possible outbound ip address.
 
 * `possible_outbound_ip_addresses` - A comma-separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
@@ -832,7 +862,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_linux_web_app.example.identity[0].principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity[0].tenant_id`
 
 ---
 

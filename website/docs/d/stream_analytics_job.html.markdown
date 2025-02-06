@@ -58,6 +58,8 @@ output "job_id" {
 
 * `start_time` - The time at which this Stream Analytics Job was scheduled to start.
 
+* `sku_name` - The SKU Name to use for the Stream Analytics Job.
+
 * `streaming_units` - The number of streaming units that this Stream Analytics Job uses.
 
 * `transformation_query` - The query that will be run in this Stream Analytics Job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
@@ -65,6 +67,8 @@ output "job_id" {
 ---
 
 An `identity` block exports the following:
+
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this resource.
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 

@@ -43,7 +43,9 @@ func (c ApplicationDefinitionsClient) Get(ctx context.Context, id ApplicationDef
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationDefinition
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

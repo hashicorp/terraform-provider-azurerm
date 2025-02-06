@@ -19,7 +19,20 @@ type ListByFluidRelayServersOperationResponse struct {
 }
 
 type ListByFluidRelayServersCompleteResult struct {
-	Items []FluidRelayContainer
+	LatestHttpResponse *http.Response
+	Items              []FluidRelayContainer
+}
+
+type ListByFluidRelayServersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByFluidRelayServersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByFluidRelayServers ...
@@ -30,6 +43,7 @@ func (c FluidRelayContainersClient) ListByFluidRelayServers(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByFluidRelayServersCustomPager{},
 		Path:       fmt.Sprintf("%s/fluidRelayContainers", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c FluidRelayContainersClient) ListByFluidRelayServersCompleteMatchingPredi
 
 	resp, err := c.ListByFluidRelayServers(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c FluidRelayContainersClient) ListByFluidRelayServersCompleteMatchingPredi
 	}
 
 	result = ListByFluidRelayServersCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

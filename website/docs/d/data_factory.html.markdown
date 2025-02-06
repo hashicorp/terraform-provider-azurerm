@@ -57,7 +57,7 @@ A `github_configuration` block exports the following:
 
 - `branch_name` - The branch of the repository to get code from.
 
-- `git_url` - The GitHub Enterprise host name.
+- `git_url` - The GitHub repository url.
 
 - `repository_name` - The name of the git repository.
 

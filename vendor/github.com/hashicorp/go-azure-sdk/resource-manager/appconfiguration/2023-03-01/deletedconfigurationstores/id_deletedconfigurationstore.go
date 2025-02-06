@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedConfigurationStoreId{}
+func init() {
+	recaser.RegisterResourceId(&DeletedConfigurationStoreId{})
+}
+
+var _ resourceids.ResourceId = &DeletedConfigurationStoreId{}
 
 // DeletedConfigurationStoreId is a struct representing the Resource ID for a Deleted Configuration Store
 type DeletedConfigurationStoreId struct {
@@ -30,25 +35,15 @@ func NewDeletedConfigurationStoreID(subscriptionId string, locationName string, 
 
 // ParseDeletedConfigurationStoreID parses 'input' into a DeletedConfigurationStoreId
 func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedConfigurationStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedConfigurationStoreId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 // ParseDeletedConfigurationStoreIDInsensitively parses 'input' case-insensitively into a DeletedConfigurationStoreId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedConfigurationStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedConfigurationStoreId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedConfigurationStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedConfigurationStoreName, ok = parsed.Parsed["deletedConfigurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeletedConfigurationStoreId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.DeletedConfigurationStoreName, ok = input.Parsed["deletedConfigurationStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deletedConfigurationStoreName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeletedConfigurationStoreID checks that 'input' can be parsed as a Deleted Configuration Store ID
@@ -110,9 +113,9 @@ func (id DeletedConfigurationStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppConfiguration", "Microsoft.AppConfiguration", "Microsoft.AppConfiguration"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDeletedConfigurationStores", "deletedConfigurationStores", "deletedConfigurationStores"),
-		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "deletedConfigurationStoreValue"),
+		resourceids.UserSpecifiedSegment("deletedConfigurationStoreName", "deletedConfigurationStoreName"),
 	}
 }
 

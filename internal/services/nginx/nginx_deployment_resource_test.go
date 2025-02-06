@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,6 +39,9 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("10"),
+				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
+				check.That(data.ResourceName).Key("dataplane_api_endpoint").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -66,12 +69,26 @@ func TestAccNginxDeployment_update(t *testing.T) {
 	})
 }
 
-func TestAccNginxDeployment_identity(t *testing.T) {
+func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identityUser(data),
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNginxDeployment_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,11 +104,12 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -100,8 +118,99 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
+
   tags = {
     foo = "bar"
+  }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a DeploymentResource) basicAutoscaling(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  auto_scale_profile {
+    name         = "test"
+    min_capacity = 10
+    max_capacity = 30
+  }
+
+  email = "test@test.com"
+
+  tags = {
+    foo = "bar"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      capacity,
+    ]
+  }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a DeploymentResource) basicAutoscaling_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  auto_scale_profile {
+    name         = "test"
+    min_capacity = 10
+    max_capacity = 20
+  }
+
+  email = "test@test.com"
+
+  tags = {
+    foo = "bar"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      capacity,
+    ]
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -116,7 +225,7 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
+  sku                      = "standardv2_Monthly"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = false
 
@@ -128,6 +237,10 @@ resource "azurerm_nginx_deployment" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 
+  capacity = 20
+
+  email = "testing@test.com"
+
   tags = {
     foo = "bar2"
   }
@@ -135,7 +248,38 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a DeploymentResource) identityUser(data acceptance.TestData) string {
+func (a DeploymentResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv2_Monthly"
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  capacity = 10
+
+  email = "test@test.com"
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -150,7 +294,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_Monthly"
+  sku                 = "standardv2_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {
@@ -165,6 +309,10 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
 }
@@ -217,4 +365,41 @@ resource "azurerm_subnet" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func TestAccNginxDeployment_autoscaling(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAutoscaling(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.name").HasValue("test"),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.min_capacity").HasValue("10"),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.max_capacity").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicAutoscaling_update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.name").HasValue("test"),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.min_capacity").HasValue("10"),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.max_capacity").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.name").DoesNotExist(),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.min_capacity").DoesNotExist(),
+				check.That(data.ResourceName).Key("auto_scale_profile.0.max_capacity").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
 }

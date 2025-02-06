@@ -27,7 +27,6 @@ func TestPrivateLinkHubID(t *testing.T) {
 		Error    bool
 		Expected *PrivateLinkHubId
 	}{
-
 		{
 			// empty
 			Input: "",

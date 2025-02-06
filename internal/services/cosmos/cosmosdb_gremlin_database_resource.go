@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -156,11 +156,11 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			if response.WasNotFound(throughputFuture.HttpResponse) {
 				return fmt.Errorf("setting Throughput for Cosmos Gremlin Database %q (Account: %q): %+v - "+
-					"If the collection has not been created with and initial throughput, you cannot configure it later.", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+					"If the collection has not been created with and initial throughput, you cannot configure it later", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 			}
 		}
 
-		if err := throughputFuture.Poller.PollUntilDone(); err != nil {
+		if err := throughputFuture.Poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Gremlin Database %q (Account: %q, Database %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
 	}
@@ -236,15 +236,9 @@ func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	future, err := client.GremlinResourcesDeleteGremlinDatabase(ctx, *id)
+	err = client.GremlinResourcesDeleteGremlinDatabaseThenPoll(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
-		}
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on delete future for Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return nil

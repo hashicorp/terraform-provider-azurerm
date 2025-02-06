@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2022-10-12/filesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/validate"
@@ -19,8 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = FileSystemResource{}
-var _ sdk.ResourceWithUpdate = FileSystemResource{}
+var (
+	_ sdk.Resource           = FileSystemResource{}
+	_ sdk.ResourceWithUpdate = FileSystemResource{}
+)
 
 const (
 	offerId     = "qumulo-saas-mpp"
@@ -284,27 +287,26 @@ func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceM
 		delegationAction = "Microsoft.Network/virtualNetworks/subnets/join/action"
 		delegationName   = "Qumulo.Storage/fileSystems"
 	)
-	subnetClient := metadata.Client.Network.SubnetsClient
+
 	subnetId, err := commonids.ParseSubnetID(rawSubnetId)
 	if err != nil {
 		return err
 	}
 
-	subnet, err := subnetClient.Get(ctx, subnetId.ResourceGroupName, subnetId.VirtualNetworkName, subnetId.SubnetName, "")
+	subnet, err := metadata.Client.Network.Subnets.Get(ctx, *subnetId, subnets.GetOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("checking the subnet: %+v", err)
 	}
 
-	if subnet.SubnetPropertiesFormat != nil && subnet.Delegations != nil {
-		for _, delegation := range *subnet.Delegations {
-			if delegation.ServiceDelegationPropertiesFormat != nil && delegation.ServiceDelegationPropertiesFormat.Actions != nil &&
-				delegation.ServiceDelegationPropertiesFormat.ServiceName != nil && strings.EqualFold(*delegation.ServiceDelegationPropertiesFormat.ServiceName, delegationName) {
-				for _, action := range *delegation.ServiceDelegationPropertiesFormat.Actions {
+	if subnet.Model != nil && subnet.Model.Properties != nil && subnet.Model.Properties.Delegations != nil {
+		for _, delegation := range *subnet.Model.Properties.Delegations {
+			if delegation.Properties != nil && delegation.Properties.Actions != nil &&
+				delegation.Properties.ServiceName != nil && strings.EqualFold(*delegation.Properties.ServiceName, delegationName) {
+				for _, action := range *delegation.Properties.Actions {
 					if strings.EqualFold(action, delegationAction) {
 						return nil
 					}
 				}
-
 			}
 		}
 	}

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualNetworkLinkId{}
+func init() {
+	recaser.RegisterResourceId(&VirtualNetworkLinkId{})
+}
+
+var _ resourceids.ResourceId = &VirtualNetworkLinkId{}
 
 // VirtualNetworkLinkId is a struct representing the Resource ID for a Virtual Network Link
 type VirtualNetworkLinkId struct {
@@ -32,29 +37,15 @@ func NewVirtualNetworkLinkID(subscriptionId string, resourceGroupName string, dn
 
 // ParseVirtualNetworkLinkID parses 'input' into a VirtualNetworkLinkId
 func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkLinkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
-	}
-
-	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
 // ParseVirtualNetworkLinkIDInsensitively parses 'input' case-insensitively into a VirtualNetworkLinkId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualNetworkLinkIDInsensitively(input string) (*VirtualNetworkLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkLinkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualNetworkLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
-	}
-
-	if id.VirtualNetworkLinkName, ok = parsed.Parsed["virtualNetworkLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualNetworkLinkId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DnsForwardingRulesetName, ok = input.Parsed["dnsForwardingRulesetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", input)
+	}
+
+	if id.VirtualNetworkLinkName, ok = input.Parsed["virtualNetworkLinkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualNetworkLinkName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualNetworkLinkID checks that 'input' can be parsed as a Virtual Network Link ID
@@ -122,9 +121,9 @@ func (id VirtualNetworkLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsForwardingRulesets", "dnsForwardingRulesets", "dnsForwardingRulesets"),
-		resourceids.UserSpecifiedSegment("dnsForwardingRulesetName", "dnsForwardingRulesetValue"),
+		resourceids.UserSpecifiedSegment("dnsForwardingRulesetName", "dnsForwardingRulesetName"),
 		resourceids.StaticSegment("staticVirtualNetworkLinks", "virtualNetworkLinks", "virtualNetworkLinks"),
-		resourceids.UserSpecifiedSegment("virtualNetworkLinkName", "virtualNetworkLinkValue"),
+		resourceids.UserSpecifiedSegment("virtualNetworkLinkName", "virtualNetworkLinkName"),
 	}
 }
 

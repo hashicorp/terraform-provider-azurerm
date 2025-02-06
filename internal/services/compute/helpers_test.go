@@ -7,31 +7,31 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 )
 
 func TestSortVersions_valid(t *testing.T) {
 	testData := []struct {
-		input    []compute.GalleryImageVersion
-		expected []compute.GalleryImageVersion
+		input    []galleryimageversions.GalleryImageVersion
+		expected []galleryimageversions.GalleryImageVersion
 	}{
 		{
-			input: []compute.GalleryImageVersion{
-				{Name: utils.String("1.0.1")},
-				{Name: utils.String("1.2.15.0")},
-				{Name: utils.String("1.0.8")},
-				{Name: utils.String("1.0.9")},
-				{Name: utils.String("1.0.1.1")},
-				{Name: utils.String("1.0.10")},
+			input: []galleryimageversions.GalleryImageVersion{
+				{Name: pointer.To("1.0.1")},
+				{Name: pointer.To("1.2.15.0")},
+				{Name: pointer.To("1.0.8")},
+				{Name: pointer.To("1.0.9")},
+				{Name: pointer.To("1.0.1.1")},
+				{Name: pointer.To("1.0.10")},
 			},
-			expected: []compute.GalleryImageVersion{
-				{Name: utils.String("1.0.1")},
-				{Name: utils.String("1.0.1.1")},
-				{Name: utils.String("1.0.8")},
-				{Name: utils.String("1.0.9")},
-				{Name: utils.String("1.0.10")},
-				{Name: utils.String("1.2.15.0")},
+			expected: []galleryimageversions.GalleryImageVersion{
+				{Name: pointer.To("1.0.1")},
+				{Name: pointer.To("1.0.1.1")},
+				{Name: pointer.To("1.0.8")},
+				{Name: pointer.To("1.0.9")},
+				{Name: pointer.To("1.0.10")},
+				{Name: pointer.To("1.2.15.0")},
 			},
 		},
 	}
@@ -51,27 +51,27 @@ func TestSortVersions_valid(t *testing.T) {
 
 func TestSortVersions_invalid(t *testing.T) {
 	testData := []struct {
-		input    []compute.GalleryImageVersion
-		expected []compute.GalleryImageVersion
+		input    []galleryimageversions.GalleryImageVersion
+		expected []galleryimageversions.GalleryImageVersion
 	}{
 		{
-			input: []compute.GalleryImageVersion{
-				{Name: utils.String("1.0.1")},
-				{Name: utils.String("1.2.15.0")},
-				{Name: utils.String("1.0.8")},
-				{Name: utils.String("1.0.9")},
-				{Name: utils.String("1.0.1.1")},
-				{Name: utils.String("1.0.10")},
-				{Name: utils.String("latest")},
+			input: []galleryimageversions.GalleryImageVersion{
+				{Name: pointer.To("1.0.1")},
+				{Name: pointer.To("1.2.15.0")},
+				{Name: pointer.To("1.0.8")},
+				{Name: pointer.To("1.0.9")},
+				{Name: pointer.To("1.0.1.1")},
+				{Name: pointer.To("1.0.10")},
+				{Name: pointer.To("latest")},
 			},
-			expected: []compute.GalleryImageVersion{
-				{Name: utils.String("1.0.1")},
-				{Name: utils.String("1.2.15.0")},
-				{Name: utils.String("1.0.8")},
-				{Name: utils.String("1.0.9")},
-				{Name: utils.String("1.0.1.1")},
-				{Name: utils.String("1.0.10")},
-				{Name: utils.String("latest")},
+			expected: []galleryimageversions.GalleryImageVersion{
+				{Name: pointer.To("1.0.1")},
+				{Name: pointer.To("1.2.15.0")},
+				{Name: pointer.To("1.0.8")},
+				{Name: pointer.To("1.0.9")},
+				{Name: pointer.To("1.0.1.1")},
+				{Name: pointer.To("1.0.10")},
+				{Name: pointer.To("latest")},
 			},
 		},
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +20,7 @@ import (
 )
 
 func dataSourceServiceBusNamespace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -50,6 +50,11 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"premium_messaging_partitions": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"default_primary_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -74,11 +79,6 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -87,6 +87,8 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 			"tags": tags.SchemaDataSource(),
 		},
 	}
+
+	return resource
 }
 
 func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -116,7 +118,7 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props := model.Properties; props != nil {
-			d.Set("zone_redundant", props.ZoneRedundant)
+			d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
 			d.Set("endpoint", props.ServiceBusEndpoint)
 		}
 	}

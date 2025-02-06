@@ -171,7 +171,7 @@ A `node_type` block supports the following:
 
 * `capacities` - (Optional) Specifies a list of key/value pairs used to set capacity tags for this node type.
 
-* `data_disk_type` - (Optional) The type of the disk to use for storing data. It can be one of `Premium_LRS`, `Standard_LRS`, or `StandardSSD_LRS`.
+* `data_disk_type` - (Optional) The type of the disk to use for storing data. It can be one of `Premium_LRS`, `Standard_LRS`, or `StandardSSD_LRS`. Defaults to `Standard_LRS`.
 
 * `multiple_placement_groups_enabled` - (Optional) If set the node type can be composed of multiple placement groups.
 

@@ -30,6 +30,12 @@ resource "azurerm_api_management_api_operation" "example" {
   url_template        = "/users/{id}/delete"
   description         = "This can only be done by the logged in user."
 
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
   response {
     status_code = 200
   }
@@ -62,7 +68,7 @@ The following arguments are supported:
 
 * `response` - (Optional) One or more `response` blocks as defined below.
 
-* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below.
+* `template_parameter` - (Optional) One or more `template_parameter` blocks as defined below. Required if `url_template` contains one or more parameters.
 
 ---
 
@@ -186,7 +192,7 @@ A `response` block supports the following:
 
 * `header` - (Optional) One or more `header` blocks as defined above.
 
-* `representation` - (Optional) One or more `representation` blocks as defined below.
+* `representation` - (Optional) One or more `representation` blocks as defined above.
 
 ---
 

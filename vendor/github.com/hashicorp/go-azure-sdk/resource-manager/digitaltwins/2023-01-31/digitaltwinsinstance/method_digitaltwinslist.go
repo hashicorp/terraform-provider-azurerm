@@ -20,7 +20,20 @@ type DigitalTwinsListOperationResponse struct {
 }
 
 type DigitalTwinsListCompleteResult struct {
-	Items []DigitalTwinsDescription
+	LatestHttpResponse *http.Response
+	Items              []DigitalTwinsDescription
+}
+
+type DigitalTwinsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DigitalTwinsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // DigitalTwinsList ...
@@ -31,6 +44,7 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsList(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DigitalTwinsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListCompleteMatchingPredicate(ct
 
 	resp, err := c.DigitalTwinsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListCompleteMatchingPredicate(ct
 	}
 
 	result = DigitalTwinsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

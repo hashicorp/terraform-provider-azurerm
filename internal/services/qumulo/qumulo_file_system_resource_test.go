@@ -113,7 +113,7 @@ resource "azurerm_qumulo_file_system" "test" {
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
   initial_capacity    = 21
-  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
+  marketplace_plan_id = "azure-native-qumulo-v3"
   storage_sku         = "Standard"
   subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"
@@ -131,7 +131,7 @@ resource "azurerm_qumulo_file_system" "test" {
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
   initial_capacity    = 21
-  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
+  marketplace_plan_id = "azure-native-qumulo-v3"
   storage_sku         = "Standard"
   subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"
@@ -171,7 +171,7 @@ resource "azurerm_qumulo_file_system" "test" {
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
   initial_capacity    = 21
-  marketplace_plan_id = "qumulo-on-azure-v1%%%%gmz7xq9ge3py%%%%P1M"
+  marketplace_plan_id = "azure-native-qumulo-v3"
   storage_sku         = "Performance"
   subnet_id           = azurerm_subnet.test.id
   user_email_address  = "test@test.com"

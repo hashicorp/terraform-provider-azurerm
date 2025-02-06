@@ -15,16 +15,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelDirectLineSpeechResource struct{}
 
-func testAccBotChannelDirectLineSpeech_basic(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -39,11 +39,11 @@ func testAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -58,11 +58,11 @@ func testAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_complete(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -77,11 +77,11 @@ func testAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_update(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -171,6 +171,7 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
   resource_group_name          = azurerm_resource_group.test.name
+  cognitive_account_id         = azurerm_cognitive_account.test.id
   cognitive_service_location   = azurerm_cognitive_account.test.location
   cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
   custom_speech_model_id       = "a9316355-7b04-4468-9f6e-114419e6c9cc"
@@ -206,6 +207,7 @@ resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
   resource_group_name          = azurerm_resource_group.test.name
+  cognitive_account_id         = azurerm_cognitive_account.test2.id
   cognitive_service_location   = azurerm_cognitive_account.test2.location
   cognitive_service_access_key = azurerm_cognitive_account.test2.primary_access_key
   custom_speech_model_id       = "cf7a4202-9be3-4195-9619-5a747260626d"

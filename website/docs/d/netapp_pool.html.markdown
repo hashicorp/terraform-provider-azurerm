@@ -44,6 +44,8 @@ The following attributes are exported:
 
 * `size_in_tb` - Provisioned size of the pool in TB.
 
+* `encryption_type` - The encryption type of the pool.
+
 ---
 
 ## Timeouts

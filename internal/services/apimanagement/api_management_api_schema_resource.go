@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apischema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -108,7 +108,7 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	parameters := apischema.SchemaContract{
 		Properties: &apischema.SchemaContractProperties{
 			ContentType: d.Get("content_type").(string),
-			Document:    &apischema.SchemaDocumentProperties{},
+			Document:    apischema.SchemaDocumentProperties{},
 		},
 	}
 
@@ -117,11 +117,21 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("components"); ok {
-		parameters.Properties.Document.Components = pointer.To(v)
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Components = pointer.To(value)
 	}
 
 	if v, ok := d.GetOk("definitions"); ok {
-		parameters.Properties.Document.Definitions = pointer.To(v)
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Definitions = pointer.To(value)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {
@@ -161,26 +171,25 @@ func resourceApiManagementApiSchemaRead(d *pluginsdk.ResourceData, meta interfac
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("content_type", props.ContentType)
-			if documentProperties := props.Document; documentProperties != nil {
-				if documentProperties.Value != nil {
-					d.Set("value", pointer.From(documentProperties.Value))
-				}
+			documentProperties := props.Document
+			if documentProperties.Value != nil {
+				d.Set("value", pointer.From(documentProperties.Value))
+			}
 
-				if documentProperties.Components != nil {
-					value, err := convert2Str(pointer.From(documentProperties.Components))
-					if err != nil {
-						return err
-					}
-					d.Set("components", value)
+			if documentProperties.Components != nil {
+				value, err := convert2Str(pointer.From(documentProperties.Components))
+				if err != nil {
+					return err
 				}
+				d.Set("components", value)
+			}
 
-				if documentProperties.Definitions != nil {
-					value, err := convert2Str(documentProperties.Definitions)
-					if err != nil {
-						return err
-					}
-					d.Set("definitions", value)
+			if documentProperties.Definitions != nil {
+				value, err := convert2Str(documentProperties.Definitions)
+				if err != nil {
+					return err
 				}
+				d.Set("definitions", value)
 			}
 		}
 	}
@@ -207,7 +216,7 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 }
 
 func convert2Str(rawVal interface{}) (string, error) {
-	value := ""
+	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val
 	} else {

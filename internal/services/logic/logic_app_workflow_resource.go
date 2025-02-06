@@ -654,9 +654,15 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}, paramDefs ma
 			value = v
 		}
 
-		output[k] = workflows.WorkflowParameter{
-			Type:  &t,
-			Value: &value,
+		if k == "$connections" {
+			output[k] = workflows.WorkflowParameter{
+				Value: &value,
+			}
+		} else {
+			output[k] = workflows.WorkflowParameter{
+				Type:  &t,
+				Value: &value,
+			}
 		}
 	}
 
@@ -925,7 +931,7 @@ func flattenIPAddresses(input *[]workflows.IPAddress) []interface{} {
 		return []interface{}{}
 	}
 
-	var addresses []interface{}
+	addresses := make([]interface{}, 0, len(*input))
 	for _, addr := range *input {
 		addresses = append(addresses, *addr.Address)
 	}

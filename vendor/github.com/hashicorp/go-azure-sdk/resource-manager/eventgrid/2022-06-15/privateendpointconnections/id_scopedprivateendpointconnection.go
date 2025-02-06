@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedPrivateEndpointConnectionId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedPrivateEndpointConnectionId{})
+}
+
+var _ resourceids.ResourceId = &ScopedPrivateEndpointConnectionId{}
 
 // ScopedPrivateEndpointConnectionId is a struct representing the Resource ID for a Scoped Private Endpoint Connection
 type ScopedPrivateEndpointConnectionId struct {
@@ -28,21 +33,15 @@ func NewScopedPrivateEndpointConnectionID(scope string, privateEndpointConnectio
 
 // ParseScopedPrivateEndpointConnectionID parses 'input' into a ScopedPrivateEndpointConnectionId
 func ParseScopedPrivateEndpointConnectionID(input string) (*ScopedPrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedPrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedPrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateEndpointConnectionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedPrivateEndpointConnectionID(input string) (*ScopedPrivateEndpoin
 // ParseScopedPrivateEndpointConnectionIDInsensitively parses 'input' case-insensitively into a ScopedPrivateEndpointConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedPrivateEndpointConnectionIDInsensitively(input string) (*ScopedPrivateEndpointConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedPrivateEndpointConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedPrivateEndpointConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPrivateEndpointConnectionId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PrivateEndpointConnectionName, ok = parsed.Parsed["privateEndpointConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedPrivateEndpointConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.PrivateEndpointConnectionName, ok = input.Parsed["privateEndpointConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateEndpointConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedPrivateEndpointConnectionID checks that 'input' can be parsed as a Scoped Private Endpoint Connection ID
@@ -97,7 +104,7 @@ func (id ScopedPrivateEndpointConnectionId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.ScopeSegment("scope", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

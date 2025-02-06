@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -201,22 +202,46 @@ func retrieveLogicAppAction(d *pluginsdk.ResourceData, meta interface{}, id work
 	return retrieveLogicAppComponent(d, meta, "Action", "actions", id, name)
 }
 
-func retrieveLogicAppHttpTrigger(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*map[string]interface{}, *workflows.Workflow, *string, error) {
+func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*map[string]interface{}, *workflows.Workflow, *string, error) {
 	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
 
-	t, app, err := retrieveLogicAppTrigger(d, meta, workflowId, id.TriggerName)
+	t, app, err := retrieveLogicAppComponent(d, meta, "Trigger", "triggers", workflowId, id.TriggerName)
+
 	if err != nil || t == nil {
 		return nil, nil, nil, err
 	}
-	url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, id)
-	if err != nil {
-		return nil, nil, nil, err
+
+	trigger := *t
+	tType := trigger["type"]
+	if tType == nil {
+		return nil, nil, nil, fmt.Errorf("[ERROR] `type` was nil for %s", id.ID())
 	}
-	return t, app, url, err
+
+	log.Printf("[DEBUG] trigger type is %s", tType.(string))
+
+	if IsCallbackType(tType.(string)) {
+		url, err := retreiveLogicAppTriggerCallbackUrl(d, meta, id)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		if url == nil {
+			return nil, nil, nil, fmt.Errorf("[ERROR] `callback_url` was nil for %s", id.ID())
+		}
+
+		return t, app, url, err
+	}
+
+	return t, app, nil, err
 }
 
-func retrieveLogicAppTrigger(d *pluginsdk.ResourceData, meta interface{}, id workflows.WorkflowId, name string) (*map[string]interface{}, *workflows.Workflow, error) {
-	return retrieveLogicAppComponent(d, meta, "Trigger", "triggers", id, name)
+func IsCallbackType(tType string) bool {
+	cTypes := []string{"ApiConnectionWebhook", "HTTPWebhook", "Request"}
+
+	valid := validation.StringInSlice(cTypes, false)
+	_, errors := valid(tType, "callback_url")
+
+	return len(errors) == 0
 }
 
 func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*string, error) {
@@ -230,7 +255,7 @@ func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interfac
 	locks.ByName(id.WorkflowName, logicAppResourceName)
 	defer locks.UnlockByName(id.WorkflowName, logicAppResourceName)
 
-	result, err := client.TriggersClient.ListCallbackUrl(ctx, id)
+	result, err := client.TriggersClient.ListCallbackURL(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Error getting trigger callback URL (%w)", err)
 	}

@@ -20,7 +20,8 @@ type ListByScopeOperationResponse struct {
 }
 
 type ListByScopeCompleteResult struct {
-	Items []ManagementLockObject
+	LatestHttpResponse *http.Response
+	Items              []ManagementLockObject
 }
 
 type ListByScopeOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListByScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +52,18 @@ func (o ListByScopeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByScope ...
 func (c ManagementLocksClient) ListByScope(ctx context.Context, id commonids.ScopeId, options ListByScopeOperationOptions) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +72,9 @@ func (c ManagementLocksClient) ListByScope(ctx context.Context, id commonids.Sco
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByScopeCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/locks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +115,7 @@ func (c ManagementLocksClient) ListByScopeCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByScope(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +128,8 @@ func (c ManagementLocksClient) ListByScopeCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -14,7 +17,6 @@ type ApiManagementApiOperationPolicyV0ToV1 struct{}
 
 func (ApiManagementApiOperationPolicyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,

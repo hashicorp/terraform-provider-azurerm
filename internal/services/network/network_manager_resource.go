@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -108,6 +109,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkmanagers.ConfigurationTypeConnectivity),
+					string(networkmanagers.ConfigurationTypeRouting),
 					string(networkmanagers.ConfigurationTypeSecurityAdmin),
 				}, false),
 			},
@@ -226,19 +228,20 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 			properties := resp.Model.Properties
 			var description string
 			var scope []ManagerScopeModel
-			var ScopeAccesses []string
+			var scopeAccesses []string
 			if properties.Description != nil {
 				description = *properties.Description
 			}
 			scope = flattenNetworkManagerScope(properties.NetworkManagerScopes)
-			ScopeAccesses = flattenNetworkManagerScopeAccesses(properties.NetworkManagerScopeAccesses)
+			scopeAccesses = flattenNetworkManagerScopeAccesses(properties.NetworkManagerScopeAccesses)
 
 			return metadata.Encode(&ManagerModel{
+				CrossTenantScopes: flattenNetworkManagerCrossTenantScopes(properties.NetworkManagerScopes.CrossTenantScopes),
 				Description:       description,
 				Location:          location.NormalizeNilable(resp.Model.Location),
 				Name:              id.NetworkManagerName,
 				ResourceGroupName: id.ResourceGroupName,
-				ScopeAccesses:     ScopeAccesses,
+				ScopeAccesses:     scopeAccesses,
 				Scope:             scope,
 				Tags:              utils.FlattenPtrMapStringString(resp.Model.Tags),
 			})
@@ -332,12 +335,12 @@ func expandNetworkManagerScope(input []ManagerScopeModel) networkmanagers.Networ
 	}
 }
 
-func expandNetworkManagerScopeAccesses(input []string) []networkmanagers.ConfigurationType {
+func expandNetworkManagerScopeAccesses(input []string) *[]networkmanagers.ConfigurationType {
 	result := make([]networkmanagers.ConfigurationType, 0)
 	for _, v := range input {
 		result = append(result, networkmanagers.ConfigurationType(v))
 	}
-	return result
+	return &result
 }
 
 func flattenStringSlicePtr(input *[]string) []string {
@@ -354,10 +357,30 @@ func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNe
 	}}
 }
 
-func flattenNetworkManagerScopeAccesses(input []networkmanagers.ConfigurationType) []string {
-	var result []string
-	for _, v := range input {
+func flattenNetworkManagerScopeAccesses(input *[]networkmanagers.ConfigurationType) []string {
+	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, v := range *input {
 		result = append(result, string(v))
 	}
 	return result
+}
+
+func flattenNetworkManagerCrossTenantScopes(input *[]networkmanagers.CrossTenantScopes) []ManagerCrossTenantScopeModel {
+	if input == nil {
+		return make([]ManagerCrossTenantScopeModel, 0)
+	}
+
+	results := make([]ManagerCrossTenantScopeModel, 0, len(*input))
+	for _, v := range *input {
+		results = append(results, ManagerCrossTenantScopeModel{
+			TenantId:         pointer.From(v.TenantId),
+			ManagementGroups: flattenStringSlicePtr(v.ManagementGroups),
+			Subscriptions:    flattenStringSlicePtr(v.Subscriptions),
+		})
+	}
+	return results
 }

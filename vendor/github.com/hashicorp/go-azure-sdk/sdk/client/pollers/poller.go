@@ -108,7 +108,7 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 	go func() {
 		connectionDropCounter := 0
 		retryDuration := p.initialDelayDuration
-		for true {
+		for {
 			// determine the next retry duration / how long to poll for
 			if p.latestResponse != nil {
 				retryDuration = p.latestResponse.PollInterval
@@ -129,7 +129,7 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 				// connection drops can either have no response/error (where we have no context)
 				connectionHasBeenDropped = true
 			} else if _, ok := p.latestError.(PollingDroppedConnectionError); ok {
-				// or have an error with more details (e.g. server not found, connection reset etc)
+				// or have an error with more details (e.g. server not found, connection reset etc.)
 				connectionHasBeenDropped = true
 			}
 			if connectionHasBeenDropped {
@@ -210,4 +210,16 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 	}
 
 	return p.latestError
+}
+
+// FinalResult attempts to unmarshal the final result into the provided model
+// model should be a pointer to the type you wish to unmarshal into
+func (p *Poller) FinalResult(model interface{}) error {
+	if latestResponse := p.LatestResponse(); latestResponse != nil {
+		if err := latestResponse.Unmarshal(model); err != nil {
+			return fmt.Errorf("unmarshalling latest response: %+v", err)
+		}
+	}
+
+	return nil
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/administrators"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,7 +24,6 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePostgresqlFlexibleServerAdministratorCreate,
 		Read:   resourcePostgresqlFlexibleServerAdministratorRead,
-		Update: nil,
 		Delete: resourcePostgresqlFlexibleServerAdministratorDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := administrators.ParseAdministratorID(id)
@@ -34,7 +33,6 @@ func resourcePostgresqlFlexibleServerAdministrator() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -136,7 +134,6 @@ func resourcePostgresqlFlexibleServerAdministratorRead(d *pluginsdk.ResourceData
 	}
 
 	resp, err := client.Get(ctx, *id)
-
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = WorkbookTemplateId{}
+func init() {
+	recaser.RegisterResourceId(&WorkbookTemplateId{})
+}
+
+var _ resourceids.ResourceId = &WorkbookTemplateId{}
 
 // WorkbookTemplateId is a struct representing the Resource ID for a Workbook Template
 type WorkbookTemplateId struct {
@@ -30,25 +35,15 @@ func NewWorkbookTemplateID(subscriptionId string, resourceGroupName string, work
 
 // ParseWorkbookTemplateID parses 'input' into a WorkbookTemplateId
 func ParseWorkbookTemplateID(input string) (*WorkbookTemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WorkbookTemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&WorkbookTemplateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := WorkbookTemplateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkbookTemplateName, ok = parsed.Parsed["workbookTemplateName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workbookTemplateName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseWorkbookTemplateID(input string) (*WorkbookTemplateId, error) {
 // ParseWorkbookTemplateIDInsensitively parses 'input' case-insensitively into a WorkbookTemplateId
 // note: this method should only be used for API response data and not user input
 func ParseWorkbookTemplateIDInsensitively(input string) (*WorkbookTemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WorkbookTemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&WorkbookTemplateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := WorkbookTemplateId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkbookTemplateName, ok = parsed.Parsed["workbookTemplateName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workbookTemplateName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *WorkbookTemplateId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkbookTemplateName, ok = input.Parsed["workbookTemplateName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workbookTemplateName", input)
+	}
+
+	return nil
 }
 
 // ValidateWorkbookTemplateID checks that 'input' can be parsed as a Workbook Template ID
@@ -112,7 +115,7 @@ func (id WorkbookTemplateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticWorkbookTemplates", "workbookTemplates", "workbookTemplates"),
-		resourceids.UserSpecifiedSegment("workbookTemplateName", "workbookTemplateValue"),
+		resourceids.UserSpecifiedSegment("workbookTemplateName", "workbookTemplateName"),
 	}
 }
 

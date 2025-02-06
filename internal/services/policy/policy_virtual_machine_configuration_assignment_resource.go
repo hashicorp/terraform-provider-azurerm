@@ -11,13 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -62,7 +61,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentSchema() map[string]*plu
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: computeValidate.VirtualMachineID,
+			ValidateFunc: commonids.ValidateVirtualMachineID,
 		},
 
 		"configuration": {
@@ -131,12 +130,12 @@ func resourcePolicyVirtualMachineConfigurationAssignmentCreateUpdate(d *pluginsd
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := computeParse.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	vmId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroup, vmId.Name, d.Get("name").(string))
+	id := guestconfigurationassignments.NewProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -200,7 +199,7 @@ func resourcePolicyVirtualMachineConfigurationAssignmentRead(d *pluginsdk.Resour
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	vmId := computeParse.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, id.VirtualMachineName)
+	vmId := commonids.NewVirtualMachineID(subscriptionId, id.ResourceGroupName, id.VirtualMachineName)
 	d.Set("name", id.GuestConfigurationAssignmentName)
 	d.Set("virtual_machine_id", vmId.ID())
 

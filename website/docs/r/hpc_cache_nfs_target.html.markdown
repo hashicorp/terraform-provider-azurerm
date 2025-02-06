@@ -101,8 +101,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -141,7 +141,11 @@ The following arguments are supported:
 
 * `usage_model` - (Required) The type of usage of the HPC Cache NFS Target. Possible values are: `READ_HEAVY_INFREQ`, `READ_HEAVY_CHECK_180`, `READ_ONLY`, `READ_WRITE`, `WRITE_WORKLOAD_15`, `WRITE_AROUND`, `WRITE_WORKLOAD_CHECK_30`, `WRITE_WORKLOAD_CHECK_60` and `WRITE_WORKLOAD_CLOUDWS`.
 
-* `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_juntion` block supports fields documented below.
+* `namespace_junction` - (Required) Can be specified multiple times to define multiple `namespace_junction`. Each `namespace_junction` block supports fields documented below.
+
+* `verification_timer_in_seconds` - (Optional) The amount of time the cache waits before it checks the back-end storage for file updates. Possible values are between `1` and `31536000`.
+
+* `write_back_timer_in_seconds` - (Optional) The amount of time the cache waits after the last file change before it copies the changed file to back-end storage. Possible values are between `1` and `31536000`.
 
 ---
 

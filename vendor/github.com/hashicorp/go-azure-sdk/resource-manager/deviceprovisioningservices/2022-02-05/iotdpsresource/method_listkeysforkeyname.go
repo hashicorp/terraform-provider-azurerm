@@ -26,7 +26,7 @@ func (c IotDpsResourceClient) ListKeysForKeyName(ctx context.Context, id KeyId) 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/listkeys", id.ID()),
+		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -44,7 +44,9 @@ func (c IotDpsResourceClient) ListKeysForKeyName(ctx context.Context, id KeyId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SharedAccessSignatureAuthorizationRuleAccessRightsDescription
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

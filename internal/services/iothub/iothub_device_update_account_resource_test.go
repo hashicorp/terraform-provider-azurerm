@@ -120,27 +120,6 @@ func TestAccIotHubDeviceUpdateAccount_publicNetworkAccess(t *testing.T) {
 	})
 }
 
-func TestAccIotHubDeviceUpdateAccount_sku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_account", "test")
-	r := IotHubDeviceUpdateAccountResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sku(data, "Free"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.sku(data, "Standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccIotHubDeviceUpdateAccount_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_device_update_account", "test")
 	r := IotHubDeviceUpdateAccountResource{}
@@ -332,21 +311,6 @@ resource "azurerm_iothub_device_update_account" "test" {
   public_network_access_enabled = %t
 }
 `, template, data.RandomString, enabled)
-}
-
-func (r IotHubDeviceUpdateAccountResource) sku(data acceptance.TestData, sku string) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_iothub_device_update_account" "test" {
-  name                = "acc-dua-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku = "%s"
-}
-`, template, data.RandomString, sku)
 }
 
 func (r IotHubDeviceUpdateAccountResource) tags(data acceptance.TestData) string {

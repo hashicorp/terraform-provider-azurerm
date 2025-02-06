@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -483,7 +484,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	}
 
 	if properties.ClientCertificateId == nil && properties.ClientCertificatethumbprint == nil {
-		return fmt.Errorf("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
+		return errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
 	}
 
 	serverCertificateThumbprintsUnset := true
@@ -497,7 +498,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 		serverX509NamesUnset = false
 	}
 	if serverCertificateThumbprintsUnset && serverX509NamesUnset {
-		return fmt.Errorf("One of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
+		return errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
 	}
 	return nil, &properties
 }
@@ -540,17 +541,17 @@ func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsCon
 	if input.Certificate != nil {
 		result["certificate"] = *input.Certificate
 	}
-	result["header"] = flattenApiManagementBackendCredentialsObject(*input.Header)
-	result["query"] = flattenApiManagementBackendCredentialsObject(*input.Query)
+	result["header"] = flattenApiManagementBackendCredentialsObject(input.Header)
+	result["query"] = flattenApiManagementBackendCredentialsObject(input.Query)
 	return append(results, result)
 }
 
-func flattenApiManagementBackendCredentialsObject(input map[string][]string) map[string]interface{} {
+func flattenApiManagementBackendCredentialsObject(input *map[string][]string) map[string]interface{} {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results
 	}
-	for k, v := range input {
+	for k, v := range *input {
 		results[k] = strings.Join(v, ",")
 	}
 	return results

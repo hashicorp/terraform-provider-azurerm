@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamInputEventHubV2Resource struct{}
@@ -153,18 +153,18 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			}
 
 			props := &inputs.EventHubStreamInputDataSourceProperties{
-				ServiceBusNamespace: utils.String(model.ServiceBusNamespace),
-				EventHubName:        utils.String(model.EventHubName),
-				ConsumerGroupName:   utils.String(model.EventHubConsumerGroupName),
-				AuthenticationMode:  utils.ToPtr(inputs.AuthenticationMode(model.AuthenticationMode)),
+				ServiceBusNamespace: pointer.To(model.ServiceBusNamespace),
+				EventHubName:        pointer.To(model.EventHubName),
+				ConsumerGroupName:   pointer.To(model.EventHubConsumerGroupName),
+				AuthenticationMode:  pointer.To(inputs.AuthenticationMode(model.AuthenticationMode)),
 			}
 
 			if v := model.SharedAccessPolicyKey; v != "" {
-				props.SharedAccessPolicyKey = utils.String(v)
+				props.SharedAccessPolicyKey = pointer.To(v)
 			}
 
 			if v := model.SharedAccessPolicyName; v != "" {
-				props.SharedAccessPolicyName = utils.String(v)
+				props.SharedAccessPolicyName = pointer.To(v)
 			}
 
 			serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(model.Serialization)
@@ -173,13 +173,13 @@ func (r StreamInputEventHubV2Resource) Create() sdk.ResourceFunc {
 			}
 
 			payload := inputs.Input{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &inputs.StreamInputProperties{
 					Datasource: &inputs.EventHubV2StreamInputDataSource{
 						Properties: props,
 					},
 					Serialization: serialization,
-					PartitionKey:  utils.String(model.PartitionKey),
+					PartitionKey:  pointer.To(model.PartitionKey),
 				},
 			}
 
@@ -214,10 +214,10 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 
 			if d.HasChangesExcept("name", "stream_analytics_job_id") {
 				props := &inputs.EventHubStreamInputDataSourceProperties{
-					ServiceBusNamespace: utils.String(state.ServiceBusNamespace),
-					EventHubName:        utils.String(state.EventHubName),
-					ConsumerGroupName:   utils.String(state.EventHubConsumerGroupName),
-					AuthenticationMode:  utils.ToPtr(inputs.AuthenticationMode(state.AuthenticationMode)),
+					ServiceBusNamespace: pointer.To(state.ServiceBusNamespace),
+					EventHubName:        pointer.To(state.EventHubName),
+					ConsumerGroupName:   pointer.To(state.EventHubConsumerGroupName),
+					AuthenticationMode:  pointer.To(inputs.AuthenticationMode(state.AuthenticationMode)),
 				}
 
 				serialization, err := expandStreamAnalyticsStreamInputSerializationTyped(state.Serialization)
@@ -226,13 +226,13 @@ func (r StreamInputEventHubV2Resource) Update() sdk.ResourceFunc {
 				}
 
 				payload := inputs.Input{
-					Name: utils.String(state.Name),
+					Name: pointer.To(state.Name),
 					Properties: &inputs.StreamInputProperties{
 						Datasource: &inputs.EventHubV2StreamInputDataSource{
 							Properties: props,
 						},
 						Serialization: serialization,
-						PartitionKey:  utils.String(state.PartitionKey),
+						PartitionKey:  pointer.To(state.PartitionKey),
 					},
 				}
 

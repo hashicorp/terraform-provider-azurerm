@@ -122,7 +122,7 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
-* `exclude_private_key` - (Optional) Specifies whether the private key should be excluded from the Key Vault Certificate. Defaults to `false`.
+* `exclude_private_key` - (Optional) Specifies whether the private key should be excluded from the Key Vault Certificate. Changing this forces a new resource to be created. Defaults to `false`.
 
 * `key_vault_certificate_id` - (Optional) Specifies the ID of the Key Vault Certificate resource. Changing this forces a new resource to be created.
 

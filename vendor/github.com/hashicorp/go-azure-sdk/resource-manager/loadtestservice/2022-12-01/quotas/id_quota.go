@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = QuotaId{}
+func init() {
+	recaser.RegisterResourceId(&QuotaId{})
+}
+
+var _ resourceids.ResourceId = &QuotaId{}
 
 // QuotaId is a struct representing the Resource ID for a Quota
 type QuotaId struct {
@@ -30,25 +35,15 @@ func NewQuotaID(subscriptionId string, locationName string, quotaName string) Qu
 
 // ParseQuotaID parses 'input' into a QuotaId
 func ParseQuotaID(input string) (*QuotaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QuotaId{})
+	parser := resourceids.NewParserFromResourceIdType(&QuotaId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := QuotaId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.QuotaName, ok = parsed.Parsed["quotaName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "quotaName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseQuotaID(input string) (*QuotaId, error) {
 // ParseQuotaIDInsensitively parses 'input' case-insensitively into a QuotaId
 // note: this method should only be used for API response data and not user input
 func ParseQuotaIDInsensitively(input string) (*QuotaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(QuotaId{})
+	parser := resourceids.NewParserFromResourceIdType(&QuotaId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := QuotaId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.QuotaName, ok = parsed.Parsed["quotaName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "quotaName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *QuotaId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.QuotaName, ok = input.Parsed["quotaName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "quotaName", input)
+	}
+
+	return nil
 }
 
 // ValidateQuotaID checks that 'input' can be parsed as a Quota ID
@@ -110,9 +113,9 @@ func (id QuotaId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLoadTestService", "Microsoft.LoadTestService", "Microsoft.LoadTestService"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticQuotas", "quotas", "quotas"),
-		resourceids.UserSpecifiedSegment("quotaName", "quotaValue"),
+		resourceids.UserSpecifiedSegment("quotaName", "quotaName"),
 	}
 }
 

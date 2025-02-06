@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package product
 
 import (
@@ -13,10 +16,6 @@ import (
 )
 
 var consulVersionOutputRe = regexp.MustCompile(`Consul ` + simpleVersionRe)
-
-var (
-	v1_18 = version.Must(version.NewVersion("1.18"))
-)
 
 var Consul = Product{
 	Name: "consul",

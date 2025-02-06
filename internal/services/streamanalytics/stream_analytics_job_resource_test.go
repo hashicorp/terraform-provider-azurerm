@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -90,17 +90,34 @@ func TestAccStreamAnalyticsJob_update(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsJob_identity(t *testing.T) {
+func TestAccStreamAnalyticsJob_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	r := StreamAnalyticsJobResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identity(data),
+			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStreamAnalyticsJob_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -149,6 +166,32 @@ func TestAccStreamAnalyticsJob_jobStorageAccount(t *testing.T) {
 			),
 		},
 		data.ImportStep("job_storage_account.0.account_key"),
+	})
+}
+
+func TestAccStreamAnalyticsJob_standardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardV2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -299,7 +342,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r StreamAnalyticsJobResource) identity(data acceptance.TestData) string {
+func (r StreamAnalyticsJobResource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -327,6 +370,43 @@ QUERY
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) identityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                = "acctestjob-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_units     = 3
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r StreamAnalyticsJobResource) jobTypeCloud(data acceptance.TestData) string {
@@ -424,4 +504,36 @@ QUERY
 
 }
 `, data.RandomInteger, data.RandomString, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) standardV2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                = "acctestjob-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_units     = 7
+  sku_name            = "StandardV2"
+
+  tags = {
+    environment = "Test"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

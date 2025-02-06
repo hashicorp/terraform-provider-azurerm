@@ -3,9 +3,11 @@
 
 package network
 
-import "github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
+import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+)
 
-func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
+func FindNetworkInterfaceIPConfiguration(input *[]networkinterfaces.NetworkInterfaceIPConfiguration, name string) *networkinterfaces.NetworkInterfaceIPConfiguration {
 	if input == nil {
 		return nil
 	}
@@ -23,8 +25,8 @@ func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfigurati
 	return nil
 }
 
-func updateNetworkInterfaceIPConfiguration(config network.InterfaceIPConfiguration, configs *[]network.InterfaceIPConfiguration) *[]network.InterfaceIPConfiguration {
-	output := make([]network.InterfaceIPConfiguration, 0)
+func updateNetworkInterfaceIPConfiguration(config networkinterfaces.NetworkInterfaceIPConfiguration, configs *[]networkinterfaces.NetworkInterfaceIPConfiguration) *[]networkinterfaces.NetworkInterfaceIPConfiguration {
+	output := make([]networkinterfaces.NetworkInterfaceIPConfiguration, 0)
 	if configs == nil {
 		return &output
 	}

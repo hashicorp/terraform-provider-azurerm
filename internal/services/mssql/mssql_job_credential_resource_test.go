@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlJobCredentialResource struct{}
@@ -71,20 +72,20 @@ func TestAccMsSqlJobCredential_update(t *testing.T) {
 }
 
 func (MsSqlJobCredentialResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.JobCredentialID(state.ID)
+	id, err := jobcredentials.ParseCredentialID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.JobCredentialsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.JobAgentName, id.CredentialName)
+	resp, err := client.MSSQL.JobCredentialsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("Job Credential %q (Job Agent %q / Server Name %q / Resource Group %q) does not exist", id.CredentialName, id.JobAgentName, id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", *id)
 		}
-		return nil, fmt.Errorf("reading Job Credential %q (Job Agent %q / Server Name %q / Resource Group %q): %v", id.CredentialName, id.JobAgentName, id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlJobCredentialResource) basic(data acceptance.TestData) string {

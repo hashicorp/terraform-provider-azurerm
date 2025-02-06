@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements` Documentation
 
-The `agreements` SDK allows for interaction with the Azure Resource Manager Service `marketplaceordering` (API Version `2015-06-01`).
+The `agreements` SDK allows for interaction with Azure Resource Manager `marketplaceordering` (API Version `2015-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherIdValue", "offerIdValue", "planIdValue")
+id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherId", "offerId", "planId")
 
 read, err := client.MarketplaceAgreementsCancel(ctx, id)
 if err != nil {
@@ -40,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agreements.NewOfferPlanID("12345678-1234-9876-4563-123456789012", "publisherIdValue", "offerIdValue", "planIdValue")
+id := agreements.NewOfferPlanID("12345678-1234-9876-4563-123456789012", "publisherId", "offerId", "planId")
 
 payload := agreements.AgreementTerms{
 	// ...
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agreements.NewOfferPlanID("12345678-1234-9876-4563-123456789012", "publisherIdValue", "offerIdValue", "planIdValue")
+id := agreements.NewOfferPlanID("12345678-1234-9876-4563-123456789012", "publisherId", "offerId", "planId")
 
 read, err := client.MarketplaceAgreementsGet(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherIdValue", "offerIdValue", "planIdValue")
+id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherId", "offerId", "planId")
 
 read, err := client.MarketplaceAgreementsGetAgreement(ctx, id)
 if err != nil {
@@ -93,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agreements.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.MarketplaceAgreementsList(ctx, id)
 if err != nil {
@@ -109,7 +110,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherIdValue", "offerIdValue", "planIdValue")
+id := agreements.NewPlanID("12345678-1234-9876-4563-123456789012", "publisherId", "offerId", "planId")
 
 read, err := client.MarketplaceAgreementsSign(ctx, id)
 if err != nil {

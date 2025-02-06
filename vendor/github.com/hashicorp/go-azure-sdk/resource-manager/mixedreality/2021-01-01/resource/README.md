@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource` Documentation
 
-The `resource` SDK allows for interaction with the Azure Resource Manager Service `mixedreality` (API Version `2021-01-01`).
+The `resource` SDK allows for interaction with Azure Resource Manager `mixedreality` (API Version `2021-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountValue")
+id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountName")
 
 payload := resource.RemoteRenderingAccount{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountValue")
+id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountName")
 
 read, err := client.RemoteRenderingAccountsDelete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountValue")
+id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountName")
 
 read, err := client.RemoteRenderingAccountsGet(ctx, id)
 if err != nil {
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.RemoteRenderingAccountsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.RemoteRenderingAccountsListByResourceGroupComplete(ctx, id)
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.RemoteRenderingAccountsListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.RemoteRenderingAccountsListBySubscriptionComplete(ctx, id)
@@ -111,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountValue")
+id := resource.NewRemoteRenderingAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "remoteRenderingAccountName")
 
 payload := resource.RemoteRenderingAccount{
 	// ...
@@ -132,7 +133,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountValue")
+id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountName")
 
 payload := resource.SpatialAnchorsAccount{
 	// ...
@@ -153,7 +154,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountValue")
+id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountName")
 
 read, err := client.SpatialAnchorsAccountsDelete(ctx, id)
 if err != nil {
@@ -169,7 +170,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountValue")
+id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountName")
 
 read, err := client.SpatialAnchorsAccountsGet(ctx, id)
 if err != nil {
@@ -185,7 +186,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := resource.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.SpatialAnchorsAccountsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.SpatialAnchorsAccountsListByResourceGroupComplete(ctx, id)
@@ -202,7 +203,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.SpatialAnchorsAccountsListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.SpatialAnchorsAccountsListBySubscriptionComplete(ctx, id)
@@ -219,7 +220,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountValue")
+id := resource.NewSpatialAnchorsAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "spatialAnchorsAccountName")
 
 payload := resource.SpatialAnchorsAccount{
 	// ...

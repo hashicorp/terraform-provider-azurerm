@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedDiagnosticSettingsCategoryId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedDiagnosticSettingsCategoryId{})
+}
+
+var _ resourceids.ResourceId = &ScopedDiagnosticSettingsCategoryId{}
 
 // ScopedDiagnosticSettingsCategoryId is a struct representing the Resource ID for a Scoped Diagnostic Settings Category
 type ScopedDiagnosticSettingsCategoryId struct {
@@ -28,21 +33,15 @@ func NewScopedDiagnosticSettingsCategoryID(resourceUri string, diagnosticSetting
 
 // ParseScopedDiagnosticSettingsCategoryID parses 'input' into a ScopedDiagnosticSettingsCategoryId
 func ParseScopedDiagnosticSettingsCategoryID(input string) (*ScopedDiagnosticSettingsCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingsCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingsCategoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDiagnosticSettingsCategoryId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DiagnosticSettingsCategoryName, ok = parsed.Parsed["diagnosticSettingsCategoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingsCategoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedDiagnosticSettingsCategoryID(input string) (*ScopedDiagnosticSet
 // ParseScopedDiagnosticSettingsCategoryIDInsensitively parses 'input' case-insensitively into a ScopedDiagnosticSettingsCategoryId
 // note: this method should only be used for API response data and not user input
 func ParseScopedDiagnosticSettingsCategoryIDInsensitively(input string) (*ScopedDiagnosticSettingsCategoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedDiagnosticSettingsCategoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedDiagnosticSettingsCategoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedDiagnosticSettingsCategoryId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.DiagnosticSettingsCategoryName, ok = parsed.Parsed["diagnosticSettingsCategoryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingsCategoryName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedDiagnosticSettingsCategoryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceUri, ok = input.Parsed["resourceUri"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", input)
+	}
+
+	if id.DiagnosticSettingsCategoryName, ok = input.Parsed["diagnosticSettingsCategoryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diagnosticSettingsCategoryName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedDiagnosticSettingsCategoryID checks that 'input' can be parsed as a Scoped Diagnostic Settings Category ID
@@ -99,7 +106,7 @@ func (id ScopedDiagnosticSettingsCategoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDiagnosticSettingsCategories", "diagnosticSettingsCategories", "diagnosticSettingsCategories"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "diagnosticSettingsCategoryValue"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "diagnosticSettingsCategoryName"),
 	}
 }
 

@@ -20,7 +20,8 @@ type ListGlobalBySubscriptionOperationResponse struct {
 }
 
 type ListGlobalBySubscriptionCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListGlobalBySubscriptionOperationOptions struct {
@@ -40,6 +41,7 @@ func (o ListGlobalBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListGlobalBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +56,18 @@ func (o ListGlobalBySubscriptionOperationOptions) ToQuery() *client.QueryParams 
 	return &out
 }
 
+type ListGlobalBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListGlobalBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListGlobalBySubscription ...
 func (c EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListGlobalBySubscriptionOperationOptions) (result ListGlobalBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +76,9 @@ func (c EventSubscriptionsClient) ListGlobalBySubscription(ctx context.Context, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListGlobalBySubscriptionCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +119,7 @@ func (c EventSubscriptionsClient) ListGlobalBySubscriptionCompleteMatchingPredic
 
 	resp, err := c.ListGlobalBySubscription(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -116,7 +132,8 @@ func (c EventSubscriptionsClient) ListGlobalBySubscriptionCompleteMatchingPredic
 	}
 
 	result = ListGlobalBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -45,7 +45,9 @@ func (c CapacitiesClient) ListByResourceGroup(ctx context.Context, id commonids.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DedicatedCapacities
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

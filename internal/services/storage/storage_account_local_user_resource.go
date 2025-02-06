@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -94,7 +95,7 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:             pluginsdk.TypeString,
 						Required:         true,
 						ValidateFunc:     computevalidate.SSHKey,
-						DiffSuppressFunc: compute.SSHKeyDiffSuppress,
+						DiffSuppressFunc: suppress.SSHKey,
 					},
 					"description": {
 						Type:     pluginsdk.TypeString,
@@ -222,9 +223,9 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			// Sanity checks on input
 			if plan.SshKeyEnabled != (len(plan.SshAuthorizedKey) != 0) {
 				if plan.SshKeyEnabled {
-					return fmt.Errorf("`ssh_authorized_key` should be specified when `ssh_key_enabled` is enabled")
+					return errors.New("`ssh_authorized_key` should be specified when `ssh_key_enabled` is enabled")
 				} else {
-					return fmt.Errorf("`ssh_authorized_key` should not be specified when `ssh_key_enabled` is disabled")
+					return errors.New("`ssh_authorized_key` should not be specified when `ssh_key_enabled` is disabled")
 				}
 			}
 
@@ -451,8 +452,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 		return nil
 	}
 
-	var output []localusers.PermissionScope
-
+	output := make([]localusers.PermissionScope, 0, len(input))
 	for _, v := range input {
 		// The length constraint is guaranteed by schema
 		permissions := v.Permissions[0]
@@ -488,8 +488,7 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.Permissio
 		return nil
 	}
 
-	var output []PermissionScopeModel
-
+	output := make([]PermissionScopeModel, 0, len(*input))
 	for _, v := range *input {
 		permissions := PermissionsModel{}
 		// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
@@ -525,8 +524,7 @@ func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel
 		return nil
 	}
 
-	var output []localusers.SshPublicKey
-
+	output := make([]localusers.SshPublicKey, 0, len(input))
 	for _, v := range input {
 		output = append(output, localusers.SshPublicKey{
 			Description: pointer.To(v.Description),

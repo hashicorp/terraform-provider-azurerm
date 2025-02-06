@@ -83,11 +83,11 @@ The following arguments are supported:
 
 A `rules` block supports the following:
 
-* `source_container_name` - (Required) The source storage container name. Changing this forces a new Storage Object Replication to be created.
+* `source_container_name` - (Required) The source storage container name.
 
-* `destination_container_name` - (Required) The destination storage container name. Changing this forces a new Storage Object Replication to be created.
+* `destination_container_name` - (Required) The destination storage container name.
 
-* `copy_blobs_created_after` - (Optional) The time after which the Block Blobs created will be copies to the destination. Possible values are `OnlyNewObjects`, `Everything` and time in RFC3339 format: `2006-01-02T15:04:00Z`.
+* `copy_blobs_created_after` - (Optional) The time after which the Block Blobs created will be copies to the destination. Possible values are `OnlyNewObjects`, `Everything` and time in RFC3339 format: `2006-01-02T15:04:00Z`. Defaults to `OnlyNewObjects`.
 
 * `filter_out_blobs_with_prefix` - (Optional) Specifies a list of filters prefixes, the blobs whose names begin with which will be replicated.
 

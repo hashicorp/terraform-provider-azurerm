@@ -5,10 +5,13 @@ package provider
 
 import (
 	"fmt"
+	"os"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestTypedDataSourcesContainValidModelObjects(t *testing.T) {
@@ -133,4 +136,74 @@ func validateResourceTypeName(resourceType string) error {
 	}
 
 	return nil
+}
+
+// TestTypedResourcesUsePointersForOptionalProperties checks Typed resource models against their schemas to catch when
+// of Optional properties are not Pointers and when Required properties are Pointers. This is for Null compatibility in
+// terraform-plugin-framework
+func TestTypedResourcesUsePointersForOptionalProperties(t *testing.T) {
+	if r := os.Getenv("ARM_CHECK_TYPED_RESOURCES_FOR_OPTIONAL_PTR"); !strings.EqualFold(r, "true") {
+		t.Skipf("Skipping checking for Optional Properties")
+	}
+	fails := false
+	for _, service := range SupportedTypedServices() {
+		for _, resource := range service.Resources() {
+			model := resource.ModelObject()
+			if model == nil {
+				// Note, "base" models have no model object, e.g. roleAssignmentBaseResource
+				continue
+			}
+
+			var walkModel func(reflect.Type, map[string]*pluginsdk.Schema)
+			walkModel = func(modelType reflect.Type, schema map[string]*pluginsdk.Schema) {
+				for i := 0; i < modelType.NumField(); i++ {
+					field := modelType.Field(i)
+					property, ok := field.Tag.Lookup("tfschema")
+					if !ok || property == "" {
+						// This is tested for elsewhere, so we can ignore it here
+						continue
+					}
+
+					v, ok := schema[property]
+					if !ok {
+						continue
+					} else {
+						if v.Optional && field.Type.Kind() != reflect.Ptr {
+							t.Logf("Optional field `%s` in model `%s` in resource `%s` should be a pointer!", property, modelType.Name(), resource.ResourceType())
+							fails = true
+							continue
+						}
+
+						if v.Required && field.Type.Kind() == reflect.Ptr {
+							t.Logf("Required field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
+							fails = true
+							continue
+						}
+
+						if v.Computed && !v.Required && !v.Optional && field.Type.Kind() == reflect.Ptr {
+							t.Logf("Computed Only field `%s` in model `%s` in resource `%s` should not be a pointer!", property, modelType.Name(), resource.ResourceType())
+						}
+
+						if field.Type.Kind() == reflect.Slice {
+							m := field.Type.Elem().Kind()
+							if m == reflect.Struct {
+								if s, ok := v.Elem.(*pluginsdk.Resource); ok {
+									walkModel(field.Type.Elem(), s.Schema)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			modelType := reflect.TypeOf(model).Elem()
+			schema := resource.Arguments()
+			walkModel(modelType, schema)
+			computedOnly := resource.Attributes()
+			walkModel(modelType, computedOnly)
+		}
+	}
+	if fails {
+		t.Fatalf("schema properties found with incorrect types - `Optional` should be pointers, `Required` should not be pointers")
+	}
 }

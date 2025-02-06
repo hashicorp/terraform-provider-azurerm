@@ -24,7 +24,7 @@ import (
 )
 
 func resourceConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceConnectionCreate,
 		Read:   resourceConnectionRead,
 		Update: resourceConnectionUpdate,
@@ -62,7 +62,7 @@ func resourceConnection() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Service Bus",
 				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
 				// API version 2018-07-01-preview, so I guess this is ForceNew for now
 				//
@@ -90,6 +90,8 @@ func resourceConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	return resource
 }
 
 func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {

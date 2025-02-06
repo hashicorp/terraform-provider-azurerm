@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_software_update_configuration
 
-Manages an Automation Software Update Configuraion.
+Manages an Automation Software Update Configuration.
 
 ## Example Usage
 
@@ -52,13 +52,12 @@ CONTENT
 resource "azurerm_automation_software_update_configuration" "example" {
   name                  = "example"
   automation_account_id = azurerm_automation_account.example.id
-  operating_system      = "Linux"
 
   linux {
-    classification_included = "Security"
-    excluded_packages       = ["apt"]
-    included_packages       = ["vim"]
-    reboot                  = "IfRequired"
+    classifications_included = "Security"
+    excluded_packages        = ["apt"]
+    included_packages        = ["vim"]
+    reboot                   = "IfRequired"
   }
 
   pre_task {
@@ -100,13 +99,15 @@ The following arguments are supported:
 
 * `pre_task` - (Optional) A `pre_task` blocks as defined below.
 
-* `schedule` - (Optional) A `schedule` blocks as defined below.
+* `schedule` - (Required) A `schedule` blocks as defined below.
 
 ---
 
 A `linux` block supports the following:
 
 * `classifications_included` - (Optional) Specifies the list of update classifications included in the Software Update Configuration. Possible values are `Unclassified`, `Critical`, `Security` and `Other`.
+
+~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
 
 * `excluded_packages` - (Optional) Specifies a list of packages to excluded from the Software Update Configuration.
 
@@ -119,6 +120,8 @@ A `linux` block supports the following:
 A `windows` block supports the following:
 
 * `classifications_included` - (Optional) Specifies the list of update classification. Possible values are `Unclassified`, `Critical`, `Security`, `UpdateRollup`, `FeaturePack`, `ServicePack`, `Definition`, `Tools` and `Updates`.
+
+~> **NOTE:** The `classifications_included` property will become `Required` in version 4.0 of the Provider.
 
 * `excluded_knowledge_base_numbers` - (Optional) Specifies a list of knowledge base numbers excluded.
 
@@ -144,7 +147,7 @@ A `azure_query` block supports the following:
 
 * `tag_filter` - (Optional) Specifies how the specified tags to filter VMs. Possible values are `Any` and `All`.
 
-* `tags` - (Optional) A mapping of tags used for query filter as defined below.
+* `tags` - (Optional) A mapping of tags used for query filter. One or more `tags` block as defined below.
 
 ---
 
@@ -184,7 +187,7 @@ A `schedule` block supports the following:
 
 * `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `is_enabled` - (Optional) Whether the schedule is enabled.
+* `is_enabled` - (Optional) Whether the schedule is enabled. Defaults to `true`.
 
 * `description` - (Optional) A description for this Schedule.
 
@@ -208,7 +211,7 @@ The `monthly_occurrence` block supports the following:
 
 * `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
 
-* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `5`. `-1` for last week within the month.
+* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `4`. `-1` for last week within the month.
 
 ## Attributes Reference
 
@@ -218,7 +221,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `error_code` - The Error code when failed.
 
-* `error_meesage` - The Error message indicating why the operation failed.
+* `error_message` - The Error message indicating why the operation failed.
 
 ## Timeouts
 
@@ -226,7 +229,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.
-* `update` - (Defaults to 10 minutes) Used when updating the Automation.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Automation.
 
 ## Import

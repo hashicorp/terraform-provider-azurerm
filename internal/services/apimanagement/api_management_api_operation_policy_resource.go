@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -12,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperationpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
@@ -39,9 +40,10 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiManagementApiOperationPolicyV0ToV1{},
+			1: migration.ApiManagementApiOperationPolicyV1ToV2{},
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -111,7 +113,7 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if parameters.Properties == nil {
-		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
+		return errors.New("Either `xml_content` or `xml_link` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperationpolicy.CreateOrUpdateOperationOptions{}); err != nil {

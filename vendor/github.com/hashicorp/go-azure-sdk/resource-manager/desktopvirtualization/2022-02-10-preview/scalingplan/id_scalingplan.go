@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScalingPlanId{}
+func init() {
+	recaser.RegisterResourceId(&ScalingPlanId{})
+}
+
+var _ resourceids.ResourceId = &ScalingPlanId{}
 
 // ScalingPlanId is a struct representing the Resource ID for a Scaling Plan
 type ScalingPlanId struct {
@@ -30,25 +35,15 @@ func NewScalingPlanID(subscriptionId string, resourceGroupName string, scalingPl
 
 // ParseScalingPlanID parses 'input' into a ScalingPlanId
 func ParseScalingPlanID(input string) (*ScalingPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScalingPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScalingPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScalingPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ScalingPlanName, ok = parsed.Parsed["scalingPlanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scalingPlanName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseScalingPlanID(input string) (*ScalingPlanId, error) {
 // ParseScalingPlanIDInsensitively parses 'input' case-insensitively into a ScalingPlanId
 // note: this method should only be used for API response data and not user input
 func ParseScalingPlanIDInsensitively(input string) (*ScalingPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScalingPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScalingPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScalingPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ScalingPlanName, ok = parsed.Parsed["scalingPlanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scalingPlanName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScalingPlanId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ScalingPlanName, ok = input.Parsed["scalingPlanName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scalingPlanName", input)
+	}
+
+	return nil
 }
 
 // ValidateScalingPlanID checks that 'input' can be parsed as a Scaling Plan ID
@@ -112,7 +115,7 @@ func (id ScalingPlanId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticScalingPlans", "scalingPlans", "scalingPlans"),
-		resourceids.UserSpecifiedSegment("scalingPlanName", "scalingPlanValue"),
+		resourceids.UserSpecifiedSegment("scalingPlanName", "scalingPlanName"),
 	}
 }
 

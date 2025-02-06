@@ -4,14 +4,15 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	managedvirtualnetwork "github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse"
-	accesscontrol "github.com/tombuildsstuff/kermit/sdk/synapse/2020-08-01-preview/synapse"
-	artifacts "github.com/tombuildsstuff/kermit/sdk/synapse/2021-06-01-preview/synapse"
+	managedvirtualnetwork "github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse"
+	accesscontrol "github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse"
+	artifacts "github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse"
 )
 
 type Client struct {
@@ -31,6 +32,7 @@ type Client struct {
 	SQLPoolWorkloadClassifierClient                   *synapse.SQLPoolWorkloadClassifierClient
 	SQLPoolWorkloadGroupClient                        *synapse.SQLPoolWorkloadGroupClient
 	WorkspaceAadAdminsClient                          *synapse.WorkspaceAadAdminsClient
+	WorkspaceAzureADOnlyAuthenticationsClient         *synapse.AzureADOnlyAuthenticationsClient
 	WorkspaceClient                                   *synapse.WorkspacesClient
 	WorkspaceExtendedBlobAuditingPoliciesClient       *synapse.WorkspaceManagedSQLServerExtendedBlobAuditingPoliciesClient
 	WorkspaceManagedIdentitySQLControlSettingsClient  *synapse.WorkspaceManagedIdentitySQLControlSettingsClient
@@ -91,6 +93,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceAzureADOnlyAuthenticationsClient := synapse.NewAzureADOnlyAuthenticationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceAzureADOnlyAuthenticationsClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -125,6 +130,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SQLPoolVulnerabilityAssessmentRuleBaselinesClient: &sqlPoolVulnerabilityAssessmentRuleBaselinesClient,
 		SQLPoolWorkloadClassifierClient:                   &sqlPoolWorkloadClassifierClient,
 		SQLPoolWorkloadGroupClient:                        &sqlPoolWorkloadGroupClient,
+		WorkspaceAzureADOnlyAuthenticationsClient:         &workspaceAzureADOnlyAuthenticationsClient,
 		WorkspaceAadAdminsClient:                          &workspaceAadAdminsClient,
 		WorkspaceClient:                                   &workspaceClient,
 		WorkspaceExtendedBlobAuditingPoliciesClient:       &workspaceExtendedBlobAuditingPoliciesClient,
@@ -139,7 +145,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleDefinitionsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleDefinitionsClient := accesscontrol.NewRoleDefinitionsClient(endpoint)
@@ -149,7 +155,7 @@ func (client Client) RoleDefinitionsClient(workspaceName, synapseEndpointSuffix 
 
 func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.RoleAssignmentsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	roleAssignmentsClient := accesscontrol.NewRoleAssignmentsClient(endpoint)
@@ -159,7 +165,7 @@ func (client Client) RoleAssignmentsClient(workspaceName, synapseEndpointSuffix 
 
 func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
@@ -169,7 +175,7 @@ func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpoin
 
 func (client Client) LinkedServiceClient(workspaceName, synapseEndpointSuffix string) (*artifacts.LinkedServiceClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+		return nil, errors.New("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := buildEndpoint(workspaceName, synapseEndpointSuffix)
 	linkedServiceClient := artifacts.NewLinkedServiceClient(endpoint)

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationfabrics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -74,14 +74,10 @@ func (r HyperVSiteResource) Create() sdk.ResourceFunc {
 
 			id := replicationfabrics.NewReplicationFabricID(subscriptionId, vaultId.ResourceGroupName, vaultId.VaultName, metaModel.Name)
 
-			type HyperVSiteInstanceType struct {
-				InstanceType string `json:"instanceType"`
-			}
-
 			// the instance type `HyperVSite` is not exposed in Swagger, tracked on https://github.com/Azure/azure-rest-api-specs/issues/22016
 			parameters := replicationfabrics.FabricCreationInput{
 				Properties: &replicationfabrics.FabricCreationInputProperties{
-					CustomDetails: HyperVSiteInstanceType{
+					CustomDetails: replicationfabrics.BaseFabricSpecificCreationInputImpl{
 						InstanceType: "HyperVSite",
 					},
 				},

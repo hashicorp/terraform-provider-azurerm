@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SignalRId{}
+func init() {
+	recaser.RegisterResourceId(&SignalRId{})
+}
+
+var _ resourceids.ResourceId = &SignalRId{}
 
 // SignalRId is a struct representing the Resource ID for a Signal R
 type SignalRId struct {
@@ -30,25 +35,15 @@ func NewSignalRID(subscriptionId string, resourceGroupName string, signalRName s
 
 // ParseSignalRID parses 'input' into a SignalRId
 func ParseSignalRID(input string) (*SignalRId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parser := resourceids.NewParserFromResourceIdType(&SignalRId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SignalRId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "signalRName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseSignalRID(input string) (*SignalRId, error) {
 // ParseSignalRIDInsensitively parses 'input' case-insensitively into a SignalRId
 // note: this method should only be used for API response data and not user input
 func ParseSignalRIDInsensitively(input string) (*SignalRId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parser := resourceids.NewParserFromResourceIdType(&SignalRId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SignalRId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SignalRName, ok = parsed.Parsed["signalRName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "signalRName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SignalRId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SignalRName, ok = input.Parsed["signalRName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "signalRName", input)
+	}
+
+	return nil
 }
 
 // ValidateSignalRID checks that 'input' can be parsed as a Signal R ID
@@ -112,7 +115,7 @@ func (id SignalRId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticSignalR", "signalR", "signalR"),
-		resourceids.UserSpecifiedSegment("signalRName", "signalRValue"),
+		resourceids.UserSpecifiedSegment("signalRName", "signalRName"),
 	}
 }
 

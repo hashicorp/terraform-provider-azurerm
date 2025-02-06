@@ -49,6 +49,43 @@ func TestAccAppConfiguration_standard(t *testing.T) {
 	})
 }
 
+func TestAccAppConfiguration_upgradesku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAppConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 	r := AppConfigurationResource{}
@@ -177,6 +214,86 @@ func TestAccAppConfiguration_encryption(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_replica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_replicaRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.replica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_replicaUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.replica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.replicaUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.replicaUpdatedPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -419,6 +536,111 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (AppConfigurationResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppConfigurationResource) replica(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  replica {
+    name     = "replica1"
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Ternary)
+}
+
+func (AppConfigurationResource) replicaUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  replica {
+    name     = "replica1"
+    location = "%s"
+  }
+
+  replica {
+    name     = "replica2"
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Ternary, data.Locations.Secondary)
+}
+
+func (AppConfigurationResource) replicaUpdatedPartial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  replica {
+    name     = "replica3"
+    location = "%s"
+  }
+
+  replica {
+    name     = "replica2"
+    location = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Ternary, data.Locations.Secondary)
+}
+
 func (r AppConfigurationResource) requiresImport(data acceptance.TestData) string {
 	template := r.standard(data)
 	return fmt.Sprintf(`
@@ -527,6 +749,16 @@ resource "azurerm_app_configuration" "test" {
     identity_client_id       = azurerm_user_assigned_identity.test.client_id
   }
 
+  replica {
+    name     = "replica1"
+    location = "%[3]s"
+  }
+
+  replica {
+    name     = "replica2"
+    location = "%[4]s"
+  }
+
   tags = {
     environment = "development"
   }
@@ -536,7 +768,7 @@ resource "azurerm_app_configuration" "test" {
     azurerm_key_vault_access_policy.server,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (AppConfigurationResource) identity(data acceptance.TestData) string {

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto
 
 import (
@@ -30,7 +33,7 @@ var protocolApplicationDefault = "application-default"
 type LocalRuleModel struct {
 	Name        string `tfschema:"name"`
 	RuleStackID string `tfschema:"rulestack_id"`
-	Priority    int    `tfschema:"priority"`
+	Priority    int64  `tfschema:"priority"`
 
 	Action                  string                 `tfschema:"action"`
 	Applications            []string               `tfschema:"applications"`
@@ -59,7 +62,7 @@ func (r LocalRuleStackRule) ResourceType() string {
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -143,12 +146,20 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"protocol": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Default:       protocolApplicationDefault,
-			ValidateFunc:  validate.ProtocolWithPort,
-			ConflictsWith: []string{"protocol_ports"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				validate.ProtocolWithPort,
+				validation.StringInSlice([]string{protocolApplicationDefault}, false),
+			),
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"protocol_ports": {
@@ -159,19 +170,15 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.ProtocolWithPort,
 			},
-			ConflictsWith: []string{"protocol"},
-		},
-
-		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"source": schema.SourceSchema(),
 
 		"tags": commonschema.Tags(),
 	}
+
+	return schema
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
@@ -203,7 +210,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(rulestackId.ID())
 
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
-			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.Itoa(model.Priority))
+			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -267,7 +274,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Priority != 0 {
-				props.Priority = pointer.To(int64(model.Priority))
+				props.Priority = pointer.To(model.Priority)
 			}
 
 			if len(model.ProtocolPorts) != 0 {
@@ -315,7 +322,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 			}
 
 			state.RuleStackID = localrulestacks.NewLocalRulestackID(id.SubscriptionId, id.ResourceGroupName, id.LocalRulestackName).ID()
-			p, err := strconv.Atoi(id.LocalRuleName)
+			p, err := strconv.ParseInt(id.LocalRuleName, 10, 0)
 			if err != nil {
 				return fmt.Errorf("parsing Rule Priortiy for %s: %+v", *id, err)
 			}
@@ -338,11 +345,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-				if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
-					state.Protocol = pointer.From(props.Protocol)
-				} else {
-					state.Protocol = protocolApplicationDefault
-				}
+				state.Protocol = pointer.From(props.Protocol)
 				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
 				state.RuleEnabled = stateEnumAsBool(props.RuleState)
 				state.Source = schema.FlattenSource(props.Source, *id)
@@ -467,11 +470,19 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protocol") {
-				ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				if model.Protocol != "" && !strings.EqualFold(model.Protocol, protocolApplicationDefault) && len(model.ProtocolPorts) == 0 {
+					ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				} else {
+					ruleEntry.Properties.Protocol = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("protocol_ports") {
-				ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				if len(model.ProtocolPorts) != 0 {
+					ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				} else {
+					ruleEntry.Properties.ProtocolPortList = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {

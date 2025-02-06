@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package releasesjson
 
 import "github.com/hashicorp/go-version"
@@ -6,8 +9,7 @@ import "github.com/hashicorp/go-version"
 // "consul 0.5.1". A ProductVersion may have one or more builds.
 type ProductVersion struct {
 	Name        string           `json:"name"`
-	RawVersion  string           `json:"version"`
-	Version     *version.Version `json:"-"`
+	Version     *version.Version `json:"version"`
 	SHASUMS     string           `json:"shasums,omitempty"`
 	SHASUMSSig  string           `json:"shasums_signature,omitempty"`
 	SHASUMSSigs []string         `json:"shasums_signatures,omitempty"`

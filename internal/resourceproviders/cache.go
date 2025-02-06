@@ -14,9 +14,11 @@ import (
 )
 
 // cachedResourceProviders can be (validly) nil - as such this shouldn't be relied on
-var cachedResourceProviders *[]string
-var registeredResourceProviders *map[string]struct{}
-var unregisteredResourceProviders *map[string]struct{}
+var (
+	cachedResourceProviders       *[]string
+	registeredResourceProviders   map[string]struct{}
+	unregisteredResourceProviders map[string]struct{}
+)
 
 var cacheLock = &sync.Mutex{}
 
@@ -53,8 +55,8 @@ func populateCache(ctx context.Context, client *providers.ProvidersClient, subsc
 	}
 
 	providerNames := make([]string, 0)
-	registeredProviders := make(map[string]struct{}, 0)
-	unregisteredProviders := make(map[string]struct{}, 0)
+	registeredResourceProviders = make(map[string]struct{})
+	unregisteredResourceProviders = make(map[string]struct{})
 	for _, provider := range providers.Items {
 		if provider.Namespace == nil {
 			continue
@@ -63,14 +65,12 @@ func populateCache(ctx context.Context, client *providers.ProvidersClient, subsc
 		providerNames = append(providerNames, *provider.Namespace)
 		registered := provider.RegistrationState != nil && strings.EqualFold(*provider.RegistrationState, "registered")
 		if registered {
-			registeredProviders[*provider.Namespace] = struct{}{}
+			registeredResourceProviders[*provider.Namespace] = struct{}{}
 		} else {
-			unregisteredProviders[*provider.Namespace] = struct{}{}
+			unregisteredResourceProviders[*provider.Namespace] = struct{}{}
 		}
 	}
 
 	cachedResourceProviders = &providerNames
-	registeredResourceProviders = &registeredProviders
-	unregisteredResourceProviders = &unregisteredProviders
 	return nil
 }

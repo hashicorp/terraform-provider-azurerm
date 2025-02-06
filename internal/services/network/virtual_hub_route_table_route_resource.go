@@ -8,24 +8,25 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubRouteTableRouteCreateUpdate,
+		Create: resourceVirtualHubRouteTableRouteCreate,
 		Read:   resourceVirtualHubRouteTableRouteRead,
-		Update: resourceVirtualHubRouteTableRouteCreateUpdate,
+		Update: resourceVirtualHubRouteTableRouteUpdate,
 		Delete: resourceVirtualHubRouteTableRouteDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -45,7 +46,7 @@ func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.HubRouteTableID,
+				ValidateFunc: virtualwans.ValidateHubRouteTableID,
 			},
 
 			"name": {
@@ -92,12 +93,12 @@ func resourceVirtualHubRouteTableRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.HubRouteTableClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceVirtualHubRouteTableRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	routeTableId, err := parse.HubRouteTableID(d.Get("route_table_id").(string))
+	routeTableId, err := virtualwans.ParseHubRouteTableID(d.Get("route_table_id").(string))
 	if err != nil {
 		return err
 	}
@@ -105,56 +106,112 @@ func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, me
 	locks.ByName(routeTableId.VirtualHubName, virtualHubResourceName)
 	defer locks.UnlockByName(routeTableId.VirtualHubName, virtualHubResourceName)
 
-	routeTable, err := client.Get(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name)
+	routeTable, err := client.HubRouteTablesGet(ctx, *routeTableId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(routeTable.Response) {
+		if !response.WasNotFound(routeTable.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", routeTableId, err)
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", routeTableId, err)
 	}
 
-	name := d.Get("name").(string)
-	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name, name)
+	if routeTable.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", routeTableId)
+	}
+	if routeTable.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", routeTableId)
+	}
 
-	if d.IsNewResource() {
-		for _, r := range *routeTable.Routes {
-			if *r.Name == name {
+	props := routeTable.Model.Properties
+
+	name := d.Get("name").(string)
+	id := parse.NewHubRouteTableRouteID(routeTableId.SubscriptionId, routeTableId.ResourceGroupName, routeTableId.VirtualHubName, routeTableId.HubRouteTableName, name)
+
+	routes := make([]virtualwans.HubRoute, 0)
+	if hubRoutes := props.Routes; hubRoutes != nil {
+		for _, r := range *hubRoutes {
+			if r.Name == name {
 				return tf.ImportAsExistsError("azurerm_virtual_hub_route_table_route", id.ID())
 			}
 		}
+		routes = *props.Routes
 
-		routes := *routeTable.Routes
-		result := network.HubRoute{
-			Name:            utils.String(d.Get("name").(string)),
-			DestinationType: utils.String(d.Get("destinations_type").(string)),
-			Destinations:    utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()),
-			NextHopType:     utils.String(d.Get("next_hop_type").(string)),
-			NextHop:         utils.String(d.Get("next_hop").(string)),
+		result := virtualwans.HubRoute{
+			Name:            d.Get("name").(string),
+			DestinationType: d.Get("destinations_type").(string),
+			Destinations:    pointer.From(utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())),
+			NextHopType:     d.Get("next_hop_type").(string),
+			NextHop:         d.Get("next_hop").(string),
 		}
 
 		routes = append(routes, result)
-		routeTable.Routes = &routes
-	} else {
-		routes := *routeTable.Routes
-		for i := range routes {
-			if *routes[i].Name == name {
-				routes[i].DestinationType = utils.String(d.Get("destinations_type").(string))
-				routes[i].Destinations = utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List())
-				routes[i].NextHopType = utils.String(d.Get("next_hop_type").(string))
-				routes[i].NextHop = utils.String(d.Get("next_hop").(string))
-				break
+	}
+
+	routeTable.Model.Properties.Routes = pointer.To(routes)
+
+	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, *routeTableId, *routeTable.Model); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualHubRouteTableRouteRead(d, meta)
+}
+
+func resourceVirtualHubRouteTableRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	routeTableId, err := virtualwans.ParseHubRouteTableID(d.Get("route_table_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(routeTableId.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(routeTableId.VirtualHubName, virtualHubResourceName)
+
+	routeTable, err := client.HubRouteTablesGet(ctx, *routeTableId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", routeTableId, err)
+	}
+
+	if routeTable.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", routeTableId)
+	}
+	if routeTable.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", routeTableId)
+	}
+
+	props := routeTable.Model.Properties
+
+	id, err := parse.HubRouteTableRouteID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	routes := *props.Routes
+	for i := range routes {
+		if routes[i].Name == id.RouteName {
+			if d.HasChange("destinations_type") {
+				routes[i].DestinationType = d.Get("destinations_type").(string)
 			}
+			if d.HasChange("destinations") {
+				routes[i].Destinations = pointer.From(utils.ExpandStringSlice(d.Get("destinations").(*pluginsdk.Set).List()))
+			}
+			if d.HasChange("next_hop_type") {
+				routes[i].NextHopType = d.Get("next_hop_type").(string)
+			}
+			if d.HasChange("next_hop") {
+				routes[i].NextHop = d.Get("next_hop").(string)
+			}
+			break
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, routeTableId.ResourceGroup, routeTableId.VirtualHubName, routeTableId.Name, routeTable)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
+	routeTable.Model.Properties.Routes = pointer.To(routes)
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting to create/update %s: %+v", id, err)
+	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, *routeTableId, *routeTable.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())
@@ -163,102 +220,107 @@ func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, me
 }
 
 func resourceVirtualHubRouteTableRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.HubRouteTableClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	route, err := parse.HubRouteTableRouteID(d.Id())
+	id, err := parse.HubRouteTableRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
+	routeTableId := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.HubRouteTableName)
+
+	resp, err := client.HubRouteTablesGet(ctx, routeTableId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Virtual Hub Route Table %q does not exist - removing route %s from state", route.HubRouteTableName, route.RouteName)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", routeTableId.ID())
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("retrieving %s: %+v", route, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if props := resp.HubRouteTableProperties; props != nil {
-		found := false
-		for _, r := range *props.Routes {
-			if *r.Name == route.RouteName {
-				found = true
+	d.Set("name", id.RouteName)
 
-				d.Set("destinations_type", r.DestinationType)
-				d.Set("destinations", utils.FlattenStringSlice(r.Destinations))
-				d.Set("next_hop_type", r.NextHopType)
-				d.Set("next_hop", r.NextHop)
+	routeTableID := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.HubRouteTableName)
+	d.Set("route_table_id", routeTableID.ID())
 
-				break
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			found := false
+			for _, r := range *props.Routes {
+				if r.Name == id.RouteName {
+					found = true
+					d.Set("destinations_type", r.DestinationType)
+					d.Set("destinations", r.Destinations)
+					d.Set("next_hop_type", r.NextHopType)
+					d.Set("next_hop", r.NextHop)
+					break
+				}
+			}
+
+			if !found {
+				// could not find existing id by name
+				d.SetId("")
+				return nil
 			}
 		}
-
-		if !found {
-			// could not find existing route by name
-			d.SetId("")
-			return nil
-		}
 	}
-
-	d.Set("name", route.RouteName)
-	routeTableID := parse.NewHubRouteTableID(route.SubscriptionId, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
-	d.Set("route_table_id", routeTableID.ID())
 
 	return nil
 }
 
 func resourceVirtualHubRouteTableRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.HubRouteTableClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	route, err := parse.HubRouteTableRouteID(d.Id())
+	id, err := parse.HubRouteTableRouteID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(route.VirtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(route.VirtualHubName, virtualHubResourceName)
+	routeTableId := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.HubRouteTableName)
+
+	locks.ByName(id.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
 	// get latest list of routes
-	routeTable, err := client.Get(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName)
+	routeTable, err := client.HubRouteTablesGet(ctx, routeTableId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(routeTable.Response) {
-			// route table does not exist, therefore route does not exist
+		if !response.WasNotFound(routeTable.HttpResponse) {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", route, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if props := routeTable.HubRouteTableProperties; props != nil {
-		if props.Routes != nil {
-			routes := *props.Routes
+	if routeTable.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", routeTableId)
+	}
+	if routeTable.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", routeTableId)
+	}
 
-			newRoutes := make([]network.HubRoute, 0)
+	props := routeTable.Model.Properties
 
-			for _, r := range routes {
-				if *r.Name != route.RouteName {
-					newRoutes = append(newRoutes, r)
-				}
+	if props.Routes != nil {
+		routes := *props.Routes
+
+		newRoutes := make([]virtualwans.HubRoute, 0)
+		for _, r := range routes {
+			if r.Name != id.RouteName {
+				newRoutes = append(newRoutes, r)
 			}
-
-			props.Routes = &newRoutes
 		}
+		props.Routes = &newRoutes
 	}
 
-	future, err := client.CreateOrUpdate(ctx, route.ResourceGroup, route.VirtualHubName, route.HubRouteTableName, routeTable)
-	if err != nil {
-		return fmt.Errorf("removing %s: %+v", route, err)
-	}
+	routeTable.Model.Properties = props
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting to remove %s: %+v", route, err)
+	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, routeTableId, *routeTable.Model); err != nil {
+		return fmt.Errorf("removing %s: %+v", id, err)
 	}
 
 	return nil

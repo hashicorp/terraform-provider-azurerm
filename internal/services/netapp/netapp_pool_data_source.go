@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2022-05-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,6 +52,11 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
 			},
+
+			"encryption_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -80,6 +86,7 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("location", location.NormalizeNilable(&model.Location))
 		d.Set("service_level", string(model.Properties.ServiceLevel))
 		d.Set("size_in_tb", model.Properties.Size/1099511627776)
+		d.Set("encryption_type", string(pointer.From(model.Properties.EncryptionType)))
 	}
 
 	return nil

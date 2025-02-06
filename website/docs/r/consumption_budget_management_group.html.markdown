@@ -102,16 +102,6 @@ A `filter` block supports the following:
 
 * `tag` - (Optional) One or more `tag` blocks as defined below to filter the budget on.
 
-* `not` - (Optional) A `not` block as defined below to filter the budget on. This is deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
----
-
-A `not` block supports the following:
-
-* `dimension` - (Optional) One `dimension` block as defined below to filter the budget on. Conflicts with `tag`.
-
-* `tag` - (Optional) One `tag` block as defined below to filter the budget on. Conflicts with `dimension`.
-
 ---
 
 A `notification` block supports the following:
@@ -122,7 +112,7 @@ A `notification` block supports the following:
 
 * `contact_emails` - (Required) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
@@ -132,7 +122,7 @@ A `dimension` block supports the following:
 
 * `name` - (Required) The name of the column to use for the filter. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `SubscriptionID`, `SubscriptionName`, `UnitOfMeasure`.
 
-* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`. Defaults to `In`.
 
 * `values` - (Required) Specifies a list of values for the column.
 
@@ -142,7 +132,7 @@ A `tag` block supports the following:
 
 * `name` - (Required) The name of the tag to use for the filter.
 
-* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`. Defaults to `In`.
 
 * `values` - (Required) Specifies a list of values for the tag.
 

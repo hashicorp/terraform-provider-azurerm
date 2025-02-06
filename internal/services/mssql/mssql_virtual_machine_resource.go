@@ -7,20 +7,21 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,7 +57,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"sql_license_type": {
@@ -382,15 +383,15 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"max_server_memory_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      2147483647,
-							ValidateFunc: validation.IntBetween(128, 2147483647),
+							Default:      math.MaxInt32,
+							ValidateFunc: validation.IntBetween(128, math.MaxInt32),
 						},
 
 						"min_server_memory_mb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 					},
 				},
@@ -495,15 +496,15 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 
 func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
-	vmclient := meta.(*clients.Client).Compute.VMClient
+	vmclient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := parseCompute.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	vmId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
-	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroup, vmId.Name)
+	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
@@ -518,15 +519,18 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	// get location from vm
-	respvm, err := vmclient.Get(ctx, id.ResourceGroupName, id.SqlVirtualMachineName, "")
+	respvm, err := vmclient.Get(ctx, *vmId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
+		return fmt.Errorf("retrieving %s: %+v", vmId, err)
 	}
 
-	if *respvm.Location == "" {
-		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
+	if respvm.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", vmId)
 	}
-	sqlVmGroupId := ""
+	if respvm.Model.Location == "" {
+		return fmt.Errorf("retrieving %s: `location` is empty", vmId)
+	}
+	var sqlVmGroupId string
 	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
 		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
 		if err != nil {
@@ -549,7 +553,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
-		Location: *respvm.Location,
+		Location: respvm.Model.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
 			AutoBackupSettings:               autoBackupSettings,
 			AutoPatchingSettings:             expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
@@ -844,7 +848,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.RetentionPeriod = utils.Int64(int64(v.(int)))
 		}
 		if v, ok := config["storage_blob_endpoint"]; ok {
-			ret.StorageAccountUrl = utils.String(v.(string))
+			ret.StorageAccountURL = utils.String(v.(string))
 		}
 		if v, ok := config["storage_account_access_key"]; ok {
 			ret.StorageAccessKey = utils.String(v.(string))
@@ -1165,7 +1169,7 @@ func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualm
 	return &sqlvirtualmachines.KeyVaultCredentialSettings{
 		Enable:                 utils.Bool(true),
 		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
-		AzureKeyVaultUrl:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
+		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["key_vault_url"].(string)),
 		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
 		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}
@@ -1363,6 +1367,7 @@ func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbS
 
 	return []interface{}{attrs}
 }
+
 func expandSqlVirtualMachineSQLInstance(input []interface{}) (*sqlvirtualmachines.SQLInstanceSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return &sqlvirtualmachines.SQLInstanceSettings{}, nil
@@ -1416,7 +1421,7 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 		maxDop = *input.MaxDop
 	}
 
-	var maxServerMemoryMB int64 = 2147483647
+	var maxServerMemoryMB int64 = math.MaxInt32
 	if input.MaxServerMemoryMB != nil {
 		maxServerMemoryMB = *input.MaxServerMemoryMB
 	}

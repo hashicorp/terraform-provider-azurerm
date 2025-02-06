@@ -81,7 +81,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
@@ -101,7 +101,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 		}
@@ -111,7 +111,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsCreateUpdate(d *pluginsdk.Resou
 		}
 	}
 
-	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, params); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 	}
 
@@ -130,7 +130,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	resp, err := client.AlertRulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Sentinel Alert Rule MLBehaviorAnalytics %q was not found - removing from state!", id)
@@ -145,17 +145,16 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
+		if rule, ok := model.(alertrules.MLBehaviorAnalyticsAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-
-		if prop := rule.Properties; prop != nil {
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+			if prop := rule.Properties; prop != nil {
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+			}
 		}
 	}
 
@@ -172,7 +171,7 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsDelete(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule MLBehaviorAnalytics %q: %+v", id, err)
 	}
 

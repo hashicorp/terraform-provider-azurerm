@@ -1,9 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package customdiff
 
 import (
 	"context"
-
-	"github.com/hashicorp/go-multierror"
+	"errors"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -45,14 +47,14 @@ import (
 //	}
 func All(funcs ...schema.CustomizeDiffFunc) schema.CustomizeDiffFunc {
 	return func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
-		var err error
+		var errs []error
 		for _, f := range funcs {
 			thisErr := f(ctx, d, meta)
 			if thisErr != nil {
-				err = multierror.Append(err, thisErr)
+				errs = append(errs, thisErr)
 			}
 		}
-		return err
+		return errors.Join(errs...)
 	}
 }
 

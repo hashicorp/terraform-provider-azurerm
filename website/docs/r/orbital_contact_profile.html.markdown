@@ -10,6 +10,8 @@ description: |-
 
 Manages a Contact profile.
 
+~> **Note:** The `azurerm_orbital_contact_profile` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -102,7 +104,7 @@ The following arguments are supported:
 
 A `links` block supports the following:
 
-* `channels` - (Required) A list of contact profile link channels. A `channels` block as defined below. Changing this forces a new resource to be created.
+* `channels` - (Required) A list of contact profile link channels. A `channels` block as defined below.
 
 * `direction` - (Required) Direction of the link. Possible values are `Uplink` and `Downlink`.
 

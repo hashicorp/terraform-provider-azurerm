@@ -35,10 +35,10 @@ resource "azurerm_subnet" "public" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }
@@ -55,10 +55,10 @@ resource "azurerm_subnet" "private" {
 
     service_delegation {
       actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-          "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-          "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
-        ]
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
       name = "Microsoft.Databricks/workspaces"
     }
   }
@@ -96,10 +96,10 @@ resource "azurerm_databricks_workspace" "example" {
   sku                         = "premium"
   managed_resource_group_name = "${var.prefix}-DBW-managed-private-endpoint-ms-dbfscmk"
 
-  customer_managed_key_enabled              = true
-  managed_services_cmk_key_vault_key_id     = azurerm_key_vault_key.example.id
-  public_network_access_enabled             = false
-  network_security_group_rules_required     = "NoAzureDatabricksRules"
+  customer_managed_key_enabled          = true
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.example.id
+  public_network_access_enabled         = false
+  network_security_group_rules_required = "NoAzureDatabricksRules"
 
   custom_parameters {
     no_public_ip        = true
@@ -117,7 +117,7 @@ resource "azurerm_databricks_workspace" "example" {
   }
 }
 
-resource "azurerm_databricks_workspace_customer_managed_key" "example" {
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
   workspace_id     = azurerm_databricks_workspace.example.id
@@ -125,6 +125,8 @@ resource "azurerm_databricks_workspace_customer_managed_key" "example" {
 }
 
 resource "azurerm_private_endpoint" "databricks" {
+  depends_on = [azurerm_databricks_workspace_root_dbfs_customer_managed_key.example]
+
   name                = "${var.prefix}-pe-databricks"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -187,20 +189,22 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 
@@ -212,21 +216,21 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
-  key_vault_id   = azurerm_key_vault.example.id
-  tenant_id      = azurerm_key_vault.example.tenant_id
-  object_id      = "See the README.md file for instructions on how to lookup the correct value to enter here"
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = azurerm_key_vault.example.tenant_id
+  object_id    = "00000000-0000-0000-0000-000000000000" # See the README.md file for instructions on how to lookup the correct value to enter here.
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 

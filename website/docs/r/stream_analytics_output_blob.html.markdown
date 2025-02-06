@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `storage_account_key` - (Optional) The Access Key which should be used to connect to this Storage Account.
 
+* `blob_write_mode` - (Optional) Determines whether blob blocks are either committed automatically or appended. Possible values are `Append` and `Once`. Defaults to `Append`.
+
 ---
 
 A `serialization` block supports the following:

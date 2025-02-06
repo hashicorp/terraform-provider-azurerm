@@ -19,7 +19,20 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []ApiKey
+	LatestHttpResponse *http.Response
+	Items              []ApiKey
+}
+
+type ListKeysCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListKeysCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListKeys ...
@@ -30,6 +43,7 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListKeysCustomPager{},
 		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context
 
 	resp, err := c.ListKeys(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

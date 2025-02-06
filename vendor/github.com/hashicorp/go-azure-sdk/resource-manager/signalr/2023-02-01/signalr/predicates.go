@@ -173,3 +173,16 @@ func (p SignalRUsageOperationPredicate) Matches(input SignalRUsage) bool {
 
 	return true
 }
+
+type SkuOperationPredicate struct {
+	ResourceType *string
+}
+
+func (p SkuOperationPredicate) Matches(input Sku) bool {
+
+	if p.ResourceType != nil && (input.ResourceType == nil || *p.ResourceType != *input.ResourceType) {
+		return false
+	}
+
+	return true
+}

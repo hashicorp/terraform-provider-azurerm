@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DisasterRecoveryConfigId{}
+func init() {
+	recaser.RegisterResourceId(&DisasterRecoveryConfigId{})
+}
+
+var _ resourceids.ResourceId = &DisasterRecoveryConfigId{}
 
 // DisasterRecoveryConfigId is a struct representing the Resource ID for a Disaster Recovery Config
 type DisasterRecoveryConfigId struct {
@@ -32,29 +37,15 @@ func NewDisasterRecoveryConfigID(subscriptionId string, resourceGroupName string
 
 // ParseDisasterRecoveryConfigID parses 'input' into a DisasterRecoveryConfigId
 func ParseDisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DisasterRecoveryConfigId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.DisasterRecoveryConfigName, ok = parsed.Parsed["disasterRecoveryConfigName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "disasterRecoveryConfigName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseDisasterRecoveryConfigID(input string) (*DisasterRecoveryConfigId, err
 // ParseDisasterRecoveryConfigIDInsensitively parses 'input' case-insensitively into a DisasterRecoveryConfigId
 // note: this method should only be used for API response data and not user input
 func ParseDisasterRecoveryConfigIDInsensitively(input string) (*DisasterRecoveryConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DisasterRecoveryConfigId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.DisasterRecoveryConfigName, ok = parsed.Parsed["disasterRecoveryConfigName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "disasterRecoveryConfigName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DisasterRecoveryConfigId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.DisasterRecoveryConfigName, ok = input.Parsed["disasterRecoveryConfigName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "disasterRecoveryConfigName", input)
+	}
+
+	return nil
 }
 
 // ValidateDisasterRecoveryConfigID checks that 'input' can be parsed as a Disaster Recovery Config ID
@@ -122,9 +121,9 @@ func (id DisasterRecoveryConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventHub", "Microsoft.EventHub", "Microsoft.EventHub"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticDisasterRecoveryConfigs", "disasterRecoveryConfigs", "disasterRecoveryConfigs"),
-		resourceids.UserSpecifiedSegment("disasterRecoveryConfigName", "disasterRecoveryConfigValue"),
+		resourceids.UserSpecifiedSegment("disasterRecoveryConfigName", "disasterRecoveryConfigName"),
 	}
 }
 

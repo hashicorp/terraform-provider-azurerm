@@ -1,6 +1,10 @@
 package cluster
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForAddOnFeatures() []string {
 		string(AddOnFeaturesRepairManager),
 		string(AddOnFeaturesResourceMonitorService),
 	}
+}
+
+func (s *AddOnFeatures) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAddOnFeatures(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAddOnFeatures(input string) (*AddOnFeatures, error) {
@@ -69,6 +86,19 @@ func PossibleValuesForClusterState() []string {
 	}
 }
 
+func (s *ClusterState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterState(input string) (*ClusterState, error) {
 	vals := map[string]ClusterState{
 		"autoscale":                 ClusterStateAutoScale,
@@ -107,6 +137,19 @@ func PossibleValuesForClusterUpgradeCadence() []string {
 	}
 }
 
+func (s *ClusterUpgradeCadence) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterUpgradeCadence(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterUpgradeCadence(input string) (*ClusterUpgradeCadence, error) {
 	vals := map[string]ClusterUpgradeCadence{
 		"wave1": ClusterUpgradeCadenceWaveOne,
@@ -138,6 +181,19 @@ func PossibleValuesForDurabilityLevel() []string {
 	}
 }
 
+func (s *DurabilityLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDurabilityLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDurabilityLevel(input string) (*DurabilityLevel, error) {
 	vals := map[string]DurabilityLevel{
 		"bronze": DurabilityLevelBronze,
@@ -167,6 +223,19 @@ func PossibleValuesForEnvironment() []string {
 	}
 }
 
+func (s *Environment) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnvironment(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEnvironment(input string) (*Environment, error) {
 	vals := map[string]Environment{
 		"linux":   EnvironmentLinux,
@@ -191,6 +260,19 @@ func PossibleValuesForNotificationCategory() []string {
 	return []string{
 		string(NotificationCategoryWaveProgress),
 	}
+}
+
+func (s *NotificationCategory) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNotificationCategory(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNotificationCategory(input string) (*NotificationCategory, error) {
@@ -220,6 +302,19 @@ func PossibleValuesForNotificationChannel() []string {
 	}
 }
 
+func (s *NotificationChannel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNotificationChannel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNotificationChannel(input string) (*NotificationChannel, error) {
 	vals := map[string]NotificationChannel{
 		"emailsubscription": NotificationChannelEmailSubscription,
@@ -246,6 +341,19 @@ func PossibleValuesForNotificationLevel() []string {
 		string(NotificationLevelAll),
 		string(NotificationLevelCritical),
 	}
+}
+
+func (s *NotificationLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNotificationLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNotificationLevel(input string) (*NotificationLevel, error) {
@@ -278,6 +386,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
@@ -316,6 +437,19 @@ func PossibleValuesForReliabilityLevel() []string {
 	}
 }
 
+func (s *ReliabilityLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReliabilityLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReliabilityLevel(input string) (*ReliabilityLevel, error) {
 	vals := map[string]ReliabilityLevel{
 		"bronze":   ReliabilityLevelBronze,
@@ -347,6 +481,19 @@ func PossibleValuesForSfZonalUpgradeMode() []string {
 	}
 }
 
+func (s *SfZonalUpgradeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSfZonalUpgradeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSfZonalUpgradeMode(input string) (*SfZonalUpgradeMode, error) {
 	vals := map[string]SfZonalUpgradeMode{
 		"hierarchical": SfZonalUpgradeModeHierarchical,
@@ -375,6 +522,19 @@ func PossibleValuesForUpgradeMode() []string {
 	}
 }
 
+func (s *UpgradeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpgradeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseUpgradeMode(input string) (*UpgradeMode, error) {
 	vals := map[string]UpgradeMode{
 		"automatic": UpgradeModeAutomatic,
@@ -401,6 +561,19 @@ func PossibleValuesForVMSSZonalUpgradeMode() []string {
 		string(VMSSZonalUpgradeModeHierarchical),
 		string(VMSSZonalUpgradeModeParallel),
 	}
+}
+
+func (s *VMSSZonalUpgradeMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVMSSZonalUpgradeMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVMSSZonalUpgradeMode(input string) (*VMSSZonalUpgradeMode, error) {
@@ -441,6 +614,19 @@ func PossibleValuesForX509StoreName() []string {
 		string(X509StoreNameTrustedPeople),
 		string(X509StoreNameTrustedPublisher),
 	}
+}
+
+func (s *X509StoreName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseX509StoreName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseX509StoreName(input string) (*X509StoreName, error) {

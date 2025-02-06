@@ -62,7 +62,7 @@ resource "azurerm_private_link_service" "example" {
 
   auto_approval_subscription_ids              = ["00000000-0000-0000-0000-000000000000"]
   visibility_subscription_ids                 = ["00000000-0000-0000-0000-000000000000"]
-  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration[0].id]
 
   nat_ip_configuration {
     name                       = "primary"

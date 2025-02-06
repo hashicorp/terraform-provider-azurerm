@@ -29,8 +29,10 @@ type AlertRuleThreatIntelligenceModel struct {
 
 type AlertRuleThreatIntelligenceResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
-var _ sdk.ResourceWithUpdate = AlertRuleThreatIntelligenceResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
+	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
+)
 
 func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
 	return &AlertRuleThreatIntelligenceModel{}
@@ -101,7 +103,7 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 
 			id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, metaModel.Name)
 
-			resp, err := client.AlertRulesGet(ctx, id)
+			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("checking for existing %q: %+v", id, err)
@@ -136,7 +138,7 @@ func (a AlertRuleThreatIntelligenceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %q: %+v", id, err)
 			}
 
@@ -157,7 +159,7 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			resp, err := client.AlertRulesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -168,7 +170,6 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
 
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
@@ -177,9 +178,11 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 				WorkspaceId: workspaceId.ID(),
 			}
 
-			if prop := rule.Properties; prop != nil {
-				state.Enabled = prop.Enabled
-				state.TemplateName = prop.AlertRuleTemplateName
+			if rule, ok := resp.Model.(alertrules.ThreatIntelligenceAlertRule); ok {
+				if prop := rule.Properties; prop != nil {
+					state.Enabled = prop.Enabled
+					state.TemplateName = prop.AlertRuleTemplateName
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -198,7 +201,7 @@ func (a AlertRuleThreatIntelligenceResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %+v", err)
 			}
 
-			if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %+v", err)
 			}
 
@@ -222,14 +225,15 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("parsing %+v", err)
 			}
-			resp, err := client.AlertRulesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %+v", err)
 			}
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
+
+			rule := resp.Model.(alertrules.ThreatIntelligenceAlertRule)
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
@@ -249,7 +253,7 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.AlertRulesCreateOrUpdate(ctx, *id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
 			}
 

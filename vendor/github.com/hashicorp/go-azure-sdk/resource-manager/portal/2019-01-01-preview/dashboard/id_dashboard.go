@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DashboardId{}
+func init() {
+	recaser.RegisterResourceId(&DashboardId{})
+}
+
+var _ resourceids.ResourceId = &DashboardId{}
 
 // DashboardId is a struct representing the Resource ID for a Dashboard
 type DashboardId struct {
@@ -30,25 +35,15 @@ func NewDashboardID(subscriptionId string, resourceGroupName string, dashboardNa
 
 // ParseDashboardID parses 'input' into a DashboardId
 func ParseDashboardID(input string) (*DashboardId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DashboardId{})
+	parser := resourceids.NewParserFromResourceIdType(&DashboardId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DashboardId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DashboardName, ok = parsed.Parsed["dashboardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dashboardName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDashboardID(input string) (*DashboardId, error) {
 // ParseDashboardIDInsensitively parses 'input' case-insensitively into a DashboardId
 // note: this method should only be used for API response data and not user input
 func ParseDashboardIDInsensitively(input string) (*DashboardId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DashboardId{})
+	parser := resourceids.NewParserFromResourceIdType(&DashboardId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DashboardId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DashboardName, ok = parsed.Parsed["dashboardName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dashboardName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DashboardId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DashboardName, ok = input.Parsed["dashboardName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dashboardName", input)
+	}
+
+	return nil
 }
 
 // ValidateDashboardID checks that 'input' can be parsed as a Dashboard ID
@@ -112,7 +115,7 @@ func (id DashboardId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPortal", "Microsoft.Portal", "Microsoft.Portal"),
 		resourceids.StaticSegment("staticDashboards", "dashboards", "dashboards"),
-		resourceids.UserSpecifiedSegment("dashboardName", "dashboardValue"),
+		resourceids.UserSpecifiedSegment("dashboardName", "dashboardName"),
 	}
 }
 

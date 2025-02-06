@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NodeTypeId{}
+func init() {
+	recaser.RegisterResourceId(&NodeTypeId{})
+}
+
+var _ resourceids.ResourceId = &NodeTypeId{}
 
 // NodeTypeId is a struct representing the Resource ID for a Node Type
 type NodeTypeId struct {
@@ -32,29 +37,15 @@ func NewNodeTypeID(subscriptionId string, resourceGroupName string, managedClust
 
 // ParseNodeTypeID parses 'input' into a NodeTypeId
 func ParseNodeTypeID(input string) (*NodeTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NodeTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&NodeTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NodeTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
-	}
-
-	if id.NodeTypeName, ok = parsed.Parsed["nodeTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "nodeTypeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseNodeTypeID(input string) (*NodeTypeId, error) {
 // ParseNodeTypeIDInsensitively parses 'input' case-insensitively into a NodeTypeId
 // note: this method should only be used for API response data and not user input
 func ParseNodeTypeIDInsensitively(input string) (*NodeTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NodeTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&NodeTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NodeTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedClusterName, ok = parsed.Parsed["managedClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", *parsed)
-	}
-
-	if id.NodeTypeName, ok = parsed.Parsed["nodeTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "nodeTypeName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *NodeTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ManagedClusterName, ok = input.Parsed["managedClusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedClusterName", input)
+	}
+
+	if id.NodeTypeName, ok = input.Parsed["nodeTypeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "nodeTypeName", input)
+	}
+
+	return nil
 }
 
 // ValidateNodeTypeID checks that 'input' can be parsed as a Node Type ID
@@ -122,9 +121,9 @@ func (id NodeTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceFabric", "Microsoft.ServiceFabric", "Microsoft.ServiceFabric"),
 		resourceids.StaticSegment("staticManagedClusters", "managedClusters", "managedClusters"),
-		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterValue"),
+		resourceids.UserSpecifiedSegment("managedClusterName", "managedClusterName"),
 		resourceids.StaticSegment("staticNodeTypes", "nodeTypes", "nodeTypes"),
-		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeValue"),
+		resourceids.UserSpecifiedSegment("nodeTypeName", "nodeTypeName"),
 	}
 }
 

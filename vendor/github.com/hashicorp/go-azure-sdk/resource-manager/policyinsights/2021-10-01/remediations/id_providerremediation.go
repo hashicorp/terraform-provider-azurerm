@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderRemediationId{}
+func init() {
+	recaser.RegisterResourceId(&ProviderRemediationId{})
+}
+
+var _ resourceids.ResourceId = &ProviderRemediationId{}
 
 // ProviderRemediationId is a struct representing the Resource ID for a Provider Remediation
 type ProviderRemediationId struct {
@@ -30,25 +35,15 @@ func NewProviderRemediationID(subscriptionId string, resourceGroupName string, r
 
 // ParseProviderRemediationID parses 'input' into a ProviderRemediationId
 func ParseProviderRemediationID(input string) (*ProviderRemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderRemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderRemediationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderRemediationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseProviderRemediationID(input string) (*ProviderRemediationId, error) {
 // ParseProviderRemediationIDInsensitively parses 'input' case-insensitively into a ProviderRemediationId
 // note: this method should only be used for API response data and not user input
 func ParseProviderRemediationIDInsensitively(input string) (*ProviderRemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderRemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderRemediationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderRemediationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RemediationName, ok = parsed.Parsed["remediationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "remediationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProviderRemediationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RemediationName, ok = input.Parsed["remediationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "remediationName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviderRemediationID checks that 'input' can be parsed as a Provider Remediation ID
@@ -112,7 +115,7 @@ func (id ProviderRemediationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftPolicyInsights", "Microsoft.PolicyInsights", "Microsoft.PolicyInsights"),
 		resourceids.StaticSegment("staticRemediations", "remediations", "remediations"),
-		resourceids.UserSpecifiedSegment("remediationName", "remediationValue"),
+		resourceids.UserSpecifiedSegment("remediationName", "remediationName"),
 	}
 }
 

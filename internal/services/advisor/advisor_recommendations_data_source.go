@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2020-01-01/getrecommendations" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/advisor/2023-01-01/getrecommendations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -132,7 +132,7 @@ func dataSourceAdvisorRecommendationsRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `recommendations`: %+v", err)
 	}
 
-	d.SetId(fmt.Sprintf("avdisor/recommendations/%s", time.Now().UTC().String()))
+	d.SetId("avdisor/recommendations/" + time.Now().UTC().String())
 
 	return nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -32,7 +32,7 @@ var (
 )
 
 type AgentConfig struct {
-	CPU int `tfschema:"cpu"`
+	CPU int64 `tfschema:"cpu"`
 }
 
 type Platform struct {
@@ -84,7 +84,7 @@ type Auth struct {
 	Token        string `tfschema:"token"`
 	RefreshToken string `tfschema:"refresh_token"`
 	Scope        string `tfschema:"scope"`
-	ExpireInSec  int    `tfschema:"expire_in_seconds"`
+	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
 type SourceSetting struct{}
@@ -130,7 +130,7 @@ type ContainerRegistryTaskModel struct {
 	LogTemplate         string               `tfschema:"log_template"`
 	Platform            []Platform           `tfschema:"platform"`
 	Enabled             bool                 `tfschema:"enabled"`
-	TimeoutInSec        int                  `tfschema:"timeout_in_seconds"`
+	TimeoutInSec        int64                `tfschema:"timeout_in_seconds"`
 	DockerStep          []DockerStep         `tfschema:"docker_step"`
 	FileTaskStep        []FileTaskStep       `tfschema:"file_step"`
 	EncodedTaskStep     []EncodedTaskStep    `tfschema:"encoded_step"`
@@ -574,16 +574,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{2}),
 					},
 				},
 			},
+			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -663,7 +666,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.ContainerRegistryClient_v2019_06_01_preview.Tasks
-			registryClient := metadata.Client.Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+			registryClient := metadata.Client.Containers.ContainerRegistryClient.Registries
 
 			var model ContainerRegistryTaskModel
 			if err := metadata.Decode(&model); err != nil {
@@ -708,7 +711,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 					Trigger:            expandRegistryTaskTrigger(model),
 					Status:             pointer.To(status),
 					IsSystemTask:       &model.IsSystemTask,
-					Timeout:            utils.Int64(int64(model.TimeoutInSec)),
+					Timeout:            pointer.To(model.TimeoutInSec),
 					Credentials:        expandRegistryTaskCredentials(model.RegistryCredential),
 					AgentConfiguration: expandRegistryTaskAgentProperties(model.AgentConfig),
 				},
@@ -768,7 +771,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				logTemplate        string
 				platform           []Platform
 				enabled            bool
-				timeoutInSec       int
+				timeoutInSec       int64
 				dockerStep         []DockerStep
 				fileTaskStep       []FileTaskStep
 				encodedTaskStep    []EncodedTaskStep
@@ -806,7 +809,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 					platform = flattenRegistryTaskPlatform(props.Platform)
 					enabled = *props.Status == tasks.TaskStatusEnabled
 					if props.Timeout != nil {
-						timeoutInSec = int(*props.Timeout)
+						timeoutInSec = *props.Timeout
 					}
 					dockerStep = flattenRegistryTaskDockerStep(props.Step, diffOrStateModel)
 					fileTaskStep = flattenRegistryTaskFileTaskStep(props.Step, diffOrStateModel)
@@ -861,7 +864,6 @@ func (r ContainerRegistryTaskResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
-
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -940,7 +942,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.LogTemplate = &model.LogTemplate
 			}
 			if metadata.ResourceData.HasChange("timeout_in_seconds") {
-				existing.Model.Properties.Timeout = utils.Int64(int64(model.TimeoutInSec))
+				existing.Model.Properties.Timeout = pointer.To(model.TimeoutInSec)
 			}
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = &model.Tags
@@ -1034,7 +1036,7 @@ func expandRegistryTaskSourceTriggers(triggers []SourceTrigger) *[]tasks.SourceT
 			Status: &status,
 			SourceRepository: tasks.SourceProperties{
 				SourceControlType: tasks.SourceControlType(trigger.SourceType),
-				RepositoryUrl:     trigger.RepositoryURL,
+				RepositoryURL:     trigger.RepositoryURL,
 			},
 		}
 		if len(trigger.Events) != 0 {
@@ -1076,7 +1078,7 @@ func flattenRegistryTaskSourceTriggers(triggers *[]tasks.SourceTrigger, model Co
 		}
 
 		obj.SourceType = string(trigger.SourceRepository.SourceControlType)
-		obj.RepositoryURL = trigger.SourceRepository.RepositoryUrl
+		obj.RepositoryURL = trigger.SourceRepository.RepositoryURL
 		if trigger.SourceRepository.Branch != nil {
 			obj.Branch = *trigger.SourceRepository.Branch
 		}
@@ -1103,7 +1105,7 @@ func expandRegistryTaskAuthInfo(auth Auth) *tasks.AuthInfo {
 		out.Scope = &auth.Scope
 	}
 	if auth.ExpireInSec != 0 {
-		out.ExpiresIn = utils.Int64(int64(auth.ExpireInSec))
+		out.ExpiresIn = pointer.To(auth.ExpireInSec)
 	}
 	return &out
 }
@@ -1558,7 +1560,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 	}
 
 	agentConfig := input[0]
-	return &tasks.AgentProperties{Cpu: utils.Int64(int64(agentConfig.CPU))}
+	return &tasks.AgentProperties{Cpu: utils.Int64(agentConfig.CPU)}
 }
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
@@ -1566,11 +1568,7 @@ func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentCon
 		return nil
 	}
 
-	cpu := 0
-	if input.Cpu != nil {
-		cpu = int(*input.Cpu)
-	}
-	return []AgentConfig{{CPU: cpu}}
+	return []AgentConfig{{CPU: pointer.From(input.Cpu)}}
 }
 
 func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model ContainerRegistryTaskModel) *[]tasks.SourceTrigger {

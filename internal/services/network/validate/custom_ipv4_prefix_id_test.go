@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
@@ -9,7 +12,6 @@ func TestCustomIpv4PrefixID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

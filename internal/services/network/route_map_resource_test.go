@@ -9,12 +9,12 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteMapResource struct{}
@@ -101,18 +101,18 @@ func TestAccRouteMap_update(t *testing.T) {
 }
 
 func (r RouteMapResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RouteMapID(state.ID)
+	id, err := virtualwans.ParseRouteMapID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := clients.Network.RouteMapsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	client := clients.Network.VirtualWANs
+	resp, err := client.RouteMapsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func randString() string {
@@ -199,6 +199,20 @@ resource "azurerm_route_map" "test" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  rule {
+    name                 = "rule2"
+    next_step_if_matched = "Terminate"
+
+    action {
+      type = "Drop"
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["172.16.0.0/12"]
+    }
+  }
 }
 `, r.template(data), nameSuffix)
 }
@@ -212,7 +226,7 @@ resource "azurerm_route_map" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   rule {
-    name                 = "rule2"
+    name                 = "rule3"
     next_step_if_matched = "Terminate"
 
     action {

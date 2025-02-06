@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores` Documentation
 
-The `configurationstores` SDK allows for interaction with the Azure Resource Manager Service `appconfiguration` (API Version `2023-03-01`).
+The `configurationstores` SDK allows for interaction with Azure Resource Manager `appconfiguration` (API Version `2023-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 payload := configurationstores.ConfigurationStore{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 // alternatively `client.ListKeys(ctx, id)` can be used to do batched pagination
 items, err := client.ListKeysComplete(ctx, id)
@@ -120,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 payload := configurationstores.RegenerateKeyParameters{
 	// ...
@@ -141,7 +142,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreValue")
+id := configurationstores.NewConfigurationStoreID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationStoreName")
 
 payload := configurationstores.ConfigurationStoreUpdateParameters{
 	// ...

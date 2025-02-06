@@ -1,6 +1,10 @@
 package links
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForAuthType() []string {
 		string(AuthTypeSystemAssignedIdentity),
 		string(AuthTypeUserAssignedIdentity),
 	}
+}
+
+func (s *AuthType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAuthType(input string) (*AuthType, error) {
@@ -52,6 +69,19 @@ func PossibleValuesForAzureResourceType() []string {
 	return []string{
 		string(AzureResourceTypeKeyVault),
 	}
+}
+
+func (s *AzureResourceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzureResourceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAzureResourceType(input string) (*AzureResourceType, error) {
@@ -99,6 +129,19 @@ func PossibleValuesForClientType() []string {
 	}
 }
 
+func (s *ClientType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClientType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClientType(input string) (*ClientType, error) {
 	vals := map[string]ClientType{
 		"django":           ClientTypeDjango,
@@ -138,6 +181,19 @@ func PossibleValuesForSecretType() []string {
 	}
 }
 
+func (s *SecretType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecretType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSecretType(input string) (*SecretType, error) {
 	vals := map[string]SecretType{
 		"keyvaultsecretreference": SecretTypeKeyVaultSecretReference,
@@ -169,6 +225,19 @@ func PossibleValuesForTargetServiceType() []string {
 	}
 }
 
+func (s *TargetServiceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTargetServiceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTargetServiceType(input string) (*TargetServiceType, error) {
 	vals := map[string]TargetServiceType{
 		"azureresource":            TargetServiceTypeAzureResource,
@@ -196,6 +265,19 @@ func PossibleValuesForVNetSolutionType() []string {
 		string(VNetSolutionTypePrivateLink),
 		string(VNetSolutionTypeServiceEndpoint),
 	}
+}
+
+func (s *VNetSolutionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVNetSolutionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVNetSolutionType(input string) (*VNetSolutionType, error) {
@@ -226,6 +308,19 @@ func PossibleValuesForValidationResultStatus() []string {
 		string(ValidationResultStatusSuccess),
 		string(ValidationResultStatusWarning),
 	}
+}
+
+func (s *ValidationResultStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseValidationResultStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseValidationResultStatus(input string) (*ValidationResultStatus, error) {

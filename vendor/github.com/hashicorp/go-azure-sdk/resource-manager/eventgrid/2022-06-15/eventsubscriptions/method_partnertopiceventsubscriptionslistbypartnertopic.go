@@ -19,7 +19,8 @@ type PartnerTopicEventSubscriptionsListByPartnerTopicOperationResponse struct {
 }
 
 type PartnerTopicEventSubscriptionsListByPartnerTopicCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions struct {
@@ -39,6 +40,7 @@ func (o PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) ToHead
 
 func (o PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) ToQuer
 	return &out
 }
 
+type PartnerTopicEventSubscriptionsListByPartnerTopicCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PartnerTopicEventSubscriptionsListByPartnerTopicCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PartnerTopicEventSubscriptionsListByPartnerTopic ...
 func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsListByPartnerTopic(ctx context.Context, id PartnerTopicId, options PartnerTopicEventSubscriptionsListByPartnerTopicOperationOptions) (result PartnerTopicEventSubscriptionsListByPartnerTopicOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsListByPartnerTop
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &PartnerTopicEventSubscriptionsListByPartnerTopicCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsListByPartnerTop
 
 	resp, err := c.PartnerTopicEventSubscriptionsListByPartnerTopic(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsListByPartnerTop
 	}
 
 	result = PartnerTopicEventSubscriptionsListByPartnerTopicCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

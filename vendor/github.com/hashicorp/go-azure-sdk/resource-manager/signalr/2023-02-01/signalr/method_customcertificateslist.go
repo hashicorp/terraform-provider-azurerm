@@ -19,7 +19,20 @@ type CustomCertificatesListOperationResponse struct {
 }
 
 type CustomCertificatesListCompleteResult struct {
-	Items []CustomCertificate
+	LatestHttpResponse *http.Response
+	Items              []CustomCertificate
+}
+
+type CustomCertificatesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CustomCertificatesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // CustomCertificatesList ...
@@ -30,6 +43,7 @@ func (c SignalRClient) CustomCertificatesList(ctx context.Context, id SignalRId)
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CustomCertificatesListCustomPager{},
 		Path:       fmt.Sprintf("%s/customCertificates", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c SignalRClient) CustomCertificatesListCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.CustomCertificatesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c SignalRClient) CustomCertificatesListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = CustomCertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

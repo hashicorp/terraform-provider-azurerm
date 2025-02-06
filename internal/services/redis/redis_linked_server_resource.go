@@ -9,10 +9,11 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -34,7 +35,6 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -73,6 +73,11 @@ func resourceRedisLinkedServer() *pluginsdk.Resource {
 			},
 
 			"name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"geo_replicated_primary_host_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -176,6 +181,7 @@ func resourceRedisLinkedServerRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("linked_redis_cache_location", location.Normalize(props.LinkedRedisCacheLocation))
 			d.Set("server_role", string(props.ServerRole))
+			d.Set("geo_replicated_primary_host_name", pointer.From(props.GeoReplicatedPrimaryHostName))
 		}
 	}
 

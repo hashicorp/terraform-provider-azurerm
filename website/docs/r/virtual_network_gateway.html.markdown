@@ -104,7 +104,7 @@ EOF
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One, two or three `ip_configuration` blocks documented below.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. 
   An active-standby gateway requires exactly one `ip_configuration` block,
   an active-active gateway requires exactly two `ip_configuration` blocks whereas
   an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
@@ -143,6 +143,18 @@ The following arguments are supported:
 
 * `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
+* `bgp_route_translation_for_nat_enabled` - (Optional) Is BGP Route Translation for NAT enabled? Defaults to `false`.
+
+* `dns_forwarding_enabled` - (Optional) Is DNS forwarding enabled?
+
+* `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
+
+* `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
+
+* `remote_vnet_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from other Azure Virtual Networks enabled? Defaults to `false`.
+
+* `virtual_wan_traffic_enabled` - (Optional) Is remote vnet traffic that is used to configure this gateway to accept traffic from remote Virtual WAN networks enabled? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
@@ -155,11 +167,33 @@ The `ip_configuration` block supports:
 
 * `name` - (Optional) A user-defined name of the IP configuration. Defaults to `vnetGatewayConfig`.
 
-* `private_ip_address_allocation` - (Optional) Defines how the private IP address of the gateways virtual interface is assigned. Valid options are `Static` or `Dynamic`. Defaults to `Dynamic`.
+* `private_ip_address_allocation` - (Optional) Defines how the private IP address of the gateways virtual interface is assigned. The only valid value is `Dynamic` for Virtual Network Gateway (`Static` is not supported by the service yet). Defaults to `Dynamic`.
 
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
 * `public_ip_address_id` - (Required) The ID of the public IP address to associate with the Virtual Network Gateway.
+
+---
+
+The `policy_group` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Policy Group.
+
+* `policy_member` - (Required) One or more `policy_member` blocks as defined below.
+
+* `is_default` - (Optional) Is this a Default Virtual Network Gateway Policy Group? Defaults to `false`.
+
+* `priority` - (Optional) The priority for the Virtual Network Gateway Policy Group. Defaults to `0`.
+
+---
+
+The `policy_member` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Policy Group Member.
+
+* `type` - (Required) The VPN Policy Member attribute type. Possible values are `AADGroupId`, `CertificateGroupId` and `RadiusAzureGroupId`.
+
+* `value` - (Required) The value of attribute that is used for this Virtual Network Gateway Policy Group Member.
 
 ---
 
@@ -174,9 +208,13 @@ The `vpn_client_configuration` block supports:
 
 * `aad_issuer` - (Optional) The STS url for your tenant
 
+* `ipsec_policy` - (Optional) An `ipsec_policy` block as defined below.
+
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are defined below. These root certificates are used to sign the client certificate used by the VPN clients to connect to the gateway.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which are defined below.
+
+* `radius_server` - (Optional) One or more `radius_server` blocks as defined below.
 
 * `radius_server_address` - (Optional) The address of the Radius server.
 
@@ -192,13 +230,15 @@ The `vpn_client_configuration` block supports:
 
 -> **NOTE:** `vpn_auth_types` must be set when using multiple vpn authentication types.
 
+* `virtual_network_gateway_client_connection` - (Optional) One or more `virtual_network_gateway_client_connection` blocks as defined below.
+
 ---
 
 The `bgp_settings` block supports:
 
 * `asn` - (Optional) The Autonomous System Number (ASN) to use as part of the BGP.
 
-* `peering_addresses` - (Optional) A list of `peering_addresses` as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
+* `peering_addresses` - (Optional) A list of `peering_addresses` blocks as defined below. Only one `peering_addresses` block can be specified except when `active_active` of this Virtual Network Gateway is `true`.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned through BGP peering. Valid values can be between `0` and `100`.
 
@@ -206,7 +246,7 @@ The `bgp_settings` block supports:
 
 A `custom_route` block supports the following:
 
-* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation as defined below.
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation.
 
 ---
 
@@ -224,7 +264,7 @@ The `root_certificate` block supports:
 
 * `name` - (Required) A user-defined name of the root certificate.
 
-* `public_cert_data` - (Required) The public certificate of the root certificate authority. The certificate must be provided in Base-64 encoded X.509 format (PEM). In particular, this argument *must not* include the `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers.
+* `public_cert_data` - (Required) The public certificate of the root certificate authority. The certificate must be provided in Base-64 encoded X.509 format (PEM). In particular, this argument *must not* include the `-----BEGIN CERTIFICATE-----` or `-----END CERTIFICATE-----` markers, nor any newlines.
 
 ---
 
@@ -234,13 +274,53 @@ The `revoked_certificate` block supports:
 
 * `thumbprint` - (Required) Specifies the public data of the certificate.
 
+---
+
+The `ipsec_policy` block supports:
+
+* `dh_group` - (Required) The DH Group, used in IKE Phase 1. Possible values are `DHGroup1`, `DHGroup2`, `DHGroup14`, `DHGroup24`, `DHGroup2048`, `ECP256`, `ECP384` and `None`.
+
+* `ike_encryption` - (Required) The IKE encryption algorithm, used for IKE Phase 2. Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128` and `GCMAES256`.
+
+* `ike_integrity` - (Required) The IKE encryption integrity algorithm, used for IKE Phase 2. Possible values are `GCMAES128`, `GCMAES256`, `MD5`, `SHA1`, `SHA256` and `SHA384`.
+
+* `ipsec_encryption` - (Required) The IPSec encryption algorithm, used for IKE phase 1. Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256` and `None`.
+
+* `ipsec_integrity` - (Required) The IPSec integrity algorithm, used for IKE phase 1. Possible values are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1` and `SHA256`.
+
+* `pfs_group` - (Required) The Pfs Group, used in IKE Phase 2. Possible values are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS14`, `PFS24`, `PFS2048`, `PFSMM` and `None`.
+
+* `sa_lifetime_in_seconds` - (Required) The IPSec Security Association lifetime in seconds for a Site-to-Site VPN tunnel. Possible values are between `300` and `172799`.
+
+* `sa_data_size_in_kilobytes` - (Required) The IPSec Security Association payload size in KB for a Site-to-Site VPN tunnel. Possible values are between `1024` and `2147483647`.
+
+---
+
+The `radius_server` block supports:
+
+* `address` - (Required) The address of the Radius Server.
+
+* `secret` - (Required) The secret that is used to communicate with the Radius Server.
+
+* `score` - (Required) The score of the Radius Server determines the priority of the server. Possible values are between `1` and `30`.
+
+---
+
+The `virtual_network_gateway_client_connection` block supports:
+
+* `name` - (Required) The name of the Virtual Network Gateway Client Connection.
+
+* `policy_group_names` - (Required) A list of names of Virtual Network Gateway Policy Groups.
+
+* `address_prefixes` - (Required) A list of address prefixes for P2S VPN Client.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
 
-* `bgp_settings` - (Optional) A block of `bgp_settings`.
+* `bgp_settings` - A block of `bgp_settings`.
 
 ---
 
@@ -260,7 +340,7 @@ The `peering_addresses` block supports:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Network Gateway.
+* `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
 * `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Network Gateway.

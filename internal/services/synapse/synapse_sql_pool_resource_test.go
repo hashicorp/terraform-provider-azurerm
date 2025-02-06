@@ -6,6 +6,7 @@ package synapse_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -24,9 +25,11 @@ func TestAccSynapseSqlPool_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
@@ -54,7 +57,7 @@ func TestAccSynapseSqlPool_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -84,58 +87,78 @@ func TestAccSynapseSqlPool_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.geoBackup(data, false, "GRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.geoBackupDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccSynapseSqlPool_geoBackupPolicy(t *testing.T) {
+func TestAccSynapseSqlPool_geoBackupDisabledGRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
 	r := SynapseSqlPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupDisabled(data),
+			Config: r.geoBackup(data, false, "GRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("GRS"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSynapseSqlPool_geoBackupDisabledLRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoBackupEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.geoBackupDisabled(data),
+			Config: r.geoBackup(data, false, "LRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("geo_backup_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("storage_account_type").HasValue("LRS"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccSynapseSqlPool_geoBackupInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.geoBackup(data, true, "LRS"),
+			ExpectError: regexp.MustCompile("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`"),
+		},
 	})
 }
 
@@ -154,80 +177,6 @@ func (r SynapseSqlPoolResource) Exists(ctx context.Context, client *clients.Clie
 	}
 
 	return utils.Bool(true), nil
-}
-
-func (r SynapseSqlPoolResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
-}
-`, template, data.RandomString)
-}
-
-func (r SynapseSqlPoolResource) utf8(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "販売管理"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW100c"
-  create_mode          = "Default"
-}
-`, template)
-}
-
-func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_synapse_sql_pool" "import" {
-  name                 = azurerm_synapse_sql_pool.test.name
-  synapse_workspace_id = azurerm_synapse_sql_pool.test.synapse_workspace_id
-  sku_name             = azurerm_synapse_sql_pool.test.sku_name
-  create_mode          = azurerm_synapse_sql_pool.test.create_mode
-}
-`, config)
-}
-
-func (r SynapseSqlPoolResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_synapse_sql_pool" "test" {
-  name                 = "acctestSP%s"
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
-  sku_name             = "DW500c"
-  create_mode          = "Default"
-  collation            = "SQL_Latin1_General_CP1_CI_AS"
-  data_encrypted       = true
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomString)
 }
 
 func (r SynapseSqlPoolResource) template(data acceptance.TestData) string {
@@ -265,7 +214,41 @@ resource "azurerm_synapse_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func (r SynapseSqlPoolResource) geoBackupDisabled(data acceptance.TestData) string {
+func (r SynapseSqlPoolResource) utf8(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "販売管理"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+  storage_account_type = "GRS"
+}
+`, template)
+}
+
+func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string {
+	config := r.geoBackupDefault(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_sql_pool" "import" {
+  name                 = azurerm_synapse_sql_pool.test.name
+  synapse_workspace_id = azurerm_synapse_sql_pool.test.synapse_workspace_id
+  sku_name             = azurerm_synapse_sql_pool.test.sku_name
+  create_mode          = azurerm_synapse_sql_pool.test.create_mode
+  storage_account_type = "GRS"
+}
+`, config)
+}
+
+func (r SynapseSqlPoolResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -277,28 +260,55 @@ provider "azurerm" {
 resource "azurerm_synapse_sql_pool" "test" {
   name                      = "acctestSP%s"
   synapse_workspace_id      = azurerm_synapse_workspace.test.id
-  sku_name                  = "DW100c"
+  sku_name                  = "DW500c"
   create_mode               = "Default"
-  geo_backup_policy_enabled = false
-}
-`, template, data.RandomString)
-}
-
-func (r SynapseSqlPoolResource) geoBackupEnabled(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_synapse_sql_pool" "test" {
-  name                      = "acctestSP%s"
-  synapse_workspace_id      = azurerm_synapse_workspace.test.id
-  sku_name                  = "DW100c"
-  create_mode               = "Default"
+  collation                 = "SQL_Latin1_General_CP1_CI_AS"
+  data_encrypted            = true
   geo_backup_policy_enabled = true
+  storage_account_type      = "GRS"
+
+  tags = {
+    ENV = "Test"
+  }
 }
 `, template, data.RandomString)
+}
+
+func (r SynapseSqlPoolResource) geoBackupDefault(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "acctestSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+  storage_account_type = "GRS"
+}
+`, template, data.RandomString)
+}
+
+func (r SynapseSqlPoolResource) geoBackup(data acceptance.TestData, geoBackupPolicy bool, accountType string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                      = "acctestSP%s"
+  synapse_workspace_id      = azurerm_synapse_workspace.test.id
+  sku_name                  = "DW100c"
+  create_mode               = "Default"
+  geo_backup_policy_enabled = %t
+  storage_account_type      = "%s"
+}
+`, template, data.RandomString, geoBackupPolicy, accountType)
 }

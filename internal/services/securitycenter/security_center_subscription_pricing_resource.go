@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -107,7 +108,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 }
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,23 +134,65 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	extensionsStatusFromBackend := make([]pricings_v2023_01_01.Extension, 0)
-	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil && apiResponse.Model.Properties.Extensions != nil {
-		extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+	isCurrentlyInFree := false
+	if err == nil && apiResponse.Model != nil && apiResponse.Model.Properties != nil {
+		if apiResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *apiResponse.Model.Properties.Extensions
+		}
+
+		if apiResponse.Model.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+			isCurrentlyInFree = true
+		}
 	}
 
 	if vSub, okSub := d.GetOk("subplan"); okSub {
 		pricing.Properties.SubPlan = utils.String(vSub.(string))
 	}
-	if d.HasChange("extension") || d.IsNewResource() {
+
+	// When the state file contains an `extension` with `additional_extension_properties`
+	// But the tf config does not, `d.Get("extension")` will contain a zero element.
+	// Tracked by https://github.com/hashicorp/terraform-plugin-sdk/issues/1248
+	realCfgExtensions := make([]interface{}, 0)
+	for _, e := range d.Get("extension").(*pluginsdk.Set).List() {
+		v := e.(map[string]interface{})
+		if v["name"] != "" {
+			realCfgExtensions = append(realCfgExtensions, e)
+		}
+	}
+
+	if d.HasChange("extension") {
 		// can not set extensions for free tier
 		if pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
-			var extensions = expandSecurityCenterSubscriptionPricingExtensions(d.Get("extension").(*pluginsdk.Set).List(), &extensionsStatusFromBackend)
+			extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 			pricing.Properties.Extensions = extensions
 		}
 	}
 
-	if _, err := client.Update(ctx, id, pricing); err != nil {
-		return fmt.Errorf("setting %s: %+v", id, err)
+	if len(realCfgExtensions) > 0 && pricing.Properties.PricingTier == pricings_v2023_01_01.PricingTierFree {
+		return fmt.Errorf("extensions cannot be enabled when using free tier")
+	}
+
+	updateResponse, updateErr := client.Update(ctx, id, pricing)
+	if updateErr != nil {
+		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	}
+
+	if updateErr == nil && updateResponse.Model != nil && updateResponse.Model.Properties != nil {
+		if updateResponse.Model.Properties.Extensions != nil {
+			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
+		}
+	}
+
+	// after turning on the bundle, we have now the extensions list
+	if d.IsNewResource() || isCurrentlyInFree {
+		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
+		pricing.Properties.Extensions = extensions
+		_, updateErr := client.Update(ctx, id, pricing)
+		if err != nil {
+			if updateErr != nil {
+				return fmt.Errorf("setting %s: %+v", id, updateErr)
+			}
+		}
 	}
 
 	d.SetId(id.ID())
@@ -218,34 +260,30 @@ func resourceSecurityCenterSubscriptionPricingDelete(d *pluginsdk.ResourceData, 
 }
 
 func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, extensionsStatusFromBackend *[]pricings_v2023_01_01.Extension) *[]pricings_v2023_01_01.Extension {
-	if len(inputList) == 0 {
-		return nil
-	}
-	var extensionStatuses = map[string]bool{}
-	var extensionProperties = map[string]*interface{}{}
+	extensionStatuses := map[string]bool{}
+	extensionProperties := make(map[string]interface{})
 
-	var outputList []pricings_v2023_01_01.Extension
+	outputList := make([]pricings_v2023_01_01.Extension, 0, len(inputList))
+	if extensionsStatusFromBackend != nil {
+		for _, backendExtension := range *extensionsStatusFromBackend {
+			// set the default value to false, then turn on the extension that appear in the template
+			extensionStatuses[backendExtension.Name] = false
+		}
+	}
+
+	// set any extension in the template to be true
 	for _, v := range inputList {
 		input := v.(map[string]interface{})
+		if input["name"] == "" {
+			continue
+		}
 		extensionStatuses[input["name"].(string)] = true
-
 		if vAdditional, ok := input["additional_extension_properties"]; ok {
 			extensionProperties[input["name"].(string)] = &vAdditional
 		}
 	}
 
-	if extensionsStatusFromBackend != nil {
-		for _, backendExtension := range *extensionsStatusFromBackend {
-			_, ok := extensionStatuses[backendExtension.Name]
-			// set any extension that does not appear in the template to be false
-			if !ok {
-				extensionStatuses[backendExtension.Name] = false
-			}
-		}
-	}
-
 	for extensionName, toBeEnabled := range extensionStatuses {
-
 		isEnabled := pricings_v2023_01_01.IsEnabledFalse
 		if toBeEnabled {
 			isEnabled = pricings_v2023_01_01.IsEnabledTrue
@@ -254,9 +292,13 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 			Name:      extensionName,
 			IsEnabled: isEnabled,
 		}
+
 		if vAdditional, ok := extensionProperties[extensionName]; ok {
-			output.AdditionalExtensionProperties = vAdditional
+			props, _ := vAdditional.(*interface{})
+			p := (*props).(map[string]interface{})
+			output.AdditionalExtensionProperties = pointer.To(p)
 		}
+
 		outputList = append(outputList, output)
 	}
 
@@ -264,7 +306,6 @@ func expandSecurityCenterSubscriptionPricingExtensions(inputList []interface{}, 
 }
 
 func flattenExtensions(inputList *[]pricings_v2023_01_01.Extension) []interface{} {
-
 	outputList := make([]interface{}, 0)
 
 	if inputList == nil {

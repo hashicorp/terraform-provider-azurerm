@@ -4,13 +4,14 @@
 package automation
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/module"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
@@ -91,7 +92,7 @@ func resourceAutomationModule() *pluginsdk.Resource {
 }
 
 func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,6 +127,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	// the API returns 'done' but it's not actually finished provisioning yet
+	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{
 			string(module.ModuleProvisioningStateActivitiesStored),
@@ -159,7 +161,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 						provisioningState = string(*props.ProvisioningState)
 					}
 					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-						return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+						return resp, provisioningState, errors.New(*props.Error.Message)
 					}
 					return resp, provisioningState, nil
 				}
@@ -183,7 +185,7 @@ func resourceAutomationModuleCreateUpdate(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -210,7 +212,7 @@ func resourceAutomationModuleRead(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceAutomationModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.ModuleClient
+	client := meta.(*clients.Client).Automation.Module
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -137,10 +137,12 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 				},
 
 				"elastic_instance_minimum": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						return validation.IntBetween(1, 20)
+					}(),
 				},
 
 				"app_scale_limit": {
@@ -367,10 +369,10 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerfarmName, id.ResourceGroup)
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerFarmName, id.ResourceGroup)
 
 	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
@@ -478,7 +480,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := config["elastic_instance_minimum"]; ok && v.(int) > 0 {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 

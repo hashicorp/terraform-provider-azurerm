@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `content_md5` - The MD5 sum of the blob contents.
 
+* `encryption_scope` - The encryption scope for this blob.
+
 * `metadata` - A map of custom blob metadata.
 
 ## Timeouts

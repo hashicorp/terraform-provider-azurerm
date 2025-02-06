@@ -8,7 +8,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -72,37 +73,37 @@ func resourceMsSqlJobCredentialCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	log.Printf("[INFO] preparing arguments for Job Credential creation.")
 
-	jaId, err := parse.JobAgentID(d.Get("job_agent_id").(string))
+	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
 	if err != nil {
 		return err
 	}
-	jobCredentialId := parse.NewJobCredentialID(jaId.SubscriptionId, jaId.ResourceGroup, jaId.ServerName, jaId.Name, d.Get("name").(string))
+	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
 
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.JobAgentName, jobCredentialId.CredentialName)
+		existing, err := client.Get(ctx, jobCredentialId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing MsSql %s: %+v", jobCredentialId, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
 		}
 	}
 
-	jobCredential := sql.JobCredential{
+	jobCredential := jobcredentials.JobCredential{
 		Name: utils.String(jobCredentialId.CredentialName),
-		JobCredentialProperties: &sql.JobCredentialProperties{
-			Username: utils.String(username),
-			Password: utils.String(password),
+		Properties: &jobcredentials.JobCredentialProperties{
+			Username: username,
+			Password: password,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, jobCredentialId.ResourceGroup, jobCredentialId.ServerName, jobCredentialId.JobAgentName, jobCredentialId.CredentialName, jobCredential); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, jobCredentialId, jobCredential); err != nil {
 		return fmt.Errorf("creating MsSql %s: %+v", jobCredentialId, err)
 	}
 
@@ -116,26 +117,29 @@ func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobCredentialID(d.Id())
+	id, err := jobcredentials.ParseCredentialID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.JobAgentName, id.CredentialName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Job Credential %s (Job Agent %q / MsSql Server %q / Resource Group %q): %s", id.CredentialName, id.JobAgentName, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %s", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("username", resp.Username)
-
-	jobAgentId := parse.NewJobAgentID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.JobAgentName)
+	d.Set("name", id.CredentialName)
+	jobAgentId := jobcredentials.NewJobAgentID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.JobAgentName)
 	d.Set("job_agent_id", jobAgentId.ID())
 
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("username", props.Username)
+		}
+	}
 	return nil
 }
 
@@ -144,14 +148,14 @@ func resourceMsSqlJobCredentialDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobCredentialID(d.Id())
+	id, err := jobcredentials.ParseCredentialID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.ServerName, id.JobAgentName, id.CredentialName)
+	_, err = client.Delete(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Job Credential %s: %+v", id.CredentialName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

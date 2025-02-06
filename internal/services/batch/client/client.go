@@ -8,12 +8,12 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	batchDataplane "github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch"
+	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
 type Client struct {
@@ -66,17 +66,16 @@ func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAcco
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", accountId, err)
 	}
-	if model := account.Model; model != nil {
-		if model.Properties == nil {
-			return nil, fmt.Errorf(`unexpected nil of "AccountProperties" of %s`, accountId)
-		}
-		if model.Properties.AccountEndpoint == nil {
-			return nil, fmt.Errorf(`unexpected nil of "AccountProperties.AccountEndpoint" of %s`, accountId)
-		}
+
+	endpoint := ""
+	if account.Model != nil && account.Model.Properties != nil {
+		endpoint = "https://" + *account.Model.Properties.AccountEndpoint
+	}
+	if endpoint == "" {
+		return nil, fmt.Errorf("retrieving %s: `properties.AccountEndpoint` was empty", accountId)
 	}
 
 	// Copy the client since we'll manipulate its BatchURL
-	endpoint := "https://" + *account.Model.Properties.AccountEndpoint
 	c := batchDataplane.NewJobClient(endpoint)
 	c.BaseClient.Client.Authorizer = r.BatchManagementAuthorizer
 	return &c, nil

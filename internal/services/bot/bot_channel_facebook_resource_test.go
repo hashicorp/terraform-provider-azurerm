@@ -15,18 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelFacebookResource struct{}
 
-func testAccBotChannelFacebook_basic(t *testing.T) {
+func TestAccBotChannelFacebook_basic(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -37,13 +37,13 @@ func testAccBotChannelFacebook_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelFacebook_requiresImport(t *testing.T) {
+func TestAccBotChannelFacebook_requiresImport(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,13 +54,13 @@ func testAccBotChannelFacebook_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelFacebook_update(t *testing.T) {
+func TestAccBotChannelFacebook_update(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

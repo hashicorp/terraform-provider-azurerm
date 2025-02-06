@@ -7,19 +7,21 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
@@ -30,7 +32,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FirewallPolicyRuleCollectionGroupID(id)
+			_, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(id)
 			return err
 		}),
 
@@ -53,7 +55,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyID,
+				ValidateFunc: firewallpolicies.ValidateFirewallPolicyID,
 			},
 
 			"priority": {
@@ -82,8 +84,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.FirewallPolicyFilterRuleCollectionActionTypeAllow),
-								string(network.FirewallPolicyFilterRuleCollectionActionTypeDeny),
+								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeAllow),
+								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeDeny),
 							}, false),
 						},
 						"rule": {
@@ -111,8 +113,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTP),
-														string(network.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
+														string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTP),
+														string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolTypeHTTPS),
 														"Mssql",
 													}, false),
 												},
@@ -120,6 +122,24 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ValidateFunc: validation.IntBetween(0, 64000),
+												},
+											},
+										},
+									},
+									"http_headers": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"value": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -221,8 +241,8 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.FirewallPolicyFilterRuleCollectionActionTypeAllow),
-								string(network.FirewallPolicyFilterRuleCollectionActionTypeDeny),
+								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeAllow),
+								string(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionTypeDeny),
 							}, false),
 						},
 						"rule": {
@@ -236,16 +256,21 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"description": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
 									"protocols": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(network.FirewallPolicyRuleNetworkProtocolAny),
-												string(network.FirewallPolicyRuleNetworkProtocolTCP),
-												string(network.FirewallPolicyRuleNetworkProtocolUDP),
-												string(network.FirewallPolicyRuleNetworkProtocolICMP),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolAny),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolTCP),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolUDP),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolICMP),
 											}, false),
 										},
 									},
@@ -333,7 +358,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								// Hardcode to using `Dnat` instead of the one defined in Swagger (i.e. network.DNAT) because of: https://github.com/Azure/azure-rest-api-specs/issues/9986
+								// Hardcode to using `Dnat` instead of the one defined in Swagger (i.e. firewallpolicyrulecollectiongroups.DNAT) because of: https://github.com/Azure/azure-rest-api-specs/issues/9986
 								// Setting `StateFunc: state.IgnoreCase` will cause other issues, as tracked by: https://github.com/hashicorp/terraform-plugin-sdk/issues/485
 								"Dnat",
 							}, false),
@@ -349,14 +374,19 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"description": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
 									"protocols": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(network.FirewallPolicyRuleNetworkProtocolTCP),
-												string(network.FirewallPolicyRuleNetworkProtocolUDP),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolTCP),
+												string(firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocolUDP),
 											}, false),
 										},
 									},
@@ -425,38 +455,39 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 }
 
 func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	policyId, err := parse.FirewallPolicyID(d.Get("firewall_policy_id").(string))
+	policyId, err := firewallpolicies.ParseFirewallPolicyID(d.Get("firewall_policy_id").(string))
 	if err != nil {
 		return err
 	}
 
+	id := firewallpolicyrulecollectiongroups.NewRuleCollectionGroupID(policyId.SubscriptionId, policyId.ResourceGroupName, policyId.FirewallPolicyName, d.Get("name").(string))
+
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, policyId.ResourceGroup, policyId.Name, name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Firewall Policy Rule Collection Group %q (Resource Group %q / Policy %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+			if !response.WasNotFound(resp.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 		}
 
-		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", *resp.ID)
+		if resp.Model != nil {
+			return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID())
 		}
 	}
 
-	locks.ByName(policyId.Name, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.Name, AzureFirewallPolicyResourceName)
+	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
-	param := network.FirewallPolicyRuleCollectionGroup{
-		FirewallPolicyRuleCollectionGroupProperties: &network.FirewallPolicyRuleCollectionGroupProperties{
-			Priority: utils.Int32(int32(d.Get("priority").(int))),
+	param := firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup{
+		Properties: &firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroupProperties{
+			Priority: utils.Int64(int64(d.Get("priority").(int))),
 		},
 	}
-	var rulesCollections []network.BasicFirewallPolicyRuleCollection
+	var rulesCollections []firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection
 	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").([]interface{}))...)
 	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").([]interface{}))...)
 
@@ -466,82 +497,71 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	}
 	rulesCollections = append(rulesCollections, natRules...)
 
-	param.FirewallPolicyRuleCollectionGroupProperties.RuleCollections = &rulesCollections
+	param.Properties.RuleCollections = &rulesCollections
 
-	future, err := client.CreateOrUpdate(ctx, policyId.ResourceGroup, policyId.Name, name, param)
-	if err != nil {
-		return fmt.Errorf("creating Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
+	if err = client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	resp, err := client.Get(ctx, policyId.ResourceGroup, policyId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", name, policyId.ResourceGroup, policyId.Name, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q) ID", name, policyId.ResourceGroup, policyId.Name)
-	}
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(*resp.ID)
-	if err != nil {
-		return err
-	}
 	d.SetId(id.ID())
 
 	return resourceFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
 
 func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(d.Id())
+	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Firewall Policy Rule Collection Group %q was not found in Resource Group %q - removing from state!", id.RuleCollectionGroupName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found- removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID())
+	d.Set("name", id.RuleCollectionGroupName)
+	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
 
-	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenFirewallPolicyRuleCollection(resp.RuleCollections)
-	if err != nil {
-		return fmt.Errorf("flattening Firewall Policy Rule Collections: %+v", err)
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("priority", props.Priority)
 
-	if err := d.Set("application_rule_collection", applicationRuleCollections); err != nil {
-		return fmt.Errorf("setting `application_rule_collection`: %+v", err)
-	}
-	if err := d.Set("network_rule_collection", networkRuleCollections); err != nil {
-		return fmt.Errorf("setting `network_rule_collection`: %+v", err)
-	}
-	if err := d.Set("nat_rule_collection", natRuleCollections); err != nil {
-		return fmt.Errorf("setting `nat_rule_collection`: %+v", err)
+			applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenFirewallPolicyRuleCollection(props.RuleCollections)
+			if err != nil {
+				return fmt.Errorf("flattening Firewall Policy Rule Collections: %+v", err)
+			}
+
+			if err := d.Set("application_rule_collection", applicationRuleCollections); err != nil {
+				return fmt.Errorf("setting `application_rule_collection`: %+v", err)
+			}
+			if err := d.Set("network_rule_collection", networkRuleCollections); err != nil {
+				return fmt.Errorf("setting `network_rule_collection`: %+v", err)
+			}
+			if err := d.Set("nat_rule_collection", natRuleCollections); err != nil {
+				return fmt.Errorf("setting `nat_rule_collection`: %+v", err)
+			}
+		}
 	}
 
 	return nil
 }
 
 func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(d.Id())
+	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -549,41 +569,33 @@ func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, 
 	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
-	if err != nil {
-		return fmt.Errorf("deleting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
-		}
-	}
-
 	return nil
 }
 
-func expandFirewallPolicyRuleCollectionApplication(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+func expandFirewallPolicyRuleCollectionApplication(input []interface{}) []firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection {
 	return expandFirewallPolicyFilterRuleCollection(input, expandFirewallPolicyRuleApplication)
 }
 
-func expandFirewallPolicyRuleCollectionNetwork(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+func expandFirewallPolicyRuleCollectionNetwork(input []interface{}) []firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection {
 	return expandFirewallPolicyFilterRuleCollection(input, expandFirewallPolicyRuleNetwork)
 }
 
-func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]network.BasicFirewallPolicyRuleCollection, error) {
-	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
+func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection, error) {
+	result := make([]firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
 		rules, err := expandFirewallPolicyRuleNat(rule["rule"].([]interface{}))
 		if err != nil {
 			return nil, err
 		}
-		output := &network.FirewallPolicyNatRuleCollection{
-			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyNatRuleCollection,
-			Name:               utils.String(rule["name"].(string)),
-			Priority:           utils.Int32(int32(rule["priority"].(int))),
-			Action: &network.FirewallPolicyNatRuleCollectionAction{
-				Type: network.FirewallPolicyNatRuleCollectionActionType(rule["action"].(string)),
+		output := &firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollection{
+			Name:     utils.String(rule["name"].(string)),
+			Priority: utils.Int64(int64(rule["priority"].(int))),
+			Action: &firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollectionAction{
+				Type: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollectionActionType(rule["action"].(string))),
 			},
 			Rules: rules,
 		}
@@ -592,46 +604,55 @@ func expandFirewallPolicyRuleCollectionNat(input []interface{}) ([]network.Basic
 	return result, nil
 }
 
-func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input []interface{}) *[]network.BasicFirewallPolicyRule) []network.BasicFirewallPolicyRuleCollection {
-	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
+func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input []interface{}) *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule) []firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection {
+	result := make([]firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
-		output := &network.FirewallPolicyFilterRuleCollection{
-			Action: &network.FirewallPolicyFilterRuleCollectionAction{
-				Type: network.FirewallPolicyFilterRuleCollectionActionType(rule["action"].(string)),
+		output := &firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollection{
+			Action: &firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionAction{
+				Type: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollectionActionType(rule["action"].(string))),
 			},
-			Name:               utils.String(rule["name"].(string)),
-			Priority:           utils.Int32(int32(rule["priority"].(int))),
-			RuleCollectionType: network.RuleCollectionTypeFirewallPolicyFilterRuleCollection,
-			Rules:              f(rule["rule"].([]interface{})),
+			Name:     utils.String(rule["name"].(string)),
+			Priority: utils.Int64(int64(rule["priority"].(int))),
+			Rules:    f(rule["rule"].([]interface{})),
 		}
 		result = append(result, output)
 	}
 	return result
 }
 
-func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFirewallPolicyRule {
-	result := make([]network.BasicFirewallPolicyRule, 0)
+func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule {
+	result := make([]firewallpolicyrulecollectiongroups.FirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
-		var protocols []network.FirewallPolicyRuleApplicationProtocol
+		var protocols []firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocol
 		for _, p := range condition["protocols"].([]interface{}) {
 			proto := p.(map[string]interface{})
-			protocols = append(protocols, network.FirewallPolicyRuleApplicationProtocol{
-				ProtocolType: network.FirewallPolicyRuleApplicationProtocolType(proto["type"].(string)),
-				Port:         utils.Int32(int32(proto["port"].(int))),
+			protocols = append(protocols, firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocol{
+				ProtocolType: pointer.To(firewallpolicyrulecollectiongroups.FirewallPolicyRuleApplicationProtocolType(proto["type"].(string))),
+				Port:         utils.Int64(int64(proto["port"].(int))),
 			})
 		}
-		output := &network.ApplicationRule{
+
+		var httpHeader []firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert
+		for _, h := range condition["http_headers"].([]interface{}) {
+			header := h.(map[string]interface{})
+			httpHeader = append(httpHeader, firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert{
+				HeaderName:  pointer.To(header["name"].(string)),
+				HeaderValue: pointer.To(header["value"].(string)),
+			})
+		}
+
+		output := &firewallpolicyrulecollectiongroups.ApplicationRule{
 			Name:                 utils.String(condition["name"].(string)),
 			Description:          utils.String(condition["description"].(string)),
-			RuleType:             network.RuleTypeApplicationRule,
 			Protocols:            &protocols,
+			HTTPHeadersToInsert:  &httpHeader,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
 			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
-			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].([]interface{})),
+			TargetURLs:           utils.ExpandStringSlice(condition["destination_urls"].([]interface{})),
 			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].([]interface{})),
 			TerminateTLS:         utils.Bool(condition["terminate_tls"].(bool)),
 			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].([]interface{})),
@@ -641,17 +662,16 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFi
 	return &result
 }
 
-func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewallPolicyRule {
-	result := make([]network.BasicFirewallPolicyRule, 0)
+func expandFirewallPolicyRuleNetwork(input []interface{}) *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule {
+	result := make([]firewallpolicyrulecollectiongroups.FirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
-		var protocols []network.FirewallPolicyRuleNetworkProtocol
+		var protocols []firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocol
 		for _, p := range condition["protocols"].([]interface{}) {
-			protocols = append(protocols, network.FirewallPolicyRuleNetworkProtocol(p.(string)))
+			protocols = append(protocols, firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
-		output := &network.Rule{
+		output := &firewallpolicyrulecollectiongroups.NetworkRule{
 			Name:                 utils.String(condition["name"].(string)),
-			RuleType:             network.RuleTypeNetworkRule,
 			IPProtocols:          &protocols,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
@@ -659,19 +679,20 @@ func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewa
 			DestinationIPGroups:  utils.ExpandStringSlice(condition["destination_ip_groups"].([]interface{})),
 			DestinationFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
+			Description:          pointer.To(condition["description"].(string)),
 		}
 		result = append(result, output)
 	}
 	return &result
 }
 
-func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallPolicyRule, error) {
-	result := make([]network.BasicFirewallPolicyRule, 0)
+func expandFirewallPolicyRuleNat(input []interface{}) (*[]firewallpolicyrulecollectiongroups.FirewallPolicyRule, error) {
+	result := make([]firewallpolicyrulecollectiongroups.FirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
-		var protocols []network.FirewallPolicyRuleNetworkProtocol
+		var protocols []firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocol
 		for _, p := range condition["protocols"].([]interface{}) {
-			protocols = append(protocols, network.FirewallPolicyRuleNetworkProtocol(p.(string)))
+			protocols = append(protocols, firewallpolicyrulecollectiongroups.FirewallPolicyRuleNetworkProtocol(p.(string)))
 		}
 		destinationAddresses := []string{condition["destination_address"].(string)}
 
@@ -682,15 +703,15 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallP
 		if condition["translated_address"].(string) == "" && condition["translated_fqdn"].(string) == "" {
 			return nil, fmt.Errorf("should specify either `translated_address` or `translated_fqdn` in rule %s", condition["name"].(string))
 		}
-		output := &network.NatRule{
+		output := &firewallpolicyrulecollectiongroups.NatRule{
 			Name:                 utils.String(condition["name"].(string)),
-			RuleType:             network.RuleTypeNatRule,
 			IPProtocols:          &protocols,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: &destinationAddresses,
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].([]interface{})),
 			TranslatedPort:       utils.String(strconv.Itoa(condition["translated_port"].(int))),
+			Description:          pointer.To(condition["description"].(string)),
 		}
 		if condition["translated_address"].(string) != "" {
 			output.TranslatedAddress = utils.String(condition["translated_address"].(string))
@@ -703,7 +724,7 @@ func expandFirewallPolicyRuleNat(input []interface{}) (*[]network.BasicFirewallP
 	return &result, nil
 }
 
-func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRuleCollection) ([]interface{}, []interface{}, []interface{}, error) {
+func flattenFirewallPolicyRuleCollection(input *[]firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollection) ([]interface{}, []interface{}, []interface{}, error) {
 	var (
 		applicationRuleCollection = []interface{}{}
 		networkRuleCollection     = []interface{}{}
@@ -717,19 +738,19 @@ func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRul
 		var result map[string]interface{}
 
 		switch rule := e.(type) {
-		case network.FirewallPolicyFilterRuleCollection:
+		case firewallpolicyrulecollectiongroups.FirewallPolicyFilterRuleCollection:
 			var name string
 			if rule.Name != nil {
 				name = *rule.Name
 			}
-			var priority int32
+			var priority int64
 			if rule.Priority != nil {
 				priority = *rule.Priority
 			}
 
 			var action string
 			if rule.Action != nil {
-				action = string(rule.Action.Type)
+				action = string(pointer.From(rule.Action.Type))
 			}
 
 			result = map[string]interface{}{
@@ -744,7 +765,7 @@ func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRul
 
 			// Determine the rule type based on the first rule's type
 			switch (*rule.Rules)[0].(type) {
-			case network.ApplicationRule:
+			case firewallpolicyrulecollectiongroups.ApplicationRule:
 				appRules, err := flattenFirewallPolicyRuleApplication(rule.Rules)
 				if err != nil {
 					return nil, nil, nil, err
@@ -753,7 +774,7 @@ func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRul
 
 				applicationRuleCollection = append(applicationRuleCollection, result)
 
-			case network.Rule:
+			case firewallpolicyrulecollectiongroups.FirewallPolicyRule:
 				networkRules, err := flattenFirewallPolicyRuleNetwork(rule.Rules)
 				if err != nil {
 					return nil, nil, nil, err
@@ -765,19 +786,25 @@ func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRul
 			default:
 				return nil, nil, nil, fmt.Errorf("unknown rule condition type %+v", (*rule.Rules)[0])
 			}
-		case network.FirewallPolicyNatRuleCollection:
+		case firewallpolicyrulecollectiongroups.FirewallPolicyNatRuleCollection:
 			var name string
 			if rule.Name != nil {
 				name = *rule.Name
 			}
-			var priority int32
+			var priority int64
 			if rule.Priority != nil {
 				priority = *rule.Priority
 			}
 
 			var action string
 			if rule.Action != nil {
-				action = string(rule.Action.Type)
+				// todo 4.0 change this from DNAT to Dnat
+				// doing this because we hardcode Dnat for https://github.com/Azure/azure-rest-api-specs/issues/9986
+				if strings.EqualFold(string(pointer.From(rule.Action.Type)), "Dnat") {
+					action = "Dnat"
+				} else {
+					action = string(pointer.From(rule.Action.Type))
+				}
 			}
 
 			rules, err := flattenFirewallPolicyRuleNat(rule.Rules)
@@ -800,13 +827,13 @@ func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRul
 	return applicationRuleCollection, networkRuleCollection, natRuleCollection, nil
 }
 
-func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 	output := make([]interface{}, 0)
 	for _, e := range *input {
-		rule, ok := e.(network.ApplicationRule)
+		rule, ok := e.(firewallpolicyrulecollectiongroups.ApplicationRule)
 		if !ok {
 			return nil, fmt.Errorf("unexpected non-application rule: %+v", e)
 		}
@@ -834,20 +861,29 @@ func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRu
 					port = int(*protocol.Port)
 				}
 				protocols = append(protocols, map[string]interface{}{
-					"type": string(protocol.ProtocolType),
+					"type": string(pointer.From(protocol.ProtocolType)),
 					"port": port,
 				})
 			}
+		}
+
+		httpHeaders := make([]interface{}, 0)
+		for _, header := range pointer.From(rule.HTTPHeadersToInsert) {
+			httpHeaders = append(httpHeaders, map[string]interface{}{
+				"name":  pointer.From(header.HeaderName),
+				"value": pointer.From(header.HeaderValue),
+			})
 		}
 
 		output = append(output, map[string]interface{}{
 			"name":                  name,
 			"description":           description,
 			"protocols":             protocols,
+			"http_headers":          httpHeaders,
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),
-			"destination_urls":      utils.FlattenStringSlice(rule.TargetUrls),
+			"destination_urls":      utils.FlattenStringSlice(rule.TargetURLs),
 			"destination_fqdns":     utils.FlattenStringSlice(rule.TargetFqdns),
 			"destination_fqdn_tags": utils.FlattenStringSlice(rule.FqdnTags),
 			"terminate_tls":         terminate_tls,
@@ -858,13 +894,13 @@ func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRu
 	return output, nil
 }
 
-func flattenFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleNetwork(input *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 	output := make([]interface{}, 0)
 	for _, e := range *input {
-		rule, ok := e.(network.Rule)
+		rule, ok := e.(firewallpolicyrulecollectiongroups.NetworkRule)
 		if !ok {
 			return nil, fmt.Errorf("unexpected non-network rule: %+v", e)
 		}
@@ -890,18 +926,19 @@ func flattenFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolicyRule) 
 			"destination_ip_groups": utils.FlattenStringSlice(rule.DestinationIPGroups),
 			"destination_fqdns":     utils.FlattenStringSlice(rule.DestinationFqdns),
 			"destination_ports":     utils.FlattenStringSlice(rule.DestinationPorts),
+			"description":           pointer.From(rule.Description),
 		})
 	}
 	return output, nil
 }
 
-func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleNat(input *[]firewallpolicyrulecollectiongroups.FirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
 	output := make([]interface{}, 0)
 	for _, e := range *input {
-		rule, ok := e.(network.NatRule)
+		rule, ok := e.(firewallpolicyrulecollectiongroups.NatRule)
 		if !ok {
 			return nil, fmt.Errorf("unexpected non-nat rule: %+v", e)
 		}
@@ -951,6 +988,7 @@ func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]i
 			"translated_address":  translatedAddress,
 			"translated_port":     translatedPort,
 			"translated_fqdn":     translatedFQDN,
+			"description":         pointer.From(rule.Description),
 		})
 	}
 	return output, nil

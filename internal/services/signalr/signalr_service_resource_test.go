@@ -28,8 +28,6 @@ func TestAccSignalRService_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -110,17 +108,38 @@ func TestAccSignalRService_identity(t *testing.T) {
 	})
 }
 
-func TestAccSignalRService_premium(t *testing.T) {
+func TestAccSignalRService_premiumP1(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 	r := SignalRServiceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.premium(data),
+			Config: r.premium(data, "Premium_P1", 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Premium_P1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_premiumP2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data, "Premium_P2", 100),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -144,8 +163,6 @@ func TestAccSignalRService_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -169,8 +186,6 @@ func TestAccSignalRService_standard(t *testing.T) {
 			Config: r.standardWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -194,8 +209,6 @@ func TestAccSignalRService_standardWithCap2(t *testing.T) {
 			Config: r.standardWithCapacity(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -219,8 +232,6 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -235,8 +246,6 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -251,8 +260,6 @@ func TestAccSignalRService_skuUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -275,8 +282,6 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -291,8 +296,6 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("5"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -307,8 +310,6 @@ func TestAccSignalRService_capacityUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -331,8 +332,6 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -347,8 +346,6 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 			Config: r.standardWithCapacity(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -363,8 +360,6 @@ func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
 				check.That(data.ResourceName).Key("hostname").Exists(),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("public_port").Exists(),
@@ -606,7 +601,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }
@@ -630,7 +625,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -666,7 +661,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -701,7 +696,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -718,7 +713,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r SignalRServiceResource) premium(data acceptance.TestData) string {
+func (r SignalRServiceResource) premium(data acceptance.TestData, planSku string, capacity int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -735,11 +730,11 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Premium_P1"
-    capacity = 1
+    name     = "%s"
+    capacity = %d
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, planSku, capacity)
 }
 
 func (r SignalRServiceResource) requiresImport(data acceptance.TestData) string {
@@ -752,7 +747,7 @@ resource "azurerm_signalr_service" "import" {
   resource_group_name = azurerm_signalr_service.test.resource_group_name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }
@@ -800,7 +795,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -831,7 +826,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -859,7 +854,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -921,7 +916,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -964,7 +959,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 
@@ -972,7 +967,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = true
   live_trace_enabled        = true
   service_mode              = "Serverless"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1002,7 +996,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = false
   live_trace_enabled        = false
   service_mode              = "Classic"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1024,7 +1017,7 @@ resource "azurerm_signalr_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
   tags = {
@@ -1057,7 +1050,7 @@ resource "azurerm_signalr_service" "test" {
   }
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }
@@ -1088,7 +1081,7 @@ resource "azurerm_signalr_service" "test" {
   }
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }
@@ -1115,7 +1108,7 @@ resource "azurerm_signalr_service" "test" {
   connectivity_logs_enabled = true
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }
@@ -1143,7 +1136,7 @@ resource "azurerm_signalr_service" "test" {
   http_request_logs_enabled = true
 
   sku {
-    name     = "Free_F1"
+    name     = "Standard_S1"
     capacity = 1
   }
 }

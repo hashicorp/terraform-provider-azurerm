@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
@@ -476,6 +476,10 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"dynamic_vnet_assignment_scope": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"accelerated_networking_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"subnet_id": {

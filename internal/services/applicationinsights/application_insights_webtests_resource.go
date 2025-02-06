@@ -6,25 +6,23 @@ package applicationinsights
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
+	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
@@ -34,7 +32,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 		Update: resourceApplicationInsightsWebTestsCreateUpdate,
 		Delete: resourceApplicationInsightsWebTestsDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.WebTestID(id)
+			_, err := webtests.ParseWebTestID(id)
 			return err
 		}),
 
@@ -64,7 +62,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 			},
 
 			"location": commonschema.Location(),
@@ -74,8 +72,8 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.WebTestKindMultistep),
-					string(insights.WebTestKindPing),
+					string(webtests.WebTestKindMultistep),
+					string(webtests.WebTestKindPing),
 				}, false),
 			},
 
@@ -129,7 +127,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				DiffSuppressFunc: suppress.XmlDiff,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"synthetic_monitor_id": {
 				Type:     pluginsdk.TypeString,
@@ -146,27 +144,26 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
 
-	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
+	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.WebTestsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Application Insights %s: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	description := d.Get("description").(string)
 	frequency := int32(d.Get("frequency").(int))
@@ -181,30 +178,30 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
 
-	webTest := insights.WebTest{
-		Name:     &id.Name,
-		Location: &location,
-		Kind:     insights.WebTestKind(kind),
-		WebTestProperties: &insights.WebTestProperties{
-			SyntheticMonitorID: &id.Name,
-			WebTestName:        &id.Name,
+	webTest := webtests.WebTest{
+		Name:     pointer.To(id.WebTestName),
+		Location: location.Normalize(d.Get("location").(string)),
+		Kind:     pointer.To(webtests.WebTestKind(kind)),
+		Properties: &webtests.WebTestProperties{
+			SyntheticMonitorId: id.WebTestName,
+			Name:               id.WebTestName,
 			Description:        &description,
 			Enabled:            &isEnabled,
-			Frequency:          &frequency,
-			Timeout:            &timeout,
-			WebTestKind:        insights.WebTestKind(kind),
+			Frequency:          pointer.To(int64(frequency)),
+			Timeout:            pointer.To(int64(timeout)),
+			Kind:               webtests.WebTestKind(kind),
 			RetryEnabled:       &retryEnabled,
-			Locations:          &geoLocations,
-			Configuration: &insights.WebTestPropertiesConfiguration{
+			Locations:          geoLocations,
+			Configuration: &webtests.WebTestPropertiesConfiguration{
 				WebTest: &testConf,
 			},
 		},
 		Tags: tags.Expand(t),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, webTest)
+	_, err = client.WebTestsCreateOrUpdate(ctx, id, webTest)
 	if err != nil {
-		return fmt.Errorf("creating/updating Application Insights %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -217,65 +214,69 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebTestID(d.Id())
+	id, err := webtests.ParseWebTestID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", *id)
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.WebTestsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Application Insights %s was not found - removing from state!", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Application Insights %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	d.Set("name", id.WebTestName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	appInsightsId := ""
-	for i := range resp.Tags {
-		if strings.HasPrefix(i, "hidden-link") {
-			appInsightsId = strings.Split(i, ":")[1]
+
+	if model := resp.Model; model != nil {
+		if model.Tags != nil {
+			for i := range *model.Tags {
+				if strings.HasPrefix(i, "hidden-link") {
+					appInsightsId = strings.Split(i, ":")[1]
+				}
+			}
 		}
-	}
-	parsedAppInsightsId, err := parse.ComponentIDInsensitively(appInsightsId)
-	if err != nil {
-		return fmt.Errorf("parsing `application_insights_id`: %+v", err)
-	}
+		d.Set("kind", pointer.From(model.Kind))
+		d.Set("location", location.Normalize(model.Location))
 
-	d.Set("application_insights_id", parsedAppInsightsId.ID())
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("kind", resp.Kind)
+		if props := model.Properties; props != nil {
+			// It is possible that the root level `kind` in response is empty in some cases (see PR #8372 for more info)
+			if model.Kind == nil || *model.Kind == "" {
+				d.Set("kind", props.Kind)
+			}
+			d.Set("synthetic_monitor_id", props.SyntheticMonitorId)
+			d.Set("description", props.Description)
+			d.Set("enabled", props.Enabled)
+			d.Set("frequency", props.Frequency)
+			d.Set("timeout", props.Timeout)
+			d.Set("retry_enabled", props.RetryEnabled)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+			if config := props.Configuration; config != nil {
+				d.Set("configuration", config.WebTest)
+			}
 
-	if props := resp.WebTestProperties; props != nil {
-		// It is possible that the root level `kind` in response is empty in some cases (see PR #8372 for more info)
-		if resp.Kind == "" {
-			d.Set("kind", props.WebTestKind)
-		}
-		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
-		d.Set("description", props.Description)
-		d.Set("enabled", props.Enabled)
-		d.Set("frequency", props.Frequency)
-		d.Set("timeout", props.Timeout)
-		d.Set("retry_enabled", props.RetryEnabled)
-
-		if config := props.Configuration; config != nil {
-			d.Set("configuration", config.WebTest)
+			if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
+				return fmt.Errorf("setting `geo_locations`: %+v", err)
+			}
 		}
 
-		if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
-			return fmt.Errorf("setting `geo_locations`: %+v", err)
+		parsedAppInsightsId, err := webtests.ParseComponentIDInsensitively(appInsightsId)
+		if err != nil {
+			return err
 		}
-	}
+		d.Set("application_insights_id", parsedAppInsightsId.ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+	return nil
 }
 
 func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -283,31 +284,29 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebTestID(d.Id())
+	id, err := webtests.ParseWebTestID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights %s", *id)
-
-	resp, err := client.Delete(ctx, *id)
+	resp, err := client.WebTestsDelete(ctx, *id)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
-		return fmt.Errorf("issuing AzureRM delete request for Application Insights '%s': %+v", *id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return err
 }
 
-func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []insights.WebTestGeolocation {
-	locations := make([]insights.WebTestGeolocation, 0)
+func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtests.WebTestGeolocation {
+	locations := make([]webtests.WebTestGeolocation, 0)
 
 	for _, v := range input {
 		lc := v.(string)
-		loc := insights.WebTestGeolocation{
-			Location: &lc,
+		loc := webtests.WebTestGeolocation{
+			Id: &lc,
 		}
 		locations = append(locations, loc)
 	}
@@ -315,15 +314,15 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []insight
 	return locations
 }
 
-func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeolocation) []string {
+func flattenApplicationInsightsWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
 	results := make([]string, 0)
-	if input == nil {
+	if len(input) == 0 {
 		return results
 	}
 
-	for _, prop := range *input {
-		if prop.Location != nil {
-			results = append(results, azure.NormalizeLocation(*prop.Location))
+	for _, prop := range input {
+		if prop.Id != nil {
+			results = append(results, location.Normalize(*prop.Id))
 		}
 	}
 

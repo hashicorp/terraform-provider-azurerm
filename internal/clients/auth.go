@@ -5,16 +5,17 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/claims"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients/graph"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
 type ResourceManagerAccount struct {
@@ -26,13 +27,10 @@ type ResourceManagerAccount struct {
 	TenantId       string
 
 	AuthenticatedAsAServicePrincipal bool
-	SkipResourceProviderRegistration bool
-
-	// TODO: delete these when no longer needed by older clients
-	AzureEnvironment azure.Environment
+	RegisteredResourceProviders      resourceproviders.ResourceProviders
 }
 
-func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, subscriptionId string, skipResourceProviderRegistration bool, azureEnvironment azure.Environment) (*ResourceManagerAccount, error) {
+func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, subscriptionId string, registeredResourceProviders resourceproviders.ResourceProviders) (*ResourceManagerAccount, error) {
 	authorizer, err := auth.NewAuthorizerFromCredentials(ctx, config, config.Environment.MicrosoftGraph)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build authorizer for Microsoft Graph API: %+v", err)
@@ -44,23 +42,23 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		return nil, fmt.Errorf("could not acquire access token to parse claims: %+v", err)
 	}
 
-	claims, err := claims.ParseClaims(token)
+	tokenClaims, err := claims.ParseClaims(token)
 	if err != nil {
 		return nil, fmt.Errorf("parsing claims from access token: %+v", err)
 	}
 
 	authenticatedAsServicePrincipal := true
-	if strings.Contains(strings.ToLower(claims.Scopes), "openid") {
+	if strings.Contains(strings.ToLower(tokenClaims.Scopes), "openid") {
 		authenticatedAsServicePrincipal = false
 	}
 
-	clientId := claims.AppId
+	clientId := tokenClaims.AppId
 	if clientId == "" {
 		log.Printf("[DEBUG] Using user-supplied ClientID because the `appid` claim was missing from the access token")
 		clientId = config.ClientID
 	}
 
-	objectId := claims.ObjectId
+	objectId := tokenClaims.ObjectId
 	if objectId == "" {
 		if authenticatedAsServicePrincipal {
 			log.Printf("[DEBUG] Querying Microsoft Graph to discover authenticated service principal object ID because the `oid` claim was missing from the access token")
@@ -81,13 +79,13 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		}
 	}
 
-	tenantId := claims.TenantId
+	tenantId := tokenClaims.TenantId
 	if tenantId == "" {
 		log.Printf("[DEBUG] Using user-supplied TenantID because the `tid` claim was missing from the access token")
 		tenantId = config.TenantID
 	}
 
-	// Finally, defer to Azure CLI to obtain tenant ID, subscription ID and client ID when not specified and missing from claims
+	// Finally, defer to Azure CLI to obtain tenant ID and client ID when not specified and missing from claims
 	realAuthorizer := authorizer
 	if cache, ok := authorizer.(*auth.CachedAuthorizer); ok {
 		realAuthorizer = cache.Source
@@ -96,20 +94,10 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		// Use the tenant ID from Azure CLI when otherwise unknown
 		if tenantId == "" {
 			if cli.TenantID == "" {
-				return nil, fmt.Errorf("azure-cli could not determine tenant ID to use")
+				return nil, errors.New("azure-cli could not determine tenant ID to use")
 			}
 			tenantId = cli.TenantID
 			log.Printf("[DEBUG] Using tenant ID from Azure CLI: %q", tenantId)
-		}
-
-		// Use the subscription ID from Azure CLI when otherwise unknown
-		if subscriptionId == "" {
-			if cli.DefaultSubscriptionID == "" {
-				return nil, fmt.Errorf("azure-cli could not determine subscription ID to use and no subscription was specified")
-			}
-
-			subscriptionId = cli.DefaultSubscriptionID
-			log.Printf("[DEBUG] Using default subscription ID from Azure CLI: %q", subscriptionId)
 		}
 
 		// Use the Azure CLI client ID
@@ -119,11 +107,12 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		}
 	}
 
+	// We'll permit the provider to proceed with an unknown client ID since it only affects a small number of use cases when authenticating as a user
 	if tenantId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: tenant ID could not be determined and was not specified")
 	}
 	if subscriptionId == "" {
-		return nil, fmt.Errorf("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
+		return nil, errors.New("unable to configure ResourceManagerAccount: subscription ID could not be determined and was not specified")
 	}
 
 	account := ResourceManagerAccount{
@@ -135,10 +124,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		TenantId:       tenantId,
 
 		AuthenticatedAsAServicePrincipal: authenticatedAsServicePrincipal,
-		SkipResourceProviderRegistration: skipResourceProviderRegistration,
-
-		// TODO: delete these when no longer needed by older clients
-		AzureEnvironment: azureEnvironment,
+		RegisteredResourceProviders:      registeredResourceProviders,
 	}
 
 	return &account, nil

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots` Documentation
 
-The `healthbots` SDK allows for interaction with the Azure Resource Manager Service `healthbot` (API Version `2022-08-08`).
+The `healthbots` SDK allows for interaction with Azure Resource Manager `healthbot` (API Version `2022-08-08`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 payload := healthbots.HealthBot{
 	// ...
@@ -41,7 +42,7 @@ if err := client.BotsCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 if err := client.BotsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.BotsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 read, err := client.BotsGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.BotsList(ctx, id)` can be used to do batched pagination
 items, err := client.BotsListComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.BotsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.BotsListByResourceGroupComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 read, err := client.BotsListSecrets(ctx, id)
 if err != nil {
@@ -119,7 +120,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 read, err := client.BotsRegenerateApiJwtSecret(ctx, id)
 if err != nil {
@@ -135,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotValue")
+id := healthbots.NewHealthBotID("12345678-1234-9876-4563-123456789012", "example-resource-group", "healthBotName")
 
 payload := healthbots.HealthBotUpdateParameters{
 	// ...

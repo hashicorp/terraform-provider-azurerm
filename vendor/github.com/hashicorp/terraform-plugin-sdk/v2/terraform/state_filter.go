@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package terraform
 
 import (
@@ -260,7 +263,7 @@ func (s stateFilterResultSlice) Less(i, j int) bool {
 		return addrA.Index < addrB.Index
 	}
 
-	// If the addresses are different it is just lexographic sorting
+	// If the addresses are different it is just lexicographic sorting
 	if a.Address != b.Address {
 		return a.Address < b.Address
 	}

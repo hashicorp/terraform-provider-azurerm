@@ -358,7 +358,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -392,7 +392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -426,7 +426,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -460,7 +460,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -470,7 +470,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_cname_record" "test" {
-  name                = "myarecord%d"
+  name                = "mycnamerecord%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300

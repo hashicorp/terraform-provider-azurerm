@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CommunicationServiceId{}
+func init() {
+	recaser.RegisterResourceId(&CommunicationServiceId{})
+}
+
+var _ resourceids.ResourceId = &CommunicationServiceId{}
 
 // CommunicationServiceId is a struct representing the Resource ID for a Communication Service
 type CommunicationServiceId struct {
@@ -30,25 +35,15 @@ func NewCommunicationServiceID(subscriptionId string, resourceGroupName string, 
 
 // ParseCommunicationServiceID parses 'input' into a CommunicationServiceId
 func ParseCommunicationServiceID(input string) (*CommunicationServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CommunicationServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CommunicationServiceName, ok = parsed.Parsed["communicationServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "communicationServiceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseCommunicationServiceID(input string) (*CommunicationServiceId, error) 
 // ParseCommunicationServiceIDInsensitively parses 'input' case-insensitively into a CommunicationServiceId
 // note: this method should only be used for API response data and not user input
 func ParseCommunicationServiceIDInsensitively(input string) (*CommunicationServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CommunicationServiceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CommunicationServiceName, ok = parsed.Parsed["communicationServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "communicationServiceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CommunicationServiceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CommunicationServiceName, ok = input.Parsed["communicationServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "communicationServiceName", input)
+	}
+
+	return nil
 }
 
 // ValidateCommunicationServiceID checks that 'input' can be parsed as a Communication Service ID
@@ -112,7 +115,7 @@ func (id CommunicationServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCommunication", "Microsoft.Communication", "Microsoft.Communication"),
 		resourceids.StaticSegment("staticCommunicationServices", "communicationServices", "communicationServices"),
-		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceValue"),
+		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceName"),
 	}
 }
 

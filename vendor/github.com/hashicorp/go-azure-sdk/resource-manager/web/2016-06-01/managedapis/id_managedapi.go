@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagedApiId{}
+func init() {
+	recaser.RegisterResourceId(&ManagedApiId{})
+}
+
+var _ resourceids.ResourceId = &ManagedApiId{}
 
 // ManagedApiId is a struct representing the Resource ID for a Managed Api
 type ManagedApiId struct {
@@ -30,25 +35,15 @@ func NewManagedApiID(subscriptionId string, locationName string, managedApiName 
 
 // ParseManagedApiID parses 'input' into a ManagedApiId
 func ParseManagedApiID(input string) (*ManagedApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedApiId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedApiId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.ManagedApiName, ok = parsed.Parsed["managedApiName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedApiName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseManagedApiID(input string) (*ManagedApiId, error) {
 // ParseManagedApiIDInsensitively parses 'input' case-insensitively into a ManagedApiId
 // note: this method should only be used for API response data and not user input
 func ParseManagedApiIDInsensitively(input string) (*ManagedApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedApiId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagedApiId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.ManagedApiName, ok = parsed.Parsed["managedApiName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedApiName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagedApiId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.ManagedApiName, ok = input.Parsed["managedApiName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedApiName", input)
+	}
+
+	return nil
 }
 
 // ValidateManagedApiID checks that 'input' can be parsed as a Managed Api ID
@@ -110,9 +113,9 @@ func (id ManagedApiId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticManagedApis", "managedApis", "managedApis"),
-		resourceids.UserSpecifiedSegment("managedApiName", "managedApiValue"),
+		resourceids.UserSpecifiedSegment("managedApiName", "managedApiName"),
 	}
 }
 

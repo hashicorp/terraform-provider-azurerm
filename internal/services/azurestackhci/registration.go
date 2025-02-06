@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/azure-stack-hci"
@@ -37,5 +40,23 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_stack_hci_cluster": resourceArmStackHCICluster(),
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		StackHCIClusterDataSource{},
+	}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		StackHCIDeploymentSettingResource{},
+		StackHCIExtensionResource{},
+		StackHCILogicalNetworkResource{},
+		StackHCIMarketplaceGalleryImageResource{},
+		StackHCINetworkInterfaceResource{},
+		StackHCIStoragePathResource{},
+		StackHCIVirtualHardDiskResource{},
 	}
 }

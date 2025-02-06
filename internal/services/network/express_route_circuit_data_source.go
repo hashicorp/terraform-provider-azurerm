@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceExpressRouteCircuit() *pluginsdk.Resource {
@@ -127,58 +127,58 @@ func dataSourceExpressRouteCircuit() *pluginsdk.Resource {
 }
 
 func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteCircuitsClient
+	client := meta.(*clients.Client).Network.ExpressRouteCircuits
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := expressroutecircuits.NewExpressRouteCircuitID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if properties := resp.ExpressRouteCircuitPropertiesFormat; properties != nil {
-		peerings := flattenExpressRouteCircuitPeerings(properties.Peerings)
-		if err := d.Set("peerings", peerings); err != nil {
-			return err
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		sku := flattenExpressRouteCircuitSku(model.Sku)
+		if err := d.Set("sku", sku); err != nil {
+			return fmt.Errorf("setting `sku`: %+v", err)
 		}
+		if props := model.Properties; props != nil {
+			peerings := flattenExpressRouteCircuitPeerings(props.Peerings)
+			if err := d.Set("peerings", peerings); err != nil {
+				return err
+			}
 
-		d.Set("service_key", properties.ServiceKey)
-		d.Set("service_provider_provisioning_state", properties.ServiceProviderProvisioningState)
+			d.Set("service_key", props.ServiceKey)
+			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
 
-		if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(properties.ServiceProviderProperties); serviceProviderProperties != nil {
-			if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
-				return fmt.Errorf("setting `service_provider_properties`: %+v", err)
+			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
+				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {
+					return fmt.Errorf("setting `service_provider_properties`: %+v", err)
+				}
 			}
 		}
-	}
-
-	sku := flattenExpressRouteCircuitSku(resp.Sku)
-	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
 	return nil
 }
 
-func flattenExpressRouteCircuitPeerings(input *[]network.ExpressRouteCircuitPeering) []interface{} {
+func flattenExpressRouteCircuitPeerings(input *[]expressroutecircuits.ExpressRouteCircuitPeering) []interface{} {
 	peerings := make([]interface{}, 0)
 
 	if input != nil {
 		for _, peering := range *input {
-			props := peering.ExpressRouteCircuitPeeringPropertiesFormat
+			props := peering.Properties
 			p := make(map[string]interface{})
 
-			p["peering_type"] = string(props.PeeringType)
+			p["peering_type"] = string(pointer.From(props.PeeringType))
 
 			if primaryPeerAddressPrefix := props.PrimaryPeerAddressPrefix; primaryPeerAddressPrefix != nil {
 				p["primary_peer_address_prefix"] = *primaryPeerAddressPrefix
@@ -196,7 +196,7 @@ func flattenExpressRouteCircuitPeerings(input *[]network.ExpressRouteCircuitPeer
 				p["peer_asn"] = *peerAsn
 			}
 
-			if vlanID := props.VlanID; vlanID != nil {
+			if vlanID := props.VlanId; vlanID != nil {
 				p["vlan_id"] = *vlanID
 			}
 
@@ -211,7 +211,7 @@ func flattenExpressRouteCircuitPeerings(input *[]network.ExpressRouteCircuitPeer
 	return peerings
 }
 
-func flattenExpressRouteCircuitServiceProviderProperties(input *network.ExpressRouteCircuitServiceProviderProperties) []interface{} {
+func flattenExpressRouteCircuitServiceProviderProperties(input *expressroutecircuits.ExpressRouteCircuitServiceProviderProperties) []interface{} {
 	serviceProviderProperties := make([]interface{}, 0)
 
 	if input != nil {

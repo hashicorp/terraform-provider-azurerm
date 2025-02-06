@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedPolicyAssignmentId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedPolicyAssignmentId{})
+}
+
+var _ resourceids.ResourceId = &ScopedPolicyAssignmentId{}
 
 // ScopedPolicyAssignmentId is a struct representing the Resource ID for a Scoped Policy Assignment
 type ScopedPolicyAssignmentId struct {
@@ -28,21 +33,15 @@ func NewScopedPolicyAssignmentID(scope string, policyAssignmentName string) Scop
 
 // ParseScopedPolicyAssignmentID parses 'input' into a ScopedPolicyAssignmentId
 func ParseScopedPolicyAssignmentID(input string) (*ScopedPolicyAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedPolicyAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedPolicyAssignmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPolicyAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PolicyAssignmentName, ok = parsed.Parsed["policyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedPolicyAssignmentID(input string) (*ScopedPolicyAssignmentId, err
 // ParseScopedPolicyAssignmentIDInsensitively parses 'input' case-insensitively into a ScopedPolicyAssignmentId
 // note: this method should only be used for API response data and not user input
 func ParseScopedPolicyAssignmentIDInsensitively(input string) (*ScopedPolicyAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedPolicyAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedPolicyAssignmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedPolicyAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.PolicyAssignmentName, ok = parsed.Parsed["policyAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedPolicyAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.PolicyAssignmentName, ok = input.Parsed["policyAssignmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedPolicyAssignmentID checks that 'input' can be parsed as a Scoped Policy Assignment ID
@@ -99,7 +106,7 @@ func (id ScopedPolicyAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticPolicyAssignments", "policyAssignments", "policyAssignments"),
-		resourceids.UserSpecifiedSegment("policyAssignmentName", "policyAssignmentValue"),
+		resourceids.UserSpecifiedSegment("policyAssignmentName", "policyAssignmentName"),
 	}
 }
 

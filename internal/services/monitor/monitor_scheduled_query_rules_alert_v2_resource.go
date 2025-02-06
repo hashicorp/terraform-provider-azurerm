@@ -10,38 +10,39 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ScheduledQueryRulesAlertV2Model struct {
-	Name                                  string                                    `tfschema:"name"`
-	ResourceGroupName                     string                                    `tfschema:"resource_group_name"`
-	Actions                               []ScheduledQueryRulesAlertV2ActionsModel  `tfschema:"action"`
-	AutoMitigate                          bool                                      `tfschema:"auto_mitigation_enabled"`
-	CheckWorkspaceAlertsStorageConfigured bool                                      `tfschema:"workspace_alerts_storage_enabled"`
-	Criteria                              []ScheduledQueryRulesAlertV2CriteriaModel `tfschema:"criteria"`
-	Description                           string                                    `tfschema:"description"`
-	DisplayName                           string                                    `tfschema:"display_name"`
-	Enabled                               bool                                      `tfschema:"enabled"`
-	EvaluationFrequency                   string                                    `tfschema:"evaluation_frequency"`
-	Location                              string                                    `tfschema:"location"`
-	MuteActionsDuration                   string                                    `tfschema:"mute_actions_after_alert_duration"`
-	OverrideQueryTimeRange                string                                    `tfschema:"query_time_range_override"`
-	Scopes                                []string                                  `tfschema:"scopes"`
-	Severity                              scheduledqueryrules.AlertSeverity         `tfschema:"severity"`
-	SkipQueryValidation                   bool                                      `tfschema:"skip_query_validation"`
-	Tags                                  map[string]string                         `tfschema:"tags"`
-	TargetResourceTypes                   []string                                  `tfschema:"target_resource_types"`
-	WindowSize                            string                                    `tfschema:"window_duration"`
-	CreatedWithApiVersion                 string                                    `tfschema:"created_with_api_version"`
-	IsLegacyLogAnalyticsRule              bool                                      `tfschema:"is_a_legacy_log_analytics_rule"`
-	IsWorkspaceAlertsStorageConfigured    bool                                      `tfschema:"is_workspace_alerts_storage_configured"`
+	Name                                  string                                     `tfschema:"name"`
+	ResourceGroupName                     string                                     `tfschema:"resource_group_name"`
+	Actions                               []ScheduledQueryRulesAlertV2ActionsModel   `tfschema:"action"`
+	AutoMitigate                          bool                                       `tfschema:"auto_mitigation_enabled"`
+	CheckWorkspaceAlertsStorageConfigured bool                                       `tfschema:"workspace_alerts_storage_enabled"`
+	Criteria                              []ScheduledQueryRulesAlertV2CriteriaModel  `tfschema:"criteria"`
+	Description                           string                                     `tfschema:"description"`
+	DisplayName                           string                                     `tfschema:"display_name"`
+	Enabled                               bool                                       `tfschema:"enabled"`
+	EvaluationFrequency                   string                                     `tfschema:"evaluation_frequency"`
+	Location                              string                                     `tfschema:"location"`
+	MuteActionsDuration                   string                                     `tfschema:"mute_actions_after_alert_duration"`
+	OverrideQueryTimeRange                string                                     `tfschema:"query_time_range_override"`
+	Scopes                                []string                                   `tfschema:"scopes"`
+	Severity                              scheduledqueryrules.AlertSeverity          `tfschema:"severity"`
+	SkipQueryValidation                   bool                                       `tfschema:"skip_query_validation"`
+	Tags                                  map[string]string                          `tfschema:"tags"`
+	TargetResourceTypes                   []string                                   `tfschema:"target_resource_types"`
+	WindowSize                            string                                     `tfschema:"window_duration"`
+	CreatedWithApiVersion                 string                                     `tfschema:"created_with_api_version"`
+	IsLegacyLogAnalyticsRule              bool                                       `tfschema:"is_a_legacy_log_analytics_rule"`
+	IsWorkspaceAlertsStorageConfigured    bool                                       `tfschema:"is_workspace_alerts_storage_configured"`
+	Identity                              []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 type ScheduledQueryRulesAlertV2ActionsModel struct {
@@ -105,7 +106,6 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
-
 				Schema: map[string]*pluginsdk.Schema{
 					"query": {
 						Type:         pluginsdk.TypeString,
@@ -215,8 +215,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 		"evaluation_frequency": {
 			Type: pluginsdk.TypeString,
 			// this field is required, missing this field will get an error from service
-			Optional: !features.FourPointOhBeta(),
-			Required: features.FourPointOhBeta(),
+			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"PT1M",
 				"PT5M",
@@ -374,6 +373,8 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 		},
 
+		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+
 		"tags": commonschema.Tags(),
 
 		"target_resource_types": {
@@ -426,6 +427,7 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
+
 			kind := scheduledqueryrules.KindLogAlert
 			properties := &scheduledqueryrules.ScheduledQueryRuleResource{
 				Kind:     &kind,
@@ -456,6 +458,14 @@ func (r ScheduledQueryRulesAlertV2Resource) Create() sdk.ResourceFunc {
 
 			if model.EvaluationFrequency != "" {
 				properties.Properties.EvaluationFrequency = &model.EvaluationFrequency
+			}
+
+			if len(model.Identity) != 0 {
+				ExpandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				}
+				properties.Identity = ExpandedIdentity
 			}
 
 			if model.MuteActionsDuration != "" {
@@ -584,6 +594,17 @@ func (r ScheduledQueryRulesAlertV2Resource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				if len(resourceModel.Identity) != 0 {
+					model.Identity, err = identity.ExpandSystemOrUserAssignedMapFromModel(resourceModel.Identity)
+					if err != nil {
+						return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+					}
+				} else {
+					model.Identity = nil
+				}
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &resourceModel.Tags
 			}
@@ -622,10 +643,16 @@ func (r ScheduledQueryRulesAlertV2Resource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
+			flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
+			}
+
 			state := ScheduledQueryRulesAlertV2Model{
 				Name:              id.ScheduledQueryRuleName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
+				Identity:          *flattenedIdentity,
 			}
 
 			properties := &model.Properties
@@ -741,7 +768,7 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 
 func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRulesAlertV2CriteriaModel) *scheduledqueryrules.ScheduledQueryRuleCriteria {
 	output := scheduledqueryrules.ScheduledQueryRuleCriteria{}
-	var outputList []scheduledqueryrules.Condition
+	outputList := make([]scheduledqueryrules.Condition, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		condition := scheduledqueryrules.Condition{
@@ -772,7 +799,7 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 }
 
 func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) *[]scheduledqueryrules.Dimension {
-	var outputList []scheduledqueryrules.Dimension
+	outputList := make([]scheduledqueryrules.Dimension, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := scheduledqueryrules.Dimension{
@@ -821,17 +848,12 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 }
 
 func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.ScheduledQueryRuleCriteria) []ScheduledQueryRulesAlertV2CriteriaModel {
-	var outputList []ScheduledQueryRulesAlertV2CriteriaModel
-	if input == nil {
-		return outputList
+	if input == nil || input.AllOf == nil {
+		return []ScheduledQueryRulesAlertV2CriteriaModel{}
 	}
 
-	inputList := input.AllOf
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, v := range *inputList {
+	outputList := make([]ScheduledQueryRulesAlertV2CriteriaModel, 0, len(*input.AllOf))
+	for _, v := range *input.AllOf {
 		output := ScheduledQueryRulesAlertV2CriteriaModel{}
 
 		output.Dimensions = flattenScheduledQueryRulesAlertV2DimensionModel(v.Dimensions)
@@ -868,11 +890,11 @@ func flattenScheduledQueryRulesAlertV2CriteriaModel(input *scheduledqueryrules.S
 }
 
 func flattenScheduledQueryRulesAlertV2DimensionModel(inputList *[]scheduledqueryrules.Dimension) []ScheduledQueryRulesAlertV2DimensionModel {
-	var outputList []ScheduledQueryRulesAlertV2DimensionModel
 	if inputList == nil {
-		return outputList
+		return []ScheduledQueryRulesAlertV2DimensionModel{}
 	}
 
+	outputList := make([]ScheduledQueryRulesAlertV2DimensionModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := ScheduledQueryRulesAlertV2DimensionModel{
 			Name:     input.Name,

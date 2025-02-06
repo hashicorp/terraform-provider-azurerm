@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataStoreId{}
+func init() {
+	recaser.RegisterResourceId(&DataStoreId{})
+}
+
+var _ resourceids.ResourceId = &DataStoreId{}
 
 // DataStoreId is a struct representing the Resource ID for a Data Store
 type DataStoreId struct {
@@ -34,33 +39,15 @@ func NewDataStoreID(subscriptionId string, resourceGroupName string, privateClou
 
 // ParseDataStoreID parses 'input' into a DataStoreId
 func ParseDataStoreID(input string) (*DataStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataStoreId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParseDataStoreID(input string) (*DataStoreId, error) {
 // ParseDataStoreIDInsensitively parses 'input' case-insensitively into a DataStoreId
 // note: this method should only be used for API response data and not user input
 func ParseDataStoreIDInsensitively(input string) (*DataStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataStoreId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataStoreId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateCloudName, ok = parsed.Parsed["privateCloudName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DataStoreName, ok = parsed.Parsed["dataStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataStoreId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateCloudName, ok = input.Parsed["privateCloudName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateCloudName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.DataStoreName, ok = input.Parsed["dataStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataStoreName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataStoreID checks that 'input' can be parsed as a Data Store ID
@@ -132,11 +127,11 @@ func (id DataStoreId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAVS", "Microsoft.AVS", "Microsoft.AVS"),
 		resourceids.StaticSegment("staticPrivateClouds", "privateClouds", "privateClouds"),
-		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudValue"),
+		resourceids.UserSpecifiedSegment("privateCloudName", "privateCloudName"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticDataStores", "dataStores", "dataStores"),
-		resourceids.UserSpecifiedSegment("dataStoreName", "dataStoreValue"),
+		resourceids.UserSpecifiedSegment("dataStoreName", "dataStoreName"),
 	}
 }
 

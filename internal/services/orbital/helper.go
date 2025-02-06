@@ -4,8 +4,10 @@
 package orbital
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -88,7 +90,6 @@ func ChannelSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
-		ForceNew: true,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
@@ -216,9 +217,10 @@ func SpacecraftLinkSchema() *pluginsdk.Schema {
 
 func expandSpacecraftLinks(input []SpacecraftLinkModel) ([]spacecraft.SpacecraftLink, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("links should be defined")
+		return nil, errors.New("links should be defined")
 	}
-	var spacecraftLink []spacecraft.SpacecraftLink
+
+	spacecraftLink := make([]spacecraft.SpacecraftLink, 0, len(input))
 	for _, v := range input {
 		link := spacecraft.SpacecraftLink{
 			BandwidthMHz:       v.BandwidthMhz,
@@ -238,7 +240,7 @@ func flattenSpacecraftLinks(input []spacecraft.SpacecraftLink) ([]SpacecraftLink
 		return nil, fmt.Errorf("links are missing")
 	}
 
-	var spacecraftLinkModel []SpacecraftLinkModel
+	spacecraftLinkModel := make([]SpacecraftLinkModel, 0, len(input))
 	for _, v := range input {
 		linkModel := SpacecraftLinkModel{
 			BandwidthMhz:       v.BandwidthMHz,
@@ -255,10 +257,10 @@ func flattenSpacecraftLinks(input []spacecraft.SpacecraftLink) ([]SpacecraftLink
 
 func flattenContactProfileLinks(input []contactprofile.ContactProfileLink) ([]ContactProfileLinkModel, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("links are missing")
+		return nil, errors.New("links are missing")
 	}
 
-	var contactProfileLinkModel []ContactProfileLinkModel
+	contactProfileLinkModel := make([]ContactProfileLinkModel, 0, len(input))
 	for _, v := range input {
 		linkModel := ContactProfileLinkModel{
 			Polarization: string(v.Polarization),
@@ -278,17 +280,17 @@ func flattenContactProfileLinks(input []contactprofile.ContactProfileLink) ([]Co
 
 func flattenContactProfileChannel(input []contactprofile.ContactProfileLinkChannel) ([]ContactProfileChannelModel, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("channels are missing")
+		return nil, errors.New("channels are missing")
 	}
 
-	var contactProfileChannelModel []ContactProfileChannelModel
+	contactProfileChannelModel := make([]ContactProfileChannelModel, 0, len(input))
 	for _, v := range input {
 		channelModel := ContactProfileChannelModel{
 			BandwidthMhz:              v.BandwidthMHz,
 			CenterFrequencyMhz:        v.CenterFrequencyMHz,
 			Name:                      v.Name,
-			ModulationConfiguration:   *v.ModulationConfiguration,
-			DemodulationConfiguration: *v.DemodulationConfiguration,
+			ModulationConfiguration:   pointer.From(v.ModulationConfiguration),
+			DemodulationConfiguration: pointer.From(v.DemodulationConfiguration),
 		}
 		endPoint := v.EndPoint
 		endPointModel := EndPointModel{
@@ -306,10 +308,10 @@ func flattenContactProfileChannel(input []contactprofile.ContactProfileLinkChann
 
 func expandContactProfileLinks(input []ContactProfileLinkModel) ([]contactprofile.ContactProfileLink, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("links should be defined")
+		return nil, errors.New("links should be defined")
 	}
 
-	var contactProfileLink []contactprofile.ContactProfileLink
+	contactProfileLink := make([]contactprofile.ContactProfileLink, 0, len(input))
 	for _, v := range input {
 		link := contactprofile.ContactProfileLink{
 			Direction:    contactprofile.Direction(v.Direction),
@@ -329,17 +331,17 @@ func expandContactProfileLinks(input []ContactProfileLinkModel) ([]contactprofil
 
 func expandContactProfileChannel(input []ContactProfileChannelModel) ([]contactprofile.ContactProfileLinkChannel, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("contact profile channel should be defined")
+		return nil, errors.New("contact profile channel should be defined")
 	}
 
-	var contactProfileChannel []contactprofile.ContactProfileLinkChannel
+	contactProfileChannel := make([]contactprofile.ContactProfileLinkChannel, 0, len(input))
 	for _, v := range input {
 		channel := contactprofile.ContactProfileLinkChannel{
 			BandwidthMHz:              v.BandwidthMhz,
 			CenterFrequencyMHz:        v.CenterFrequencyMhz,
-			DemodulationConfiguration: &v.DemodulationConfiguration,
+			DemodulationConfiguration: pointer.To(v.DemodulationConfiguration),
 			EndPoint:                  contactprofile.EndPoint{},
-			ModulationConfiguration:   &v.ModulationConfiguration,
+			ModulationConfiguration:   pointer.To(v.ModulationConfiguration),
 			Name:                      v.Name,
 		}
 		endPoint, err := expandEndPoint(v.EndPoint)
@@ -355,7 +357,7 @@ func expandContactProfileChannel(input []ContactProfileChannelModel) ([]contactp
 
 func expandEndPoint(input []EndPointModel) ([]contactprofile.EndPoint, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("end point should be defined")
+		return nil, errors.New("end point should be defined")
 	}
 
 	v := input[0]

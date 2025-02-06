@@ -10,12 +10,15 @@ description: |-
 
 Manages a Cost Anomaly Alert.
 
+~> **Note:** Anomaly alerts are sent based on the current access of the rule creator at the time that the email is sent. Learn more [here](https://learn.microsoft.com/en-us/azure/cost-management-billing/understand/analyze-unexpected-charges#create-an-anomaly-alert).
+
 ## Example Usage
 
 ```hcl
 resource "azurerm_cost_anomaly_alert" "example" {
   name            = "alertname"
   display_name    = "Alert DisplayName"
+  subscription_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
   email_subject   = "My Test Anomaly Alert"
   email_addresses = ["example@test.net"]
 }
@@ -29,11 +32,13 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name which should be used for this Cost Anomaly Alert.
 
+* `subscription_id` - (Optional) The ID of the Subscription this Cost Anomaly Alert is scoped to. Changing this forces a new resource to be created. When not supplied this defaults to the subscription configured in the provider.
+
 * `email_addresses` - (Required) Specifies a list of email addresses which the Anomaly Alerts are send to.
 
 * `email_subject` - (Required) The email subject of the Cost Anomaly Alerts. Maximum length of the subject is 70.
 
-
+* `notification_email` - (Optional) The email address of the point of contact that should get the unsubscribe requests and notification emails.
 
 ---
 

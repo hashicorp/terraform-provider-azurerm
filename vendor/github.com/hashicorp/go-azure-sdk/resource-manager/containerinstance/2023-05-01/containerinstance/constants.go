@@ -1,6 +1,10 @@
 package containerinstance
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForContainerGroupIPAddressType() []string {
 		string(ContainerGroupIPAddressTypePrivate),
 		string(ContainerGroupIPAddressTypePublic),
 	}
+}
+
+func (s *ContainerGroupIPAddressType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupIPAddressType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseContainerGroupIPAddressType(input string) (*ContainerGroupIPAddressType, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForContainerGroupNetworkProtocol() []string {
 	}
 }
 
+func (s *ContainerGroupNetworkProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupNetworkProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseContainerGroupNetworkProtocol(input string) (*ContainerGroupNetworkProtocol, error) {
 	vals := map[string]ContainerGroupNetworkProtocol{
 		"tcp": ContainerGroupNetworkProtocolTCP,
@@ -73,6 +103,19 @@ func PossibleValuesForContainerGroupPriority() []string {
 		string(ContainerGroupPriorityRegular),
 		string(ContainerGroupPrioritySpot),
 	}
+}
+
+func (s *ContainerGroupPriority) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupPriority(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseContainerGroupPriority(input string) (*ContainerGroupPriority, error) {
@@ -103,6 +146,19 @@ func PossibleValuesForContainerGroupRestartPolicy() []string {
 		string(ContainerGroupRestartPolicyNever),
 		string(ContainerGroupRestartPolicyOnFailure),
 	}
+}
+
+func (s *ContainerGroupRestartPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupRestartPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseContainerGroupRestartPolicy(input string) (*ContainerGroupRestartPolicy, error) {
@@ -136,6 +192,19 @@ func PossibleValuesForContainerGroupSku() []string {
 	}
 }
 
+func (s *ContainerGroupSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseContainerGroupSku(input string) (*ContainerGroupSku, error) {
 	vals := map[string]ContainerGroupSku{
 		"confidential": ContainerGroupSkuConfidential,
@@ -163,6 +232,19 @@ func PossibleValuesForContainerNetworkProtocol() []string {
 		string(ContainerNetworkProtocolTCP),
 		string(ContainerNetworkProtocolUDP),
 	}
+}
+
+func (s *ContainerNetworkProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerNetworkProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseContainerNetworkProtocol(input string) (*ContainerNetworkProtocol, error) {
@@ -199,6 +281,19 @@ func PossibleValuesForDnsNameLabelReusePolicy() []string {
 	}
 }
 
+func (s *DnsNameLabelReusePolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDnsNameLabelReusePolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDnsNameLabelReusePolicy(input string) (*DnsNameLabelReusePolicy, error) {
 	vals := map[string]DnsNameLabelReusePolicy{
 		"noreuse":            DnsNameLabelReusePolicyNoreuse,
@@ -232,6 +327,19 @@ func PossibleValuesForGpuSku() []string {
 	}
 }
 
+func (s *GpuSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseGpuSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseGpuSku(input string) (*GpuSku, error) {
 	vals := map[string]GpuSku{
 		"k80":  GpuSkuKEightZero,
@@ -259,6 +367,19 @@ func PossibleValuesForLogAnalyticsLogType() []string {
 		string(LogAnalyticsLogTypeContainerInsights),
 		string(LogAnalyticsLogTypeContainerInstanceLogs),
 	}
+}
+
+func (s *LogAnalyticsLogType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLogAnalyticsLogType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLogAnalyticsLogType(input string) (*LogAnalyticsLogType, error) {
@@ -289,6 +410,19 @@ func PossibleValuesForOperatingSystemTypes() []string {
 	}
 }
 
+func (s *OperatingSystemTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperatingSystemTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
 	vals := map[string]OperatingSystemTypes{
 		"linux":   OperatingSystemTypesLinux,
@@ -315,6 +449,19 @@ func PossibleValuesForScheme() []string {
 		string(SchemeHTTP),
 		string(SchemeHTTPS),
 	}
+}
+
+func (s *Scheme) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheme(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScheme(input string) (*Scheme, error) {

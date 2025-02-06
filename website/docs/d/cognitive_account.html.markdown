@@ -35,7 +35,11 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `identity` - A `identity` block as defined below.
+
 * `location` - The Azure location where the Cognitive Services Account exists
+
+* `local_auth_enabled` - Whether local authentication methods is enabled for the Cognitive Account.
 
 * `kind` - The kind of the Cognitive Services Account
 
@@ -49,7 +53,21 @@ The following attributes are exported:
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account
 
+-> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `location_auth_enabled` is `true`.
+
 * `tags` - A mapping of tags to assigned to the resource.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Cognitive Account.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Cognitive Account.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Cognitive Account.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Cognitive Account.
 
 ## Timeouts
 

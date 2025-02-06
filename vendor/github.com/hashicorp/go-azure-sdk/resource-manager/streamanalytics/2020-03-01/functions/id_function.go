@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FunctionId{}
+func init() {
+	recaser.RegisterResourceId(&FunctionId{})
+}
+
+var _ resourceids.ResourceId = &FunctionId{}
 
 // FunctionId is a struct representing the Resource ID for a Function
 type FunctionId struct {
@@ -32,29 +37,15 @@ func NewFunctionID(subscriptionId string, resourceGroupName string, streamingJob
 
 // ParseFunctionID parses 'input' into a FunctionId
 func ParseFunctionID(input string) (*FunctionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FunctionId{})
+	parser := resourceids.NewParserFromResourceIdType(&FunctionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FunctionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
-	}
-
-	if id.FunctionName, ok = parsed.Parsed["functionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "functionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseFunctionID(input string) (*FunctionId, error) {
 // ParseFunctionIDInsensitively parses 'input' case-insensitively into a FunctionId
 // note: this method should only be used for API response data and not user input
 func ParseFunctionIDInsensitively(input string) (*FunctionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FunctionId{})
+	parser := resourceids.NewParserFromResourceIdType(&FunctionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FunctionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
-	}
-
-	if id.FunctionName, ok = parsed.Parsed["functionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "functionName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FunctionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StreamingJobName, ok = input.Parsed["streamingJobName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", input)
+	}
+
+	if id.FunctionName, ok = input.Parsed["functionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "functionName", input)
+	}
+
+	return nil
 }
 
 // ValidateFunctionID checks that 'input' can be parsed as a Function ID
@@ -122,9 +121,9 @@ func (id FunctionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobName"),
 		resourceids.StaticSegment("staticFunctions", "functions", "functions"),
-		resourceids.UserSpecifiedSegment("functionName", "functionValue"),
+		resourceids.UserSpecifiedSegment("functionName", "functionName"),
 	}
 }
 

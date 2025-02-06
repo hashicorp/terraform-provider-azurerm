@@ -55,7 +55,7 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 				ValidateFunc: validate.WebPubSubHubName(),
 			},
 
-			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"event_handler": {
 				Type:     pluginsdk.TypeList,

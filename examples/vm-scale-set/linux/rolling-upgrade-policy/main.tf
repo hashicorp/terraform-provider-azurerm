@@ -45,7 +45,6 @@ resource "azurerm_lb" "main" {
 
 resource "azurerm_lb_backend_address_pool" "main" {
   name                = "backend-pool"
-  resource_group_name = azurerm_resource_group.main.name
   loadbalancer_id     = azurerm_lb.main.id
 }
 
@@ -94,8 +93,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

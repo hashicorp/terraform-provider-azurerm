@@ -31,19 +31,16 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "example" {
-  workspace_id      = azurerm_log_analytics_workspace.example.id
+  workspace_id      = azurerm_sentinel_log_analytics_workspace_onboarding.example.workspace_id
   pattern_type      = "domain-name"
   pattern           = "http://example.com"
   source            = "Microsoft Sentinel"
   validate_from_utc = "2022-12-14T16:00:00Z"
   display_name      = "example-indicator"
-
-  depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
 ```
 
@@ -57,7 +54,7 @@ The following arguments are supported:
 
 * `pattern` - (Required) The pattern used by the Threat Intelligence Indicator. When `pattern_type` set to `file`, `pattern` must be specified with `<HashName>:<Value>` format, such as `MD5:78ecc5c05cd8b79af480df2f8fba0b9d`.
 
-* `source` - (Required) Source of the Threat Intelligence Indicator.
+* `source` - (Required) Source of the Threat Intelligence Indicator. Changing this forces a new resource to be created.
 
 * `validate_from_utc` - (Required) The start of validate date in RFC3339.
 
@@ -82,8 +79,6 @@ The following arguments are supported:
 * `tags` - (Optional) Specifies a list of tags of the Threat Intelligence Indicator.
 
 * `language` - (Optional) The language of the Threat Intelligence Indicator.
-
-* `modified_by` - (Optional) The user or service principal who modified the Threat Intelligence Indicator.
 
 * `object_marking_refs` - (Optional) Specifies a list of Threat Intelligence marking references.
 
@@ -137,7 +132,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `external_last_updated_time_utc` - the External last updated time in UTC.
 
-* `indicator_types` - A list of indicator types of this Threat Intelligence Indicator.
+* `indicator_type` - A list of indicator types of this Threat Intelligence Indicator.
 
 * `last_updated_time_utc` - The last updated time of the Threat Intelligence Indicator in UTC.
 

@@ -106,9 +106,10 @@ func (a MetadataResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: azure.ValidateResourceID,
 		},
 
-		"source": { // the service will automatically create `source`.
+		"source": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C The API creates a source if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -747,6 +748,7 @@ func expandMetadataSupportModel(input []MetadataSupportModel) *sentinelmetadata.
 	}
 	return &output
 }
+
 func flattenMetadataSupportModel(input *sentinelmetadata.MetadataSupport) []MetadataSupportModel {
 	if input == nil {
 		return []MetadataSupportModel{}

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CapacityReservationId{}
+func init() {
+	recaser.RegisterResourceId(&CapacityReservationId{})
+}
+
+var _ resourceids.ResourceId = &CapacityReservationId{}
 
 // CapacityReservationId is a struct representing the Resource ID for a Capacity Reservation
 type CapacityReservationId struct {
@@ -32,29 +37,15 @@ func NewCapacityReservationID(subscriptionId string, resourceGroupName string, c
 
 // ParseCapacityReservationID parses 'input' into a CapacityReservationId
 func ParseCapacityReservationID(input string) (*CapacityReservationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacityReservationId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapacityReservationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CapacityReservationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CapacityReservationGroupName, ok = parsed.Parsed["capacityReservationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationGroupName", *parsed)
-	}
-
-	if id.CapacityReservationName, ok = parsed.Parsed["capacityReservationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseCapacityReservationID(input string) (*CapacityReservationId, error) {
 // ParseCapacityReservationIDInsensitively parses 'input' case-insensitively into a CapacityReservationId
 // note: this method should only be used for API response data and not user input
 func ParseCapacityReservationIDInsensitively(input string) (*CapacityReservationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CapacityReservationId{})
+	parser := resourceids.NewParserFromResourceIdType(&CapacityReservationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CapacityReservationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CapacityReservationGroupName, ok = parsed.Parsed["capacityReservationGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationGroupName", *parsed)
-	}
-
-	if id.CapacityReservationName, ok = parsed.Parsed["capacityReservationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CapacityReservationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CapacityReservationGroupName, ok = input.Parsed["capacityReservationGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationGroupName", input)
+	}
+
+	if id.CapacityReservationName, ok = input.Parsed["capacityReservationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "capacityReservationName", input)
+	}
+
+	return nil
 }
 
 // ValidateCapacityReservationID checks that 'input' can be parsed as a Capacity Reservation ID
@@ -122,9 +121,9 @@ func (id CapacityReservationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticCapacityReservationGroups", "capacityReservationGroups", "capacityReservationGroups"),
-		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupValue"),
+		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupName"),
 		resourceids.StaticSegment("staticCapacityReservations", "capacityReservations", "capacityReservations"),
-		resourceids.UserSpecifiedSegment("capacityReservationName", "capacityReservationValue"),
+		resourceids.UserSpecifiedSegment("capacityReservationName", "capacityReservationName"),
 	}
 }
 

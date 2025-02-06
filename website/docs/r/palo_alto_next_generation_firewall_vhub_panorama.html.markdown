@@ -113,9 +113,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings[0].use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
 ---
 
@@ -137,33 +137,13 @@ A `network_profile` block supports the following:
 
 * `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
 
+* `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Palo Alto Next Generation Firewall VHub Panorama.
-
-* `pan_etag` - The Etag value of the configuration.
-
-* `panorama_config` - A `panorama_config` block as defined below.
-
----
-
-A `panorama` block exports the following:
-
-* `device_group_name` - The Device Group Name to which this Firewall Resource is registered.
-
-* `host_name` - The Host Name of this Firewall Resource.
-
-* `name` - The name of this Firewall Resource.
-
-* `panorama_server_1` - The name of the First Panorama server.
-
-* `panorama_server_2` - The name of the Second Panorama server.
-
-* `template_name` - The name of the Panorama Template applied to this Firewall Resource.
-
-* `virtual_machine_ssh_key` - The SSH Key to connect to the Firewall Resource.
 
 ## Timeouts
 

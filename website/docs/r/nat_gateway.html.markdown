@@ -7,7 +7,7 @@ description: |-
 ---
 # azurerm_nat_gateway
 
-Manages a Azure NAT Gateway.
+Manages an Azure NAT Gateway.
 
 ## Example Usage
 
@@ -17,25 +17,8 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_public_ip" "example" {
-  name                = "nat-gateway-publicIP"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["1"]
-}
-
-resource "azurerm_public_ip_prefix" "example" {
-  name                = "nat-gateway-publicIPPrefix"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  prefix_length       = 30
-  zones               = ["1"]
-}
-
 resource "azurerm_nat_gateway" "example" {
-  name                    = "nat-Gateway"
+  name                    = "nat-gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
   sku_name                = "Standard"
@@ -43,6 +26,8 @@ resource "azurerm_nat_gateway" "example" {
   zones                   = ["1"]
 }
 ```
+
+For more complete examples, please see the [azurerm_nat_gateway_public_ip_association](nat_gateway_public_ip_association.html) and [azurerm_nat_gateway_public_ip_prefix_association](nat_gateway_public_ip_prefix_association.html) resources.
 
 ## Argument Reference
 

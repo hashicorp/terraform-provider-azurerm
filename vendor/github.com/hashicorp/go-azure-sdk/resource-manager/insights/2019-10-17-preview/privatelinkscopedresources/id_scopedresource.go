@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedResourceId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedResourceId{})
+}
+
+var _ resourceids.ResourceId = &ScopedResourceId{}
 
 // ScopedResourceId is a struct representing the Resource ID for a Scoped Resource
 type ScopedResourceId struct {
@@ -32,29 +37,15 @@ func NewScopedResourceID(subscriptionId string, resourceGroupName string, privat
 
 // ParseScopedResourceID parses 'input' into a ScopedResourceId
 func ParseScopedResourceID(input string) (*ScopedResourceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedResourceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedResourceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
-	}
-
-	if id.ScopedResourceName, ok = parsed.Parsed["scopedResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseScopedResourceID(input string) (*ScopedResourceId, error) {
 // ParseScopedResourceIDInsensitively parses 'input' case-insensitively into a ScopedResourceId
 // note: this method should only be used for API response data and not user input
 func ParseScopedResourceIDInsensitively(input string) (*ScopedResourceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedResourceId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedResourceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedResourceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateLinkScopeName, ok = parsed.Parsed["privateLinkScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", *parsed)
-	}
-
-	if id.ScopedResourceName, ok = parsed.Parsed["scopedResourceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedResourceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrivateLinkScopeName, ok = input.Parsed["privateLinkScopeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeName", input)
+	}
+
+	if id.ScopedResourceName, ok = input.Parsed["scopedResourceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopedResourceName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedResourceID checks that 'input' can be parsed as a Scoped Resource ID
@@ -122,9 +121,9 @@ func (id ScopedResourceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticPrivateLinkScopes", "privateLinkScopes", "privateLinkScopes"),
-		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeValue"),
+		resourceids.UserSpecifiedSegment("privateLinkScopeName", "privateLinkScopeName"),
 		resourceids.StaticSegment("staticScopedResources", "scopedResources", "scopedResources"),
-		resourceids.UserSpecifiedSegment("scopedResourceName", "scopedResourceValue"),
+		resourceids.UserSpecifiedSegment("scopedResourceName", "scopedResourceName"),
 	}
 }
 

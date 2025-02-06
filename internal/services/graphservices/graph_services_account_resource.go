@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package graphservices
 
 import (
@@ -16,27 +19,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = ServicesAccountResource{}
-var _ sdk.ResourceWithUpdate = ServicesAccountResource{}
+var (
+	_ sdk.Resource           = AccountResource{}
+	_ sdk.ResourceWithUpdate = AccountResource{}
+)
 
-type ServicesAccountResource struct {
-	AccountResource
-}
-
-func (r ServicesAccountResource) ResourceType() string {
-	return "azurerm_graph_services_account"
-}
-
-var _ sdk.Resource = AccountResource{}
-var _ sdk.ResourceWithUpdate = AccountResource{}
-var _ sdk.ResourceWithDeprecationReplacedBy = AccountResource{}
-
-// AccountResource remove this in 4.0
 type AccountResource struct{}
-
-func (r AccountResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_graph_services_account"
-}
 
 func (r AccountResource) ModelObject() interface{} {
 	return &AccountResourceSchema{}
@@ -55,7 +43,7 @@ func (r AccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 func (r AccountResource) ResourceType() string {
-	return "azurerm_graph_account"
+	return "azurerm_graph_services_account"
 }
 
 func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {

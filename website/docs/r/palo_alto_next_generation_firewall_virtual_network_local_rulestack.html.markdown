@@ -173,9 +173,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) Specifies a list of DNS servers to use. Conflicts with `dns_settings[0].use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should the Firewall use Azure Supplied DNS servers. Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should the Firewall use Azure Supplied DNS servers. Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
 ---
 
@@ -197,6 +197,8 @@ A `network_profile` block supports the following:
 
 * `egress_nat_ip_address_ids` - (Optional) Specifies a list of Azure Public IP Address IDs that can be used for Egress (Source) Network Address Translation.
 
+* `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
+
 ---
 
 A `vnet_configuration` block supports the following:
@@ -217,9 +219,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
+* `create` - (Defaults to 3 hours) Used when creating the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
-* `update` - (Defaults to 2 hours) Used when updating the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
+* `update` - (Defaults to 3 hours) Used when updating the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 * `delete` - (Defaults to 2 hours) Used when deleting the Palo Alto Next Generation Firewall Virtual Network Local Rulestack.
 
 ## Import

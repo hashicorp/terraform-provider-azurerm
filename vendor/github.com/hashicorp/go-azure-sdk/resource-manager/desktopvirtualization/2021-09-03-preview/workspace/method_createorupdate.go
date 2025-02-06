@@ -48,7 +48,9 @@ func (c WorkspaceClient) CreateOrUpdate(ctx context.Context, id WorkspaceId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workspace
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

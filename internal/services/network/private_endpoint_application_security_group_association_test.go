@@ -11,16 +11,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
-}
+type PrivateEndpointApplicationSecurityGroupAssociationResource struct{}
 
 func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint_application_security_group_association", "test")
@@ -34,6 +33,26 @@ func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_basic(t *
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_updatePrivateEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint_application_security_group_association", "test")
+	r := PrivateEndpointApplicationSecurityGroupAssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// Ensure a subsequent update to the PrivateEndpoint does not affect the association
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -145,6 +164,40 @@ resource "azurerm_private_endpoint_application_security_group_association" "test
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
 }
 
+func (r PrivateEndpointApplicationSecurityGroupAssociationResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
+  tags = {
+    "test" = "value1"
+  }
+}
+
+resource "azurerm_application_security_group" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_endpoint_application_security_group_association" "test" {
+  private_endpoint_id           = azurerm_private_endpoint.test.id
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
+}
+
 func (r PrivateEndpointApplicationSecurityGroupAssociationResource) serviceAutoApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -194,7 +247,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -203,7 +256,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_public_ip" "test" {

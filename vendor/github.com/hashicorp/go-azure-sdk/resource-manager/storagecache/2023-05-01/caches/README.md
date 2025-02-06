@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches` Documentation
 
-The `caches` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2023-05-01`).
+The `caches` SDK allows for interaction with Azure Resource Manager `storagecache` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.Cache{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.DebugInfoThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DebugInfoThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.FlushThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -77,7 +78,7 @@ if err := client.FlushThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -93,7 +94,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -110,7 +111,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := caches.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -127,7 +128,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.PrimingJobIdParameter{
 	// ...
@@ -144,7 +145,7 @@ if err := client.PausePrimingJobThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.PrimingJobIdParameter{
 	// ...
@@ -161,7 +162,7 @@ if err := client.ResumePrimingJobThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 var payload []StorageTargetSpaceAllocation
 
 if err := client.SpaceAllocationThenPoll(ctx, id, payload); err != nil {
@@ -174,7 +175,7 @@ if err := client.SpaceAllocationThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.StartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -186,7 +187,7 @@ if err := client.StartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.PrimingJob{
 	// ...
@@ -203,7 +204,7 @@ if err := client.StartPrimingJobThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.StopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -215,7 +216,7 @@ if err := client.StopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.PrimingJobIdParameter{
 	// ...
@@ -232,7 +233,7 @@ if err := client.StopPrimingJobThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 payload := caches.Cache{
 	// ...
@@ -249,7 +250,7 @@ if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheValue")
+id := caches.NewCacheID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cacheName")
 
 if err := client.UpgradeFirmwareThenPoll(ctx, id); err != nil {
 	// handle the error

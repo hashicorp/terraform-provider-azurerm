@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CustomDomainId{}
+func init() {
+	recaser.RegisterResourceId(&CustomDomainId{})
+}
+
+var _ resourceids.ResourceId = &CustomDomainId{}
 
 // CustomDomainId is a struct representing the Resource ID for a Custom Domain
 type CustomDomainId struct {
@@ -32,29 +37,15 @@ func NewCustomDomainID(subscriptionId string, resourceGroupName string, webPubSu
 
 // ParseCustomDomainID parses 'input' into a CustomDomainId
 func ParseCustomDomainID(input string) (*CustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomDomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomDomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
-	}
-
-	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseCustomDomainID(input string) (*CustomDomainId, error) {
 // ParseCustomDomainIDInsensitively parses 'input' case-insensitively into a CustomDomainId
 // note: this method should only be used for API response data and not user input
 func ParseCustomDomainIDInsensitively(input string) (*CustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&CustomDomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CustomDomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WebPubSubName, ok = parsed.Parsed["webPubSubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", *parsed)
-	}
-
-	if id.CustomDomainName, ok = parsed.Parsed["customDomainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CustomDomainId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WebPubSubName, ok = input.Parsed["webPubSubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "webPubSubName", input)
+	}
+
+	if id.CustomDomainName, ok = input.Parsed["customDomainName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "customDomainName", input)
+	}
+
+	return nil
 }
 
 // ValidateCustomDomainID checks that 'input' can be parsed as a Custom Domain ID
@@ -122,9 +121,9 @@ func (id CustomDomainId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSignalRService", "Microsoft.SignalRService", "Microsoft.SignalRService"),
 		resourceids.StaticSegment("staticWebPubSub", "webPubSub", "webPubSub"),
-		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubValue"),
+		resourceids.UserSpecifiedSegment("webPubSubName", "webPubSubName"),
 		resourceids.StaticSegment("staticCustomDomains", "customDomains", "customDomains"),
-		resourceids.UserSpecifiedSegment("customDomainName", "customDomainValue"),
+		resourceids.UserSpecifiedSegment("customDomainName", "customDomainName"),
 	}
 }
 

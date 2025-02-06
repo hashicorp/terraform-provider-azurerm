@@ -18,6 +18,7 @@ type CustomCertificatesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CustomCertificate
 }
 
 // CustomCertificatesCreateOrUpdate ...

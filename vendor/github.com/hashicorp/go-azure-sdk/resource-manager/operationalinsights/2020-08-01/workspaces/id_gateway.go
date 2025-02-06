@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GatewayId{}
+func init() {
+	recaser.RegisterResourceId(&GatewayId{})
+}
+
+var _ resourceids.ResourceId = &GatewayId{}
 
 // GatewayId is a struct representing the Resource ID for a Gateway
 type GatewayId struct {
@@ -32,29 +37,15 @@ func NewGatewayID(subscriptionId string, resourceGroupName string, workspaceName
 
 // ParseGatewayID parses 'input' into a GatewayId
 func ParseGatewayID(input string) (*GatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseGatewayID(input string) (*GatewayId, error) {
 // ParseGatewayIDInsensitively parses 'input' case-insensitively into a GatewayId
 // note: this method should only be used for API response data and not user input
 func ParseGatewayIDInsensitively(input string) (*GatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := GatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *GatewayId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.GatewayId, ok = input.Parsed["gatewayId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", input)
+	}
+
+	return nil
 }
 
 // ValidateGatewayID checks that 'input' can be parsed as a Gateway ID
@@ -122,9 +121,9 @@ func (id GatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticGateways", "gateways", "gateways"),
-		resourceids.UserSpecifiedSegment("gatewayId", "gatewayIdValue"),
+		resourceids.UserSpecifiedSegment("gatewayId", "gatewayId"),
 	}
 }
 

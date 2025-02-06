@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DedicatedHSMId{}
+func init() {
+	recaser.RegisterResourceId(&DedicatedHSMId{})
+}
+
+var _ resourceids.ResourceId = &DedicatedHSMId{}
 
 // DedicatedHSMId is a struct representing the Resource ID for a Dedicated H S M
 type DedicatedHSMId struct {
@@ -30,25 +35,15 @@ func NewDedicatedHSMID(subscriptionId string, resourceGroupName string, dedicate
 
 // ParseDedicatedHSMID parses 'input' into a DedicatedHSMId
 func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHSMId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDedicatedHSMID(input string) (*DedicatedHSMId, error) {
 // ParseDedicatedHSMIDInsensitively parses 'input' case-insensitively into a DedicatedHSMId
 // note: this method should only be used for API response data and not user input
 func ParseDedicatedHSMIDInsensitively(input string) (*DedicatedHSMId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DedicatedHSMId{})
+	parser := resourceids.NewParserFromResourceIdType(&DedicatedHSMId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DedicatedHSMId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DedicatedHSMName, ok = parsed.Parsed["dedicatedHSMName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DedicatedHSMId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DedicatedHSMName, ok = input.Parsed["dedicatedHSMName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dedicatedHSMName", input)
+	}
+
+	return nil
 }
 
 // ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated H S M ID
@@ -112,7 +115,7 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHardwareSecurityModules", "Microsoft.HardwareSecurityModules", "Microsoft.HardwareSecurityModules"),
 		resourceids.StaticSegment("staticDedicatedHSMs", "dedicatedHSMs", "dedicatedHSMs"),
-		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMValue"),
+		resourceids.UserSpecifiedSegment("dedicatedHSMName", "dedicatedHSMName"),
 	}
 }
 

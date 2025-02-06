@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Provider
+	LatestHttpResponse *http.Response
+	Items              []Provider
 }
 
 type ListOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +52,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c ProvidersClient) List(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +72,9 @@ func (c ProvidersClient) List(ctx context.Context, id commonids.SubscriptionId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/providers", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +115,7 @@ func (c ProvidersClient) ListCompleteMatchingPredicate(ctx context.Context, id c
 
 	resp, err := c.List(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -112,7 +128,8 @@ func (c ProvidersClient) ListCompleteMatchingPredicate(ctx context.Context, id c
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

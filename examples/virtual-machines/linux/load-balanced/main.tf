@@ -92,7 +92,6 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.main.name
   loadbalancer_id     = azurerm_lb.example.id
   name                = "BackEndAddressPool"
 }
@@ -130,8 +129,8 @@ resource "azurerm_linux_virtual_machine" "main" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

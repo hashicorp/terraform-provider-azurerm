@@ -9,13 +9,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -111,16 +111,6 @@ func resourceArmResourcePolicyRemediation() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.PolicyDefinitionID,
-			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
-		}
-	}
 	return resource
 }
 
@@ -134,14 +124,14 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 	id := remediations.NewScopedRemediationID(resourceId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.RemediationsGetAtResource(ctx, id)
+		existing, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", *existing.Model.Id)
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_resource_policy_remediation", id.ID())
 		}
 	}
 
@@ -149,7 +139,7 @@ func resourceArmResourcePolicyRemediationCreateUpdate(d *pluginsdk.ResourceData,
 		Properties: readRemediationProperties(d),
 	}
 
-	if _, err := client.RemediationsCreateOrUpdateAtResource(ctx, id, parameters); err != nil {
+	if _, err := client.CreateOrUpdateAtResource(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -167,7 +157,7 @@ func resourceArmResourcePolicyRemediationRead(d *pluginsdk.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("parsing Policy Scoped Remediation ID: %+v", err)
 	}
-	resp, err := client.RemediationsGetAtResource(ctx, *id)
+	resp, err := client.GetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -195,7 +185,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.RemediationsGetAtResource(ctx, *id)
+	existing, err := client.GetAtResource(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -208,7 +198,7 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		id.ID(),
 		d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
-			_, err := client.RemediationsCancelAtResource(ctx, *id)
+			_, err := client.CancelAtResource(ctx, *id)
 			return err
 		},
 		resourcePolicyRemediationCancellationRefreshFunc(ctx, client, *id),
@@ -216,14 +206,14 @@ func resourceArmResourcePolicyRemediationDelete(d *pluginsdk.ResourceData, meta 
 		return err
 	}
 
-	_, err = client.RemediationsDeleteAtResource(ctx, *id)
+	_, err = client.DeleteAtResource(ctx, *id)
 
 	return err
 }
 
 func resourcePolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.ScopedRemediationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.RemediationsGetAtResource(ctx, id)
+		resp, err := client.GetAtResource(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
 		}
@@ -244,7 +234,8 @@ func waitForRemediationToDelete(ctx context.Context,
 	id string,
 	timeout time.Duration,
 	cancelFunc func() error,
-	refresh pluginsdk.StateRefreshFunc) error {
+	refresh pluginsdk.StateRefreshFunc,
+) error {
 	if prop == nil {
 		return nil
 	}
@@ -315,7 +306,7 @@ func setRemediationProperties(d *pluginsdk.ResourceData, prop *remediations.Reme
 
 	d.Set("policy_assignment_id", prop.PolicyAssignmentId)
 	d.Set("policy_definition_reference_id", prop.PolicyDefinitionReferenceId)
-	d.Set("resource_discovery_mode", utils.NormalizeNilableString((*string)(prop.ResourceDiscoveryMode)))
+	d.Set("resource_discovery_mode", pointer.From((*string)(prop.ResourceDiscoveryMode)))
 
 	d.Set("resource_count", prop.ResourceCount)
 	d.Set("parallel_deployments", prop.ParallelDeployments)

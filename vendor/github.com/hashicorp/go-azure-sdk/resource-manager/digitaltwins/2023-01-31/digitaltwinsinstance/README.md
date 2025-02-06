@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance` Documentation
 
-The `digitaltwinsinstance` SDK allows for interaction with the Azure Resource Manager Service `digitaltwins` (API Version `2023-01-31`).
+The `digitaltwinsinstance` SDK allows for interaction with Azure Resource Manager `digitaltwins` (API Version `2023-01-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/digitaltwins/2023-01-31/digitaltwinsinstance"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 payload := digitaltwinsinstance.DigitalTwinsDescription{
 	// ...
@@ -41,7 +42,7 @@ if err := client.DigitalTwinsCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 if err := client.DigitalTwinsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DigitalTwinsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 read, err := client.DigitalTwinsGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.DigitalTwinsList(ctx, id)` can be used to do batched pagination
 items, err := client.DigitalTwinsListComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.DigitalTwinsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.DigitalTwinsListByResourceGroupComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceValue")
+id := digitaltwinsinstance.NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "digitalTwinsInstanceName")
 
 payload := digitaltwinsinstance.DigitalTwinsPatchDescription{
 	// ...

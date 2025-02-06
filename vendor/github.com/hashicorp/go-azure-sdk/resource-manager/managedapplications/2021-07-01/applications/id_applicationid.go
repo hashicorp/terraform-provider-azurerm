@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationIdId{}
+func init() {
+	recaser.RegisterResourceId(&ApplicationIdId{})
+}
+
+var _ resourceids.ResourceId = &ApplicationIdId{}
 
 // ApplicationIdId is a struct representing the Resource ID for a Application Id
 type ApplicationIdId struct {
@@ -26,17 +31,15 @@ func NewApplicationIdID(applicationId string) ApplicationIdId {
 
 // ParseApplicationIdID parses 'input' into a ApplicationIdId
 func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationIdId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationIdId{}
-
-	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
 // ParseApplicationIdIDInsensitively parses 'input' case-insensitively into a ApplicationIdId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationIdIDInsensitively(input string) (*ApplicationIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationIdId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ApplicationIdId{}
-
-	if id.ApplicationId, ok = parsed.Parsed["applicationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applicationId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ApplicationIdId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ApplicationId, ok = input.Parsed["applicationId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applicationId", input)
+	}
+
+	return nil
 }
 
 // ValidateApplicationIdID checks that 'input' can be parsed as a Application Id ID
@@ -85,7 +96,7 @@ func (id ApplicationIdId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Application Id ID
 func (id ApplicationIdId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.UserSpecifiedSegment("applicationId", "applicationIdValue"),
+		resourceids.UserSpecifiedSegment("applicationId", "applicationId"),
 	}
 }
 

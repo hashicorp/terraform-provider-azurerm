@@ -169,6 +169,37 @@ func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureStaticSite_appSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
+	r := StaticSiteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StaticSiteID(state.ID)
 	if err != nil {
@@ -187,6 +218,8 @@ func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client,
 }
 
 func (r StaticSiteResource) basic(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,10 +239,12 @@ resource "azurerm_static_site" "test" {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withSystemAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -231,10 +266,12 @@ resource "azurerm_static_site" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -264,10 +301,12 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) withUserAssignedIdentity(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -297,10 +336,12 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -323,7 +364,7 @@ resource "azurerm_static_site" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {
@@ -337,4 +378,55 @@ resource "azurerm_static_site" "import" {
   resource_group_name = azurerm_static_site.test.resource_group_name
 }
 `, template)
+}
+
+func (r StaticSiteResource) appSettings(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  app_settings = {
+    "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticSiteResource) appSettingsUpdate(data acceptance.TestData) string {
+	// Limited regional availability for Static Sties
+	data.Locations.Primary = "westeurope"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  app_settings = {
+    "foo" = "bar"
+    "baz" = "foo"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

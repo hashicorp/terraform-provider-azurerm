@@ -199,6 +199,7 @@ resource "azurerm_synapse_sql_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   sku_name             = "DW100c"
   create_mode          = "Default"
+  storage_account_type = "GRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomString)
 }

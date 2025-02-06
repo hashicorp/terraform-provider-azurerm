@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MongodbUserDefinitionId{}
+func init() {
+	recaser.RegisterResourceId(&MongodbUserDefinitionId{})
+}
+
+var _ resourceids.ResourceId = &MongodbUserDefinitionId{}
 
 // MongodbUserDefinitionId is a struct representing the Resource ID for a Mongodb User Definition
 type MongodbUserDefinitionId struct {
@@ -32,29 +37,15 @@ func NewMongodbUserDefinitionID(subscriptionId string, resourceGroupName string,
 
 // ParseMongodbUserDefinitionID parses 'input' into a MongodbUserDefinitionId
 func ParseMongodbUserDefinitionID(input string) (*MongodbUserDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbUserDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbUserDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MongodbUserDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.MongoUserDefinitionId, ok = parsed.Parsed["mongoUserDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mongoUserDefinitionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseMongodbUserDefinitionID(input string) (*MongodbUserDefinitionId, error
 // ParseMongodbUserDefinitionIDInsensitively parses 'input' case-insensitively into a MongodbUserDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseMongodbUserDefinitionIDInsensitively(input string) (*MongodbUserDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbUserDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbUserDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MongodbUserDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.MongoUserDefinitionId, ok = parsed.Parsed["mongoUserDefinitionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mongoUserDefinitionId", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MongodbUserDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DatabaseAccountName, ok = input.Parsed["databaseAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", input)
+	}
+
+	if id.MongoUserDefinitionId, ok = input.Parsed["mongoUserDefinitionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mongoUserDefinitionId", input)
+	}
+
+	return nil
 }
 
 // ValidateMongodbUserDefinitionID checks that 'input' can be parsed as a Mongodb User Definition ID
@@ -122,9 +121,9 @@ func (id MongodbUserDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticMongodbUserDefinitions", "mongodbUserDefinitions", "mongodbUserDefinitions"),
-		resourceids.UserSpecifiedSegment("mongoUserDefinitionId", "mongoUserDefinitionIdValue"),
+		resourceids.UserSpecifiedSegment("mongoUserDefinitionId", "mongoUserDefinitionId"),
 	}
 }
 

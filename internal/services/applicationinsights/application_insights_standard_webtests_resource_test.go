@@ -6,10 +6,12 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,41 +21,98 @@ type ApplicationInsightsStandardWebTestResource struct{}
 
 func TestAccApplicationInsightsStandardWebTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
-	testResource := ApplicationInsightsStandardWebTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.ImportStep(),
+	r := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		}, data.ImportStep(),
 	})
 }
 
 func TestAccApplicationInsightsStandardWebTest_sslCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
-	testResource := ApplicationInsightsStandardWebTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.sslCheckConfig, testResource),
+
+	r := ApplicationInsightsStandardWebTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sslCheckConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
 
 func TestAccApplicationInsightsStandardWebTest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
-	testResource := ApplicationInsightsStandardWebTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.RequiresImportErrorStep(testResource.requiresImportConfig),
+	r := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImportConfig),
 	})
 }
 
 func TestAccApplicationInsightsStandardWebTest_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
-	testResource := ApplicationInsightsStandardWebTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.completeConfig, testResource),
+	r := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
-		data.ApplyStep(testResource.basicConfig, testResource),
+	})
+}
+
+func TestAccApplicationInsightsStandardWebTest_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
+	r := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
-		data.ApplyStep(testResource.completeConfig, testResource),
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
+		{
+			Config: r.completeConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationInsightsStandardWebTest_customiseDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_standard_web_test", "test")
+	r := ApplicationInsightsStandardWebTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.customiseDiffShouldFail(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("cannot set ssl_check_enabled"),
+		},
 	})
 }
 
@@ -150,9 +209,62 @@ resource "azurerm_application_insights_standard_web_test" "test" {
       value = "testheader2"
     }
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
 
-  lifecycle {
-    ignore_changes = ["tags"]
+func (ApplicationInsightsStandardWebTestResource) customiseDiffShouldFail(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appinsights-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_standard_web_test" "test" {
+  name                    = "acctestappinsightswebtests-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  geo_locations           = ["us-tx-sn1-azr"]
+
+  request {
+    follow_redirects_enabled         = false
+    http_verb                        = "GET"
+    parse_dependent_requests_enabled = false
+    url                              = "http://microsoft.com"
+
+    header {
+      name  = "x-header"
+      value = "testheader"
+    }
+    header {
+      name  = "x-header-2"
+      value = "testheader2"
+    }
+  }
+
+  validation_rules {
+    expected_status_code = 200
+
+    ssl_cert_remaining_lifetime = 20
+    ssl_check_enabled           = true
+
+    content {
+      content_match      = "Unknown"
+      ignore_case        = true
+      pass_if_text_found = true
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

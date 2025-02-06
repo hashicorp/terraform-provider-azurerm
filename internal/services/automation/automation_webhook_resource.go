@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
@@ -72,17 +71,18 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
+			"runbook_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validate.RunbookName(),
+			},
+
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"runbook_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validate.RunbookName(),
-			},
 			"run_on_worker_group": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -95,10 +95,10 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 				},
 			},
 			"uri": {
-				Type:         pluginsdk.TypeString,
-				ConfigMode:   schema.SchemaConfigModeAttr,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// NOTE: O+C this is generated if omitted and cannot be updated so this should remain
 				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -206,7 +206,6 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("expiry_time", props.ExpiryTime)
 			d.Set("enabled", props.IsEnabled)
 

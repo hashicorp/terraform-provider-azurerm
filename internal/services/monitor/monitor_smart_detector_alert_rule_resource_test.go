@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorSmartDetectorAlertRuleResource struct{}
@@ -92,17 +92,17 @@ func TestAccMonitorSmartDetectorAlertRule_update(t *testing.T) {
 }
 
 func (t MonitorSmartDetectorAlertRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SmartDetectorAlertRuleID(state.ID)
+	id, err := smartdetectoralertrules.ParseSmartDetectorAlertRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Monitor.SmartDetectorAlertRulesClient.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+	resp, err := clients.Monitor.SmartDetectorAlertRulesClient.Get(ctx, *id, smartdetectoralertrules.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MonitorSmartDetectorAlertRuleResource) basic(data acceptance.TestData) string {

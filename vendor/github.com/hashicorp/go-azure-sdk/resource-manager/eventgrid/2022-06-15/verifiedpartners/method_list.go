@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []VerifiedPartner
+	LatestHttpResponse *http.Response
+	Items              []VerifiedPartner
 }
 
 type ListOperationOptions struct {
@@ -39,6 +40,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c VerifiedPartnersClient) List(ctx context.Context, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c VerifiedPartnersClient) List(ctx context.Context, options ListOperationO
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          "/providers/Microsoft.EventGrid/verifiedPartners",
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          "/providers/Microsoft.EventGrid/verifiedPartners",
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c VerifiedPartnersClient) ListCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.List(ctx, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c VerifiedPartnersClient) ListCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

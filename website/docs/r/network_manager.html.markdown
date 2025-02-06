@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `scope` - (Required) A `scope` block as defined below.
 
-* `scope_accesses` - (Required) A list of configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`, corresponds to if Connectivity Configuration and Security Admin Configuration is allowed for the Network Manager.
+* `scope_accesses` - (Required) A list of configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, corresponds to if Connectivity Configuration, Security Admin Configuration or Routing Configuration is allowed for the Network Manager.
 
 * `description` - (Optional) A description of the network manager.
 
@@ -61,6 +61,8 @@ A `scope` block supports the following:
 
 * `management_group_ids` - (Optional) A list of management group IDs.
 
+~> **NOTE:** When specifying a scope at the management group level, you need to register the `Microsoft.Network` at the management group scope before deploying a Network Manager, more information can be found in the [Azure document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-network-manager-scope#scope).
+
 * `subscription_ids` - (Optional) A list of subscription IDs.
 
 ## Attributes Reference
@@ -69,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Network Managers.
 
-* `cross_tenant_scopes` - A `cross_tenant_scopes` block as defined below.
+* `cross_tenant_scopes` - One or more `cross_tenant_scopes` blocks as defined below.
 
 ---
 

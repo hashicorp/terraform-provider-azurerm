@@ -57,7 +57,6 @@ func resourceLogicAppTriggerRecurrence() *pluginsdk.Resource {
 					"Day",
 					"Hour",
 					"Minute",
-					"Hour",
 					"Second",
 				}, false),
 			},
@@ -169,9 +168,7 @@ func resourceLogicAppTriggerRecurrenceRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
-
-	t, app, err := retrieveLogicAppTrigger(d, meta, workflowId, id.TriggerName)
+	t, app, _, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}

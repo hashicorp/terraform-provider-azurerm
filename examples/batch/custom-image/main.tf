@@ -72,8 +72,8 @@ resource "azurerm_virtual_machine" "example" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -107,11 +107,12 @@ resource "azurerm_image" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.example.storage_os_disk.0.vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -131,7 +132,7 @@ resource "azurerm_batch_pool" "example" {
   account_name        = azurerm_batch_account.example.name
   display_name        = "Custom Img Pool"
   vm_size             = "Standard_A1"
-  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
 
   fixed_scale {
     target_dedicated_nodes = 2

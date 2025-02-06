@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -118,7 +118,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 	subResourceName := d.Get("subresource_name").(string)
 	fqdns := d.Get("fqdns").([]interface{})
 
-	if _, err := networkParse.PrivateLinkServiceID(targetResourceId); err == nil {
+	if _, err := privatelinkservices.ParsePrivateLinkServiceID(targetResourceId); err == nil {
 		if len(subResourceName) > 0 {
 			return fmt.Errorf("`subresource_name` should not be specified when target resource is `Private Link Service`")
 		}
@@ -234,7 +234,6 @@ func getManagedPrivateEndpoint(ctx context.Context, client *managedprivateendpoi
 		if item.Name != nil && *item.Name == privateEndpointName {
 			return &item, nil
 		}
-
 	}
 	return nil, nil
 }

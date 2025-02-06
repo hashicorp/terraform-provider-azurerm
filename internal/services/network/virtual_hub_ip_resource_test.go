@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualHubIPResource struct{}
@@ -89,17 +89,17 @@ func TestAccVirtualHubIP_update(t *testing.T) {
 }
 
 func (t VirtualHubIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualHubIpConfigurationID(state.ID)
+	id, err := commonids.ParseVirtualHubIPConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualHubIPClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
+	resp, err := clients.Network.VirtualWANs.VirtualHubIPConfigurationGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Hub IP (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VirtualHubIPResource) basic(data acceptance.TestData) string {

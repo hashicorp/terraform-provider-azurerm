@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -28,7 +28,7 @@ import (
 )
 
 func resourceBatchAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
 		Read:   resourceBatchAccountRead,
 		Update: resourceBatchAccountUpdate,
@@ -85,6 +85,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"allowed_authentication_modes": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
+				// NOTE: O+C This can remain since we need to send an empty slice to properly remove this, which means this can't be set back to
+				// its default which is to return all three values
 				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -145,7 +147,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
@@ -182,6 +184,8 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	return resource
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -222,7 +226,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Location: location,
 		Properties: &batchaccount.BatchAccountCreateProperties{
 			PoolAllocationMode:         &poolAllocationMode,
-			PublicNetworkAccess:        utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled),
+			PublicNetworkAccess:        pointer.To(batchaccount.PublicNetworkAccessTypeEnabled),
 			Encryption:                 encryption,
 			AllowedAuthenticationModes: expandAllowedAuthenticationModes(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()),
 		},
@@ -231,7 +235,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
-		parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
+		parameters.Properties.PublicNetworkAccess = pointer.To(batchaccount.PublicNetworkAccessTypeDisabled)
 	}
 
 	if v, ok := d.GetOk("network_profile"); ok {
@@ -272,8 +276,8 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   &storageAccountId,
-			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			StorageAccountId:   storageAccountId,
+			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}
 
@@ -331,7 +335,6 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 
 		if props := model.Properties; props != nil {
-
 			d.Set("account_endpoint", props.AccountEndpoint)
 			if autoStorage := props.AutoStorage; autoStorage != nil {
 				d.Set("storage_account_id", autoStorage.StorageAccountId)
@@ -422,9 +425,9 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("public_network_access_enabled") {
 		if d.Get("public_network_access_enabled").(bool) {
-			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeEnabled)
+			parameters.Properties.PublicNetworkAccess = pointer.To(batchaccount.PublicNetworkAccessTypeEnabled)
 		} else {
-			parameters.Properties.PublicNetworkAccess = utils.ToPtr(batchaccount.PublicNetworkAccessTypeDisabled)
+			parameters.Properties.PublicNetworkAccess = pointer.To(batchaccount.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
@@ -435,11 +438,11 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("storage_account_id") {
 		if v, ok := d.GetOk("storage_account_id"); ok {
 			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-				StorageAccountId: utils.String(v.(string)),
+				StorageAccountId: v.(string),
 			}
 		} else {
 			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-				StorageAccountId: nil,
+				StorageAccountId: "",
 			}
 		}
 	}
@@ -452,8 +455,8 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   &storageAccountId,
-			AuthenticationMode: utils.ToPtr(batchaccount.AutoStorageAuthenticationMode(authMode)),
+			StorageAccountId:   storageAccountId,
+			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}
 
@@ -492,7 +495,7 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
 	defaultEnc := batchaccount.EncryptionProperties{
-		KeySource: utils.ToPtr(batchaccount.KeySourceMicrosoftPointBatch),
+		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointBatch),
 	}
 
 	if len(e) == 0 || e[0] == nil {
@@ -502,7 +505,7 @@ func expandEncryption(e []interface{}) *batchaccount.EncryptionProperties {
 	v := e[0].(map[string]interface{})
 	keyId := v["key_vault_key_id"].(string)
 	encryptionProperty := batchaccount.EncryptionProperties{
-		KeySource: utils.ToPtr(batchaccount.KeySourceMicrosoftPointKeyVault),
+		KeySource: pointer.To(batchaccount.KeySourceMicrosoftPointKeyVault),
 		KeyVaultProperties: &batchaccount.KeyVaultProperties{
 			KeyIdentifier: &keyId,
 		},
@@ -609,7 +612,6 @@ func flattenBatchAccountEndpointAccessProfile(input *batchaccount.EndpointAccess
 			}
 			ipRules = append(ipRules, flattenedIpRule)
 		}
-
 	}
 
 	return []interface{}{

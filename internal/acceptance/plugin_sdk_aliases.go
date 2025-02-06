@@ -6,6 +6,7 @@ package acceptance
 import (
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +21,7 @@ type State = terraform.State
 
 type TestStep = resource.TestStep
 
-type StateChangeConf = resource.StateChangeConf
+type StateChangeConf = retry.StateChangeConf
 
 type TestCheckFunc = resource.TestCheckFunc
 

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,6 +67,34 @@ func TestAccAutomationAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -79,11 +107,31 @@ func TestAccAutomationAccount_encryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.encryption(data),
+			Config: r.encryption_none(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
-				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.encryption_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_encryptionWithUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryption_userIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -186,12 +234,12 @@ func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.AccountClient.Get(ctx, *id)
+	resp, err := clients.Automation.AutomationAccount.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AutomationAccountResource) basic(data acceptance.TestData) string {
@@ -206,10 +254,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
+  name                         = "acctest-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku_name                     = "Basic"
+  local_authentication_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -246,6 +295,7 @@ resource "azurerm_automation_account" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku_name                      = "Basic"
   public_network_access_enabled = false
+  local_authentication_enabled  = true
   tags = {
     "hello" = "world"
   }
@@ -277,7 +327,7 @@ resource "azurerm_automation_account" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (AutomationAccountResource) encryption(data acceptance.TestData) string {
+func (AutomationAccountResource) encryption_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -296,12 +346,6 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_key_vault" "test" {
   name                       = "vault%[1]d"
   location                   = azurerm_resource_group.test.location
@@ -310,45 +354,13 @@ resource "azurerm_key_vault" "test" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   purge_protection_enabled   = true
+  enable_rbac_authorization  = true
+}
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "ManageContacts",
-    ]
-
-    key_permissions = [
-      "Create",
-      "Get",
-      "List",
-      "Delete",
-      "Purge",
-      "GetRotationPolicy",
-    ]
-
-    secret_permissions = [
-      "Set",
-    ]
-  }
-
-  access_policy {
-    tenant_id = azurerm_user_assigned_identity.test.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-
-    certificate_permissions = []
-
-    key_permissions = [
-      "Get",
-      "Recover",
-      "WrapKey",
-      "UnwrapKey",
-      "GetRotationPolicy",
-    ]
-
-    secret_permissions = []
-  }
+resource "azurerm_role_assignment" "current" {
+  scope                = azurerm_key_vault.test.id
+  principal_id         = data.azurerm_client_config.current.object_id
+  role_definition_name = "Key Vault Crypto Officer"
 }
 
 data "azurerm_key_vault" "test" {
@@ -370,10 +382,92 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = [azurerm_role_assignment.current]
+
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (a AutomationAccountResource) encryption_none(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  local_authentication_enabled = false
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault_key.test.resource_versionless_id
+  principal_id         = azurerm_automation_account.test.identity[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+}
+`, a.encryption_template(data), data.RandomInteger)
+}
+
+func (a AutomationAccountResource) encryption_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault_key.test.resource_versionless_id
+  principal_id         = azurerm_automation_account.test.identity[0].principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault_key_id = azurerm_key_vault_key.test.id
+  }
+
+  local_authentication_enabled = false
+}
+`, a.encryption_template(data), data.RandomInteger)
+}
+
+func (a AutomationAccountResource) encryption_userIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_key_vault_key.test.resource_versionless_id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
@@ -385,14 +479,15 @@ resource "azurerm_automation_account" "test" {
     ]
   }
 
-  local_authentication_enabled = false
-
   encryption {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
     key_vault_key_id          = azurerm_key_vault_key.test.id
   }
+
+  local_authentication_enabled = false
+  depends_on                   = [azurerm_role_assignment.test2]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, a.encryption_template(data), data.RandomInteger)
 }
 
 func (AutomationAccountResource) userAssignedIdentity(data acceptance.TestData) string {

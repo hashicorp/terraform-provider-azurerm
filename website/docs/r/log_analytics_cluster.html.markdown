@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
-* `size_gb` - (Optional) The capacity of the Log Analytics Cluster is specified in GB/day. Possible values include `500`, `1000`, `2000` or `5000`. Defaults to `1000`.
+* `size_gb` - (Optional) The capacity of the Log Analytics Cluster is specified in GB/day. Possible values include `100`, `200`, `300`, `400`, `500`, `1000`, `2000`, `5000`, `10000`, `25000`, or `50000`. Defaults to `100`.
 
-~> **NOTE:** The cluster capacity must start at 500 GB and can be set to 1000, 2000 or 5000 GB/day. For more information on cluster costs, see [Dedicated clusters](https://docs.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#dedicated-clusters). In v3.x the default value is `1000` GB, in v4.0 of the provider this will default to `500` GB.
+~> **NOTE:** The cluster capacity must start at 100 GB and can be set to 500, 1000, 2000 or 5000 GB/day. For more information on cluster costs, see [Dedicated clusters](https://docs.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#dedicated-clusters).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Cluster.
 
@@ -57,9 +57,13 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Log Analytics Cluster. The only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Log Analytics Cluster. Possible values are `SystemAssigned` and  `UserAssigned`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Log Analytics Cluster has been created. More details are available below.
+
+* `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Windows Web App Slot.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ## Attributes Reference
 
@@ -79,9 +83,9 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-* `type` - (Required) The identity type of this Managed Service Identity.
+* `type` - The identity type of this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_log_analytics_cluster.example.identity.0.principal_id` and the Tenant ID via `azurerm_log_analytics_cluster.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_log_analytics_cluster.example.identity[0].principal_id` and the Tenant ID via `azurerm_log_analytics_cluster.example.identity[0].tenant_id`
 
 ## Timeouts
 

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones` Documentation
 
-The `zones` SDK allows for interaction with the Azure Resource Manager Service `dns` (API Version `2018-05-01`).
+The `zones` SDK allows for interaction with Azure Resource Manager `dns` (API Version `2018-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneName")
 
 payload := zones.Zone{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneName")
 
 if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -57,7 +58,7 @@ if err := client.DeleteThenPoll(ctx, id, zones.DefaultDeleteOperationOptions());
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -73,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := zones.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, zones.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, zones.DefaultListOperationOptions())
@@ -90,7 +91,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := zones.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, zones.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, zones.DefaultListByResourceGroupOperationOptions())
@@ -107,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneValue")
+id := zones.NewDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsZoneName")
 
 payload := zones.ZoneUpdate{
 	// ...

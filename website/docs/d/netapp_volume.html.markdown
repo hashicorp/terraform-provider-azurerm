@@ -59,9 +59,15 @@ The following attributes are exported:
 
 * `security_style` - Volume security style
 
-* `data_protection_replication` - Volume data protection block
+* `data_protection_replication` - Volume data protection replication block
+
+* `data_protection_backup_policy` - A data protecion backup policy block
   
 * `volume_path` - The unique file path of the volume.
+
+* `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.
+
+* `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
 
 ---
 
@@ -74,6 +80,16 @@ A `data_protection_replication` block exports the following:
 * `remote_volume_resource_id` - Resource ID of the primary volume.
 
 * `replication_frequency` - Frequency of replication.
+
+---
+
+A `data_protection_backup_policy` block supports the following:
+
+* `backup_vault_id` - The Resource ID of the backup backup vault.
+
+* `backup_policy_id` - The Resource ID of the backup policy.
+
+* `policy_enabled` - Backup policy is enabled or not.
 
 ---
 

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = KeyVaultId{}
+var _ resourceids.ResourceId = &KeyVaultId{}
 
 // KeyVaultId is a struct representing the Resource ID for a Key Vault
 type KeyVaultId struct {
@@ -30,25 +30,15 @@ func NewKeyVaultID(subscriptionId string, resourceGroupName string, vaultName st
 
 // ParseKeyVaultID parses 'input' into a KeyVaultId
 func ParseKeyVaultID(input string) (*KeyVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyVaultId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseKeyVaultID(input string) (*KeyVaultId, error) {
 // ParseKeyVaultIDInsensitively parses 'input' case-insensitively into a KeyVaultId
 // note: this method should only be used for API response data and not user input
 func ParseKeyVaultIDInsensitively(input string) (*KeyVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyVaultId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyVaultId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *KeyVaultId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	return nil
 }
 
 // ValidateKeyVaultID checks that 'input' can be parsed as a Key Vault ID

@@ -4,9 +4,11 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -16,19 +18,28 @@ type Client struct {
 	PublicConfigurationsClient     *publicmaintenanceconfigurations.PublicMaintenanceConfigurationsClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	configurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	configurationsClient, err := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Configurations client : %+v", err)
+	}
+	o.Configure(configurationsClient.Client, o.Authorizers.ResourceManager)
 
-	configurationAssignmentsClient := configurationassignments.NewConfigurationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&configurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+	configurationAssignmentsClient, err := configurationassignments.NewConfigurationAssignmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Configuration Assignments client : %+v", err)
+	}
+	o.Configure(configurationAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	publicConfigurationsClient := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&publicConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	publicConfigurationsClient, err := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Public Configuration Assignments client : %+v", err)
+	}
+	o.Configure(publicConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ConfigurationsClient:           &configurationsClient,
-		ConfigurationAssignmentsClient: &configurationAssignmentsClient,
-		PublicConfigurationsClient:     &publicConfigurationsClient,
-	}
+		ConfigurationsClient:           configurationsClient,
+		ConfigurationAssignmentsClient: configurationAssignmentsClient,
+		PublicConfigurationsClient:     publicConfigurationsClient,
+	}, nil
 }

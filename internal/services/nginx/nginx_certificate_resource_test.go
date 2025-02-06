@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -88,8 +88,8 @@ func (a CertificateResource) basic(data acceptance.TestData) string {
 resource "azurerm_nginx_certificate" "test" {
   name                     = "acctest%[2]d"
   nginx_deployment_id      = azurerm_nginx_deployment.test.id
-  key_virtual_path         = "/src/cert/soservermekey.key"
-  certificate_virtual_path = "/src/cert/server.cert"
+  key_virtual_path         = "/opt/cert/soservermekey.key"
+  certificate_virtual_path = "/opt/cert/server.cert"
   key_vault_secret_id      = azurerm_key_vault_certificate.test.secret_id
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -149,8 +149,8 @@ resource "azurerm_key_vault_certificate" "test2" {
 resource "azurerm_nginx_certificate" "test" {
   name                     = "acctest%[2]d"
   nginx_deployment_id      = azurerm_nginx_deployment.test.id
-  key_virtual_path         = "/src/cert/soservermekey2.key"
-  certificate_virtual_path = "/src/cert/server2.cert"
+  key_virtual_path         = "/opt/cert/soservermekey.key"
+  certificate_virtual_path = "/opt/cert/server.cert"
   key_vault_secret_id      = azurerm_key_vault_certificate.test2.secret_id
 }
 `, a.template(data), data.RandomInteger)
@@ -215,12 +215,25 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+
 resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
+  sku                      = "standardv2_Monthly"
+  capacity                 = 10
   location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
+  diagnose_support_enabled = false
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -241,6 +254,25 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "List",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
@@ -252,6 +284,7 @@ resource "azurerm_key_vault" "test" {
       "Create",
       "Delete",
       "List",
+      "ManageContacts",
       "Purge",
       "Recover",
     ]

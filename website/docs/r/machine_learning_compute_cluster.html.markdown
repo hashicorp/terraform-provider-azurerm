@@ -112,20 +112,20 @@ The following arguments are supported:
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-  
+
 ---
 
 * `ssh` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `node_public_ip_enabled` - (Optional) Whether the compute cluster will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Defaults to `false`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ---
 
-* `name` - (Optional) The name of the Tag Rules configuration. The allowed value is `default`. It defaults to `default`.
+* `name` - (Optional) The name of the Tag Rules configuration. The allowed value is `default`. Defaults to `default`.
 
 * `log` - (Optional) A `log` block as defined below.
 
@@ -79,6 +79,7 @@ An `log` block supports the following:
 * `filter` - (Optional) A `filter` block as defined below.
 
 > **NOTE:** List of filtering tags to be used for capturing logs. This only takes effect if `resource_log_enabled` flag is enabled. If empty, all resources will be captured. If only Exclude action is specified, the rules will apply to the list of all available resources. If Include actions are specified, the rules will only include resources with the associated tags.
+
 ---
 
 A `metric` block supports the following:
@@ -86,6 +87,7 @@ A `metric` block supports the following:
 * `filter` - (Optional) A `filter` block as defined below.
 
 > **NOTE:** List of filtering tags to be used for capturing metrics. If empty, all resources will be captured. If only Exclude action is specified, the rules will apply to the list of all available resources. If Include actions are specified, the rules will only include resources with the associated tags.
+
 ---
 
 A `filter` block supports the following:

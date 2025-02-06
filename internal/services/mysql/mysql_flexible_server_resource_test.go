@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -361,14 +361,21 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateStorage(data, 20, 360, true),
+			Config: r.updateStorage(data, 20, 360, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.updateStorage(data, 34, 402, false),
+			Config: r.updateStorage(data, 34, 402, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.updateStorageNoIOPS(data, 34, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -528,7 +535,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mysql-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
 
 func (r MySqlFlexibleServerResource) basic(data acceptance.TestData) string {
@@ -604,6 +611,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
@@ -687,6 +696,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_mysql_flexible_server" "test" {
@@ -701,9 +712,10 @@ resource "azurerm_mysql_flexible_server" "test" {
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb           = 32
-    iops              = 400
-    auto_grow_enabled = false
+    size_gb            = 32
+    iops               = 400
+    auto_grow_enabled  = false
+    io_scaling_enabled = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
@@ -970,7 +982,7 @@ resource "azurerm_mysql_flexible_server" "geo_restore" {
 `, r.geoRestoreSource(data), data.RandomInteger, os.Getenv("ARM_GEO_RESTORE_LOCATION"))
 }
 
-func (r MySqlFlexibleServerResource) updateStorage(data acceptance.TestData, sizeGB int, iops int, enabled bool) string {
+func (r MySqlFlexibleServerResource) updateStorage(data acceptance.TestData, sizeGB int, iops int, autoGrowEnabled bool, ioScalingEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -986,12 +998,37 @@ resource "azurerm_mysql_flexible_server" "test" {
   zone                         = "1"
 
   storage {
-    size_gb           = %d
-    iops              = %d
-    auto_grow_enabled = %t
+    size_gb            = %d
+    iops               = %d
+    auto_grow_enabled  = %t
+    io_scaling_enabled = %t
   }
 }
-`, r.template(data), data.RandomInteger, sizeGB, iops, enabled)
+`, r.template(data), data.RandomInteger, sizeGB, iops, autoGrowEnabled, ioScalingEnabled)
+}
+
+func (r MySqlFlexibleServerResource) updateStorageNoIOPS(data acceptance.TestData, sizeGB int, autoGrowEnabled bool, ioScalingEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  sku_name                     = "GP_Standard_D4ds_v4"
+  geo_redundant_backup_enabled = true
+  version                      = "8.0.21"
+  zone                         = "1"
+
+  storage {
+    size_gb            = %d
+    auto_grow_enabled  = %t
+    io_scaling_enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, sizeGB, autoGrowEnabled, ioScalingEnabled)
 }
 
 func (r MySqlFlexibleServerResource) failover(data acceptance.TestData, primaryZone string, standbyZone string) string {
@@ -1077,7 +1114,7 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.server,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
 func (r MySqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
@@ -1197,7 +1234,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }
-`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r MySqlFlexibleServerResource) identity(data acceptance.TestData) string {

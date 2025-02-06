@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
@@ -63,6 +64,12 @@ func resourceBotChannelDirectLineSpeech() *pluginsdk.Resource {
 			},
 
 			"cognitive_service_location": commonschema.LocationWithoutForceNew(),
+
+			"cognitive_account_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
+			},
 
 			"custom_speech_model_id": {
 				Type:         schema.TypeString,
@@ -112,6 +119,11 @@ func resourceBotChannelDirectLineSpeechCreate(d *pluginsdk.ResourceData, meta in
 		Kind:     botservice.KindBot,
 	}
 
+	if v, ok := d.GetOk("cognitive_account_id"); ok {
+		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
+		channel.Properties.CognitiveServiceResourceID = utils.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {
 		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
 		channel.Properties.CustomSpeechModelID = utils.String(v.(string))
@@ -158,6 +170,7 @@ func resourceBotChannelDirectLineSpeechRead(d *pluginsdk.ResourceData, meta inte
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineSpeechChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
+				d.Set("cognitive_account_id", channelProps.CognitiveServiceResourceID)
 				d.Set("custom_speech_model_id", channelProps.CustomSpeechModelID)
 				d.Set("custom_voice_deployment_id", channelProps.CustomVoiceDeploymentID)
 			}
@@ -189,6 +202,11 @@ func resourceBotChannelDirectLineSpeechUpdate(d *pluginsdk.ResourceData, meta in
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
+	}
+
+	if d.HasChange("cognitive_account_id") {
+		channel, _ := channel.Properties.AsDirectLineSpeechChannel()
+		channel.Properties.CognitiveServiceResourceID = utils.String(d.Get("cognitive_account_id").(string))
 	}
 
 	if v, ok := d.GetOk("custom_speech_model_id"); ok {

@@ -19,7 +19,8 @@ type DomainEventSubscriptionsListOperationResponse struct {
 }
 
 type DomainEventSubscriptionsListCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type DomainEventSubscriptionsListOperationOptions struct {
@@ -39,6 +40,7 @@ func (o DomainEventSubscriptionsListOperationOptions) ToHeaders() *client.Header
 
 func (o DomainEventSubscriptionsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,6 +55,18 @@ func (o DomainEventSubscriptionsListOperationOptions) ToQuery() *client.QueryPar
 	return &out
 }
 
+type DomainEventSubscriptionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DomainEventSubscriptionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DomainEventSubscriptionsList ...
 func (c EventSubscriptionsClient) DomainEventSubscriptionsList(ctx context.Context, id DomainId, options DomainEventSubscriptionsListOperationOptions) (result DomainEventSubscriptionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -61,8 +75,9 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsList(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &DomainEventSubscriptionsListCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -103,6 +118,7 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsListCompleteMatchingPr
 
 	resp, err := c.DomainEventSubscriptionsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -115,7 +131,8 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsListCompleteMatchingPr
 	}
 
 	result = DomainEventSubscriptionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

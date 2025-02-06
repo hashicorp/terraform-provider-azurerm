@@ -72,6 +72,10 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
+* `sku_tier` - (Optional) Specifies the SKU Tier for this Spring Cloud Service. Possible values are `Basic`, `Enterprise`, `Standard` and `StandardGen2`. The attribute is automatically computed from API response except when `managed_environment_id` is defined. Changing this forces a new resource to be created.
+
+* `managed_environment_id` - (Optional) The resource Id of the Managed Environment that the Spring Apps instance builds on. Can only be specified when `sku_tier` is set to `StandardGen2`.
+
 * `marketplace` - (Optional) A `marketplace` block as defined below. Can only be specified when `sku` is set to `E0`.
 
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.

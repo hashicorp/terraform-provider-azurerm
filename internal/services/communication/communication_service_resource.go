@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
@@ -20,10 +20,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = CommunicationServiceResource{}
-var _ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+var (
+	_ sdk.ResourceWithUpdate         = CommunicationServiceResource{}
+	_ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+)
 
 type CommunicationServiceResource struct{}
+
+type CommunicationServiceResourceModel struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	DataLocation      string            `tfschema:"data_location"`
+	Tags              map[string]string `tfschema:"tags"`
+
+	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
+	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
+	PrimaryKey                string `tfschema:"primary_key"`
+	SecondaryKey              string `tfschema:"secondary_key"`
+	HostName                  string `tfschema:"hostname"`
+}
 
 func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
@@ -68,6 +83,7 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				"UAE",
 				"UK",
 				"United States",
+				"usgov",
 			}, false),
 		},
 
@@ -78,21 +94,30 @@ func (CommunicationServiceResource) Arguments() map[string]*pluginsdk.Schema {
 func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"primary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"primary_key": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"secondary_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"hostname": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -100,7 +125,7 @@ func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (CommunicationServiceResource) ModelObject() interface{} {
-	return nil
+	return &CommunicationServiceResourceModel{}
 }
 
 func (CommunicationServiceResource) ResourceType() string {
@@ -114,7 +139,13 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Communication.ServiceClient
 
-			id := communicationservices.NewCommunicationServiceID(subscriptionId, metadata.ResourceData.Get("resource_group_name").(string), metadata.ResourceData.Get("name").(string))
+			var model CommunicationServiceResourceModel
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			id := communicationservices.NewCommunicationServiceID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -128,10 +159,11 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 				// The location is always `global` from the Azure Portal
 				Location: location.Normalize("global"),
 				Properties: &communicationservices.CommunicationServiceProperties{
-					DataLocation: metadata.ResourceData.Get("data_location").(string),
+					DataLocation: model.DataLocation,
 				},
-				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Tags: pointer.To(model.Tags),
 			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -148,25 +180,40 @@ func (r CommunicationServiceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.ServiceClient
 
+			var model CommunicationServiceResourceModel
+
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
 			id, err := communicationservices.ParseCommunicationServiceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			param := communicationservices.CommunicationServiceResource{
-				// The location is always `global` from the Azure Portal
-				Location: location.Normalize("global"),
-				Properties: &communicationservices.CommunicationServiceProperties{
-					DataLocation: metadata.ResourceData.Get("data_location").(string),
-				},
-				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			existing, err := client.Get(ctx, *id)
+			if err != nil || existing.Model == nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
+			commService := *existing.Model
+
+			props := pointer.From(commService.Properties)
+
+			if metadata.ResourceData.HasChange("data_location") {
+				props.DataLocation = model.DataLocation
+			}
+
+			existing.Model.Properties = &props
+
+			if metadata.ResourceData.HasChange("tags") {
+				commService.Tags = pointer.To(model.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, commService); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
@@ -177,6 +224,8 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.ServiceClient
+
+			state := CommunicationServiceResourceModel{}
 
 			id, err := communicationservices.ParseCommunicationServiceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -192,32 +241,31 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			state.Name = id.CommunicationServiceName
+			state.ResourceGroupName = id.ResourceGroupName
+
 			keysResp, err := client.ListKeys(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("listing keys for %s: %+v", *id, err)
 			}
 
-			metadata.ResourceData.Set("name", id.CommunicationServiceName)
-			metadata.ResourceData.Set("resource_group_name", id.ResourceGroupName)
-
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					metadata.ResourceData.Set("data_location", props.DataLocation)
+					state.DataLocation = props.DataLocation
+					state.HostName = pointer.From(props.HostName)
 				}
 
-				if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
-					return err
-				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			if model := keysResp.Model; model != nil {
-				metadata.ResourceData.Set("primary_connection_string", model.PrimaryConnectionString)
-				metadata.ResourceData.Set("secondary_connection_string", model.SecondaryConnectionString)
-				metadata.ResourceData.Set("primary_key", model.PrimaryKey)
-				metadata.ResourceData.Set("secondary_key", model.SecondaryKey)
+				state.PrimaryConnectionString = pointer.From(model.PrimaryConnectionString)
+				state.SecondaryConnectionString = pointer.From(model.SecondaryConnectionString)
+				state.PrimaryKey = pointer.From(model.PrimaryKey)
+				state.SecondaryKey = pointer.From(model.SecondaryKey)
 			}
 
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
 }

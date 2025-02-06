@@ -15,18 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelSMSResource struct{}
 
-func testAccBotChannelSMS_basic(t *testing.T) {
+func TestAccBotChannelSMS_basic(t *testing.T) {
 	skipSMSChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_sms", "test")
 	r := BotChannelSMSResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -37,13 +37,13 @@ func testAccBotChannelSMS_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelSMS_requiresImport(t *testing.T) {
+func TestAccBotChannelSMS_requiresImport(t *testing.T) {
 	skipSMSChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_sms", "test")
 	r := BotChannelSMSResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

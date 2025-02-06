@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,7 +120,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					clusters.ValidateClusterID,
+					commonids.ValidateKustoClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
@@ -222,7 +221,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 	d.Set("database_name", id.DatabaseName)
 
 	if resp.Model != nil {
-		if dataConnection, ok := (*resp.Model).(dataconnections.EventHubDataConnection); ok {
+		if dataConnection, ok := resp.Model.(dataconnections.EventHubDataConnection); ok {
 			if location := dataConnection.Location; location != nil {
 				d.Set("location", azure.NormalizeLocation(*location))
 			}
@@ -240,7 +239,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				identityId := ""
 				if props.ManagedIdentityResourceId != nil {
 					identityId = *props.ManagedIdentityResourceId
-					clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(identityId)
+					clusterId, clusterIdErr := commonids.ParseKustoClusterIDInsensitively(identityId)
 					if clusterIdErr == nil {
 						identityId = clusterId.ID()
 					} else {

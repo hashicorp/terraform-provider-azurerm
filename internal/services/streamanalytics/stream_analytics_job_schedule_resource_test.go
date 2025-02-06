@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,7 +32,9 @@ func TestAccStreamAnalyticsJobSchedule_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 
@@ -47,7 +49,9 @@ func TestAccStreamAnalyticsJobSchedule_customTime(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 
@@ -62,14 +66,18 @@ func TestAccStreamAnalyticsJobSchedule_lastOutputEventTime(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 		{
 			Config: r.lastOutputEventTime(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		// todo framework
+		// `last_output_time` has different values between refresh steps so we'll ignore it until framework goes in
+		data.ImportStep("last_output_time"),
 	})
 }
 

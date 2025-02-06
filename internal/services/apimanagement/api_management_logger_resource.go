@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/logger"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,9 +71,37 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 
 						"connection_string": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.endpoint_uri",
+								"eventhub.0.user_assigned_identity_client_id",
+							},
+						},
+						"endpoint_uri": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"eventhub.0.connection_string",
+								"eventhub.0.endpoint_uri",
+							},
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
+						},
+						"user_assigned_identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+							ConflictsWith: []string{
+								"eventhub.0.connection_string",
+							},
 						},
 					},
 				},
@@ -86,11 +115,31 @@ func resourceApiManagementLogger() *pluginsdk.Resource {
 				ConflictsWith: []string{"eventhub"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"instrumentation_key": {
+						"connection_string": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"application_insights.0.connection_string",
+								"application_insights.0.instrumentation_key",
+							},
+							ConflictsWith: []string{
+								"application_insights.0.instrumentation_key",
+							},
+						},
+						"instrumentation_key": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+							AtLeastOneOf: []string{
+								"application_insights.0.connection_string",
+								"application_insights.0.instrumentation_key",
+							},
+							ConflictsWith: []string{
+								"application_insights.0.connection_string",
+							},
 						},
 					},
 				},
@@ -122,7 +171,7 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 	appInsightsRaw := d.Get("application_insights").([]interface{})
 
 	if len(eventHubRaw) == 0 && len(appInsightsRaw) == 0 {
-		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
+		return errors.New("either `eventhub` or `application_insights` is required")
 	}
 
 	if d.IsNewResource() {
@@ -147,7 +196,8 @@ func resourceApiManagementLoggerCreate(d *pluginsdk.ResourceData, meta interface
 
 	if len(eventHubRaw) > 0 {
 		parameters.Properties.LoggerType = logger.LoggerTypeAzureEventHub
-		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw)
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw)
+		parameters.Properties.Credentials = credentials
 	} else if len(appInsightsRaw) > 0 {
 		parameters.Properties.LoggerType = logger.LoggerTypeApplicationInsights
 		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw)
@@ -224,7 +274,8 @@ func resourceApiManagementLoggerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if hasEventHub {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeAzureEventHub)
-		parameters.Properties.Credentials = expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		credentials := expandApiManagementLoggerEventHub(eventHubRaw.([]interface{}))
+		parameters.Properties.Credentials = credentials
 	} else if hasAppInsights {
 		parameters.Properties.LoggerType = pointer.To(logger.LoggerTypeApplicationInsights)
 		parameters.Properties.Credentials = expandApiManagementLoggerApplicationInsights(appInsightsRaw.([]interface{}))
@@ -259,15 +310,35 @@ func resourceApiManagementLoggerDelete(d *pluginsdk.ResourceData, meta interface
 func expandApiManagementLoggerEventHub(input []interface{}) *map[string]string {
 	credentials := make(map[string]string)
 	eventHub := input[0].(map[string]interface{})
+
+	connectionString := eventHub["connection_string"].(string)
+	endpointAddress := eventHub["endpoint_uri"].(string)
+	clientId := eventHub["user_assigned_identity_client_id"].(string)
+
 	credentials["name"] = eventHub["name"].(string)
-	credentials["connectionString"] = eventHub["connection_string"].(string)
+	if len(connectionString) > 0 {
+		credentials["connectionString"] = connectionString
+	} else if len(endpointAddress) > 0 {
+		credentials["endpointAddress"] = endpointAddress
+		// This field is required by the API and only accepts either a valid UUID or `SystemAssigned` as a value, so we default this to `SystemAssigned` in the create if the field is omitted
+		credentials["identityClientId"] = "SystemAssigned"
+		if clientId != "" {
+			credentials["identityClientId"] = clientId
+		}
+	}
+
 	return &credentials
 }
 
 func expandApiManagementLoggerApplicationInsights(input []interface{}) *map[string]string {
 	credentials := make(map[string]string)
 	ai := input[0].(map[string]interface{})
-	credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
+	if ai["instrumentation_key"].(string) != "" {
+		credentials["instrumentationKey"] = ai["instrumentation_key"].(string)
+	}
+	if ai["connection_string"].(string) != "" {
+		credentials["connectionString"] = ai["connection_string"].(string)
+	}
 	return &credentials
 }
 
@@ -280,6 +351,14 @@ func flattenApiManagementLoggerEventHub(d *pluginsdk.ResourceData, properties *l
 			existingEventHub := existing[0].(map[string]interface{})
 			if conn, ok := existingEventHub["connection_string"]; ok {
 				eventHub["connection_string"] = conn.(string)
+			}
+			if endpoint, ok := existingEventHub["endpoint_uri"]; ok {
+				eventHub["endpoint_uri"] = endpoint
+			}
+			if clientId, ok := existingEventHub["user_assigned_identity_client_id"]; ok {
+				if clientId != "SystemAssigned" {
+					eventHub["user_assigned_identity_client_id"] = clientId
+				}
 			}
 		}
 		result = append(result, eventHub)

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,12 +153,52 @@ func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.RunbookClient.Get(ctx, *id)
+	resp, err := clients.Automation.Runbook.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", id.RunbookName, id.ResourceGroupName)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (AutomationRunbookResource) PS72(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell72"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (AutomationRunbookResource) PSWorkflow(data acceptance.TestData) string {
@@ -352,7 +392,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 
@@ -401,7 +441,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 
@@ -428,7 +468,7 @@ resource "azurerm_automation_runbook" "test" {
 
   log_verbose  = "true"
   log_progress = "true"
-  description  = "This is a test runbook for terraform acceptance test"
+  description  = "This is a test runbook for terraform acceptance test with update"
   runbook_type = "PowerShell"
 
   content = <<CONTENT
@@ -459,7 +499,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-auto-%[1]d"
   location = "%[2]s"
 }
 

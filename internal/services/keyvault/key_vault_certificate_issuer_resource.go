@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
@@ -28,7 +28,7 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		Read:   resourceKeyVaultCertificateIssuerRead,
 		Delete: resourceKeyVaultCertificateIssuerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ParseNestedItemID(id)
+			_, err := parse.IssuerID(id)
 			return err
 		}, nestedItemResourceImporter),
 
@@ -40,7 +40,7 @@ func resourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -123,6 +123,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("retrieving base uri for %s: %+v", *keyVaultId, err)
 	}
 
+	id := parse.NewIssuerID(*keyVaultBaseUri, name)
 	if d.IsNewResource() {
 		existing, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
 		if err != nil {
@@ -131,8 +132,8 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", id.ID())
 		}
 	}
 
@@ -163,15 +164,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)
 	}
 
-	resp, err := client.GetCertificateIssuer(ctx, *keyVaultBaseUri, name)
-	if err != nil {
-		return err
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("failure reading Key Vault Certificate Issuer ID for %q", name)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
@@ -179,7 +172,7 @@ func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *pluginsdk.ResourceData, 
 func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,8 +180,8 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -236,9 +229,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 	}
 	if resp.Credentials != nil {
-		if resp.Credentials.AccountID != nil {
-			d.Set("account_id", resp.Credentials.AccountID)
-		}
+		d.Set("account_id", resp.Credentials.AccountID)
 	}
 
 	return nil
@@ -247,7 +238,7 @@ func resourceKeyVaultCertificateIssuerRead(d *pluginsdk.ResourceData, meta inter
 func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -257,7 +248,8 @@ func resourceKeyVaultCertificateIssuerDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	// we verify it exists
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms` Documentation
 
-The `dedicatedhsms` SDK allows for interaction with the Azure Resource Manager Service `hardwaresecuritymodules` (API Version `2021-11-30`).
+The `dedicatedhsms` SDK allows for interaction with Azure Resource Manager `hardwaresecuritymodules` (API Version `2021-11-30`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMName")
 
 payload := dedicatedhsms.DedicatedHsm{
 	// ...
@@ -41,7 +42,7 @@ if err := client.DedicatedHsmCreateOrUpdateThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMName")
 
 if err := client.DedicatedHsmDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DedicatedHsmDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMName")
 
 read, err := client.DedicatedHsmGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.DedicatedHsmListByResourceGroup(ctx, id, dedicatedhsms.DefaultDedicatedHsmListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.DedicatedHsmListByResourceGroupComplete(ctx, id, dedicatedhsms.DefaultDedicatedHsmListByResourceGroupOperationOptions())
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.DedicatedHsmListBySubscription(ctx, id, dedicatedhsms.DefaultDedicatedHsmListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.DedicatedHsmListBySubscriptionComplete(ctx, id, dedicatedhsms.DefaultDedicatedHsmListBySubscriptionOperationOptions())
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMName")
 
 // alternatively `client.DedicatedHsmListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
 items, err := client.DedicatedHsmListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
@@ -120,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMValue")
+id := dedicatedhsms.NewDedicatedHSMID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dedicatedHSMName")
 
 payload := dedicatedhsms.DedicatedHsmPatchParameters{
 	// ...

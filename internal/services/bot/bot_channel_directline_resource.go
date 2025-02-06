@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelDirectline() *pluginsdk.Resource {
@@ -64,7 +64,24 @@ func resourceBotChannelDirectline() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
+						"user_upload_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"endpoint_parameters_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"storage_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
@@ -162,7 +179,7 @@ func resourceBotChannelDirectlineCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 	d.SetId(resourceId.ID())
 
-	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
+	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
 	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
@@ -236,6 +253,12 @@ func resourceBotChannelDirectlineUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
+	// Unable to add a new site with enhanced_authentication_enabled, user_upload_enabled, endpoint_parameters_enabled, storage_enabled in the same operation, so we need to make two calls
+	// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/25758 is fixed, this update will be removed
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+	}
+
 	return resourceBotChannelDirectlineRead(d, meta)
 }
 
@@ -268,7 +291,11 @@ func expandDirectlineSites(input []interface{}) *[]botservice.DirectLineSite {
 		}
 
 		site := element.(map[string]interface{})
-		expanded := botservice.DirectLineSite{}
+		expanded := botservice.DirectLineSite{
+			IsBlockUserUploadEnabled:    utils.Bool(!site["user_upload_enabled"].(bool)),
+			IsEndpointParametersEnabled: utils.Bool(site["endpoint_parameters_enabled"].(bool)),
+			IsNoStorageEnabled:          utils.Bool(!site["storage_enabled"].(bool)),
+		}
 
 		if v, ok := site["name"].(string); ok {
 			expanded.SiteName = &v
@@ -309,6 +336,24 @@ func flattenDirectlineSites(input []botservice.DirectLineSite) []interface{} {
 		if v := element.SiteName; v != nil {
 			site["name"] = *v
 		}
+
+		userUploadEnabled := true
+		if v := element.IsBlockUserUploadEnabled; v != nil {
+			userUploadEnabled = !*v
+		}
+		site["user_upload_enabled"] = userUploadEnabled
+
+		var endpointParametersEnabled bool
+		if v := element.IsEndpointParametersEnabled; v != nil {
+			endpointParametersEnabled = *v
+		}
+		site["endpoint_parameters_enabled"] = endpointParametersEnabled
+
+		storageEnabled := true
+		if v := element.IsNoStorageEnabled; v != nil {
+			storageEnabled = !*v
+		}
+		site["storage_enabled"] = storageEnabled
 
 		if element.Key != nil {
 			site["key"] = *element.Key

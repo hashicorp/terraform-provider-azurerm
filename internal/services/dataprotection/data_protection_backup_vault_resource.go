@@ -4,6 +4,7 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -64,7 +65,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backupvaults.StorageSettingStoreTypesArchiveStore),
-					string(backupvaults.StorageSettingStoreTypesSnapshotStore),
+					string(backupvaults.StorageSettingStoreTypesOperationalStore),
 					string(backupvaults.StorageSettingStoreTypesVaultStore),
 				}, false),
 			},
@@ -76,13 +77,67 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backupvaults.StorageSettingTypesGeoRedundant),
 					string(backupvaults.StorageSettingTypesLocallyRedundant),
+					string(backupvaults.StorageSettingTypesZoneRedundant),
 				}, false),
+			},
+
+			"cross_region_restore_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"retention_duration_in_days": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      14,
+				ValidateFunc: validation.FloatBetween(14, 180),
+			},
+
+			"soft_delete": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.SoftDeleteStateOn,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
+			},
+
+			"immutability": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.ImmutabilityStateDisabled,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForImmutabilityState(), false),
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+
+			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && new.(bool) != old.(bool)
+			}),
+
+			// Once `immutability` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.ImmutabilityStateLocked) && new.(string) != string(backupvaults.ImmutabilityStateLocked)
+			}),
+
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				redundancy := d.Get("redundancy").(string)
+				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
+				if !crossRegionRestore.IsNull() && redundancy != string(backupvaults.StorageSettingTypesGeoRedundant) {
+					// Cross region restore is only allowed on `GeoRedundant` vault.
+					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`.")
+				}
+				return nil
+			}),
+		),
 	}
 }
 
@@ -114,23 +169,44 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	datastoreType := backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))
-	storageSettingType := backupvaults.StorageSettingTypes(d.Get("redundancy").(string))
-
 	parameters := backupvaults.BackupVaultResource{
-		Location: location.Normalize(d.Get("location").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: backupvaults.BackupVault{
 			StorageSettings: []backupvaults.StorageSetting{
 				{
-					DatastoreType: &datastoreType,
-					Type:          &storageSettingType,
+					DatastoreType: pointer.To(backupvaults.StorageSettingStoreTypes(d.Get("datastore_type").(string))),
+					Type:          pointer.To(backupvaults.StorageSettingTypes(d.Get("redundancy").(string))),
+				},
+			},
+			SecuritySettings: &backupvaults.SecuritySettings{
+				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
+					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
+				},
+				ImmutabilitySettings: &backupvaults.ImmutabilitySettings{
+					State: pointer.To(backupvaults.ImmutabilityState(d.Get("immutability").(string))),
 				},
 			},
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
+		parameters.Properties.FeatureSettings = &backupvaults.FeatureSettings{
+			CrossRegionRestoreSettings: &backupvaults.CrossRegionRestoreSettings{},
+		}
+		if d.Get("cross_region_restore_enabled").(bool) {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateEnabled)
+		} else {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateDisabled)
+		}
+	}
+
+	if v, ok := d.GetOk("retention_duration_in_days"); ok {
+		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, backupvaults.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
 	}
@@ -162,12 +238,37 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
-		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
+
+		if len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
+
+		immutability := backupvaults.ImmutabilityStateDisabled
+		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
+			if immutabilitySettings := securitySetting.ImmutabilitySettings; immutabilitySettings != nil {
+				if immutabilitySettings.State != nil {
+					immutability = *immutabilitySettings.State
+				}
+			}
+			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
+				d.Set("soft_delete", string(pointer.From(softDelete.State)))
+				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
+			}
+		}
+		d.Set("immutability", string(immutability))
+
+		crossRegionStoreEnabled := false
+		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
+			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
+				if pointer.From(crossRegionRestore.State) == backupvaults.CrossRegionRestoreStateEnabled {
+					crossRegionStoreEnabled = true
+				}
+			}
+		}
+		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)

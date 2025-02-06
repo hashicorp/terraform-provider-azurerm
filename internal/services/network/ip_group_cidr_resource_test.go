@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,16 +81,25 @@ func (t IPGroupCidrResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	resp, err := clients.Network.IPGroupsClient.Get(ctx, id.ResourceGroup, id.IpGroupName, "")
+	ipGroupId := ipgroups.NewIPGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
+
+	resp, err := clients.Network.Client.IPGroups.Get(ctx, ipGroupId, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading IP Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if !utils.SliceContainsValue(*resp.IPAddresses, state.Attributes["cidr"]) {
-		return utils.Bool(false), nil
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", ipGroupId)
+	}
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 	}
 
-	return utils.Bool(true), nil
+	if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, state.Attributes["cidr"]) {
+		return pointer.To(false), nil
+	}
+
+	return pointer.To(true), nil
 }
 
 func (IPGroupCidrResource) basic(data acceptance.TestData) string {

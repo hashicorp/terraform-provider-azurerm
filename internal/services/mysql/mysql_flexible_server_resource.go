@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/serverfailover"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2021-05-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -34,6 +34,8 @@ const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
 	ServerMaintenanceWindowDisabled = "Disabled"
 )
+
+var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
 
 func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -267,6 +269,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.IntBetween(20, 16384),
 						},
+						"io_scaling_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -301,6 +308,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta interface{}) bool {
+				return new.(int) < old.(int)
+			}),
+		),
 	}
 }
 
@@ -352,6 +365,13 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		}
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
+		}
+	}
+
+	storageSettings := expandArmServerStorage(d.Get("storage").([]interface{}))
+	if storageSettings != nil {
+		if storageSettings.Iops != nil && *storageSettings.AutoIoScaling == servers.EnableStatusEnumEnabled {
+			return fmt.Errorf("`iops` can not be set if `io_scaling_enabled` is set to true")
 		}
 	}
 
@@ -488,6 +508,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", string(pointer.From(props.Version)))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
 				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
@@ -764,8 +785,14 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoGrow = servers.EnableStatusEnumEnabled
 	}
 
+	autoIoScaling := servers.EnableStatusEnumDisabled
+	if v := input["io_scaling_enabled"].(bool); v {
+		autoIoScaling = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
-		AutoGrow: &autoGrow,
+		AutoGrow:      &autoGrow,
+		AutoIoScaling: &autoIoScaling,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -795,9 +822,10 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":           size,
-			"iops":              iops,
-			"auto_grow_enabled": *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"size_gb":            size,
+			"iops":               iops,
+			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
@@ -819,42 +847,42 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 	return &backup
 }
 
-func expandFlexibleServerSku(name string) (*servers.Sku, error) {
+func expandFlexibleServerSku(name string) (*servers.MySQLServerSku, error) {
 	if name == "" {
 		return nil, nil
 	}
 	parts := strings.SplitAfterN(name, "_", 2)
 
-	var tier servers.SkuTier
+	var tier servers.ServerSkuTier
 	switch strings.TrimSuffix(parts[0], "_") {
 	case "B":
-		tier = servers.SkuTierBurstable
+		tier = servers.ServerSkuTierBurstable
 	case "GP":
-		tier = servers.SkuTierGeneralPurpose
+		tier = servers.ServerSkuTierGeneralPurpose
 	case "MO":
-		tier = servers.SkuTierMemoryOptimized
+		tier = servers.ServerSkuTierMemoryOptimized
 	default:
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", name, parts[0])
 	}
 
-	return &servers.Sku{
+	return &servers.MySQLServerSku{
 		Name: parts[1],
 		Tier: tier,
 	}, nil
 }
 
-func flattenFlexibleServerSku(sku *servers.Sku) (string, error) {
+func flattenFlexibleServerSku(sku *servers.MySQLServerSku) (string, error) {
 	if sku == nil || sku.Name == "" || sku.Tier == "" {
 		return "", nil
 	}
 
 	var tier string
 	switch sku.Tier {
-	case servers.SkuTierBurstable:
+	case servers.ServerSkuTierBurstable:
 		tier = "B"
-	case servers.SkuTierGeneralPurpose:
+	case servers.ServerSkuTierGeneralPurpose:
 		tier = "GP"
-	case servers.SkuTierMemoryOptimized:
+	case servers.ServerSkuTierMemoryOptimized:
 		tier = "MO"
 	default:
 		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)
@@ -1000,14 +1028,14 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	return []interface{}{item}, nil
 }
 
-func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error) {
+func expandFlexibleServerIdentity(input []interface{}) (*servers.MySQLServerIdentity, error) {
 	expanded, err := identity.ExpandUserAssignedMap(input)
 	if err != nil {
 		return nil, err
 	}
 
 	identityType := servers.ManagedServiceIdentityType(string(expanded.Type))
-	out := servers.Identity{
+	out := servers.MySQLServerIdentity{
 		Type: &identityType,
 	}
 	if expanded.Type == identity.TypeUserAssigned {
@@ -1021,7 +1049,7 @@ func expandFlexibleServerIdentity(input []interface{}) (*servers.Identity, error
 	return &out, nil
 }
 
-func flattenFlexibleServerIdentity(input *servers.Identity) (*[]interface{}, error) {
+func flattenFlexibleServerIdentity(input *servers.MySQLServerIdentity) (*[]interface{}, error) {
 	var transform *identity.UserAssignedMap
 
 	if input != nil {

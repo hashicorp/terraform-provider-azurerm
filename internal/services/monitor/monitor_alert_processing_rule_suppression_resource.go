@@ -63,7 +63,7 @@ func (r AlertProcessingRuleSuppressionResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := alertprocessingrules.NewActionRuleID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.AlertProcessingRulesGetByName(ctx, id)
+			existing, err := client.GetByName(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -87,7 +87,7 @@ func (r AlertProcessingRuleSuppressionResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, id, alertProcessingRule); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, alertProcessingRule); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -113,7 +113,7 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.AlertProcessingRulesGetByName(ctx, *id)
+			resp, err := client.GetByName(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -128,7 +128,8 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("add_action_group_ids") {
 				model.Properties.Actions = []alertprocessingrules.Action{
-					alertprocessingrules.RemoveAllActionGroups{}}
+					alertprocessingrules.RemoveAllActionGroups{},
+				}
 			}
 
 			if metadata.ResourceData.HasChange("condition") {
@@ -155,7 +156,7 @@ func (r AlertProcessingRuleSuppressionResource) Update() sdk.ResourceFunc {
 				model.Tags = &resourceModel.Tags
 			}
 
-			if _, err := client.AlertProcessingRulesCreateOrUpdate(ctx, *id, *model); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
@@ -174,7 +175,7 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.AlertProcessingRulesGetByName(ctx, *id)
+			resp, err := client.GetByName(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -210,18 +211,14 @@ func (r AlertProcessingRuleSuppressionResource) Read() sdk.ResourceFunc {
 
 			state.Scopes = properties.Scopes
 
-			if properties.Conditions != nil {
-				state.Condition = flattenAlertProcessingRuleConditions(properties.Conditions)
-			}
-
-			if properties.Schedule != nil {
-				state.Schedule = flattenAlertProcessingRuleSchedule(properties.Schedule)
-			}
+			state.Condition = flattenAlertProcessingRuleConditions(properties.Conditions)
+			state.Schedule = flattenAlertProcessingRuleSchedule(properties.Schedule)
 
 			return metadata.Encode(&state)
 		},
 	}
 }
+
 func (r AlertProcessingRuleSuppressionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -233,7 +230,7 @@ func (r AlertProcessingRuleSuppressionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.AlertProcessingRulesDelete(ctx, *id); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

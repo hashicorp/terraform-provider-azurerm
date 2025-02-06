@@ -61,8 +61,8 @@ resource "azurerm_virtual_machine" "example" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -89,9 +89,10 @@ resource "azurerm_image" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
-    size_gb  = 30
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    storage_type = "Standard_LRS"
   }
 }

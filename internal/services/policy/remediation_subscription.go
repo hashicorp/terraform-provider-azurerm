@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -110,16 +109,6 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["policy_definition_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
-			ValidateFunc:     validate.PolicyDefinitionID,
-			Deprecated:       "`policy_definition_id` will be removed in version 4.0 of the AzureRM Provider in favour of `policy_definition_reference_id`.",
-		}
-	}
 	return resource
 }
 
@@ -136,14 +125,14 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 	id := remediations.NewRemediationID(subscriptionId.SubscriptionId, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.RemediationsGetAtSubscription(ctx, id)
+		existing, err := client.GetAtSubscription(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id.ID(), err)
 			}
 		}
-		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", *existing.Model.Id)
+		if existing.Model != nil {
+			return tf.ImportAsExistsError("azurerm_subscription_policy_remediation", id.ID())
 		}
 	}
 
@@ -151,7 +140,7 @@ func resourceArmSubscriptionPolicyRemediationCreateUpdate(d *pluginsdk.ResourceD
 		Properties: readRemediationProperties(d),
 	}
 
-	if _, err = client.RemediationsCreateOrUpdateAtSubscription(ctx, id, parameters); err != nil {
+	if _, err = client.CreateOrUpdateAtSubscription(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id.ID(), err)
 	}
 
@@ -172,7 +161,7 @@ func resourceArmSubscriptionPolicyRemediationRead(d *pluginsdk.ResourceData, met
 
 	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 
-	resp, err := client.RemediationsGetAtSubscription(ctx, *id)
+	resp, err := client.GetAtSubscription(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", id.ID())
@@ -200,7 +189,7 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 
 	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
 	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
-	existing, err := client.RemediationsGetAtSubscription(ctx, *id)
+	existing, err := client.GetAtSubscription(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -210,7 +199,7 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 
 	if err := waitForRemediationToDelete(ctx, existing.Model.Properties, id.ID(), d.Timeout(pluginsdk.TimeoutDelete),
 		func() error {
-			_, err := client.RemediationsCancelAtSubscription(ctx, *id)
+			_, err := client.CancelAtSubscription(ctx, *id)
 			return err
 		},
 		subscriptionPolicyRemediationCancellationRefreshFunc(ctx, client, *id),
@@ -218,14 +207,14 @@ func resourceArmSubscriptionPolicyRemediationDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	_, err = client.RemediationsDeleteAtSubscription(ctx, *id)
+	_, err = client.DeleteAtSubscription(ctx, *id)
 
 	return err
 }
 
 func subscriptionPolicyRemediationCancellationRefreshFunc(ctx context.Context, client *remediations.RemediationsClient, id remediations.RemediationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.RemediationsGetAtSubscription(ctx, id)
+		resp, err := client.GetAtSubscription(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("issuing read request for %s: %+v", id.ID(), err)
 		}

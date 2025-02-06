@@ -15,18 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelLineResource struct{}
 
-func testAccBotChannelLine_basic(t *testing.T) {
+func TestAccBotChannelLine_basic(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -37,13 +37,13 @@ func testAccBotChannelLine_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_requiresImport(t *testing.T) {
+func TestAccBotChannelLine_requiresImport(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,13 +54,13 @@ func testAccBotChannelLine_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_complete(t *testing.T) {
+func TestAccBotChannelLine_complete(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -71,13 +71,13 @@ func testAccBotChannelLine_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_update(t *testing.T) {
+func TestAccBotChannelLine_update(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

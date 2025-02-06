@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AutomationAccountId{}
+func init() {
+	recaser.RegisterResourceId(&AutomationAccountId{})
+}
+
+var _ resourceids.ResourceId = &AutomationAccountId{}
 
 // AutomationAccountId is a struct representing the Resource ID for a Automation Account
 type AutomationAccountId struct {
@@ -30,25 +35,15 @@ func NewAutomationAccountID(subscriptionId string, resourceGroupName string, aut
 
 // ParseAutomationAccountID parses 'input' into a AutomationAccountId
 func ParseAutomationAccountID(input string) (*AutomationAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseAutomationAccountID(input string) (*AutomationAccountId, error) {
 // ParseAutomationAccountIDInsensitively parses 'input' case-insensitively into a AutomationAccountId
 // note: this method should only be used for API response data and not user input
 func ParseAutomationAccountIDInsensitively(input string) (*AutomationAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AutomationAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AutomationAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	return nil
 }
 
 // ValidateAutomationAccountID checks that 'input' can be parsed as a Automation Account ID
@@ -112,7 +115,7 @@ func (id AutomationAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 	}
 }
 

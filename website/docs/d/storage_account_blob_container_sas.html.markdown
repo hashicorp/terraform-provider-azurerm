@@ -115,7 +115,7 @@ for additional details on the fields above.
 
 ## Attributes Reference
 
-* `sas` - The computed Blob Container Shared Access Signature (SAS).
+* `sas` - The computed Blob Container Shared Access Signature (SAS). The delimiter character ('?') for the query string is the prefix of `sas`.
 
 ## Timeouts
 

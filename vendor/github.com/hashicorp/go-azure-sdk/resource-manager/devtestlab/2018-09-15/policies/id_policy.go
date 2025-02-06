@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PolicyId{}
+func init() {
+	recaser.RegisterResourceId(&PolicyId{})
+}
+
+var _ resourceids.ResourceId = &PolicyId{}
 
 // PolicyId is a struct representing the Resource ID for a Policy
 type PolicyId struct {
@@ -34,33 +39,15 @@ func NewPolicyID(subscriptionId string, resourceGroupName string, labName string
 
 // ParsePolicyID parses 'input' into a PolicyId
 func ParsePolicyID(input string) (*PolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labName", *parsed)
-	}
-
-	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policySetName", *parsed)
-	}
-
-	if id.PolicyName, ok = parsed.Parsed["policyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +56,44 @@ func ParsePolicyID(input string) (*PolicyId, error) {
 // ParsePolicyIDInsensitively parses 'input' case-insensitively into a PolicyId
 // note: this method should only be used for API response data and not user input
 func ParsePolicyIDInsensitively(input string) (*PolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LabName, ok = parsed.Parsed["labName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "labName", *parsed)
-	}
-
-	if id.PolicySetName, ok = parsed.Parsed["policySetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policySetName", *parsed)
-	}
-
-	if id.PolicyName, ok = parsed.Parsed["policyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LabName, ok = input.Parsed["labName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "labName", input)
+	}
+
+	if id.PolicySetName, ok = input.Parsed["policySetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policySetName", input)
+	}
+
+	if id.PolicyName, ok = input.Parsed["policyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policyName", input)
+	}
+
+	return nil
 }
 
 // ValidatePolicyID checks that 'input' can be parsed as a Policy ID
@@ -132,11 +127,11 @@ func (id PolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevTestLab", "Microsoft.DevTestLab", "Microsoft.DevTestLab"),
 		resourceids.StaticSegment("staticLabs", "labs", "labs"),
-		resourceids.UserSpecifiedSegment("labName", "labValue"),
+		resourceids.UserSpecifiedSegment("labName", "labName"),
 		resourceids.StaticSegment("staticPolicySets", "policySets", "policySets"),
-		resourceids.UserSpecifiedSegment("policySetName", "policySetValue"),
+		resourceids.UserSpecifiedSegment("policySetName", "policySetName"),
 		resourceids.StaticSegment("staticPolicies", "policies", "policies"),
-		resourceids.UserSpecifiedSegment("policyName", "policyValue"),
+		resourceids.UserSpecifiedSegment("policyName", "policyName"),
 	}
 }
 

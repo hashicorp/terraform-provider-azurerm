@@ -199,7 +199,7 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -236,11 +236,13 @@ The following arguments are supported:
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
-* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` (Border Gateway Protocol custom IP Addresses) block which is documented below.
+* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,
     For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
 * `express_route_gateway_bypass` - (Optional) If `true`, data packets will bypass ExpressRoute Gateway for data forwarding This is only valid for ExpressRoute connections.
+
+* `private_link_fast_path_enabled` - (Optional) Bypass the Express Route gateway when accessing private-links. When enabled `express_route_gateway_bypass` must be set to `true`. Defaults to `false`.
 
 * `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 

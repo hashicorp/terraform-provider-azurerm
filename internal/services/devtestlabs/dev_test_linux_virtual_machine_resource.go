@@ -83,6 +83,7 @@ func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
 			"storage_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
 					"Premium",

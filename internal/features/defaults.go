@@ -25,14 +25,18 @@ func Default() UserFeatures {
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
 			PurgeSoftDeletedSecretsOnDestroy: true,
-			PurgeSoftDeletedHSMsOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
+
+			// todo 4.0 move all HSM flags into their own features HSMFeatures block
+			PurgeSoftDeletedHSMsOnDestroy:    true,
+			PurgeSoftDeletedHSMKeysOnDestroy: true,
+			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: true,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
@@ -40,18 +44,44 @@ func Default() UserFeatures {
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
 		},
+		RecoveryServicesVault: RecoveryServicesVault{
+			RecoverSoftDeletedBackupProtectedVM: true,
+		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,
 		},
 		VirtualMachine: VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion:     true,
-			GracefulShutdown:           false,
-			SkipShutdownAndForceDelete: false,
+			DetachImplicitDataDiskOnDeletion: false,
+			DeleteOSDiskOnDeletion:           true,
+			GracefulShutdown:                 false,
+			SkipShutdownAndForceDelete:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
+			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
+		},
+		Storage: StorageFeatures{
+			DataPlaneAvailable: true,
+		},
+		Subscription: SubscriptionFeatures{
+			PreventCancellationOnDestroy: false,
+		},
+		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
+			RestartServerOnConfigurationValueChange: true,
+		},
+		MachineLearning: MachineLearningFeatures{
+			PurgeSoftDeletedWorkspaceOnDestroy: false,
+		},
+		RecoveryService: RecoveryServiceFeatures{
+			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:           false,
+		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false,
+			PreventVolumeDestruction:          true,
 		},
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -222,133 +223,17 @@ func getDeploymentScriptArguments(kind DeploymentScriptKind) map[string]*plugins
 
 	if kind == AzurePowerShellKind {
 		result["version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"2.7",
-				"2.8",
-				"3.0",
-				"3.1",
-				"3.2",
-				"3.3",
-				"3.4",
-				"3.5",
-				"3.6",
-				"3.7",
-				"3.8",
-				"4.1",
-				"4.2",
-				"4.3",
-				"4.4",
-				"4.5",
-				"4.6",
-				"4.7",
-				"4.8",
-				"5.0",
-				"5.1",
-				"5.2",
-				"5.3",
-				"5.4",
-				"5.5",
-				"5.6",
-				"5.7",
-				"5.8",
-				"5.9",
-				"6.0",
-				"6.1",
-				"6.2",
-				"6.3",
-				"6.4",
-				"6.5",
-				"6.6",
-				"7.0",
-				"7.1",
-				"7.2",
-				"7.3",
-				"7.4",
-				"7.5",
-				"8.0",
-				"8.1",
-				"8.2",
-				"8.3",
-				"9.0",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: resourceValidate.ResourceDeploymentScriptAzurePowerShellVersion,
 		}
 	} else {
 		result["version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"2.0.77",
-				"2.0.78",
-				"2.0.79",
-				"2.0.80",
-				"2.0.81",
-				"2.1.0",
-				"2.10.0",
-				"2.10.1",
-				"2.11.0",
-				"2.11.1",
-				"2.12.0",
-				"2.12.1",
-				"2.13.0",
-				"2.14.0",
-				"2.14.1",
-				"2.14.2",
-				"2.15.0",
-				"2.15.1",
-				"2.16.0",
-				"2.17.0",
-				"2.17.1",
-				"2.18.0",
-				"2.19.0",
-				"2.19.1",
-				"2.2.0",
-				"2.20.0",
-				"2.21.0",
-				"2.22.0",
-				"2.22.1",
-				"2.23.0",
-				"2.24.0",
-				"2.24.1",
-				"2.24.2",
-				"2.25.0",
-				"2.26.0",
-				"2.26.1",
-				"2.27.0",
-				"2.27.1",
-				"2.27.2",
-				"2.28.0",
-				"2.29.0",
-				"2.29.1",
-				"2.29.2",
-				"2.3.0",
-				"2.3.1",
-				"2.30.0",
-				"2.31.0",
-				"2.32.0",
-				"2.33.0",
-				"2.33.1",
-				"2.34.0",
-				"2.34.1",
-				"2.35.0",
-				"2.36.0",
-				"2.37.0",
-				"2.38.0",
-				"2.39.0",
-				"2.4.0",
-				"2.40.0",
-				"2.41.0",
-				"2.5.0",
-				"2.5.1",
-				"2.6.0",
-				"2.7.0",
-				"2.8.0",
-				"2.9.0",
-				"2.9.1",
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: resourceValidate.ResourceDeploymentScriptAzureCliVersion,
 		}
 	}
 
@@ -436,7 +321,7 @@ func expandContainerConfigurationModel(inputList []ContainerConfigurationModel) 
 }
 
 func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) *[]deploymentscripts.EnvironmentVariable {
-	var outputList []deploymentscripts.EnvironmentVariable
+	outputList := make([]deploymentscripts.EnvironmentVariable, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := deploymentscripts.EnvironmentVariable{
@@ -493,11 +378,11 @@ func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfig
 }
 
 func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.EnvironmentVariable, originalList []EnvironmentVariableModel) []EnvironmentVariableModel {
-	var outputList []EnvironmentVariableModel
 	if inputList == nil {
-		return outputList
+		return []EnvironmentVariableModel{}
 	}
 
+	outputList := make([]EnvironmentVariableModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := EnvironmentVariableModel{
 			Name: input.Name,

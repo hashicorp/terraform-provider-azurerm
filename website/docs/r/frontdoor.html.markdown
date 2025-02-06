@@ -171,9 +171,9 @@ The `backend_pool_health_probe` block supports the following:
 
 * `protocol` - (Optional) Protocol scheme to use for the Health Probe. Possible values are `Http` and `Https`. Defaults to `Http`.
 
-* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `Get` and `Head`. Defaults to `GET`.
+* `probe_method` - (Optional) Specifies HTTP method the health probe uses when querying the backend pool instances. Possible values include: `GET` and `HEAD`. Defaults to `GET`.
 
--> **NOTE:** Use the `Head` method if you do not need to check the response body of your health probe.
+-> **NOTE:** Use the `HEAD` method if you do not need to check the response body of your health probe.
 
 * `interval_in_seconds` - (Optional) The number of seconds between each Health Probe. Defaults to `120`.
 

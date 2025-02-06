@@ -33,10 +33,12 @@ type GalleryApplicationVersionModel struct {
 	Name                 string            `tfschema:"name"`
 	GalleryApplicationId string            `tfschema:"gallery_application_id"`
 	Location             string            `tfschema:"location"`
+	ConfigFile           string            `tfschema:"config_file"`
 	EnableHealthCheck    bool              `tfschema:"enable_health_check"`
 	EndOfLifeDate        string            `tfschema:"end_of_life_date"`
 	ExcludeFromLatest    bool              `tfschema:"exclude_from_latest"`
 	ManageAction         []ManageAction    `tfschema:"manage_action"`
+	PackageFile          string            `tfschema:"package_file"`
 	Source               []Source          `tfschema:"source"`
 	TargetRegion         []TargetRegion    `tfschema:"target_region"`
 	Tags                 map[string]string `tfschema:"tags"`
@@ -55,7 +57,8 @@ type ManageAction struct {
 
 type TargetRegion struct {
 	Name                 string `tfschema:"name"`
-	RegionalReplicaCount int    `tfschema:"regional_replica_count"`
+	RegionalReplicaCount int64  `tfschema:"regional_replica_count"`
+	ExcludeFromLatest    bool   `tfschema:"exclude_from_latest"`
 	StorageAccountType   string `tfschema:"storage_account_type"`
 }
 
@@ -76,6 +79,13 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 		},
 
 		"location": commonschema.Location(),
+
+		"config_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"enable_health_check": {
 			Type:     pluginsdk.TypeBool,
@@ -126,6 +136,13 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 			},
 		},
 
+		"package_file": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"source": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -162,6 +179,12 @@ func (r GalleryApplicationVersionResource) Arguments() map[string]*pluginsdk.Sch
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(1, 10),
+					},
+
+					"exclude_from_latest": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 
 					"storage_account_type": {
@@ -236,9 +259,25 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(state.Tags),
 			}
 
+			if state.ConfigFile != "" {
+				if payload.Properties.PublishingProfile.Settings == nil {
+					payload.Properties.PublishingProfile.Settings = &galleryapplicationversions.UserArtifactSettings{}
+				}
+
+				payload.Properties.PublishingProfile.Settings.ConfigFileName = &state.ConfigFile
+			}
+
 			if state.EndOfLifeDate != "" {
 				endOfLifeDate, _ := time.Parse(time.RFC3339, state.EndOfLifeDate)
 				payload.Properties.PublishingProfile.SetEndOfLifeDateAsTime(endOfLifeDate)
+			}
+
+			if state.PackageFile != "" {
+				if payload.Properties.PublishingProfile.Settings == nil {
+					payload.Properties.PublishingProfile.Settings = &galleryapplicationversions.UserArtifactSettings{}
+				}
+
+				payload.Properties.PublishingProfile.Settings.PackageFileName = &state.PackageFile
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -300,6 +339,13 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 						excludeFromLatest = *props.PublishingProfile.ExcludeFromLatest
 					}
 					state.ExcludeFromLatest = excludeFromLatest
+
+					state.ConfigFile = ""
+					state.PackageFile = ""
+					if props.PublishingProfile.Settings != nil {
+						state.ConfigFile = pointer.From(props.PublishingProfile.Settings.ConfigFileName)
+						state.PackageFile = pointer.From(props.PublishingProfile.Settings.PackageFileName)
+					}
 
 					state.ManageAction = flattenGalleryApplicationVersionManageAction(props.PublishingProfile.ManageActions)
 					state.Source = flattenGalleryApplicationVersionSource(props.PublishingProfile.Source)
@@ -456,16 +502,15 @@ func flattenGalleryApplicationVersionManageAction(input *galleryapplicationversi
 	}
 
 	output := make([]ManageAction, 0)
-	if input != nil {
-		obj := ManageAction{
-			Install: input.Install,
-			Remove:  input.Remove,
-		}
-		if input.Update != nil {
-			obj.Update = *input.Update
-		}
-		output = append(output, obj)
+
+	obj := ManageAction{
+		Install: input.Install,
+		Remove:  input.Remove,
 	}
+	if input.Update != nil {
+		obj.Update = *input.Update
+	}
+	output = append(output, obj)
 
 	return output
 }
@@ -496,12 +541,19 @@ func flattenGalleryApplicationVersionSource(input galleryapplicationversions.Use
 func expandGalleryApplicationVersionTargetRegion(input []TargetRegion) *[]galleryapplicationversions.TargetRegion {
 	results := make([]galleryapplicationversions.TargetRegion, 0)
 	for _, item := range input {
-		results = append(results, galleryapplicationversions.TargetRegion{
+		targetRegion := galleryapplicationversions.TargetRegion{
 			Name:                 location.Normalize(item.Name),
-			RegionalReplicaCount: pointer.To(int64(item.RegionalReplicaCount)),
+			RegionalReplicaCount: pointer.To(item.RegionalReplicaCount),
 			StorageAccountType:   pointer.To(galleryapplicationversions.StorageAccountType(item.StorageAccountType)),
-		})
+		}
+
+		if item.ExcludeFromLatest {
+			targetRegion.ExcludeFromLatest = &item.ExcludeFromLatest
+		}
+
+		results = append(results, targetRegion)
 	}
+
 	return &results
 }
 
@@ -510,14 +562,22 @@ func flattenGalleryApplicationVersionTargetRegion(input *[]galleryapplicationver
 
 	for _, item := range *input {
 		obj := TargetRegion{
-			Name: location.Normalize(item.Name),
+			Name:              location.Normalize(item.Name),
+			ExcludeFromLatest: false,
 		}
+
+		if item.ExcludeFromLatest != nil {
+			obj.ExcludeFromLatest = *item.ExcludeFromLatest
+		}
+
 		if item.RegionalReplicaCount != nil {
-			obj.RegionalReplicaCount = int(*item.RegionalReplicaCount)
+			obj.RegionalReplicaCount = *item.RegionalReplicaCount
 		}
+
 		if item.StorageAccountType != nil {
 			obj.StorageAccountType = string(*item.StorageAccountType)
 		}
+
 		results = append(results, obj)
 	}
 

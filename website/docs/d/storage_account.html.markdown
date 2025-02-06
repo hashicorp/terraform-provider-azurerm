@@ -45,8 +45,9 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
-* `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/)
-    for more information.
+* `dns_endpoint_type` - Which DNS endpoint type is used - either `Standard` or `AzureDnsZone`.
+
+* `https_traffic_only_enabled` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information.
 
 * `min_tls_version` - The minimum supported TLS version for this storage account.
 
@@ -68,49 +69,129 @@ output "storage_account_tier" {
 
 * `primary_blob_host` - The hostname with port if applicable for blob storage in the primary location.
 
+* `primary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the primary location.
+
+* `primary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the primary location.
+
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 
 * `secondary_blob_host` - The hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
 
+* `primary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the primary location.
+
+* `primary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the primary location.
+
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_host` - The hostname with port if applicable for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 
 * `primary_table_host` - The hostname with port if applicable for table storage in the primary location.
 
+* `primary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the primary location.
+
+* `primary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the primary location.
+
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
 
 * `secondary_table_host` - The hostname with port if applicable for table storage in the secondary location.
+
+* `secondary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the secondary location.
+
+* `secondary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the secondary location.
 
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
 
+* `primary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the primary location.
+
+* `primary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the primary location.
+
+* `primary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the primary location.
+
+* `primary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the primary location.
+
 * `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
 
 * `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the secondary location.
 
 * `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
 
 * `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
 
+* `primary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the primary location.
+
 * `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
 
 * `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the secondary location.
 
 * `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
 
 * `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
 
+* `primary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the primary location.
+
+* `primary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the primary location.
+
+* `primary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the primary location.
+
+* `primary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the primary location.
+
 * `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
 
 * `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the Storage Account.
 
@@ -160,6 +241,8 @@ output "storage_account_tier" {
 * `directory_type` - The directory service used for this Storage Account.
 
 * `active_directory` - An `active_directory` block as documented below.
+
+* `default_share_level_permission` - The default share level permissions applied to all users.
 
 ---
 

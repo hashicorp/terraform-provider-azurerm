@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -12,10 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,6 +41,11 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.ApiV0ToV1{},
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": schemaz.SchemaApiManagementApiName(),
@@ -330,18 +336,6 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["api_type"].ConflictsWith = []string{"soap_pass_through"}
-
-		resource.Schema["soap_pass_through"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`soap_pass_through` will be removed in favour of the property `api_type` in version 4.0 of the AzureRM Provider",
-			ConflictsWith: []string{"api_type"},
-		}
-	}
-
 	return resource
 }
 
@@ -350,8 +344,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
 	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
@@ -363,12 +355,14 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 	sourceApiId := d.Get("source_api_id").(string)
 
+	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("setting `version` without the required `version_set_id`")
+		return errors.New("setting `version` without the required `version_set_id`")
 	}
 
 	if sourceApiId == "" && (displayName == "" || protocols == nil || len(*protocols) == 0) {
-		return fmt.Errorf("`display_name`, `protocols` are required when `source_api_id` is not set")
+		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
 	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
@@ -387,11 +381,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	apiType := api.ApiTypeHTTP
 	if v, ok := d.GetOk("api_type"); ok {
 		apiType = api.ApiType(v.(string))
-	}
-	if !features.FourPointOhBeta() {
-		if d.Get("soap_pass_through").(bool) {
-			apiType = api.ApiTypeSoap
-		}
 	}
 
 	soapApiType := map[api.ApiType]api.SoapApiType{
@@ -412,14 +401,18 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", id.ApiId, contentFormat)
 		apiParams := api.ApiCreateOrUpdateParameter{
 			Properties: &api.ApiCreateOrUpdateProperties{
-				Type:       pointer.To(apiType),
-				ApiType:    pointer.To(soapApiType),
-				Format:     pointer.To(api.ContentFormat(contentFormat)),
-				Value:      pointer.To(contentValue),
-				Path:       path,
-				ApiVersion: pointer.To(version),
+				Type:    pointer.To(apiType),
+				ApiType: pointer.To(soapApiType),
+				Format:  pointer.To(api.ContentFormat(contentFormat)),
+				Value:   pointer.To(contentValue),
+				Path:    path,
 			},
 		}
+
+		if v, ok := d.GetOk("service_url"); ok {
+			apiParams.Properties.ServiceURL = pointer.To(v.(string))
+		}
+
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
 		if len(wsdlSelectorVs) > 0 {
@@ -433,13 +426,16 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
+		if version != "" {
+			apiParams.Properties.ApiVersion = pointer.To(version)
+		}
+
 		if versionSetId != "" {
 			apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, newId, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 			return fmt.Errorf("creating/updating %s: %+v", id, err)
 		}
-
 	}
 
 	description := d.Get("description").(string)
@@ -472,9 +468,8 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			Description:                   pointer.To(description),
 			Path:                          path,
 			Protocols:                     protocols,
-			ServiceUrl:                    pointer.To(serviceUrl),
+			ServiceURL:                    pointer.To(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
-			ApiVersion:                    pointer.To(version),
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
 			ApiRevisionDescription:        pointer.To(d.Get("revision_description").(string)),
@@ -490,12 +485,17 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	if displayName != "" {
 		params.Properties.DisplayName = pointer.To(displayName)
 	}
+
+	if version != "" {
+		params.Properties.ApiVersion = pointer.To(version)
+	}
+
 	if versionSetId != "" {
 		params.Properties.ApiVersionSetId = pointer.To(versionSetId)
 	}
 
 	if v, ok := d.GetOk("terms_of_service_url"); ok {
-		params.Properties.TermsOfServiceUrl = pointer.To(v.(string))
+		params.Properties.TermsOfServiceURL = pointer.To(v.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, newId, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -516,21 +516,19 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	name := getApiName(id.ApiId)
-	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name)
-	resp, err := client.Get(ctx, newId)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s does not exist - removing from state", newId)
+			log.Printf("[INFO] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", newId, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("api_management_name", id.ServiceName)
-	d.Set("name", name)
+	d.Set("name", getApiName(id.ApiId))
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -545,17 +543,14 @@ func resourceApiManagementApiRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("is_current", pointer.From(props.IsCurrent))
 			d.Set("is_online", pointer.From(props.IsOnline))
 			d.Set("path", props.Path)
-			d.Set("service_url", pointer.From(props.ServiceUrl))
+			d.Set("service_url", pointer.From(props.ServiceURL))
 			d.Set("revision", pointer.From(props.ApiRevision))
-			if !features.FourPointOhBeta() {
-				d.Set("soap_pass_through", apiType == string(api.ApiTypeSoap))
-			}
 			d.Set("subscription_required", pointer.From(props.SubscriptionRequired))
 			d.Set("version", pointer.From(props.ApiVersion))
 			d.Set("version_set_id", pointer.From(props.ApiVersionSetId))
 			d.Set("revision_description", pointer.From(props.ApiRevisionDescription))
 			d.Set("version_description", pointer.From(props.ApiVersionDescription))
-			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceUrl))
+			d.Set("terms_of_service_url", pointer.From(props.TermsOfServiceURL))
 
 			if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 				return fmt.Errorf("setting `protocols`: %s", err)
@@ -595,12 +590,9 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	name := getApiName(id.ApiId)
-
-	newId := api.NewApiID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name)
-	if resp, err := client.Delete(ctx, newId, api.DeleteOperationOptions{DeleteRevisions: pointer.To(true)}); err != nil {
+	if resp, err := client.Delete(ctx, *id, api.DefaultDeleteOperationOptions()); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", newId, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

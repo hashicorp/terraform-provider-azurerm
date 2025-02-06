@@ -8,9 +8,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotChannelEmail() *pluginsdk.Resource {
@@ -61,48 +63,67 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 
 			"email_password": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
+			},
+
+			"magic_code": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
 			},
 		},
 	}
 }
 
 func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.ChannelClient
+	client := meta.(*clients.Client).Bot.EmailChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameEmailChannel))
+	resourceId := commonids.NewBotServiceChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(channel.BotServiceChannelTypeEmailChannel))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+		existing, err := client.Get(ctx, resourceId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_bot_channel_email", resourceId.ID())
 		}
 	}
 
-	channel := botservice.BotChannel{
-		Properties: botservice.EmailChannel{
-			Properties: &botservice.EmailChannelProperties{
-				EmailAddress: utils.String(d.Get("email_address").(string)),
-				Password:     utils.String(d.Get("email_password").(string)),
-				IsEnabled:    utils.Bool(true),
+	parameters := channel.BotChannel{
+		Properties: channel.EmailChannel{
+			Properties: &channel.EmailChannelProperties{
+				EmailAddress: d.Get("email_address").(string),
+				IsEnabled:    true,
 			},
-			ChannelName: botservice.ChannelNameBasicChannelChannelNameEmailChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Kind:     botservice.KindBot,
+		Kind:     pointer.To(channel.KindBot),
 	}
 
-	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameEmailChannel, channel); err != nil {
-		return fmt.Errorf("creating Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
+	if v, ok := d.GetOk("email_password"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
+		channelProps.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
+		channelProps.Properties.MagicCode = utils.String(v.(string))
+	}
+
+	if _, err := client.Create(ctx, resourceId, parameters); err != nil {
+		return fmt.Errorf("creating Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
 	d.SetId(resourceId.ID())
@@ -110,34 +131,37 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.ChannelClient
+	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Email Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] Email Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.BotServiceName, id.ResourceGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Email Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Email Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroupName, err)
 	}
 
 	d.Set("bot_name", id.BotServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.Properties; props != nil {
-		if channel, ok := props.AsEmailChannel(); ok {
-			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("email_address", channelProps.EmailAddress)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			if channel, ok := props.(channel.EmailChannel); ok {
+				if channelProps := channel.Properties; channelProps != nil {
+					d.Set("email_address", channelProps.EmailAddress)
+				}
 			}
 		}
 	}
@@ -146,49 +170,59 @@ func resourceBotChannelEmailRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.ChannelClient
+	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	channel := botservice.BotChannel{
-		Properties: botservice.EmailChannel{
-			Properties: &botservice.EmailChannelProperties{
-				EmailAddress: utils.String(d.Get("email_address").(string)),
-				Password:     utils.String(d.Get("email_password").(string)),
-				IsEnabled:    utils.Bool(true),
+	parameters := channel.BotChannel{
+		Properties: channel.EmailChannel{
+			Properties: &channel.EmailChannelProperties{
+				EmailAddress: d.Get("email_address").(string),
+				IsEnabled:    true,
 			},
-			ChannelName: botservice.ChannelNameBasicChannelChannelNameEmailChannel,
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Kind:     botservice.KindBot,
+		Kind:     pointer.To(channel.KindBot),
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameEmailChannel, channel); err != nil {
-		return fmt.Errorf("updating Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
+	if v, ok := d.GetOk("email_password"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
+		channelProps.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
+		channelProps.Properties.MagicCode = utils.String(v.(string))
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroupName, id.BotServiceName, err)
 	}
 
 	return resourceBotChannelEmailRead(d, meta)
 }
 
 func resourceBotChannelEmailDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Bot.ChannelClient
+	client := meta.(*clients.Client).Bot.EmailChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BotChannelID(d.Id())
+	id, err := commonids.ParseBotServiceChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroupName, id.BotServiceName, err)
 		}
 	}
 

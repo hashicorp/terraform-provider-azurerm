@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeploymentScriptId{}
+func init() {
+	recaser.RegisterResourceId(&DeploymentScriptId{})
+}
+
+var _ resourceids.ResourceId = &DeploymentScriptId{}
 
 // DeploymentScriptId is a struct representing the Resource ID for a Deployment Script
 type DeploymentScriptId struct {
@@ -30,25 +35,15 @@ func NewDeploymentScriptID(subscriptionId string, resourceGroupName string, depl
 
 // ParseDeploymentScriptID parses 'input' into a DeploymentScriptId
 func ParseDeploymentScriptID(input string) (*DeploymentScriptId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeploymentScriptId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeploymentScriptId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeploymentScriptId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DeploymentScriptName, ok = parsed.Parsed["deploymentScriptName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deploymentScriptName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDeploymentScriptID(input string) (*DeploymentScriptId, error) {
 // ParseDeploymentScriptIDInsensitively parses 'input' case-insensitively into a DeploymentScriptId
 // note: this method should only be used for API response data and not user input
 func ParseDeploymentScriptIDInsensitively(input string) (*DeploymentScriptId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeploymentScriptId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeploymentScriptId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeploymentScriptId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DeploymentScriptName, ok = parsed.Parsed["deploymentScriptName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deploymentScriptName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeploymentScriptId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DeploymentScriptName, ok = input.Parsed["deploymentScriptName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deploymentScriptName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeploymentScriptID checks that 'input' can be parsed as a Deployment Script ID
@@ -112,7 +115,7 @@ func (id DeploymentScriptId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftResources", "Microsoft.Resources", "Microsoft.Resources"),
 		resourceids.StaticSegment("staticDeploymentScripts", "deploymentScripts", "deploymentScripts"),
-		resourceids.UserSpecifiedSegment("deploymentScriptName", "deploymentScriptValue"),
+		resourceids.UserSpecifiedSegment("deploymentScriptName", "deploymentScriptName"),
 	}
 }
 

@@ -99,7 +99,7 @@ func (r ArcPrivateLinkScopeResource) Exists(ctx context.Context, clients *client
 
 	client := clients.HybridCompute.PrivateLinkScopesClient
 
-	resp, err := client.PrivateLinkScopesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	exists := false
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

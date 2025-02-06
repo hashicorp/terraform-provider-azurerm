@@ -32,7 +32,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 
-  private_endpoint_network_policies_enabled = false
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_public_ip" "example" {
@@ -117,6 +117,7 @@ resource "azurerm_application_gateway" "example" {
     http_listener_name         = "listener"
     backend_address_pool_name  = "backend"
     backend_http_settings_name = "settings"
+    priority                   = 100
   }
 }
 

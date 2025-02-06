@@ -39,7 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	resources := map[string]*pluginsdk.Resource{
 		"azurerm_logic_app_action_custom":                           resourceLogicAppActionCustom(),
 		"azurerm_logic_app_action_http":                             resourceLogicAppActionHTTP(),
 		"azurerm_logic_app_integration_account":                     resourceLogicAppIntegrationAccount(),
@@ -55,7 +55,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_http_request":                    resourceLogicAppTriggerHttpRequest(),
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
-		"azurerm_integration_service_environment":                   resourceIntegrationServiceEnvironment(),
 		"azurerm_logic_app_standard":                                resourceLogicAppStandard(),
 	}
+
+	return resources
 }

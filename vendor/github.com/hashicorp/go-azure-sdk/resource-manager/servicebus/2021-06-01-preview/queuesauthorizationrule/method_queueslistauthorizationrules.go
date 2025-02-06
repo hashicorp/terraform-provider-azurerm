@@ -19,7 +19,20 @@ type QueuesListAuthorizationRulesOperationResponse struct {
 }
 
 type QueuesListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
+}
+
+type QueuesListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *QueuesListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // QueuesListAuthorizationRules ...
@@ -30,6 +43,7 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &QueuesListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatch
 
 	resp, err := c.QueuesListAuthorizationRules(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatch
 	}
 
 	result = QueuesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

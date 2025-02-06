@@ -5,7 +5,9 @@ package validation
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -171,6 +173,33 @@ func IsURLWithScheme(validSchemes []string) func(interface{}, string) ([]string,
 	return validation.IsURLWithScheme(validSchemes)
 }
 
+// IsURLWithPath is a SchemaValidateFunc that tests if the provided value is of type string and a valid URL with a path
+func IsURLWithPath(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if v == "" {
+		errors = append(errors, fmt.Errorf("expected %q url to not be empty, got %v", k, i))
+		return
+	}
+
+	u, err := url.Parse(v)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %q to be a valid url, got %v: %+v", k, v, err))
+		return
+	}
+
+	if strings.TrimPrefix(u.Path, "/") == "" {
+		errors = append(errors, fmt.Errorf("expected %q to have a non empty path got %v", k, v))
+		return
+	}
+
+	return
+}
+
 // IsUUID is a ValidateFunc that ensures a string can be parsed as UUID
 func IsUUID(i interface{}, k string) ([]string, []error) {
 	return validation.IsUUID(i, k)
@@ -262,4 +291,21 @@ func StringMatch(r *regexp.Regexp, message string) func(interface{}, string) ([]
 // will test with in lower case if ignoreCase is true
 func StringNotInSlice(invalid []string, ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.StringNotInSlice(invalid, ignoreCase)
+}
+
+func StringStartsWithOneOf(prefixs ...string) func(interface{}, string) ([]string, []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+			return warnings, errors
+		}
+		for _, val := range prefixs {
+			if strings.HasPrefix(v, val) {
+				return warnings, errors
+			}
+		}
+		errors = append(errors, fmt.Errorf("expect %s to start with one of %s, got %q", k, strings.Join(prefixs, ", "), v))
+		return warnings, errors
+	}
 }

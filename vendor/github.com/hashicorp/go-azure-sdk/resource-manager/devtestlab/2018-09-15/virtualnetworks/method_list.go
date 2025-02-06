@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []VirtualNetwork
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetwork
 }
 
 type ListOperationOptions struct {
@@ -41,6 +42,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -61,6 +63,18 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c VirtualNetworksClient) List(ctx context.Context, id LabId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -69,8 +83,9 @@ func (c VirtualNetworksClient) List(ctx context.Context, id LabId, options ListO
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/virtualNetworks", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/virtualNetworks", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -111,6 +126,7 @@ func (c VirtualNetworksClient) ListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.List(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -123,7 +139,8 @@ func (c VirtualNetworksClient) ListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

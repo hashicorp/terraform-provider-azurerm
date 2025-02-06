@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SimPolicyId{}
+func init() {
+	recaser.RegisterResourceId(&SimPolicyId{})
+}
+
+var _ resourceids.ResourceId = &SimPolicyId{}
 
 // SimPolicyId is a struct representing the Resource ID for a Sim Policy
 type SimPolicyId struct {
@@ -32,29 +37,15 @@ func NewSimPolicyID(subscriptionId string, resourceGroupName string, mobileNetwo
 
 // ParseSimPolicyID parses 'input' into a SimPolicyId
 func ParseSimPolicyID(input string) (*SimPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SimPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&SimPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SimPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SimPolicyName, ok = parsed.Parsed["simPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "simPolicyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseSimPolicyID(input string) (*SimPolicyId, error) {
 // ParseSimPolicyIDInsensitively parses 'input' case-insensitively into a SimPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseSimPolicyIDInsensitively(input string) (*SimPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SimPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&SimPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SimPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MobileNetworkName, ok = parsed.Parsed["mobileNetworkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", *parsed)
-	}
-
-	if id.SimPolicyName, ok = parsed.Parsed["simPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "simPolicyName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SimPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MobileNetworkName, ok = input.Parsed["mobileNetworkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mobileNetworkName", input)
+	}
+
+	if id.SimPolicyName, ok = input.Parsed["simPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "simPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateSimPolicyID checks that 'input' can be parsed as a Sim Policy ID
@@ -122,9 +121,9 @@ func (id SimPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticMobileNetworks", "mobileNetworks", "mobileNetworks"),
-		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkValue"),
+		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkName"),
 		resourceids.StaticSegment("staticSimPolicies", "simPolicies", "simPolicies"),
-		resourceids.UserSpecifiedSegment("simPolicyName", "simPolicyValue"),
+		resourceids.UserSpecifiedSegment("simPolicyName", "simPolicyName"),
 	}
 }
 

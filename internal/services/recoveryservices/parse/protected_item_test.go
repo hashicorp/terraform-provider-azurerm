@@ -27,7 +27,6 @@ func TestProtectedItemID(t *testing.T) {
 		Error    bool
 		Expected *ProtectedItemId
 	}{
-
 		{
 			// empty
 			Input: "",

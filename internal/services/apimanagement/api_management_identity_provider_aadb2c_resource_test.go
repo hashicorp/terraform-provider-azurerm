@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/identityprovider"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,6 +37,36 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, b2cConfig),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+	})
+}
+
+func TestAccAzureRMApiManagementIdentityProviderAADB2C_clientLibrary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
+	r := ApiManagementIdentityProviderAADB2CResource{}
+	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clientLibrary(data, b2cConfig),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.clientLibraryUpdate(data, b2cConfig),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.clientLibrary(data, b2cConfig),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -148,6 +178,126 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   api_management_name    = azurerm_api_management.test.name
   client_id              = azuread_application.test.application_id
+  client_secret          = azuread_application_password.test.value
+  allowed_tenant         = "%[4]s.onmicrosoft.com"
+  signin_tenant          = "%[4]s.onmicrosoft.com"
+  authority              = "%[4]s.b2clogin.com"
+  signin_policy          = "B2C_1_Login"
+  signup_policy          = "B2C_1_Signup"
+  profile_editing_policy = "B2C_1_EditProfile"
+  password_reset_policy  = "B2C_1_ResetPassword"
+
+  depends_on = [azuread_application_password.test]
+}
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementIdentityProviderAADB2CResource) clientLibrary(data acceptance.TestData, b2cConfig map[string]string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {
+  tenant_id     = "%[1]s"
+  client_id     = "%[2]s"
+  client_secret = "%[3]s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api-%[5]d"
+  location = "%[6]s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[5]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+
+resource "azuread_application" "test" {
+  display_name = "acctestAM-%[5]d"
+  web {
+    redirect_uris = [azurerm_api_management.test.developer_portal_url]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
+}
+
+resource "azuread_application_password" "test" {
+  application_object_id = azuread_application.test.object_id
+}
+
+resource "azurerm_api_management_identity_provider_aadb2c" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  api_management_name    = azurerm_api_management.test.name
+  client_id              = azuread_application.test.application_id
+  client_library         = "MSAL"
+  client_secret          = azuread_application_password.test.value
+  allowed_tenant         = "%[4]s.onmicrosoft.com"
+  signin_tenant          = "%[4]s.onmicrosoft.com"
+  authority              = "%[4]s.b2clogin.com"
+  signin_policy          = "B2C_1_Login"
+  signup_policy          = "B2C_1_Signup"
+  profile_editing_policy = "B2C_1_EditProfile"
+  password_reset_policy  = "B2C_1_ResetPassword"
+
+  depends_on = [azuread_application_password.test]
+}
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary)
+}
+
+func (ApiManagementIdentityProviderAADB2CResource) clientLibraryUpdate(data acceptance.TestData, b2cConfig map[string]string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {
+  tenant_id     = "%[1]s"
+  client_id     = "%[2]s"
+  client_secret = "%[3]s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api-%[5]d"
+  location = "%[6]s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[5]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+
+resource "azuread_application" "test" {
+  display_name = "acctestAM-%[5]d"
+  web {
+    redirect_uris = [azurerm_api_management.test.developer_portal_url]
+
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
+}
+
+resource "azuread_application_password" "test" {
+  application_object_id = azuread_application.test.object_id
+}
+
+resource "azurerm_api_management_identity_provider_aadb2c" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  api_management_name    = azurerm_api_management.test.name
+  client_id              = azuread_application.test.application_id
+  client_library         = "MSAL-2"
   client_secret          = azuread_application_password.test.value
   allowed_tenant         = "%[4]s.onmicrosoft.com"
   signin_tenant          = "%[4]s.onmicrosoft.com"

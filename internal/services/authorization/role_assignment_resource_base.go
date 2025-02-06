@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization
 
 import (
@@ -11,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -111,7 +114,7 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
 			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
-			subscriptionClient := metadata.Client.Subscription.Client
+			subscriptionClient := metadata.Client.Subscription.SubscriptionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			name := metadata.ResourceData.Get("name").(string)
 

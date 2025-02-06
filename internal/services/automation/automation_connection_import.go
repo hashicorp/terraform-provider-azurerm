@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/connection"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -23,7 +23,7 @@ func importAutomationConnection(connectionType string) pluginsdk.ImporterFunc {
 		ctx, cancel := timeouts.ForRead(ctx, d)
 		defer cancel()
 
-		client := meta.(*clients.Client).Automation.ConnectionClient
+		client := meta.(*clients.Client).Automation.Connection
 		resp, err := client.Get(ctx, *id)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", *id, err)

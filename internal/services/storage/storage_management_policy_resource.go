@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	// nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/managementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -175,6 +177,24 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_cold_after_days_since_modification_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_cold_after_days_since_last_access_time_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -221,6 +241,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_creation_greater_than": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -254,6 +280,12 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 													Default:      -1,
 													ValidateFunc: validation.IntBetween(0, 99999),
 												},
+												"tier_to_cold_after_days_since_creation_greater_than": {
+													Type:         pluginsdk.TypeInt,
+													Optional:     true,
+													Default:      -1,
+													ValidateFunc: validation.IntBetween(0, 99999),
+												},
 												"delete_after_days_since_creation": {
 													Type:         pluginsdk.TypeInt,
 													Optional:     true,
@@ -274,7 +306,7 @@ func resourceStorageManagementPolicy() *pluginsdk.Resource {
 }
 
 func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,18 +319,18 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 	mgmtPolicyId := parse.NewStorageAccountManagementPolicyID(rid.SubscriptionId, rid.ResourceGroupName, rid.StorageAccountName, "default")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, rid.ResourceGroupName, rid.StorageAccountName)
+		existing, err := client.Get(ctx, *rid)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", mgmtPolicyId, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_storage_management_policy", mgmtPolicyId.ID())
 		}
 	}
 
-	parameters := storage.ManagementPolicy{
+	parameters := managementpolicies.ManagementPolicy{
 		Name: &mgmtPolicyId.ManagementPolicyName,
 	}
 
@@ -307,13 +339,13 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("expanding %s: %+v", mgmtPolicyId, err)
 	}
 
-	parameters.ManagementPolicyProperties = &storage.ManagementPolicyProperties{
-		Policy: &storage.ManagementPolicySchema{
+	parameters.Properties = &managementpolicies.ManagementPolicyProperties{
+		Policy: managementpolicies.ManagementPolicySchema{
 			Rules: armRules,
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, rid.ResourceGroupName, rid.StorageAccountName, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *rid, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", mgmtPolicyId, err)
 	}
 
@@ -323,7 +355,7 @@ func resourceStorageManagementPolicyCreateOrUpdate(d *pluginsdk.ResourceData, me
 }
 
 func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -332,9 +364,11 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	result, err := client.Get(ctx, rid.ResourceGroup, rid.StorageAccountName)
+	accountId := commonids.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
+
+	result, err := client.Get(ctx, accountId)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state!", rid)
 			d.SetId("")
 			return nil
@@ -343,12 +377,11 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving %s: %+v", rid, err)
 	}
 
-	d.Set("storage_account_id", commonids.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName).ID())
+	d.Set("storage_account_id", accountId.ID())
 
-	if policy := result.Policy; policy != nil {
-		policy := result.Policy
-		if rules := policy.Rules; rules != nil {
-			if err := d.Set("rule", flattenStorageManagementPolicyRules(rules)); err != nil {
+	if model := result.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if err := d.Set("rule", flattenStorageManagementPolicyRules(props.Policy.Rules)); err != nil {
 				return fmt.Errorf("flattening `rule`: %+v", err)
 			}
 		}
@@ -358,7 +391,7 @@ func resourceStorageManagementPolicyRead(d *pluginsdk.ResourceData, meta interfa
 }
 
 func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
+	client := meta.(*clients.Client).Storage.ResourceManager.ManagementPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -367,15 +400,17 @@ func resourceStorageManagementPolicyDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	if _, err := client.Delete(ctx, rid.ResourceGroup, rid.StorageAccountName); err != nil {
+	accountId := commonids.NewStorageAccountID(rid.SubscriptionId, rid.ResourceGroup, rid.StorageAccountName)
+
+	if _, err := client.Delete(ctx, accountId); err != nil {
 		return fmt.Errorf("deleting %s: %+v", rid, err)
 	}
 	return nil
 }
 
 // nolint unparam
-func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) (*[]storage.ManagementPolicyRule, error) {
-	var result []storage.ManagementPolicyRule
+func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) ([]managementpolicies.ManagementPolicyRule, error) {
+	var result []managementpolicies.ManagementPolicyRule
 
 	rules := d.Get("rule").([]interface{})
 
@@ -394,17 +429,17 @@ func expandStorageManagementPolicyRules(d *pluginsdk.ResourceData) (*[]storage.M
 			result = append(result, *rule)
 		}
 	}
-	return &result, nil
+	return result, nil
 }
 
-func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int) (*storage.ManagementPolicyRule, error) {
+func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int) (*managementpolicies.ManagementPolicyRule, error) {
 	name := d.Get(fmt.Sprintf("rule.%d.name", ruleIndex)).(string)
 	enabled := d.Get(fmt.Sprintf("rule.%d.enabled", ruleIndex)).(bool)
 	typeVal := "Lifecycle"
 
-	definition := storage.ManagementPolicyDefinition{
-		Filters: &storage.ManagementPolicyFilter{},
-		Actions: &storage.ManagementPolicyAction{},
+	definition := managementpolicies.ManagementPolicyDefinition{
+		Filters: &managementpolicies.ManagementPolicyFilter{},
+		Actions: managementpolicies.ManagementPolicyAction{},
 	}
 	filtersRef := d.Get(fmt.Sprintf("rule.%d.filters", ruleIndex)).([]interface{})
 	if len(filtersRef) == 1 {
@@ -427,14 +462,14 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 					blobTypes = append(blobTypes, blobTypeRef.(string))
 				}
 			}
-			definition.Filters.BlobTypes = &blobTypes
+			definition.Filters.BlobTypes = blobTypes
 
 			definition.Filters.BlobIndexMatch = expandAzureRmStorageBlobIndexMatch(filterRef["match_blob_index_tag"].(*pluginsdk.Set).List())
 		}
 	}
 	if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions", ruleIndex)); ok {
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.base_blob", ruleIndex)); ok {
-			baseBlob := &storage.ManagementPolicyBaseBlob{}
+			baseBlob := &managementpolicies.ManagementPolicyBaseBlob{}
 			var (
 				sinceMod, sinceAccess, sinceCreate       interface{}
 				sinceModOK, sinceAccessOK, sinceCreateOK bool
@@ -469,7 +504,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			}
 
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
-				baseBlob.TierToCool = &storage.DateAfterModification{}
+				baseBlob.TierToCool = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.TierToCool.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
 				}
@@ -506,7 +541,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 			}
 
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
-				baseBlob.TierToArchive = &storage.DateAfterModification{}
+				baseBlob.TierToArchive = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.TierToArchive.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
 				}
@@ -542,7 +577,7 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				return nil, fmt.Errorf("Only one of `delete_after_days_since_modification_greater_than`, `delete_after_days_since_last_access_time_greater_than` and `delete_after_days_since_creation_greater_than` can be specified at the same time")
 			}
 			if sinceModOK || sinceAccessOK || sinceCreateOK {
-				baseBlob.Delete = &storage.DateAfterModification{}
+				baseBlob.Delete = &managementpolicies.DateAfterModification{}
 				if sinceModOK {
 					baseBlob.Delete.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
 				}
@@ -554,230 +589,302 @@ func expandStorageManagementPolicyRule(d *pluginsdk.ResourceData, ruleIndex int)
 				}
 			}
 
+			sinceMod = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_modification_greater_than", ruleIndex))
+			sinceModOK = sinceMod != -1
+			sinceAccess = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_last_access_time_greater_than", ruleIndex))
+			sinceAccessOK = sinceAccess != -1
+			sinceCreate = d.Get(fmt.Sprintf("rule.%d.actions.0.base_blob.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex))
+			sinceCreateOK = sinceCreate != -1
+
+			cnt = 0
+			if sinceModOK {
+				cnt++
+			}
+			if sinceAccessOK {
+				cnt++
+			}
+			if sinceCreateOK {
+				cnt++
+			}
+			if cnt > 1 {
+				return nil, fmt.Errorf("Only one of `tier_to_cold_after_days_since_modification_greater_than`, `tier_to_cold_after_days_since_last_access_time_greater_than` and `tier_to_cold_after_days_since_creation_greater_than` can be specified at the same time")
+			}
+
+			if sinceModOK || sinceAccessOK || sinceCreateOK {
+				baseBlob.TierToCold = &managementpolicies.DateAfterModification{}
+				if sinceModOK {
+					baseBlob.TierToCold.DaysAfterModificationGreaterThan = utils.Float(float64(sinceMod.(int)))
+				}
+				if sinceAccessOK {
+					baseBlob.TierToCold.DaysAfterLastAccessTimeGreaterThan = utils.Float(float64(sinceAccess.(int)))
+				}
+				if sinceCreateOK {
+					baseBlob.TierToCold.DaysAfterCreationGreaterThan = utils.Float(float64(sinceCreate.(int)))
+				}
+			}
+
 			definition.Actions.BaseBlob = baseBlob
 		}
 
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.snapshot", ruleIndex)); ok {
-			snapshot := &storage.ManagementPolicySnapShot{}
+			snapshot := &managementpolicies.ManagementPolicySnapShot{}
 
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
-				v2 := float64(v.(int))
-				snapshot.Delete = &storage.DateAfterCreation{DaysAfterCreationGreaterThan: &v2}
+				snapshot.Delete = &managementpolicies.DateAfterCreation{DaysAfterCreationGreaterThan: float64(v.(int))}
 			}
 
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
-				snapshot.TierToArchive = &storage.DateAfterCreation{
-					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				snapshot.TierToArchive = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
 					snapshot.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
-				snapshot.TierToCool = &storage.DateAfterCreation{
-					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				snapshot.TierToCool = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
+				}
+			}
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.snapshot.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
+				snapshot.TierToCold = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 			}
 			definition.Actions.Snapshot = snapshot
 		}
 
 		if _, ok := d.GetOk(fmt.Sprintf("rule.%d.actions.0.version", ruleIndex)); ok {
-			version := &storage.ManagementPolicyVersion{}
+			version := &managementpolicies.ManagementPolicyVersion{}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.delete_after_days_since_creation", ruleIndex)); v != -1 {
-				version.Delete = &storage.DateAfterCreation{
-					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				version.Delete = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_archive_after_days_since_creation", ruleIndex)); v != -1 {
-				version.TierToArchive = &storage.DateAfterCreation{
-					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				version.TierToArchive = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 				if vv := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_archive_after_days_since_last_tier_change_greater_than", ruleIndex)); vv != -1 {
 					version.TierToArchive.DaysAfterLastTierChangeGreaterThan = utils.Float(float64(vv.(int)))
 				}
 			}
 			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.change_tier_to_cool_after_days_since_creation", ruleIndex)); v != -1 {
-				version.TierToCool = &storage.DateAfterCreation{
-					DaysAfterCreationGreaterThan: utils.Float(float64(v.(int))),
+				version.TierToCool = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
+				}
+			}
+			if v := d.Get(fmt.Sprintf("rule.%d.actions.0.version.0.tier_to_cold_after_days_since_creation_greater_than", ruleIndex)); v != -1 {
+				version.TierToCold = &managementpolicies.DateAfterCreation{
+					DaysAfterCreationGreaterThan: float64(v.(int)),
 				}
 			}
 			definition.Actions.Version = version
 		}
 	}
 
-	return &storage.ManagementPolicyRule{
-		Name:       &name,
+	return &managementpolicies.ManagementPolicyRule{
+		Name:       name,
 		Enabled:    &enabled,
-		Type:       &typeVal,
-		Definition: &definition,
+		Type:       managementpolicies.RuleType(typeVal),
+		Definition: definition,
 	}, nil
 }
 
-func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRule) []interface{} {
+func flattenStorageManagementPolicyRules(armRules []managementpolicies.ManagementPolicyRule) []interface{} {
 	rules := make([]interface{}, 0)
 	if armRules == nil {
 		return rules
 	}
-	for _, armRule := range *armRules {
+	for _, armRule := range armRules {
 		rule := make(map[string]interface{})
 
-		if armRule.Name != nil {
-			rule["name"] = *armRule.Name
-		}
-		if armRule.Enabled != nil {
-			rule["enabled"] = *armRule.Enabled
-		}
+		rule["name"] = armRule.Name
+		rule["enabled"] = armRule.Enabled
 
 		armDefinition := armRule.Definition
-		if armDefinition != nil {
-			armFilter := armDefinition.Filters
-			if armFilter != nil {
-				filter := make(map[string]interface{})
-				if armFilter.PrefixMatch != nil {
-					prefixMatches := make([]interface{}, 0)
-					for _, armPrefixMatch := range *armFilter.PrefixMatch {
-						prefixMatches = append(prefixMatches, armPrefixMatch)
-					}
-					filter["prefix_match"] = prefixMatches
+		armFilter := armDefinition.Filters
+		if armFilter != nil {
+			filter := make(map[string]interface{})
+			if armFilter.PrefixMatch != nil {
+				prefixMatches := make([]interface{}, 0)
+				for _, armPrefixMatch := range *armFilter.PrefixMatch {
+					prefixMatches = append(prefixMatches, armPrefixMatch)
 				}
-				if armFilter.BlobTypes != nil {
-					blobTypes := make([]interface{}, 0)
-					for _, armBlobType := range *armFilter.BlobTypes {
-						blobTypes = append(blobTypes, armBlobType)
-					}
-					filter["blob_types"] = blobTypes
+				filter["prefix_match"] = prefixMatches
+			}
+			if armFilter.BlobTypes != nil {
+				blobTypes := make([]interface{}, 0)
+				for _, armBlobType := range armFilter.BlobTypes {
+					blobTypes = append(blobTypes, armBlobType)
 				}
-
-				filter["match_blob_index_tag"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
-
-				rule["filters"] = []interface{}{filter}
+				filter["blob_types"] = blobTypes
 			}
 
-			armAction := armDefinition.Actions
-			if armAction != nil {
-				action := make(map[string]interface{})
-				armActionBaseBlob := armAction.BaseBlob
-				if armActionBaseBlob != nil {
-					var (
-						tierToCoolSinceMod               = -1
-						tierToCoolSinceAccess            = -1
-						tierToCoolSinceCreate            = -1
-						autoTierToHotOK                  = false
-						tierToArchiveSinceMod            = -1
-						tierToArchiveSinceAccess         = -1
-						tierToArchiveSinceCreate         = -1
-						tierToArchiveSinceLastTierChange = -1
-						deleteSinceMod                   = -1
-						deleteSinceAccess                = -1
-						deleteSinceCreate                = -1
-					)
+			filter["match_blob_index_tag"] = flattenAzureRmStorageBlobIndexMatch(armFilter.BlobIndexMatch)
 
-					if v := armActionBaseBlob.EnableAutoTierToHotFromCool; v != nil {
-						autoTierToHotOK = *v
-					}
-					if props := armActionBaseBlob.TierToCool; props != nil {
-						if props.DaysAfterModificationGreaterThan != nil {
-							tierToCoolSinceMod = int(*props.DaysAfterModificationGreaterThan)
-						}
-						if props.DaysAfterLastAccessTimeGreaterThan != nil {
-							tierToCoolSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
-						}
-						if props.DaysAfterCreationGreaterThan != nil {
-							tierToCoolSinceCreate = int(*props.DaysAfterCreationGreaterThan)
-						}
-					}
-					if props := armActionBaseBlob.TierToArchive; props != nil {
-						if props.DaysAfterModificationGreaterThan != nil {
-							tierToArchiveSinceMod = int(*props.DaysAfterModificationGreaterThan)
-						}
-						if props.DaysAfterLastAccessTimeGreaterThan != nil {
-							tierToArchiveSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
-						}
-						if props.DaysAfterLastTierChangeGreaterThan != nil {
-							tierToArchiveSinceLastTierChange = int(*props.DaysAfterLastTierChangeGreaterThan)
-						}
-						if props.DaysAfterCreationGreaterThan != nil {
-							tierToArchiveSinceCreate = int(*props.DaysAfterCreationGreaterThan)
-						}
-					}
-					if props := armActionBaseBlob.Delete; props != nil {
-						if props.DaysAfterModificationGreaterThan != nil {
-							deleteSinceMod = int(*props.DaysAfterModificationGreaterThan)
-						}
-						if props.DaysAfterLastAccessTimeGreaterThan != nil {
-							deleteSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
-						}
-						if props.DaysAfterCreationGreaterThan != nil {
-							deleteSinceCreate = int(*props.DaysAfterCreationGreaterThan)
-						}
-					}
-					action["base_blob"] = []interface{}{
-						map[string]interface{}{
-							"auto_tier_to_hot_from_cool_enabled":                             autoTierToHotOK,
-							"tier_to_cool_after_days_since_modification_greater_than":        tierToCoolSinceMod,
-							"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
-							"tier_to_cool_after_days_since_creation_greater_than":            tierToCoolSinceCreate,
-							"tier_to_archive_after_days_since_modification_greater_than":     tierToArchiveSinceMod,
-							"tier_to_archive_after_days_since_last_access_time_greater_than": tierToArchiveSinceAccess,
-							"tier_to_archive_after_days_since_last_tier_change_greater_than": tierToArchiveSinceLastTierChange,
-							"tier_to_archive_after_days_since_creation_greater_than":         tierToArchiveSinceCreate,
-							"delete_after_days_since_modification_greater_than":              deleteSinceMod,
-							"delete_after_days_since_last_access_time_greater_than":          deleteSinceAccess,
-							"delete_after_days_since_creation_greater_than":                  deleteSinceCreate,
-						},
-					}
+			rule["filters"] = []interface{}{filter}
+		}
+
+		armAction := armDefinition.Actions
+		action := make(map[string]interface{})
+		armActionBaseBlob := armAction.BaseBlob
+		if armActionBaseBlob != nil {
+			var (
+				tierToCoolSinceMod               = -1
+				tierToCoolSinceAccess            = -1
+				tierToCoolSinceCreate            = -1
+				autoTierToHotOK                  = false
+				tierToArchiveSinceMod            = -1
+				tierToArchiveSinceAccess         = -1
+				tierToArchiveSinceCreate         = -1
+				tierToArchiveSinceLastTierChange = -1
+				tierToColdSinceMod               = -1
+				tierToColdSinceAccess            = -1
+				tierToColdSinceCreate            = -1
+				deleteSinceMod                   = -1
+				deleteSinceAccess                = -1
+				deleteSinceCreate                = -1
+			)
+
+			if v := armActionBaseBlob.EnableAutoTierToHotFromCool; v != nil {
+				autoTierToHotOK = *v
+			}
+			if props := armActionBaseBlob.TierToCool; props != nil {
+				if props.DaysAfterModificationGreaterThan != nil {
+					tierToCoolSinceMod = int(*props.DaysAfterModificationGreaterThan)
 				}
-
-				armActionSnaphost := armAction.Snapshot
-				if armActionSnaphost != nil {
-					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
-					if armActionSnaphost.Delete != nil && armActionSnaphost.Delete.DaysAfterCreationGreaterThan != nil {
-						deleteAfterCreation = int(*armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
-					}
-					if armActionSnaphost.TierToArchive != nil && armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan != nil {
-						archiveAfterCreation = int(*armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
-
-						if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
-							archiveAfterLastTierChange = int(*v)
-						}
-					}
-					if armActionSnaphost.TierToCool != nil && armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan != nil {
-						coolAfterCreation = int(*armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
-					}
-					action["snapshot"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
-						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
-						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
-					}}
+				if props.DaysAfterLastAccessTimeGreaterThan != nil {
+					tierToCoolSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
 				}
-
-				if armActionVersion := armAction.Version; armActionVersion != nil {
-					deleteAfterCreation, archiveAfterCreation, archiveAfterLastTierChange, coolAfterCreation := -1, -1, -1, -1
-					if armActionVersion.Delete != nil && armActionVersion.Delete.DaysAfterCreationGreaterThan != nil {
-						deleteAfterCreation = int(*armActionVersion.Delete.DaysAfterCreationGreaterThan)
-					}
-					if armActionVersion.TierToArchive != nil && armActionVersion.TierToArchive.DaysAfterCreationGreaterThan != nil {
-						archiveAfterCreation = int(*armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
-
-						if v := armActionVersion.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
-							archiveAfterLastTierChange = int(*v)
-						}
-					}
-					if armActionVersion.TierToCool != nil && armActionVersion.TierToCool.DaysAfterCreationGreaterThan != nil {
-						coolAfterCreation = int(*armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
-					}
-					action["version"] = []interface{}{map[string]interface{}{
-						"delete_after_days_since_creation":                               deleteAfterCreation,
-						"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
-						"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
-						"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
-					}}
+				if props.DaysAfterCreationGreaterThan != nil {
+					tierToCoolSinceCreate = int(*props.DaysAfterCreationGreaterThan)
 				}
-
-				rule["actions"] = []interface{}{action}
+			}
+			if props := armActionBaseBlob.TierToArchive; props != nil {
+				if props.DaysAfterModificationGreaterThan != nil {
+					tierToArchiveSinceMod = int(*props.DaysAfterModificationGreaterThan)
+				}
+				if props.DaysAfterLastAccessTimeGreaterThan != nil {
+					tierToArchiveSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
+				}
+				if props.DaysAfterLastTierChangeGreaterThan != nil {
+					tierToArchiveSinceLastTierChange = int(*props.DaysAfterLastTierChangeGreaterThan)
+				}
+				if props.DaysAfterCreationGreaterThan != nil {
+					tierToArchiveSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+				}
+			}
+			if props := armActionBaseBlob.TierToCold; props != nil {
+				if props.DaysAfterModificationGreaterThan != nil {
+					tierToColdSinceMod = int(*props.DaysAfterModificationGreaterThan)
+				}
+				if props.DaysAfterLastAccessTimeGreaterThan != nil {
+					tierToColdSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
+				}
+				if props.DaysAfterCreationGreaterThan != nil {
+					tierToColdSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+				}
+			}
+			if props := armActionBaseBlob.Delete; props != nil {
+				if props.DaysAfterModificationGreaterThan != nil {
+					deleteSinceMod = int(*props.DaysAfterModificationGreaterThan)
+				}
+				if props.DaysAfterLastAccessTimeGreaterThan != nil {
+					deleteSinceAccess = int(*props.DaysAfterLastAccessTimeGreaterThan)
+				}
+				if props.DaysAfterCreationGreaterThan != nil {
+					deleteSinceCreate = int(*props.DaysAfterCreationGreaterThan)
+				}
+			}
+			action["base_blob"] = []interface{}{
+				map[string]interface{}{
+					"auto_tier_to_hot_from_cool_enabled":                             autoTierToHotOK,
+					"tier_to_cool_after_days_since_modification_greater_than":        tierToCoolSinceMod,
+					"tier_to_cool_after_days_since_last_access_time_greater_than":    tierToCoolSinceAccess,
+					"tier_to_cool_after_days_since_creation_greater_than":            tierToCoolSinceCreate,
+					"tier_to_archive_after_days_since_modification_greater_than":     tierToArchiveSinceMod,
+					"tier_to_archive_after_days_since_last_access_time_greater_than": tierToArchiveSinceAccess,
+					"tier_to_archive_after_days_since_last_tier_change_greater_than": tierToArchiveSinceLastTierChange,
+					"tier_to_archive_after_days_since_creation_greater_than":         tierToArchiveSinceCreate,
+					"tier_to_cold_after_days_since_modification_greater_than":        tierToColdSinceMod,
+					"tier_to_cold_after_days_since_last_access_time_greater_than":    tierToColdSinceAccess,
+					"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
+					"delete_after_days_since_modification_greater_than":              deleteSinceMod,
+					"delete_after_days_since_last_access_time_greater_than":          deleteSinceAccess,
+					"delete_after_days_since_creation_greater_than":                  deleteSinceCreate,
+				},
 			}
 		}
+
+		armActionSnaphost := armAction.Snapshot
+		if armActionSnaphost != nil {
+			var (
+				deleteAfterCreation        = -1
+				archiveAfterCreation       = -1
+				archiveAfterLastTierChange = -1
+				coolAfterCreation          = -1
+				tierToColdSinceCreate      = -1
+			)
+			if armActionSnaphost.Delete != nil {
+				deleteAfterCreation = int(armActionSnaphost.Delete.DaysAfterCreationGreaterThan)
+			}
+			if armActionSnaphost.TierToArchive != nil {
+				archiveAfterCreation = int(armActionSnaphost.TierToArchive.DaysAfterCreationGreaterThan)
+
+				if v := armActionSnaphost.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+					archiveAfterLastTierChange = int(*v)
+				}
+			}
+			if armActionSnaphost.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionSnaphost.TierToCold.DaysAfterCreationGreaterThan)
+			}
+			if armActionSnaphost.TierToCool != nil {
+				coolAfterCreation = int(armActionSnaphost.TierToCool.DaysAfterCreationGreaterThan)
+			}
+			action["snapshot"] = []interface{}{map[string]interface{}{
+				"delete_after_days_since_creation_greater_than":                  deleteAfterCreation,
+				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+				"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
+				"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
+			}}
+		}
+
+		if armActionVersion := armAction.Version; armActionVersion != nil {
+			var (
+				deleteAfterCreation        = -1
+				archiveAfterCreation       = -1
+				archiveAfterLastTierChange = -1
+				coolAfterCreation          = -1
+				tierToColdSinceCreate      = -1
+			)
+			if armActionVersion.Delete != nil {
+				deleteAfterCreation = int(armActionVersion.Delete.DaysAfterCreationGreaterThan)
+			}
+			if armActionVersion.TierToArchive != nil {
+				archiveAfterCreation = int(armActionVersion.TierToArchive.DaysAfterCreationGreaterThan)
+
+				if v := armActionVersion.TierToArchive.DaysAfterLastTierChangeGreaterThan; v != nil {
+					archiveAfterLastTierChange = int(*v)
+				}
+			}
+			if armActionVersion.TierToCold != nil {
+				tierToColdSinceCreate = int(armActionVersion.TierToCold.DaysAfterCreationGreaterThan)
+			}
+			if armActionVersion.TierToCool != nil {
+				coolAfterCreation = int(armActionVersion.TierToCool.DaysAfterCreationGreaterThan)
+			}
+			action["version"] = []interface{}{map[string]interface{}{
+				"delete_after_days_since_creation":                               deleteAfterCreation,
+				"change_tier_to_archive_after_days_since_creation":               archiveAfterCreation,
+				"tier_to_archive_after_days_since_last_tier_change_greater_than": archiveAfterLastTierChange,
+				"tier_to_cold_after_days_since_creation_greater_than":            tierToColdSinceCreate,
+				"change_tier_to_cool_after_days_since_creation":                  coolAfterCreation,
+			}}
+		}
+
+		rule["actions"] = []interface{}{action}
 
 		rules = append(rules, rule)
 	}
@@ -785,19 +892,19 @@ func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRul
 	return rules
 }
 
-func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]storage.TagFilter {
+func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]managementpolicies.TagFilter {
 	if len(blobIndexMatches) == 0 {
 		return nil
 	}
 
-	results := make([]storage.TagFilter, 0)
+	results := make([]managementpolicies.TagFilter, 0)
 	for _, v := range blobIndexMatches {
 		blobIndexMatch := v.(map[string]interface{})
 
-		filter := storage.TagFilter{
-			Name:  utils.String(blobIndexMatch["name"].(string)),
-			Op:    utils.String(blobIndexMatch["operation"].(string)),
-			Value: utils.String(blobIndexMatch["value"].(string)),
+		filter := managementpolicies.TagFilter{
+			Name:  blobIndexMatch["name"].(string),
+			Op:    blobIndexMatch["operation"].(string),
+			Value: blobIndexMatch["value"].(string),
 		}
 
 		results = append(results, filter)
@@ -806,7 +913,7 @@ func expandAzureRmStorageBlobIndexMatch(blobIndexMatches []interface{}) *[]stora
 	return &results
 }
 
-func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) []map[string]interface{} {
+func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]managementpolicies.TagFilter) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 
 	if blobIndexMatches == nil || len(*blobIndexMatches) == 0 {
@@ -814,20 +921,10 @@ func flattenAzureRmStorageBlobIndexMatch(blobIndexMatches *[]storage.TagFilter) 
 	}
 
 	for _, blobIndexMatch := range *blobIndexMatches {
-		var name, op, value string
-		if blobIndexMatch.Name != nil {
-			name = *blobIndexMatch.Name
-		}
-		if blobIndexMatch.Op != nil {
-			op = *blobIndexMatch.Op
-		}
-		if blobIndexMatch.Value != nil {
-			value = *blobIndexMatch.Value
-		}
 		result = append(result, map[string]interface{}{
-			"name":      name,
-			"operation": op,
-			"value":     value,
+			"name":      blobIndexMatch.Name,
+			"operation": blobIndexMatch.Op,
+			"value":     blobIndexMatch.Value,
 		})
 	}
 	return result

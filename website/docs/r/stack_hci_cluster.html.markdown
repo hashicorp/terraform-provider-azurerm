@@ -30,6 +30,9 @@ resource "azurerm_stack_hci_cluster" "example" {
   location            = azurerm_resource_group.example.location
   client_id           = data.azuread_application.example.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -43,7 +46,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Stack HCI Cluster should exist. Changing this forces a new resource to be created.
 
-* `client_id` - (Required) The Client ID of the Azure Active Directory which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
+* `client_id` - (Optional) The Client ID of the Azure Active Directory Application which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
 
@@ -53,11 +58,35 @@ The following arguments are supported:
 
 * `automanage_configuration_id` - (Optional) The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on the Azure Stack HCI Cluster. Possible value is `SystemAssigned`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Azure Stack HCI Cluster.
+* `id` - The resource ID of the Azure Stack HCI Cluster.
+
+* `cloud_id` - An immutable UUID for the Azure Stack HCI Cluster.
+
+* `resource_provider_object_id` - The object ID of the Resource Provider Service Principal.
+
+* `identity` - An `identity` block as defined below.
+
+* `service_endpoint` - The region specific Data Path Endpoint of the Azure Stack HCI Cluster.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+-> You can access the Principal ID via `azurerm_stack_hci_cluster.example.identity.0.principal_id`
 
 ## Timeouts
 

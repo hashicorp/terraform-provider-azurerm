@@ -46,6 +46,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of this Service Tags block.
 
+* `name` - The name of this Service Tags block.
+
 * `address_prefixes` - List of address prefixes for the service type (and optionally a specific region).
 
 * `ipv4_cidrs` - List of IPv4 addresses for the service type (and optionally a specific region)

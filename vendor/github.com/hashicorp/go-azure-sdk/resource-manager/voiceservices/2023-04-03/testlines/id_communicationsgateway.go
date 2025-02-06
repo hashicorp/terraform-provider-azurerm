@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CommunicationsGatewayId{}
+func init() {
+	recaser.RegisterResourceId(&CommunicationsGatewayId{})
+}
+
+var _ resourceids.ResourceId = &CommunicationsGatewayId{}
 
 // CommunicationsGatewayId is a struct representing the Resource ID for a Communications Gateway
 type CommunicationsGatewayId struct {
@@ -30,25 +35,15 @@ func NewCommunicationsGatewayID(subscriptionId string, resourceGroupName string,
 
 // ParseCommunicationsGatewayID parses 'input' into a CommunicationsGatewayId
 func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationsGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationsGatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CommunicationsGatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CommunicationsGatewayName, ok = parsed.Parsed["communicationsGatewayName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "communicationsGatewayName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseCommunicationsGatewayID(input string) (*CommunicationsGatewayId, error
 // ParseCommunicationsGatewayIDInsensitively parses 'input' case-insensitively into a CommunicationsGatewayId
 // note: this method should only be used for API response data and not user input
 func ParseCommunicationsGatewayIDInsensitively(input string) (*CommunicationsGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CommunicationsGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&CommunicationsGatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CommunicationsGatewayId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CommunicationsGatewayName, ok = parsed.Parsed["communicationsGatewayName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "communicationsGatewayName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CommunicationsGatewayId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CommunicationsGatewayName, ok = input.Parsed["communicationsGatewayName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "communicationsGatewayName", input)
+	}
+
+	return nil
 }
 
 // ValidateCommunicationsGatewayID checks that 'input' can be parsed as a Communications Gateway ID
@@ -112,7 +115,7 @@ func (id CommunicationsGatewayId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftVoiceServices", "Microsoft.VoiceServices", "Microsoft.VoiceServices"),
 		resourceids.StaticSegment("staticCommunicationsGateways", "communicationsGateways", "communicationsGateways"),
-		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayValue"),
+		resourceids.UserSpecifiedSegment("communicationsGatewayName", "communicationsGatewayName"),
 	}
 }
 

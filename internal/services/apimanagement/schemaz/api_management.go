@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apioperation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -465,7 +465,7 @@ func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[
 }
 
 func convert2Json(rawVal interface{}) (string, error) {
-	value := ""
+	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val
 	} else {

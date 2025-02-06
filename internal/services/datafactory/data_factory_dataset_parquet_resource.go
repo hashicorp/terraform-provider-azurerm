@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
@@ -77,11 +77,53 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 			},
 
 			// Parquet Specific Field, one option for 'location'
+			"azure_blob_fs_location": {
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"file_system": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_file_system_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_path_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"filename": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_filename_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			// Parquet Specific Field, one option for 'location'
 			"azure_blob_storage_location": {
-				Type:          pluginsdk.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"http_server_location"},
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"container": {
@@ -156,10 +198,10 @@ func resourceDataFactoryDatasetParquet() *pluginsdk.Resource {
 
 			// Parquet Specific Field, one option for 'location'
 			"http_server_location": {
-				Type:          pluginsdk.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"azure_blob_storage_location"},
+				Type:         pluginsdk.TypeList,
+				MaxItems:     1,
+				Optional:     true,
+				ExactlyOneOf: []string{"azure_blob_fs_location", "azure_blob_storage_location", "http_server_location"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"relative_url": {
@@ -270,7 +312,7 @@ func resourceDataFactoryDatasetParquetCreateUpdate(d *pluginsdk.ResourceData, me
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Parquet Dataset")
+		return fmt.Errorf("One of `http_server_location`, `azure_blob_fs_location`, `azure_blob_storage_location` must be specified to create a DataFactory Parquet Dataset")
 	}
 
 	parquetDatasetProperties := datafactory.ParquetDatasetTypeProperties{
@@ -392,6 +434,11 @@ func resourceDataFactoryDatasetParquetRead(d *pluginsdk.ResourceData, meta inter
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
 			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
 				return fmt.Errorf("setting `azure_blob_storage_location` for Data Factory Parquet Dataset %s", err)
+			}
+		}
+		if azureBlobFSLocation, ok := properties.Location.AsAzureBlobFSLocation(); ok {
+			if err := d.Set("azure_blob_fs_location", flattenDataFactoryDatasetAzureBlobFSLocation(azureBlobFSLocation)); err != nil {
+				return fmt.Errorf("setting `azure_blob_fs_location` for Data Factory Parquet Dataset %s", err)
 			}
 		}
 

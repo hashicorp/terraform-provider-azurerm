@@ -10,12 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -107,12 +106,7 @@ func resourceSiteRecoveryProtectionContainerMapping() *pluginsdk.Resource {
 						"authentication_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default: func() interface{} {
-								if !features.FourPointOhBeta() {
-									return nil
-								}
-								return string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity)
-							}(),
+							Default:  string(replicationprotectioncontainermappings.AutomationAccountAuthenticationTypeSystemAssignedIdentity),
 							// The Swagger definition defaults to `RunAsAccount` but it is deprecated.
 							// deprecation details: https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts
 							ValidateFunc: validation.StringInSlice(replicationprotectioncontainermappings.PossibleValuesForAutomationAccountAuthenticationType(), false),

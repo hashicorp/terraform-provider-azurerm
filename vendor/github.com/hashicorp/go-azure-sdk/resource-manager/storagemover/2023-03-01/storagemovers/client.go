@@ -15,7 +15,7 @@ type StorageMoversClient struct {
 }
 
 func NewStorageMoversClientWithBaseURI(sdkApi sdkEnv.Api) (*StorageMoversClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "storagemovers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "storagemovers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StorageMoversClient: %+v", err)
 	}

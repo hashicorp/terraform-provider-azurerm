@@ -114,6 +114,7 @@ func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 			"data_source_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"description": {

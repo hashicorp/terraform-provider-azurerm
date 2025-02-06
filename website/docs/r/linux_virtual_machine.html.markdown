@@ -12,7 +12,7 @@ Manages a Linux Virtual Machine.
 
 ## Disclaimers
 
--> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features).
+-> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
 
 ~> **Note** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -80,8 +80,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
 
-* `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. Possible values are `RHEL_BYOS` and `SLES_BYOS`.
+* `license_type` - (Optional) Specifies the License Type for this Virtual Machine. Possible values are `RHEL_BYOS`, `RHEL_BASE`, `RHEL_EUS`, `RHEL_SAPAPPS`, `RHEL_SAPHA`, `RHEL_BASESAPAPPS`, `RHEL_BASESAPHA`, `SLES_BYOS`, `SLES_SAP`, `SLES_HPC`, `UBUNTU_PRO`.
 
 * `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
 
@@ -148,6 +148,8 @@ The following arguments are supported:
 
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for this Virtual Machine. Possible values are `SCSI` and `NVMe`.
+
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine should exist. Changing this forces a new Linux Virtual Machine to be created.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
@@ -156,9 +158,11 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
+* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
 
 * `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
+
+~> **Note** Gallery Application Assignments can be defined either directly on `azurerm_linux_virtual_machine` resource, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two approaches cannot be used together. If both are used with the same Virtual Machine, spurious changes will occur. If `azurerm_virtual_machine_gallery_application_assignment` is used, it's recommended to use `ignore_changes` for the `gallery_application` block on the corresponding `azurerm_linux_virtual_machine` resource, to avoid a persistent diff when using this resource.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -204,15 +208,23 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
+
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
+* `vm_agent_platform_updates_enabled` - (Optional) Specifies whether VMAgent Platform Updates is enabled. Defaults to `false`.
+
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
-* `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
+* `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.
+
+-> **NOTE:** To update `virtual_machine_scale_set_id` the Preview Feature `Microsoft.Compute/SingleFDAttachDetachVMToVmss` needs to be enabled, see [the documentation](https://review.learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-attach-detach-vm#enroll-in-the-preview) for more information.
 
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](/docs/providers/azurerm/r/orchestrated_virtual_machine_scale_set.html).
+
+~> **NOTE:** To attach an existing VM to a Virtual Machine Scale Set, the scale set must have `single_placement_group` set to `false`, see [the documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-attach-detach-vm?tabs=portal-1%2Cportal-2%2Cportal-3#limitations-for-attaching-an-existing-vm-to-a-scale-set) for more information.
 
 * `zone` - (Optional) Specifies the Availability Zones in which this Linux Virtual Machine should be located. Changing this forces a new Linux Virtual Machine to be created.
 
@@ -222,11 +234,13 @@ A `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability or not.
+
 ---
 
 A `admin_ssh_key` block supports the following:
 
-* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format. Changing this forces a new resource to be created.
+* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username for which this Public SSH Key should be configured. Changing this forces a new resource to be created.
 
@@ -262,11 +276,15 @@ A `gallery_application` block supports the following:
 
 * `version_id` - (Required) Specifies the Gallery Application Version resource ID.
 
+* `automatic_upgrade_enabled` - (Optional) Specifies whether the version will be automatically updated for the VM when a new Gallery Application version is available in PIR/SIG. Defaults to `false`.
+
 * `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
-* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2147483647`. Defaults to `0`.
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value.
+
+* `treat_failure_as_deployment_failure_enabled` - (Optional) Specifies whether any failure for any operation in the VmApplication will fail the deployment of the VM. Defaults to `false`.
 
 ---
 
@@ -346,6 +364,12 @@ The `source_image_reference` block supports the following:
 
 ---
 
+A `os_image_notification` block supports the following:
+
+* `timeout` - (Optional) Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded. The only possible value is `PT15M`. Defaults to `PT15M`.
+
+---
+
 A `termination_notification` block supports the following:
 
 * `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine? 
@@ -361,6 +385,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Linux Virtual Machine.
 
 * `identity` - An `identity` block as documented below.
+
+* `os_disk` - An `os_disk` block as documented below.
 
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
@@ -379,6 +405,12 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+An `os_disk` block exports the following:
+
+* `id` - The ID of the OS disk.
 
 ## Timeouts
 

@@ -14,16 +14,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelDirectlineResource struct{}
 
-func testAccBotChannelDirectline_basic(t *testing.T) {
+func TestAccBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,11 +34,11 @@ func testAccBotChannelDirectline_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectline_complete(t *testing.T) {
+func TestAccBotChannelDirectline_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,11 +49,11 @@ func testAccBotChannelDirectline_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectline_update(t *testing.T) {
+func TestAccBotChannelDirectline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -116,13 +116,26 @@ resource "azurerm_bot_channel_directline" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   site {
-    name                            = "test"
+    name                            = "test1"
     enabled                         = true
     v1_allowed                      = true
     v3_allowed                      = true
     enhanced_authentication_enabled = true
     trusted_origins                 = ["https://example.com"]
+    user_upload_enabled             = false
+    endpoint_parameters_enabled     = true
+    storage_enabled                 = false
+  }
+
+  site {
+    name                            = "test2"
+    enabled                         = true
+    enhanced_authentication_enabled = false
+    user_upload_enabled             = true
+    endpoint_parameters_enabled     = false
+    storage_enabled                 = true
   }
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))

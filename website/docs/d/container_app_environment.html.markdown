@@ -38,6 +38,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
+* `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App Environment.
+
 * `default_domain` - The default publicly resolvable name of this Container App Environment. This is generated at creation time to be globally unique.
 
 * `docker_bridge_cidr` - The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.

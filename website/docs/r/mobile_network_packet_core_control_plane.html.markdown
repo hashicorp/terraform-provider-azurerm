@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `user_equipment_mtu_in_bytes` - (Optional) Specifies the MTU in bytes that can be sent to the user equipment. The same MTU is set on the user plane data links for all data networks. The MTU set on the user plane access link will be 60 bytes greater than this value to allow for GTP encapsulation.
 
-* `core_network_technology` - (Optional) The core network technology generation. Possible values are `EPG` and `5GC`.
+* `core_network_technology` - (Optional) The core network technology generation. Possible values are `5GC` and `EPC`.
 
 * `platform` - (Optional) A `platform` block as defined below.
 
@@ -123,13 +123,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) A list of the IDs for User Assigned Managed Identity resources to be assigned.
+* `identity_ids` - (Required) A list of the IDs for User Assigned Managed Identity resources to be assigned.
 
 ---
 
 A `platform` block supports the following:
 
-* `type` - (Required) Specifies the platform type where the packet core is deployed. Possible values are `AKS-HCI` and `3P-AZURE-STACK-HCI`.
+* `type` - (Required) Specifies the platform type where the packet core is deployed. Possible values are `AKS-HCI`, `3P-AZURE-STACK-HCI` and `BaseVM`.
 
 * `edge_device_id` - (Optional) The ID of the Azure Stack Edge device where the packet core is deployed. If the device is part of a fault-tolerant pair, either device in the pair can be specified.
 

@@ -28,12 +28,53 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("storage_quota_in_gb").Exists(),
 				check.That(data.ResourceName).Key("protocols.0").Exists(),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceNetAppVolume_backupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
+	r := NetAppVolumeDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.backupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("data_protection_backup_policy.#").HasValue("1"),
 			),
 		},
 	})
 }
 
 func (NetAppVolumeDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  alias = "all"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
+    }
+  }
+}
+
+data "azurerm_netapp_volume" "test" {
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  name                = azurerm_netapp_volume.test.name
+}
+`, NetAppVolumeResource{}.basic(data))
+}
+
+func (NetAppVolumeDataSource) backupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -52,5 +93,5 @@ data "azurerm_netapp_volume" "test" {
   pool_name           = azurerm_netapp_volume.test.pool_name
   name                = azurerm_netapp_volume.test.name
 }
-`, NetAppVolumeResource{}.basic(data))
+`, NetAppVolumeResource{}.backupPolicy(data))
 }

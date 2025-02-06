@@ -19,7 +19,20 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []IotConnector
+	LatestHttpResponse *http.Response
+	Items              []IotConnector
+}
+
+type ListByWorkspaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByWorkspaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByWorkspace ...
@@ -30,6 +43,7 @@ func (c IotConnectorsClient) ListByWorkspace(ctx context.Context, id WorkspaceId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByWorkspaceCustomPager{},
 		Path:       fmt.Sprintf("%s/iotConnectors", id.ID()),
 	}
 
@@ -71,6 +85,7 @@ func (c IotConnectorsClient) ListByWorkspaceCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListByWorkspace(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -83,7 +98,8 @@ func (c IotConnectorsClient) ListByWorkspaceCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

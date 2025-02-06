@@ -1,9 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package install
 
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/hashicorp/go-multierror"
@@ -20,7 +23,7 @@ type Installer struct {
 type RemoveFunc func(ctx context.Context) error
 
 func NewInstaller() *Installer {
-	discardLogger := log.New(ioutil.Discard, "", 0)
+	discardLogger := log.New(io.Discard, "", 0)
 	return &Installer{
 		logger: discardLogger,
 	}

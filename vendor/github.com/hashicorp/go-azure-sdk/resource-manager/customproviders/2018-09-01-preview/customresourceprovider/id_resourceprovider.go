@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ResourceProviderId{}
+func init() {
+	recaser.RegisterResourceId(&ResourceProviderId{})
+}
+
+var _ resourceids.ResourceId = &ResourceProviderId{}
 
 // ResourceProviderId is a struct representing the Resource ID for a Resource Provider
 type ResourceProviderId struct {
@@ -30,25 +35,15 @@ func NewResourceProviderID(subscriptionId string, resourceGroupName string, reso
 
 // ParseResourceProviderID parses 'input' into a ResourceProviderId
 func ParseResourceProviderID(input string) (*ResourceProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceProviderId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ResourceProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceProviderName, ok = parsed.Parsed["resourceProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceProviderName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseResourceProviderID(input string) (*ResourceProviderId, error) {
 // ParseResourceProviderIDInsensitively parses 'input' case-insensitively into a ResourceProviderId
 // note: this method should only be used for API response data and not user input
 func ParseResourceProviderIDInsensitively(input string) (*ResourceProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceProviderId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ResourceProviderId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceProviderName, ok = parsed.Parsed["resourceProviderName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceProviderName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ResourceProviderId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ResourceProviderName, ok = input.Parsed["resourceProviderName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceProviderName", input)
+	}
+
+	return nil
 }
 
 // ValidateResourceProviderID checks that 'input' can be parsed as a Resource Provider ID
@@ -112,7 +115,7 @@ func (id ResourceProviderId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCustomProviders", "Microsoft.CustomProviders", "Microsoft.CustomProviders"),
 		resourceids.StaticSegment("staticResourceProviders", "resourceProviders", "resourceProviders"),
-		resourceids.UserSpecifiedSegment("resourceProviderName", "resourceProviderValue"),
+		resourceids.UserSpecifiedSegment("resourceProviderName", "resourceProviderName"),
 	}
 }
 

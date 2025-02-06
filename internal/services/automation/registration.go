@@ -10,12 +10,15 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+)
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		AutomationVariablesDataSource{},
+		AutomationRunbookDataSource{},
 	}
 }
 
@@ -27,6 +30,8 @@ func (r Registration) Resources() []sdk.Resource {
 		SoftwareUpdateConfigurationResource{},
 		SourceControlResource{},
 		WatcherResource{},
+		Python3PackageResource{},
+		PowerShell72ModuleResource{},
 	}
 }
 

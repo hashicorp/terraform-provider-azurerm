@@ -20,7 +20,20 @@ type WebTestsListOperationResponse struct {
 }
 
 type WebTestsListCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
+}
+
+type WebTestsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WebTestsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // WebTestsList ...
@@ -31,6 +44,7 @@ func (c WebTestsAPIsClient) WebTestsList(ctx context.Context, id commonids.Subsc
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WebTestsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/webTests", id.ID()),
 	}
 
@@ -72,6 +86,7 @@ func (c WebTestsAPIsClient) WebTestsListCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.WebTestsList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c WebTestsAPIsClient) WebTestsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = WebTestsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

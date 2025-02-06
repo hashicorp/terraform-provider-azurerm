@@ -6,44 +6,58 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs" // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2015-12-01/features"                      // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"                     // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-10-01/deploymentscripts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	DeploymentsClient           *resources.DeploymentsClient
-	DeploymentScriptsClient     *deploymentscripts.DeploymentScriptsClient
-	FeaturesClient              *features.Client
-	GroupsClient                *resources.GroupsClient
-	LocksClient                 *managementlocks.ManagementLocksClient
-	ResourceProvidersClient     *providers.ProvidersClient
-	ResourcesClient             *resources.Client
-	TagsClient                  *resources.TagsClient
-	TemplateSpecsVersionsClient *templatespecs.VersionsClient
+	DeploymentScriptsClient             *deploymentscripts.DeploymentScriptsClient
+	FeaturesClient                      *features.FeaturesClient
+	LocksClient                         *managementlocks.ManagementLocksClient
+	PrivateLinkAssociationClient        *privatelinkassociation.PrivateLinkAssociationClient
+	ResourceGroupsClient                *resourcegroups.ResourceGroupsClient
+	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
+	ResourceProvidersClient             *providers.ProvidersClient
+	TemplateSpecsVersionsClient         *templatespecversions.TemplateSpecVersionsClient
+	TagsClient                          *tags.TagsClient
 
-	options *common.ClientOptions
+	// TODO: these SDK clients use `Azure/azure-sdk-for-go` - we should migrate to `hashicorp/go-azure-sdk`
+	// (above) as time allows.
+	DeploymentsClient *resources.DeploymentsClient
+	ResourcesClient   *resources.Client
+	options           *common.ClientOptions
+
+	// Note that the Groups Client which requires additional coordination
+	GroupsClient *resources.GroupsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
-
 	deploymentScriptsClient, err := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building DeploymentScripts client: %+v", err)
 	}
 	o.Configure(deploymentScriptsClient.Client, o.Authorizers.ResourceManager)
 
-	featuresClient := features.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&featuresClient.Client, o.ResourceManagerAuthorizer)
+	featuresClient, err := features.NewFeaturesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Features client: %+v", err)
+	}
+	o.Configure(featuresClient.Client, o.Authorizers.ResourceManager)
 
-	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
+	resourceGroupsClient, err := resourcegroups.NewResourceGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Features client: %+v", err)
+	}
+	o.Configure(resourceGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	locksClient, err := managementlocks.NewManagementLocksClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -51,39 +65,60 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(locksClient.Client, o.Authorizers.ResourceManager)
 
+	privateLinkAssociationClient, err := privatelinkassociation.NewPrivateLinkAssociationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PrivateLinkAssociation client: %+v", err)
+	}
+	o.Configure(privateLinkAssociationClient.Client, o.Authorizers.ResourceManager)
+
+	resourceManagementPrivateLinkClient, err := resourcemanagementprivatelink.NewResourceManagementPrivateLinkClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ResourceManagementPrivateLink client: %+v", err)
+	}
+	o.Configure(resourceManagementPrivateLinkClient.Client, o.Authorizers.ResourceManager)
+
 	resourceProvidersClient, err := providers.NewProvidersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Providers client: %+v", err)
 	}
 	o.Configure(resourceProvidersClient.Client, o.Authorizers.ResourceManager)
 
+	templateSpecsVersionsClient, err := templatespecversions.NewTemplateSpecVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building TemplateSpecVersions client: %+v", err)
+	}
+	o.Configure(templateSpecsVersionsClient.Client, o.Authorizers.ResourceManager)
+
+	tagsClient, err := tags.NewTagsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Tags client: %+v", err)
+	}
+	o.Configure(tagsClient.Client, o.Authorizers.ResourceManager)
+
+	// NOTE: these clients use `Azure/azure-sdk-for-go` and can be removed in time
+	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
+	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
-	templatespecsVersionsClient := templatespecs.NewVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&templatespecsVersionsClient.Client, o.ResourceManagerAuthorizer)
-
-	tagsClient := resources.NewTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tagsClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		GroupsClient:                &groupsClient,
-		DeploymentsClient:           &deploymentsClient,
-		DeploymentScriptsClient:     deploymentScriptsClient,
-		FeaturesClient:              &featuresClient,
-		LocksClient:                 locksClient,
-		ResourceProvidersClient:     resourceProvidersClient,
-		ResourcesClient:             &resourcesClient,
-		TagsClient:                  &tagsClient,
-		TemplateSpecsVersionsClient: &templatespecsVersionsClient,
+		// These come from `hashicorp/go-azure-sdk`
+		DeploymentsClient:                   &deploymentsClient,
+		DeploymentScriptsClient:             deploymentScriptsClient,
+		FeaturesClient:                      featuresClient,
+		LocksClient:                         locksClient,
+		PrivateLinkAssociationClient:        privateLinkAssociationClient,
+		ResourceManagementPrivateLinkClient: resourceManagementPrivateLinkClient,
+		ResourceGroupsClient:                resourceGroupsClient,
+		ResourceProvidersClient:             resourceProvidersClient,
+		TemplateSpecsVersionsClient:         templateSpecsVersionsClient,
+		TagsClient:                          tagsClient,
 
-		options: o,
+		// These use `Azure/azure-sdk-for-go`
+		GroupsClient:    &groupsClient,
+		ResourcesClient: &resourcesClient,
+		options:         o,
 	}, nil
-}
-
-func (c Client) TagsClientForSubscription(subscriptionID string) *resources.TagsClient {
-	// TODO: this method can be removed once this is moved to using `hashicorp/go-azure-sdk`
-	tagsClient := resources.NewTagsClientWithBaseURI(c.options.ResourceManagerEndpoint, subscriptionID)
-	c.options.ConfigureClient(&tagsClient.Client, c.options.ResourceManagerAuthorizer)
-	return &tagsClient
 }

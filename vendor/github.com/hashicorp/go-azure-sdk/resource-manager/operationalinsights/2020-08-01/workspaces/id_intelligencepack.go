@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IntelligencePackId{}
+func init() {
+	recaser.RegisterResourceId(&IntelligencePackId{})
+}
+
+var _ resourceids.ResourceId = &IntelligencePackId{}
 
 // IntelligencePackId is a struct representing the Resource ID for a Intelligence Pack
 type IntelligencePackId struct {
@@ -32,29 +37,15 @@ func NewIntelligencePackID(subscriptionId string, resourceGroupName string, work
 
 // ParseIntelligencePackID parses 'input' into a IntelligencePackId
 func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntelligencePackId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntelligencePackId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntelligencePackId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.IntelligencePackName, ok = parsed.Parsed["intelligencePackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
 // ParseIntelligencePackIDInsensitively parses 'input' case-insensitively into a IntelligencePackId
 // note: this method should only be used for API response data and not user input
 func ParseIntelligencePackIDInsensitively(input string) (*IntelligencePackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntelligencePackId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntelligencePackId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IntelligencePackId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.WorkspaceName, ok = parsed.Parsed["workspaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", *parsed)
-	}
-
-	if id.IntelligencePackName, ok = parsed.Parsed["intelligencePackName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IntelligencePackId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.WorkspaceName, ok = input.Parsed["workspaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceName", input)
+	}
+
+	if id.IntelligencePackName, ok = input.Parsed["intelligencePackName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "intelligencePackName", input)
+	}
+
+	return nil
 }
 
 // ValidateIntelligencePackID checks that 'input' can be parsed as a Intelligence Pack ID
@@ -122,9 +121,9 @@ func (id IntelligencePackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftOperationalInsights", "Microsoft.OperationalInsights", "Microsoft.OperationalInsights"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticIntelligencePacks", "intelligencePacks", "intelligencePacks"),
-		resourceids.UserSpecifiedSegment("intelligencePackName", "intelligencePackValue"),
+		resourceids.UserSpecifiedSegment("intelligencePackName", "intelligencePackName"),
 	}
 }
 

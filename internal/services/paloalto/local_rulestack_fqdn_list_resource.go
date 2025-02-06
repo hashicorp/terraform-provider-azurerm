@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto
 
 import (
@@ -187,6 +190,7 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
 
 			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -199,6 +203,10 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
 			return nil

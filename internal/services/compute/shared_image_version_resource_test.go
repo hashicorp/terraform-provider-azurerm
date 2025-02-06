@@ -9,14 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type SharedImageVersionResource struct{}
@@ -234,6 +233,29 @@ func TestAccSharedImageVersion_replicationMode(t *testing.T) {
 	})
 }
 
+func TestAccSharedImageVersion_replicatedRegionDeletion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// need to create a vm and then reference it in the image creation
+			Config: r.setup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
+			),
+		},
+		{
+			Config: r.replicatedRegionDeletion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 	r := SharedImageVersionResource{}
@@ -264,17 +286,17 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 }
 
 func (r SharedImageVersionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SharedImageVersionID(state.ID)
+	id, err := galleryimageversions.ParseImageVersionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.GalleryImageVersionsClient.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, compute.ReplicationStatusTypesReplicationStatus)
+	resp, err := clients.Compute.GalleryImageVersionsClient.Get(ctx, *id, galleryimageversions.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Shared Image Gallery %q", id.String())
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SharedImageVersionResource) revokeSnapshot(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -693,6 +715,29 @@ resource "azurerm_shared_image_version" "test" {
   target_region {
     name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
+  }
+}
+`, template)
+}
+
+func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.TestData) string {
+	template := r.provision(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                                     = "0.0.1"
+  gallery_name                             = azurerm_shared_image_gallery.test.name
+  image_name                               = azurerm_shared_image.test.name
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
+  managed_image_id                         = azurerm_image.test.id
+  deletion_of_replicated_locations_enabled = true
+
+  target_region {
+    name                        = azurerm_resource_group.test.location
+    regional_replica_count      = 1
+    exclude_from_latest_enabled = true
   }
 }
 `, template)

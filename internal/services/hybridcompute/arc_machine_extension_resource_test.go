@@ -20,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArcMachineExtensionResource struct {
-}
+type ArcMachineExtensionResource struct{}
 
 func TestAccArcMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")
@@ -294,8 +293,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

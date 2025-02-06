@@ -15,7 +15,7 @@ type HealthbotsClient struct {
 }
 
 func NewHealthbotsClientWithBaseURI(sdkApi sdkEnv.Api) (*HealthbotsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "healthbots", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "healthbots", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HealthbotsClient: %+v", err)
 	}

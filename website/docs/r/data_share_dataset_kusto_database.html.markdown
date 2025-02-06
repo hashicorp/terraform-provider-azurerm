@@ -58,7 +58,7 @@ resource "azurerm_kusto_database" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_kusto_cluster.example.id
   role_definition_name = "Contributor"
-  principal_id         = azurerm_data_share_account.example.identity.0.principal_id
+  principal_id         = azurerm_data_share_account.example.identity[0].principal_id
 }
 
 resource "azurerm_data_share_dataset_kusto_database" "example" {

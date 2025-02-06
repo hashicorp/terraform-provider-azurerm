@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StreamingJobId{}
+func init() {
+	recaser.RegisterResourceId(&StreamingJobId{})
+}
+
+var _ resourceids.ResourceId = &StreamingJobId{}
 
 // StreamingJobId is a struct representing the Resource ID for a Streaming Job
 type StreamingJobId struct {
@@ -30,25 +35,15 @@ func NewStreamingJobID(subscriptionId string, resourceGroupName string, streamin
 
 // ParseStreamingJobID parses 'input' into a StreamingJobId
 func ParseStreamingJobID(input string) (*StreamingJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingJobId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StreamingJobId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseStreamingJobID(input string) (*StreamingJobId, error) {
 // ParseStreamingJobIDInsensitively parses 'input' case-insensitively into a StreamingJobId
 // note: this method should only be used for API response data and not user input
 func ParseStreamingJobIDInsensitively(input string) (*StreamingJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingJobId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StreamingJobId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StreamingJobName, ok = parsed.Parsed["streamingJobName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *StreamingJobId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StreamingJobName, ok = input.Parsed["streamingJobName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "streamingJobName", input)
+	}
+
+	return nil
 }
 
 // ValidateStreamingJobID checks that 'input' can be parsed as a Streaming Job ID
@@ -112,7 +115,7 @@ func (id StreamingJobId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobName"),
 	}
 }
 

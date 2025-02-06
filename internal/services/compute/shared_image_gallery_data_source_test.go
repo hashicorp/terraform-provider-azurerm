@@ -44,6 +44,21 @@ func TestAccDataSourceSharedImageGallery_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceSharedImageGallery_imageNames(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.imageNames(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("image_names.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func (SharedImageGalleryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -64,4 +79,15 @@ data "azurerm_shared_image_gallery" "test" {
   resource_group_name = azurerm_shared_image_gallery.test.resource_group_name
 }
 `, SharedImageGalleryResource{}.complete(data))
+}
+
+func (SharedImageGalleryDataSource) imageNames(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_shared_image_gallery" "test" {
+  name                = azurerm_shared_image.test.gallery_name
+  resource_group_name = azurerm_shared_image.test.resource_group_name
+}
+`, SharedImageResource{}.basic(data))
 }

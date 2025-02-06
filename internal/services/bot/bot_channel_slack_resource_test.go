@@ -15,19 +15,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 type BotChannelSlackResource struct{}
 
-func testAccBotChannelSlack_basic(t *testing.T) {
+func TestAccBotChannelSlack_basic(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,14 +38,14 @@ func testAccBotChannelSlack_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelSlack_complete(t *testing.T) {
+func TestAccBotChannelSlack_complete(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, `ARM_TEST_SLACK_VERIFICATION_TOKEN`, `ARM_TEST_SLACK_SIGNING_SECRET` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -56,14 +56,14 @@ func testAccBotChannelSlack_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelSlack_update(t *testing.T) {
+func TestAccBotChannelSlack_update(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

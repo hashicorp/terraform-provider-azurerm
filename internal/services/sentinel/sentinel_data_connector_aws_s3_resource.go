@@ -15,13 +15,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type DataConnectorAwsS3Resource struct{}
 
-var _ sdk.ResourceWithUpdate = DataConnectorAwsS3Resource{}
-var _ sdk.ResourceWithCustomImporter = DataConnectorAwsS3Resource{}
+var (
+	_ sdk.ResourceWithUpdate         = DataConnectorAwsS3Resource{}
+	_ sdk.ResourceWithCustomImporter = DataConnectorAwsS3Resource{}
+)
 
 type DataConnectorAwsS3Model struct {
 	Name                    string   `tfschema:"name"`
@@ -87,10 +89,7 @@ func (r DataConnectorAwsS3Resource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r DataConnectorAwsS3Resource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindAmazonWebServicesS3)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindAmazonWebServicesS3)
 }
 
 func (r DataConnectorAwsS3Resource) Create() sdk.ResourceFunc {

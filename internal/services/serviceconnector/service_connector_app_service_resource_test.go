@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -117,27 +117,6 @@ func TestAccServiceConnectorAppServiceStorageBlob_secretStore(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.secretStore(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccServiceConnectorAppServiceCosmosdb_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_connection", "test")
-	r := ServiceConnectorAppServiceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cosmosdbBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.cosmosdbUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -301,45 +280,6 @@ resource "azurerm_app_service_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ServiceConnectorAppServiceResource) cosmosdbUpdate(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "update" {
-  name                = "cosmos-sql-db-update"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  throughput          = 400
-}
-
-resource "azurerm_cosmosdb_sql_container" "update" {
-  name                = "test-containerupdate%[2]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.update.name
-  partition_key_path  = "/definitionupdate"
-}
-
-resource "azurerm_service_plan" "update" {
-  location            = azurerm_resource_group.test.location
-  name                = "testserviceplanupdate%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "P1v2"
-  os_type             = "Linux"
-}
-
-resource "azurerm_app_service_connection" "test" {
-  name               = "acctestserviceconnector%[3]d"
-  app_service_id     = azurerm_linux_web_app.test.id
-  target_resource_id = azurerm_cosmosdb_sql_database.update.id
-  authentication {
-    type = "systemAssignedIdentity"
-  }
-}
-`, template, data.RandomString, data.RandomInteger)
-}
-
 func (r ServiceConnectorAppServiceResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -383,11 +323,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                                      = "subnet1"
-  resource_group_name                       = azurerm_resource_group.test.name
-  virtual_network_name                      = azurerm_virtual_network.test.name
-  address_prefixes                          = ["10.0.1.0/24"]
-  private_endpoint_network_policies_enabled = true
+  name                              = "subnet1"
+  resource_group_name               = azurerm_resource_group.test.name
+  virtual_network_name              = azurerm_virtual_network.test.name
+  address_prefixes                  = ["10.0.1.0/24"]
+  private_endpoint_network_policies = "Enabled"
 
   delegation {
     name = "delegation"
@@ -484,7 +424,8 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition"]
+
 }
 
 resource "azurerm_service_plan" "test" {
@@ -597,7 +538,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition"
+  partition_key_paths = ["/definition"]
 }
 
 resource "azurerm_service_plan" "test" {

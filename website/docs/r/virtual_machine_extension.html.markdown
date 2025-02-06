@@ -72,8 +72,8 @@ resource "azurerm_linux_virtual_machine" "example" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -136,6 +136,8 @@ az vm extension image list --location westus -o table
 * `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
 
 ~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
+
+* `provision_after_extensions` - (Optional) Specifies the collection of extension names after which this extension needs to be provisioned.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

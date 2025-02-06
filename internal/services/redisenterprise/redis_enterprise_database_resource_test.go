@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2022-01-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type RedisenterpriseDatabaseResource struct{}
+type RedisEnterpriseDatabaseResource struct{}
 
-func TestRedisEnterpriseDatabase_basic(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,9 +33,9 @@ func TestRedisEnterpriseDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_requiresImport(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,9 +47,9 @@ func TestRedisEnterpriseDatabase_requiresImport(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_complete(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,9 +61,9 @@ func TestRedisEnterpriseDatabase_complete(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoDatabase(data),
@@ -75,9 +75,9 @@ func TestRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoDatabaseOtherEvictionPolicy(data),
@@ -89,9 +89,9 @@ func TestRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoDatabasewithModuleEnabled(data),
@@ -103,9 +103,9 @@ func TestRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoDatabasewithRedisJsonModuleEnabled(data),
@@ -117,9 +117,9 @@ func TestRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
 	})
 }
 
-func TestRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
+func TestAccRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
-	r := RedisenterpriseDatabaseResource{}
+	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.geoDatabase(data),
@@ -138,7 +138,7 @@ func TestRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
 	})
 }
 
-func (r RedisenterpriseDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r RedisEnterpriseDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (r RedisenterpriseDatabaseResource) Exists(ctx context.Context, client *cli
 	return utils.Bool(true), nil
 }
 
-func (r RedisenterpriseDatabaseResource) template(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) template(data acceptance.TestData) string {
 	// I have to hardcode the location because some features are not currently available in all regions
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -172,60 +172,54 @@ resource "azurerm_redis_enterprise_cluster" "test" {
   name                = "acctest-rec-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  sku_name            = "Enterprise_E20-4"
 }
 resource "azurerm_redis_enterprise_cluster" "test1" {
   name                = "acctest-rec-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  sku_name            = "Enterprise_E20-4"
 }
 resource "azurerm_redis_enterprise_cluster" "test2" {
   name                = "acctest-rec-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  sku_name = "Enterprise_E20-4"
+  sku_name            = "Enterprise_E20-4"
 }
 `, data.RandomInteger, "eastus", data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r RedisenterpriseDatabaseResource) basic(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_redis_enterprise_database" "test" {
-  name                = "default"
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  name       = "default"
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 }
 `, template)
 }
 
-func (r RedisenterpriseDatabaseResource) requiresImport(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_redis_enterprise_database" "import" {
-  name                = azurerm_redis_enterprise_database.test.name
-  resource_group_name = azurerm_redis_enterprise_database.test.resource_group_name
-  cluster_id          = azurerm_redis_enterprise_database.test.cluster_id
+  name       = azurerm_redis_enterprise_database.test.name
+  cluster_id = azurerm_redis_enterprise_database.test.cluster_id
 }
 `, config)
 }
 
-func (r RedisenterpriseDatabaseResource) complete(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_redis_enterprise_database" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -256,12 +250,11 @@ resource "azurerm_redis_enterprise_database" "test" {
 `, template)
 }
 
-func (r RedisenterpriseDatabaseResource) geoDatabase(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) geoDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -278,12 +271,11 @@ resource "azurerm_redis_enterprise_database" "test" {
 `, r.template(data))
 }
 
-func (r RedisenterpriseDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -300,12 +292,11 @@ resource "azurerm_redis_enterprise_database" "test" {
 `, r.template(data))
 }
 
-func (r RedisenterpriseDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -321,12 +312,11 @@ resource "azurerm_redis_enterprise_database" "test" {
 `, r.template(data))
 }
 
-func (r RedisenterpriseDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"
@@ -346,12 +336,11 @@ resource "azurerm_redis_enterprise_database" "test" {
 `, r.template(data))
 }
 
-func (r RedisenterpriseDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
+func (r RedisEnterpriseDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_redis_enterprise_database" "test" {
-  cluster_id          = azurerm_redis_enterprise_cluster.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  cluster_id = azurerm_redis_enterprise_cluster.test.id
 
   client_protocol   = "Encrypted"
   clustering_policy = "EnterpriseCluster"

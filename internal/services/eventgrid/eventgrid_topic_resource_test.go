@@ -145,6 +145,13 @@ func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.unsetInboundIPRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -337,6 +344,29 @@ resource "azurerm_eventgrid_topic" "test" {
     ip_mask = "10.1.0.0/16"
     action  = "Allow"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) unsetInboundIPRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

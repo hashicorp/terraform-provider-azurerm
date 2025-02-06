@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -169,7 +170,7 @@ func TestAccDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := dedicatedhosts.ParseHostID(state.ID)
+	id, err := commonids.ParseDedicatedHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +191,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 `, r.template(data), data.RandomInteger)
@@ -218,7 +219,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "FSv2-Type2"
   platform_fault_domain   = 1
   auto_replace_on_failure = %t
 }
@@ -233,7 +234,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "FSv2-Type2"
   platform_fault_domain   = 1
   license_type            = %q
 }
@@ -248,7 +249,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
   license_type            = "Windows_Server_Hybrid"
   auto_replace_on_failure = false

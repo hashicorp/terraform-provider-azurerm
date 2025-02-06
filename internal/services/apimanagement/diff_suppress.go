@@ -47,3 +47,32 @@ func normalizeXmlWithDotNetInterpolationsString(input string) string {
 
 	return value
 }
+
+// XmlWhitespaceDiffSuppress is a whitespace Diff Suppress Func for XML
+func XmlWhitespaceDiffSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	// try parsing this as valid xml if we can, to handle ordering differences
+	same := suppress.XmlDiff(k, old, new, d)
+	if same {
+		return same
+	}
+
+	// otherwise best-effort this via string comparison
+	oldVal := normalizeXmlWhitespaceString(old)
+	newVal := normalizeXmlWhitespaceString(new)
+	return oldVal == newVal
+}
+
+// normalizeXmlWhitespaceString is intended as a fallback to diff two xml strings
+// containing different whitespaces
+func normalizeXmlWhitespaceString(input string) string {
+	value := input
+
+	value = strings.ReplaceAll(value, "\n", "")
+	value = strings.ReplaceAll(value, "\r", "")
+	value = strings.ReplaceAll(value, "\t", "")
+	value = strings.ReplaceAll(value, "    ", "")
+	value = strings.ReplaceAll(value, "  ", "")
+	value = strings.ReplaceAll(value, " ", "")
+
+	return value
+}

@@ -1,13 +1,14 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics` Documentation
 
-The `topics` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `topics` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 payload := topics.Topic{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.ExtensionTopicsGet(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -85,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, topics.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, topics.DefaultListByResourceGroupOperationOptions())
@@ -102,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := topics.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id, topics.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, topics.DefaultListBySubscriptionOperationOptions())
@@ -119,7 +120,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := topics.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.ListEventTypes(ctx, id)
 if err != nil {
@@ -135,7 +136,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 read, err := client.ListSharedAccessKeys(ctx, id)
 if err != nil {
@@ -151,7 +152,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 payload := topics.TopicRegenerateKeyRequest{
 	// ...
@@ -168,7 +169,7 @@ if err := client.RegenerateKeyThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicValue")
+id := topics.NewTopicID("12345678-1234-9876-4563-123456789012", "example-resource-group", "topicName")
 
 payload := topics.TopicUpdateParameters{
 	// ...

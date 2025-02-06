@@ -9,16 +9,15 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
 type AzureSecurityBaselineConfiguration struct {
@@ -30,8 +29,8 @@ type AntimalwareConfiguration struct {
 	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
 	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
 	ScanType                  string                  `tfschema:"scheduled_scan_type"`
-	ScanDay                   int                     `tfschema:"scheduled_scan_day"`
-	ScanTimeInMinutes         int                     `tfschema:"scheduled_scan_time_in_minutes"`
+	ScanDay                   int64                   `tfschema:"scheduled_scan_day"`
+	ScanTimeInMinutes         int64                   `tfschema:"scheduled_scan_time_in_minutes"`
 }
 
 type AntimalwareExclusions struct {
@@ -43,7 +42,7 @@ type AntimalwareExclusions struct {
 type BackupConfiguration struct {
 	PolicyName                    string                         `tfschema:"policy_name"`
 	TimeZone                      string                         `tfschema:"time_zone"`
-	InstantRpRetentionRangeInDays int                            `tfschema:"instant_rp_retention_range_in_days"`
+	InstantRpRetentionRangeInDays int64                          `tfschema:"instant_rp_retention_range_in_days"`
 	SchedulePolicy                []SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
 	RetentionPolicy               []RetentionPolicyConfiguration `tfschema:"retention_policy"`
 }
@@ -78,7 +77,7 @@ type RetentionPolicyConfiguration struct {
 }
 
 type RetentionDurationConfiguration struct {
-	Count        int    `tfschema:"count"`
+	Count        int64  `tfschema:"count"`
 	DurationType string `tfschema:"duration_type"`
 }
 
@@ -91,7 +90,10 @@ type SchedulePolicyConfiguration struct {
 
 type AutoManageConfigurationResource struct{}
 
-var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
+var (
+	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+)
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -102,7 +104,7 @@ func (r AutoManageConfigurationResource) ModelObject() interface{} {
 }
 
 func (r AutoManageConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AutomanageConfigurationID
+	return configurationprofiles.ValidateConfigurationProfileID
 }
 
 func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -463,32 +465,34 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Automanage.ConfigurationProfilesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model ConfigurationModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Automanage.ConfigurationClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewAutomanageConfigurationID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := configurationprofiles.NewConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := automanage.ConfigurationProfile{
-				Location:   utils.String(location.Normalize(model.Location)),
-				Properties: &automanage.ConfigurationProfileProperties{},
-				Tags:       tags.FromTypedObject(model.Tags),
+			properties := configurationprofiles.ConfigurationProfile{
+				Location:   location.Normalize(model.Location),
+				Properties: &configurationprofiles.ConfigurationProfileProperties{},
+				Tags:       pointer.To(model.Tags),
 			}
 
-			properties.Properties.Configuration = expandAutomanageConfigurationProfile(model)
+			properties.Properties.Configuration = expandConfigurationProfile(model)
 
-			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
+			// NOTE: ordering
+			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -502,9 +506,9 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationClient
+			client := metadata.Client.Automanage.ConfigurationProfilesClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -514,15 +518,15 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties := automanage.ConfigurationProfile{
-				Location: utils.String(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Properties: &automanage.ConfigurationProfileProperties{
-					Configuration: expandAutomanageConfigurationProfile(model),
+			properties := configurationprofiles.ConfigurationProfile{
+				Location: location.Normalize(model.Location),
+				Properties: &configurationprofiles.ConfigurationProfileProperties{
+					Configuration: expandConfigurationProfile(model),
 				},
-				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+				Tags: pointer.To(model.Tags),
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -535,16 +539,16 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationClient
+			client := metadata.Client.Automanage.ConfigurationProfilesClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -553,46 +557,45 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 
 			state := ConfigurationModel{
 				Name:              id.ConfigurationProfileName,
-				ResourceGroupName: id.ResourceGroup,
-				Location:          location.NormalizeNilable(resp.Location),
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			if resp.Properties != nil && resp.Properties.Configuration != nil {
-				configMap := resp.Properties.Configuration.(map[string]interface{})
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if props := model.Properties; props != nil && props.Configuration != nil {
+					configMap := (*props.Configuration).(map[string]interface{})
 
-				state.Antimalware = flattenAntimarewareConfig(configMap)
+					state.Antimalware = flattenAntiMalwareConfig(configMap)
 
-				state.AzureSecurityBaseline = flattenAzureSecurityBaselineConfig(configMap)
+					state.AzureSecurityBaseline = flattenAzureSecurityBaselineConfig(configMap)
 
-				state.Backup = flattenBackupConfig(configMap)
+					state.Backup = flattenBackupConfig(configMap)
 
-				if val, ok := configMap["AutomationAccount/Enable"]; ok {
-					state.AutomationAccountEnabled = val.(bool)
+					if val, ok := configMap["AutomationAccount/Enable"]; ok {
+						state.AutomationAccountEnabled = val.(bool)
+					}
+
+					if val, ok := configMap["BootDiagnostics/Enable"]; ok {
+						state.BootDiagnosticsEnabled = val.(bool)
+					}
+
+					if val, ok := configMap["DefenderForCloud/Enable"]; ok {
+						state.DefenderForCloudEnabled = val.(bool)
+					}
+
+					if val, ok := configMap["GuestConfiguration/Enable"]; ok {
+						state.GuestConfigurationEnabled = val.(bool)
+					}
+
+					if val, ok := configMap["LogAnalytics/Enable"]; ok {
+						state.LogAnalyticsEnabled = val.(bool)
+					}
+
+					if val, ok := configMap["Alerts/AutomanageStatusChanges/Enable"]; ok {
+						state.StatusChangeAlertEnabled = val.(bool)
+					}
 				}
-
-				if val, ok := configMap["BootDiagnostics/Enable"]; ok {
-					state.BootDiagnosticsEnabled = val.(bool)
-				}
-
-				if val, ok := configMap["DefenderForCloud/Enable"]; ok {
-					state.DefenderForCloudEnabled = val.(bool)
-				}
-
-				if val, ok := configMap["GuestConfiguration/Enable"]; ok {
-					state.GuestConfigurationEnabled = val.(bool)
-				}
-
-				if val, ok := configMap["LogAnalytics/Enable"]; ok {
-					state.LogAnalyticsEnabled = val.(bool)
-				}
-
-				if val, ok := configMap["Alerts/AutomanageStatusChanges/Enable"]; ok {
-					state.StatusChangeAlertEnabled = val.(bool)
-				}
-			}
-
-			if resp.Tags != nil {
-				state.Tags = tags.ToTypedObject(resp.Tags)
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)
@@ -604,14 +607,14 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automanage.ConfigurationClient
+			client := metadata.Client.Automanage.ConfigurationProfilesClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName); err != nil {
+			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -620,11 +623,20 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]interface{} {
+func (r AutoManageConfigurationResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ConfigurationV0ToV1{},
+		},
+	}
+}
+
+func expandConfigurationProfile(model ConfigurationModel) *interface{} {
 	// building configuration profile in json format
 	jsonConfig := make(map[string]interface{})
 
-	if model.Antimalware != nil && len(model.Antimalware) > 0 {
+	if len(model.Antimalware) > 0 {
 		antimalwareConfig := model.Antimalware[0]
 		jsonConfig["Antimalware/Enable"] = true
 		jsonConfig["Antimalware/EnableRealTimeProtection"] = antimalwareConfig.RealTimeProtectionEnabled
@@ -632,20 +644,20 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 		jsonConfig["Antimalware/ScanType"] = antimalwareConfig.ScanType
 		jsonConfig["Antimalware/ScanDay"] = antimalwareConfig.ScanDay
 		jsonConfig["Antimalware/ScanTimeInMinutes"] = antimalwareConfig.ScanTimeInMinutes
-		if antimalwareConfig.Exclusions != nil && len(antimalwareConfig.Exclusions) > 0 {
+		if len(antimalwareConfig.Exclusions) > 0 {
 			jsonConfig["Antimalware/Exclusions/Extensions"] = antimalwareConfig.Exclusions[0].Extensions
 			jsonConfig["Antimalware/Exclusions/Paths"] = antimalwareConfig.Exclusions[0].Paths
 			jsonConfig["Antimalware/Exclusions/Processes"] = antimalwareConfig.Exclusions[0].Processes
 		}
 	}
 
-	if model.AzureSecurityBaseline != nil && len(model.AzureSecurityBaseline) > 0 {
+	if len(model.AzureSecurityBaseline) > 0 {
 		azureSecurityBaselineConfig := model.AzureSecurityBaseline[0]
 		jsonConfig["AzureSecurityBaseline/Enable"] = true
 		jsonConfig["AzureSecurityBaseline/AssignmentType"] = azureSecurityBaselineConfig.AssignmentType
 	}
 
-	if model.Backup != nil && len(model.Backup) > 0 {
+	if len(model.Backup) > 0 {
 		backupConfig := model.Backup[0]
 		jsonConfig["Backup/Enable"] = true
 		if backupConfig.PolicyName != "" {
@@ -653,40 +665,40 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 		}
 		jsonConfig["Backup/TimeZone"] = backupConfig.TimeZone
 		jsonConfig["Backup/InstantRpRetentionRangeInDays"] = backupConfig.InstantRpRetentionRangeInDays
-		if backupConfig.SchedulePolicy != nil && len(backupConfig.SchedulePolicy) > 0 {
+		if len(backupConfig.SchedulePolicy) > 0 {
 			schedulePolicyConfig := backupConfig.SchedulePolicy[0]
 			jsonConfig["Backup/SchedulePolicy/ScheduleRunFrequency"] = schedulePolicyConfig.ScheduleRunFrequency
-			if schedulePolicyConfig.ScheduleRunTimes != nil && len(schedulePolicyConfig.ScheduleRunTimes) > 0 {
+			if len(schedulePolicyConfig.ScheduleRunTimes) > 0 {
 				jsonConfig["Backup/SchedulePolicy/ScheduleRunTimes"] = schedulePolicyConfig.ScheduleRunTimes
 			}
-			if schedulePolicyConfig.ScheduleRunDays != nil && len(schedulePolicyConfig.ScheduleRunDays) > 0 {
+			if len(schedulePolicyConfig.ScheduleRunDays) > 0 {
 				jsonConfig["Backup/SchedulePolicy/ScheduleRunDays"] = schedulePolicyConfig.ScheduleRunDays
 			}
 			jsonConfig["Backup/SchedulePolicy/SchedulePolicyType"] = schedulePolicyConfig.SchedulePolicyType
 		}
 
-		if backupConfig.RetentionPolicy != nil && len(backupConfig.RetentionPolicy) > 0 {
+		if len(backupConfig.RetentionPolicy) > 0 {
 			retentionPolicyConfig := backupConfig.RetentionPolicy[0]
 			jsonConfig["Backup/RetentionPolicy/RetentionPolicyType"] = retentionPolicyConfig.RetentionPolicyType
-			if retentionPolicyConfig.DailySchedule != nil && len(retentionPolicyConfig.DailySchedule) > 0 {
+			if len(retentionPolicyConfig.DailySchedule) > 0 {
 				dailyScheduleConfig := retentionPolicyConfig.DailySchedule[0]
-				if dailyScheduleConfig.RetentionTimes != nil && len(dailyScheduleConfig.RetentionTimes) > 0 {
+				if len(dailyScheduleConfig.RetentionTimes) > 0 {
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionTimes"] = dailyScheduleConfig.RetentionTimes
 				}
 
-				if dailyScheduleConfig.RetentionDuration != nil && len(dailyScheduleConfig.RetentionDuration) > 0 {
+				if len(dailyScheduleConfig.RetentionDuration) > 0 {
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"] = dailyScheduleConfig.RetentionDuration[0].Count
 					jsonConfig["Backup/RetentionPolicy/DailySchedule/RetentionDuration/DurationType"] = dailyScheduleConfig.RetentionDuration[0].DurationType
 				}
 			}
 
-			if retentionPolicyConfig.WeeklySchedule != nil && len(retentionPolicyConfig.WeeklySchedule) > 0 {
+			if len(retentionPolicyConfig.WeeklySchedule) > 0 {
 				weeklyScheduleConfig := retentionPolicyConfig.WeeklySchedule[0]
-				if weeklyScheduleConfig.RetentionTimes != nil && len(weeklyScheduleConfig.RetentionTimes) > 0 {
+				if len(weeklyScheduleConfig.RetentionTimes) > 0 {
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionTimes"] = weeklyScheduleConfig.RetentionTimes
 				}
 
-				if weeklyScheduleConfig.RetentionDuration != nil && len(weeklyScheduleConfig.RetentionDuration) > 0 {
+				if len(weeklyScheduleConfig.RetentionDuration) > 0 {
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"] = weeklyScheduleConfig.RetentionDuration[0].Count
 					jsonConfig["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/DurationType"] = weeklyScheduleConfig.RetentionDuration[0].DurationType
 				}
@@ -717,10 +729,12 @@ func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]
 	if model.StatusChangeAlertEnabled {
 		jsonConfig["Alerts/AutomanageStatusChanges/Enable"] = model.StatusChangeAlertEnabled
 	}
-	return &jsonConfig
+
+	var out interface{} = jsonConfig
+	return &out
 }
 
-func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
+func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareConfiguration {
 	if val, ok := configMap["Antimalware/Enable"]; !ok || (val == nil) {
 		return nil
 	}
@@ -741,11 +755,11 @@ func flattenAntimarewareConfig(configMap map[string]interface{}) []AntimalwareCo
 	}
 
 	if val, ok := configMap["Antimalware/ScanDay"]; ok {
-		antimalware[0].ScanDay = int(val.(float64))
+		antimalware[0].ScanDay = int64(val.(float64))
 	}
 
 	if val, ok := configMap["Antimalware/ScanTimeInMinutes"]; ok {
-		antimalware[0].ScanTimeInMinutes = int(val.(float64))
+		antimalware[0].ScanTimeInMinutes = int64(val.(float64))
 	}
 
 	exclusions := AntimalwareExclusions{}
@@ -805,7 +819,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	}
 
 	if val, ok := configMap["Backup/InstantRpRetentionRangeInDays"]; ok {
-		backup[0].InstantRpRetentionRangeInDays = int(val.(float64))
+		backup[0].InstantRpRetentionRangeInDays = int64(val.(float64))
 	}
 
 	schedulePolicy := SchedulePolicyConfiguration{}
@@ -852,7 +866,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	retentionDuration := RetentionDurationConfiguration{}
 	retentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"]; ok {
-		retentionDuration.Count = int(val.(float64))
+		retentionDuration.Count = int64(val.(float64))
 		retentionDurationChanged = true
 	}
 
@@ -881,7 +895,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	weeklyRetentionDuration := RetentionDurationConfiguration{}
 	weeklyRetentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"]; ok {
-		weeklyRetentionDuration.Count = int(val.(float64))
+		weeklyRetentionDuration.Count = int64(val.(float64))
 		weeklyRetentionDurationChanged = true
 	}
 

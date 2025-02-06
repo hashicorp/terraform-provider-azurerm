@@ -10,8 +10,6 @@ description: |-
 
 Manages as an Azure Container Group instance.
 
-~> **Note** `network_profile_id` is [deprecated](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet) by Azure. For users who want to continue to manage existing `azurerm_container_group` that rely on `network_profile_id`, please stay on provider versions prior to v3.16.0. Otherwise, use `subnet_ids` instead.
-
 ## Example Usage
 
 This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
@@ -65,6 +63,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `sku` - (Optional) Specifies the sku of the Container Group. Possible values are `Confidential`, `Dedicated` and `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below. Changing this forces a new resource to be created.
@@ -91,15 +91,21 @@ The following arguments are supported:
 
 ~> **Note:** The `exposed_port` can only contain ports that are also exposed on one or more containers in the group.
 
-* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `subnet_ids` also needs to be set.
+* `ip_address_type` - (Optional) Specifies the IP address type of the container. `Public`, `Private` or `None`. Changing this forces a new resource to be created. If set to `Private`, `subnet_ids` also needs to be set. Defaults to `Public`.
 
 ~> **Note:** `dns_name_label` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
 * `key_vault_key_id` - (Optional) The Key Vault key URI for CMK encryption. Changing this forces a new resource to be created.
 
+* `key_vault_user_assigned_identity_id` - (Optional) The user assigned identity that has access to the Key Vault Key. If not specified, the RP principal named "Azure Container Instance Service" will be used instead. Make sure the identity has the proper `key_permissions` set, at least with `Get`, `UnwrapKey`, `WrapKey` and `GetRotationPolicy`.
+
 * `subnet_ids` - (Optional) The subnet resource IDs for a container group. Changing this forces a new resource to be created.
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
+
+* `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
+
+~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
@@ -137,6 +143,8 @@ An `init_container` block supports:
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
+* `security` - (Optional) The definition of the security context for this container as documented in the `security` block below. Changing this forces a new resource to be created.
+
 ---
 
 A `container` block supports:
@@ -149,15 +157,9 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `gpu` - (Optional) A `gpu` block as defined below. Changing this forces a new resource to be created.
-
-~> **Note:** Gpu resources are currently only supported in Linux containers.
-
 * `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
 
-* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
-
-* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
+* `memory_limit` - (Optional) The upper limit of the memory of the containers in GB.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
@@ -173,13 +175,15 @@ A `container` block supports:
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
+* `security` - (Optional) The definition of the security context for this container as documented in the `security` block below. Changing this forces a new resource to be created.
+
 ---
 
 An `exposed_port` block supports:
 
 * `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created. Defaults to `TCP`.
 
 ~> **Note:** Removing all `exposed_port` blocks requires setting `exposed_port = []`.
 
@@ -219,25 +223,9 @@ A `ports` block supports:
 
 * `port` - (Optional) The port number the container will expose. Changing this forces a new resource to be created.
 
-* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created.
+* `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created. Defaults to `TCP`.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
-
----
-
-A `gpu` block supports:
-
-* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
-
-* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
-
----
-
-A `gpu_limit` block supports:
-
-* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
-
-* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 
@@ -287,13 +275,13 @@ The `readiness_probe` block supports:
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
-* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. Changing this forces a new resource to be created.
 
-* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
 
-* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
 
-* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
 
 ---
 
@@ -305,13 +293,13 @@ The `liveness_probe` block supports:
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
-* `period_seconds` - (Optional) How often (in seconds) to perform the probe. The default value is `10` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `period_seconds` - (Optional) How often (in seconds) to perform the probe. Changing this forces a new resource to be created.
 
-* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). The default value is `3` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `failure_threshold` - (Optional) How many times to try the probe before restarting the container (liveness probe) or marking the container as unhealthy (readiness probe). Changing this forces a new resource to be created.
 
-* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `success_threshold` - (Optional) Minimum consecutive successes for the probe to be considered successful after having failed. Changing this forces a new resource to be created.
 
-* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. The default value is `1` and the minimum value is `1`. Changing this forces a new resource to be created.
+* `timeout_seconds` - (Optional) Number of seconds after which the probe times out. Changing this forces a new resource to be created.
 
 ---
 
@@ -334,6 +322,14 @@ The `dns_config` block supports:
 * `search_domains` - (Optional) A list of search domains that DNS requests will search along. Changing this forces a new resource to be created.
 
 * `options` - (Optional) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html). Changing this forces a new resource to be created.
+
+---
+
+The `security` block supports:
+
+* `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Changing this forces a new resource to be created.
+
+~> **NOTE:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. 
 
 ## Attributes Reference
 
@@ -359,7 +355,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+* `create` - (Defaults to 60 minutes) Used when creating the Container Group.
 
 * `update` - (Defaults to 30 minutes) Used when updating the Container Group.
 

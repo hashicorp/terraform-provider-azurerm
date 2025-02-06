@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package logging
 
 import (
@@ -75,6 +78,15 @@ func ResourceContext(ctx context.Context, resource string) context.Context {
 	ctx = tfsdklog.SetField(ctx, KeyResourceType, resource)
 	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyResourceType, resource)
 	ctx = tflog.SetField(ctx, KeyResourceType, resource)
+
+	return ctx
+}
+
+// EphemeralResourceContext injects the ephemeral resource type into logger contexts.
+func EphemeralResourceContext(ctx context.Context, ephemeralResource string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyEphemeralResourceType, ephemeralResource)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyEphemeralResourceType, ephemeralResource)
+	ctx = tflog.SetField(ctx, KeyEphemeralResourceType, ephemeralResource)
 
 	return ctx
 }

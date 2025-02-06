@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -230,6 +230,21 @@ func TestAccCosmosDbSqlContainer_customConflictResolutionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hierarchicalPartitionKeys(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseContainerID(state.ID)
 	if err != nil {
@@ -253,7 +268,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }
@@ -267,7 +282,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosSqlDatabaseResource{}.serverless(data), data.RandomInteger)
 }
@@ -281,7 +296,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -342,7 +357,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name    = azurerm_cosmosdb_account.test.resource_group_name
   account_name           = azurerm_cosmosdb_account.test.name
   database_name          = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path     = "/definition/id"
+  partition_key_paths    = ["/definition/id"]
   analytical_storage_ttl = 600
 }
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
@@ -363,7 +378,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, CosmosDBAccountResource{}.analyticalStorage(data, "GlobalDocumentDB", "Eventual", true), data.RandomInteger, data.RandomInteger)
 }
@@ -373,11 +388,12 @@ func (CosmosSqlContainerResource) update(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  name                  = "acctest-CSQLC-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  account_name          = azurerm_cosmosdb_account.test.name
+  database_name         = azurerm_cosmosdb_sql_database.test.name
+  partition_key_paths   = ["/definition/id"]
+  partition_key_version = 1
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -432,7 +448,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
   autoscale_settings {
     max_throughput = %[3]d
   }
@@ -449,7 +465,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "consistent"
@@ -501,7 +517,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "consistent"
@@ -561,7 +577,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   indexing_policy {
     indexing_mode = "none"
@@ -578,7 +594,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
   account_name          = azurerm_cosmosdb_account.test.name
   database_name         = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path    = "/definition/id"
+  partition_key_paths   = ["/definition/id"]
   partition_key_version = %[3]d
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger, version)
@@ -593,12 +609,28 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 
   conflict_resolution_policy {
     mode                          = "Custom"
     conflict_resolution_procedure = "dbs/{0}/colls/{1}/sprocs/{2}"
   }
+}
+`, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) hierarchicalPartitionKeys(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                  = "acctest-CSQLC-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  account_name          = azurerm_cosmosdb_account.test.name
+  database_name         = azurerm_cosmosdb_sql_database.test.name
+  partition_key_kind    = "MultiHash"
+  partition_key_paths   = ["/definition", "/id", "/sessionId"]
+  partition_key_version = 2
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
 }

@@ -48,7 +48,9 @@ func (c ApplicationDefinitionsClient) CreateOrUpdate(ctx context.Context, id App
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationDefinition
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

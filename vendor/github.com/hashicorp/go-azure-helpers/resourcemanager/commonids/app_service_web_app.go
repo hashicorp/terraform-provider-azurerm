@@ -14,7 +14,7 @@ type WebAppId = AppServiceId
 func ParseWebAppID(input string) (*WebAppId, error) {
 	parsed, err := ParseAppServiceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Function App ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as a Web App ID: %+v", input, err)
 	}
 
 	return &WebAppId{
@@ -29,7 +29,7 @@ func ParseWebAppID(input string) (*WebAppId, error) {
 func ParseWebAppIDInsensitively(input string) (*WebAppId, error) {
 	parsed, err := ParseAppServiceIDInsensitively(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Function App ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as a Web App ID: %+v", input, err)
 	}
 
 	return &WebAppId{

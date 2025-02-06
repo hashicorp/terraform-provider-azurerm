@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package paloalto
 
 import (
@@ -10,8 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -79,11 +83,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[strin
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.Firewalls
+			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 			localRuleStackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
-			loc := ""
 			var model NextGenerationFirewallVHubLocalRuleStackModel
 
 			if err := metadata.Decode(&model); err != nil {
@@ -112,7 +115,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
 			}
 
-			loc = location.Normalize(ruleStack.Model.Location)
+			loc := location.Normalize(ruleStack.Model.Location)
 
 			firewall := firewalls.FirewallResource{
 				Location: loc,
@@ -137,6 +140,9 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				Tags: tags.Expand(model.Tags),
 			}
 
+			locks.ByID(ruleStackID.ID())
+			defer locks.UnlockByID(ruleStackID.ID())
+
 			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return err
 			}
@@ -152,7 +158,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.Firewalls
+			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -200,7 +206,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Delete() sdk.ResourceF
 	return sdk.ResourceFunc{
 		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.Firewalls
+			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -218,9 +224,9 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Delete() sdk.ResourceF
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 2 * time.Hour,
+		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.Firewalls
+			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -256,6 +262,8 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 				}
 
 				props.AssociatedRulestack = ruleStack
+				locks.ByID(ruleStackID.ID())
+				defer locks.UnlockByID(ruleStackID.ID())
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {

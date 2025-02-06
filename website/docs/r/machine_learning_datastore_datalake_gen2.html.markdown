@@ -82,6 +82,7 @@ The following arguments are supported:
 * `workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning DataStore to be created.
 
 * `storage_container_id` - (Required) The ID of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
+
 ---
 * `tenant_id` - (Optional) The ID of the Tenant which the Service Principal belongs to.
 

@@ -137,6 +137,10 @@ locals {
   admin_password    = "Password1234!%[1]d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -162,6 +166,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
   domain_name_label   = local.vm_name
+  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "public" {
@@ -220,8 +225,8 @@ resource "azurerm_linux_virtual_machine" "source" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -502,8 +507,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

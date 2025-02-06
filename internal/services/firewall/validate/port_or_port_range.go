@@ -14,7 +14,7 @@ func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string
 		v, ok := i.(string)
 		if !ok {
 			errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-			return
+			return warnings, errors
 		}
 
 		assertWithinRange := func(n int) error {
@@ -29,7 +29,7 @@ func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string
 		groups := regexp.MustCompile(`^(\d+)((-)(\d+))?$`).FindStringSubmatch(v)
 		if len(groups) != 5 {
 			errors = append(errors, fmt.Errorf("expected `number` or `num1-num2` but got %q", v))
-			return
+			return warnings, errors
 		}
 
 		if groups[2] == "" {
@@ -37,7 +37,7 @@ func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string
 
 			if err := assertWithinRange(p1); err != nil {
 				errors = append(errors, err)
-				return
+				return warnings, errors
 			}
 		} else {
 			p1, _ := strconv.Atoi(groups[1])
@@ -45,17 +45,17 @@ func PortOrPortRangeWithin(min int, max int) func(interface{}, string) ([]string
 
 			if p1 >= p2 {
 				errors = append(errors, fmt.Errorf("beginning port (%d) should be less than ending port (%d)", p1, p2))
-				return
+				return warnings, errors
 			}
 
 			if err := assertWithinRange(p1); err != nil {
 				errors = append(errors, err)
-				return
+				return warnings, errors
 			}
 
 			if err := assertWithinRange(p2); err != nil {
 				errors = append(errors, err)
-				return
+				return warnings, errors
 			}
 		}
 

@@ -14,6 +14,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 * Authenticating to Azure using a Service Principal and OpenID Connect (which is covered in this guide)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -57,7 +58,7 @@ The **Issuer**, **Audiences**, and **Subject identifier** fields autopopulate ba
 
 Click **Add** to configure the federated credential.
 
-### Via the Azure API
+#### Via the Azure API
 
 ```sh
 az rest --method POST \
@@ -80,6 +81,24 @@ Where the body is:
 
 See the [official documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/workload-identity-federation-create-trust-github) for more details.
 
+### Configure Azure Active Directory Application / Managed Identity to Trust an Azure DevOps Service Connection
+
+An application or managed identity requires a federated credential for each Azure DevOps service connection. In common scenarios, there will be one registration/identity per environment with one credential for the environment's service connection.
+
+#### Automatic configuration - App registration
+The simplest method for setting up federation is to create a new **Workload Identity federation (automatic)** in Azure DevOps. This will automatically create a new app registration in your tenant. Alternatively, if you want to retain your existing connection, you can convert an existing secret-based connection to a federated one using the provided `Convert` option in the service connection overview. This may have some implications for your pipelines, but there is a rollback option available.
+
+For more details, refer to [the official documentation](https://learn.microsoft.com/en-gb/azure/devops/pipelines/library/connect-to-azure?view=azure-devops#create-a-new-workload-identity-federation-service-connection) for more details.
+
+#### Manual Configuration - Managed Identity / App Registration
+To configure a Managed Identity for federation, select the **Workload Identity federation (manual)** option in the creation wizard. After providing a name for the new connection, you will be presented with the issuer URL and subject identifier values required to configure federated credentials in the Managed Identity resource.
+
+In Azure Managed Identity resource settings, select **Other** from the **Federated credential scenario** options and provide the issuer URL, subject identifier provided by Azure DevOps, and a display name for your credentials. Then, proceed with the **Verify and save** option in the Azure DevOps `New Azure service connection` wizard.
+
+#### Terraform Configuration - Managed Identity / App registration
+
+Please refer to examples in [azuredevops_serviceendpoint_azurerm](https://registry.terraform.io/providers/microsoft/azuredevops/latest/docs/resources/serviceendpoint_azurerm#workload-identity-federation-manual-azurerm-service-endpoint-subscription-scoped) resource documentation.
+
 ### Granting the Application access to manage resources in your Azure Subscription
 
 Once the Application exists in Azure Active Directory - we can grant it permissions to modify resources in the Subscription. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), then select the Subscription you wish to use, then click **Access Control (IAM)**, and finally **Add** > **Add role assignment**.
@@ -96,8 +115,6 @@ In the Federated credentials tab, select **Add credential**. The 'Add a credenti
 
 ## Configuring the Service Principal in Terraform
 
-~> **Note:** If using the AzureRM Backend you may also need to configure OIDC there too, see [the documentation for the AzureRM Backend](https://www.terraform.io/language/settings/backends/azurerm) for more information.
-
 As we've obtained the credentials for this Service Principal - it's possible to configure them in a few different ways.
 
 When storing the credentials as Environment Variables, for example:
@@ -108,7 +125,10 @@ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
+### OIDC token
 The provider will use the `ARM_OIDC_TOKEN` environment variable as an OIDC token. You can use this variable to specify the token provided by your OIDC provider.
+
+**GitHub Actions**
 
 When running Terraform in GitHub Actions, the provider will detect the `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables set by the GitHub Actions runtime. You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
 
@@ -122,7 +142,29 @@ permissions:
 
 For more information about OIDC in GitHub Actions, see [official documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers).
 
-The following Terraform and Provider blocks can be specified - where `3.7.0` is the version of the Azure Provider that you'd like to use:
+**Azure DevOps Pipelines**
+
+Use the `TerraformTaskV4@4` task to easily connect Terraform to Azure using your workload identity. 
+
+Alternatively, using the `AzureCLI@2` task, you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
+```yaml
+- task: AzureCLI@2
+  name: set_variables
+  displayName: set terraform credentials
+  inputs:
+    azureSubscription: 'service-connection-name'
+    addSpnToEnvironment: true
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ARM_USE_OIDC]true"
+      Write-Host "##vso[task.setvariable variable=ARM_OIDC_TOKEN]$env:idToken"
+      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$env:servicePrincipalId"
+      Write-Host "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(az account show --query id -o tsv)"
+      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$env:tenantId"
+```
+
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -131,7 +173,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.7.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -169,7 +211,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.7.0"
+      version = "=4.1.0"
     }
   }
 }

@@ -69,6 +69,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 		"ip_configurations": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
@@ -79,16 +81,15 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
+						Optional: true,
 						Computed: true,
 					},
 
 					"private_ip_allocation_method": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(inboundendpoints.IPAllocationMethodDynamic),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(inboundendpoints.IPAllocationMethodDynamic),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
+						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},
 				},
 			},
@@ -135,7 +136,10 @@ func (r PrivateDNSResolverInboundEndpointResource) Create() sdk.ResourceFunc {
 				Tags:       &model.Tags,
 			}
 
-			iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
+			iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
+			if err != nil {
+				return err
+			}
 
 			if iPConfigurationsValue != nil {
 				properties.Properties.IPConfigurations = *iPConfigurationsValue
@@ -175,14 +179,6 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 			properties := resp.Model
 			if properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
-			}
-
-			if metadata.ResourceData.HasChange("ip_configurations") {
-				iPConfigurationsValue := expandIPConfigurationModel(model.IPConfigurations)
-
-				if iPConfigurationsValue != nil {
-					properties.Properties.IPConfigurations = *iPConfigurationsValue
-				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -291,11 +287,19 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 	}
 }
 
-func expandIPConfigurationModel(inputList []IPConfigurationModel) *[]inboundendpoints.IPConfiguration {
-	var outputList []inboundendpoints.IPConfiguration
+func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
+	outputList := make([]inboundendpoints.IPConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := inboundendpoints.IPConfiguration{}
+
+		if input.PrivateIPAllocationMethod == inboundendpoints.IPAllocationMethodDynamic && input.PrivateIPAddress != "" {
+			return nil, fmt.Errorf("`private_ip_address` cannot be set when `private_ip_allocation_method` is `Dynamic`")
+		}
+
+		if input.PrivateIPAllocationMethod == inboundendpoints.IPAllocationMethodStatic && input.PrivateIPAddress == "" {
+			return nil, fmt.Errorf("`private_ip_address` must be set when `private_ip_allocation_method` is `Static`")
+		}
 
 		if input.PrivateIPAllocationMethod != "" {
 			output.PrivateIPAllocationMethod = &input.PrivateIPAllocationMethod
@@ -312,15 +316,15 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) *[]inboundendp
 		outputList = append(outputList, output)
 	}
 
-	return &outputList
+	return &outputList, nil
 }
 
 func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
-	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList
+		return []IPConfigurationModel{}
 	}
 
+	outputList := make([]IPConfigurationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := IPConfigurationModel{}
 

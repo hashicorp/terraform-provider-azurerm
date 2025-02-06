@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
@@ -121,7 +122,6 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 			if keyVaultCertificateId.Version != "" {
 				customCertObj.Properties.KeyVaultSecretVersion = utils.String(keyVaultCertificateId.Version)
-
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {
@@ -140,7 +140,6 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.WebPubSubClient.WebPubSub
 			keyVaultClient := metadata.Client.KeyVault
-			resourcesClient := metadata.Client.Resource
 			id, err := webpubsub.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -161,7 +160,8 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
 
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, vaultBasedUri)
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
 			if err != nil {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}
@@ -185,7 +185,7 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
-				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
+				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
 			return metadata.Encode(&state)

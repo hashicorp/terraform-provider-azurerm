@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -32,7 +33,6 @@ func resourceManagementLock() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -100,6 +100,24 @@ func resourceManagementLockCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context was missing a deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Target: []string{
+			"OK",
+		},
+		Refresh:                   managementLockStateRefreshFunc(ctx, client, id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 12,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish create replication", id)
+	}
+
 	d.SetId(id.ID())
 	return resourceManagementLockRead(d, meta)
 }
@@ -155,5 +173,36 @@ func resourceManagementLockDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context was missing a deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Target: []string{
+			"NotFound",
+		},
+		Refresh:                   managementLockStateRefreshFunc(ctx, client, *id),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 12,
+		Timeout:                   time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish delete replication", id)
+	}
+
 	return nil
+}
+
+func managementLockStateRefreshFunc(ctx context.Context, client *managementlocks.ManagementLocksClient, id managementlocks.ScopedLockId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByScope(ctx, id)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			}
+			return nil, "Error", err
+		}
+		return "OK", "OK", nil
+	}
 }
