@@ -352,12 +352,11 @@ func (r MsSqlJobStepResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("output_target") {
-				options, err := expandOutputTarget(config.OutputTarget)
+				target, err := expandOutputTarget(config.OutputTarget)
 				if err != nil {
 					return fmt.Errorf("expanding `output_target`: %+v", err)
 				}
-
-				props.Output = options
+				props.Output = target
 			}
 
 			if metadata.ResourceData.HasChange("retry_attempts") {
@@ -410,20 +409,20 @@ func expandOutputTarget(input []JobStepOutputTarget) (*jobsteps.JobStepOutput, e
 		return nil, nil
 	}
 
-	options := input[0]
-	databaseId, err := commonids.ParseSqlDatabaseID(options.MsSqlDatabaseId)
+	target := input[0]
+	databaseId, err := commonids.ParseSqlDatabaseID(target.MsSqlDatabaseId)
 	if err != nil {
 		return nil, err
 	}
 
 	return pointer.To(jobsteps.JobStepOutput{
-		Credential:        pointer.To(options.JobCredentialId),
+		Credential:        pointer.To(target.JobCredentialId),
 		DatabaseName:      databaseId.DatabaseName,
 		ResourceGroupName: pointer.To(databaseId.ResourceGroupName),
-		SchemaName:        pointer.To(options.SchemaName),
+		SchemaName:        pointer.To(target.SchemaName),
 		ServerName:        databaseId.ServerName,
 		SubscriptionId:    pointer.To(databaseId.SubscriptionId),
-		TableName:         options.TableName,
+		TableName:         target.TableName,
 	}), nil
 }
 
