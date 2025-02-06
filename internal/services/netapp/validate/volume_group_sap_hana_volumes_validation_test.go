@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
@@ -28,7 +27,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -45,7 +44,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -62,7 +61,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -79,7 +78,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -95,7 +94,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -117,7 +116,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -134,7 +133,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -157,7 +156,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -174,7 +173,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -190,7 +189,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -212,7 +211,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -223,7 +222,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 2,
+			Errors: 1,
 		},
 		{
 			Name: "ValidateMultiProtocolFails",
@@ -234,8 +233,8 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
-									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv3:  pointer.To(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -246,7 +245,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 3,
+			Errors: 6,
 		},
 		{
 			Name: "ValidateNoProtocolFails",
@@ -258,7 +257,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -269,7 +268,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 4,
+			Errors: 2,
 		},
 		{
 			Name: "ValidateInvalidProtocolList",
@@ -281,7 +280,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -292,7 +291,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 3,
+			Errors: 4,
 		},
 		{
 			Name: "ValidateInvalidProtocol",
@@ -304,7 +303,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -315,7 +314,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 4,
+			Errors: 3,
 		},
 		{
 			Name: "ValidateCIFSInvalidProtocolForSAPHana",
@@ -327,7 +326,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 							Rules: &[]volumegroups.ExportPolicyRule{
 								{
 									Nfsv3:  pointer.To(false),
-									Nfsv41: utils.Bool(true),
+									Nfsv41: pointer.To(true),
 								},
 							},
 						},
@@ -338,7 +337,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 					},
 				},
 			},
-			Errors: 3,
+			Errors: 2,
 		},
 		{
 			Name: "ValidateNoNfsVersionThreeOnDataLogAndSharedVolumes",

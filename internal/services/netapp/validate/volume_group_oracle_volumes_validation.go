@@ -72,34 +72,29 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 	for _, volume := range pointer.From(volumeList) {
 		// Get protocol list
 		protocolTypeList := pointer.From(volume.Properties.ProtocolTypes)
-		protocolType := ""
 
 		// Validate protocol list is not empty
 		if len(protocolTypeList) == 0 {
 			errors = append(errors, fmt.Errorf("'protocol type list cannot be empty'"))
 		}
 
-		// Getting protocol for next validations
-		if len(protocolTypeList) > 0 {
-			protocolType = protocolTypeList[0]
-		}
-
-		// Validate protocol list does not contain invalid protocols
 		for _, protocol := range protocolTypeList {
-			if !findStringInSlice(PossibleValuesForProtocolType(), protocolType) {
+
+			// Validate protocol list does not contain invalid protocols
+			if !findStringInSlice(PossibleValuesForProtocolType(), protocol) {
 				errors = append(errors, fmt.Errorf("'protocol %v is invalid'", protocol))
 			}
-		}
 
-		// Validate that protocol is valid for Oracle
-		if !findStringInSlice(PossibleValuesForProtocolTypeVolumeGroupOracle(), protocolType) {
-			errors = append(errors, fmt.Errorf("'protocol %v is invalid for Oracle'", protocolType))
-		}
+			// Validate that protocol is valid for Oracle
+			if !findStringInSlice(PossibleValuesForProtocolTypeVolumeGroupOracle(), protocol) {
+				errors = append(errors, fmt.Errorf("'protocol %v is invalid for Oracle'", protocol))
+			}
 
-		// Validating export policies
-		if volume.Properties.ExportPolicy != nil {
-			for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
-				errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, protocolType)...)
+			// Validating export policies
+			if volume.Properties.ExportPolicy != nil {
+				for _, rule := range pointer.From(volume.Properties.ExportPolicy.Rules) {
+					errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, protocol)...)
+				}
 			}
 		}
 
