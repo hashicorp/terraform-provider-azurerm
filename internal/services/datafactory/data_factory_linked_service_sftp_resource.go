@@ -134,7 +134,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
-				AtLeastOneOf:  []string{"private_key_content", "private_key_path"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
 
 			"private_key_content": {
