@@ -242,7 +242,7 @@ resource "azurerm_network_manager_ipam_pool" "parent" {
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
   display_name       = "ipampool0"
-  address_prefixes   = ["10.0.0.0/26", "10.0.1.0" / 27]
+  address_prefixes   = ["10.0.0.0/26", "10.0.1.0/27"]
 }
 
 resource "azurerm_network_manager_ipam_pool" "test" {
@@ -272,7 +272,7 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_network_manager" "test" {
-  name                = "acctest-nm-%[1]d"
+  name                = "acctest-nm-ipam-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   scope {
