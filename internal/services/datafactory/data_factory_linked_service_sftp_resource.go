@@ -147,8 +147,8 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"private_key_content": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Base64 encoded SSH private key content or Azure Key Vault Secret URL. SSH private key should be OpenSSH format",
-				ValidateFunc:  validation.Any(computeValidate.SSHKey, keyvaultValidate.SecretID),
+				Description:   "Base64 encoded SSH private key content or Azure Key Vault Secret URL. SSH private key should be in OpenSSH format",
+				ValidateFunc:  validation.Any(validate.SSHPrivateKey, keyvaultValidate.SecretID),
 				ConflictsWith: []string{"private_key_path", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},

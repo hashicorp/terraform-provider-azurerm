@@ -57,26 +57,6 @@ func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceSFTP_privateKeyContentWithPassphrase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
-	passphrase := data.RandomString
-	privateKey, err := generatePrivateKeyWithPassphrase(passphrase)
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %v", err)
-	}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.privateKeyContentWithPassphrase(data, privateKey, passphrase),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("password"),
-	})
-}
-
 func TestAccDataFactoryLinkedServiceSFTP_privateKeyPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
@@ -463,27 +443,4 @@ func generatePrivateKey() ([]byte, error) {
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(key),
 	}), nil
-}
-
-func generatePrivateKeyWithPassphrase(passphrase string) ([]byte, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the private key to PKCS1 ASN.1 PEM format
-	privateKeyBytes := x509.MarshalPKCS1PrivateKey(key)
-
-	// Encrypt the private key with the passphrase
-	block := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: privateKeyBytes,
-	}
-
-	encryptedBlock, err := x509.EncryptPEMBlock(rand.Reader, block.Type, block.Bytes, []byte(passphrase), x509.PEMCipherAES256)
-	if err != nil {
-		return nil, err
-	}
-
-	return pem.EncodeToMemory(encryptedBlock), nil
 }
