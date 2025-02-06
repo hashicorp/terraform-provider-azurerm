@@ -200,9 +200,8 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 		Type:  datafactory.TypeSecureString,
 	}
 
-	content := d.Get("private_key_content").(string)
 	privateKeyContent := datafactory.SecureString{
-		Value: pointer.To(content),
+		Value: pointer.To(d.Get("private_key_content").(string)),
 		Type:  datafactory.TypeSecureString,
 	}
 
