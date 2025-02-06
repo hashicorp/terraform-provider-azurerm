@@ -69,7 +69,7 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `private_key_content` - (Required if using `SshPublicKey` Authentication and not `private_key_path`) The private key content in OpenSSH format or the URL of an Azure Key Vault Secret of the same used to log on to the SFTP server.
 
-* `private_key_path` - (Required if using `SshPublicKey` Authentication and not `private_key_content`) The path to the private key file in OpenSSH format used to log on to the SFTP server.
+* `private_key_path` - (Required if using `SshPublicKey` Authentication, a self-hosted integration runtime, and not `private_key_content`) The absolute path to the private key file that the integration runtime can access. This applies only when the self-hosted type of integration runtime is specified in `integration_runtime_name`.
 
 * `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
 

@@ -79,16 +79,29 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"password": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
-				AtLeastOneOf:  []string{"private_key_content", "private_key_path"},
+			"additional_properties": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"annotations": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"host_key_fingerprint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -108,39 +121,20 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				},
 			},
 
-			"skip_host_key_validation": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
-			"host_key_fingerprint": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"annotations": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"additional_properties": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"private_key_path": {
+			"passphrase": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when the self-hosted type of integration runtime is specified in \"connectVia.\"",
-				ConflictsWith: []string{"private_key_content", "password"},
-				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
+				ConflictsWith: []string{"password"},
+			},
+
+			"password": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"private_key_content", "private_key_path", "passphrase"},
+				AtLeastOneOf:  []string{"private_key_content", "private_key_path"},
 			},
 
 			"private_key_content": {
@@ -152,11 +146,17 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
 
-			"passphrase": {
+			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
-				ConflictsWith: []string{"password"},
+				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when the self-hosted type of integration runtime is specified in \"integration_runtime_name.\"",
+				ConflictsWith: []string{"private_key_content", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"skip_host_key_validation": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
 			},
 		},
 	}

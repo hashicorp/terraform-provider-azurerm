@@ -269,39 +269,6 @@ EOF
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent)
 }
 
-func (LinkedServiceSFTPResource) privateKeyContentWithPassphrase(data acceptance.TestData, keyContent []byte, passphrase string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  authentication_type = "SshPublicKey"
-  host                = "http://www.bing.com"
-  port                = 22
-  username            = "foo"
-  private_key_content = <<EOF
-%s
-EOF
-
-  passphrase          = "%s"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent, passphrase)
-}
-
 func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData, privateKeyPath string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
