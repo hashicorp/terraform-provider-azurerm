@@ -16,11 +16,24 @@ import (
 type ListBySubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]FileSystemResource
+	Model        *[]LiftrBaseStorageFileSystemResource
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []FileSystemResource
+	LatestHttpResponse *http.Response
+	Items              []LiftrBaseStorageFileSystemResource
+}
+
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListBySubscription ...
@@ -31,6 +44,7 @@ func (c FileSystemsClient) ListBySubscription(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Qumulo.Storage/fileSystems", id.ID()),
 	}
 
@@ -50,7 +64,7 @@ func (c FileSystemsClient) ListBySubscription(ctx context.Context, id commonids.
 	}
 
 	var values struct {
-		Values *[]FileSystemResource `json:"value"`
+		Values *[]LiftrBaseStorageFileSystemResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,15 +77,16 @@ func (c FileSystemsClient) ListBySubscription(ctx context.Context, id commonids.
 
 // ListBySubscriptionComplete retrieves all the results into a single object
 func (c FileSystemsClient) ListBySubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ListBySubscriptionCompleteResult, error) {
-	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, FileSystemResourceOperationPredicate{})
+	return c.ListBySubscriptionCompleteMatchingPredicate(ctx, id, LiftrBaseStorageFileSystemResourceOperationPredicate{})
 }
 
 // ListBySubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c FileSystemsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate FileSystemResourceOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
-	items := make([]FileSystemResource, 0)
+func (c FileSystemsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate LiftrBaseStorageFileSystemResourceOperationPredicate) (result ListBySubscriptionCompleteResult, err error) {
+	items := make([]LiftrBaseStorageFileSystemResource, 0)
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c FileSystemsClient) ListBySubscriptionCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

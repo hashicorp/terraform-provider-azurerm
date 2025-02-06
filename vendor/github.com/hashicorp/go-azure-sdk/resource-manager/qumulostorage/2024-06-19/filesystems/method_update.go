@@ -14,11 +14,11 @@ import (
 type UpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *FileSystemResource
+	Model        *LiftrBaseStorageFileSystemResource
 }
 
 // Update ...
-func (c FileSystemsClient) Update(ctx context.Context, id FileSystemId, input FileSystemResourceUpdate) (result UpdateOperationResponse, err error) {
+func (c FileSystemsClient) Update(ctx context.Context, id FileSystemId, input LiftrBaseStorageFileSystemResourceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -47,7 +47,9 @@ func (c FileSystemsClient) Update(ctx context.Context, id FileSystemId, input Fi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LiftrBaseStorageFileSystemResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

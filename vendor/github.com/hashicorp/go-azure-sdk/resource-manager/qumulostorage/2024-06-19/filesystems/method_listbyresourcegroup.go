@@ -16,11 +16,24 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]FileSystemResource
+	Model        *[]LiftrBaseStorageFileSystemResource
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []FileSystemResource
+	LatestHttpResponse *http.Response
+	Items              []LiftrBaseStorageFileSystemResource
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
@@ -31,6 +44,7 @@ func (c FileSystemsClient) ListByResourceGroup(ctx context.Context, id commonids
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Qumulo.Storage/fileSystems", id.ID()),
 	}
 
@@ -50,7 +64,7 @@ func (c FileSystemsClient) ListByResourceGroup(ctx context.Context, id commonids
 	}
 
 	var values struct {
-		Values *[]FileSystemResource `json:"value"`
+		Values *[]LiftrBaseStorageFileSystemResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,15 +77,16 @@ func (c FileSystemsClient) ListByResourceGroup(ctx context.Context, id commonids
 
 // ListByResourceGroupComplete retrieves all the results into a single object
 func (c FileSystemsClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
-	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, FileSystemResourceOperationPredicate{})
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, LiftrBaseStorageFileSystemResourceOperationPredicate{})
 }
 
 // ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c FileSystemsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate FileSystemResourceOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
-	items := make([]FileSystemResource, 0)
+func (c FileSystemsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate LiftrBaseStorageFileSystemResourceOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]LiftrBaseStorageFileSystemResource, 0)
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
@@ -84,7 +99,8 @@ func (c FileSystemsClient) ListByResourceGroupCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

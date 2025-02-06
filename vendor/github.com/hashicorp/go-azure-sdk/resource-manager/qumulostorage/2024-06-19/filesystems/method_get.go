@@ -14,7 +14,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *FileSystemResource
+	Model        *LiftrBaseStorageFileSystemResource
 }
 
 // Get ...
@@ -43,7 +43,9 @@ func (c FileSystemsClient) Get(ctx context.Context, id FileSystemId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LiftrBaseStorageFileSystemResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

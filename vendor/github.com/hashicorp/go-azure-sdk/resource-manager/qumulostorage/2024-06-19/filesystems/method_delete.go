@@ -27,7 +27,6 @@ func (c FileSystemsClient) Delete(ctx context.Context, id FileSystemId) (result 
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),

@@ -15,7 +15,7 @@ type FileSystemsClient struct {
 }
 
 func NewFileSystemsClientWithBaseURI(sdkApi sdkEnv.Api) (*FileSystemsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "filesystems", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "filesystems", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FileSystemsClient: %+v", err)
 	}

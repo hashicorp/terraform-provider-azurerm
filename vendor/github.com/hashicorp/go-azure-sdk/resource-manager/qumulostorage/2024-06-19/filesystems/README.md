@@ -1,14 +1,15 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2022-10-12/filesystems` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2024-06-19/filesystems` Documentation
 
-The `filesystems` SDK allows for interaction with the Azure Resource Manager Service `qumulostorage` (API Version `2022-10-12`).
+The `filesystems` SDK allows for interaction with Azure Resource Manager `qumulostorage` (API Version `2024-06-19`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2022-10-12/filesystems"
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2024-06-19/filesystems"
 ```
 
 
@@ -24,9 +25,9 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemValue")
+id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemName")
 
-payload := filesystems.FileSystemResource{
+payload := filesystems.LiftrBaseStorageFileSystemResource{
 	// ...
 }
 
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemValue")
+id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemValue")
+id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
@@ -103,9 +104,9 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemValue")
+id := filesystems.NewFileSystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "fileSystemName")
 
-payload := filesystems.FileSystemResourceUpdate{
+payload := filesystems.LiftrBaseStorageFileSystemResourceUpdate{
 	// ...
 }
 

@@ -18,10 +18,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *LiftrBaseStorageFileSystemResource
 }
 
 // CreateOrUpdate ...
-func (c FileSystemsClient) CreateOrUpdate(ctx context.Context, id FileSystemId, input FileSystemResource) (result CreateOrUpdateOperationResponse, err error) {
+func (c FileSystemsClient) CreateOrUpdate(ctx context.Context, id FileSystemId, input LiftrBaseStorageFileSystemResource) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -60,7 +61,7 @@ func (c FileSystemsClient) CreateOrUpdate(ctx context.Context, id FileSystemId, 
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c FileSystemsClient) CreateOrUpdateThenPoll(ctx context.Context, id FileSystemId, input FileSystemResource) error {
+func (c FileSystemsClient) CreateOrUpdateThenPoll(ctx context.Context, id FileSystemId, input LiftrBaseStorageFileSystemResource) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

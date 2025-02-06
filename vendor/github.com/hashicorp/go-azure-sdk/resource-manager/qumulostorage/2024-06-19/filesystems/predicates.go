@@ -3,14 +3,14 @@ package filesystems
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type FileSystemResourceOperationPredicate struct {
+type LiftrBaseStorageFileSystemResourceOperationPredicate struct {
 	Id       *string
 	Location *string
 	Name     *string
 	Type     *string
 }
 
-func (p FileSystemResourceOperationPredicate) Matches(input FileSystemResource) bool {
+func (p LiftrBaseStorageFileSystemResourceOperationPredicate) Matches(input LiftrBaseStorageFileSystemResource) bool {
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
