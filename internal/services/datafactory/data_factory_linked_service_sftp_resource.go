@@ -149,7 +149,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when the self-hosted type of integration runtime is specified in \"integration_runtime_name.\"",
+				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when using a self-hosted integration runtime as opposed to the default Azure-hosted runtime, as indicated by providing a value for `integration_runtime_name`.",
 				ConflictsWith: []string{"private_key_content", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
