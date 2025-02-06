@@ -144,17 +144,15 @@ For more information about OIDC in GitHub Actions, see [official documentation](
 
 **Azure DevOps Pipelines**
 
-When running Terraform in Azure DevOps Pipelines, the provider will detect the `SYSTEM_ACCESSTOKEN` and `SYSTEM_OIDCREQUESTURI` environment variables.  You can also specify the `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables.
+When running Terraform in Azure DevOps Pipelines, the provider use `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables, if these are absent, it will attempt to fall back on `SYSTEM_ACCESSTOKEN` and `SYSTEM_OIDCREQUESTURI` environment variables respectively.
 
-~> **Note:** `SYSTEM_ACCESSTOKEN` is not automatically defined by the Azure DevOps Pipelines, you'll need to source it from the pre-defined variable `System.AccessToken`.
+The ADO service connection ID is required in combination with these and can be specified via environment variable `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID`, or in the provider configuration directly via `ado_pipeline_service_connection_id`. For users of the AzAPI provider AzureRM will also fall back on `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` for compatibility.
 
-Besides, the provider will detect the ADO service connection ID via environment variable `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID`. You can also specify the `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID`, which is compatible with the `terraform-provider-azapi`.
+~> **Note:** If the `ado_pipeline_service_connection_id` value is not set, either directly via config or by environment variable, the presence of the remaining OIDC configuration will result in the provider falling back on the GitHub OIDC authoriser instead.
 
-~> **Note:** Whether the `ado_pipeline_service_connection_id` is specified or not, impacts the provider to build the authorizer as a Github OIDC authorizer (unspecified) or ADO Pipelines authorizer (specified).
+For Azure DevOps Pipelines, at least one task in the pipeline has Service Connection support and has your service connection specified. Without this, the agent will fail to load the Service Connection and results in a `No service connection found with identifier "..."`  error.
 
-For Azure DevOps Pipelines, you'll need to ensure there is at least one task in the pipeline has the Service Connection support and has your service connection specified. Otherwise, the agent won't load your Service Connection and ends up with an error: `No service connection found with identifier "..."`.
-
-Recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
+It is recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
 
 ```yaml
 - task: AzureCLI@2
