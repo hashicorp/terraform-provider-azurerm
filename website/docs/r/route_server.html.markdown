@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `branch_to_branch_traffic_enabled` - (Optional) Whether to enable route exchange between Azure Route Server and the gateway(s).
 
-* `hub_routing_preference` - (Optional) The hub routing preference. Valid values are `ASPath`, `ExpressRoute` or `VpnGateway`.
+* `hub_routing_preference` - (Optional) The hub routing preference. Valid values are `ASPath`, `ExpressRoute` or `VpnGateway`. Defaults to `ExpressRoute`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
