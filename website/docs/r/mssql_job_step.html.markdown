@@ -109,7 +109,7 @@ The following arguments are supported:
 
 ~> **Note:** `maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`.
 
-* `output_options` - (Optional) An `output_options` block as defined below.
+* `output_target` - (Optional) An `output_target` block as defined below.
 
 * `retry_attempts` - (Optional) The number of retry attempts. Defaults to `10`.
 
@@ -119,7 +119,7 @@ The following arguments are supported:
 
 ---
 
-A `output_options` block supports the following:
+A `output_target` block supports the following:
 
 * `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when connecting to the output destination.
 

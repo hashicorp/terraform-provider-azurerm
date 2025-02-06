@@ -20,21 +20,21 @@ import (
 type MsSqlJobStepResource struct{}
 
 type MsSqlJobStepResourceModel struct {
-	Name                           string                 `tfschema:"name"`
-	JobID                          string                 `tfschema:"job_id"`
-	JobCredentialID                string                 `tfschema:"job_credential_id"`
-	JobStepIndex                   int64                  `tfschema:"job_step_index"`
-	JobTargetGroupID               string                 `tfschema:"job_target_group_id"`
-	SqlScript                      string                 `tfschema:"sql_script"`
-	InitialRetryIntervalSeconds    int64                  `tfschema:"initial_retry_interval_seconds"`
-	MaximumRetryIntervalSeconds    int64                  `tfschema:"maximum_retry_interval_seconds"`
-	OutputOptions                  []JobStepOutputOptions `tfschema:"output_options"`
-	RetryAttempts                  int64                  `tfschema:"retry_attempts"`
-	RetryIntervalBackoffMultiplier float64                `tfschema:"retry_interval_backoff_multiplier"`
-	TimeoutSeconds                 int64                  `tfschema:"timeout_seconds"`
+	Name                           string                `tfschema:"name"`
+	JobID                          string                `tfschema:"job_id"`
+	JobCredentialID                string                `tfschema:"job_credential_id"`
+	JobStepIndex                   int64                 `tfschema:"job_step_index"`
+	JobTargetGroupID               string                `tfschema:"job_target_group_id"`
+	SqlScript                      string                `tfschema:"sql_script"`
+	InitialRetryIntervalSeconds    int64                 `tfschema:"initial_retry_interval_seconds"`
+	MaximumRetryIntervalSeconds    int64                 `tfschema:"maximum_retry_interval_seconds"`
+	OutputTarget                   []JobStepOutputTarget `tfschema:"output_target"`
+	RetryAttempts                  int64                 `tfschema:"retry_attempts"`
+	RetryIntervalBackoffMultiplier float64               `tfschema:"retry_interval_backoff_multiplier"`
+	TimeoutSeconds                 int64                 `tfschema:"timeout_seconds"`
 }
 
-type JobStepOutputOptions struct {
+type JobStepOutputTarget struct {
 	JobCredentialId string `tfschema:"job_credential_id"`
 	MsSqlDatabaseId string `tfschema:"mssql_database_id"`
 	TableName       string `tfschema:"table_name"`
@@ -92,7 +92,7 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:      120,
 			ValidateFunc: validation.IntBetween(1, 2147483),
 		},
-		"output_options": {
+		"output_target": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -219,24 +219,11 @@ func (r MsSqlJobStepResource) Create() sdk.ResourceFunc {
 				}),
 			}
 
-			if len(model.OutputOptions) != 0 {
-				outputOptions := model.OutputOptions[0]
-
-				databaseId, err := commonids.ParseSqlDatabaseID(outputOptions.MsSqlDatabaseId)
-				if err != nil {
-					return err
-				}
-
-				parameters.Properties.Output = pointer.To(jobsteps.JobStepOutput{
-					Credential:        pointer.To(outputOptions.JobCredentialId),
-					DatabaseName:      databaseId.DatabaseName,
-					ResourceGroupName: pointer.To(databaseId.ResourceGroupName),
-					SchemaName:        pointer.To(outputOptions.SchemaName),
-					ServerName:        databaseId.ServerName,
-					SubscriptionId:    pointer.To(databaseId.SubscriptionId),
-					TableName:         outputOptions.TableName,
-				})
+			target, err := expandOutputTarget(model.OutputTarget)
+			if err != nil {
+				return fmt.Errorf("expanding `output_target`: %+v", err)
 			}
+			parameters.Properties.Output = target
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -275,13 +262,26 @@ func (r MsSqlJobStepResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.JobCredentialID = pointer.From(props.Credential)
+					if v := pointer.From(props.Credential); v != "" {
+						credentialID, err := jobcredentials.ParseCredentialID(v)
+						if err != nil {
+							return err
+						}
+						state.JobCredentialID = credentialID.ID()
+					}
+
 					state.JobStepIndex = pointer.From(props.StepId)
 					state.JobTargetGroupID = props.TargetGroup
 					state.SqlScript = props.Action.Value
 					state.InitialRetryIntervalSeconds = pointer.From(props.ExecutionOptions.InitialRetryIntervalSeconds)
 					state.MaximumRetryIntervalSeconds = pointer.From(props.ExecutionOptions.MaximumRetryIntervalSeconds)
-					state.OutputOptions = flattenOutputOptions(props.Output)
+
+					target, err := flattenOutputTarget(props.Output)
+					if err != nil {
+						return fmt.Errorf("flattening `output_target`: %+v", err)
+					}
+					state.OutputTarget = target
+
 					state.RetryAttempts = pointer.From(props.ExecutionOptions.RetryAttempts)
 					state.RetryIntervalBackoffMultiplier = pointer.From(props.ExecutionOptions.RetryIntervalBackoffMultiplier)
 					state.TimeoutSeconds = pointer.From(props.ExecutionOptions.TimeoutSeconds)
@@ -351,10 +351,10 @@ func (r MsSqlJobStepResource) Update() sdk.ResourceFunc {
 				props.ExecutionOptions.MaximumRetryIntervalSeconds = pointer.To(config.MaximumRetryIntervalSeconds)
 			}
 
-			if metadata.ResourceData.HasChange("output_options") {
-				options, err := expandOutputOptions(config.OutputOptions)
+			if metadata.ResourceData.HasChange("output_target") {
+				options, err := expandOutputTarget(config.OutputTarget)
 				if err != nil {
-					return err
+					return fmt.Errorf("expanding `output_target`: %+v", err)
 				}
 
 				props.Output = options
@@ -405,7 +405,7 @@ func (r MsSqlJobStepResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return jobsteps.ValidateStepID
 }
 
-func expandOutputOptions(input []JobStepOutputOptions) (*jobsteps.JobStepOutput, error) {
+func expandOutputTarget(input []JobStepOutputTarget) (*jobsteps.JobStepOutput, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -427,19 +427,28 @@ func expandOutputOptions(input []JobStepOutputOptions) (*jobsteps.JobStepOutput,
 	}), nil
 }
 
-func flattenOutputOptions(input *jobsteps.JobStepOutput) []JobStepOutputOptions {
+func flattenOutputTarget(input *jobsteps.JobStepOutput) ([]JobStepOutputTarget, error) {
 	if input == nil {
-		return []JobStepOutputOptions{}
+		return []JobStepOutputTarget{}, nil
+	}
+
+	credentialID := ""
+	if v := pointer.From(input.Credential); v != "" {
+		id, err := jobcredentials.ParseCredentialID(v)
+		if err != nil {
+			return nil, err
+		}
+		credentialID = id.ID()
 	}
 
 	databaseId := commonids.NewSqlDatabaseID(pointer.From(input.SubscriptionId), pointer.From(input.ResourceGroupName), input.ServerName, input.DatabaseName)
 
-	return []JobStepOutputOptions{
+	return []JobStepOutputTarget{
 		{
-			JobCredentialId: pointer.From(input.Credential),
+			JobCredentialId: credentialID,
 			MsSqlDatabaseId: databaseId.ID(),
 			TableName:       input.TableName,
 			SchemaName:      pointer.From(input.SchemaName),
 		},
-	}
+	}, nil
 }
