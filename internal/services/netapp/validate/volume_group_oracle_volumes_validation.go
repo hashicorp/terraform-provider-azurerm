@@ -79,7 +79,6 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 		}
 
 		for _, protocol := range protocolTypeList {
-
 			// Validate protocol list does not contain invalid protocols
 			if !findStringInSlice(PossibleValuesForProtocolType(), protocol) {
 				errors = append(errors, fmt.Errorf("'protocol %v is invalid'", protocol))
