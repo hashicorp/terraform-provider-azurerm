@@ -53,7 +53,7 @@ func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password", "private_key_content"),
 	})
 }
 
@@ -74,26 +74,6 @@ func TestAccDataFactoryLinkedServiceSFTP_privateKeyPath(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.privateKeyPath(data, privateKeyPath),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("password"),
-	})
-}
-
-func TestAccDataFactoryLinkedServiceSFTP_privateKeyContentKeyVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
-	r := LinkedServiceSFTPResource{}
-
-	privateKey, err := generatePrivateKey()
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %v", err)
-	}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.privateKeyContentKeyVault(data, privateKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -320,75 +300,6 @@ EOF
   passphrase          = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent, passphrase)
-}
-
-func (LinkedServiceSFTPResource) privateKeyContentKeyVault(data acceptance.TestData, privateKey []byte) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_data_factory.test.id
-  role_definition_name = "Contributor"
-  principal_id         = azurerm_data_factory.test.identity[0].principal_id
-}
-
-resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%[1]d"
-  data_factory_id     = azurerm_data_factory.test.id
-  authentication_type = "SshPublicKey"
-  host                = "http://www.bing.com"
-  port                = 22
-  username            = "foo"
-  private_key_content = azurerm_key_vault_secret.example.id
-}
-
-resource "azurerm_key_vault" "example" {
-  name                       = "%[1]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = azurerm_data_factory.test.identity[0].tenant_id
-  sku_name                   = "premium"
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = azurerm_data_factory.test.identity[0].tenant_id
-    object_id = azurerm_data_factory.test.identity[0].principal_id
-    secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
-    ]
-  }
-}
-
-resource "azurerm_key_vault_secret" "example" {
-  name         = "ssh-key"
-  value        = <<EOF
-%[3]s
-EOF
-
-  key_vault_id = azurerm_key_vault.example.id
-}
-`, data.RandomInteger, data.Locations.Primary, privateKey)
 }
 
 func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData, privateKeyPath string) string {

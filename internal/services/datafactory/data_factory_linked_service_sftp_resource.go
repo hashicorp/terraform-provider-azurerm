@@ -12,10 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -140,6 +138,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when the self-hosted type of integration runtime is specified in \"connectVia.\"",
 				ConflictsWith: []string{"private_key_content", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
@@ -148,7 +147,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Description:   "Base64 encoded SSH private key content or Azure Key Vault Secret URL. SSH private key should be in OpenSSH format",
-				ValidateFunc:  validation.Any(validate.SSHPrivateKey, keyvaultValidate.SecretID),
+				ValidateFunc:  validate.SSHPrivateKey,
 				ConflictsWith: []string{"private_key_path", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
 			},
@@ -202,18 +201,9 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	content := d.Get("private_key_content").(string)
-	var privateKeyContent datafactory.SecureString
-	fmt.Println(privateKeyContent)
-	if _, errs := computeValidate.SSHKey(content, "private_key_content"); errs != nil {
-		privateKeyContent = datafactory.SecureString{
-			Value: pointer.To(content),
-			Type:  datafactory.TypeSecureString,
-		}
-	} else if _, errs := keyvaultValidate.SecretID(content, "private_key_content"); errs != nil {
-		privateKeyContent = datafactory.SecureString{
-			Value: pointer.To(content),
-			Type:  datafactory.TypeAzureKeyVaultSecret,
-		}
+	privateKeyContent := datafactory.SecureString{
+		Value: pointer.To(content),
+		Type:  datafactory.TypeSecureString,
 	}
 
 	passphrase := datafactory.SecureString{
