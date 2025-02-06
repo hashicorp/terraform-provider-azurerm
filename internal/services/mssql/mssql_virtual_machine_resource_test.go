@@ -16,6 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type MsSqlVirtualMachineResource struct{}
@@ -76,7 +78,7 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	testSteps := []acceptance.TestStep{
 		{
 			Config: r.withAutoBackupAutoSchedule(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,7 +106,23 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 		data.ImportStep("auto_backup.0.encryption_password",
 			"auto_backup.0.storage_account_access_key",
 			"auto_backup.0.storage_blob_endpoint"),
-	})
+	}
+
+	if !features.FivePointOh() {
+		testSteps = append(testSteps,
+			acceptance.TestStep{
+				Config: r.withAutoBackupAutoScheduleAndDeprecatedEncryptionEnabled(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep("auto_backup.0.encryption_password",
+				"auto_backup.0.storage_account_access_key",
+				"auto_backup.0.storage_blob_endpoint"),
+		)
+	}
+
+	data.ResourceTest(t, r, testSteps)
 }
 
 func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
@@ -589,6 +607,34 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
+    encryption_password             = "P@55w0rD!!%[2]s"
+    retention_period_in_days        = 23
+    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
+    system_databases_backup_enabled = false
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r MsSqlVirtualMachineResource) withAutoBackupAutoScheduleAndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  auto_backup {
+    encryption_enabled = true
     encryption_password             = "P@55w0rD!!%[2]s"
     retention_period_in_days        = 23
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
