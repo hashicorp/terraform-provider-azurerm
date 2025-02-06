@@ -21,16 +21,49 @@ type CreateOrUpdateOperationResponse struct {
 	Model        *AgentPool
 }
 
+type CreateOrUpdateOperationOptions struct {
+	IfMatch     *string
+	IfNoneMatch *string
+}
+
+func DefaultCreateOrUpdateOperationOptions() CreateOrUpdateOperationOptions {
+	return CreateOrUpdateOperationOptions{}
+}
+
+func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+	if o.IfMatch != nil {
+		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+	}
+	if o.IfNoneMatch != nil {
+		out.Append("If-None-Match", fmt.Sprintf("%v", *o.IfNoneMatch))
+	}
+	return &out
+}
+
+func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o CreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+
+	return &out
+}
+
 // CreateOrUpdate ...
-func (c AgentPoolsClient) CreateOrUpdate(ctx context.Context, id AgentPoolId, input AgentPool) (result CreateOrUpdateOperationResponse, err error) {
+func (c AgentPoolsClient) CreateOrUpdate(ctx context.Context, id AgentPoolId, input AgentPool, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodPut,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -61,8 +94,8 @@ func (c AgentPoolsClient) CreateOrUpdate(ctx context.Context, id AgentPoolId, in
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c AgentPoolsClient) CreateOrUpdateThenPoll(ctx context.Context, id AgentPoolId, input AgentPool) error {
-	result, err := c.CreateOrUpdate(ctx, id, input)
+func (c AgentPoolsClient) CreateOrUpdateThenPoll(ctx context.Context, id AgentPoolId, input AgentPool, options CreateOrUpdateOperationOptions) error {
+	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
 	}

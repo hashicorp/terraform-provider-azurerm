@@ -1,11 +1,10 @@
-package managedclusters
+package agentpools
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -15,22 +14,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type UpdateTagsOperationResponse struct {
+type DeleteMachinesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ManagedCluster
 }
 
-// UpdateTags ...
-func (c ManagedClustersClient) UpdateTags(ctx context.Context, id commonids.KubernetesClusterId, input TagsObject) (result UpdateTagsOperationResponse, err error) {
+// DeleteMachines ...
+func (c AgentPoolsClient) DeleteMachines(ctx context.Context, id AgentPoolId, input AgentPoolDeleteMachinesParameter) (result DeleteMachinesOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusOK,
+			http.StatusAccepted,
 		},
-		HttpMethod: http.MethodPatch,
-		Path:       id.ID(),
+		HttpMethod: http.MethodPost,
+		Path:       fmt.Sprintf("%s/deleteMachines", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -60,15 +58,15 @@ func (c ManagedClustersClient) UpdateTags(ctx context.Context, id commonids.Kube
 	return
 }
 
-// UpdateTagsThenPoll performs UpdateTags then polls until it's completed
-func (c ManagedClustersClient) UpdateTagsThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input TagsObject) error {
-	result, err := c.UpdateTags(ctx, id, input)
+// DeleteMachinesThenPoll performs DeleteMachines then polls until it's completed
+func (c AgentPoolsClient) DeleteMachinesThenPoll(ctx context.Context, id AgentPoolId, input AgentPoolDeleteMachinesParameter) error {
+	result, err := c.DeleteMachines(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing UpdateTags: %+v", err)
+		return fmt.Errorf("performing DeleteMachines: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after UpdateTags: %+v", err)
+		return fmt.Errorf("polling after DeleteMachines: %+v", err)
 	}
 
 	return nil

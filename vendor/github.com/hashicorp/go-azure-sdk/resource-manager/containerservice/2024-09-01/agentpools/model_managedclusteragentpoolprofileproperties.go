@@ -13,6 +13,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	Count                      *int64                    `json:"count,omitempty"`
 	CreationData               *CreationData             `json:"creationData,omitempty"`
 	CurrentOrchestratorVersion *string                   `json:"currentOrchestratorVersion,omitempty"`
+	ETag                       *string                   `json:"eTag,omitempty"`
 	EnableAutoScaling          *bool                     `json:"enableAutoScaling,omitempty"`
 	EnableEncryptionAtHost     *bool                     `json:"enableEncryptionAtHost,omitempty"`
 	EnableFIPS                 *bool                     `json:"enableFIPS,omitempty"`
@@ -44,6 +45,7 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	ScaleDownMode              *ScaleDownMode            `json:"scaleDownMode,omitempty"`
 	ScaleSetEvictionPolicy     *ScaleSetEvictionPolicy   `json:"scaleSetEvictionPolicy,omitempty"`
 	ScaleSetPriority           *ScaleSetPriority         `json:"scaleSetPriority,omitempty"`
+	SecurityProfile            *AgentPoolSecurityProfile `json:"securityProfile,omitempty"`
 	SpotMaxPrice               *float64                  `json:"spotMaxPrice,omitempty"`
 	Tags                       *map[string]string        `json:"tags,omitempty"`
 	Type                       *AgentPoolType            `json:"type,omitempty"`
