@@ -95,7 +95,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		args["plan_id"].Default = "panw-cloud-ngfw-payg"
 	}
 
