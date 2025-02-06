@@ -214,13 +214,11 @@ provider "azurerm" {
   client_id       = "00000000-0000-0000-0000-000000000000"
   use_oidc        = true
 
-  # for GitHub Actions
+  # for GitHub Actions or Azure DevOps Pipelines
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
 
   # for Azure DevOps Pipelines
-  oidc_request_token                 = var.oidc_request_token
-  oidc_request_url                   = var.oidc_request_url
   ado_pipeline_service_connection_id = var.ado_pipeline_service_connection_id
 
   # for other generic OIDC providers, providing token directly
