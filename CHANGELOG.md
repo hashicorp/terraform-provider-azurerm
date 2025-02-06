@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: `appconfiguration` - update to API version `2024-05-01` [GH-28700]
 * dependencies: update `azurerm_cdn_frontdoor_rule` to API version `2024-02-01` [GH-28308]
 * dependencies: update `azurerm_cdn_frontdoor_ruleset` to API version `2024-02-01` [GH-28308]
 * dependencies: update `go-azure-sdk` to `v0.20250131.1134653` [GH-28674]
