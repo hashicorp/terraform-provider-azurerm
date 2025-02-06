@@ -124,7 +124,7 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 }
 
 func (r NextGenerationFirewallVnetResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +180,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
 }
 
 func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 %[1]s
 

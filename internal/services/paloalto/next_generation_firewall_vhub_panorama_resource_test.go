@@ -110,7 +110,7 @@ func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, 
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) basic(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
