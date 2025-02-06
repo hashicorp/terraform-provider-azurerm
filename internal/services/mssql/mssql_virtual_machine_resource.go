@@ -945,7 +945,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
 	}
 
-	return []interface{}{
+	ret := []interface{}{
 		map[string]interface{}{
 			"encryption_password":             encryptionPassword,
 			"manual_schedule":                 manualSchedule,
@@ -955,6 +955,12 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
+
+	if !features.FivePointOh() {
+		ret[0].(map[string]interface{})["encryption_enabled"] = pointer.From(autoBackup.EnableEncryption)
+	}
+
+	return ret
 }
 
 func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {
