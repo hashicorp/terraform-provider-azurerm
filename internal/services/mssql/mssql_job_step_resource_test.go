@@ -172,7 +172,7 @@ EOT
   retry_interval_backoff_multiplier = 4.5
   timeout_seconds                   = 12345
 
-  output_options {
+  output_target {
     job_credential_id = azurerm_mssql_job_credential.test.id
     mssql_database_id = azurerm_mssql_database.test.id
     table_name        = "test"
