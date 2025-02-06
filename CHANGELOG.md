@@ -19,6 +19,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_logic_app_action_http` - fix issue where `queries` would be set to an empty map instead of null when omitted from the configuration [GH-28447]
+* `azurerm_machine_learning_compute_cluster` - allow resource creation when `node_public_ip_enabled` is `false` and `subnet_resource_id` has not been specified [GH-28673]
 * `azurerm_network_watcher_flow_log` - prevent panic when removing the `traffic_analytics` block [GH-28416]
 * `azurerm_oracle_autonomous_database` - fix incorrect type for the `supported_regions_to_clone_to` property [GH-28536]
 
