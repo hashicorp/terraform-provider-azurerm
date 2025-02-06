@@ -940,7 +940,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 	blobEndpoint := d.Get("auto_backup.0.storage_blob_endpoint").(string)
 	encryptionPassword := ""
 
-	// When encryption is enabled, assign password from existing config; otherwise empty
+	// Copy password from config only if encryption is enabled in Azure
 	if autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption {
 		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
 	}
