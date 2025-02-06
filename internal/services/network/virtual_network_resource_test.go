@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -435,11 +435,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
+  name                           = "acctestvirtnet%d"
+  address_space                  = ["10.0.0.0/16", "10.10.0.0/16"]
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  dns_servers                    = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
+  private_endpoint_vnet_policies = "Basic"
 
   encryption {
     enforcement = "AllowUnencrypted"

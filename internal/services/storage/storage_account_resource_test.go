@@ -13,7 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -241,6 +241,9 @@ func TestAccStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 }
 
 func TestAccStorageAccount_minTLSVersion(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping as the only possible value for `minimum_tls_version` is `1.2`")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -755,7 +758,7 @@ func TestAccStorageAccount_blobProperties_kindStorageNotSupportLastAccessTimeEna
 }
 
 func TestAccStorageAccount_queueProperties(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -795,7 +798,7 @@ func TestAccStorageAccount_queueProperties(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsiteEnabled(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -829,7 +832,7 @@ func TestAccStorageAccount_staticWebsiteEnabled(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsitePropertiesForStorageV2(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -855,7 +858,7 @@ func TestAccStorageAccount_staticWebsitePropertiesForStorageV2(t *testing.T) {
 }
 
 func TestAccStorageAccount_staticWebsitePropertiesForBlockBlobStorage(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -1712,7 +1715,7 @@ func TestAccStorageAccount_StorageV1_blobProperties(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -1731,7 +1734,7 @@ func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -1750,7 +1753,7 @@ func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
 }
 
 func TestAccStorageAccount_StorageV1_queuePropertiesRAGRS(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 
@@ -1829,7 +1832,7 @@ func TestAccStorageAccount_noDataPlane(t *testing.T) {
 }
 
 func TestAccStorageAccount_noDataPlaneQueueShouldError(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
@@ -1844,7 +1847,7 @@ func TestAccStorageAccount_noDataPlaneQueueShouldError(t *testing.T) {
 }
 
 func TestAccStorageAccount_noDataPlaneWebsiteShouldError(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("test not valid in 5.0")
 	}
 

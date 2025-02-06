@@ -46,7 +46,7 @@ data "azurerm_storage_container" "test" {
 }
 
 func TestAccStorageContainerDataSource_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
