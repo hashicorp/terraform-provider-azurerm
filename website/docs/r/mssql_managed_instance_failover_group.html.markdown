@@ -282,5 +282,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 SQL Instance Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_managed_instance_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.Sql/locations/westeurope/instanceFailoverGroups/my-failover-group
+terraform import azurerm_mssql_managed_instance_failover_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/failoverGroup1
 ```
