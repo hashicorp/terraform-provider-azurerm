@@ -147,7 +147,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// @tombuildsstuff: intentionally leaving this for now, since this'll need
 	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
 	// but needs to be fixed (resourcegroups -> resourceGroups)
-	d.SetId(*resp.ID)
+	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	return resourceResourceGroupRead(d, meta)
 }
