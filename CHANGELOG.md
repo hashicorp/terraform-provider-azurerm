@@ -1,5 +1,9 @@
 ## 4.19.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_mssql_job_step` [GH-28691]
+
 ENHANCEMENTS:
 
 * `azurerm_container_app`- add support for the `client_certificate_mode` property [GH-28523]
