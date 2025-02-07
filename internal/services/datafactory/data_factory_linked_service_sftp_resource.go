@@ -121,7 +121,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				},
 			},
 
-			"passphrase": {
+			"private_key_passphrase": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
@@ -208,7 +208,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	passphrase := datafactory.SecureString{
-		Value: pointer.To(d.Get("passphrase").(string)),
+		Value: pointer.To(d.Get("private_key_passphrase").(string)),
 		Type:  datafactory.TypeSecureString,
 	}
 
