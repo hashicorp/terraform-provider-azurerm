@@ -6,6 +6,7 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
@@ -24,6 +25,23 @@ func TestAccAzureRMServiceBusNamespacePairing_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMServiceBusNamespacePairing_resourceGroupName(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip()
+	}
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_disaster_recovery_config", "pairing_test")
+	r := ServiceBusNamespaceDisasterRecoveryConfigResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicResourceGroupName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
