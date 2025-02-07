@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
@@ -21,12 +22,12 @@ import (
 )
 
 type Client struct {
-	DeploymentsClient                   *resources.DeploymentsClient
+	DeploymentsClient                   *deployments.DeploymentsClient
 	DeploymentScriptsClient             *deploymentscripts.DeploymentScriptsClient
 	FeaturesClient                      *features.FeaturesClient
 	LocksClient                         *managementlocks.ManagementLocksClient
 	PrivateLinkAssociationClient        *privatelinkassociation.PrivateLinkAssociationClient
-	ResourcesClient                     *resources.Client
+	ResourcesClient                     *resources.ResourcesClient
 	ResourceGroupsClient                *resourcegroups.ResourceGroupsClient
 	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
 	ResourceProvidersClient             *providers.ProvidersClient
@@ -42,7 +43,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	deploymentsClient, err := resources.NewDeploymentsClientWithBaseURI(o.Environment.ResourceManager)
+	deploymentsClient, err := deployments.NewDeploymentsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Deployments client: %+v", err)
 	}
@@ -78,7 +79,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(privateLinkAssociationClient.Client, o.Authorizers.ResourceManager)
 
-	resourcesClient, err := resources.NewClientWithBaseURI(o.Environment.ResourceManager)
+	resourcesClient, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Resource client: %+v", err)
 	}

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/sql/armsql"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,10 +19,10 @@ import (
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
 // reading any replication links then attempting to discover and match the corresponding server/database resources for
 // the other end of the link.
-func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *replicationlinks.ReplicationLinksClient, resourcesClient *resources.ResourcesClient, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []armsql.ReplicationRole) ([]databases.Database, error) {
+func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *replicationlinks.ReplicationLinksClient, resourcesClient *resources.ResourcesClient, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []replicationlinks.ReplicationRole) ([]databases.Database, error) {
 	var partnerDatabases []databases.Database
 
-	matchesRole := func(role armsql.ReplicationRole) bool {
+	matchesRole := func(role replicationlinks.ReplicationRole) bool {
 		for _, r := range rolesToFind {
 			if r == role {
 				return true
@@ -43,7 +42,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 	}
 
 	for _, replicationLink := range listByDatabaseResult.Items {
-		linkProps := replicationLink.Properties // linksIterator.Value().ReplicationLinkProperties
+		linkProps := replicationLink.Properties
 		if linkProps == nil {
 			log.Printf("[INFO] Replication Link Properties were nil for %s", id)
 			continue
@@ -69,7 +68,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			Top:    nil,
 		}
 
-		resourceListResult, err := resourcesClient.ListComplete(ctx, *subscription, listOptions) //; resourcesIterator.NotDone(); err = resourcesIterator.NextWithContext(ctx) {
+		resourceListResult, err := resourcesClient.ListComplete(ctx, *subscription, listOptions)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Partner SQL Servers with filter %q for %s: %+v", filter, *linkProps.PartnerDatabaseId, err)
 		}
@@ -80,13 +79,13 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 				continue
 			}
 
-			partnerServerId, err := commonids.ParseSqlDatabaseIDInsensitively(*server.Id) // parse.ServerID(*server.ID)
+			partnerServerId, err := commonids.ParseSqlDatabaseIDInsensitively(*server.Id)
 			if err != nil {
 				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err)
 			}
 
 			// Check if like-named server has a database named like the partner database, also with a replication link
-			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerServerId) // ; linksPossiblePartnerIterator.NotDone(); err = linksPossiblePartnerIterator.NextWithContext(ctx) {
+			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerServerId)
 			if err != nil {
 				if response.WasNotFound(linksPossiblePartnerIterator.LatestHttpResponse) {
 					log.Printf("[INFO] no replication link found for Database %q (%s)", *linkProps.PartnerDatabase, partnerServerId)
@@ -105,7 +104,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 				linkPropsPossiblePartner := *linkPossiblePartner.Properties
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
-				if matchesRole(armsql.ReplicationRole(*linkPropsPossiblePartner.PartnerRole)) {
+				if matchesRole(replicationlinks.ReplicationRole(*linkPropsPossiblePartner.PartnerRole)) {
 					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.DatabaseName, *linkProps.PartnerDatabase)
 					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
 					if err != nil {
