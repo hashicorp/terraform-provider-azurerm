@@ -236,7 +236,6 @@ resource "azurerm_monitor_workspace" "test" {
 }
 
 func (r WorkspaceTestResource) privateEndpointConnection(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
