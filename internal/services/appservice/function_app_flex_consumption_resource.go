@@ -721,7 +721,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
 					state.ZipDeployFile = deployFile
 				}
-
 			}
 			return metadata.Encode(&state)
 		},
