@@ -200,13 +200,6 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"backup": helpers.BackupSchema(),
 
-		"builtin_logging_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting",
-		},
-
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
@@ -873,6 +866,15 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
+			}
+
+			if metadata.ResourceData.HasChange("runtime_name") {
+				runtimeName := webapps.RuntimeName(state.RuntimeName)
+				model.Properties.FunctionAppConfig.Runtime.Name = pointer.To(runtimeName)
+			}
+
+			if metadata.ResourceData.HasChange("runtime_version") {
+				model.Properties.FunctionAppConfig.Runtime.Version = pointer.To(state.RuntimeVersion)
 			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
