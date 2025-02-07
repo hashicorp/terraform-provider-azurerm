@@ -36,7 +36,9 @@ type Client struct {
 
 	// TODO: these SDK clients use `Azure/azure-sdk-for-go` - we should migrate to `hashicorp/go-azure-sdk`
 	// (above) as time allows.
-	options *common.ClientOptions
+	options                 *common.ClientOptions
+	LegacyResourcesClient   *azureResources.Client
+	LegacyDeploymentsClient *azureResources.DeploymentsClient
 
 	// Note that the Groups Client which requires additional coordination
 	GroupsClient *azureResources.GroupsClient
@@ -110,6 +112,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(tagsClient.Client, o.Authorizers.ResourceManager)
 
 	// NOTE: This client uses `Azure/azure-sdk-for-go` and can be removed in time
+	legacyDeploymentsClient := azureResources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&legacyDeploymentsClient.Client, o.ResourceManagerAuthorizer)
+
+	legacyResourcesClient := azureResources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&legacyResourcesClient.Client, o.ResourceManagerAuthorizer)
+
 	groupsClient := azureResources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -128,7 +136,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		TagsClient:                          tagsClient,
 
 		// These use `Azure/azure-sdk-for-go`
-		GroupsClient: &groupsClient,
-		options:      o,
+		LegacyDeploymentsClient: &legacyDeploymentsClient,
+		LegacyResourcesClient:   &legacyResourcesClient,
+		GroupsClient:            &groupsClient,
+		options:                 o,
 	}, nil
 }
