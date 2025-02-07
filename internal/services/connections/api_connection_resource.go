@@ -63,6 +63,9 @@ func resourceConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				// Note: O+C because Azure sets a default when `display_name` is not defined but the value depends on which managed API is provided.
+				// For example:
+				//   - Managed API `servicebus` defaults to `Service Bus`
+				//   - Managed API `sftpwithssh` defaults to `SFTP - SSH`
 				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
