@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -64,8 +65,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 		listOptions := resources.ListOperationOptions{
 			Expand: nil,
-			Filter: &filter,
-			Top:    nil,
+			Filter: pointer.To(filter),
+			Top:    pointer.FromInt64(100),
 		}
 
 		resourceListResult, err := resourcesClient.ListComplete(ctx, *subscription, listOptions)
