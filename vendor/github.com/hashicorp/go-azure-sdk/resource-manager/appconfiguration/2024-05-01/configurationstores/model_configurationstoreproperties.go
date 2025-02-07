@@ -12,6 +12,7 @@ import (
 type ConfigurationStoreProperties struct {
 	CreateMode                 *CreateMode                           `json:"createMode,omitempty"`
 	CreationDate               *string                               `json:"creationDate,omitempty"`
+	DataPlaneProxy             *DataPlaneProxyProperties             `json:"dataPlaneProxy,omitempty"`
 	DisableLocalAuth           *bool                                 `json:"disableLocalAuth,omitempty"`
 	EnablePurgeProtection      *bool                                 `json:"enablePurgeProtection,omitempty"`
 	Encryption                 *EncryptionProperties                 `json:"encryption,omitempty"`
