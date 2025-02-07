@@ -138,8 +138,11 @@ func dataSourceServiceBusNamespaceDisasterRecoveryConfigRead(d *pluginsdk.Resour
 	}
 
 	d.Set("name", id.DisasterRecoveryConfigName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("namespace_name", id.NamespaceName)
+
+	if !features.FivePointOh() {
+		d.Set("resource_group_name", id.ResourceGroupName)
+		d.Set("namespace_name", id.NamespaceName)
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
