@@ -62,14 +62,9 @@ func resourceConnection() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Service Bus",
-				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-				// API version 2018-07-01-preview, so I guess this is ForceNew for now
-				//
-				// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-				// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-				// > None of the fields inside the properties object can be patched."
-				ForceNew: true,
+				// Note: O+C because Azure sets a default when `display_name` is not defined but the value depends on which managed API is provided.
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameter_values": {
@@ -81,6 +76,8 @@ func resourceConnection() *pluginsdk.Resource {
 				// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
 				// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
 				// > None of the fields inside the properties object can be patched."
+				//
+				// @sreallymatt: this can be updated when using CreateOrUpdate instead of Update though the behaviour within the service is inconsistent, leaving as ForceNew
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
@@ -171,7 +168,9 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			d.Set("managed_api_id", apiId)
 
-			if err := d.Set("parameter_values", props.ParameterValues); err != nil {
+			// In version 2016-06-01 the API doesn't return `ParameterValues`.
+			// The non-secret parameters are returned in `NonSecretParameterValues` instead.
+			if err := d.Set("parameter_values", pointer.From(props.NonSecretParameterValues)); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 		}
@@ -194,17 +193,29 @@ func resourceConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	model := connections.ApiConnectionDefinition{
-		// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-		// API version 2018-07-01-preview, so I guess this is ForceNew for now. The following error is returned
-		// for both CreateOrUpdate and Update:
-		//
-		// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-		// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-		// > None of the fields inside the properties object can be patched."
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if _, err := client.Update(ctx, *id, model); err != nil {
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
+	}
+
+	props := existing.Model.Properties
+	if d.HasChange("display_name") {
+		props.DisplayName = pointer.To(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
