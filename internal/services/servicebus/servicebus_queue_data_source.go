@@ -36,7 +36,7 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
 
@@ -118,7 +118,12 @@ func dataSourceServiceBusQueue() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["namespace_id"].AtLeastOneOf = []string{"namespace_id", "namespace_name", "resource_group_name"}
+		resource.Schema["namespace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: namespaces.ValidateNamespaceID,
+			AtLeastOneOf: []string{"namespace_id", "namespace_name", "resource_group_name"},
+		}
 
 		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
