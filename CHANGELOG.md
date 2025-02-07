@@ -1,5 +1,9 @@
 ## 4.19.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_container_app`- add support for the `client_certificate_mode` property [GH-28523]
+
 ## 4.18.0 (February 07, 2025)
 
 ENHANCEMENTS:
