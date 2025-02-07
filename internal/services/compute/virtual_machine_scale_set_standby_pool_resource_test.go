@@ -147,7 +147,7 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) basic(data acceptance.Test
 				%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                                  = "acc-%d"
+  name                                  = "acctest-%d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
@@ -158,7 +158,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
     min_ready_capacity = 5
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
 func (r StandbyPoolStandbyVirtualMachinePoolResource) requiresImport(data acceptance.TestData) string {
@@ -187,7 +187,7 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) complete(data acceptance.T
 			%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                                  = "acc-%d"
+  name                                  = "acctest-%d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
@@ -202,16 +202,16 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
     key = "value"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
 func (r StandbyPoolStandbyVirtualMachinePoolResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-			%[1]s
+			%s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "update" {
-  name                = "acctestOVMSS-update-%[2]d"
+  name                = "acctestOVMSS-update-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -221,9 +221,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "update" {
 }
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                                  = "acc-%[2]d"
+  name                                  = "acctest-%d"
   resource_group_name                   = azurerm_resource_group.test.name
-  location                              = "%[3]s"
+  location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.update.id
   virtual_machine_state                 = "Deallocated"
 
@@ -236,7 +236,7 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
     key = "updatedValue"
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger, data.RandomIntOfLength(16), data.Locations.Primary)
 }
 
 func (r StandbyPoolStandbyVirtualMachinePoolResource) minCapacityExceedMaxCapacity(data acceptance.TestData) string {
@@ -245,7 +245,7 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) minCapacityExceedMaxCapaci
 				%s
 
 resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
-  name                                  = "acc-%d"
+  name                                  = "acctest-%d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = "%s"
   attached_virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
@@ -256,5 +256,5 @@ resource "azurerm_virtual_machine_scale_set_standby_pool" "test" {
     min_ready_capacity = 10
   }
 }
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomIntOfLength(16), data.Locations.Primary)
 }
