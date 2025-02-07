@@ -838,13 +838,6 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
-}
-
 resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -875,13 +868,6 @@ resource "azurerm_user_assigned_identity" "test1" {
   name                = "acct-uai1-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
@@ -918,13 +904,6 @@ resource "azurerm_user_assigned_identity" "test2" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
-}
-
 resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -959,13 +938,6 @@ resource "azurerm_user_assigned_identity" "test2" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  application_type    = "web"
-}
-
 resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-%[2]d"
   location            = azurerm_resource_group.test.location
@@ -989,12 +961,19 @@ resource "azurerm_function_app_flex_consumption" "test" {
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%d"
+  name     = "acctestRG-LFA-%[1]d"
   location = "%s"
 }
 
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1042,7 +1021,7 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
