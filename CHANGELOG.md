@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_nginx_configuration` - add support for the `protected_file.content_hash` property [GH-28532]
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `js_challenge_cookie_expiration_in_minutes` policy [GH-28284]
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` `action` type in the `managed_rule` `override` block [GH-28308]
+* `azurerm_container_app` - add support for the `volume_mounts.sub_path` property [GH-27533]
 * `azurerm_nginx_configuration` - add support for the `protected_file.content_hash` property [GH-28532]
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack` - add support for the `marketplace_offer_id` and `plan_id` properties [GH-28537]
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - add support for the `marketplace_offer_id` and `plan_id` properties [GH-28537]
