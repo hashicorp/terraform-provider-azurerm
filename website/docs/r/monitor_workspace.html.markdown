@@ -58,11 +58,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-a `private_endpoint_connections` block exports the following:
+A `private_endpoint_connections` block exports the following:
 
 - `name` - The name of the private endpoint connection.
+
 - `id` - The ID of the private endpoint connection.
-- `group_ids` - A list of group ID's (sometimes called subresource names) that this private endpoint connection allws access to.
+
+- `group_ids` - A list of group IDs (sometimes called subresource names) that this private endpoint connection allows access to.
 
 -> **NOTE:** The Azure API does not provide a way to uniquely identify a private endpoint connection based on an ID alone. The `id` exported by the `private_endpoint_connection` block does not correspond to the `id` of the private endpoint created by the connecting resource (e.g., an `azurerm_dashboard_grafana_managed_private_endpoint`), and there is no such property available. In order to identify the private endpoint connection, both `id` and `group_ids` will be required.
 
