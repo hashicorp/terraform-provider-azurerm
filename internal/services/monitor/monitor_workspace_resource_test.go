@@ -255,5 +255,5 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   group_ids                    = ["prometheusMetrics"]
   private_link_resource_region = azurerm_dashboard_grafana.test.location
 }
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
+`, r.basic(data), data.RandomInteger, data.RandomIntOfLength(8))
 }
