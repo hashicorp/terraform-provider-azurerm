@@ -1,12 +1,12 @@
 ---
 subcategory: "NetApp"
 layout: "azurerm"
-page_title: "Azure Resource Manager: netapp_backup_vault"
+page_title: "Azure Resource Manager: azurerm_netapp_backup_vault"
 description: |-
   Manages a NetApp Backup Vault.
 ---
 
-# netapp_backup_vault
+# azurerm_netapp_backup_vault
 
 Manages a NetApp Backup Vault.
 

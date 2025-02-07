@@ -904,6 +904,10 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 	outputList := make(map[string]fluxconfiguration.KustomizationDefinition)
 	for _, v := range inputList {
 		input := v
+		// updated item in a set is considered a new item, and the old item still exists in the set but with empty values, so we need to skip it
+		if input.Name == "" {
+			continue
+		}
 		output := fluxconfiguration.KustomizationDefinition{
 			DependsOn:              &input.DependsOn,
 			Force:                  &input.Force,
