@@ -189,7 +189,7 @@ A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, or `JSChallenge`.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
