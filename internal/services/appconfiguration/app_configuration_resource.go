@@ -641,7 +641,7 @@ func resourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("sku", model.Sku.Name)
 
 		if props := model.Properties; props != nil {
-			if dataPlaneProxy := model.Properties.DataPlaneProxy; dataPlaneProxy != nil {
+			if dataPlaneProxy := props.DataPlaneProxy; dataPlaneProxy != nil {
 				d.Set("data_plane_proxy_authentication_mode", string(pointer.From(dataPlaneProxy.AuthenticationMode)))
 				d.Set("data_plane_proxy_private_link_delegation_enabled", pointer.From(dataPlaneProxy.PrivateLinkDelegation) == configurationstores.PrivateLinkDelegationEnabled)
 			}
