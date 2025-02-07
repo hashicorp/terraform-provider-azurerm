@@ -34,7 +34,7 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 
 			"topic_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: topics.ValidateTopicID,
 			},
 
@@ -91,7 +91,12 @@ func dataSourceServiceBusSubscription() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["topic_id"].AtLeastOneOf = []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"}
+		resource.Schema["topic_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: topics.ValidateTopicID,
+			AtLeastOneOf: []string{"topic_id", "topic_name", "resource_group_name", "namespace_name"},
+		}
 
 		resource.Schema["topic_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
