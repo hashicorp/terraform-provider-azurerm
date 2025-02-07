@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobtargetgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/outboundfirewallrules"
@@ -56,6 +57,7 @@ type Client struct {
 	JobAgentsClient                                    *jobagents.JobAgentsClient
 	JobCredentialsClient                               *jobcredentials.JobCredentialsClient
 	JobsClient                                         *jobs.JobsClient
+	JobStepsClient                                     *jobsteps.JobStepsClient
 	JobTargetGroupsClient                              *jobtargetgroups.JobTargetGroupsClient
 	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *outboundfirewallrules.OutboundFirewallRulesClient
@@ -156,6 +158,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Jobs Client: %+v", err)
 	}
 	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
+
+	jobStepsClient, err := jobsteps.NewJobStepsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Job Steps Client: %+v", err)
+	}
+	o.Configure(jobStepsClient.Client, o.Authorizers.ResourceManager)
 
 	jobTargetGroupsClient, err := jobtargetgroups.NewJobTargetGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -303,6 +311,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ElasticPoolsClient:                     elasticPoolsClient,
 		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
 		JobsClient:                             jobsClient,
+		JobStepsClient:                         jobStepsClient,
 		JobTargetGroupsClient:                  jobTargetGroupsClient,
 		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                 replicationLinksClient,
