@@ -124,6 +124,8 @@ A `template` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
+* `termination_grace_period_seconds` - (Optional)   The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+
 * `volume` - (Optional) A `volume` block as detailed below.
 
 ---

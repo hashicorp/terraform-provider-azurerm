@@ -170,6 +170,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		desktopvirtualization.Registration{},
 		deviceregistry.Registration{},
 		digitaltwins.Registration{},
+		dns.Registration{},
 		domainservices.Registration{},
 		dynatrace.Registration{},
 		elasticsan.Registration{},
