@@ -135,7 +135,7 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 				Name: model.Name,
 				Properties: connectiontype.ConnectionTypeCreateOrUpdateProperties{
 					IsGlobal:         pointer.To(model.IsGlobal),
-					FieldDefinitions: map[string]connectiontype.FiegitaldDefinition{},
+					FieldDefinitions: map[string]connectiontype.FieldDefinition{},
 				},
 			}
 			for _, field := range model.Field {
