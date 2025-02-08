@@ -441,11 +441,11 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
 }
 
 func (r AssetEndpointProfileTestResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
-	// Get client secrets from env vars because we need them 
+	// Get client secrets from env vars because we need them
 	// to remote execute az cli commands on the VM & k8s cluster.
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	
+
 	return fmt.Sprintf(`
 connection {
  type     = "ssh"
