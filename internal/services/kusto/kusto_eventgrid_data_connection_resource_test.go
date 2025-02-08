@@ -427,9 +427,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name # TODO remove two old arguments
-  resource_group_name = azurerm_resource_group.test.name     # TODO remove two old arguments
-  namespace_id		  = azurerm_eventhub_namespace.test.id   # TODO add new one
+  namespace_id		  = azurerm_eventhub_namespace.test.id
   partition_count     = 1
   message_retention   = 1
 }
