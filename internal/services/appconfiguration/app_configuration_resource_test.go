@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppConfigurationResource struct{}
@@ -493,7 +493,7 @@ func (AppConfigurationResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppConfigurationResource) free(data acceptance.TestData) string {
@@ -728,14 +728,16 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_app_configuration" "test" {
-  name                       = "testaccappconf%[1]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  sku                        = "standard"
-  local_auth_enabled         = true
-  public_network_access      = "Enabled"
-  purge_protection_enabled   = false
-  soft_delete_retention_days = 1
+  name                                             = "testaccappconf%[1]d"
+  resource_group_name                              = azurerm_resource_group.test.name
+  location                                         = azurerm_resource_group.test.location
+  data_plane_proxy_authentication_mode             = "Pass-through"
+  data_plane_proxy_private_link_delegation_enabled = true
+  sku                                              = "standard"
+  local_auth_enabled                               = true
+  public_network_access                            = "Enabled"
+  purge_protection_enabled                         = false
+  soft_delete_retention_days                       = 1
 
   identity {
     type = "UserAssigned"
