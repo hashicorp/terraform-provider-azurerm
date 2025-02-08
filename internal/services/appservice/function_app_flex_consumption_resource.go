@@ -41,7 +41,6 @@ type FunctionAppFlexConsumptionModel struct {
 	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
 	AuthSettings                     []helpers.AuthSettings     `tfschema:"auth_settings"`
 	AuthV2Settings                   []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
 	ClientCertEnabled                bool                       `tfschema:"client_certificate_enabled"`
 	ClientCertMode                   string                     `tfschema:"client_certificate_mode"`
 	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
@@ -197,8 +196,6 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"auth_settings": helpers.AuthSettingsSchema(),
 
 		"auth_settings_v2": helpers.AuthV2SettingsSchema(),
-
-		"backup": helpers.BackupSchema(),
 
 		"client_certificate_enabled": {
 			Type:        pluginsdk.TypeBool,
@@ -509,16 +506,6 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			backupConfig, err := helpers.ExpandBackupConfig(functionAppFlexConsumption.Backup)
-			if err != nil {
-				return fmt.Errorf("expanding `backup` for %s: %+v", id, err)
-			}
-			if backupConfig.Properties != nil {
-				if _, err := client.UpdateBackupConfiguration(ctx, id, *backupConfig); err != nil {
-					return fmt.Errorf("adding Backup Settings for %s: %+v", id, err)
-				}
-			}
-
 			auth := helpers.ExpandAuthSettings(functionAppFlexConsumption.AuthSettings)
 			if auth.Properties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id, *auth); err != nil {
@@ -601,13 +588,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				authV2 = *authV2Resp.Model
 			}
 
-			backup, err := client.GetBackupConfiguration(ctx, *id)
-			if err != nil {
-				if !response.WasNotFound(backup.HttpResponse) {
-					return fmt.Errorf("retrieving Backup Settings for %s: %+v", id, err)
-				}
-			}
-
 			basicAuthWebDeploy := true
 			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil && basicAuthWebDeployResp.Model != nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
@@ -632,7 +612,6 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
 				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
-				Backup:                           helpers.FlattenBackupConfig(backup.Model),
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 				Tags:                             pointer.From(model.Tags),
 				Kind:                             pointer.From(model.Kind),
@@ -968,23 +947,6 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for %s: %+v", id, err)
-				}
-			}
-
-			if metadata.ResourceData.HasChange("backup") {
-				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
-				if err != nil {
-					return fmt.Errorf("expanding backup configuration for %s: %+v", *id, err)
-				}
-
-				if backupUpdate.Properties == nil {
-					if _, err := client.DeleteBackupConfiguration(ctx, *id); err != nil {
-						return fmt.Errorf("removing Backup Settings for %s: %+v", id, err)
-					}
-				} else {
-					if _, err := client.UpdateBackupConfiguration(ctx, *id, *backupUpdate); err != nil {
-						return fmt.Errorf("updating Backup Settings for %s: %+v", id, err)
-					}
 				}
 			}
 

@@ -364,9 +364,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -400,9 +397,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     name  = "Example"
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -461,9 +455,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     app_setting_names       = ["foo", "secret"]
     connection_string_names = ["First", "Third"]
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -504,9 +495,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     value = "some-other-connection-string"
     type  = "Custom"
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -537,15 +525,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   app_settings = {
     foo    = "bar"
     secret = "sauce"
-  }
-
-  backup {
-    name                = "acctest"
-    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
-    schedule {
-      frequency_interval = 7
-      frequency_unit     = "Day"
-    }
   }
 
   connection_string {
@@ -616,8 +595,8 @@ resource "azurerm_function_app_flex_consumption" "test" {
     health_check_eviction_time_in_min = 7
     worker_count                      = 3
 
-    minimum_tls_version     = "1.1"
-    scm_minimum_tls_version = "1.1"
+    minimum_tls_version     = "1.2"
+    scm_minimum_tls_version = "1.2"
 
     cors {
       allowed_origins = [
@@ -628,9 +607,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
       support_credentials = true
     }
 
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -663,9 +639,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 
   app_settings = {
     "tftest" : "tftestvalue"
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -701,9 +674,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     "tftestkvp1" : "tftestkvpvalue1"
     "tftestkvp2" : "tftestkvpvalue2"
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -737,9 +707,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     "tftest" : "tftestvalue",
     "tftestkvp1" : "tftestkvpvalue1"
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -766,9 +733,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, pythonVersion)
 }
@@ -797,9 +761,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, javaVersion)
 }
@@ -828,9 +789,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, dotNetVersion)
 }
@@ -859,9 +817,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, powerShellVersion)
 }
@@ -889,9 +844,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -925,9 +877,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -962,9 +911,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -999,9 +945,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, nodeVersion)
 }
