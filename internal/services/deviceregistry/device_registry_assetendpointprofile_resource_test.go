@@ -182,7 +182,7 @@ func (AssetEndpointProfileTestResource) Exists(ctx context.Context, client *clie
 func (AssetEndpointProfileTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name             = "myAssetEndpointProfileBasic"
+	name             = "my-assetendpointprofile-basic"
 	resource_group_name = "adr-terraform-test-113553226"
 	extended_location_name = "/subscriptions/efb15086-3322-405d-a9d0-c35715a9b722/resourceGroups/adr-terraform-test-113553226/providers/Microsoft.ExtendedLocation/customLocations/location-2h2vr"
 	extended_location_type = "CustomLocation"
@@ -197,7 +197,7 @@ func (AssetEndpointProfileTestResource) completeCertificate(data acceptance.Test
 	return fmt.Sprintf(`
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name             = "myAssetEndpointProfileCertificate"
+	name             = "my-assetendpointprofile-certificate"
 	resource_group_name = "adr-terraform-test-113553226"
 	extended_location_name = "/subscriptions/efb15086-3322-405d-a9d0-c35715a9b722/resourceGroups/adr-terraform-test-113553226/providers/Microsoft.ExtendedLocation/customLocations/location-2h2vr"
 	extended_location_type = "CustomLocation"
@@ -215,7 +215,7 @@ resource "azurerm_device_registry_asset_endpoint_profile" "test" {
 func (AssetEndpointProfileTestResource) completeUsernamePassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name             = "myAssetEndpointProfileUsername"
+	name             = "my-assetendpointprofile-username"
 	resource_group_name = "adr-terraform-test-113553226"
 	extended_location_name = "/subscriptions/efb15086-3322-405d-a9d0-c35715a9b722/resourceGroups/adr-terraform-test-113553226/providers/Microsoft.ExtendedLocation/customLocations/location-2h2vr"
 	extended_location_type = "CustomLocation"
@@ -234,7 +234,7 @@ resource "azurerm_device_registry_asset_endpoint_profile" "test" {
 func (AssetEndpointProfileTestResource) completeAnonymous(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name             = "myAssetEndpointProfileAnonymous"
+	name             = "my-assetendpointprofile-anonymous"
 	resource_group_name = "adr-terraform-test-113553226"
 	extended_location_name = "/subscriptions/efb15086-3322-405d-a9d0-c35715a9b722/resourceGroups/adr-terraform-test-113553226/providers/Microsoft.ExtendedLocation/customLocations/location-2h2vr"
 	extended_location_type = "CustomLocation"
