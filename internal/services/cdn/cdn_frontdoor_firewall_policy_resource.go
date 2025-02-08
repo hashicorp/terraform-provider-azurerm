@@ -466,7 +466,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				sku := diff.Get("sku_name").(string)
 				policyInMinutes := diff.Get("js_challenge_cookie_expiration_in_minutes").(int)
 
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && int(policyInMinutes) > 0 {
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && policyInMinutes > 0 {
 					return fmt.Errorf("the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
 				}
 
