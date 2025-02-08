@@ -319,6 +319,39 @@ func TestAccCdnFrontDoorFirewallPolicy_JSChallengeDRSError(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_JSChallengeStandardSkuError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.JSChallengeStandardSkuError(data),
+			ExpectError: regexp.MustCompile(`the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the 'Premium_AzureFrontDoor' sku, got "Standard_AzureFrontDoor"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_StandardSkuManagedRuleError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.StandardSkuManagedRuleError(data),
+			ExpectError: regexp.MustCompile(`the 'managed_rule' code block is only supported with the 'Premium_AzureFrontDoor' sku, got "Standard_AzureFrontDoor"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_StandardSkuCustomRuleJSChallengeActionError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.StandardSkuCustomRuleJSChallengeActionError(data),
+			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the 'Premium_AzureFrontDoor' sku, got action: "JSChallenge" (custom_rule.name: "RateLimitExcessiveRequests", sku_name: "Standard_AzureFrontDoor")`),
+		},
+	})
+}
+
 func TestAccCdnFrontDoorFirewallPolicy_JSChallengeBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
@@ -390,6 +423,25 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CdnFrontDoorFirewallPolicyResource) templateStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "accTestProfile-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -961,6 +1013,109 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
         enabled = false
         action  = "JSChallenge"
       }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) JSChallengeStandardSkuError(data acceptance.TestData) string {
+	tmp := r.templateStandard(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "preview-0.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933100"
+        enabled = false
+        action  = "JSChallenge"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) StandardSkuManagedRuleError(data acceptance.TestData) string {
+	tmp := r.templateStandard(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "preview-0.1"
+    action  = "Block"
+
+    override {
+      rule_group_name = "PHP"
+
+      rule {
+        rule_id = "933100"
+        enabled = false
+        action  = "Allow"
+      }
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) StandardSkuCustomRuleJSChallengeActionError(data acceptance.TestData) string {
+	tmp := r.templateStandard(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "ShortUserAgents"
+    enabled                        = true
+    type                           = "MatchRule"
+    priority                       = 500
+    rate_limit_threshold           = 1
+    rate_limit_duration_in_minutes = 5
+    action                         = "JSChallenge"
+
+    match_condition {
+      match_variable = "RequestHeader"
+      selector       = "User-Agent"
+      operator       = "LessThanOrEqual"
+      match_values   = ["15"]
     }
   }
 }

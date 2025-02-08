@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -79,12 +80,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			// NOTE: Through local testing, the new API js challenge expiration is always
-			// enabled no matter what and cannot be disabled...
+			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+			// not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				Default:      30,
-				ValidateFunc: validation.IntBetween(5, 1440),
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 
 			"redirect_url": {
@@ -170,6 +171,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 								string(waf.ActionTypeBlock),
 								string(waf.ActionTypeLog),
 								string(waf.ActionTypeRedirect),
+								string(waf.ActionTypeJSChallenge),
 							}, false),
 						},
 
@@ -457,6 +459,48 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that the Standard SKU is not setting the JSChallenge policy...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				policyInMinutes := diff.Get("js_challenge_cookie_expiration_in_minutes").(int)
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && int(policyInMinutes) > 0 {
+					return fmt.Errorf("the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
+				}
+
+				return nil
+			}),
+
+			// Verify that the Standard SKU is not using managed rules...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				managedRules := diff.Get("managed_rule").([]interface{})
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && len(managedRules) > 0 {
+					return fmt.Errorf("the 'managed_rule' code block is only supported with the 'Premium_AzureFrontDoor' sku, got %q", sku)
+				}
+
+				return nil
+			}),
+
+			// Verify that the Standard SKU is not using the JSChallenge Action type for custom rules...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && customRules != nil {
+					for _, v := range *customRules.Rules {
+						if v.Action == waf.ActionTypeJSChallenge {
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the 'Premium_AzureFrontDoor' sku, got action: %q (custom_rule.name: %q, sku_name: %q)", waf.ActionTypeJSChallenge, *v.Name, sku)
+						}
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
@@ -517,14 +561,30 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
-				EnabledState:                           pointer.To(enabled),
-				Mode:                                   pointer.To(mode),
-				RequestBodyCheck:                       pointer.To(requestBodyCheck),
-				JavascriptChallengeExpirationInMinutes: pointer.To(jsChallengeExpirationInMinutes),
+				EnabledState:     pointer.To(enabled),
+				Mode:             pointer.To(mode),
+				RequestBodyCheck: pointer.To(requestBodyCheck),
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// NOTE: JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
+	// 30 minutes, if it is not in the config set the default and include it in the policy settings
+	// payload block...
+	if sku == string(waf.SkuNamePremiumAzureFrontDoor) {
+		if jsChallengeExpirationInMinutes == 0 {
+			// set default value since it was not in the configuration file...
+			payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(30))
+		} else {
+			policyMinutes, err := validateJsChallengeExpirationInMinutes(jsChallengeExpirationInMinutes)
+			if err != nil {
+				return err
+			}
+
+			payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = policyMinutes
+		}
 	}
 
 	if managedRules != nil {
@@ -580,6 +640,8 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	props := *model.Properties
 
 	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
+		jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
+
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -591,10 +653,23 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		props.PolicySettings = &waf.PolicySettings{
-			EnabledState:                           pointer.To(enabled),
-			Mode:                                   pointer.To(waf.PolicyMode(d.Get("mode").(string))),
-			RequestBodyCheck:                       pointer.To(requestBodyCheck),
-			JavascriptChallengeExpirationInMinutes: pointer.To(int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))),
+			EnabledState:     pointer.To(enabled),
+			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			RequestBodyCheck: pointer.To(requestBodyCheck),
+		}
+
+		if model.Sku.Name == pointer.To(waf.SkuNamePremiumAzureFrontDoor) {
+			if jsChallengeExpirationInMinutes == 0 {
+				// if they removed it from the configuration file, set it back to the default value...
+				props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(30))
+			} else {
+				policyMinutes, err := validateJsChallengeExpirationInMinutes(jsChallengeExpirationInMinutes)
+				if err != nil {
+					return err
+				}
+
+				props.PolicySettings.JavascriptChallengeExpirationInMinutes = policyMinutes
+			}
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -690,7 +765,10 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
-				d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+
+				if policy.JavascriptChallengeExpirationInMinutes != nil {
+					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
 			}
 		}
 
@@ -1116,4 +1194,12 @@ func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interf
 	}
 
 	return results
+}
+
+func validateJsChallengeExpirationInMinutes(experationInMinutes int64) (*int64, error) {
+	if experationInMinutes < 5 || experationInMinutes > 1440 {
+		return nil, fmt.Errorf("expected %q to be in the range (%d - %d), got %d", "js_challenge_cookie_expiration_in_minutes", 5, 1440, experationInMinutes)
+	}
+
+	return pointer.To(experationInMinutes), nil
 }
