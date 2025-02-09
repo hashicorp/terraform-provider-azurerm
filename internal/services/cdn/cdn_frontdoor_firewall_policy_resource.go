@@ -6,6 +6,7 @@ package cdn
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			// NOTE: Through local testing, the new API js challenge expiration is always
 			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
-			// not supported in Standard_AzureFrontDoor...
+			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -640,7 +641,12 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	props := *model.Properties
 
 	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
+
+		log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n0000/00/00 00:00:00 [DEBUG] *************************************************************************")
+
 		jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
+
+		log.Printf("  jsChallengeExpirationInMinutes: %d", jsChallengeExpirationInMinutes)
 
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
@@ -658,7 +664,10 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
-		if model.Sku.Name == pointer.To(waf.SkuNamePremiumAzureFrontDoor) {
+		log.Printf("  model.Sku.Name                  : %s", *model.Sku.Name)
+		log.Printf("  waf.SkuNamePremiumAzureFrontDoor: %s", waf.SkuNamePremiumAzureFrontDoor)
+
+		if *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
 			if jsChallengeExpirationInMinutes == 0 {
 				// if they removed it from the configuration file, set it back to the default value...
 				props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(30))
@@ -668,8 +677,12 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 					return err
 				}
 
+				log.Printf("  policyMinutes                                              : %d", *policyMinutes)
 				props.PolicySettings.JavascriptChallengeExpirationInMinutes = policyMinutes
 			}
+
+			log.Printf("  jsChallengeExpirationInMinutes                             : %d", jsChallengeExpirationInMinutes)
+			log.Printf("  props.PolicySettings.JavascriptChallengeExpirationInMinutes: %d", *props.PolicySettings.JavascriptChallengeExpirationInMinutes)
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -683,6 +696,8 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		if statusCode := int64(d.Get("custom_block_response_status_code").(int)); statusCode > 0 {
 			props.PolicySettings.CustomBlockResponseStatusCode = pointer.To(statusCode)
 		}
+
+		log.Printf("[DEBUG] *************************************************************************\n\n\n\n\n\n\n\n\n\n\n\n")
 	}
 
 	if d.HasChange("custom_rule") {

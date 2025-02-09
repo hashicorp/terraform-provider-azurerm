@@ -127,7 +127,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 }
 ```
 
-## Example Usage: JSChallenge Override
+## Example Usage: JSChallenge Managed Rule Override
 
 ```hcl
 managed_rule {
@@ -147,6 +147,26 @@ managed_rule {
 }
 ```
 
+## Example Usage: JSChallenge Custom Rule
+
+```hcl
+custom_rule {
+  name                           = "CustomJSChallenge"
+  enabled                        = true
+  priority                       = 2
+  rate_limit_duration_in_minutes = 1
+  rate_limit_threshold           = 10
+  type                           = "MatchRule"
+  action                         = "JSChallenge"
+
+  match_condition {
+    match_variable     = "RemoteAddr"
+    operator           = "IPMatch"
+    negation_condition = false
+    match_values       = ["192.168.1.0/24"]
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -163,7 +183,7 @@ The following arguments are supported:
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie lifetime in minutes, after which the user will be revalidated. Possible values are between `5` to `1440` minutes. Defaults to `30` minutes.
 
-!> **Note:** Azure Web Application Firewall JavaScript challenge is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+!> **Note:** Setting the`js_challenge_cookie_expiration_in_minutes` policy is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
