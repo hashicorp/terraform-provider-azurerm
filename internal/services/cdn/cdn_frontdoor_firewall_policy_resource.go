@@ -170,6 +170,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 								string(waf.ActionTypeBlock),
 								string(waf.ActionTypeLog),
 								string(waf.ActionTypeRedirect),
+								string(waf.ActionTypeJSChallenge),
 							}, false),
 						},
 
