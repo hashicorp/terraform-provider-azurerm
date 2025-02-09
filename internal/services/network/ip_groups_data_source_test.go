@@ -58,6 +58,21 @@ func TestAccDataSourceIPGroups_multiple(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceIPGroups_multipleNoFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_ip_groups", "test")
+	r := IPGroupsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.multipleNoFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("ids.#").HasValue("3"),
+				check.That(data.ResourceName).Key("names.#").HasValue("3"),
+			),
+		},
+	})
+}
+
 // Find IP group which doesn't exist
 func (IPGroupsDataSource) noResults(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -95,6 +110,22 @@ func (IPGroupsDataSource) multiple(data acceptance.TestData) string {
 
 data "azurerm_ip_groups" "test" {
   name                = "acceptanceTestIpGroup"
+  resource_group_name = azurerm_resource_group.test.name
+  depends_on = [
+    azurerm_ip_group.test,
+    azurerm_ip_group.test2,
+    azurerm_ip_group.test3,
+  ]
+}
+`, IPGroupResource{}.complete(data))
+}
+
+// Find multiple IP Groups, not filtered by name string
+func (IPGroupsDataSource) multipleNoFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_ip_groups" "test" {
   resource_group_name = azurerm_resource_group.test.name
   depends_on = [
     azurerm_ip_group.test,
