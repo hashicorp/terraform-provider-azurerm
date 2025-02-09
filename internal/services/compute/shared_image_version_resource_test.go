@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -282,6 +282,28 @@ func TestAccSharedImageVersion_requiresImport(t *testing.T) {
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_shared_image_version"),
 		},
+	})
+}
+
+func TestAccSharedImageVersion_uefiSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	r := SharedImageVersionResource{}
+
+	keyType := "x509"
+	certData := "MIIDNzCCAh+gAwIBAgIRANcuAK10JUqNpehWlkldzxEwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMB4XDTIzMDYxOTEwNTI0MloXDTMzMDYxNjEwNTI0MlowFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq+QdB6n3TDk12Qa/JcbmdfEpIrx4dKG9d5D/SRHWfJACInxtH64jzvGohVnAqIDqcKK+FvVLDPrqD7hbzV34AOXkyVoRtHEsdDErkG9CVBJlWleuew+if9TkW8wabFT3/sHSzVbG6+6AFOHsnDbO1Rpvh1ZPp2AgqiNg7XUHQM9zH00BYz7xtL9XEr+sRRgp0Bn0PGQGQU1Q302TK6jlHwJGMidke4Le2IIDJTUTGx3yWuX7f/T/u6alZeKjg+hYysJ7dpaaC5DyRTT5pJv62pZBJa3DkwWWSKroJozp9ujf93KYP7NoCLHkyiITAUK04hsHm/UvIt7ZhayTS24MbwIDAQABo34wfDAfBgNVHSMEGDAWgBQBXPUO5tTx8gh9G1iwS1KMwXUi/zAVBglghkgBhvhCAQEBAf8EBQMDAPABMBMGA1UdJQQMMAoGCCsGAQUFBwMDMA4GA1UdDwEB/wQEAwIEsDAdBgNVHQ4EFgQUAVz1DubU8fIIfRtYsEtSjMF1Iv8wDQYJKoZIhvcNAQELBQADggEBAA4xZmr3HhDOc2xzDMjqiVnCBMPT8nS9P+jCXezTeG1SIWrMmQUSs8rtU0YoNRIq1wbT/rqbYIwwhRfth0nUGf22zp4UdigVcpt+FQj9eGgeF6sJyHVWmMZu8rEi8BhHEsS6jHqExckp0vshhyW5whr86znWFWf/EsVGFkxd7kjv/KB0ff2ide5vLOWxoTfYmSxYyg2K1FQXP7L87Rb7O6PKzo0twVgeZ616e/yFLcmUQgnHBhb2IKtdo+CdTCxcw9/nNqGPwsNLsti2jyr5oNm9mX6wVaAuXCC3maX35DdWFVK0gXcENEw+Q6+JSyPV1ItXc5CD0NU9pd+R85qsFlY="
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.imageVersionWithUefiSettings(data, []string{"MicrosoftUefiCertificateAuthorityTemplate"}, keyType, certData),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("uefi_settings.0.signature_template_names.#").HasValue("1"),
+				check.That(data.ResourceName).Key("uefi_settings.0.signature_template_names.0").HasValue("MicrosoftUefiCertificateAuthorityTemplate"),
+				check.That(data.ResourceName).Key("uefi_settings.0.additional_signatures.0.db.0.key_type").HasValue(keyType),
+				check.That(data.ResourceName).Key("uefi_settings.0.additional_signatures.0.db.0.certificate_data").HasValue(certData),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -741,4 +763,40 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 `, template)
+}
+
+func (r SharedImageVersionResource) imageVersionWithUefiSettings(data acceptance.TestData, templates []string, keyType, certData string) string {
+	template := r.provision(data)
+	templatesStr := ""
+	for _, t := range templates {
+		templatesStr += fmt.Sprintf(`"%s",`, t)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  uefi_settings {
+    signature_template_names = [%s]
+
+    additional_signatures {
+      db {
+        key_type         = "%s"
+        certificate_data = "%s"
+      }
+    }
+  }
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+}
+`, template, templatesStr, keyType, certData)
 }
