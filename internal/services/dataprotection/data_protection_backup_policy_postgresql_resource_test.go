@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -22,6 +23,26 @@ type DataProtectionBackupPolicyPostgreSQLResource struct{}
 func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
+	if !features.FivePointOhBeta() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(
+				"default_retention_duration",
+				"default_retention_rule.#",
+				"default_retention_rule.0.%",
+				"default_retention_rule.0.life_cycle.#",
+				"default_retention_rule.0.life_cycle.0.%",
+				"default_retention_rule.0.life_cycle.0.data_store_type",
+				"default_retention_rule.0.life_cycle.0.duration",
+			),
+		})
+		return
+	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,6 +71,41 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
+	if !features.FivePointOhBeta() {
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.complete(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(
+				"default_retention_duration",
+				"default_retention_rule.#",
+				"default_retention_rule.0.%",
+				"default_retention_rule.0.life_cycle.#",
+				"default_retention_rule.0.life_cycle.0.%",
+				"default_retention_rule.0.life_cycle.0.data_store_type",
+				"default_retention_rule.0.life_cycle.0.duration",
+				"retention_rule.0.duration",
+				"retention_rule.0.life_cycle.#",
+				"retention_rule.0.life_cycle.0.%",
+				"retention_rule.0.life_cycle.0.data_store_type",
+				"retention_rule.0.life_cycle.0.duration",
+				"retention_rule.1.duration",
+				"retention_rule.1.life_cycle.#",
+				"retention_rule.1.life_cycle.0.%",
+				"retention_rule.1.life_cycle.0.data_store_type",
+				"retention_rule.1.life_cycle.0.duration",
+				"retention_rule.2.duration",
+				"retention_rule.2.life_cycle.#",
+				"retention_rule.2.life_cycle.0.%",
+				"retention_rule.2.life_cycle.0.data_store_type",
+				"retention_rule.2.life_cycle.0.duration",
+			),
+		})
+		return
+	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -99,7 +155,8 @@ resource "azurerm_data_protection_backup_vault" "test" {
 
 func (r DataProtectionBackupPolicyPostgreSQLResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql" "test" {
@@ -111,11 +168,31 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
   default_retention_duration      = "P4M"
 }
 `, template, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "test" {
+  name                = "acctest-dbp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  vault_name          = azurerm_data_protection_backup_vault.test.name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql" "import" {
@@ -127,11 +204,31 @@ resource "azurerm_data_protection_backup_policy_postgresql" "import" {
   default_retention_duration      = "P4M"
 }
 `, config)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "import" {
+  name                = azurerm_data_protection_backup_policy_postgresql.test.name
+  resource_group_name = azurerm_data_protection_backup_policy_postgresql.test.resource_group_name
+  vault_name          = azurerm_data_protection_backup_policy_postgresql.test.vault_name
+
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
+}
+`, config)
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql" "test" {
@@ -171,6 +268,57 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    }
+  }
+}
+`, template, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_policy_postgresql" "test" {
+  name                            = "acctest-dbp-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  vault_name                      = azurerm_data_protection_backup_vault.test.name
+  backup_repeating_time_intervals = ["R/2023-12-31T10:00:00+05:30/P1W"]
+
+  retention_rule {
+    name     = "Weekly"
+    priority = 30
+    life_cycle {
+      duration        = "P12W"
+      data_store_type = "VaultStore"
+      target_copy {
+        option_json = jsonencode({
+          objectType = "CopyOnExpiryOption"
+        })
+        data_store_type = "ArchiveStore"
+      }
+    }
+    life_cycle {
+      duration        = "P27W"
+      data_store_type = "ArchiveStore"
+    }
+    criteria {
+      weeks_of_month         = ["First", "Last"]
+      days_of_week           = ["Tuesday"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+    }
+  }
+  default_retention_rule {
+    life_cycle {
+      duration        = "P12M"
+      data_store_type = "VaultStore"
+      target_copy {
+        option_json = jsonencode({
+          objectType = "CopyOnExpiryOption"
+        })
+        data_store_type = "ArchiveStore"
+      }
+    }
+    life_cycle {
+      duration        = "P27M"
+      data_store_type = "ArchiveStore"
     }
   }
 }
