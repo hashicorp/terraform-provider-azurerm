@@ -341,12 +341,12 @@ func TestAccCdnFrontDoorFirewallPolicy_StandardSkuManagedRuleError(t *testing.T)
 	})
 }
 
-func TestAccCdnFrontDoorFirewallPolicy_StandardSkuCustomRuleJSChallengeActionError(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicy_JSChallengeStandardSkuCustomRuleActionError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.StandardSkuCustomRuleJSChallengeActionError(data),
+			Config:      r.JSChallengeStandardSkuCustomRuleActionError(data),
 			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the 'Premium_AzureFrontDoor' sku, got action: "JSChallenge" (custom_rule.name: "RateLimitExcessiveRequests", sku_name: "Standard_AzureFrontDoor")`),
 		},
 	})
@@ -1087,7 +1087,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, tmp, data.RandomInteger)
 }
 
-func (r CdnFrontDoorFirewallPolicyResource) StandardSkuCustomRuleJSChallengeActionError(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) JSChallengeStandardSkuCustomRuleActionError(data acceptance.TestData) string {
 	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
