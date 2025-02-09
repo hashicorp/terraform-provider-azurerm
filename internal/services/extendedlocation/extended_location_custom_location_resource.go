@@ -21,6 +21,62 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+var (
+	_ sdk.Resource           = CustomLocationResource{}
+	_ sdk.ResourceWithUpdate = CustomLocationResource{}
+)
+
+type CustomLocationResource2 struct{}
+
+func (r CustomLocationResource2) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return CustomLocationResource{}.IDValidationFunc()
+}
+
+func (r CustomLocationResource2) Arguments() map[string]*pluginsdk.Schema {
+	return CustomLocationResource{}.Arguments()
+}
+
+func (r CustomLocationResource2) Attributes() map[string]*pluginsdk.Schema {
+	return CustomLocationResource{}.Attributes()
+}
+
+func (r CustomLocationResource2) ModelObject() interface{} {
+	return &CustomLocationResourceModel{}
+}
+
+func (r CustomLocationResource2) Create() sdk.ResourceFunc {
+	return CustomLocationResource{}.Create()
+}
+
+func (r CustomLocationResource2) Update() sdk.ResourceFunc {
+	return CustomLocationResource{}.Update()
+}
+
+func (r CustomLocationResource2) Read() sdk.ResourceFunc {
+	return CustomLocationResource{}.Read()
+}
+
+func (r CustomLocationResource2) Delete() sdk.ResourceFunc {
+	return CustomLocationResource{}.Delete()
+}
+
+// The resource name should be `azurerm_extended_location_custom_location` as in the resource doc,
+// but in source code it is named `azurerm_extended_custom_location`.
+// we change the name to `azurerm_extended_location_custom_location` and keep the old name until 5.0
+func (r CustomLocationResource2) ResourceType() string {
+	return "azurerm_extended_location_custom_location"
+}
+
+func (r CustomLocationResource) DeprecatedInFavourOfResource() string {
+	return "azurerm_extended_location_custom_location"
+}
+
+var (
+	_ sdk.Resource                          = CustomLocationResource{}
+	_ sdk.ResourceWithUpdate                = CustomLocationResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = CustomLocationResource{}
+)
+
 type CustomLocationResource struct{}
 
 type CustomLocationResourceModel struct {
@@ -91,7 +147,6 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -294,11 +349,15 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				model.Properties.Authentication = nil
 			}
 
+			if d.HasChange("display_name") {
+				model.Properties.DisplayName = pointer.To(state.DisplayName)
+			}
+
 			if d.HasChange("cluster_extension_ids") {
 				model.Properties.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
