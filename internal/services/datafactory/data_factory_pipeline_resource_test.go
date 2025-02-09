@@ -43,21 +43,13 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("1"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("description").HasValue("test description"),
-				check.That(data.ResourceName).Key("variables.%").HasValue("2"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("description").HasValue("test description2"),
-				check.That(data.ResourceName).Key("variables.%").HasValue("3"),
-				check.That(data.ResourceName).Key("folder").HasValue("test-folder"),
 			),
 		},
 		data.ImportStep(),
@@ -197,13 +189,67 @@ resource "azurerm_data_factory_pipeline" "test" {
   annotations     = ["test1", "test2", "test3"]
   description     = "test description"
 
-  parameters = {
-    test = "testparameter"
+  parameters {
+    name          = "teststring"
+    type          = "String"
+    default_value = "teststringvalue"
   }
 
-  variables = {
-    foo = "test1"
-    bar = "test2"
+  parameters {
+    name          = "testint"
+    type          = "Int"
+    default_value = "123"
+  }
+
+  parameters {
+    name          = "testfloat"
+    type          = "Float"
+    default_value = "123.45"
+  }
+
+  parameters {
+    name          = "testbool"
+    type          = "Bool"
+    default_value = "true"
+  }
+
+  parameters {
+    name          = "testarrayint"
+    type          = "Array"
+    default_value = "[1, 2, 3]"
+  }
+
+  parameters {
+    name          = "testarraystring"
+    type          = "Array"
+    default_value = jsonencode(["a", "b", "c"])
+  }
+
+  parameters {
+    name = "testobject"
+    type = "Object"
+    default_value = jsonencode({
+      key1 = "value1"
+      key2 = "value2"
+    })
+  }
+
+  parameters {
+    name          = "testsecurestring"
+    type          = "SecureString"
+    default_value = "securestringvalue"
+  }
+
+  variables {
+    name          = "foo"
+    type          = "String"
+    default_value = "test1"
+  }
+
+  variables {
+    name          = "qux"
+    type          = "Array"
+    default_value = jsonencode(["a", "b", "c"])
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -227,23 +273,82 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%d"
-  data_factory_id                = azurerm_data_factory.test.id
-  annotations                    = ["test1", "test2"]
-  concurrency                    = 30
-  description                    = "test description2"
-  moniter_metrics_after_duration = "12:23:34"
-  folder                         = "test-folder"
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
+  annotations     = ["test1", "test2", "test3"]
+  description     = "test description"
 
-  parameters = {
-    test  = "testparameter"
-    test2 = "testparameter2"
+  parameters {
+    name          = "teststring"
+    type          = "String"
+    default_value = "teststringvalue"
   }
 
-  variables = {
-    foo = "test1"
-    bar = "test2"
-    baz = "test3"
+  parameters {
+    name          = "teststring2"
+    default_value = "teststringvalue"
+  }
+
+  parameters {
+    name          = "testint"
+    type          = "Int"
+    default_value = "123"
+  }
+
+  parameters {
+    name          = "testfloat"
+    type          = "Float"
+    default_value = "123.45"
+  }
+
+  parameters {
+    name          = "testbool"
+    type          = "Bool"
+    default_value = "true"
+  }
+
+  parameters {
+    name          = "testarrayint"
+    type          = "Array"
+    default_value = "[1, 2, 3]"
+  }
+
+  parameters {
+    name          = "testarraystring"
+    type          = "Array"
+    default_value = jsonencode(["a", "b", "c"])
+  }
+
+  parameters {
+    name = "testobject"
+    type = "Object"
+    default_value = jsonencode({
+      key1 = "value1"
+      key2 = "value2"
+    })
+  }
+
+  parameters {
+    name          = "testsecurestring"
+    type          = "SecureString"
+    default_value = "securestringvalue"
+  }
+
+  variables {
+    name          = "foo"
+    type          = "String"
+    default_value = "test1"
+  }
+
+  variables {
+    name          = "bar"
+    default_value = "test2"
+  }
+
+  variables {
+    name          = "qux"
+    type          = "Array"
+    default_value = jsonencode(["a", "b", "c"])
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -269,8 +374,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [
@@ -323,8 +430,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [
@@ -363,8 +472,10 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_pipeline" "test" {
   name            = "acctest%d"
   data_factory_id = azurerm_data_factory.test.id
-  variables = {
-    "bob" = "item1"
+  variables {
+    name          = "bob"
+    type          = "String"
+    default_value = "item1"
   }
   activities_json = <<JSON
 [
